@@ -21,7 +21,11 @@ class FlytKontroller {
         definisjoner[BehandlingType.FØRSTEGANGSBEHANDLING] = Definisjon.førstegangsbehandling
         definisjoner[BehandlingType.REVURDERING] = Definisjon.revurdering
 
-        stegene[StegType.START_BEHANDLING] = StartBehandlingSteg()
+        // TODO: Må instansieres på en bedre måte
+        Definisjon.førstegangsbehandling.stegene()
+            .forEach { steg -> stegene[steg] = StartBehandlingSteg() }
+
+        stegene[StegType.AVSLUTT_BEHANDLING] = StartBehandlingSteg()
     }
 
     // Midlertidig
@@ -50,7 +54,7 @@ class FlytKontroller {
 
             if (kanFortsette) {
                 aktivtSteg = behandling.aktivtSteg()
-                nesteStegStatus = utledNesteStegStatus(aktivtSteg, avklaringsbehov)
+                nesteStegStatus = utledNesteStegStatus(aktivtSteg)
                 nesteSteg = utledNesteSteg(aktivtSteg, nesteStegStatus, behandlingFlyt)
             }
         }
@@ -77,11 +81,12 @@ class FlytKontroller {
                                       avklaringsbehov: List<Avklaringsbehov>,
                                       aktivtSteg: StegType,
                                       behandling: Behandling): Transisjon {
-        avklaringsbehov.stream().filter { behov -> behov.definisjon.løsesISteg(aktivtSteg) }.toList()
+        val relevanteAvklaringsbehov = avklaringsbehov.filter { behov -> behov.definisjon.løsesISteg(aktivtSteg) }
         return when (nesteStegStatus) {
-            StegStatus.INNGANG -> harAvklaringspunkt(aktivtSteg, nesteStegStatus, avklaringsbehov)
+            StegStatus.INNGANG -> harAvklaringspunkt(aktivtSteg, nesteStegStatus, relevanteAvklaringsbehov)
             StegStatus.UTFØRER -> behandleSteg(aktivtSteg, kontekst)
-            StegStatus.UTGANG -> harAvklaringspunkt(aktivtSteg, nesteStegStatus, avklaringsbehov)
+            StegStatus.UTGANG -> harAvklaringspunkt(aktivtSteg, nesteStegStatus, relevanteAvklaringsbehov)
+            StegStatus.AVSLUTTER -> harTruffetSlutten(aktivtSteg)
             else -> Fortsett
         }.also {
             val nyStegTilstand =
@@ -90,9 +95,16 @@ class FlytKontroller {
         }
     }
 
+    private fun harTruffetSlutten(aktivtSteg: StegType): Transisjon {
+        return when (aktivtSteg) {
+            StegType.AVSLUTT_BEHANDLING -> Stopp
+            else -> Fortsett
+        }
+    }
+
     private fun behandleSteg(steg: StegType, kontekst: FlytKontekst): Transisjon {
         val input = StegInput(kontekst)
-        val stegResultat = stegene[steg]!!.utfør(input)
+        val stegResultat = stegene.getValue(steg).utfør(input)
 
         return stegResultat.transisjon()
     }
@@ -100,15 +112,16 @@ class FlytKontroller {
     private fun harAvklaringspunkt(steg: StegType,
                                    nesteStegStatus: StegStatus,
                                    avklaringsbehov: List<Avklaringsbehov>): Transisjon {
-        // TODO: Sjekk mot avklaringsbehov
+
+        if (avklaringsbehov.any { behov -> behov.skalStoppeHer(steg, nesteStegStatus) }) {
+            return Stopp
+        }
 
         return Fortsett
     }
 
-    private fun utledNesteStegStatus(aktivtSteg: StegTilstand, avklaringsbehov: List<Avklaringsbehov>): StegStatus {
+    private fun utledNesteStegStatus(aktivtSteg: StegTilstand): StegStatus {
         val status = aktivtSteg.tilstand.status()
-
-        // TODO: Sjekk mot avklaringsbehov
 
         return StegStatus.neste(status)
     }

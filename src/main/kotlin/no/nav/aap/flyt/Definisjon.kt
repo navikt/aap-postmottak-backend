@@ -15,6 +15,7 @@ object Definisjon {
         .medSteg(StegType.FORESLÅ_VEDTAK) // en-trinn
         .medSteg(StegType.FATTE_VEDTAK) // to-trinn
         .medSteg(StegType.IVERKSETT_VEDTAK)
+        .medSteg(StegType.AVSLUTT_BEHANDLING)
         .build()
 
     var revurdering: BehandlingFlyt = BehandlingFlytBuilder(BehandlingType.REVURDERING)

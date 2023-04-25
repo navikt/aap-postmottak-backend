@@ -9,4 +9,8 @@ class Tilstand(private val type: StegType, private val status: StegStatus) {
     fun steg(): StegType {
         return type
     }
+
+    override fun toString(): String {
+        return "Tilstand(type=$type, status=$status)"
+    }
 }

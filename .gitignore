@@ -19,7 +19,6 @@ app.properties.backup
 *.zip
 *.versionsBackup
 *.log
-es-local.properties
 *.db
 mqjms.log*
 maven-eclipse.xml
@@ -39,3 +38,5 @@ APP_LOG_HOME_IS_UNDEFINED
 .factorypath
 .DS_Store
 out/
+build/
+.gradle

@@ -7,7 +7,7 @@ import java.util.Collections
 /**
  * Holder styr på den definerte behandlingsflyten og regner ut hvilket steg det skal flyttes
  */
-class BehandlingFlyt(var behandlingType: BehandlingType,
+class BehandlingFlyt(private var behandlingType: BehandlingType,
                      private var flyt: List<StegType>,
                      private var endringTilSteg: Map<EndringType, StegType>) {
 
@@ -27,7 +27,7 @@ class BehandlingFlyt(var behandlingType: BehandlingType,
             return iterator.next()
         }
 
-        return StegType.AVSLUTT_BEHANDLING
+        return StegType.AVSLUTT_BEHANDLING // Dette steget må da spesialhåndteres i Flytkontroller for å ikke gi evig løkke
     }
 
     /**
@@ -52,6 +52,10 @@ class BehandlingFlyt(var behandlingType: BehandlingType,
     fun forType(): BehandlingType {
         return this.behandlingType;
     }
+
+    fun stegene(): List<StegType> {
+        return this.flyt
+    }
 }
 
 class BehandlingFlytBuilder(private var behandlingType: BehandlingType) {
@@ -63,9 +67,10 @@ class BehandlingFlytBuilder(private var behandlingType: BehandlingType) {
         if (buildt) {
             throw IllegalStateException("[Utvikler feil] Builder er allerede bygget")
         }
-        if (!steg.tekniskSteg) {
-            this.flyt.add(steg)
+        if (StegType.UDEFINERT == steg) {
+            throw IllegalStateException("[Utvikler feil] Builder er allerede bygget")
         }
+        this.flyt.add(steg)
         endringer.forEach { endring ->
             this.endringTilSteg[endring] = steg
         }
@@ -78,6 +83,10 @@ class BehandlingFlytBuilder(private var behandlingType: BehandlingType) {
         }
         buildt = true
 
-        return BehandlingFlyt(this.behandlingType, Collections.unmodifiableList(flyt), Collections.unmodifiableMap(endringTilSteg))
+        return BehandlingFlyt(
+            this.behandlingType,
+            Collections.unmodifiableList(flyt),
+            Collections.unmodifiableMap(endringTilSteg)
+        )
     }
 }

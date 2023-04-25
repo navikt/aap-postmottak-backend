@@ -16,6 +16,6 @@ class Avklaringsbehov(var definisjon: Definisjon, var status: Status, var histor
     }
 
     fun skalStoppeHer(stegType: StegType, stegStatus: StegStatus): Boolean {
-        return definisjon.løsesISteg(stegType)
+        return definisjon.løsesISteg(stegType) && definisjon.påStegStatus(stegStatus)
     }
 }

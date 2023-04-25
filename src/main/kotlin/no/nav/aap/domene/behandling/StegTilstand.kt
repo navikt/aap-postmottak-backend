@@ -14,4 +14,8 @@ class StegTilstand(var tidspunkt: LocalDateTime = LocalDateTime.now(),
     override fun compareTo(other: StegTilstand): Int {
         return tidspunkt.compareTo(other.tidspunkt)
     }
+
+    override fun toString(): String {
+        return "StegTilstand(tidspunkt=$tidspunkt, tilstand=$tilstand, aktiv=$aktiv)"
+    }
 }

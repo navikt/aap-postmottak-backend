@@ -1,5 +1,6 @@
 package no.nav.aap.domene.behandling.avklaringsbehov
 
+import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 import java.time.Period
 import java.util.Arrays
@@ -49,6 +50,10 @@ enum class Definisjon(private val kode: String,
 
     fun løsesISteg(steg: StegType): Boolean {
         return løsesISteg == steg
+    }
+
+    fun påStegStatus(status: StegStatus): Boolean {
+        return vurderingspunkt.stegStatus == status
     }
 
     private fun validerManuelt() {
