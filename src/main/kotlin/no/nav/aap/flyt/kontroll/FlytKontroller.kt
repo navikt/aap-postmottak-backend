@@ -4,6 +4,7 @@ import no.nav.aap.domene.behandling.Behandling
 import no.nav.aap.domene.behandling.BehandlingType
 import no.nav.aap.domene.behandling.StegTilstand
 import no.nav.aap.domene.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.domene.behandling.avklaringsbehov.Vurderingspunkt
 import no.nav.aap.flyt.BehandlingFlyt
 import no.nav.aap.flyt.Definisjon
 import no.nav.aap.flyt.StegStatus
@@ -11,6 +12,7 @@ import no.nav.aap.flyt.StegType
 import no.nav.aap.steg.BehandlingSteg
 import no.nav.aap.steg.StartBehandlingSteg
 import no.nav.aap.steg.StegInput
+import no.nav.aap.steg.VurderYrkesskadeSteg
 
 class FlytKontroller {
 
@@ -26,6 +28,7 @@ class FlytKontroller {
             .forEach { steg -> stegene[steg] = StartBehandlingSteg() }
 
         stegene[StegType.AVSLUTT_BEHANDLING] = StartBehandlingSteg()
+        stegene[StegType.AVKLAR_YRKESSKADE] = VurderYrkesskadeSteg()
     }
 
     // Midlertidig
@@ -63,7 +66,7 @@ class FlytKontroller {
     private fun validerPlassering(funnetAvklaringsbehov: List<no.nav.aap.domene.behandling.avklaringsbehov.Definisjon>,
                                   nesteSteg: StegType,
                                   nesteStegStatus: StegStatus) {
-        TODO("Not yet implemented")
+        // TODO("Not yet implemented")
     }
 
     private fun utledNesteSteg(aktivtSteg: StegTilstand,

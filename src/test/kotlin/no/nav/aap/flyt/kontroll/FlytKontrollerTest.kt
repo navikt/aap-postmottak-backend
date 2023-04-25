@@ -11,6 +11,10 @@ class FlytKontrollerTest {
         val kontekst = FlytKontekst(1L, 1L)
         flytKontroller.prosesserBehandling(kontekst)
 
-        val behandling = flytKontroller.behandliger[1L]
+        val behandling = flytKontroller.behandliger.getValue(1L)
+
+        behandling.løsAvklaringsbehov(no.nav.aap.domene.behandling.avklaringsbehov.Definisjon.AVKLAR_YRKESSKADE, "Begrunnelse", "meg")
+
+        flytKontroller.prosesserBehandling(kontekst)
     }
 }

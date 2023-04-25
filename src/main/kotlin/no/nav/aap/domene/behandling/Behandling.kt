@@ -6,11 +6,13 @@ import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 import no.nav.aap.flyt.Tilstand
 
-class Behandling(val id: Long,
-                 val type: BehandlingType,
-                 private var status: Status = Status.OPPRETTET,
-                 private var avklaringsbehov: List<Avklaringsbehov> = mutableListOf(),
-                 private var stegHistorikk: List<StegTilstand> = mutableListOf()) {
+class Behandling(
+    val id: Long,
+    val type: BehandlingType,
+    private var status: Status = Status.OPPRETTET,
+    private var avklaringsbehov: List<Avklaringsbehov> = mutableListOf(),
+    private var stegHistorikk: List<StegTilstand> = mutableListOf()
+) {
 
     fun visit(stegTilstand: StegTilstand) {
         if (!stegTilstand.aktiv) {
@@ -71,5 +73,9 @@ class Behandling(val id: Long,
         } else {
             relevantBehov.get().reåpne()
         }
+    }
+
+    fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String) {
+        avklaringsbehov.single { it.definisjon == definisjon }.løs(begrunnelse, endretAv = endretAv)
     }
 }

@@ -7,6 +7,7 @@ object Definisjon {
 
     var førstegangsbehandling: BehandlingFlyt = BehandlingFlytBuilder(BehandlingType.FØRSTEGANGSBEHANDLING)
         .medSteg(StegType.START_BEHANDLING, EndringType.NY_SØKNAD)
+        .medSteg(StegType.AVKLAR_YRKESSKADE)
         .medSteg(StegType.INNGANGSVILKÅR)
         .medSteg(StegType.FASTSETT_GRUNNLAG)
         .medSteg(StegType.FASTSETT_UTTAK)

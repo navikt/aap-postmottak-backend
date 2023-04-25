@@ -3,9 +3,9 @@ package no.nav.aap.steg
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.flyt.StegType
 
-class StartBehandlingSteg : BehandlingSteg {
+class VurderYrkesskadeSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
-        return StegResultat() // DO NOTHING
+        return StegResultat(listOf(Definisjon.AVKLAR_YRKESSKADE))
     }
 
     override fun type(): StegType {

@@ -24,7 +24,7 @@ enum class Definisjon(private val kode: String,
     AVKLAR_YRKESSKADE(
         kode = "5001",
         løsesISteg = StegType.AVKLAR_YRKESSKADE,
-        vurderingspunkt = Vurderingspunkt.INN
+        vurderingspunkt = Vurderingspunkt.UT
     );
 
     companion object {

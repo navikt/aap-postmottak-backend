@@ -1,8 +1,10 @@
 package no.nav.aap.flyt
 
+import org.junit.jupiter.api.Test
+
 class DefinisjonTest {
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `Skal finne neste steg for førstegangsbehandling`() {
         val førstegangsbehandling = Definisjon.førstegangsbehandling
 
