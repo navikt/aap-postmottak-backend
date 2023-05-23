@@ -1,8 +1,8 @@
 package no.nav.aap.flyt.kontroll
 
+import no.nav.aap.avklaringsbehov.yrkesskade.AvklarYrkesskadeLøsning
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.Status
-import no.nav.aap.domene.behandling.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import org.junit.jupiter.api.Test
 
 class FlytKontrollerTest {
@@ -18,9 +18,11 @@ class FlytKontrollerTest {
         assert(behandling.status() == Status.UTREDES)
         assert(behandling.avklaringsbehov().isNotEmpty())
 
-        flytKontroller.løsAvklaringsbehovOgFortsettProsessering(kontekst, avklaringsbehov = listOf(
-            AvklaringsbehovLøsning(no.nav.aap.domene.behandling.avklaringsbehov.Definisjon.AVKLAR_YRKESSKADE, "Begrunnelse", "meg")
-        ))
+        flytKontroller.løsAvklaringsbehovOgFortsettProsessering(
+            kontekst, avklaringsbehov = listOf(
+                AvklarYrkesskadeLøsning("Begrunnelse", "meg")
+            )
+        )
 
         assert(behandling.status() == Status.AVSLUTTET)
     }

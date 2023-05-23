@@ -1,11 +1,14 @@
 package no.nav.aap.flyt.kontroll
 
+import no.nav.aap.avklaringsbehov.AvklaringsbehovLøsning
+import no.nav.aap.avklaringsbehov.AvklaringsbehovsLøser
+import no.nav.aap.avklaringsbehov.yrkesskade.AvklarYrkesskadeLøser
 import no.nav.aap.domene.behandling.Behandling
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.Status
 import no.nav.aap.domene.behandling.StegTilstand
 import no.nav.aap.domene.behandling.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.domene.behandling.avklaringsbehov.løsning.AvklaringsbehovLøsning
+import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.flyt.BehandlingFlyt
 import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
@@ -13,6 +16,12 @@ import no.nav.aap.steg.BehandlingSteg
 import no.nav.aap.steg.StegInput
 
 class FlytKontroller {
+
+    private val avklaringsbehovsLøsere = mutableMapOf<Definisjon, AvklaringsbehovsLøser<*>>()
+
+    init {
+        avklaringsbehovsLøsere[Definisjon.AVKLAR_YRKESSKADE] = AvklarYrkesskadeLøser()
+    }
 
     fun prosesserBehandling(kontekst: FlytKontekst) {
         val behandling = BehandlingTjeneste.hentBehandling(kontekst.behandlingId)
@@ -65,13 +74,24 @@ class FlytKontroller {
             flyttTilStartAvAktivtSteg(behandling)
         }
 
-        avklaringsbehov.forEach { behandling.løsAvklaringsbehov(it.definisjon, it.begrunnelse, it.endretAv) }
+        // Bør ideelt kalle på
+        avklaringsbehov.forEach { løsAvklaringsbehov(kontekst, behandling, it) }
 
         prosesserBehandling(kontekst)
     }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun løsAvklaringsbehov(kontekst: FlytKontekst,
+                                   behandling: Behandling,
+                                   it: AvklaringsbehovLøsning) {
+        val avklaringsbehovsLøser =
+            avklaringsbehovsLøsere.getValue(it.definisjon) as AvklaringsbehovsLøser<AvklaringsbehovLøsning>
+        avklaringsbehovsLøser.løs(kontekst = kontekst, it)
+        behandling.løsAvklaringsbehov(it.definisjon, it.begrunnelse, it.endretAv)
+    }
+
     private fun validerTilstandBehandling(behandling: Behandling,
-                                          avklaringsbehov: List<no.nav.aap.domene.behandling.avklaringsbehov.Definisjon>) {
+                                          avklaringsbehov: List<Definisjon>) {
         if (setOf(Status.AVSLUTTET, Status.IVERKSETTES).contains(behandling.status())) {
             throw IllegalArgumentException("Forsøker manipulere på behandling som er avsluttet")
         }
@@ -128,7 +148,7 @@ class FlytKontroller {
 
     private fun utledSteg(behandlingFlyt: BehandlingFlyt,
                           aktivtSteg: StegTilstand,
-                          map: List<no.nav.aap.domene.behandling.avklaringsbehov.Definisjon>): StegType {
+                          map: List<Definisjon>): StegType {
         TODO("Not yet implemented")
     }
 
@@ -139,7 +159,7 @@ class FlytKontroller {
 
     private fun skalHoppesTilbake(behandlingFlyt: BehandlingFlyt,
                                   aktivtSteg: StegTilstand,
-                                  avklaringsDefinisjoner: List<no.nav.aap.domene.behandling.avklaringsbehov.Definisjon>): Boolean {
+                                  avklaringsDefinisjoner: List<Definisjon>): Boolean {
 
         return avklaringsDefinisjoner.filter { definisjon ->
             behandlingFlyt.erStegFør(
@@ -149,7 +169,7 @@ class FlytKontroller {
         }.isNotEmpty()
     }
 
-    private fun validerPlassering(funnetAvklaringsbehov: List<no.nav.aap.domene.behandling.avklaringsbehov.Definisjon>,
+    private fun validerPlassering(funnetAvklaringsbehov: List<Definisjon>,
                                   nesteSteg: StegType,
                                   nesteStegStatus: StegStatus) {
         // TODO("Not yet implemented")
