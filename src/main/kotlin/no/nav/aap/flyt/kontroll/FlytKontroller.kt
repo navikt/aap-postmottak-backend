@@ -84,6 +84,7 @@ class FlytKontroller {
     private fun løsAvklaringsbehov(kontekst: FlytKontekst,
                                    behandling: Behandling,
                                    it: AvklaringsbehovLøsning) {
+        // Liker denne casten fryktelig lite godt -_- men må til pga generics *
         val avklaringsbehovsLøser =
             avklaringsbehovsLøsere.getValue(it.definisjon) as AvklaringsbehovsLøser<AvklaringsbehovLøsning>
         avklaringsbehovsLøser.løs(kontekst = kontekst, it)
