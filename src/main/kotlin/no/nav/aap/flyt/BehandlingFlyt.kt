@@ -62,6 +62,10 @@ class BehandlingFlyt(private var flyt: List<BehandlingSteg>,
         return aIndex < bIndex
     }
 
+    fun compareable(): StegComparator {
+        return StegComparator(flyt)
+    }
+
     fun erStegFørEllerLik(stegA: StegType, stegB: StegType): Boolean {
         val aIndex = flyt.indexOfFirst { it.type() == stegA }
         val bIndex = flyt.indexOfFirst { it.type() == stegB }
@@ -83,6 +87,16 @@ class BehandlingFlyt(private var flyt: List<BehandlingSteg>,
 
         return StartBehandlingSteg() // Dette steget må da spesialhåndteres i Flytkontroller for å ikke gi evig løkke
     }
+}
+
+class StegComparator(private var flyt: List<BehandlingSteg>) : Comparator<StegType> {
+    override fun compare(stegA: StegType?, stegB: StegType?): Int {
+        val aIndex = flyt.indexOfFirst { it.type() == stegA }
+        val bIndex = flyt.indexOfFirst { it.type() == stegB }
+
+        return aIndex.compareTo(bIndex)
+    }
+
 }
 
 class BehandlingFlytBuilder {

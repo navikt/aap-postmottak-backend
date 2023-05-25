@@ -67,8 +67,7 @@ class Behandling(
         funnetAvklaringsbehov.stream()
             .map { definisjon ->
                 Avklaringsbehov(
-                    definisjon,
-                    no.nav.aap.domene.behandling.avklaringsbehov.Status.OPPRETTET
+                    definisjon
                 )
             }
             .forEach { leggTil(behov = it) }

@@ -36,12 +36,17 @@ class FlytKontroller {
 
         var kanFortsette = true
         while (kanFortsette) {
-            val avklaringsbehov = behandling.avklaringsbehov()
+            val avklaringsbehov = behandling.avklaringsbehov().filter { behov -> behov.erÅpent() }
+            validerPlassering(
+                behandlingFlyt,
+                avklaringsbehov.map { behov -> behov.definisjon },
+                nesteSteg.type(),
+                nesteStegStatus
+            )
 
             val result = utførTilstandsEndring(kontekst, nesteStegStatus, avklaringsbehov, nesteSteg, behandling)
 
             if (result.funnetAvklaringsbehov().isNotEmpty()) {
-                validerPlassering(result.funnetAvklaringsbehov(), nesteSteg.type(), nesteStegStatus)
                 behandling.leggTil(result.funnetAvklaringsbehov())
             }
 
@@ -99,7 +104,9 @@ class FlytKontroller {
         if (avklaringsbehov.any { !behandling.avklaringsbehov().map { a -> a.definisjon }.contains(it) }) {
             throw IllegalArgumentException("Forsøker løse aksjonspunkt ikke knyttet til behandlingen")
         }
-        if (avklaringsbehov.any { !behandling.type.flyt().erStegFørEllerLik(it.løsesISteg, behandling.aktivtSteg().tilstand.steg()) }) {
+        if (avklaringsbehov.any {
+                !behandling.type.flyt().erStegFørEllerLik(it.løsesISteg, behandling.aktivtSteg().tilstand.steg())
+            }) {
             throw IllegalArgumentException("Forsøker løse aksjonspunkt ikke knyttet til behandlingen")
         }
     }
@@ -149,14 +156,21 @@ class FlytKontroller {
 
     private fun utledSteg(behandlingFlyt: BehandlingFlyt,
                           aktivtSteg: StegTilstand,
-                          map: List<Definisjon>): StegType {
-        TODO("Not yet implemented")
+                          avklaringsDefinisjoner: List<Definisjon>): StegType {
+        return avklaringsDefinisjoner.filter { definisjon ->
+            behandlingFlyt.erStegFør(
+                aktivtSteg.tilstand.steg(),
+                definisjon.løsesISteg
+            )
+        }
+            .map { definisjon -> definisjon.løsesISteg }
+            .minWith(behandlingFlyt.compareable())
     }
 
     private fun skalRekjøreSteg(avklaringsbehov: List<AvklaringsbehovLøsning>,
                                 behandling: Behandling) =
         avklaringsbehov.filter { it.definisjon.løsesISteg == behandling.aktivtSteg().tilstand.steg() }
-            .filter { it.definisjon.rekjørSteg }.isNotEmpty()
+            .any { it.definisjon.rekjørSteg }
 
     private fun skalHoppesTilbake(behandlingFlyt: BehandlingFlyt,
                                   aktivtSteg: StegTilstand,
@@ -170,10 +184,26 @@ class FlytKontroller {
         }.isNotEmpty()
     }
 
-    private fun validerPlassering(funnetAvklaringsbehov: List<Definisjon>,
+    private fun validerPlassering(behandlingFlyt: BehandlingFlyt,
+                                  åpneAvklaringsbehov: List<Definisjon>,
                                   nesteSteg: StegType,
                                   nesteStegStatus: StegStatus) {
-        // TODO("Not yet implemented")
+        val uhåndterteBehov = åpneAvklaringsbehov
+            .filter { definisjon ->
+                behandlingFlyt.erStegFørEllerLik(
+                    definisjon.løsesISteg,
+                    nesteSteg
+                )
+            }
+            .filter { definisjon ->
+                behandlingFlyt.erStegFør(
+                    definisjon.løsesISteg,
+                    nesteSteg
+                ) || definisjon.vurderingspunkt.stegStatus.erFør(nesteStegStatus)
+            }
+        if (uhåndterteBehov.isNotEmpty()) {
+            throw IllegalStateException("Har uhåndterte behov som skulle vært håndtert før nåværende steg = '" + nesteSteg + "' med status = '" + nesteStegStatus + "'")
+        }
     }
 
     private fun utledNesteSteg(aktivtSteg: StegTilstand,
