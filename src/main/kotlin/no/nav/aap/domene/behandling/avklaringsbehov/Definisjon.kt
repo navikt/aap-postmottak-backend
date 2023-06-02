@@ -25,6 +25,17 @@ enum class Definisjon(private val kode: String,
     AVKLAR_YRKESSKADE(
         kode = "5001",
         løsesISteg = StegType.AVKLAR_YRKESSKADE,
+        vurderingspunkt = Vurderingspunkt.UT,
+        kreverToTrinn = true
+    ),
+    FORESLÅ_VEDTAK(
+        kode = "5098",
+        løsesISteg = StegType.FORESLÅ_VEDTAK,
+        vurderingspunkt = Vurderingspunkt.UT
+    ),
+    FATTE_VEDTAK(
+        kode = "5099",
+        løsesISteg = StegType.FATTE_VEDTAK,
         vurderingspunkt = Vurderingspunkt.UT
     );
 

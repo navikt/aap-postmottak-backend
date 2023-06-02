@@ -2,6 +2,8 @@ package no.nav.aap.flyt.kontroll
 
 import no.nav.aap.avklaringsbehov.AvklaringsbehovLøsning
 import no.nav.aap.avklaringsbehov.AvklaringsbehovsLøser
+import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøser
+import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøser
 import no.nav.aap.avklaringsbehov.yrkesskade.AvklarYrkesskadeLøser
 import no.nav.aap.domene.behandling.Behandling
 import no.nav.aap.domene.behandling.BehandlingTjeneste
@@ -21,10 +23,12 @@ class FlytKontroller {
 
     init {
         avklaringsbehovsLøsere[Definisjon.AVKLAR_YRKESSKADE] = AvklarYrkesskadeLøser()
+        avklaringsbehovsLøsere[Definisjon.FORESLÅ_VEDTAK] = ForeslåVedtakLøser()
+        avklaringsbehovsLøsere[Definisjon.FATTE_VEDTAK] = FatteVedtakLøser()
     }
 
     fun prosesserBehandling(kontekst: FlytKontekst) {
-        val behandling = BehandlingTjeneste.hentBehandling(kontekst.behandlingId)
+        val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
 
         validerTilstandBehandling(behandling, listOf())
 
@@ -62,7 +66,7 @@ class FlytKontroller {
 
     fun løsAvklaringsbehovOgFortsettProsessering(kontekst: FlytKontekst,
                                                  avklaringsbehov: List<AvklaringsbehovLøsning>) {
-        val behandling = BehandlingTjeneste.hentBehandling(kontekst.behandlingId)
+        val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
 
         validerTilstandBehandling(behandling, avklaringsbehov.map { it.definisjon })
 

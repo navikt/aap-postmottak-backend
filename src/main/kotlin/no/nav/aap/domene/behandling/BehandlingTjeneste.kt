@@ -9,7 +9,7 @@ object BehandlingTjeneste {
 
     private val LOCK = Object()
 
-    fun hentBehandling(behandlingId: Long): Behandling {
+    fun hent(behandlingId: Long): Behandling {
         synchronized(LOCK) {
             return behandliger.getValue(behandlingId)
         }

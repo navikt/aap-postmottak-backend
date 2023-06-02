@@ -30,4 +30,8 @@ class Avklaringsbehov(var definisjon: Definisjon,
     fun erTotrinn(): Boolean {
         return definisjon.kreverToTrinn
     }
+
+    fun erIkkeAvbrutt(): Boolean {
+        return Status.AVBRUTT != historikk.last().status
+    }
 }

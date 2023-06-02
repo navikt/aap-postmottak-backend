@@ -1,8 +1,11 @@
 package no.nav.aap.flyt.kontroll
 
+import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
+import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.avklaringsbehov.yrkesskade.AvklarYrkesskadeLøsning
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.Status
+import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.Yrkesskade
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.Yrkesskader
@@ -34,6 +37,23 @@ class FlytKontrollerTest {
         flytKontroller.løsAvklaringsbehovOgFortsettProsessering(
             kontekst, avklaringsbehov = listOf(
                 AvklarYrkesskadeLøsning("Begrunnelse", "meg")
+            )
+        )
+
+        assert(behandling.avklaringsbehov().filter { it.erÅpent() }.any { it.definisjon == Definisjon.FORESLÅ_VEDTAK })
+        assert(behandling.status() == Status.UTREDES)
+
+        flytKontroller.løsAvklaringsbehovOgFortsettProsessering(
+            kontekst, avklaringsbehov = listOf(
+                ForeslåVedtakLøsning("Begrunnelse", "meg")
+            )
+        )
+        assert(behandling.avklaringsbehov().filter { it.erÅpent() }.any { it.definisjon == Definisjon.FATTE_VEDTAK })
+        assert(behandling.status() == Status.UTREDES)
+
+        flytKontroller.løsAvklaringsbehovOgFortsettProsessering(
+            kontekst, avklaringsbehov = listOf(
+                FatteVedtakLøsning("Begrunnelse", "meg")
             )
         )
 
