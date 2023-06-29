@@ -15,23 +15,23 @@ object BehandlingTjeneste {
         }
     }
 
-    fun finnSisteBehandlingFor(fagsakId: Long): Optional<Behandling> {
+    fun finnSisteBehandlingFor(sakId: Long): Optional<Behandling> {
         synchronized(LOCK) {
             return Optional.ofNullable(behandliger.values
-                .filter { behandling -> behandling.fagsakId == fagsakId }
+                .filter { behandling -> behandling.sakId == sakId }
                 .maxOrNull())
         }
     }
 
-    fun opprettBehandling(fagsakId: Long): Behandling {
+    fun opprettBehandling(sakId: Long): Behandling {
         synchronized(LOCK) {
-            val sisteBehandlingFor = finnSisteBehandlingFor(fagsakId)
+            val sisteBehandlingFor = finnSisteBehandlingFor(sakId)
             val erSisteBehandlingAvsluttet = sisteBehandlingFor.map { it.status().erAvsluttet() }.orElse(true)
 
             if (erSisteBehandlingAvsluttet) {
                 val key1 = key.addAndGet(1)
                 val behandlingType = utledBehandlingType(sisteBehandlingFor.isPresent)
-                behandliger[key1] = Behandling(key1, fagsakId, behandlingType)
+                behandliger[key1] = Behandling(key1, sakId, behandlingType)
                 return behandliger.getValue(key1)
             } else {
                 throw IllegalStateException("Siste behandling er ikke avsluttet")

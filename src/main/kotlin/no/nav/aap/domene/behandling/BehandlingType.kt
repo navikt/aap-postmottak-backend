@@ -3,13 +3,7 @@ package no.nav.aap.domene.behandling
 import no.nav.aap.flyt.BehandlingFlyt
 import no.nav.aap.flyt.BehandlingFlytBuilder
 import no.nav.aap.flyt.StegType
-import no.nav.aap.flyt.steg.AvsluttBehandlingSteg
-import no.nav.aap.flyt.steg.FatteVedtakSteg
-import no.nav.aap.flyt.steg.ForeslåVedtakSteg
-import no.nav.aap.flyt.steg.GeneriskPlaceholderSteg
-import no.nav.aap.flyt.steg.InnhentRegisterdataSteg
-import no.nav.aap.flyt.steg.StartBehandlingSteg
-import no.nav.aap.flyt.steg.VurderYrkesskadeSteg
+import no.nav.aap.flyt.steg.*
 
 interface BehandlingType {
     fun flyt(): BehandlingFlyt
@@ -21,7 +15,8 @@ object Førstegangsbehandling : BehandlingType {
         return BehandlingFlytBuilder()
             .medSteg(StartBehandlingSteg())
             .medSteg(InnhentRegisterdataSteg())
-            .medSteg(VurderYrkesskadeSteg())
+            .medSteg(VurderAlderSteg())
+            .medSteg(AvklarYrkesskadeSteg())
             .medSteg(GeneriskPlaceholderSteg(StegType.INNGANGSVILKÅR))
             .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_GRUNNLAG))
             .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_UTTAK))

@@ -9,11 +9,12 @@ import java.time.LocalDateTime
 
 class Behandling(
     val id: Long,
-    val fagsakId: Long,
+    val sakId: Long,
     val type: BehandlingType,
     private var status: Status = Status.OPPRETTET,
     private var avklaringsbehov: List<Avklaringsbehov> = mutableListOf(),
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
+    private val vilkårsresultat: Vilkårsresultat = Vilkårsresultat(listOf(Vilkår(Vilkårstype.ALDERSVILKÅRET))), //FIXME
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now()
 ) : Comparable<Behandling> {
 
@@ -34,6 +35,8 @@ class Behandling(
     fun avklaringsbehov(): List<Avklaringsbehov> {
         return avklaringsbehov
     }
+
+    fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()
 
     private fun oppdaterStatus(stegTilstand: StegTilstand) {
         val stegStatus = stegTilstand.tilstand.steg().status
@@ -89,5 +92,9 @@ class Behandling(
 
     override fun compareTo(other: Behandling): Int {
         return this.opprettetTidspunkt.compareTo(other.opprettetTidspunkt)
+    }
+
+    fun vilkårsresultat(): Vilkårsresultat {
+        return vilkårsresultat
     }
 }

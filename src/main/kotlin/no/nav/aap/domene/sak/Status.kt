@@ -1,4 +1,4 @@
-package no.nav.aap.domene.fagsak
+package no.nav.aap.domene.sak
 
 enum class Status {
     OPPRETTET,

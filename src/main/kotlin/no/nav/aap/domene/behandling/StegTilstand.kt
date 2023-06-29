@@ -2,8 +2,8 @@ package no.nav.aap.domene.behandling
 
 import java.time.LocalDateTime
 
-class StegTilstand(var tidspunkt: LocalDateTime = LocalDateTime.now(),
-                   var tilstand: no.nav.aap.flyt.Tilstand,
+class StegTilstand(val tidspunkt: LocalDateTime = LocalDateTime.now(),
+                   val tilstand: no.nav.aap.flyt.Tilstand,
                    var aktiv: Boolean = true) : Comparable<StegTilstand> {
 
     fun deaktiver() {

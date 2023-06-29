@@ -4,7 +4,7 @@ import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
 import no.nav.aap.flyt.StegType
 
-class VurderYrkesskadeSteg : BehandlingSteg {
+class AvklarYrkesskadeSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
         val grunnlagOptional = YrkesskadeTjeneste.hentHvisEksisterer(input.kontekst.behandlingId)
 

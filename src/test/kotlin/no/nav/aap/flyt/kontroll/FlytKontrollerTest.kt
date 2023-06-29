@@ -6,12 +6,16 @@ import no.nav.aap.avklaringsbehov.yrkesskade.AvklarYrkesskadeLøsning
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.Førstegangsbehandling
 import no.nav.aap.domene.behandling.Status
+import no.nav.aap.domene.behandling.Vilkårstype
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegister
-import no.nav.aap.domene.fagsak.FagsakTjeneste
-import no.nav.aap.domene.person.PersonTjeneste
+import no.nav.aap.domene.person.PersonTjenesteMock
+import no.nav.aap.domene.sak.SakTjeneste
 import no.nav.aap.domene.typer.Ident
 import no.nav.aap.domene.typer.Periode
+import no.nav.aap.flyt.StegStatus
+import no.nav.aap.flyt.StegType
+import no.nav.aap.flyt.Tilstand
 import no.nav.aap.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.mottak.HendelsesMottak
 import no.nav.aap.mottak.LøsAvklaringsbehovBehandlingHendelse
@@ -31,17 +35,18 @@ class FlytKontrollerTest {
         // Sender inn en søknad
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
-        val fagsak = FagsakTjeneste.finnEllerOpprett(PersonTjeneste.finnEllerOpprett(ident), periode)
-        assert(fagsak.saksnummer.toString().isNotEmpty())
+        val sak = SakTjeneste.finnEllerOpprett(PersonTjenesteMock.finnEllerOpprett(ident), periode)
+        assert(sak.saksnummer.toString().isNotEmpty())
 
-        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(fagsak.id).orElseThrow()
+        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
         assert(behandling.type == Førstegangsbehandling)
 
         assert(behandling.avklaringsbehov().isNotEmpty())
         assert(behandling.status() == Status.UTREDES)
 
 
-        HendelsesMottak.håndtere(behandling.id,
+        HendelsesMottak.håndtere(
+            behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
                 løsning = AvklarYrkesskadeLøsning("Begrunnelse", "meg")
@@ -52,15 +57,8 @@ class FlytKontrollerTest {
         assert(behandling.avklaringsbehov().filter { it.erÅpent() }.any { it.definisjon == Definisjon.FORESLÅ_VEDTAK })
         assert(behandling.status() == Status.UTREDES)
 
-
-        HendelsesMottak.håndtere(behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                versjon = 1L,
-                løsning = AvklarYrkesskadeLøsning("Begrunnelse", "meg")
-            )
-        )
-
-        HendelsesMottak.håndtere(behandling.id,
+        HendelsesMottak.håndtere(
+            behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
                 løsning = ForeslåVedtakLøsning("Begrunnelse", "meg")
@@ -71,7 +69,8 @@ class FlytKontrollerTest {
         assert(behandling.avklaringsbehov().filter { it.erÅpent() }.any { it.definisjon == Definisjon.FATTE_VEDTAK })
         assert(behandling.status() == Status.UTREDES)
 
-        HendelsesMottak.håndtere(behandling.id,
+        HendelsesMottak.håndtere(
+            behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
                 løsning = FatteVedtakLøsning("Begrunnelse", "meg")
@@ -83,19 +82,46 @@ class FlytKontrollerTest {
 
     @Test
     fun `skal IKKE avklare yrkesskade hvis det finnes spor av yrkesskade`() {
+
         val ident = Ident("123123123124")
-        val person = PersonTjeneste.finnEllerOpprett(ident)
+        val person = PersonTjenesteMock.finnEllerOpprett(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
-        val fagsak = FagsakTjeneste.finnEllerOpprett(person, periode)
-        assert(fagsak.saksnummer.toString().isNotEmpty())
+        val sak = SakTjeneste.finnEllerOpprett(person, periode)
+        assert(sak.saksnummer.toString().isNotEmpty())
 
-        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(fagsak.id).orElseThrow()
+        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
         assert(behandling.type == Førstegangsbehandling)
 
         assert(behandling.avklaringsbehov().isEmpty())
         assert(behandling.status() == Status.AVSLUTTET)
+    }
+
+    @Test
+    fun `Skal vurdere alder`() {
+        val ident = Ident("123123123125")
+        val person = PersonTjenesteMock.finnEllerOpprett(ident)
+        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+
+        HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
+
+        val sak = SakTjeneste.finnEllerOpprett(person, periode)
+        assert(sak.saksnummer.toString().isNotEmpty())
+
+        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
+        assert(behandling.type == Førstegangsbehandling)
+
+        val stegHistorikk = behandling.stegHistorikk()
+        assert(stegHistorikk.map { it.tilstand }.contains(Tilstand(StegType.VURDER_ALDER, StegStatus.AVSLUTTER)))
+
+        //Henter vurder alder-vilkår
+        //Assert utfall
+        val vilkårsresultat = behandling.vilkårsresultat()
+        val vilkår = vilkårsresultat.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
+
+        assert(vilkår.vilkårsperiode.size == 1)
+
     }
 }

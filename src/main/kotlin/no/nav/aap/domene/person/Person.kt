@@ -1,9 +1,10 @@
 package no.nav.aap.domene.person
 
+import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
 import no.nav.aap.domene.typer.Ident
 import java.util.UUID
 
-class Person(val identifikator: UUID, private var identer: List<Ident>) {
+class Person(val identifikator: UUID, private var identer: List<Ident>, private val fødselsdato: Fødselsdato) {
 
     fun er(ident: Ident): Boolean {
         return identer.any { it == ident }

@@ -1,6 +1,6 @@
 package no.nav.aap.flyt.kontroll
 
-data class FlytKontekst(val fagsakId: Long,
+data class FlytKontekst(val sakId: Long,
                         val behandlingId: Long) {
 
 }
