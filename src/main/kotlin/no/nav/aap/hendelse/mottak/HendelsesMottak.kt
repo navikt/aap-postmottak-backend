@@ -1,8 +1,8 @@
-package no.nav.aap.mottak
+package no.nav.aap.hendelse.mottak
 
 import no.nav.aap.domene.behandling.BehandlingTjeneste
+import no.nav.aap.domene.person.PersonTjeneste
 import no.nav.aap.domene.sak.SakTjeneste
-import no.nav.aap.domene.person.PersonTjenesteMock
 import no.nav.aap.domene.typer.Ident
 import no.nav.aap.domene.typer.Saksnummer
 import no.nav.aap.flyt.kontroll.FlytKontekst
@@ -13,7 +13,7 @@ object HendelsesMottak {
     private val kontroller = FlytKontroller()
 
     fun håndtere(key: Ident, hendelse: PersonHendelse) {
-        val person = PersonTjenesteMock.finnEllerOpprett(key)
+        val person = PersonTjeneste.finnEllerOpprett(key)
 
         val sak = SakTjeneste.finnEllerOpprett(person, hendelse.periode())
 

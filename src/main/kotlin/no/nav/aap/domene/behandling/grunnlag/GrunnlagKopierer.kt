@@ -1,4 +1,10 @@
 package no.nav.aap.domene.behandling.grunnlag
 
-class GrunnlagKopierer {
+import no.nav.aap.domene.behandling.Behandling
+
+object GrunnlagKopierer {
+
+    fun overfør(fraBehandling: Behandling, tilBehandling: Behandling) {
+
+    }
 }

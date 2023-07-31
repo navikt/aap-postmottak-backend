@@ -1,5 +1,6 @@
 package no.nav.aap.domene.behandling
 
+import no.nav.aap.domene.behandling.grunnlag.GrunnlagKopierer
 import java.util.Optional
 import java.util.concurrent.atomic.AtomicLong
 
@@ -31,7 +32,11 @@ object BehandlingTjeneste {
             if (erSisteBehandlingAvsluttet) {
                 val key1 = key.addAndGet(1)
                 val behandlingType = utledBehandlingType(sisteBehandlingFor.isPresent)
-                behandliger[key1] = Behandling(key1, sakId, behandlingType)
+                val behandling = Behandling(key1, sakId, behandlingType)
+                behandliger[key1] = behandling
+
+                sisteBehandlingFor.ifPresent { fraBehandling -> GrunnlagKopierer.overfør(fraBehandling, behandling) }
+
                 return behandliger.getValue(key1)
             } else {
                 throw IllegalStateException("Siste behandling er ikke avsluttet")

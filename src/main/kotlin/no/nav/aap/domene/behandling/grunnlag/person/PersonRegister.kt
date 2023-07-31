@@ -4,15 +4,22 @@ import no.nav.aap.domene.typer.Ident
 
 object PersonRegister {
 
-    private val personer = HashMap<Ident, Personinfo>()
+    private var personer = HashMap<Ident, Personinfo>()
 
-    fun innhent(identer: List<Ident>): List<Personinfo> {
-        return personer
-            .filterKeys { ident -> ident in identer }
-            .map { it.value }
+    private val LOCK = Object()
+
+    fun innhent(identer: List<Ident>): Set<Personinfo> {
+        synchronized(LOCK) {
+            return personer
+                .filterKeys { ident -> ident in identer }
+                .map { it.value }
+                .toSet()
+        }
     }
 
     fun konstruer(ident: Ident, personinfo: Personinfo) {
-        personer[ident] = personinfo
+        synchronized(LOCK) {
+            personer[ident] = personinfo
+        }
     }
 }

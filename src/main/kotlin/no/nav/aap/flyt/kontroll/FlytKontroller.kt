@@ -60,6 +60,8 @@ class FlytKontroller {
                 aktivtSteg = behandling.aktivtSteg()
                 nesteStegStatus = utledNesteStegStatus(aktivtSteg)
                 nesteSteg = utledNesteSteg(aktivtSteg, nesteStegStatus, behandlingFlyt)
+            } else {
+                // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
             }
         }
     }
@@ -169,10 +171,7 @@ class FlytKontroller {
                           aktivtSteg: StegTilstand,
                           avklaringsDefinisjoner: List<Definisjon>): StegType {
         return avklaringsDefinisjoner.filter { definisjon ->
-            behandlingFlyt.erStegFør(
-                definisjon.løsesISteg,
-                aktivtSteg.tilstand.steg()
-            )
+            erStegFørAktivtSteg(behandlingFlyt, definisjon, aktivtSteg)
         }
             .map { definisjon -> definisjon.løsesISteg }
             .minWith(behandlingFlyt.compareable())
@@ -188,12 +187,16 @@ class FlytKontroller {
                                   avklaringsDefinisjoner: List<Definisjon>): Boolean {
 
         return avklaringsDefinisjoner.filter { definisjon ->
-            behandlingFlyt.erStegFør(
-                definisjon.løsesISteg,
-                aktivtSteg.tilstand.steg()
-            )
+            erStegFørAktivtSteg(behandlingFlyt, definisjon, aktivtSteg)
         }.isNotEmpty()
     }
+
+    private fun erStegFørAktivtSteg(behandlingFlyt: BehandlingFlyt,
+                                    definisjon: Definisjon,
+                                    aktivtSteg: StegTilstand) = behandlingFlyt.erStegFør(
+        definisjon.løsesISteg,
+        aktivtSteg.tilstand.steg()
+    )
 
     private fun validerPlassering(behandlingFlyt: BehandlingFlyt,
                                   åpneAvklaringsbehov: List<Definisjon>,

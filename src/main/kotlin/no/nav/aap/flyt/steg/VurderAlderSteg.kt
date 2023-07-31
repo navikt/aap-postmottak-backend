@@ -1,13 +1,41 @@
 package no.nav.aap.flyt.steg
 
 import no.nav.aap.domene.behandling.BehandlingTjeneste
+import no.nav.aap.domene.behandling.Vilkårsperiode
 import no.nav.aap.domene.behandling.Vilkårstype
+import no.nav.aap.domene.behandling.grunnlag.person.PersoninformasjonTjeneste
+import no.nav.aap.domene.sak.SakTjeneste
 import no.nav.aap.flyt.StegType
+import no.nav.aap.vilkår.alder.Aldersgrunnlag
+import no.nav.aap.vilkår.alder.Aldersvilkåret
 
 class VurderAlderSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
+        val sak = SakTjeneste.hent(input.kontekst.sakId)
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
+
+        val personinfoGrunnlag = PersoninformasjonTjeneste.hentHvisEksisterer(input.kontekst.behandlingId)
+        if (personinfoGrunnlag == null) {
+            throw IllegalStateException("Forventet å finne personopplysninger")
+        }
+
+        val aldersgrunnlag = Aldersgrunnlag(
+            sak.rettighetsperiode.fraOgMed(),
+            personinfoGrunnlag.personinfo.fødselsdato
+        )
+        val vurdering = Aldersvilkåret.vurder(
+            aldersgrunnlag
+        )
         val aldersvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.ALDERSVILKÅRET)
+        aldersvilkåret.leggTilVurdering(
+            Vilkårsperiode(
+                sak.rettighetsperiode,
+                vurdering.utfall,
+                aldersgrunnlag,
+                vurdering.beslutningstre
+            )
+        )
+
 
         return StegResultat()
     }

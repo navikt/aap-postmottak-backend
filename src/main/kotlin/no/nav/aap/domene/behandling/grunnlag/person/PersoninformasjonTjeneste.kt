@@ -1,9 +1,8 @@
 package no.nav.aap.domene.behandling.grunnlag.person
 
-import java.util.Optional
 import java.util.concurrent.atomic.AtomicLong
 
-object PersonTjeneste {
+object PersoninformasjonTjeneste {
 
     private var grunnlagene = HashMap<Long, PersoninfoGrunnlag>()
 
@@ -16,12 +15,12 @@ object PersonTjeneste {
         }
     }
 
-    fun lagre(behandlingId: Long, personinfoGrunnlag: Personinfo?) {
+    fun lagre(behandlingId: Long, personinfo: Personinfo?) {
         synchronized(LOCK) {
-            if (personinfoGrunnlag != null) {
+            if (personinfo != null) {
                 grunnlagene.put(
                     behandlingId,
-                    PersoninfoGrunnlag() //FIXME
+                    PersoninfoGrunnlag(key.addAndGet(1L), personinfo)
                 )
             } else {
                 grunnlagene.remove(behandlingId)

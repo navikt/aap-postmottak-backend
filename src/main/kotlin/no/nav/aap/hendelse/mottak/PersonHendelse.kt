@@ -1,4 +1,4 @@
-package no.nav.aap.mottak
+package no.nav.aap.hendelse.mottak
 
 import no.nav.aap.domene.typer.Periode
 

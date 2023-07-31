@@ -8,17 +8,20 @@ import no.nav.aap.domene.behandling.Førstegangsbehandling
 import no.nav.aap.domene.behandling.Status
 import no.nav.aap.domene.behandling.Vilkårstype
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
+import no.nav.aap.domene.behandling.grunnlag.person.PersonRegister
+import no.nav.aap.domene.behandling.grunnlag.person.Personinfo
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegister
-import no.nav.aap.domene.person.PersonTjenesteMock
+import no.nav.aap.domene.person.PersonTjeneste
 import no.nav.aap.domene.sak.SakTjeneste
 import no.nav.aap.domene.typer.Ident
 import no.nav.aap.domene.typer.Periode
 import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 import no.nav.aap.flyt.Tilstand
-import no.nav.aap.mottak.DokumentMottattPersonHendelse
-import no.nav.aap.mottak.HendelsesMottak
-import no.nav.aap.mottak.LøsAvklaringsbehovBehandlingHendelse
+import no.nav.aap.hendelse.mottak.DokumentMottattPersonHendelse
+import no.nav.aap.hendelse.mottak.HendelsesMottak
+import no.nav.aap.hendelse.mottak.LøsAvklaringsbehovBehandlingHendelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -30,12 +33,13 @@ class FlytKontrollerTest {
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
+        PersonRegister.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
         YrkesskadeRegister.konstruer(ident = ident, periode = periode)
 
         // Sender inn en søknad
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
-        val sak = SakTjeneste.finnEllerOpprett(PersonTjenesteMock.finnEllerOpprett(ident), periode)
+        val sak = SakTjeneste.finnEllerOpprett(PersonTjeneste.finnEllerOpprett(ident), periode)
         assert(sak.saksnummer.toString().isNotEmpty())
 
         val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
@@ -84,8 +88,9 @@ class FlytKontrollerTest {
     fun `skal IKKE avklare yrkesskade hvis det finnes spor av yrkesskade`() {
 
         val ident = Ident("123123123124")
-        val person = PersonTjenesteMock.finnEllerOpprett(ident)
+        val person = PersonTjeneste.finnEllerOpprett(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        PersonRegister.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
 
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
@@ -102,8 +107,10 @@ class FlytKontrollerTest {
     @Test
     fun `Skal vurdere alder`() {
         val ident = Ident("123123123125")
-        val person = PersonTjenesteMock.finnEllerOpprett(ident)
+        val person = PersonTjeneste.finnEllerOpprett(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+
+        PersonRegister.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
 
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 

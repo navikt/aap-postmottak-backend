@@ -1,18 +1,20 @@
 package no.nav.aap.flyt.steg
 
 import no.nav.aap.domene.behandling.grunnlag.person.PersonRegister
+import no.nav.aap.domene.behandling.grunnlag.person.PersoninformasjonTjeneste
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.Yrkesskade
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegister
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.Yrkesskader
-import no.nav.aap.domene.person.PersonTjenesteMock
+import no.nav.aap.domene.person.PersonTjeneste
 import no.nav.aap.domene.sak.SakTjeneste
 import no.nav.aap.flyt.StegType
 
 class InnhentRegisterdataSteg : BehandlingSteg {
+
     override fun utfør(input: StegInput): StegResultat {
         val sak = SakTjeneste.hent(input.kontekst.sakId)
-        val person = PersonTjenesteMock.hent(sak.person.identifikator)
+        val person = PersonTjeneste.hent(sak.person.identifikator)
 
         val yrkesskadePeriode = YrkesskadeRegister.innhent(person.identer(), sak.rettighetsperiode)
 
@@ -27,8 +29,11 @@ class InnhentRegisterdataSteg : BehandlingSteg {
         }
 
         val personopplysninger = PersonRegister.innhent(person.identer())
+        if (personopplysninger.size != 1) {
+            throw IllegalStateException("fant flere personer enn forventet")
+        }
 
-        PersonTjenesteMock.lagre()
+        PersoninformasjonTjeneste.lagre(behandlingId, personopplysninger.first())
 
         return StegResultat() // DO NOTHING
     }
