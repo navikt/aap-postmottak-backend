@@ -1,5 +1,6 @@
 package no.nav.aap.domene.typer
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -25,12 +26,12 @@ class PeriodeTest {
         val periode = Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(7))
         val periode2 = Periode(LocalDate.now().minusDays(8), LocalDate.now())
 
-        assert(periode.overlapper(periode2))
+        assertThat(periode.overlapper(periode2)).isTrue()
 
         val periode1 = Periode(LocalDate.now(), LocalDate.now())
         val periode3 = Periode(LocalDate.now(), LocalDate.now())
 
-        assert(periode1.overlapper(periode3))
+        assertThat(periode1.overlapper(periode3)).isTrue()
     }
 
     @Test
@@ -38,6 +39,6 @@ class PeriodeTest {
         val periode = Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(7))
         val periode2 = Periode(LocalDate.now().minusDays(6), LocalDate.now())
 
-        assert(!periode.overlapper(periode2))
+        assertThat(periode.overlapper(periode2)).isFalse()
     }
 }

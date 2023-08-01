@@ -22,6 +22,7 @@ import no.nav.aap.flyt.Tilstand
 import no.nav.aap.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.hendelse.mottak.HendelsesMottak
 import no.nav.aap.hendelse.mottak.LøsAvklaringsbehovBehandlingHendelse
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -40,13 +41,13 @@ class FlytKontrollerTest {
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
         val sak = SakTjeneste.finnEllerOpprett(PersonTjeneste.finnEllerOpprett(ident), periode)
-        assert(sak.saksnummer.toString().isNotEmpty())
+        assertThat(sak.saksnummer.toString()).isNotEmpty()
 
         val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
-        assert(behandling.type == Førstegangsbehandling)
+        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
-        assert(behandling.avklaringsbehov().isNotEmpty())
-        assert(behandling.status() == Status.UTREDES)
+        assertThat(behandling.avklaringsbehov()).isNotEmpty()
+        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
 
         HendelsesMottak.håndtere(
@@ -58,8 +59,8 @@ class FlytKontrollerTest {
         )
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
-        assert(behandling.avklaringsbehov().filter { it.erÅpent() }.any { it.definisjon == Definisjon.FORESLÅ_VEDTAK })
-        assert(behandling.status() == Status.UTREDES)
+        assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
+        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
         HendelsesMottak.håndtere(
             behandling.id,
@@ -70,8 +71,8 @@ class FlytKontrollerTest {
         )
 
         // Saken står til To-trinnskontroll hos beslutter
-        assert(behandling.avklaringsbehov().filter { it.erÅpent() }.any { it.definisjon == Definisjon.FATTE_VEDTAK })
-        assert(behandling.status() == Status.UTREDES)
+        assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FATTE_VEDTAK }
+        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
         HendelsesMottak.håndtere(
             behandling.id,
@@ -81,7 +82,7 @@ class FlytKontrollerTest {
             )
         )
 
-        assert(behandling.status() == Status.AVSLUTTET)
+        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
     }
 
     @Test
@@ -95,13 +96,13 @@ class FlytKontrollerTest {
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
         val sak = SakTjeneste.finnEllerOpprett(person, periode)
-        assert(sak.saksnummer.toString().isNotEmpty())
+        assertThat(sak.saksnummer.toString()).isNotEmpty()
 
         val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
-        assert(behandling.type == Førstegangsbehandling)
+        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
-        assert(behandling.avklaringsbehov().isEmpty())
-        assert(behandling.status() == Status.AVSLUTTET)
+        assertThat(behandling.avklaringsbehov()).isEmpty()
+        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
     }
 
     @Test
@@ -115,20 +116,20 @@ class FlytKontrollerTest {
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
         val sak = SakTjeneste.finnEllerOpprett(person, periode)
-        assert(sak.saksnummer.toString().isNotEmpty())
+        assertThat(sak.saksnummer.toString()).isNotEmpty()
 
         val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
-        assert(behandling.type == Førstegangsbehandling)
+        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
         val stegHistorikk = behandling.stegHistorikk()
-        assert(stegHistorikk.map { it.tilstand }.contains(Tilstand(StegType.VURDER_ALDER, StegStatus.AVSLUTTER)))
+        assertThat(stegHistorikk.map { it.tilstand }).contains(Tilstand(StegType.VURDER_ALDER, StegStatus.AVSLUTTER))
 
         //Henter vurder alder-vilkår
         //Assert utfall
         val vilkårsresultat = behandling.vilkårsresultat()
         val vilkår = vilkårsresultat.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
 
-        assert(vilkår.vilkårsperiode.size == 1)
+        assertThat(vilkår.vilkårsperiode).hasSize(1)
 
     }
 }

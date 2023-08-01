@@ -1,6 +1,7 @@
 package no.nav.aap.flyt
 
 import no.nav.aap.domene.behandling.Førstegangsbehandling
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class DefinisjonTest {
@@ -11,7 +12,7 @@ class DefinisjonTest {
 
         val neste = førstegangsbehandling.neste(StegType.START_BEHANDLING)
 
-        assert(neste.type() == StegType.INNHENT_REGISTERDATA)
+        assertThat(neste.type()).isEqualTo(StegType.INNHENT_REGISTERDATA)
     }
 
     @Test
@@ -20,6 +21,6 @@ class DefinisjonTest {
 
         val forrige = førstegangsbehandling.forrige(StegType.INNGANGSVILKÅR)
 
-        assert(forrige.type() == StegType.AVKLAR_YRKESSKADE)
+        assertThat(forrige.type()).isEqualTo(StegType.AVKLAR_YRKESSKADE)
     }
 }
