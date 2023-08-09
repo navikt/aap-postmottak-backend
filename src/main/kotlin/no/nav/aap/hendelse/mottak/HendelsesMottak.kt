@@ -1,8 +1,8 @@
 package no.nav.aap.hendelse.mottak
 
 import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.person.PersonTjeneste
-import no.nav.aap.domene.sak.SakTjeneste
+import no.nav.aap.domene.person.Personlager
+import no.nav.aap.domene.sak.Sakslager
 import no.nav.aap.domene.typer.Ident
 import no.nav.aap.domene.typer.Saksnummer
 import no.nav.aap.flyt.kontroll.FlytKontekst
@@ -13,9 +13,9 @@ object HendelsesMottak {
     private val kontroller = FlytKontroller()
 
     fun håndtere(key: Ident, hendelse: PersonHendelse) {
-        val person = PersonTjeneste.finnEllerOpprett(key)
+        val person = Personlager.finnEllerOpprett(key)
 
-        val sak = SakTjeneste.finnEllerOpprett(person, hendelse.periode())
+        val sak = Sakslager.finnEllerOpprett(person, hendelse.periode())
 
         // Legg til kø for sak, men mocker ved å kalle videre bare
 
@@ -23,11 +23,11 @@ object HendelsesMottak {
     }
 
     fun håndtere(key: Saksnummer, hendelse: SakHendelse) {
-        val sak = SakTjeneste.hent(key)
+        val sak = Sakslager.hent(key)
         val sisteBehandlingOpt = BehandlingTjeneste.finnSisteBehandlingFor(sak.id)
 
-        val sisteBehandling = if (sisteBehandlingOpt.isPresent && !sisteBehandlingOpt.get().status().erAvsluttet()) {
-            sisteBehandlingOpt.get()
+        val sisteBehandling = if (sisteBehandlingOpt != null && !sisteBehandlingOpt.status().erAvsluttet()) {
+            sisteBehandlingOpt
         } else {
             // Har ikke behandling så oppretter en
             BehandlingTjeneste.opprettBehandling(sak.id)
@@ -39,7 +39,7 @@ object HendelsesMottak {
         val behandling = BehandlingTjeneste.hent(key)
         kontroller.validerTilstandBehandling(behandling = behandling)
 
-        val sak = SakTjeneste.hent(behandling.sakId)
+        val sak = Sakslager.hent(behandling.sakId)
 
         val kontekst = FlytKontekst(sakId = sak.id, behandlingId = behandling.id)
         kontroller.løsAvklaringsbehovOgFortsettProsessering(
@@ -52,7 +52,7 @@ object HendelsesMottak {
         val behandling = BehandlingTjeneste.hent(key)
         kontroller.validerTilstandBehandling(behandling = behandling)
 
-        val sak = SakTjeneste.hent(behandling.sakId)
+        val sak = Sakslager.hent(behandling.sakId)
 
         val kontekst = FlytKontekst(sakId = sak.id, behandlingId = behandling.id)
         if (hendelse is LøsAvklaringsbehovBehandlingHendelse) {

@@ -16,26 +16,28 @@ object BehandlingTjeneste {
         }
     }
 
-    fun finnSisteBehandlingFor(sakId: Long): Optional<Behandling> {
+    fun finnSisteBehandlingFor(sakId: Long): Behandling? {
         synchronized(LOCK) {
-            return Optional.ofNullable(behandliger.values
+            return behandliger.values
                 .filter { behandling -> behandling.sakId == sakId }
-                .maxOrNull())
+                .maxOrNull()
         }
     }
 
     fun opprettBehandling(sakId: Long): Behandling {
         synchronized(LOCK) {
             val sisteBehandlingFor = finnSisteBehandlingFor(sakId)
-            val erSisteBehandlingAvsluttet = sisteBehandlingFor.map { it.status().erAvsluttet() }.orElse(true)
+            val erSisteBehandlingAvsluttet = sisteBehandlingFor?.status()?.erAvsluttet() ?: true
 
             if (erSisteBehandlingAvsluttet) {
                 val key1 = key.addAndGet(1)
-                val behandlingType = utledBehandlingType(sisteBehandlingFor.isPresent)
+                val behandlingType = utledBehandlingType(sisteBehandlingFor != null)
                 val behandling = Behandling(key1, sakId, behandlingType)
                 behandliger[key1] = behandling
 
-                sisteBehandlingFor.ifPresent { fraBehandling -> GrunnlagKopierer.overfør(fraBehandling, behandling) }
+                if (sisteBehandlingFor != null) {
+                    GrunnlagKopierer.overfør(sisteBehandlingFor, behandling)
+                }
 
                 return behandliger.getValue(key1)
             } else {

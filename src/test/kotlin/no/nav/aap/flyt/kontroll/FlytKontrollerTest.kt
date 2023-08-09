@@ -9,11 +9,11 @@ import no.nav.aap.domene.behandling.Status
 import no.nav.aap.domene.behandling.Vilkårstype
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
-import no.nav.aap.domene.behandling.grunnlag.person.PersonRegister
+import no.nav.aap.domene.behandling.grunnlag.person.PersonRegisterMock
 import no.nav.aap.domene.behandling.grunnlag.person.Personinfo
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegister
-import no.nav.aap.domene.person.PersonTjeneste
-import no.nav.aap.domene.sak.SakTjeneste
+import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
+import no.nav.aap.domene.person.Personlager
+import no.nav.aap.domene.sak.Sakslager
 import no.nav.aap.domene.typer.Ident
 import no.nav.aap.domene.typer.Periode
 import no.nav.aap.flyt.StegStatus
@@ -34,24 +34,22 @@ class FlytKontrollerTest {
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        PersonRegister.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
-        YrkesskadeRegister.konstruer(ident = ident, periode = periode)
+        PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
+        YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
 
         // Sender inn en søknad
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
-        val sak = SakTjeneste.finnEllerOpprett(PersonTjeneste.finnEllerOpprett(ident), periode)
-        assertThat(sak.saksnummer.toString()).isNotEmpty()
+        val sak = Sakslager.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
+        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id)
+        assertThat(behandling?.type).isEqualTo(Førstegangsbehandling)
 
-        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
-
-        assertThat(behandling.avklaringsbehov()).isNotEmpty()
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        assertThat(behandling?.avklaringsbehov()).isNotEmpty()
+        assertThat(behandling?.status()).isEqualTo(Status.UTREDES)
 
 
         HendelsesMottak.håndtere(
-            behandling.id,
+            behandling?.id ?: 0L,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
                 løsning = AvklarYrkesskadeLøsning("Begrunnelse", "meg")
@@ -59,11 +57,11 @@ class FlytKontrollerTest {
         )
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
-        assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        assertThat(behandling?.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
+        assertThat(behandling?.status()).isEqualTo(Status.UTREDES)
 
         HendelsesMottak.håndtere(
-            behandling.id,
+            behandling?.id ?: 0L,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
                 løsning = ForeslåVedtakLøsning("Begrunnelse", "meg")
@@ -71,65 +69,61 @@ class FlytKontrollerTest {
         )
 
         // Saken står til To-trinnskontroll hos beslutter
-        assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FATTE_VEDTAK }
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        assertThat(behandling?.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FATTE_VEDTAK }
+        assertThat(behandling?.status()).isEqualTo(Status.UTREDES)
 
         HendelsesMottak.håndtere(
-            behandling.id,
+            behandling?.id ?: 0L,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
                 løsning = FatteVedtakLøsning("Begrunnelse", "meg")
             )
         )
 
-        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+        assertThat(behandling?.status()).isEqualTo(Status.AVSLUTTET)
     }
 
     @Test
     fun `skal IKKE avklare yrkesskade hvis det finnes spor av yrkesskade`() {
 
         val ident = Ident("123123123124")
-        val person = PersonTjeneste.finnEllerOpprett(ident)
+        val person = Personlager.finnEllerOpprett(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
-        PersonRegister.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
+        PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
 
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
-        val sak = SakTjeneste.finnEllerOpprett(person, periode)
-        assertThat(sak.saksnummer.toString()).isNotEmpty()
+        val sak = Sakslager.finnEllerOpprett(person, periode)
+        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id)
+        assertThat(behandling?.type).isEqualTo(Førstegangsbehandling)
 
-        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
-
-        assertThat(behandling.avklaringsbehov()).isEmpty()
-        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+        assertThat(behandling?.avklaringsbehov()).isEmpty()
+        assertThat(behandling?.status()).isEqualTo(Status.AVSLUTTET)
     }
 
     @Test
     fun `Skal vurdere alder`() {
         val ident = Ident("123123123125")
-        val person = PersonTjeneste.finnEllerOpprett(ident)
+        val person = Personlager.finnEllerOpprett(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
-        PersonRegister.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
+        PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
 
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
-        val sak = SakTjeneste.finnEllerOpprett(person, periode)
-        assertThat(sak.saksnummer.toString()).isNotEmpty()
+        val sak = Sakslager.finnEllerOpprett(person, periode)
+        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id)
+        assertThat(behandling?.type).isEqualTo(Førstegangsbehandling)
 
-        val behandling = BehandlingTjeneste.finnSisteBehandlingFor(sak.id).orElseThrow()
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
-
-        val stegHistorikk = behandling.stegHistorikk()
-        assertThat(stegHistorikk.map { it.tilstand }).contains(Tilstand(StegType.VURDER_ALDER, StegStatus.AVSLUTTER))
+        val stegHistorikk = behandling?.stegHistorikk()
+        assertThat(stegHistorikk?.map { it.tilstand }).contains(Tilstand(StegType.VURDER_ALDER, StegStatus.AVSLUTTER))
 
         //Henter vurder alder-vilkår
         //Assert utfall
-        val vilkårsresultat = behandling.vilkårsresultat()
-        val vilkår = vilkårsresultat.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
+        val vilkårsresultat = behandling?.vilkårsresultat()
+        val vilkår = vilkårsresultat?.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
 
-        assertThat(vilkår.vilkårsperiode).hasSize(1)
+        assertThat(vilkår?.vilkårsperiode).hasSize(1)
 
     }
 }

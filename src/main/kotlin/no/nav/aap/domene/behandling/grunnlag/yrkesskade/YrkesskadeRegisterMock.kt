@@ -3,7 +3,7 @@ package no.nav.aap.domene.behandling.grunnlag.yrkesskade
 import no.nav.aap.domene.typer.Ident
 import no.nav.aap.domene.typer.Periode
 
-object YrkesskadeRegister {
+object YrkesskadeRegisterMock {
 
     private val skader = HashMap<Ident, Periode>()
 

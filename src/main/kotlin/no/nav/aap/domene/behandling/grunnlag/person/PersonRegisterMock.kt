@@ -2,7 +2,7 @@ package no.nav.aap.domene.behandling.grunnlag.person
 
 import no.nav.aap.domene.typer.Ident
 
-object PersonRegister {
+object PersonRegisterMock {
 
     private var personer = HashMap<Ident, Personinfo>()
 

@@ -4,7 +4,7 @@ import no.nav.aap.domene.person.Person
 import no.nav.aap.domene.typer.Periode
 import no.nav.aap.domene.typer.Saksnummer
 
-object SakTjeneste {
+object Sakslager {
     private var saker = HashMap<Long, Sak>()
 
     private val LOCK = Object()
@@ -17,11 +17,11 @@ object SakTjeneste {
 
     fun hent(saksnummer: Saksnummer): Sak {
         synchronized(LOCK) {
-            return saker.values.filter { it.saksnummer == saksnummer }.first()
+            return saker.values.first { it.saksnummer == saksnummer }
         }
     }
 
-    fun opprett(person: Person, periode: Periode): Sak {
+    private fun opprett(person: Person, periode: Periode): Sak {
         synchronized(LOCK) {
             if (saker.values.any { sak -> sak.person == person && sak.rettighetsperiode.overlapper(periode) }) {
                 throw IllegalArgumentException("Forsøker å opprette sak når det finnes en som overlapper")
@@ -43,7 +43,7 @@ object SakTjeneste {
             }
 
             if (relevantesaker.size != 1) {
-                throw IllegalStateException("Fant flere saker som er relevant: " + relevantesaker)
+                throw IllegalStateException("Fant flere saker som er relevant: $relevantesaker")
             }
             return relevantesaker.first()
         }

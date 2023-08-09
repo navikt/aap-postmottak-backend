@@ -3,8 +3,8 @@ package no.nav.aap.domene.person
 import no.nav.aap.domene.typer.Ident
 import java.util.UUID
 
-object PersonTjeneste {
-    private var personer = HashMap<UUID, Person>()
+object Personlager {
+    private var personer = HashMap<UUID, Person>() // Skal være en db eller noe liknende for persistens
 
     private val LOCK = Object()
 
@@ -12,16 +12,14 @@ object PersonTjeneste {
         synchronized(LOCK) {
             // TODO: Kalle for å hente identer
             val relevantePersoner = personer.values.filter { person -> person.er(ident) }
-            if (relevantePersoner.isNotEmpty()) {
+            return if (relevantePersoner.isNotEmpty()) {
                 if (relevantePersoner.size > 1) {
                     throw IllegalStateException("Har flere personer knyttet til denne identen")
                 }
-                return relevantePersoner.first()
+                relevantePersoner.first()
+            } else {
+                opprettPerson(ident)
             }
-            val person = Person(UUID.randomUUID(), listOf(ident))
-            personer[person.identifikator] = person
-
-            return person
         }
     }
 
@@ -29,5 +27,12 @@ object PersonTjeneste {
         synchronized(LOCK) {
             return personer.getValue(identifikator)
         }
+    }
+
+    private fun opprettPerson(ident: Ident): Person {
+        val person = Person(UUID.randomUUID(), listOf(ident))
+        personer[person.identifikator] = person
+
+        return person
     }
 }
