@@ -6,9 +6,11 @@ import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 import no.nav.aap.flyt.Tilstand
 import java.time.LocalDateTime
+import java.util.*
 
 class Behandling(
     val id: Long,
+    val referanse: UUID = UUID.randomUUID(),
     val sakId: Long,
     val type: BehandlingType,
     private var status: Status = Status.OPPRETTET,

@@ -1,5 +1,6 @@
 package no.nav.aap.domene.typer
 
+import com.fasterxml.jackson.annotation.JsonValue
 import java.time.LocalDate
 
 class Periode(private val fom: LocalDate, private val tom: LocalDate) {
@@ -45,5 +46,8 @@ class Periode(private val fom: LocalDate, private val tom: LocalDate) {
         return "Periode(fom=$fom, tom=$tom)"
     }
 
-
+    @JsonValue
+    fun jsonValue(): String {
+        return "$fom/$tom"
+    }
 }

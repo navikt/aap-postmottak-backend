@@ -1,13 +1,14 @@
 package no.nav.aap.domene.behandling.avklaringsbehov
 
+import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 import java.time.Period
-import java.util.Arrays
+import java.util.*
 import java.util.stream.Collectors
 import kotlin.reflect.KFunction1
 
-enum class Definisjon(private val kode: String,
+enum class Definisjon(@JsonValue private val kode: String,
                       private val type: BehovType = BehovType.MANUELT,
                       private val defaultFrist: Period = Period.ZERO,
                       val løsesISteg: StegType = StegType.UDEFINERT,

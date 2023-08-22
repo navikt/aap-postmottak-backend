@@ -48,4 +48,10 @@ object Sakslager {
             return relevantesaker.first()
         }
     }
+
+    fun finnSakerFor(person: Person): List<Sak> {
+        synchronized(LOCK) {
+            return saker.values.filter { sak -> sak.person == person }.toList()
+        }
+    }
 }

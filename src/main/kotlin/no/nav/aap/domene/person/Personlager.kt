@@ -1,7 +1,7 @@
 package no.nav.aap.domene.person
 
 import no.nav.aap.domene.typer.Ident
-import java.util.UUID
+import java.util.*
 
 object Personlager {
     private var personer = HashMap<UUID, Person>() // Skal være en db eller noe liknende for persistens
@@ -34,5 +34,16 @@ object Personlager {
         personer[person.identifikator] = person
 
         return person
+    }
+
+    fun finn(ident: Ident): Person? {
+        synchronized(LOCK) {
+            val relevantePersoner = personer.values.filter { person -> person.er(ident) }
+            return if (relevantePersoner.isNotEmpty()) {
+                relevantePersoner.first()
+            } else {
+                null
+            }
+        }
     }
 }

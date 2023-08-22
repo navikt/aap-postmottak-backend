@@ -1,7 +1,7 @@
 package no.nav.aap.domene.behandling
 
 import no.nav.aap.domene.behandling.grunnlag.GrunnlagKopierer
-import java.util.Optional
+import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
 object BehandlingTjeneste {
@@ -32,7 +32,7 @@ object BehandlingTjeneste {
             if (erSisteBehandlingAvsluttet) {
                 val key1 = key.addAndGet(1)
                 val behandlingType = utledBehandlingType(sisteBehandlingFor != null)
-                val behandling = Behandling(key1, sakId, behandlingType)
+                val behandling = Behandling(id = key1, sakId = sakId, type = behandlingType)
                 behandliger[key1] = behandling
 
                 if (sisteBehandlingFor != null) {
@@ -51,5 +51,20 @@ object BehandlingTjeneste {
             return Revurdering
         }
         return Førstegangsbehandling
+    }
+
+    fun hentAlleFor(sakId: Long): List<Behandling> {
+        synchronized(LOCK) {
+            return behandliger.values
+                .filter { behandling -> behandling.sakId == sakId }
+        }
+    }
+
+    fun hent(referanse: UUID): Behandling {
+        synchronized(LOCK) {
+            return behandliger.values
+                .filter { behandling -> behandling.referanse == referanse }
+                .first()
+        }
     }
 }

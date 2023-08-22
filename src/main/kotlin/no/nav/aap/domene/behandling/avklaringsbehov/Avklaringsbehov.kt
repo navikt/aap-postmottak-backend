@@ -3,8 +3,10 @@ package no.nav.aap.domene.behandling.avklaringsbehov
 import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 
-class Avklaringsbehov(var definisjon: Definisjon,
-                      val historikk: MutableList<Endring> = mutableListOf()) {
+class Avklaringsbehov(
+    var definisjon: Definisjon,
+    val historikk: MutableList<Endring> = mutableListOf()
+) {
     init {
         if (historikk.isEmpty()) {
             historikk += Endring(status = Status.OPPRETTET, begrunnelse = "", endretAv = "system")
@@ -33,5 +35,9 @@ class Avklaringsbehov(var definisjon: Definisjon,
 
     fun erIkkeAvbrutt(): Boolean {
         return Status.AVBRUTT != historikk.last().status
+    }
+
+    fun status(): Status {
+        return historikk.last().status
     }
 }
