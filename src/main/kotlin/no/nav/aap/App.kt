@@ -11,6 +11,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -41,6 +42,9 @@ internal fun Application.server() {
             registerModule(JavaTimeModule())
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }
+    }
+    install(CORS){
+        anyHost() // FIXME: Dette blir litt vel aggresivt, men greit for nå? :pray:
     }
     install(SwaggerUI) {
         swagger {

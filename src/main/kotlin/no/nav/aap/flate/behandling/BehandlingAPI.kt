@@ -26,7 +26,6 @@ fun Routing.behandlingApi() {
             val referanse = call.parameters.getOrFail("referanse")
 
             val eksternReferanse = UUID.fromString(referanse)
-
             val behandling = BehandlingTjeneste.hent(eksternReferanse)
 
             val dto = DetaljertBehandlingDTO(
@@ -36,14 +35,14 @@ fun Routing.behandlingApi() {
                 opprettet = behandling.opprettetTidspunkt,
                 avklaringsbehov = behandling.avklaringsbehov().map { avklaringsbehov ->
                     AvklaringsbehovDTO(
-                        avklaringsbehov.definisjon,
-                        avklaringsbehov.status(),
-                        avklaringsbehov.historikk.map { endring ->
+                        definisjon = avklaringsbehov.definisjon,
+                        status = avklaringsbehov.status(),
+                        endringer = avklaringsbehov.historikk.map { endring ->
                             EndringDTO(
-                                endring.status,
-                                endring.tidsstempel,
-                                endring.begrunnelse,
-                                endring.endretAv
+                                status = endring.status,
+                                tidsstempel = endring.tidsstempel,
+                                begrunnelse = endring.begrunnelse,
+                                endretAv = endring.endretAv
                             )
                         }
                     )
