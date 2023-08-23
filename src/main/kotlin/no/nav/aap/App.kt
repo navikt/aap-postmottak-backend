@@ -45,6 +45,7 @@ internal fun Application.server() {
     }
     install(CORS){
         anyHost() // FIXME: Dette blir litt vel aggresivt, men greit for nå? :pray:
+        allowHeader(HttpHeaders.ContentType)
     }
     install(SwaggerUI) {
         swagger {
