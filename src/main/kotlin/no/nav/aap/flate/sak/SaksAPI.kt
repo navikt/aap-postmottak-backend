@@ -21,6 +21,12 @@ fun Routing.saksApi() {
     }) {
         post("/finn", {
             request { body<FinnSakForIdentDTO>() }
+            response {
+                HttpStatusCode.OK to {
+                    description = "Successful Request"
+                    body<List<SaksinfoDTO>> { }
+                }
+            }
         }) {
             val dto = call.receive<FinnSakForIdentDTO>()
 
