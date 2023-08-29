@@ -52,19 +52,10 @@ fun Routing.saksApi() {
                 }
             }
         }) {
-            val dto = call.receive<FinnSakForIdentDTO>()
+            val saker = Sakslager.finnAlle()
+                .map { sak -> SaksinfoDTO(saksnummer = sak.saksnummer.toString(), periode = sak.rettighetsperiode) }
 
-            val ident = Ident(dto.ident)
-            val person = Personlager.finn(ident)
-
-            if (person == null) {
-                call.respond(HttpStatusCode.NoContent)
-            } else {
-                val saker = Sakslager.finnAlle()
-                    .map { sak -> SaksinfoDTO(saksnummer = sak.saksnummer.toString(), periode = sak.rettighetsperiode) }
-
-                call.respond(HttpStatusCode.OK, saker)
-            }
+            call.respond(HttpStatusCode.OK, saker)
         }
         get("/hent/{saksnummer}", {
             request { pathParameter<String>("saksnummer") }
