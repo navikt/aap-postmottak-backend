@@ -6,4 +6,8 @@ class Vilkårsresultat(
     fun finnVilkår(vilkårstype: Vilkårstype): Vilkår {
         return vilkår.first { it.type == vilkårstype }
     }
+
+    fun alle(): List<Vilkår> {
+        return vilkår.toList()
+    }
 }

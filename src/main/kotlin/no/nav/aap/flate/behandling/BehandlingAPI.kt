@@ -47,6 +47,12 @@ fun Routing.behandlingApi() {
                         }
                     )
                 },
+                vilkår = behandling.vilkårsresultat().alle().map { vilkår ->
+                    VilkårDTO(
+                        vilkårstype = vilkår.type,
+                        perioder = vilkår.vilkårsperioder()
+                            .map { vp -> VilkårsperiodeDTO(periode = vp.periode, utfall = vp.utfall) })
+                },
                 aktivtSteg = behandling.stegHistorikk().last().tilstand.steg()
             )
 
