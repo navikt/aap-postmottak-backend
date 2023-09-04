@@ -1,0 +1,8 @@
+package no.nav.aap.avklaringsbehov.sykdom
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.aap.domene.behandling.Utfall
+import no.nav.aap.domene.typer.Periode
+
+data class PeriodeMedUtfall(@JsonProperty("periode") val periode: Periode,
+                            @JsonProperty("utfall") val utfall: Utfall)

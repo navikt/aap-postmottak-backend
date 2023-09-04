@@ -1,11 +1,13 @@
 package no.nav.aap.flyt.kontroll
 
+import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøsning
+import no.nav.aap.avklaringsbehov.sykdom.PeriodeMedUtfall
 import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
-import no.nav.aap.avklaringsbehov.yrkesskade.AvklarYrkesskadeLøsning
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.Førstegangsbehandling
 import no.nav.aap.domene.behandling.Status
+import no.nav.aap.domene.behandling.Utfall
 import no.nav.aap.domene.behandling.Vilkårstype
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
@@ -52,7 +54,7 @@ class FlytKontrollerTest {
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
-                løsning = AvklarYrkesskadeLøsning("Begrunnelse", "meg")
+                løsning = AvklarSykdomLøsning("Begrunnelse", "meg", setOf(PeriodeMedUtfall(sak.rettighetsperiode, Utfall.OPPFYLT)))
             )
         )
 

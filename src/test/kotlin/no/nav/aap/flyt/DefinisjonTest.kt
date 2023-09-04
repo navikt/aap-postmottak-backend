@@ -21,6 +21,6 @@ class DefinisjonTest {
 
         val forrige = førstegangsbehandling.forrige(StegType.INNGANGSVILKÅR)
 
-        assertThat(forrige.type()).isEqualTo(StegType.AVKLAR_YRKESSKADE)
+        assertThat(forrige.type()).isEqualTo(StegType.AVKLAR_SYKDOM)
     }
 }

@@ -40,4 +40,9 @@ class Avklaringsbehov(
     fun status(): Status {
         return historikk.last().status
     }
+
+    override fun toString(): String {
+        return "Avklaringsbehov(definisjon=$definisjon, status=${status()})"
+    }
+
 }

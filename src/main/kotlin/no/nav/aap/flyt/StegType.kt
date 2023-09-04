@@ -5,7 +5,7 @@ import no.nav.aap.domene.behandling.Status
 enum class StegType(val status: Status, val tekniskSteg: Boolean = false) {
     START_BEHANDLING(status = Status.OPPRETTET),
     VURDER_ALDER(status = Status.UTREDES),
-    AVKLAR_YRKESSKADE(status = Status.UTREDES),
+    AVKLAR_SYKDOM(status = Status.UTREDES),
     INNHENT_REGISTERDATA(status = Status.UTREDES),
     INNGANGSVILKÅR(status = Status.UTREDES),
     FASTSETT_GRUNNLAG(status = Status.UTREDES),

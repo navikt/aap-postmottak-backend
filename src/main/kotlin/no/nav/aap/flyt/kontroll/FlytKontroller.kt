@@ -2,9 +2,9 @@ package no.nav.aap.flyt.kontroll
 
 import no.nav.aap.avklaringsbehov.AvklaringsbehovLøsning
 import no.nav.aap.avklaringsbehov.AvklaringsbehovsLøser
+import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøser
 import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøser
 import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøser
-import no.nav.aap.avklaringsbehov.yrkesskade.AvklarYrkesskadeLøser
 import no.nav.aap.domene.behandling.Behandling
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.StegTilstand
@@ -21,7 +21,7 @@ class FlytKontroller {
     private val avklaringsbehovsLøsere = mutableMapOf<Definisjon, AvklaringsbehovsLøser<*>>()
 
     init {
-        avklaringsbehovsLøsere[Definisjon.AVKLAR_YRKESSKADE] = AvklarYrkesskadeLøser()
+        avklaringsbehovsLøsere[Definisjon.AVKLAR_SYKDOM] = AvklarSykdomLøser()
         avklaringsbehovsLøsere[Definisjon.FORESLÅ_VEDTAK] = ForeslåVedtakLøser()
         avklaringsbehovsLøsere[Definisjon.FATTE_VEDTAK] = FatteVedtakLøser()
     }

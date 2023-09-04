@@ -1,5 +1,7 @@
 package no.nav.aap.domene.behandling
 
+import no.nav.aap.domene.typer.Periode
+
 class Vilkår(
     val type: Vilkårstype
 ) {
@@ -16,5 +18,23 @@ class Vilkår(
 
     override fun toString(): String {
         return "Vilkår(type=$type)"
+    }
+
+    fun leggTilIkkeVurdertPeriode(rettighetsperiode: Periode) {
+        this.vilkårsperioder.add(
+            Vilkårsperiode(
+                periode = rettighetsperiode,
+                utfall = Utfall.IKKE_VURDERT,
+                manuellVurdering = false,
+                faktagrunnlag = null
+            )
+        )
+    }
+
+    fun harPerioderSomIkkeErVurdert(periodeTilVurdering: Set<Periode>): Boolean {
+        return this.vilkårsperioder
+            .filter { periode -> periodeTilVurdering.any { vp -> periode.periode.overlapper(vp) } }
+            .any { periode -> periode.erIkkeVurdert() }
+
     }
 }

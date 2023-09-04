@@ -14,9 +14,10 @@ class Behandling(
     val sakId: Long,
     val type: BehandlingType,
     private var status: Status = Status.OPPRETTET,
+    private var årsaker: List<Årsak> = mutableListOf(),
     private var avklaringsbehov: List<Avklaringsbehov> = mutableListOf(),
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
-    private val vilkårsresultat: Vilkårsresultat = Vilkårsresultat(listOf(Vilkår(Vilkårstype.ALDERSVILKÅRET))), //FIXME
+    private val vilkårsresultat: Vilkårsresultat = Vilkårsresultat(),
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now()
 ) : Comparable<Behandling> {
 
@@ -35,7 +36,11 @@ class Behandling(
     }
 
     fun avklaringsbehov(): List<Avklaringsbehov> {
-        return avklaringsbehov
+        return avklaringsbehov.toList()
+    }
+
+    fun årsaker(): List<Årsak> {
+        return årsaker.toList()
     }
 
     fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()

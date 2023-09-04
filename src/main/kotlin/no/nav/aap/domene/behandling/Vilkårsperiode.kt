@@ -5,9 +5,16 @@ import no.nav.aap.domene.typer.Periode
 class Vilkårsperiode(
     val periode: Periode,
     val utfall: Utfall,
-    private val faktagrunnlag: Faktagrunnlag,
-    private val besluttningstre: Beslutningstre
+    val manuellVurdering: Boolean = false,
+    private val faktagrunnlag: Faktagrunnlag?,
+    private val besluttningstre: Beslutningstre?
 ) {
+    constructor(
+        periode: Periode,
+        utfall: Utfall,
+        manuellVurdering: Boolean,
+        faktagrunnlag: Faktagrunnlag?
+    ) : this(periode, utfall, manuellVurdering, faktagrunnlag, TomtBeslutningstre())
 
     fun erOppfylt(): Boolean {
         return utfall == Utfall.OPPFYLT
@@ -39,5 +46,7 @@ class Vilkårsperiode(
         return result
     }
 
-
+    fun erIkkeVurdert(): Boolean {
+        return utfall !in setOf(Utfall.IKKE_OPPFYLT, Utfall.OPPFYLT)
+    }
 }

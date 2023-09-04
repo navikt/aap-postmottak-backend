@@ -3,7 +3,14 @@ package no.nav.aap.domene.behandling
 import no.nav.aap.flyt.BehandlingFlyt
 import no.nav.aap.flyt.BehandlingFlytBuilder
 import no.nav.aap.flyt.StegType
-import no.nav.aap.flyt.steg.*
+import no.nav.aap.flyt.steg.AvsluttBehandlingSteg
+import no.nav.aap.flyt.steg.FatteVedtakSteg
+import no.nav.aap.flyt.steg.ForeslåVedtakSteg
+import no.nav.aap.flyt.steg.GeneriskPlaceholderSteg
+import no.nav.aap.flyt.steg.InnhentRegisterdataSteg
+import no.nav.aap.flyt.steg.StartBehandlingSteg
+import no.nav.aap.flyt.steg.VurderAlderSteg
+import no.nav.aap.flyt.steg.VurderSykdomSteg
 
 interface BehandlingType {
     fun flyt(): BehandlingFlyt
@@ -16,7 +23,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(StartBehandlingSteg())
             .medSteg(InnhentRegisterdataSteg())
             .medSteg(VurderAlderSteg())
-            .medSteg(AvklarYrkesskadeSteg())
+            .medSteg(VurderSykdomSteg())
             .medSteg(GeneriskPlaceholderSteg(StegType.INNGANGSVILKÅR))
             .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_GRUNNLAG))
             .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_UTTAK))
@@ -36,7 +43,7 @@ object Førstegangsbehandling : BehandlingType {
 
 object Revurdering : BehandlingType {
     override fun flyt(): BehandlingFlyt {
-        TODO("Not yet implemented")
+        return Førstegangsbehandling.flyt() // Returnerer bare samme fly atm
     }
 
     override fun identifikator(): String {

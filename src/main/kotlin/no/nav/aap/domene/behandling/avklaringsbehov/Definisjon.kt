@@ -9,17 +9,19 @@ import java.util.stream.Collectors
 import kotlin.reflect.KFunction1
 
 const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
-const val AVKLAR_YRKESSKADE_KODE = "5001"
+const val AVKLAR_SYKDOM_KODE = "5001"
 const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
 
-enum class Definisjon(@JsonValue val kode: String,
-                      private val type: BehovType = BehovType.MANUELT,
-                      private val defaultFrist: Period = Period.ZERO,
-                      val løsesISteg: StegType = StegType.UDEFINERT,
-                      val vurderingspunkt: Vurderingspunkt,
-                      val rekjørSteg: Boolean = false,
-                      val kreverToTrinn: Boolean = false) {
+enum class Definisjon(
+    @JsonValue val kode: String,
+    private val type: BehovType = BehovType.MANUELT,
+    private val defaultFrist: Period = Period.ZERO,
+    val løsesISteg: StegType = StegType.UDEFINERT,
+    val vurderingspunkt: Vurderingspunkt,
+    val rekjørSteg: Boolean = false,
+    val kreverToTrinn: Boolean = false
+) {
 
     MANUELT_SATT_PÅ_VENT(
         kode = MANUELT_SATT_PÅ_VENT_KODE,
@@ -28,10 +30,11 @@ enum class Definisjon(@JsonValue val kode: String,
         vurderingspunkt = Vurderingspunkt.UT,
         rekjørSteg = true
     ),
-    AVKLAR_YRKESSKADE(
-        kode = AVKLAR_YRKESSKADE_KODE,
-        løsesISteg = StegType.AVKLAR_YRKESSKADE,
+    AVKLAR_SYKDOM(
+        kode = AVKLAR_SYKDOM_KODE,
+        løsesISteg = StegType.AVKLAR_SYKDOM,
         vurderingspunkt = Vurderingspunkt.UT,
+        rekjørSteg = true, // Bør rekjøre steget for å se om det er i gyldig state
         kreverToTrinn = true
     ),
     FORESLÅ_VEDTAK(
@@ -95,4 +98,9 @@ enum class Definisjon(@JsonValue val kode: String,
             }
         }
     }
+
+    override fun toString(): String {
+        return "$name(kode='$kode')"
+    }
+
 }

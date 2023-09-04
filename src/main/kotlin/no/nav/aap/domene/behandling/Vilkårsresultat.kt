@@ -1,8 +1,15 @@
 package no.nav.aap.domene.behandling
 
 class Vilkårsresultat(
-    private val vilkår: List<Vilkår>
+    private val vilkår: MutableList<Vilkår> = mutableListOf()
 ) {
+    fun leggTilHvisIkkeEksisterer(vilkårstype: Vilkårstype): Vilkår {
+        if (vilkår.none { it.type == vilkårstype }) {
+            this.vilkår.add(Vilkår(vilkårstype))
+        }
+        return finnVilkår(vilkårstype)
+    }
+
     fun finnVilkår(vilkårstype: Vilkårstype): Vilkår {
         return vilkår.first { it.type == vilkårstype }
     }

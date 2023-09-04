@@ -1,6 +1,8 @@
 package no.nav.aap.hendelse.mottak
 
 import no.nav.aap.domene.behandling.BehandlingTjeneste
+import no.nav.aap.domene.behandling.EndringType
+import no.nav.aap.domene.behandling.Årsak
 import no.nav.aap.domene.person.Personlager
 import no.nav.aap.domene.sak.Sakslager
 import no.nav.aap.domene.typer.Ident
@@ -31,7 +33,7 @@ object HendelsesMottak {
             sisteBehandlingOpt
         } else {
             // Har ikke behandling så oppretter en
-            BehandlingTjeneste.opprettBehandling(sak.id)
+            BehandlingTjeneste.opprettBehandling(sak.id, listOf(Årsak(EndringType.MOTTATT_SØKNAD))) // TODO: Reeltsett oppdatere denne
         }
         håndtere(key = sisteBehandling.id, hendelse.tilBehandlingHendelse())
     }
