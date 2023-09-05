@@ -6,8 +6,8 @@ class Vilkårsperiode(
     val periode: Periode,
     val utfall: Utfall,
     val manuellVurdering: Boolean = false,
-    private val faktagrunnlag: Faktagrunnlag?,
-    private val besluttningstre: Beslutningstre?
+    internal val faktagrunnlag: Faktagrunnlag?,
+    internal val besluttningstre: Beslutningstre?
 ) {
     constructor(
         periode: Periode,

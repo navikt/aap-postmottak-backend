@@ -23,7 +23,7 @@ class Periode(private val fom: LocalDate, private val tom: LocalDate) {
     }
 
     fun overlapper(periode: Periode): Boolean {
-        return this == periode || this.fom.compareTo(periode.tom) < 0 && periode.fom.compareTo(this.tom) < 0
+        return !this.tom.isBefore(periode.fraOgMed()) && !this.fom.isAfter(periode.tilOgMed())
     }
 
     override fun equals(other: Any?): Boolean {

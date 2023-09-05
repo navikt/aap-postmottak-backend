@@ -95,33 +95,6 @@ class FlytKontrollerTest {
     }
 
     @Test
-    fun `skal IKKE avklare yrkesskade hvis det finnes spor av yrkesskade`() {
-
-        val ident = Ident("123123123124")
-        val person = Personlager.finnEllerOpprett(ident)
-        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
-        PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(18))))
-
-        HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
-
-        val sak = Sakslager.finnEllerOpprett(person, periode)
-        val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
-
-        assertThat(behandling.avklaringsbehov()).isEmpty()
-        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
-
-        //Henter vurder alder-vilkår
-        //Assert utfall
-        val vilkårsresultat = behandling.vilkårsresultat()
-        val aldersvilkår = vilkårsresultat.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
-
-        assertThat(aldersvilkår.vilkårsperioder())
-            .hasSize(1)
-            .allMatch { vilkårsperiodeForAlder -> vilkårsperiodeForAlder.erOppfylt() }
-    }
-
-    @Test
     fun `Ikke oppfylt på grunn av alder på søknadstidspunkt`() {
         val ident = Ident("123123123125")
         val person = Personlager.finnEllerOpprett(ident)

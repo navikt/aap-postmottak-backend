@@ -32,6 +32,11 @@ class PeriodeTest {
         val periode3 = Periode(LocalDate.now(), LocalDate.now())
 
         assertThat(periode1.overlapper(periode3)).isTrue()
+
+        val periode4 = Periode(LocalDate.now().minusDays(8), LocalDate.now())
+        val periode5 = Periode(LocalDate.now(), LocalDate.now().plusDays(8))
+
+        assertThat(periode4.overlapper(periode5)).isTrue()
     }
 
     @Test

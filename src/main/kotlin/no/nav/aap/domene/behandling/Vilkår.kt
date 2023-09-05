@@ -12,8 +12,50 @@ class Vilkår(
     }
 
     fun leggTilVurdering(vilkårsperiode: Vilkårsperiode) {
-        this.vilkårsperioder.add(vilkårsperiode)
-        // TODO: Legg til overlappende constraint
+        if (vilkårsperioder.any { vp -> vp.periode.overlapper(vilkårsperiode.periode) }) {
+            // Overlapper og må justere innholdet i listen
+            val justertePerioder = vilkårsperioder
+                .filter { vp -> vp.periode.overlapper(vilkårsperiode.periode) }
+                .filter { vp ->
+                    !((vp.periode.tilOgMed()
+                        .isBefore(vilkårsperiode.periode.tilOgMed()) || vp.periode.tilOgMed() == vilkårsperiode.periode.tilOgMed())
+                            && (vp.periode.fraOgMed()
+                        .isAfter(vilkårsperiode.periode.fraOgMed()) || vp.periode.fraOgMed() == vilkårsperiode.periode.fraOgMed()))
+                }
+                .map { vp ->
+                    Vilkårsperiode(
+                        justerPeriode(vp.periode, vilkårsperiode.periode),
+                        vp.utfall,
+                        vp.manuellVurdering,
+                        vp.faktagrunnlag,
+                        vp.besluttningstre
+                    )
+                }
+                .toList()
+
+            this.vilkårsperioder.removeIf { vp -> vp.periode.overlapper(vilkårsperiode.periode) }
+            this.vilkårsperioder.addAll(justertePerioder)
+            this.vilkårsperioder.add(vilkårsperiode)
+        } else {
+            this.vilkårsperioder.add(vilkårsperiode)
+        }
+    }
+
+    internal fun justerPeriode(leftPeriode: Periode, rightPeriode: Periode): Periode {
+        if (!leftPeriode.overlapper(rightPeriode)) {
+            return leftPeriode
+        }
+        val fom = if (rightPeriode.fraOgMed().isBefore(leftPeriode.fraOgMed())) {
+            rightPeriode.tilOgMed().plusDays(1)
+        } else {
+            leftPeriode.fraOgMed()
+        }
+        val tom = if (rightPeriode.tilOgMed().isAfter(leftPeriode.tilOgMed())) {
+            rightPeriode.fraOgMed().minusDays(1)
+        } else {
+            leftPeriode.tilOgMed()
+        }
+        return Periode(fom, tom)
     }
 
     override fun toString(): String {

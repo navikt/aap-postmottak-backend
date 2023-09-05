@@ -51,7 +51,7 @@ fun Routing.behandlingApi() {
                     VilkårDTO(
                         vilkårstype = vilkår.type,
                         perioder = vilkår.vilkårsperioder()
-                            .map { vp -> VilkårsperiodeDTO(periode = vp.periode, utfall = vp.utfall) })
+                            .map { vp -> VilkårsperiodeDTO(periode = vp.periode, utfall = vp.utfall, manuellVurdering = vp.manuellVurdering) })
                 },
                 aktivtSteg = behandling.stegHistorikk().last().tilstand.steg()
             )
