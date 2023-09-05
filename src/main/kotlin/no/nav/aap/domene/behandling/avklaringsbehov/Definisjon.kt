@@ -1,6 +1,7 @@
 package no.nav.aap.domene.behandling.avklaringsbehov
 
-import com.fasterxml.jackson.annotation.JsonValue
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 import java.time.Period
@@ -14,12 +15,12 @@ const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
 
 enum class Definisjon(
-    @JsonValue val kode: String,
+    @JsonProperty("kode") val kode: String,
     private val type: BehovType = BehovType.MANUELT,
-    private val defaultFrist: Period = Period.ZERO,
-    val løsesISteg: StegType = StegType.UDEFINERT,
-    val vurderingspunkt: Vurderingspunkt,
-    val rekjørSteg: Boolean = false,
+    @JsonIgnore private val defaultFrist: Period = Period.ZERO,
+    @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
+    @JsonIgnore val vurderingspunkt: Vurderingspunkt,
+    @JsonIgnore val rekjørSteg: Boolean = false,
     val kreverToTrinn: Boolean = false
 ) {
 
