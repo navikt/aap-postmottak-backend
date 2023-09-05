@@ -19,12 +19,12 @@ class AvklarSykdomLøser : AvklaringsbehovsLøser<AvklarSykdomLøsning> {
                 vilkårsperiode = Vilkårsperiode(
                     periode = periodeMedUtfall.periode,
                     utfall = periodeMedUtfall.utfall,
+                    begrunnelse = periodeMedUtfall.begrunnelse,
                     manuellVurdering = true,
                     faktagrunnlag = SykdomsFaktagrunnlag()
                 )
             )
         }
-
     }
 
     override fun forBehov(): Definisjon {

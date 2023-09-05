@@ -33,6 +33,7 @@ class VurderAlderSteg : BehandlingSteg {
                     Vilkårsperiode(
                         periode = periode,
                         utfall = vurdering.utfall,
+                        begrunnelse = null,
                         faktagrunnlag = aldersgrunnlag,
                         besluttningstre = vurdering.beslutningstre
                     )

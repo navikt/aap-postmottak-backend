@@ -27,6 +27,7 @@ class Vilkår(
                         justerPeriode(vp.periode, vilkårsperiode.periode),
                         vp.utfall,
                         vp.manuellVurdering,
+                        vp.begrunnelse,
                         vp.faktagrunnlag,
                         vp.besluttningstre
                     )
@@ -68,7 +69,8 @@ class Vilkår(
                 periode = rettighetsperiode,
                 utfall = Utfall.IKKE_VURDERT,
                 manuellVurdering = false,
-                faktagrunnlag = null
+                faktagrunnlag = null,
+                begrunnelse = null
             )
         )
     }

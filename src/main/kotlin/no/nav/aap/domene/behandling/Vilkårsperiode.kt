@@ -6,6 +6,7 @@ class Vilkårsperiode(
     val periode: Periode,
     val utfall: Utfall,
     val manuellVurdering: Boolean = false,
+    val begrunnelse: String?,
     internal val faktagrunnlag: Faktagrunnlag?,
     internal val besluttningstre: Beslutningstre?
 ) {
@@ -13,8 +14,9 @@ class Vilkårsperiode(
         periode: Periode,
         utfall: Utfall,
         manuellVurdering: Boolean,
-        faktagrunnlag: Faktagrunnlag?
-    ) : this(periode, utfall, manuellVurdering, faktagrunnlag, TomtBeslutningstre())
+        faktagrunnlag: Faktagrunnlag?,
+        begrunnelse: String?
+    ) : this(periode, utfall, manuellVurdering, begrunnelse, faktagrunnlag, TomtBeslutningstre())
 
     fun erOppfylt(): Boolean {
         return utfall == Utfall.OPPFYLT

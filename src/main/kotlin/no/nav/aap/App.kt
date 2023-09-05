@@ -18,6 +18,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøsning
+import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
+import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
 import no.nav.aap.domene.behandling.grunnlag.person.PersonRegisterMock
 import no.nav.aap.domene.behandling.grunnlag.person.Personinfo
@@ -43,6 +46,7 @@ internal fun Application.server() {
         jackson {
             registerModule(JavaTimeModule())
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            registerSubtypes(AvklarSykdomLøsning::class.java, ForeslåVedtakLøsning::class.java, FatteVedtakLøsning::class.java)
         }
     }
     install(CORS) {
