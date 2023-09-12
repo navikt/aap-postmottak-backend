@@ -158,10 +158,10 @@ class FlytKontrollerTest {
 
         HendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
 
-        assertThat(behandling.status()).isEqualTo(Status.PÅ_VENT)
+        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         assertThat(behandling.avklaringsbehov())
             .hasSize(2)
-            .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
+            .anySatisfy { !it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
             .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
 
     }
