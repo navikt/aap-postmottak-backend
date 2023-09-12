@@ -5,7 +5,7 @@ import no.nav.aap.avklaringsbehov.AvklaringsbehovLøsning
 import no.nav.aap.domene.behandling.avklaringsbehov.FORESLÅ_VEDTAK_KODE
 
 @JsonTypeName(value = FORESLÅ_VEDTAK_KODE)
-class ForeslåVedtakLøsning(begrunnelse: String, endretAv: String) :
-    AvklaringsbehovLøsning(begrunnelse, endretAv) {
+class ForeslåVedtakLøsning(val begrunnelse: String) :
+    AvklaringsbehovLøsning {
 
 }

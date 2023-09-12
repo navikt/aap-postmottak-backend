@@ -62,8 +62,8 @@ class AvklaringsbehovKontroller {
         // Liker denne casten fryktelig lite godt -_- men må til pga generics *
         val avklaringsbehovsLøser =
             avklaringsbehovsLøsere.getValue(it.definisjon()) as AvklaringsbehovsLøser<AvklaringsbehovLøsning>
-        avklaringsbehovsLøser.løs(kontekst = kontekst, it)
-        behandling.løsAvklaringsbehov(it.definisjon(), it.begrunnelse, it.endretAv)
+        val løsningsResultat = avklaringsbehovsLøser.løs(kontekst = kontekst, løsning = it)
+        behandling.løsAvklaringsbehov(it.definisjon(), løsningsResultat.begrunnelse, "Saksbehandler") // TODO: Hente fra context
     }
 
 

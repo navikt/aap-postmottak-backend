@@ -5,7 +5,7 @@ import no.nav.aap.avklaringsbehov.AvklaringsbehovLøsning
 import no.nav.aap.domene.behandling.avklaringsbehov.AVKLAR_SYKDOM_KODE
 
 @JsonTypeName(value = AVKLAR_SYKDOM_KODE)
-class AvklarSykdomLøsning(begrunnelse: String, endretAv: String, val vurdertePerioder: Set<PeriodeMedUtfall>) :
-    AvklaringsbehovLøsning(begrunnelse, endretAv) {
+class AvklarSykdomLøsning(val vurdertePerioder: Set<PeriodeMedUtfall>) :
+    AvklaringsbehovLøsning {
 
 }

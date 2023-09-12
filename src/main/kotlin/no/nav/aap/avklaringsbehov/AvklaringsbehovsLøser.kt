@@ -5,7 +5,7 @@ import no.nav.aap.flyt.kontroll.FlytKontekst
 
 interface AvklaringsbehovsLøser<T : AvklaringsbehovLøsning> {
 
-    fun løs(kontekst: FlytKontekst, løsning: T)
+    fun løs(kontekst: FlytKontekst, løsning: T) : LøsningsResultat
 
     fun forBehov(): Definisjon
 }

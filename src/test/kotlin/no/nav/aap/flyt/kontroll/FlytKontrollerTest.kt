@@ -54,7 +54,15 @@ class FlytKontrollerTest {
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
-                løsning = AvklarSykdomLøsning("Begrunnelse", "meg", setOf(PeriodeMedUtfall(sak.rettighetsperiode, Utfall.OPPFYLT, "Begrunnelse")))
+                løsning = AvklarSykdomLøsning(
+                    setOf(
+                        PeriodeMedUtfall(
+                            sak.rettighetsperiode,
+                            Utfall.OPPFYLT,
+                            "Begrunnelse"
+                        )
+                    )
+                )
             )
         )
 
@@ -66,7 +74,7 @@ class FlytKontrollerTest {
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
-                løsning = ForeslåVedtakLøsning("Begrunnelse", "meg")
+                løsning = ForeslåVedtakLøsning("Begrunnelse")
             )
         )
 
@@ -78,7 +86,7 @@ class FlytKontrollerTest {
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
-                løsning = FatteVedtakLøsning("Begrunnelse", "meg")
+                løsning = FatteVedtakLøsning("Begrunnelse")
             )
         )
 
