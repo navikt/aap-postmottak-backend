@@ -36,6 +36,9 @@ spec:
     application:
       enabled: true
       allowAllUsers: true
+      claims:
+          extra:
+              - "NAVident"
   secureLogs:
     enabled: true
   accessPolicy:
