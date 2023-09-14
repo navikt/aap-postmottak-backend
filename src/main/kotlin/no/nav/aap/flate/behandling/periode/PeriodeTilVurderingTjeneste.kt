@@ -5,7 +5,7 @@ import no.nav.aap.domene.behandling.FunksjonellGruppe
 import no.nav.aap.domene.behandling.Førstegangsbehandling
 import no.nav.aap.domene.behandling.Vilkårstype
 import no.nav.aap.domene.sak.Sakslager
-import no.nav.aap.domene.typer.Periode
+import no.nav.aap.domene.Periode
 
 object PeriodeTilVurderingTjeneste {
 

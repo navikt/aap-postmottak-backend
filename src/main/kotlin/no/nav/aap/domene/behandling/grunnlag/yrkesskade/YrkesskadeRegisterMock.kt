@@ -1,7 +1,7 @@
 package no.nav.aap.domene.behandling.grunnlag.yrkesskade
 
-import no.nav.aap.domene.typer.Ident
-import no.nav.aap.domene.typer.Periode
+import no.nav.aap.domene.person.Ident
+import no.nav.aap.domene.Periode
 
 object YrkesskadeRegisterMock {
 

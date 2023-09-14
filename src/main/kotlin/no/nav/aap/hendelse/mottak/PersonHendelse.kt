@@ -1,6 +1,6 @@
 package no.nav.aap.hendelse.mottak
 
-import no.nav.aap.domene.typer.Periode
+import no.nav.aap.domene.Periode
 
 interface PersonHendelse {
 

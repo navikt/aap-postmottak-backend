@@ -12,8 +12,8 @@ import io.ktor.server.util.*
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.person.Personlager
 import no.nav.aap.domene.sak.Sakslager
-import no.nav.aap.domene.typer.Ident
-import no.nav.aap.domene.typer.Saksnummer
+import no.nav.aap.domene.person.Ident
+import no.nav.aap.domene.sak.Saksnummer
 
 fun Routing.saksApi() {
     route("/api/sak", {

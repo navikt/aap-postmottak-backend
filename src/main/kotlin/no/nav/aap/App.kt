@@ -27,8 +27,8 @@ import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
 import no.nav.aap.domene.behandling.grunnlag.person.PersonRegisterMock
 import no.nav.aap.domene.behandling.grunnlag.person.Personinfo
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
-import no.nav.aap.domene.typer.Ident
-import no.nav.aap.domene.typer.Periode
+import no.nav.aap.domene.person.Ident
+import no.nav.aap.domene.Periode
 import no.nav.aap.flate.behandling.avklaringsbehov.avklaringsbehovApi
 import no.nav.aap.flate.behandling.behandlingApi
 import no.nav.aap.flate.sak.saksApi

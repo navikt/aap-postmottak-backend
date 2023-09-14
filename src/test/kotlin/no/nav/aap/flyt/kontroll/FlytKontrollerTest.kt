@@ -16,8 +16,8 @@ import no.nav.aap.domene.behandling.grunnlag.person.Personinfo
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
 import no.nav.aap.domene.person.Personlager
 import no.nav.aap.domene.sak.Sakslager
-import no.nav.aap.domene.typer.Ident
-import no.nav.aap.domene.typer.Periode
+import no.nav.aap.domene.person.Ident
+import no.nav.aap.domene.Periode
 import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 import no.nav.aap.flyt.Tilstand

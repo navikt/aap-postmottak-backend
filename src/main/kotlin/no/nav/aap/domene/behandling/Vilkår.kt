@@ -1,6 +1,6 @@
 package no.nav.aap.domene.behandling
 
-import no.nav.aap.domene.typer.Periode
+import no.nav.aap.domene.Periode
 
 class Vilkår(
     val type: Vilkårstype

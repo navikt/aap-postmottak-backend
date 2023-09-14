@@ -1,5 +1,6 @@
-package no.nav.aap.domene.typer
+package no.nav.aap.domene
 
+import no.nav.aap.domene.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

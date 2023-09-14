@@ -1,4 +1,4 @@
-package no.nav.aap.domene.typer
+package no.nav.aap.domene.person
 
 class Ident(val identifikator: String) {
     override fun equals(other: Any?): Boolean {

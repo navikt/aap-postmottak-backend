@@ -1,4 +1,4 @@
-package no.nav.aap.domene.typer
+package no.nav.aap.domene
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue

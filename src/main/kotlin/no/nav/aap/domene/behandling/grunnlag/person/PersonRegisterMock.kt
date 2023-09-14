@@ -1,6 +1,6 @@
 package no.nav.aap.domene.behandling.grunnlag.person
 
-import no.nav.aap.domene.typer.Ident
+import no.nav.aap.domene.person.Ident
 
 object PersonRegisterMock {
 

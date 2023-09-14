@@ -1,6 +1,6 @@
 package no.nav.aap.domene.behandling
 
-import no.nav.aap.domene.typer.Periode
+import no.nav.aap.domene.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

@@ -1,8 +1,7 @@
 package no.nav.aap.domene.sak
 
 import no.nav.aap.domene.person.Person
-import no.nav.aap.domene.typer.Periode
-import no.nav.aap.domene.typer.Saksnummer
+import no.nav.aap.domene.Periode
 
 object Sakslager {
     private var saker = HashMap<Long, Sak>()
