@@ -11,12 +11,6 @@ object YrkesskadeTjeneste {
     private val key = AtomicLong()
     private val LOCK = Object()
 
-    fun hentHvisEksisterer(behandlingId: Long): Optional<YrkesskadeGrunnlag> {
-        synchronized(LOCK) {
-            return Optional.ofNullable(grunnlagene[behandlingId])
-        }
-    }
-
     fun lagre(behandlingId: Long, yrkesskader: Yrkesskader?) {
         synchronized(LOCK) {
             if (yrkesskader != null) {
@@ -35,6 +29,12 @@ object YrkesskadeTjeneste {
             hentHvisEksisterer(fraBehandling.id).ifPresent { eksisterendeGrunnlag ->
                 grunnlagene[tilBehandling.id] = eksisterendeGrunnlag
             }
+        }
+    }
+
+    fun hentHvisEksisterer(behandlingId: Long): Optional<YrkesskadeGrunnlag> {
+        synchronized(LOCK) {
+            return Optional.ofNullable(grunnlagene[behandlingId])
         }
     }
 }
