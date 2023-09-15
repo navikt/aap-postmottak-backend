@@ -10,20 +10,6 @@ object BehandlingTjeneste {
 
     private val LOCK = Object()
 
-    fun hent(behandlingId: Long): Behandling {
-        synchronized(LOCK) {
-            return behandliger.getValue(behandlingId)
-        }
-    }
-
-    fun finnSisteBehandlingFor(sakId: Long): Behandling? {
-        synchronized(LOCK) {
-            return behandliger.values
-                .filter { behandling -> behandling.sakId == sakId }
-                .maxOrNull()
-        }
-    }
-
     fun opprettBehandling(sakId: Long, årsaker: List<Årsak>): Behandling {
         synchronized(LOCK) {
             val sisteBehandlingFor = finnSisteBehandlingFor(sakId)
@@ -46,6 +32,14 @@ object BehandlingTjeneste {
         }
     }
 
+    fun finnSisteBehandlingFor(sakId: Long): Behandling? {
+        synchronized(LOCK) {
+            return behandliger.values
+                .filter { behandling -> behandling.sakId == sakId }
+                .maxOrNull()
+        }
+    }
+
     private fun utledBehandlingType(present: Boolean): BehandlingType {
         if (present) {
             return Revurdering
@@ -57,6 +51,12 @@ object BehandlingTjeneste {
         synchronized(LOCK) {
             return behandliger.values
                 .filter { behandling -> behandling.sakId == sakId }
+        }
+    }
+
+    fun hent(behandlingId: Long): Behandling {
+        synchronized(LOCK) {
+            return behandliger.getValue(behandlingId)
         }
     }
 

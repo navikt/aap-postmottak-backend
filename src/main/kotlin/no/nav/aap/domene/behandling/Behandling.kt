@@ -36,48 +36,17 @@ class Behandling(
         oppdaterStatus(stegTilstand)
     }
 
-    fun settPåVent() {
-        status = Status.PÅ_VENT
-        leggTil(behov = Avklaringsbehov(Definisjon.MANUELT_SATT_PÅ_VENT, funnetISteg = aktivtSteg().tilstand.steg()))
-    }
-
-
-    fun avklaringsbehov(): List<Avklaringsbehov> {
-        return avklaringsbehov.toList()
-    }
-
-    fun årsaker(): List<Årsak> {
-        return årsaker.toList()
-    }
-
-    fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()
-
-    private fun oppdaterStatus(stegTilstand: StegTilstand) {
-        val stegStatus = stegTilstand.tilstand.steg().status
-        if (status != stegStatus) {
-            status = stegStatus
-        }
-    }
-
     private fun validerStegTilstand() {
         if (stegHistorikk.isNotEmpty() && stegHistorikk.stream().noneMatch { tilstand -> tilstand.aktiv }) {
             throw IllegalStateException("Utvikler feil, mangler aktivt steg når steghistorikk ikke er tom.")
         }
     }
 
-    fun status(): Status {
-        return status
-    }
-
-    fun aktivtSteg(): StegTilstand {
-        return stegHistorikk.stream()
-            .filter { tilstand -> tilstand.aktiv }
-            .findAny()
-            .orElse(
-                StegTilstand(
-                    tilstand = Tilstand(StegType.START_BEHANDLING, StegStatus.START)
-                )
-            )
+    private fun oppdaterStatus(stegTilstand: StegTilstand) {
+        val stegStatus = stegTilstand.tilstand.steg().status
+        if (status != stegStatus) {
+            status = stegStatus
+        }
     }
 
     fun leggTil(funnetAvklaringsbehov: List<Definisjon>) {
@@ -91,29 +60,39 @@ class Behandling(
             .forEach { leggTil(behov = it) }
     }
 
+    fun aktivtSteg(): StegTilstand {
+        return stegHistorikk.stream()
+            .filter { tilstand -> tilstand.aktiv }
+            .findAny()
+            .orElse(
+                StegTilstand(
+                    tilstand = Tilstand(StegType.START_BEHANDLING, StegStatus.START)
+                )
+            )
+    }
+
+    fun settPåVent() {
+        status = Status.PÅ_VENT
+        leggTil(behov = Avklaringsbehov(Definisjon.MANUELT_SATT_PÅ_VENT, funnetISteg = aktivtSteg().tilstand.steg()))
+    }
+
     private fun leggTil(behov: Avklaringsbehov) {
         val relevantBehov = avklaringsbehov.stream().filter { it.definisjon == behov.definisjon }.findFirst()
-
-        if (relevantBehov.isEmpty) {
-            avklaringsbehov += behov
-        } else {
-            relevantBehov.get().reåpne()
-        }
+        relevantBehov.ifPresentOrElse({it.reåpne()}, {avklaringsbehov += behov})
     }
 
     fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String) {
         avklaringsbehov.single { it.definisjon == definisjon }.løs(begrunnelse, endretAv = endretAv)
     }
 
+    fun vilkårsresultat(): Vilkårsresultat = vilkårsresultat
+    fun flyt(): BehandlingFlyt = type.flyt()
+    fun avklaringsbehov(): List<Avklaringsbehov> = avklaringsbehov.toList()
+    fun årsaker(): List<Årsak> = årsaker.toList()
+    fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()
+    fun status(): Status = status
+
     override fun compareTo(other: Behandling): Int {
         return this.opprettetTidspunkt.compareTo(other.opprettetTidspunkt)
-    }
-
-    fun vilkårsresultat(): Vilkårsresultat {
-        return vilkårsresultat
-    }
-
-    fun flyt(): BehandlingFlyt {
-        return type.flyt()
     }
 }
