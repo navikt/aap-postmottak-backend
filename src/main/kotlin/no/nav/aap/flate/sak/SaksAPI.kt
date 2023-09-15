@@ -36,40 +36,40 @@ fun NormalOpenAPIRoute.saksApi() {
                         respond(saker)
                     }
                 }
-                route("/alle").get<Unit, List<SaksinfoDTO>> {
-                    val saker = Sakslager.finnAlle()
-                        .map { sak ->
-                            SaksinfoDTO(
-                                saksnummer = sak.saksnummer.toString(),
-                                periode = sak.rettighetsperiode
-                            )
-                        }
-
-                    respond(saker)
-                }
-                route("/hent/{saksnummer}").get<HentSakDTO, UtvidetSaksinfoDTO> { req ->
-                    val saksnummer = req.saksnummer
-
-                    val sak = Sakslager.hent(saksnummer = Saksnummer(saksnummer))
-
-                    val behandlinger = BehandlingTjeneste.hentAlleFor(sak.id).map { behandling ->
-                        BehandlinginfoDTO(
-                            referanse = behandling.referanse,
-                            type = behandling.type.identifikator(),
-                            status = behandling.status(),
-                            opprettet = behandling.opprettetTidspunkt
+            }
+            route("/alle").get<Unit, List<SaksinfoDTO>> {
+                val saker = Sakslager.finnAlle()
+                    .map { sak ->
+                        SaksinfoDTO(
+                            saksnummer = sak.saksnummer.toString(),
+                            periode = sak.rettighetsperiode
                         )
                     }
 
-                    respond(
-                        UtvidetSaksinfoDTO(
-                            saksnummer = sak.saksnummer.toString(),
-                            periode = sak.rettighetsperiode,
-                            behandlinger = behandlinger,
-                            status = sak.status()
-                        )
+                respond(saker)
+            }
+            route("/hent/{saksnummer}").get<HentSakDTO, UtvidetSaksinfoDTO> { req ->
+                val saksnummer = req.saksnummer
+
+                val sak = Sakslager.hent(saksnummer = Saksnummer(saksnummer))
+
+                val behandlinger = BehandlingTjeneste.hentAlleFor(sak.id).map { behandling ->
+                    BehandlinginfoDTO(
+                        referanse = behandling.referanse,
+                        type = behandling.type.identifikator(),
+                        status = behandling.status(),
+                        opprettet = behandling.opprettetTidspunkt
                     )
                 }
+
+                respond(
+                    UtvidetSaksinfoDTO(
+                        saksnummer = sak.saksnummer.toString(),
+                        periode = sak.rettighetsperiode,
+                        behandlinger = behandlinger,
+                        status = sak.status()
+                    )
+                )
             }
         }
     }
