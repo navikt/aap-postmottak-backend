@@ -12,11 +12,14 @@ import no.nav.aap.domene.behandling.StegTilstand
 import no.nav.aap.domene.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.flyt.BehandlingFlyt
+import org.slf4j.LoggerFactory
 
 class AvklaringsbehovKontroller {
 
     private val avklaringsbehovsLøsere = mutableMapOf<Definisjon, AvklaringsbehovsLøser<*>>()
     private val flytKontroller = FlytKontroller()
+
+    private val log = LoggerFactory.getLogger(AvklaringsbehovKontroller::class.java)
 
     init {
         avklaringsbehovsLøsere[Definisjon.MANUELT_SATT_PÅ_VENT] = SattPåVentLøser()
@@ -39,6 +42,7 @@ class AvklaringsbehovKontroller {
         avklaringsbehov: List<AvklaringsbehovLøsning>
     ) {
         val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
+        log.info("Forsøker løse avklaringsbehov på behandling[${behandling.referanse}")
 
         ValiderBehandlingTilstand.validerTilstandBehandling(behandling, avklaringsbehov.map { it.definisjon() })
 

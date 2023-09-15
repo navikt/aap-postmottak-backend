@@ -25,6 +25,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(VurderAlderSteg())
             .medSteg(VurderSykdomSteg())
             .medSteg(GeneriskPlaceholderSteg(StegType.INNGANGSVILKÅR))
+
             .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_GRUNNLAG))
             .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_UTTAK))
             .medSteg(GeneriskPlaceholderSteg(StegType.SIMULERING))

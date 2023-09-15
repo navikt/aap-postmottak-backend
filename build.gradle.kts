@@ -50,7 +50,7 @@ dependencies {
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
-    implementation("io.github.smiley4:ktor-swagger-ui:2.3.1")
+    implementation("dev.forst:ktor-openapi-generator:0.6.1")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.2")

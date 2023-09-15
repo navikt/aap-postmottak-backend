@@ -2,10 +2,13 @@ package no.nav.aap
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.github.smiley4.ktorswaggerui.SwaggerUI
-import io.github.smiley4.ktorswaggerui.dsl.get
-import io.github.smiley4.ktorswaggerui.dsl.post
-import io.github.smiley4.ktorswaggerui.dsl.route
+import com.papsign.ktor.openapigen.OpenAPIGen
+import com.papsign.ktor.openapigen.route.apiRouting
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.path.normal.get
+import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -14,7 +17,6 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
@@ -22,13 +24,13 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøsning
 import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.domene.Periode
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
 import no.nav.aap.domene.behandling.grunnlag.person.PersonRegisterMock
 import no.nav.aap.domene.behandling.grunnlag.person.Personinfo
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
 import no.nav.aap.domene.person.Ident
-import no.nav.aap.domene.Periode
 import no.nav.aap.flate.behandling.avklaringsbehov.avklaringsbehovApi
 import no.nav.aap.flate.behandling.behandlingApi
 import no.nav.aap.flate.sak.saksApi
@@ -43,70 +45,54 @@ fun main() {
 internal fun Application.server() {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
+
     install(MicrometerMetrics) { registry = prometheus }
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             registerSubtypes(
-                AvklarSykdomLøsning::class.java,
-                ForeslåVedtakLøsning::class.java,
-                FatteVedtakLøsning::class.java
+                AvklarSykdomLøsning::class.java, ForeslåVedtakLøsning::class.java, FatteVedtakLøsning::class.java
             )
+        }
+    }
+    install(OpenAPIGen) {
+        // this servers OpenAPI definition on /openapi.json
+        serveOpenApiJson = true
+        // this servers Swagger UI on /swagger-ui/index.html
+        serveSwaggerUi = true
+        info {
+            title = "AAP - Saksbehandling"
         }
     }
     install(CORS) {
         anyHost() // FIXME: Dette blir litt vel aggresivt, men greit for nå? :pray:
         allowHeader(HttpHeaders.ContentType)
     }
-    install(SwaggerUI) {
-        swagger {
-            swaggerUrl = "swagger-ui"
-            forwardRoot = true
-        }
-        info {
-            title = "AAP - Saksbehandling"
-            version = "latest"
-            description = ""
-        }
-        server {
-            url = "http://localhost:8080"
-            description = ""
-        }
-    }
 
-    routing {
-        actuator(prometheus)
+    apiRouting {
         configApi()
         saksApi()
         behandlingApi()
         avklaringsbehovApi()
 
         hendelsesApi()
+        routing {
+            actuator(prometheus)
+        }
     }
 }
 
-fun Routing.configApi() {
-    route("/config/definisjoner", {
-        tags = listOf("config")
-    }) {
-        get({
-            response {
-                HttpStatusCode.OK to {
-                    description = "Lister ut alle definisjoner"
-                    body<List<Definisjon>> {}
-                }
-            }
-        }) {
-            call.respond(HttpStatusCode.OK, Definisjon.entries.toList())
+fun NormalOpenAPIRoute.configApi() {
+    route("/config/definisjoner") {
+        get<Unit, List<Definisjon>> { request ->
+            respond(Definisjon.entries.toList())
         }
     }
 }
 
 private fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
-    route("/actuator", {
-        hidden = true
-    }) {
+    route("/actuator") {
         get("/metrics") {
             call.respond(prometheus.scrape())
         }
@@ -124,34 +110,22 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
 }
 
 @Deprecated("Kun for test lokalt enn så lenge")
-fun Routing.hendelsesApi() {
-    route("/test/opprett", {
-        tags = listOf("test")
-    }) {
-        post({
-            request { body<OpprettTestcaseDTO>() }
-            response {
-                HttpStatusCode.Created to {
-                    description = "Opprettet testcase, søk opp via ident"
-                }
-            }
-        }) {
-            val dto = call.receive<OpprettTestcaseDTO>()
+fun NormalOpenAPIRoute.hendelsesApi() {
+    route("/test/opprett") {
+        post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { path, dto ->
 
             val ident = Ident(dto.ident)
             PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(dto.fødselsdato)))
             if (dto.yrkesskade) {
                 YrkesskadeRegisterMock.konstruer(
-                    ident,
-                    Periode(LocalDate.now().minusYears(3), LocalDate.now().plusYears(3))
+                    ident, Periode(LocalDate.now().minusYears(3), LocalDate.now().plusYears(3))
                 )
             }
 
             HendelsesMottak.håndtere(
-                ident,
-                DokumentMottattPersonHendelse(Periode(LocalDate.now(), LocalDate.now().plusYears(3)))
+                ident, DokumentMottattPersonHendelse(Periode(LocalDate.now(), LocalDate.now().plusYears(3)))
             )
-            call.respond(HttpStatusCode.Created)
+            respond(dto)
         }
     }
 }
