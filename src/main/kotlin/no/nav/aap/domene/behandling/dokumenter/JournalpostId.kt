@@ -1,10 +1,6 @@
 package no.nav.aap.domene.behandling.dokumenter
 
-class JournalpostId(private val identifikator: String) {
-
-    fun id(): String {
-        return identifikator
-    }
+data class JournalpostId(val identifikator: String) {
 
     override fun toString(): String {
         return "Journalpost[id=$identifikator]"

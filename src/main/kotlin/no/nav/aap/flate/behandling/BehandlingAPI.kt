@@ -7,17 +7,16 @@ import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.throws
 import io.ktor.http.*
 import no.nav.aap.domene.behandling.BehandlingTjeneste
-import java.util.*
+import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
 
 fun NormalOpenAPIRoute.behandlingApi() {
     route("/api/behandling") {
-        route("/hent/{referanse}")
-            .throws(HttpStatusCode.BadRequest, IllegalArgumentException::class) {
+        route("/hent/{referanse}") {
+            throws(HttpStatusCode.BadRequest, IllegalArgumentException::class) {
                 throws(HttpStatusCode.NoContent, NoSuchElementException::class) {
-                    get<HentBehandlingDTO, DetaljertBehandlingDTO> { req ->
-                        val referanse = req.referanse
+                    get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
+                        val eksternReferanse = req.ref()
 
-                        val eksternReferanse = UUID.fromString(referanse)
                         val behandling = BehandlingTjeneste.hent(eksternReferanse)
 
                         val dto = DetaljertBehandlingDTO(
@@ -59,5 +58,32 @@ fun NormalOpenAPIRoute.behandlingApi() {
                     }
                 }
             }
+        }
+        route("/hent/{referanse}/grunnlag/sykdom") {
+            get<BehandlingReferanse, SykdomsGrunnlagDto> { req ->
+                val behandling = BehandlingTjeneste.hent(req.ref())
+
+                val yrkesskadeGrunnlagOptional = YrkesskadeTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
+
+                respond(
+                    SykdomsGrunnlagDto(
+                        opplysninger = InnhentetSykdomsOpplysninger(
+                            oppgittYrkesskadeISøknad = false,
+                            innhentedeYrkesskader = yrkesskadeGrunnlagOptional.map { grunnlag ->
+                                grunnlag.yrkesskader.yrkesskader.map { yrkesskade ->
+                                    RegistrertYrkesskade(
+                                        ref = yrkesskade.ref,
+                                        periode = yrkesskade.periode,
+                                        kilde = "Yrkesskaderegisteret"
+                                    )
+                                }
+                            }.orElse(listOf())
+                        ),
+                        yrkesskadevurdering = null,
+                        sykdomsvurdering = null
+                    )
+                )
+            }
+        }
     }
 }
