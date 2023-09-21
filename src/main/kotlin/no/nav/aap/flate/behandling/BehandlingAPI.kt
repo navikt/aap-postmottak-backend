@@ -48,7 +48,8 @@ fun NormalOpenAPIRoute.behandlingApi() {
                                                 periode = vp.periode,
                                                 utfall = vp.utfall,
                                                 manuellVurdering = vp.manuellVurdering,
-                                                begrunnelse = vp.begrunnelse
+                                                begrunnelse = vp.begrunnelse,
+                                                avslagsårsak = vp.avslagsårsak
                                             )
                                         })
                             },
