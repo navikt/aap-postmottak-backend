@@ -50,7 +50,7 @@ fun NormalOpenAPIRoute.saksApi() {
 
                 respond(saker)
             }
-            route("/hent/{saksnummer}").get<HentSakDTO, UtvidetSaksinfoDTO> { req ->
+            route("/{saksnummer}").get<HentSakDTO, UtvidetSaksinfoDTO> { req ->
                 val saksnummer = req.saksnummer
 
                 val sak = Sakslager.hent(saksnummer = Saksnummer(saksnummer))

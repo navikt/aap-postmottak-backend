@@ -11,7 +11,7 @@ import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
 
 fun NormalOpenAPIRoute.behandlingApi() {
     route("/api/behandling") {
-        route("/hent/{referanse}") {
+        route("/{referanse}") {
             throws(HttpStatusCode.BadRequest, IllegalArgumentException::class) {
                 throws(HttpStatusCode.NoContent, NoSuchElementException::class) {
                     get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
@@ -59,11 +59,13 @@ fun NormalOpenAPIRoute.behandlingApi() {
                 }
             }
         }
-        route("/hent/{referanse}/grunnlag/sykdom") {
+        route("/{referanse}/grunnlag/sykdom") {
             get<BehandlingReferanse, SykdomsGrunnlagDto> { req ->
                 val behandling = BehandlingTjeneste.hent(req.ref())
 
                 val yrkesskadeGrunnlagOptional = YrkesskadeTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
+
+                // TODO: Hente vurderinger
 
                 respond(
                     SykdomsGrunnlagDto(
@@ -83,6 +85,13 @@ fun NormalOpenAPIRoute.behandlingApi() {
                         sykdomsvurdering = null
                     )
                 )
+            }
+        }
+        route("/{referanse}/flyt") {
+            get<BehandlingReferanse, BehandlingFlytOgTilstandDto> { req ->
+                val behandling = BehandlingTjeneste.hent(req.ref())
+
+                respond(BehandlingFlytOgTilstandDto(behandling.flyt().stegene()))
             }
         }
     }

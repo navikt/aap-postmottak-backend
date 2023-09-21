@@ -5,13 +5,15 @@ import no.nav.aap.domene.behandling.StegTilstand
 import no.nav.aap.flyt.steg.AvsluttBehandlingSteg
 import no.nav.aap.flyt.steg.BehandlingSteg
 import no.nav.aap.flyt.steg.StartBehandlingSteg
-import java.util.Collections
+import java.util.*
 
 /**
  * Holder styr på den definerte behandlingsflyten og regner ut hvilket steg det skal flyttes
  */
-class BehandlingFlyt(private var flyt: List<BehandlingSteg>,
-                     private var endringTilSteg: Map<EndringType, StegType>) {
+class BehandlingFlyt(
+    private var flyt: List<BehandlingSteg>,
+    private var endringTilSteg: Map<EndringType, StegType>
+) {
 
     fun utledNesteSteg(aktivtSteg: StegTilstand, nesteStegStatus: StegStatus): BehandlingSteg {
         if (aktivtSteg.tilstand.status() == StegStatus.AVSLUTTER && nesteStegStatus == StegStatus.START) {
@@ -94,6 +96,10 @@ class BehandlingFlyt(private var flyt: List<BehandlingSteg>,
         }
 
         return StartBehandlingSteg() // Dette steget må da spesialhåndteres i Flytkontroller for å ikke gi evig løkke
+    }
+
+    fun stegene(): List<StegType> {
+        return flyt.map { it.type() }
     }
 }
 
