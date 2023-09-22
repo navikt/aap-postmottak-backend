@@ -11,6 +11,10 @@ import no.nav.aap.flyt.StegType
 import no.nav.aap.flyt.Tilstand
 import no.nav.aap.flyt.steg.BehandlingSteg
 import no.nav.aap.flyt.steg.StegInput
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger(FlytKontroller::class.java)
+
 
 /**
  * Har ansvar for å drive flyten til en gitt behandling. Typen behandling styrer hvilke steg som skal utføres.
@@ -41,6 +45,12 @@ class FlytKontroller {
             val result = utførTilstandsEndring(kontekst, nesteStegStatus, avklaringsbehov, nesteSteg, behandling)
 
             if (result.funnetAvklaringsbehov().isNotEmpty()) {
+                log.info(
+                    "[{} - {}] Fant avklaringsbehov: {}",
+                    kontekst.sakId,
+                    kontekst.behandlingId,
+                    result.funnetAvklaringsbehov()
+                )
                 behandling.leggTil(result.funnetAvklaringsbehov())
             }
 
@@ -52,6 +62,7 @@ class FlytKontroller {
                 nesteSteg = behandlingFlyt.utledNesteSteg(aktivtSteg, nesteStegStatus)
             } else {
                 // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
+                loggStopp(kontekst, behandling)
             }
         }
     }
@@ -92,7 +103,23 @@ class FlytKontroller {
             if (forrige.type() == tilSteg && tilStegStatus == StegStatus.INNGANG) {
                 kanFortsette = false
             }
+            if (!kanFortsette) {
+                loggStopp(kontekst, behandling)
+            }
         }
+    }
+
+    private fun loggStopp(
+        kontekst: FlytKontekst,
+        behandling: Behandling
+    ) {
+        log.info(
+            "[{} - {}] Stopper opp ved {} med {}",
+            kontekst.sakId,
+            kontekst.behandlingId,
+            behandling.aktivtSteg().tilstand,
+            behandling.åpneAvklaringsbehov()
+        )
     }
 
     internal fun flyttTilStartAvAktivtSteg(behandling: Behandling) {
@@ -163,6 +190,13 @@ class FlytKontroller {
         val relevanteAvklaringsbehov =
             avklaringsbehov.filter { behov -> behov.skalLøsesISteg(aktivtSteg.type()) }
 
+        log.debug(
+            "[{} - {}] Behandler steg({}) med status({})",
+            kontekst.sakId,
+            kontekst.behandlingId,
+            aktivtSteg.type(),
+            nesteStegStatus
+        )
         val transisjon = when (nesteStegStatus) {
             StegStatus.INNGANG -> harAvklaringspunkt(aktivtSteg.type(), nesteStegStatus, relevanteAvklaringsbehov)
             StegStatus.UTFØRER -> behandleSteg(aktivtSteg, kontekst)

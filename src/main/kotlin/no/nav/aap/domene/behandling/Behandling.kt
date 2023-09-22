@@ -88,6 +88,7 @@ class Behandling(
     fun vilkårsresultat(): Vilkårsresultat = vilkårsresultat
     fun flyt(): BehandlingFlyt = type.flyt()
     fun avklaringsbehov(): List<Avklaringsbehov> = avklaringsbehov.toList()
+    fun åpneAvklaringsbehov(): List<Avklaringsbehov> = avklaringsbehov.filter { it.erÅpent() }.toList()
     fun årsaker(): List<Årsak> = årsaker.toList()
     fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()
     fun status(): Status = status
