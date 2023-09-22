@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="pretty"/>
     </root>
 
@@ -15,6 +15,7 @@
         <appender-ref ref="pretty"/>
     </logger>
 
-    <logger name="io.netty" level="DEBUG" />
+    <logger name="io.netty" level="INFO" />
+    <logger name="no.nav" level="INFO" />
 
 </configuration>

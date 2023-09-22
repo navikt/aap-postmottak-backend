@@ -17,6 +17,7 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
@@ -36,7 +37,11 @@ import no.nav.aap.flate.behandling.behandlingApi
 import no.nav.aap.flate.sak.saksApi
 import no.nav.aap.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.hendelse.mottak.HendelsesMottak
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
+
+
+class App
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
@@ -44,7 +49,6 @@ fun main() {
 
 internal fun Application.server() {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-
 
     install(MicrometerMetrics) { registry = prometheus }
     install(ContentNegotiation) {
@@ -54,6 +58,13 @@ internal fun Application.server() {
             registerSubtypes(
                 AvklarSykdomLøsning::class.java, ForeslåVedtakLøsning::class.java, FatteVedtakLøsning::class.java
             )
+        }
+    }
+    install(StatusPages) {
+        exception<Throwable> { call, cause ->
+            LoggerFactory.getLogger(App::class.java)
+                .info("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
         }
     }
     install(OpenAPIGen) {
