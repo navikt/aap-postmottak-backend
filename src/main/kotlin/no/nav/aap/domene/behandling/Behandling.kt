@@ -17,8 +17,7 @@ class Behandling(
     val type: BehandlingType,
     private var status: Status = Status.OPPRETTET,
     private var årsaker: List<Årsak> = mutableListOf(),
-    private var avklaringsbehov: List<Avklaringsbehov> = mutableListOf(),
-    private val flereavklaringsbehov: Avklaringsbehovene = Avklaringsbehovene(),
+    private val avklaringsbehovene: Avklaringsbehovene = Avklaringsbehovene(),
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     private val vilkårsresultat: Vilkårsresultat = Vilkårsresultat(),
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now()
@@ -51,17 +50,6 @@ class Behandling(
         }
     }
 
-    fun leggTil(funnetAvklaringsbehov: List<Definisjon>) {
-        funnetAvklaringsbehov.stream()
-            .map { definisjon ->
-                Avklaringsbehov(
-                    definisjon,
-                    funnetISteg = aktivtSteg().tilstand.steg()
-                )
-            }
-            .forEach { leggTil(behov = it) }
-    }
-
     fun aktivtSteg(): StegTilstand {
         return stegHistorikk.stream()
             .filter { tilstand -> tilstand.aktiv }
@@ -75,22 +63,21 @@ class Behandling(
 
     fun settPåVent() {
         status = Status.PÅ_VENT
-        leggTil(behov = Avklaringsbehov(Definisjon.MANUELT_SATT_PÅ_VENT, funnetISteg = aktivtSteg().tilstand.steg()))
+        avklaringsbehovene.leggTil(Avklaringsbehov(Definisjon.MANUELT_SATT_PÅ_VENT, funnetISteg = aktivtSteg().tilstand.steg()))
     }
 
-    private fun leggTil(behov: Avklaringsbehov) {
-        val relevantBehov = avklaringsbehov.stream().filter { it.definisjon == behov.definisjon }.findFirst()
-        relevantBehov.ifPresentOrElse({it.reåpne()}, {avklaringsbehov += behov})
+    fun leggTil(funnetAvklaringsbehov: List<Definisjon>) {
+        avklaringsbehovene.leggTil(funnetAvklaringsbehov, aktivtSteg().tilstand.steg())
     }
 
     fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String) {
-        avklaringsbehov.single { it.definisjon == definisjon }.løs(begrunnelse, endretAv = endretAv)
+        avklaringsbehovene.løsAvklaringsbehov(definisjon, begrunnelse, endretAv)
     }
 
     fun vilkårsresultat(): Vilkårsresultat = vilkårsresultat
     fun flyt(): BehandlingFlyt = type.flyt()
-    fun avklaringsbehov(): List<Avklaringsbehov> = avklaringsbehov.toList()
-    fun åpneAvklaringsbehov(): List<Avklaringsbehov> = avklaringsbehov.filter { it.erÅpent() }.toList()
+    fun avklaringsbehov(): List<Avklaringsbehov> = avklaringsbehovene.alle()
+    fun åpneAvklaringsbehov(): List<Avklaringsbehov> = avklaringsbehovene.åpne()
     fun årsaker(): List<Årsak> = årsaker.toList()
     fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()
     fun status(): Status = status

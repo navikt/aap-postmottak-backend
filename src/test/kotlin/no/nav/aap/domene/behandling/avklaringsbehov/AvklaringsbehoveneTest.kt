@@ -12,7 +12,7 @@ class AvklaringsbehoveneTest {
         val avklaringsbehovene = Avklaringsbehovene()
         avklaringsbehovene.leggTil(Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM))
 
-        assertThat(avklaringsbehovene.antall()).isEqualTo(1)
+        assertThat(avklaringsbehovene.alle()).hasSize(1)
     }
 
     @Test
@@ -21,7 +21,7 @@ class AvklaringsbehoveneTest {
         avklaringsbehovene.leggTil(Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM))
         avklaringsbehovene.leggTil(Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM))
 
-        assertThat(avklaringsbehovene.antall()).isEqualTo(1)
+        assertThat(avklaringsbehovene.alle()).hasSize(1)
     }
 
     @Test
