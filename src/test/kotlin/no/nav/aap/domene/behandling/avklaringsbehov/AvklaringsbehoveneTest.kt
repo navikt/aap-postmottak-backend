@@ -3,6 +3,7 @@ package no.nav.aap.domene.behandling.avklaringsbehov
 import no.nav.aap.flyt.StegType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import kotlin.test.assertFailsWith
 
 class AvklaringsbehoveneTest {
 
@@ -34,5 +35,21 @@ class AvklaringsbehoveneTest {
         avklaringsbehovene.løsAvklaringsbehov(Definisjon.AVKLAR_SYKDOM, begrunnelse = "Derfor", endretAv = "Meg")
 
         assertThat(avklaringsbehov.erÅpent()).isFalse
+    }
+
+    @Test
+    fun `forsøk på å løse et avklaringsbehov som ikke finnes skal gi exception`() {
+        val avklaringsbehovene = Avklaringsbehovene()
+        val avklaringsbehov = Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM)
+        avklaringsbehovene.leggTil(avklaringsbehov)
+
+        assertThat(avklaringsbehov.erÅpent()).isTrue
+
+        assertFailsWith<NoSuchElementException> (
+            message = "Collection contains no element matching the predicate.",
+            block = {
+                avklaringsbehovene.løsAvklaringsbehov(Definisjon.MANUELT_SATT_PÅ_VENT, begrunnelse = "Derfor", endretAv = "Meg")
+            }
+        )
     }
 }
