@@ -63,7 +63,7 @@ class FlytKontrollerTest {
                         erSkadeSykdomEllerLyteVesentligdel = true,
                         erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                         nedreGrense = NedreGrense.FEMTI,
-                        skadetidspunkt = LocalDate.now()
+                        nedsattArbeidsevneDato = LocalDate.now()
                     )
                 )
             )

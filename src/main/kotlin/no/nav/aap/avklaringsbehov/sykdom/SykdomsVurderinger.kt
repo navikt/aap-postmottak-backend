@@ -9,7 +9,7 @@ data class Sykdomsvurdering(
     val erSkadeSykdomEllerLyteVesentligdel: Boolean,
     val erNedsettelseIArbeidsevneHøyereEnnNedreGrense: Boolean?,
     val nedreGrense: NedreGrense?,
-    val skadetidspunkt: LocalDate?
+    val nedsattArbeidsevneDato: LocalDate?
 )
 
 enum class NedreGrense {

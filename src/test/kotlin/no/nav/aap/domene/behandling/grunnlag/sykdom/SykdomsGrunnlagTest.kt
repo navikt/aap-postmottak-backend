@@ -21,7 +21,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
-                skadetidspunkt = LocalDate.now()
+                nedsattArbeidsevneDato = LocalDate.now()
             )
         )
 
@@ -40,7 +40,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
-                skadetidspunkt = LocalDate.now()
+                nedsattArbeidsevneDato = LocalDate.now()
             )
         )
 
@@ -64,7 +64,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
-                skadetidspunkt = LocalDate.now()
+                nedsattArbeidsevneDato = LocalDate.now()
             )
         )
 
@@ -88,7 +88,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
-                skadetidspunkt = LocalDate.now()
+                nedsattArbeidsevneDato = LocalDate.now()
             )
         )
 
@@ -112,7 +112,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
-                skadetidspunkt = LocalDate.now()
+                nedsattArbeidsevneDato = LocalDate.now()
             )
         )
 
@@ -136,7 +136,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
-                skadetidspunkt = LocalDate.now()
+                nedsattArbeidsevneDato = LocalDate.now()
             )
         )
 
