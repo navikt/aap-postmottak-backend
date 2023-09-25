@@ -21,6 +21,6 @@ class DefinisjonTest {
 
         val forrige = førstegangsbehandling.forrige(StegType.FASTSETT_GRUNNLAG)
 
-        assertThat(forrige.type()).isEqualTo(StegType.AVKLAR_SYKDOM)
+        assertThat(forrige.type()).isEqualTo(StegType.VURDER_MEDLEMSKAP)
     }
 }
