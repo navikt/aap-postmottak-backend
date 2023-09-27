@@ -18,9 +18,7 @@ enum class StegType(val status: Status, val tekniskSteg: Boolean = false) {
     SIMULERING(status = Status.UTREDES),
     FORESLÅ_VEDTAK(status = Status.UTREDES),
     FATTE_VEDTAK(status = Status.UTREDES),
-    IVERKSETT_VEDTAK(status = Status.IVERKSETTES),
+    IVERKSETT_VEDTAK(status = Status.AVSLUTTET),
     UDEFINERT(status = Status.UTREDES, tekniskSteg = true), // Forbeholdt deklarasjon for avklaringsbehov som
-    AVSLUTT_BEHANDLING(status = Status.AVSLUTTET, tekniskSteg = true) // Forbeholdt enden av saksbehandlingsflyten, skal ikke implementeres
-    ,
 
 }

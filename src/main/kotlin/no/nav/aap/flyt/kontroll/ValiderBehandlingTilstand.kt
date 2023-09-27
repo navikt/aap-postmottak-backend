@@ -5,9 +5,11 @@ import no.nav.aap.domene.behandling.Status
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 
 object ValiderBehandlingTilstand {
-    fun validerTilstandBehandling(behandling: Behandling,
-                                  avklaringsbehov: List<Definisjon> = listOf()) {
-        if (setOf(Status.AVSLUTTET, Status.IVERKSETTES).contains(behandling.status())) {
+    fun validerTilstandBehandling(
+        behandling: Behandling,
+        avklaringsbehov: List<Definisjon> = listOf()
+    ) {
+        if (Status.AVSLUTTET == behandling.status()) {
             throw IllegalArgumentException("Forsøker manipulere på behandling som er avsluttet")
         }
         if (avklaringsbehov.any { !behandling.avklaringsbehov().map { a -> a.definisjon }.contains(it) }) {

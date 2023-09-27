@@ -54,12 +54,12 @@ class FlytKontroller {
                 behandling.leggTil(result.funnetAvklaringsbehov())
             }
 
-            kanFortsette = result.kanFortsette()
+            kanFortsette = result.kanFortsette() && behandlingFlyt.utledNesteSteg(aktivtSteg, nesteStegStatus) != null
 
             if (kanFortsette) {
                 aktivtSteg = behandling.aktivtSteg()
                 nesteStegStatus = aktivtSteg.utledNesteStegStatus()
-                nesteSteg = behandlingFlyt.utledNesteSteg(aktivtSteg, nesteStegStatus)
+                nesteSteg = behandlingFlyt.utledNesteSteg(aktivtSteg, nesteStegStatus)!!
             } else {
                 // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
                 loggStopp(kontekst, behandling)
@@ -103,13 +103,16 @@ class FlytKontroller {
         val behandlingFlyt = behandling.type.flyt()
 
         val aktivtSteg = behandling.aktivtSteg()
-        var forrige = behandlingFlyt.steg(aktivtSteg.tilstand.steg())
+        var forrige: BehandlingSteg? = behandlingFlyt.steg(aktivtSteg.tilstand.steg())
 
         var kanFortsette = true
         while (kanFortsette) {
-            forrige = behandlingFlyt.forrige(forrige.type())
+            forrige = behandlingFlyt.forrige(forrige!!.type())
 
-            if (forrige.type() == tilSteg && tilStegStatus != StegStatus.INNGANG) {
+            // TODO: Refactor
+            if (forrige == null) {
+                kanFortsette = false
+            } else if (forrige.type() == tilSteg && tilStegStatus != StegStatus.INNGANG) {
                 utførTilstandsEndring(
                     kontekst = kontekst,
                     nesteStegStatus = tilStegStatus,
@@ -127,7 +130,7 @@ class FlytKontroller {
                     behandling = behandling
                 )
             }
-            if (forrige.type() == tilSteg && tilStegStatus == StegStatus.INNGANG) {
+            if (kanFortsette && forrige!!.type() == tilSteg && tilStegStatus == StegStatus.INNGANG) {
                 kanFortsette = false
             }
             if (!kanFortsette) {
@@ -228,7 +231,7 @@ class FlytKontroller {
             StegStatus.INNGANG -> harAvklaringspunkt(aktivtSteg.type(), nesteStegStatus, relevanteAvklaringsbehov)
             StegStatus.UTFØRER -> behandleSteg(aktivtSteg, kontekst)
             StegStatus.UTGANG -> harAvklaringspunkt(aktivtSteg.type(), nesteStegStatus, relevanteAvklaringsbehov)
-            StegStatus.AVSLUTTER -> harTruffetSlutten(aktivtSteg.type())
+            StegStatus.AVSLUTTER -> harTruffetSlutten(aktivtSteg.type(), behandling.flyt())
             StegStatus.TILBAKEFØRT -> behandleStegBakover(aktivtSteg, kontekst)
             else -> Fortsett
         }
@@ -246,9 +249,9 @@ class FlytKontroller {
         return Fortsett
     }
 
-    private fun harTruffetSlutten(aktivtSteg: StegType): Transisjon {
-        return when (aktivtSteg) {
-            StegType.AVSLUTT_BEHANDLING -> Stopp
+    private fun harTruffetSlutten(aktivtSteg: StegType, flyt: BehandlingFlyt): Transisjon {
+        return when (flyt.harTruffetSlutten(aktivtSteg)) {
+            true -> Stopp
             else -> Fortsett
         }
     }

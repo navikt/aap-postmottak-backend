@@ -3,7 +3,6 @@ package no.nav.aap.domene.behandling
 import no.nav.aap.flyt.BehandlingFlyt
 import no.nav.aap.flyt.BehandlingFlytBuilder
 import no.nav.aap.flyt.StegType
-import no.nav.aap.flyt.steg.AvsluttBehandlingSteg
 import no.nav.aap.flyt.steg.FatteVedtakSteg
 import no.nav.aap.flyt.steg.ForeslåVedtakSteg
 import no.nav.aap.flyt.steg.GeneriskPlaceholderSteg
@@ -36,7 +35,6 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(ForeslåVedtakSteg()) // en-trinn
             .medSteg(FatteVedtakSteg()) // to-trinn
             .medSteg(GeneriskPlaceholderSteg(StegType.IVERKSETT_VEDTAK))
-            .medSteg(AvsluttBehandlingSteg())
             .build()
     }
 

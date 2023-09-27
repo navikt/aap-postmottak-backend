@@ -2,9 +2,7 @@ package no.nav.aap.flyt
 
 import no.nav.aap.domene.behandling.EndringType
 import no.nav.aap.domene.behandling.StegTilstand
-import no.nav.aap.flyt.steg.AvsluttBehandlingSteg
 import no.nav.aap.flyt.steg.BehandlingSteg
-import no.nav.aap.flyt.steg.StartBehandlingSteg
 import java.util.*
 
 /**
@@ -15,7 +13,7 @@ class BehandlingFlyt(
     private var endringTilSteg: Map<EndringType, StegType>
 ) {
 
-    fun utledNesteSteg(aktivtSteg: StegTilstand, nesteStegStatus: StegStatus): BehandlingSteg {
+    fun utledNesteSteg(aktivtSteg: StegTilstand, nesteStegStatus: StegStatus): BehandlingSteg? {
         if (aktivtSteg.tilstand.status() == StegStatus.AVSLUTTER && nesteStegStatus == StegStatus.START) {
             return neste(aktivtSteg.tilstand.steg())
         }
@@ -25,7 +23,7 @@ class BehandlingFlyt(
     /**
      * Finner neste steget som skal prosesseres etter at nåværende er ferdig
      */
-    fun neste(nåværendeSteg: StegType): BehandlingSteg {
+    fun neste(nåværendeSteg: StegType): BehandlingSteg? {
         val nåværendeIndex = this.flyt.indexOfFirst { it.type() == nåværendeSteg }
         if (nåværendeIndex == -1) {
             throw IllegalStateException("[Utvikler feil] Nåværende steg '$nåværendeSteg' er ikke en del av den definerte prosessen")
@@ -38,7 +36,7 @@ class BehandlingFlyt(
             return iterator.next()
         }
 
-        return AvsluttBehandlingSteg() // Dette steget må da spesialhåndteres i Flytkontroller for å ikke gi evig løkke
+        return null
     }
 
     /**
@@ -83,7 +81,7 @@ class BehandlingFlyt(
         return aIndex <= bIndex
     }
 
-    fun forrige(nåværendeSteg: StegType): BehandlingSteg {
+    fun forrige(nåværendeSteg: StegType): BehandlingSteg? {
         val nåværendeIndex = flyt.indexOfFirst { it.type() == nåværendeSteg }
 
         if (nåværendeIndex == -1) {
@@ -95,11 +93,15 @@ class BehandlingFlyt(
             return iterator.previous()
         }
 
-        return StartBehandlingSteg() // Dette steget må da spesialhåndteres i Flytkontroller for å ikke gi evig løkke
+        return null
     }
 
     fun stegene(): List<StegType> {
         return flyt.map { it.type() }
+    }
+
+    fun harTruffetSlutten(nåværendeSteg: StegType): Boolean {
+        return flyt.indexOfFirst { it.type() == nåværendeSteg } == (flyt.size - 1)
     }
 }
 
