@@ -5,6 +5,7 @@ import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.domene.ElementNotFoundException
+import no.nav.aap.domene.behandling.Behandling
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.Vilkår
 import no.nav.aap.domene.behandling.Vilkårsresultat
@@ -42,14 +43,7 @@ fun NormalOpenAPIRoute.behandlingApi() {
     route("/api/behandling") {
         route("/{referanse}") {
             get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
-                val eksternReferanse: UUID
-                try {
-                    eksternReferanse = req.ref()
-                } catch (exception: IllegalArgumentException) {
-                    throw ElementNotFoundException()
-                }
-
-                val behandling = BehandlingTjeneste.hent(eksternReferanse)
+                val behandling = behandling(req)
 
                 val dto = DetaljertBehandlingDTO(
                     referanse = behandling.referanse,
@@ -92,7 +86,7 @@ fun NormalOpenAPIRoute.behandlingApi() {
         }
         route("/{referanse}/grunnlag/sykdom") {
             get<BehandlingReferanse, SykdomsGrunnlagDto> { req ->
-                val behandling = BehandlingTjeneste.hent(req.ref())
+                val behandling = behandling(req)
 
                 val yrkesskadeGrunnlagOptional = YrkesskadeTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
                 val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
@@ -117,12 +111,13 @@ fun NormalOpenAPIRoute.behandlingApi() {
         }
         route("/{referanse}/grunnlag/medlemskap") {
             get<BehandlingReferanse, MedlemskapGrunnlagDto> { req ->
+                val behandling = behandling(req)
                 respond(MedlemskapGrunnlagDto())
             }
         }
         route("/{referanse}/flyt") {
             get<BehandlingReferanse, BehandlingFlytOgTilstandDto> { req ->
-                val behandling = BehandlingTjeneste.hent(req.ref())
+                val behandling = behandling(req)
 
                 respond(BehandlingFlytOgTilstandDto(behandling.flyt().stegene().map { stegType ->
                     FlytSteg(
@@ -136,4 +131,16 @@ fun NormalOpenAPIRoute.behandlingApi() {
             }
         }
     }
+}
+
+private fun behandling(req: BehandlingReferanse): Behandling {
+    val eksternReferanse: UUID
+    try {
+        eksternReferanse = req.ref()
+    } catch (exception: IllegalArgumentException) {
+        throw ElementNotFoundException()
+    }
+
+    val behandling = BehandlingTjeneste.hent(eksternReferanse)
+    return behandling
 }
