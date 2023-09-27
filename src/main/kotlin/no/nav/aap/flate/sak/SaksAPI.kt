@@ -5,8 +5,6 @@ import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import com.papsign.ktor.openapigen.route.throws
-import io.ktor.http.*
 import no.nav.aap.domene.ElementNotFoundException
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.person.Ident
@@ -16,27 +14,22 @@ import no.nav.aap.domene.sak.Saksnummer
 
 fun NormalOpenAPIRoute.saksApi() {
     route("/api/sak") {
-        route("/finn").throws(HttpStatusCode.BadRequest, IllegalArgumentException::class) {
-            throws(HttpStatusCode.NoContent, NoSuchElementException::class) {
-                post<Unit, List<SaksinfoDTO>, FinnSakForIdentDTO> { _, dto ->
+        route("/finn").post<Unit, List<SaksinfoDTO>, FinnSakForIdentDTO> { _, dto ->
+            val ident = Ident(dto.ident)
+            val person = Personlager.finn(ident)
 
-                    val ident = Ident(dto.ident)
-                    val person = Personlager.finn(ident)
-
-                    if (person == null) {
-                        throw ElementNotFoundException()
-                    } else {
-                        val saker = Sakslager.finnSakerFor(person)
-                            .map { sak ->
-                                SaksinfoDTO(
-                                    saksnummer = sak.saksnummer.toString(),
-                                    periode = sak.rettighetsperiode
-                                )
-                            }
-
-                        respond(saker)
+            if (person == null) {
+                throw ElementNotFoundException()
+            } else {
+                val saker = Sakslager.finnSakerFor(person)
+                    .map { sak ->
+                        SaksinfoDTO(
+                            saksnummer = sak.saksnummer.toString(),
+                            periode = sak.rettighetsperiode
+                        )
                     }
-                }
+
+                respond(saker)
             }
         }
         route("") {
