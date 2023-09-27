@@ -7,6 +7,7 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.throws
 import io.ktor.http.*
+import no.nav.aap.domene.ElementNotFoundException
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.person.Ident
 import no.nav.aap.domene.person.Personlager
@@ -23,7 +24,7 @@ fun NormalOpenAPIRoute.saksApi() {
                     val person = Personlager.finn(ident)
 
                     if (person == null) {
-                        throw IllegalArgumentException()
+                        throw ElementNotFoundException()
                     } else {
                         val saker = Sakslager.finnSakerFor(person)
                             .map { sak ->

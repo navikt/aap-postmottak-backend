@@ -25,6 +25,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøsning
 import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.domene.ElementNotFoundException
 import no.nav.aap.domene.Periode
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
@@ -62,9 +63,13 @@ internal fun Application.server() {
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            LoggerFactory.getLogger(App::class.java)
-                .info("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            if (cause is ElementNotFoundException) {
+                call.respondText(status = HttpStatusCode.NotFound, text = "")
+            } else {
+                LoggerFactory.getLogger(App::class.java)
+                    .info("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(status = HttpStatusCode.InternalServerError, message = Error(cause.message))
+            }
         }
     }
     install(OpenAPIGen) {

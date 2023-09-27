@@ -1,5 +1,6 @@
 package no.nav.aap.domene.behandling
 
+import no.nav.aap.domene.ElementNotFoundException
 import no.nav.aap.domene.behandling.grunnlag.GrunnlagKopierer
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
@@ -62,9 +63,10 @@ object BehandlingTjeneste {
 
     fun hent(referanse: UUID): Behandling {
         synchronized(LOCK) {
-            return behandliger.values
+            val relevanteBehandling = behandliger.values
                 .filter { behandling -> behandling.referanse == referanse }
-                .first()
+                .singleOrNull() ?: throw ElementNotFoundException()
+            return relevanteBehandling
         }
     }
 }

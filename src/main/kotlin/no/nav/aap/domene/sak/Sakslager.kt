@@ -1,7 +1,8 @@
 package no.nav.aap.domene.sak
 
-import no.nav.aap.domene.person.Person
+import no.nav.aap.domene.ElementNotFoundException
 import no.nav.aap.domene.Periode
+import no.nav.aap.domene.person.Person
 
 object Sakslager {
     private var saker = HashMap<Long, Sak>()
@@ -16,7 +17,7 @@ object Sakslager {
 
     fun hent(saksnummer: Saksnummer): Sak {
         synchronized(LOCK) {
-            return saker.values.first { it.saksnummer == saksnummer }
+            return saker.values.firstOrNull { it.saksnummer == saksnummer } ?: throw ElementNotFoundException()
         }
     }
 
