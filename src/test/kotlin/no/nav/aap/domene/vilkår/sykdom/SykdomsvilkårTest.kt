@@ -2,9 +2,11 @@ package no.nav.aap.domene.vilkår.sykdom
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
-import no.nav.aap.domene.behandling.Utfall
-import no.nav.aap.domene.behandling.Vilkår
-import no.nav.aap.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.domene.behandling.Utfall
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkår
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.domene.vilkår.sykdom.SykdomsFaktagrunnlag
+import no.nav.aap.behandlingsflyt.domene.vilkår.sykdom.Sykdomsvilkår
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

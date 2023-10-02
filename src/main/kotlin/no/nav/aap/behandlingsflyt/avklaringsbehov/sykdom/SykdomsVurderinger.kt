@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom
 
-import no.nav.aap.domene.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
 import java.time.LocalDate
 
 data class Sykdomsvurdering(

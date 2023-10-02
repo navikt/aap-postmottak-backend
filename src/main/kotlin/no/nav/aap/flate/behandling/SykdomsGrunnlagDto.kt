@@ -2,7 +2,7 @@ package no.nav.aap.flate.behandling
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Yrkesskadevurdering
-import no.nav.aap.domene.Periode
+import no.nav.aap.behandlingsflyt.domene.Periode
 
 data class SykdomsGrunnlagDto(
     val opplysninger: InnhentetSykdomsOpplysninger,
@@ -15,4 +15,4 @@ data class InnhentetSykdomsOpplysninger(
     val innhentedeYrkesskader: List<RegistrertYrkesskade>
 )
 
-data class RegistrertYrkesskade(val ref: String, val periode: Periode, val kilde: String)
+data class RegistrertYrkesskade(val ref: String, val periode: no.nav.aap.behandlingsflyt.domene.Periode, val kilde: String)

@@ -1,11 +1,11 @@
 package no.nav.aap.flate.behandling
 
-import no.nav.aap.domene.Periode
-import no.nav.aap.domene.behandling.Avslagsårsak
-import no.nav.aap.domene.behandling.Utfall
+import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.domene.behandling.Avslagsårsak
+import no.nav.aap.behandlingsflyt.domene.behandling.Utfall
 
 data class VilkårsperiodeDTO(
-    val periode: Periode,
+    val periode: no.nav.aap.behandlingsflyt.domene.Periode,
     val utfall: Utfall,
     val manuellVurdering: Boolean,
     val begrunnelse: String?,

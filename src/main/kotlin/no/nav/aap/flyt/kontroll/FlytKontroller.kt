@@ -1,10 +1,10 @@
 package no.nav.aap.flyt.kontroll
 
-import no.nav.aap.domene.behandling.Behandling
-import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.behandling.StegTilstand
-import no.nav.aap.domene.behandling.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.flyt.BehandlingFlyt
 import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType

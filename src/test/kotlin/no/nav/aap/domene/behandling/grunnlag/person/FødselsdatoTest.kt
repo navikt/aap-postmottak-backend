@@ -1,5 +1,6 @@
 package no.nav.aap.domene.behandling.grunnlag.person
 
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.Fødselsdato
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

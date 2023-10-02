@@ -5,12 +5,12 @@ import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import no.nav.aap.domene.ElementNotFoundException
-import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.person.Ident
-import no.nav.aap.domene.person.Personlager
-import no.nav.aap.domene.sak.Sakslager
-import no.nav.aap.domene.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.person.Ident
+import no.nav.aap.behandlingsflyt.domene.person.Personlager
+import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.Saksnummer
 
 fun NormalOpenAPIRoute.saksApi() {
     route("/api/sak") {
@@ -19,7 +19,7 @@ fun NormalOpenAPIRoute.saksApi() {
             val person = Personlager.finn(ident)
 
             if (person == null) {
-                throw ElementNotFoundException()
+                throw no.nav.aap.behandlingsflyt.domene.ElementNotFoundException()
             } else {
                 val saker = Sakslager.finnSakerFor(person)
                     .map { sak ->

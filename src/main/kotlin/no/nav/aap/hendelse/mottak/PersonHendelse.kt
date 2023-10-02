@@ -1,10 +1,10 @@
 package no.nav.aap.hendelse.mottak
 
-import no.nav.aap.domene.Periode
+import no.nav.aap.behandlingsflyt.domene.Periode
 
 interface PersonHendelse {
 
-    fun periode(): Periode
+    fun periode(): no.nav.aap.behandlingsflyt.domene.Periode
 
     fun tilSakshendelse(): SakHendelse
 }

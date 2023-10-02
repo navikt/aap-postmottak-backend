@@ -1,14 +1,14 @@
 package no.nav.aap.flyt.steg
 
-import no.nav.aap.domene.Periode
-import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.behandling.Vilkår
-import no.nav.aap.domene.behandling.Vilkårstype
-import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.domene.behandling.grunnlag.sykdom.SykdomsGrunnlag
-import no.nav.aap.domene.behandling.grunnlag.sykdom.SykdomsTjeneste
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeGrunnlag
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
+import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkår
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.sykdom.SykdomsGrunnlag
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.sykdom.SykdomsTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.YrkesskadeGrunnlag
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
 import no.nav.aap.flate.behandling.periode.PeriodeTilVurderingTjeneste
 import no.nav.aap.flyt.StegType
 
@@ -34,7 +34,7 @@ class VurderYrkesskadeÅrsakssammenhengSteg : BehandlingSteg {
     private fun erBehovForAvklaring(
         yrkesskadeGrunnlag: YrkesskadeGrunnlag?,
         sykdomsvilkåret: Vilkår,
-        periodeTilVurdering: Set<Periode>,
+        periodeTilVurdering: Set<no.nav.aap.behandlingsflyt.domene.Periode>,
         sykdomsGrunnlag: SykdomsGrunnlag?
     ): Boolean {
         return yrkesskadeGrunnlag?.yrkesskader?.yrkesskader?.isNotEmpty() == true && (sykdomsvilkåret.harPerioderSomIkkeErVurdert(

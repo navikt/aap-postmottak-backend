@@ -1,6 +1,6 @@
 package no.nav.aap.domene
 
-import no.nav.aap.domene.Periode
+import no.nav.aap.behandlingsflyt.domene.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -24,7 +24,8 @@ class PeriodeTest {
 
     @Test
     fun `teste overlapp - overlapper`() {
-        val periode = Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(7))
+        val periode =
+            Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(7))
         val periode2 = Periode(LocalDate.now().minusDays(8), LocalDate.now())
 
         assertThat(periode.overlapper(periode2)).isTrue()
@@ -42,7 +43,8 @@ class PeriodeTest {
 
     @Test
     fun `teste overlapp - overlapper ikke`() {
-        val periode = Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(7))
+        val periode =
+            Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(7))
         val periode2 = Periode(LocalDate.now().minusDays(6), LocalDate.now())
 
         assertThat(periode.overlapper(periode2)).isFalse()

@@ -1,6 +1,6 @@
 package no.nav.aap.hendelse.avløp
 
-import no.nav.aap.domene.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.domene.sak.Saksnummer
 import java.util.*
 
 object HendelsesProdusent {

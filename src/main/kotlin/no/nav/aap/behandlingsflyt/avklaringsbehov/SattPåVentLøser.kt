@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.flyt.kontroll.FlytKontekst
 
 class SattPåVentLøser: AvklaringsbehovsLøser<SattPåVentLøsning> {

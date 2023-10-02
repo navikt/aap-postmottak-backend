@@ -1,13 +1,13 @@
 package no.nav.aap.flyt.steg
 
-import no.nav.aap.domene.behandling.grunnlag.person.PersonRegisterMock
-import no.nav.aap.domene.behandling.grunnlag.person.PersoninformasjonTjeneste
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.Yrkesskade
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.Yrkesskader
-import no.nav.aap.domene.person.Personlager
-import no.nav.aap.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.PersonRegisterMock
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.PersoninformasjonTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.Yrkesskade
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.Yrkesskader
+import no.nav.aap.behandlingsflyt.domene.person.Personlager
+import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.flyt.StegType
 
 class InnhentRegisterdataSteg : BehandlingSteg {

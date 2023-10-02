@@ -1,11 +1,11 @@
 package no.nav.aap.flyt.steg
 
-import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.behandling.Vilkårsperiode
-import no.nav.aap.domene.behandling.Vilkårstype
-import no.nav.aap.domene.behandling.grunnlag.person.PersoninformasjonTjeneste
-import no.nav.aap.domene.vilkår.alder.Aldersgrunnlag
-import no.nav.aap.domene.vilkår.alder.Aldersvilkåret
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårsperiode
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.PersoninformasjonTjeneste
+import no.nav.aap.behandlingsflyt.domene.vilkår.alder.Aldersgrunnlag
+import no.nav.aap.behandlingsflyt.domene.vilkår.alder.Aldersvilkåret
 import no.nav.aap.flate.behandling.periode.PeriodeTilVurderingTjeneste
 import no.nav.aap.flyt.StegType
 

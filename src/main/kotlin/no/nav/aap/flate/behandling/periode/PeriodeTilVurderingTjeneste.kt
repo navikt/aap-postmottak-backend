@@ -1,15 +1,15 @@
 package no.nav.aap.flate.behandling.periode
 
-import no.nav.aap.domene.behandling.Behandling
-import no.nav.aap.domene.behandling.FunksjonellGruppe
-import no.nav.aap.domene.behandling.Førstegangsbehandling
-import no.nav.aap.domene.behandling.Vilkårstype
-import no.nav.aap.domene.sak.Sakslager
-import no.nav.aap.domene.Periode
+import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
+import no.nav.aap.behandlingsflyt.domene.behandling.FunksjonellGruppe
+import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.Periode
 
 object PeriodeTilVurderingTjeneste {
 
-    fun utled(behandling: Behandling, vilkår: Vilkårstype): Set<Periode> {
+    fun utled(behandling: Behandling, vilkår: Vilkårstype): Set<no.nav.aap.behandlingsflyt.domene.Periode> {
         if (behandling.type == Førstegangsbehandling) {
             // ved førstegangsbehandling skal hele perioden alltid vurderes for alle vilkår?
             val sak = Sakslager.hent(behandling.sakId)
@@ -25,7 +25,7 @@ object PeriodeTilVurderingTjeneste {
      *
      * Denne er for UTTAK osv? Usikker på om dette er en god ide?
      */
-    fun utled(behandling: Behandling, gruppe: FunksjonellGruppe): Set<Periode> {
+    fun utled(behandling: Behandling, gruppe: FunksjonellGruppe): Set<no.nav.aap.behandlingsflyt.domene.Periode> {
         if (behandling.type == Førstegangsbehandling) {
             // ved førstegangsbehandling skal hele perioden alltid vurderes for alle vilkår?
             val sak = Sakslager.hent(behandling.sakId)

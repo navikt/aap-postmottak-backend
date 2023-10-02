@@ -4,14 +4,14 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import no.nav.aap.domene.ElementNotFoundException
-import no.nav.aap.domene.behandling.Behandling
-import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.behandling.Vilkår
-import no.nav.aap.domene.behandling.Vilkårsresultat
-import no.nav.aap.domene.behandling.Vilkårstype
-import no.nav.aap.domene.behandling.grunnlag.sykdom.SykdomsTjeneste
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
+import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
+import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkår
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårsresultat
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.sykdom.SykdomsTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
 import no.nav.aap.flyt.StegGruppe
 import no.nav.aap.flyt.StegType
 import java.util.*
@@ -175,7 +175,7 @@ private fun behandling(req: BehandlingReferanse): Behandling {
     try {
         eksternReferanse = req.ref()
     } catch (exception: IllegalArgumentException) {
-        throw ElementNotFoundException()
+        throw no.nav.aap.behandlingsflyt.domene.ElementNotFoundException()
     }
 
     val behandling = BehandlingTjeneste.hent(eksternReferanse)

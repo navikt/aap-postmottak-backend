@@ -1,5 +1,8 @@
 package no.nav.aap.domene.behandling.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.flyt.StegType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

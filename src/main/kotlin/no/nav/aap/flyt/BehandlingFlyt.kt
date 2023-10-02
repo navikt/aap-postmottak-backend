@@ -1,7 +1,7 @@
 package no.nav.aap.flyt
 
-import no.nav.aap.domene.behandling.EndringType
-import no.nav.aap.domene.behandling.StegTilstand
+import no.nav.aap.behandlingsflyt.domene.behandling.EndringType
+import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
 import no.nav.aap.flyt.steg.BehandlingSteg
 import java.util.*
 

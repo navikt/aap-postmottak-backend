@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak
 
 import com.fasterxml.jackson.annotation.JsonTypeName
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovLøsning
-import no.nav.aap.domene.behandling.avklaringsbehov.FORESLÅ_VEDTAK_KODE
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.FORESLÅ_VEDTAK_KODE
 
 @JsonTypeName(value = FORESLÅ_VEDTAK_KODE)
 class ForeslåVedtakLøsning(val begrunnelse: String) :

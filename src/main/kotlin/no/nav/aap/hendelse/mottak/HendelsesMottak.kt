@@ -1,14 +1,14 @@
 package no.nav.aap.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøsning
-import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.behandling.EndringType
-import no.nav.aap.domene.behandling.Status
-import no.nav.aap.domene.behandling.Årsak
-import no.nav.aap.domene.person.Ident
-import no.nav.aap.domene.person.Personlager
-import no.nav.aap.domene.sak.Sakslager
-import no.nav.aap.domene.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.EndringType
+import no.nav.aap.behandlingsflyt.domene.behandling.Status
+import no.nav.aap.behandlingsflyt.domene.behandling.Årsak
+import no.nav.aap.behandlingsflyt.domene.person.Ident
+import no.nav.aap.behandlingsflyt.domene.person.Personlager
+import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.Saksnummer
 import no.nav.aap.flyt.kontroll.AvklaringsbehovKontroller
 import no.nav.aap.flyt.kontroll.FlytKontekst
 import no.nav.aap.flyt.kontroll.FlytKontroller

@@ -25,14 +25,14 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
-import no.nav.aap.domene.ElementNotFoundException
-import no.nav.aap.domene.Periode
-import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
-import no.nav.aap.domene.behandling.grunnlag.person.PersonRegisterMock
-import no.nav.aap.domene.behandling.grunnlag.person.Personinfo
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
-import no.nav.aap.domene.person.Ident
+import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
+import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.Fødselsdato
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.PersonRegisterMock
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.Personinfo
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
+import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.flate.behandling.avklaringsbehov.avklaringsbehovApi
 import no.nav.aap.flate.behandling.behandlingApi
 import no.nav.aap.flate.sak.saksApi
@@ -65,7 +65,7 @@ internal fun Application.server() {
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            if (cause is ElementNotFoundException) {
+            if (cause is no.nav.aap.behandlingsflyt.domene.ElementNotFoundException) {
                 call.respondText(status = HttpStatusCode.NotFound, text = "")
             } else {
                 LoggerFactory.getLogger(App::class.java)
@@ -150,12 +150,21 @@ fun NormalOpenAPIRoute.hendelsesApi() {
             PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(dto.fødselsdato)))
             if (dto.yrkesskade) {
                 YrkesskadeRegisterMock.konstruer(
-                    ident, Periode(LocalDate.now().minusYears(3), LocalDate.now().plusYears(3))
+                    ident,
+                    no.nav.aap.behandlingsflyt.domene.Periode(
+                        LocalDate.now().minusYears(3),
+                        LocalDate.now().plusYears(3)
+                    )
                 )
             }
 
             HendelsesMottak.håndtere(
-                ident, DokumentMottattPersonHendelse(Periode(LocalDate.now(), LocalDate.now().plusYears(3)))
+                ident, DokumentMottattPersonHendelse(
+                    no.nav.aap.behandlingsflyt.domene.Periode(
+                        LocalDate.now(),
+                        LocalDate.now().plusYears(3)
+                    )
+                )
             )
             respond(dto)
         }

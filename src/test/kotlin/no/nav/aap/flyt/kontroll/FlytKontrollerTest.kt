@@ -7,20 +7,20 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Yrkesskadevurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
-import no.nav.aap.domene.Periode
-import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.behandling.Førstegangsbehandling
-import no.nav.aap.domene.behandling.Status
-import no.nav.aap.domene.behandling.Vilkårstype
-import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.domene.behandling.dokumenter.JournalpostId
-import no.nav.aap.domene.behandling.grunnlag.person.Fødselsdato
-import no.nav.aap.domene.behandling.grunnlag.person.PersonRegisterMock
-import no.nav.aap.domene.behandling.grunnlag.person.Personinfo
-import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
-import no.nav.aap.domene.person.Ident
-import no.nav.aap.domene.person.Personlager
-import no.nav.aap.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
+import no.nav.aap.behandlingsflyt.domene.behandling.Status
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.Fødselsdato
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.PersonRegisterMock
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.person.Personinfo
+import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.YrkesskadeRegisterMock
+import no.nav.aap.behandlingsflyt.domene.person.Ident
+import no.nav.aap.behandlingsflyt.domene.person.Personlager
+import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.flyt.StegStatus
 import no.nav.aap.flyt.StegType
 import no.nav.aap.flyt.Tilstand
@@ -55,7 +55,7 @@ class FlytKontrollerTest {
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade`() {
         val ident = Ident("123123123123")
-        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        val periode = no.nav.aap.behandlingsflyt.domene.Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(18))))
@@ -160,7 +160,7 @@ class FlytKontrollerTest {
     fun `Ikke oppfylt på grunn av alder på søknadstidspunkt`() {
         val ident = Ident("123123123125")
         val person = Personlager.finnEllerOpprett(ident)
-        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        val periode = no.nav.aap.behandlingsflyt.domene.Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
 
@@ -187,7 +187,7 @@ class FlytKontrollerTest {
     @Test
     fun `Blir satt på vent for etterspørring av informasjon`() {
         val ident = Ident("123123123125")
-        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        val periode = no.nav.aap.behandlingsflyt.domene.Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(20))))
 

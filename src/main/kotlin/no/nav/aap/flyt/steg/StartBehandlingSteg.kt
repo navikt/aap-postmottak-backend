@@ -1,9 +1,9 @@
 package no.nav.aap.flyt.steg
 
-import no.nav.aap.domene.behandling.BehandlingTjeneste
-import no.nav.aap.domene.behandling.Førstegangsbehandling
-import no.nav.aap.domene.behandling.Vilkårstype
-import no.nav.aap.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.flyt.StegType
 
 class StartBehandlingSteg : BehandlingSteg {
