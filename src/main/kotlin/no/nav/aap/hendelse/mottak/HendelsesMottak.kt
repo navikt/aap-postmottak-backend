@@ -1,6 +1,6 @@
 package no.nav.aap.hendelse.mottak
 
-import no.nav.aap.avklaringsbehov.SattPåVentLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøsning
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.EndringType
 import no.nav.aap.domene.behandling.Status

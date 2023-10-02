@@ -1,7 +1,7 @@
 package no.nav.aap.flate.behandling
 
-import no.nav.aap.avklaringsbehov.sykdom.Sykdomsvurdering
-import no.nav.aap.avklaringsbehov.sykdom.Yrkesskadevurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Yrkesskadevurdering
 import no.nav.aap.domene.Periode
 
 data class SykdomsGrunnlagDto(

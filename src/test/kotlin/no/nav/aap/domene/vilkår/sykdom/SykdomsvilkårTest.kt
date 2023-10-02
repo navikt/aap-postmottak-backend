@@ -1,7 +1,7 @@
 package no.nav.aap.domene.vilkår.sykdom
 
-import no.nav.aap.avklaringsbehov.sykdom.NedreGrense
-import no.nav.aap.avklaringsbehov.sykdom.Sykdomsvurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
 import no.nav.aap.domene.behandling.Utfall
 import no.nav.aap.domene.behandling.Vilkår
 import no.nav.aap.domene.behandling.Vilkårstype

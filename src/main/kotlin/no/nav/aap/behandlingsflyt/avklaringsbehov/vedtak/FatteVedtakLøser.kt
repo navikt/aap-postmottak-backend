@@ -1,7 +1,7 @@
-package no.nav.aap.avklaringsbehov.vedtak
+package no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak
 
-import no.nav.aap.avklaringsbehov.AvklaringsbehovsLøser
-import no.nav.aap.avklaringsbehov.LøsningsResultat
+import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.flyt.kontroll.FlytKontekst
 

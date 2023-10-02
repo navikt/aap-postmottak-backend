@@ -1,12 +1,12 @@
 package no.nav.aap.flyt.kontroll
 
-import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøsning
-import no.nav.aap.avklaringsbehov.sykdom.AvklarYrkesskadeLøsning
-import no.nav.aap.avklaringsbehov.sykdom.NedreGrense
-import no.nav.aap.avklaringsbehov.sykdom.Sykdomsvurdering
-import no.nav.aap.avklaringsbehov.sykdom.Yrkesskadevurdering
-import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
-import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Yrkesskadevurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.domene.Periode
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.Førstegangsbehandling

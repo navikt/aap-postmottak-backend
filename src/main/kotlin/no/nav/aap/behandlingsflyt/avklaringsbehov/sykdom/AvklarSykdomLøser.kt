@@ -1,7 +1,7 @@
-package no.nav.aap.avklaringsbehov.sykdom
+package no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom
 
-import no.nav.aap.avklaringsbehov.AvklaringsbehovsLøser
-import no.nav.aap.avklaringsbehov.LøsningsResultat
+import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.grunnlag.sykdom.SykdomsTjeneste

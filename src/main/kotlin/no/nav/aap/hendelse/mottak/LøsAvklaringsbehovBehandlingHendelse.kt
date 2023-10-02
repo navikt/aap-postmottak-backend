@@ -1,6 +1,6 @@
 package no.nav.aap.hendelse.mottak
 
-import no.nav.aap.avklaringsbehov.AvklaringsbehovLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovLøsning
 
 class LøsAvklaringsbehovBehandlingHendelse(private val løsning: AvklaringsbehovLøsning, private val versjon: Long) :
     BehandlingHendelse {

@@ -1,11 +1,11 @@
-package no.nav.aap.avklaringsbehov
+package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøsning
-import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
-import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.domene.behandling.avklaringsbehov.AVKLAR_SYKDOM_KODE
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.domene.behandling.avklaringsbehov.FATTE_VEDTAK_KODE

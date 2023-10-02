@@ -1,7 +1,7 @@
 package no.nav.aap.domene.behandling.grunnlag.sykdom
 
-import no.nav.aap.avklaringsbehov.sykdom.Sykdomsvurdering
-import no.nav.aap.avklaringsbehov.sykdom.Yrkesskadevurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Yrkesskadevurdering
 import no.nav.aap.domene.behandling.Behandling
 import java.util.concurrent.atomic.AtomicLong
 

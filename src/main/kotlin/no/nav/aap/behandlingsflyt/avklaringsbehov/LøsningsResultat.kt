@@ -1,4 +1,4 @@
-package no.nav.aap.avklaringsbehov
+package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 data class LøsningsResultat(val begrunnelse: String) {
 

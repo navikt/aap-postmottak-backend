@@ -1,12 +1,12 @@
 package no.nav.aap.flyt.kontroll
 
-import no.nav.aap.avklaringsbehov.AvklaringsbehovLøsning
-import no.nav.aap.avklaringsbehov.AvklaringsbehovsLøser
-import no.nav.aap.avklaringsbehov.SattPåVentLøser
-import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøser
-import no.nav.aap.avklaringsbehov.sykdom.AvklarYrkesskadeLøser
-import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøser
-import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøser
 import no.nav.aap.domene.behandling.Behandling
 import no.nav.aap.domene.behandling.BehandlingTjeneste
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon

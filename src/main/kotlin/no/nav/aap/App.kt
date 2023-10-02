@@ -22,9 +22,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøsning
-import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
-import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.domene.ElementNotFoundException
 import no.nav.aap.domene.Periode
 import no.nav.aap.domene.behandling.avklaringsbehov.Definisjon
