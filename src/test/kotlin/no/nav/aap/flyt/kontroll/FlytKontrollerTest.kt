@@ -1,8 +1,10 @@
 package no.nav.aap.flyt.kontroll
 
 import no.nav.aap.avklaringsbehov.sykdom.AvklarSykdomLøsning
+import no.nav.aap.avklaringsbehov.sykdom.AvklarYrkesskadeLøsning
 import no.nav.aap.avklaringsbehov.sykdom.NedreGrense
 import no.nav.aap.avklaringsbehov.sykdom.Sykdomsvurdering
+import no.nav.aap.avklaringsbehov.sykdom.Yrkesskadevurdering
 import no.nav.aap.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.domene.Periode
@@ -74,8 +76,23 @@ class FlytKontrollerTest {
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
                 versjon = 1L,
+                løsning = AvklarYrkesskadeLøsning(
+                    yrkesskadevurdering = Yrkesskadevurdering(
+                        begrunnelse = "Er syk nok",
+                        dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                        erÅrsakssammenheng = false,
+                        skadetidspunkt = null
+                    )
+                )
+            )
+        )
+        ventPåSvar()
+
+        HendelsesMottak.håndtere(
+            behandling.id,
+            LøsAvklaringsbehovBehandlingHendelse(
+                versjon = 1L,
                 løsning = AvklarSykdomLøsning(
-                    yrkesskadevurdering = null,
                     sykdomsvurdering = Sykdomsvurdering(
                         begrunnelse = "Er syk nok",
                         dokumenterBruktIVurdering = listOf(JournalpostId("123123")),

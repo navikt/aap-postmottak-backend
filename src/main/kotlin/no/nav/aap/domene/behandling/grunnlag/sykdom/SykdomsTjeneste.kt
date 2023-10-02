@@ -12,7 +12,7 @@ object SykdomsTjeneste {
     private val key = AtomicLong()
     private val LOCK = Object()
 
-    fun lagre(behandlingId: Long, yrkesskadevurdering: Yrkesskadevurdering?, sykdomsvurdering: Sykdomsvurdering) {
+    fun lagre(behandlingId: Long, yrkesskadevurdering: Yrkesskadevurdering?, sykdomsvurdering: Sykdomsvurdering?) {
         synchronized(LOCK) {
             grunnlagene.put(
                 behandlingId,

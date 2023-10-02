@@ -10,6 +10,7 @@ enum class StegType(val status: Status, val tekniskSteg: Boolean = false) {
     VURDER_BISTANDSBEHOV(status = Status.UTREDES),
     BARNETILLEGG(status = Status.UTREDES),
     SAMORDNING(status = Status.UTREDES),
+    AVKLAR_YRKESSKADE(status = Status.UTREDES),
     AVKLAR_SYKDOM(status = Status.UTREDES),
     INNHENT_REGISTERDATA(status = Status.UTREDES),
     FASTSETT_GRUNNLAG(status = Status.UTREDES),

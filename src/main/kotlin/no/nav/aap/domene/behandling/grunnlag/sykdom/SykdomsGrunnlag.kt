@@ -8,9 +8,12 @@ class SykdomsGrunnlag(
     val id: Long,
     val behandlingId: Long,
     val yrkesskadevurdering: Yrkesskadevurdering?,
-    val sykdomsvurdering: Sykdomsvurdering
+    val sykdomsvurdering: Sykdomsvurdering?
 ) {
     fun erKonsistent(): Boolean {
+        if (sykdomsvurdering == null) {
+            return false
+        }
         if (yrkesskadevurdering?.erÅrsakssammenheng == true) {
             return sykdomsvurdering.nedreGrense == NedreGrense.TRETTI
         }

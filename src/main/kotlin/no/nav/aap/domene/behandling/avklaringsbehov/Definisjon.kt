@@ -11,6 +11,7 @@ import java.util.stream.Collectors
 import kotlin.reflect.KFunction1
 
 const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
+const val AVKLAR_YRKESSKADE_KODE = "5002"
 const val AVKLAR_SYKDOM_KODE = "5001"
 const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
@@ -38,6 +39,13 @@ enum class Definisjon(
         løsesISteg = StegType.AVKLAR_SYKDOM,
         vurderingspunkt = Vurderingspunkt.UT,
         rekjørSteg = true, // Bør rekjøre steget for å se om det er i gyldig state
+        kreverToTrinn = true
+    ),
+    AVKLAR_YRKESSKADE(
+        kode = AVKLAR_YRKESSKADE_KODE,
+        løsesISteg = StegType.AVKLAR_YRKESSKADE,
+        vurderingspunkt = Vurderingspunkt.UT,
+        rekjørSteg = false, // Bør rekjøre steget for å se om det er i gyldig state
         kreverToTrinn = true
     ),
     FORESLÅ_VEDTAK(

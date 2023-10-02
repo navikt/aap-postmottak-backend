@@ -26,7 +26,7 @@ class VurderSykdomSteg : BehandlingSteg {
                         periode.fom,
                         periode.tom,
                         sykdomsGrunnlag.yrkesskadevurdering,
-                        sykdomsGrunnlag.sykdomsvurdering
+                        sykdomsGrunnlag.sykdomsvurdering!!
                     )
                     Sykdomsvilkår(sykdomsvilkåret).vurder(faktagrunnlag)
                 }
