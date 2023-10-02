@@ -18,6 +18,6 @@ class Gruppe {
     fun behandlingId() = oppgaver.map { it.behandlingId() }.toSet().single()
 
     override fun toString(): String {
-        return "Gruppe(oppgaver=$oppgaver)"
+        return "Gruppe(sak=${sakId()}, behandling=${behandlingId()}, oppgaver=$oppgaver)"
     }
 }
