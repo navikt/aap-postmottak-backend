@@ -35,7 +35,7 @@ class Sykdomsvilkår(val vilkår: Vilkår) : Vilkårsvurderer<SykdomsFaktagrunnl
     private fun lagre(grunnlag: SykdomsFaktagrunnlag, vurderingsResultat: VurderingsResultat): VurderingsResultat {
         vilkår.leggTilVurdering(
             Vilkårsperiode(
-                no.nav.aap.behandlingsflyt.domene.Periode(grunnlag.vurderingsdato, grunnlag.sisteDagMedMuligYtelse),
+                Periode(grunnlag.vurderingsdato, grunnlag.sisteDagMedMuligYtelse),
                 vurderingsResultat.utfall,
                 false,
                 null,

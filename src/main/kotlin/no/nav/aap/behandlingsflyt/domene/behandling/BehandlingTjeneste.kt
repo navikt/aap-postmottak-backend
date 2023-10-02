@@ -65,7 +65,7 @@ object BehandlingTjeneste {
         synchronized(LOCK) {
             val relevanteBehandling = behandliger.values
                 .filter { behandling -> behandling.referanse == referanse }
-                .singleOrNull() ?: throw no.nav.aap.behandlingsflyt.domene.ElementNotFoundException()
+                .singleOrNull() ?: throw ElementNotFoundException()
             return relevanteBehandling
         }
     }

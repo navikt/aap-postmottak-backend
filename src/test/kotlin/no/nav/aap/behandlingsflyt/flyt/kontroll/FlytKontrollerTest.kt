@@ -55,7 +55,7 @@ class FlytKontrollerTest {
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade`() {
         val ident = Ident("123123123123")
-        val periode = no.nav.aap.behandlingsflyt.domene.Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(18))))
@@ -160,7 +160,7 @@ class FlytKontrollerTest {
     fun `Ikke oppfylt på grunn av alder på søknadstidspunkt`() {
         val ident = Ident("123123123125")
         val person = Personlager.finnEllerOpprett(ident)
-        val periode = no.nav.aap.behandlingsflyt.domene.Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
 
@@ -187,7 +187,7 @@ class FlytKontrollerTest {
     @Test
     fun `Blir satt på vent for etterspørring av informasjon`() {
         val ident = Ident("123123123125")
-        val periode = no.nav.aap.behandlingsflyt.domene.Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(20))))
 

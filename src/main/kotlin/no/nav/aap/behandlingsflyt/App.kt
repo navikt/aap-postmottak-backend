@@ -150,7 +150,7 @@ fun NormalOpenAPIRoute.hendelsesApi() {
             if (dto.yrkesskade) {
                 YrkesskadeRegisterMock.konstruer(
                     ident,
-                    no.nav.aap.behandlingsflyt.domene.Periode(
+                    Periode(
                         LocalDate.now().minusYears(3),
                         LocalDate.now().plusYears(3)
                     )

@@ -7,7 +7,7 @@ import java.util.*
 class Sak(
     val id: Long,
     val person: Person,
-    val rettighetsperiode: no.nav.aap.behandlingsflyt.domene.Periode,
+    val rettighetsperiode: Periode,
     private var status: Status = Status.OPPRETTET
 ) {
 

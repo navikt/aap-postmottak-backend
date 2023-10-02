@@ -2,9 +2,9 @@ package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.domene.Periode
 
-class DokumentMottattPersonHendelse(private val periode: no.nav.aap.behandlingsflyt.domene.Periode) : PersonHendelse {
+class DokumentMottattPersonHendelse(private val periode: Periode) : PersonHendelse {
 
-    override fun periode(): no.nav.aap.behandlingsflyt.domene.Periode {
+    override fun periode(): Periode {
         return periode
     }
 

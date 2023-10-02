@@ -17,11 +17,11 @@ object Sakslager {
 
     fun hent(saksnummer: Saksnummer): Sak {
         synchronized(LOCK) {
-            return saker.values.firstOrNull { it.saksnummer == saksnummer } ?: throw no.nav.aap.behandlingsflyt.domene.ElementNotFoundException()
+            return saker.values.firstOrNull { it.saksnummer == saksnummer } ?: throw ElementNotFoundException()
         }
     }
 
-    private fun opprett(person: Person, periode: no.nav.aap.behandlingsflyt.domene.Periode): Sak {
+    private fun opprett(person: Person, periode: Periode): Sak {
         synchronized(LOCK) {
             if (saker.values.any { sak -> sak.person == person && sak.rettighetsperiode.overlapper(periode) }) {
                 throw IllegalArgumentException("Forsøker å opprette sak når det finnes en som overlapper")
@@ -33,7 +33,7 @@ object Sakslager {
         }
     }
 
-    fun finnEllerOpprett(person: Person, periode: no.nav.aap.behandlingsflyt.domene.Periode): Sak {
+    fun finnEllerOpprett(person: Person, periode: Periode): Sak {
         synchronized(LOCK) {
             val relevantesaker =
                 saker.values.filter { sak -> sak.person == person && sak.rettighetsperiode.overlapper(periode) }

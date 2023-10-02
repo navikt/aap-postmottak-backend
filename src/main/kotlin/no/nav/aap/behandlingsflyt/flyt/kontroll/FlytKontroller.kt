@@ -166,7 +166,7 @@ class FlytKontroller {
     }
 
     private fun utledSteg(
-        behandlingFlyt: no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt,
+        behandlingFlyt: BehandlingFlyt,
         aktivtSteg: StegTilstand,
         avklaringsDefinisjoner: List<Avklaringsbehov>
     ): StegType {
@@ -178,7 +178,7 @@ class FlytKontroller {
     }
 
     private fun erStegFørAktivtSteg(
-        behandlingFlyt: no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt,
+        behandlingFlyt: BehandlingFlyt,
         aktivtSteg: StegTilstand,
         løsesISteg: StegType
     ) = behandlingFlyt.erStegFør(
@@ -187,7 +187,7 @@ class FlytKontroller {
     )
 
     private fun validerPlassering(
-        behandlingFlyt: no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt,
+        behandlingFlyt: BehandlingFlyt,
         åpneAvklaringsbehov: List<Definisjon>,
         nesteSteg: StegType,
         nesteStegStatus: StegStatus
@@ -249,7 +249,7 @@ class FlytKontroller {
         return Fortsett
     }
 
-    private fun harTruffetSlutten(aktivtSteg: StegType, flyt: no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt): Transisjon {
+    private fun harTruffetSlutten(aktivtSteg: StegType, flyt: BehandlingFlyt): Transisjon {
         return when (flyt.harTruffetSlutten(aktivtSteg)) {
             true -> Stopp
             else -> Fortsett

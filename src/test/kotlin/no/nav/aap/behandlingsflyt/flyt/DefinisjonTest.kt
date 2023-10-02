@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class DefinisjonTest {
 
-    private val førstegangsbehandling = no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder()
+    private val førstegangsbehandling = BehandlingFlytBuilder()
         .medSteg(StartBehandlingSteg())
         .medSteg(InnhentRegisterdataSteg())
         .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_MEDLEMSKAP))

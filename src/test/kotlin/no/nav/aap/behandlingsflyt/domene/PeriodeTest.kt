@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.domene
 
-import no.nav.aap.behandlingsflyt.domene.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

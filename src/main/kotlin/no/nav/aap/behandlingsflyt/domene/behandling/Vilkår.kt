@@ -39,7 +39,7 @@ class Vilkår(
         }
     }
 
-    internal fun justerPeriode(leftPeriode: no.nav.aap.behandlingsflyt.domene.Periode, rightPeriode: no.nav.aap.behandlingsflyt.domene.Periode): no.nav.aap.behandlingsflyt.domene.Periode {
+    internal fun justerPeriode(leftPeriode: Periode, rightPeriode: Periode): Periode {
         if (!leftPeriode.overlapper(rightPeriode)) {
             return leftPeriode
         }
@@ -53,14 +53,14 @@ class Vilkår(
         } else {
             leftPeriode.tom
         }
-        return no.nav.aap.behandlingsflyt.domene.Periode(fom, tom)
+        return Periode(fom, tom)
     }
 
     override fun toString(): String {
         return "Vilkår(type=$type)"
     }
 
-    fun leggTilIkkeVurdertPeriode(rettighetsperiode: no.nav.aap.behandlingsflyt.domene.Periode) {
+    fun leggTilIkkeVurdertPeriode(rettighetsperiode: Periode) {
         this.vilkårsperioder.add(
             Vilkårsperiode(
                 periode = rettighetsperiode,
@@ -72,7 +72,7 @@ class Vilkår(
         )
     }
 
-    fun harPerioderSomIkkeErVurdert(periodeTilVurdering: Set<no.nav.aap.behandlingsflyt.domene.Periode>): Boolean {
+    fun harPerioderSomIkkeErVurdert(periodeTilVurdering: Set<Periode>): Boolean {
         return this.vilkårsperioder
             .filter { periode -> periodeTilVurdering.any { vp -> periode.periode.overlapper(vp) } }
             .any { periode -> periode.erIkkeVurdert() }

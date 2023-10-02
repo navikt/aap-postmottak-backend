@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.Avslagsårsak
 import no.nav.aap.behandlingsflyt.domene.behandling.Utfall
 
 data class VilkårsperiodeDTO(
-    val periode: no.nav.aap.behandlingsflyt.domene.Periode,
+    val periode: Periode,
     val utfall: Utfall,
     val manuellVurdering: Boolean,
     val begrunnelse: String?,

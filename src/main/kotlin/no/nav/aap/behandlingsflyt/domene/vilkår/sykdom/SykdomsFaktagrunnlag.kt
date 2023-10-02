@@ -11,5 +11,4 @@ class SykdomsFaktagrunnlag(
     val yrkesskadevurdering: Yrkesskadevurdering?,
     val sykdomsvurdering: Sykdomsvurdering
 ) :
-    Faktagrunnlag {
-}
+    Faktagrunnlag

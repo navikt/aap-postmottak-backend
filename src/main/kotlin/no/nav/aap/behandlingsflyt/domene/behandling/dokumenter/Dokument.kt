@@ -8,5 +8,4 @@ class Dokument(private val id: Long,
                private val innsendingstidspunkt: LocalDateTime,
                private val brevkode: Brevkode,
                private val journalpostId: JournalpostId
-) {
-}
+)

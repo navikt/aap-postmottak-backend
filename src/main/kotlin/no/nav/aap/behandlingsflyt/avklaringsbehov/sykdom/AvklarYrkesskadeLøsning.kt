@@ -11,6 +11,4 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.AVKLAR_YRKES
 class AvklarYrkesskadeLøsning(
     @JsonProperty("yrkesskadevurdering", required = true) val yrkesskadevurdering: Yrkesskadevurdering
 ) :
-    AvklaringsbehovLøsning {
-
-}
+    AvklaringsbehovLøsning

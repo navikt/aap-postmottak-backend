@@ -10,7 +10,7 @@ data class DetaljertBehandlingDTO(
     val type: String,
     val status: Status,
     val opprettet: LocalDateTime,
-    val avklaringsbehov: List<no.nav.aap.behandlingsflyt.flate.behandling.AvklaringsbehovDTO>,
+    val avklaringsbehov: List<AvklaringsbehovDTO>,
     val vilkår: List<VilkårDTO>,
     val aktivtSteg: StegType
 )

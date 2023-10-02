@@ -11,6 +11,4 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.AVKLAR_SYKDO
 class AvklarSykdomLøsning(
     @JsonProperty("sykdomsvurdering", required = true) val sykdomsvurdering: Sykdomsvurdering
 ) :
-    AvklaringsbehovLøsning {
-
-}
+    AvklaringsbehovLøsning

@@ -19,7 +19,7 @@ fun NormalOpenAPIRoute.saksApi() {
             val person = Personlager.finn(ident)
 
             if (person == null) {
-                throw no.nav.aap.behandlingsflyt.domene.ElementNotFoundException()
+                throw ElementNotFoundException()
             } else {
                 val saker = Sakslager.finnSakerFor(person)
                     .map { sak ->

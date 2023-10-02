@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.domene.behandling
 import no.nav.aap.behandlingsflyt.domene.Periode
 
 class Vilkårsperiode(
-    val periode: no.nav.aap.behandlingsflyt.domene.Periode,
+    val periode: Periode,
     val utfall: Utfall,
     val manuellVurdering: Boolean = false,
     val begrunnelse: String?,
@@ -12,7 +12,7 @@ class Vilkårsperiode(
     internal val beslutningstre: Beslutningstre?
 ) {
     constructor(
-        periode: no.nav.aap.behandlingsflyt.domene.Periode,
+        periode: Periode,
         utfall: Utfall,
         manuellVurdering: Boolean,
         faktagrunnlag: Faktagrunnlag?,

@@ -14,7 +14,7 @@ class Periode(val fom: LocalDate, val tom: LocalDate) {
         }
     }
 
-    fun overlapper(periode: no.nav.aap.behandlingsflyt.domene.Periode): Boolean {
+    fun overlapper(periode: Periode): Boolean {
         return !this.tom.isBefore(periode.fom) && !this.fom.isAfter(periode.tom)
     }
 
@@ -22,7 +22,7 @@ class Periode(val fom: LocalDate, val tom: LocalDate) {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as no.nav.aap.behandlingsflyt.domene.Periode
+        other as Periode
 
         if (fom != other.fom) return false
         return tom == other.tom

@@ -6,6 +6,4 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.FATTE_VEDTAK
 
 @JsonTypeName(value = FATTE_VEDTAK_KODE)
 class FatteVedtakLøsning(val begrunnelse: String) :
-    AvklaringsbehovLøsning {
-
-}
+    AvklaringsbehovLøsning

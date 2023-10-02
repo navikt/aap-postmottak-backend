@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.Utfall
 import no.nav.aap.behandlingsflyt.domene.Periode
 
 data class PeriodeMedUtfall(
-    @JsonProperty("periode") val periode: no.nav.aap.behandlingsflyt.domene.Periode,
+    @JsonProperty("periode") val periode: Periode,
     @JsonProperty("utfall") val utfall: Utfall,
     @JsonProperty("begrunnelse") val begrunnelse: String
 )

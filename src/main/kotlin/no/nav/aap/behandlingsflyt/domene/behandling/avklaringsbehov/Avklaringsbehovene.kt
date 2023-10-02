@@ -37,7 +37,7 @@ class Avklaringsbehovene {
     fun åpne(): List<Avklaringsbehov> = avklaringsbehovene.filter { it.erÅpent() }.toList()
 
     fun skalHoppesTilbake(
-        behandlingFlyt: no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt,
+        behandlingFlyt: BehandlingFlyt,
         aktivtSteg: StegTilstand,
         definisjoner: List<Definisjon>
     ): Boolean {

@@ -6,6 +6,4 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.FORESLÅ_VED
 
 @JsonTypeName(value = FORESLÅ_VEDTAK_KODE)
 class ForeslåVedtakLøsning(val begrunnelse: String) :
-    AvklaringsbehovLøsning {
-
-}
+    AvklaringsbehovLøsning

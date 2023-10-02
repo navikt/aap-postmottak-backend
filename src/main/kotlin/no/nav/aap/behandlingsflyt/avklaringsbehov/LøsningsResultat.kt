@@ -1,5 +1,3 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-data class LøsningsResultat(val begrunnelse: String) {
-
-}
+data class LøsningsResultat(val begrunnelse: String)

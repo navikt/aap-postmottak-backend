@@ -9,6 +9,4 @@ data class BehandlinginfoDTO(
     val type: String,
     val status: Status,
     val opprettet: LocalDateTime
-) {
-
-}
+)

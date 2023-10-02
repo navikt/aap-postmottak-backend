@@ -34,7 +34,7 @@ class VurderYrkesskadeÅrsakssammenhengSteg : BehandlingSteg {
     private fun erBehovForAvklaring(
         yrkesskadeGrunnlag: YrkesskadeGrunnlag?,
         sykdomsvilkåret: Vilkår,
-        periodeTilVurdering: Set<no.nav.aap.behandlingsflyt.domene.Periode>,
+        periodeTilVurdering: Set<Periode>,
         sykdomsGrunnlag: SykdomsGrunnlag?
     ): Boolean {
         return yrkesskadeGrunnlag?.yrkesskader?.yrkesskader?.isNotEmpty() == true && (sykdomsvilkåret.harPerioderSomIkkeErVurdert(

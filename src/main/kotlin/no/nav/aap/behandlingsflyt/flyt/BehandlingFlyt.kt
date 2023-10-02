@@ -10,11 +10,11 @@ import java.util.*
  */
 class BehandlingFlyt(
     private var flyt: List<BehandlingSteg>,
-    private var endringTilSteg: Map<EndringType, no.nav.aap.behandlingsflyt.flyt.StegType>
+    private var endringTilSteg: Map<EndringType, StegType>
 ) {
 
-    fun utledNesteSteg(aktivtSteg: StegTilstand, nesteStegStatus: no.nav.aap.behandlingsflyt.flyt.StegStatus): BehandlingSteg? {
-        if (aktivtSteg.tilstand.status() == no.nav.aap.behandlingsflyt.flyt.StegStatus.AVSLUTTER && nesteStegStatus == no.nav.aap.behandlingsflyt.flyt.StegStatus.START) {
+    fun utledNesteSteg(aktivtSteg: StegTilstand, nesteStegStatus: StegStatus): BehandlingSteg? {
+        if (aktivtSteg.tilstand.status() == StegStatus.AVSLUTTER && nesteStegStatus == StegStatus.START) {
             return neste(aktivtSteg.tilstand.steg())
         }
         return steg(aktivtSteg.tilstand.steg())
@@ -23,7 +23,7 @@ class BehandlingFlyt(
     /**
      * Finner neste steget som skal prosesseres etter at nåværende er ferdig
      */
-    fun neste(nåværendeSteg: no.nav.aap.behandlingsflyt.flyt.StegType): BehandlingSteg? {
+    fun neste(nåværendeSteg: StegType): BehandlingSteg? {
         val nåværendeIndex = this.flyt.indexOfFirst { it.type() == nåværendeSteg }
         if (nåværendeIndex == -1) {
             throw IllegalStateException("[Utvikler feil] Nåværende steg '$nåværendeSteg' er ikke en del av den definerte prosessen")
@@ -42,7 +42,7 @@ class BehandlingFlyt(
     /**
      * Avgjør hvilket steg prosessen skal fortsette fra. Hvis ingen endring så står pekeren stille
      */
-    fun nesteEtterEndringer(nåværendeSteg: no.nav.aap.behandlingsflyt.flyt.StegType, vararg endringer: EndringType): BehandlingSteg {
+    fun nesteEtterEndringer(nåværendeSteg: StegType, vararg endringer: EndringType): BehandlingSteg {
         if (endringer.isNotEmpty()) {
             val nåværendeIndex = flyt.indexOfFirst { it.type() == nåværendeSteg }
             if (nåværendeIndex == -1) {
@@ -59,29 +59,29 @@ class BehandlingFlyt(
         return flyt[flyt.indexOfFirst { it.type() == nåværendeSteg }]
     }
 
-    fun steg(nåværendeSteg: no.nav.aap.behandlingsflyt.flyt.StegType): BehandlingSteg {
+    fun steg(nåværendeSteg: StegType): BehandlingSteg {
         return flyt[flyt.indexOfFirst { it.type() == nåværendeSteg }]
     }
 
-    fun erStegFør(stegA: no.nav.aap.behandlingsflyt.flyt.StegType, stegB: no.nav.aap.behandlingsflyt.flyt.StegType): Boolean {
+    fun erStegFør(stegA: StegType, stegB: StegType): Boolean {
         val aIndex = flyt.indexOfFirst { it.type() == stegA }
         val bIndex = flyt.indexOfFirst { it.type() == stegB }
 
         return aIndex < bIndex
     }
 
-    fun compareable(): no.nav.aap.behandlingsflyt.flyt.StegComparator {
-        return no.nav.aap.behandlingsflyt.flyt.StegComparator(flyt)
+    fun compareable(): StegComparator {
+        return StegComparator(flyt)
     }
 
-    fun erStegFørEllerLik(stegA: no.nav.aap.behandlingsflyt.flyt.StegType, stegB: no.nav.aap.behandlingsflyt.flyt.StegType): Boolean {
+    fun erStegFørEllerLik(stegA: StegType, stegB: StegType): Boolean {
         val aIndex = flyt.indexOfFirst { it.type() == stegA }
         val bIndex = flyt.indexOfFirst { it.type() == stegB }
 
         return aIndex <= bIndex
     }
 
-    fun forrige(nåværendeSteg: no.nav.aap.behandlingsflyt.flyt.StegType): BehandlingSteg? {
+    fun forrige(nåværendeSteg: StegType): BehandlingSteg? {
         val nåværendeIndex = flyt.indexOfFirst { it.type() == nåværendeSteg }
 
         if (nåværendeIndex == -1) {
@@ -96,17 +96,17 @@ class BehandlingFlyt(
         return null
     }
 
-    fun stegene(): List<no.nav.aap.behandlingsflyt.flyt.StegType> {
+    fun stegene(): List<StegType> {
         return flyt.map { it.type() }
     }
 
-    fun harTruffetSlutten(nåværendeSteg: no.nav.aap.behandlingsflyt.flyt.StegType): Boolean {
+    fun harTruffetSlutten(nåværendeSteg: StegType): Boolean {
         return flyt.indexOfFirst { it.type() == nåværendeSteg } == (flyt.size - 1)
     }
 }
 
-class StegComparator(private var flyt: List<BehandlingSteg>) : Comparator<no.nav.aap.behandlingsflyt.flyt.StegType> {
-    override fun compare(stegA: no.nav.aap.behandlingsflyt.flyt.StegType?, stegB: no.nav.aap.behandlingsflyt.flyt.StegType?): Int {
+class StegComparator(private var flyt: List<BehandlingSteg>) : Comparator<StegType> {
+    override fun compare(stegA: StegType?, stegB: StegType?): Int {
         val aIndex = flyt.indexOfFirst { it.type() == stegA }
         val bIndex = flyt.indexOfFirst { it.type() == stegB }
 
@@ -117,14 +117,14 @@ class StegComparator(private var flyt: List<BehandlingSteg>) : Comparator<no.nav
 
 class BehandlingFlytBuilder {
     private var flyt: MutableList<BehandlingSteg> = mutableListOf()
-    private var endringTilSteg: MutableMap<EndringType, no.nav.aap.behandlingsflyt.flyt.StegType> = mutableMapOf()
+    private var endringTilSteg: MutableMap<EndringType, StegType> = mutableMapOf()
     private var buildt = false
 
-    fun medSteg(steg: BehandlingSteg, vararg endringer: EndringType): no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder {
+    fun medSteg(steg: BehandlingSteg, vararg endringer: EndringType): BehandlingFlytBuilder {
         if (buildt) {
             throw IllegalStateException("[Utvikler feil] Builder er allerede bygget")
         }
-        if (no.nav.aap.behandlingsflyt.flyt.StegType.UDEFINERT == steg.type()) {
+        if (StegType.UDEFINERT == steg.type()) {
             throw IllegalStateException("[Utvikler feil] StegType UDEFINERT er ugyldig å legge til i flyten")
         }
         this.flyt.add(steg)
@@ -134,13 +134,13 @@ class BehandlingFlytBuilder {
         return this
     }
 
-    fun build(): no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt {
+    fun build(): BehandlingFlyt {
         if (buildt) {
             throw IllegalStateException("[Utvikler feil] Builder er allerede bygget")
         }
         buildt = true
 
-        return no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt(
+        return BehandlingFlyt(
             Collections.unmodifiableList(flyt),
             Collections.unmodifiableMap(endringTilSteg)
         )

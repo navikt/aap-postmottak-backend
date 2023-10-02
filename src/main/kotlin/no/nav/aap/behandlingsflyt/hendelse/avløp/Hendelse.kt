@@ -1,7 +1,5 @@
 package no.nav.aap.behandlingsflyt.hendelse.avløp
 
-interface SakHendelse {
-}
+interface SakHendelse
 
-interface BehandlingHendelse {
-}
+interface BehandlingHendelse

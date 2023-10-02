@@ -16,7 +16,7 @@ import no.nav.aap.behandlingsflyt.flyt.StegGruppe
 import no.nav.aap.behandlingsflyt.flyt.StegType
 import java.util.*
 
-fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: StegType): no.nav.aap.behandlingsflyt.flate.behandling.VilkårDTO? {
+fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: StegType): VilkårDTO? {
     var vilkår: Vilkår? = null
     if (stegType == StegType.AVKLAR_SYKDOM) {
         vilkår = vilkårsresultat.finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
@@ -27,10 +27,10 @@ fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: S
     if (vilkår == null) {
         return null
     }
-    return no.nav.aap.behandlingsflyt.flate.behandling.VilkårDTO(
+    return VilkårDTO(
         vilkår.type,
         perioder = vilkår.vilkårsperioder().map { vp ->
-            no.nav.aap.behandlingsflyt.flate.behandling.VilkårsperiodeDTO(
+            VilkårsperiodeDTO(
                 vp.periode,
                 vp.utfall,
                 vp.manuellVurdering,
@@ -43,20 +43,20 @@ fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: S
 fun NormalOpenAPIRoute.behandlingApi() {
     route("/api/behandling") {
         route("/{referanse}") {
-            get<no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse, no.nav.aap.behandlingsflyt.flate.behandling.DetaljertBehandlingDTO> { req ->
-                val behandling = no.nav.aap.behandlingsflyt.flate.behandling.behandling(req)
+            get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
+                val behandling = behandling(req)
 
-                val dto = no.nav.aap.behandlingsflyt.flate.behandling.DetaljertBehandlingDTO(
+                val dto = DetaljertBehandlingDTO(
                     referanse = behandling.referanse,
                     type = behandling.type.identifikator(),
                     status = behandling.status(),
                     opprettet = behandling.opprettetTidspunkt,
                     avklaringsbehov = behandling.avklaringsbehov().map { avklaringsbehov ->
-                        no.nav.aap.behandlingsflyt.flate.behandling.AvklaringsbehovDTO(
+                        AvklaringsbehovDTO(
                             definisjon = avklaringsbehov.definisjon,
                             status = avklaringsbehov.status(),
                             endringer = avklaringsbehov.historikk.map { endring ->
-                                no.nav.aap.behandlingsflyt.flate.behandling.EndringDTO(
+                                EndringDTO(
                                     status = endring.status,
                                     tidsstempel = endring.tidsstempel,
                                     begrunnelse = endring.begrunnelse,
@@ -66,11 +66,11 @@ fun NormalOpenAPIRoute.behandlingApi() {
                         )
                     },
                     vilkår = behandling.vilkårsresultat().alle().map { vilkår ->
-                        no.nav.aap.behandlingsflyt.flate.behandling.VilkårDTO(
+                        VilkårDTO(
                             vilkårstype = vilkår.type,
                             perioder = vilkår.vilkårsperioder()
                                 .map { vp ->
-                                    no.nav.aap.behandlingsflyt.flate.behandling.VilkårsperiodeDTO(
+                                    VilkårsperiodeDTO(
                                         periode = vp.periode,
                                         utfall = vp.utfall,
                                         manuellVurdering = vp.manuellVurdering,
@@ -86,18 +86,18 @@ fun NormalOpenAPIRoute.behandlingApi() {
             }
         }
         route("/{referanse}/grunnlag/sykdom") {
-            get<no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse, no.nav.aap.behandlingsflyt.flate.behandling.SykdomsGrunnlagDto> { req ->
-                val behandling = no.nav.aap.behandlingsflyt.flate.behandling.behandling(req)
+            get<BehandlingReferanse, SykdomsGrunnlagDto> { req ->
+                val behandling = behandling(req)
 
                 val yrkesskadeGrunnlagOptional = YrkesskadeTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
                 val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
 
                 respond(
-                    no.nav.aap.behandlingsflyt.flate.behandling.SykdomsGrunnlagDto(
-                        opplysninger = no.nav.aap.behandlingsflyt.flate.behandling.InnhentetSykdomsOpplysninger(
+                    SykdomsGrunnlagDto(
+                        opplysninger = InnhentetSykdomsOpplysninger(
                             oppgittYrkesskadeISøknad = false,
                             innhentedeYrkesskader = yrkesskadeGrunnlagOptional?.yrkesskader?.yrkesskader?.map { yrkesskade ->
-                                no.nav.aap.behandlingsflyt.flate.behandling.RegistrertYrkesskade(
+                                RegistrertYrkesskade(
                                     ref = yrkesskade.ref,
                                     periode = yrkesskade.periode,
                                     kilde = "Yrkesskaderegisteret"
@@ -111,30 +111,30 @@ fun NormalOpenAPIRoute.behandlingApi() {
             }
         }
         route("/{referanse}/grunnlag/medlemskap") {
-            get<no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse, no.nav.aap.behandlingsflyt.flate.behandling.MedlemskapGrunnlagDto> { req ->
-                val behandling = no.nav.aap.behandlingsflyt.flate.behandling.behandling(req)
-                respond(no.nav.aap.behandlingsflyt.flate.behandling.MedlemskapGrunnlagDto())
+            get<BehandlingReferanse, MedlemskapGrunnlagDto> { req ->
+                val behandling = behandling(req)
+                respond(MedlemskapGrunnlagDto())
             }
         }
         route("/{referanse}/flyt") {
-            get<no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse, no.nav.aap.behandlingsflyt.flate.behandling.BehandlingFlytOgTilstandDto> { req ->
-                val behandling = no.nav.aap.behandlingsflyt.flate.behandling.behandling(req)
+            get<BehandlingReferanse, BehandlingFlytOgTilstandDto> { req ->
+                val behandling = behandling(req)
 
                 respond(
-                    no.nav.aap.behandlingsflyt.flate.behandling.BehandlingFlytOgTilstandDto(
+                    BehandlingFlytOgTilstandDto(
                         behandling.flyt().stegene().map { stegType ->
-                            no.nav.aap.behandlingsflyt.flate.behandling.FlytSteg(
+                            FlytSteg(
                                 stegType,
                                 behandling.avklaringsbehov()
                                     .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
                                     .map { behov ->
-                                        no.nav.aap.behandlingsflyt.flate.behandling.AvklaringsbehovDTO(
+                                        AvklaringsbehovDTO(
                                             behov.definisjon,
                                             behov.status(),
                                             emptyList()
                                         )
                                     },
-                                no.nav.aap.behandlingsflyt.flate.behandling.hentUtRelevantVilkårForSteg(
+                                hentUtRelevantVilkårForSteg(
                                     behandling.vilkårsresultat(),
                                     stegType
                                 )
@@ -145,8 +145,8 @@ fun NormalOpenAPIRoute.behandlingApi() {
             }
         }
         route("/{referanse}/flyt-2") {
-            get<no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse, no.nav.aap.behandlingsflyt.flate.behandling.BehandlingFlytOgTilstand2Dto> { req ->
-                val behandling = no.nav.aap.behandlingsflyt.flate.behandling.behandling(req)
+            get<BehandlingReferanse, BehandlingFlytOgTilstand2Dto> { req ->
+                val behandling = behandling(req)
                 val stegGrupper = LinkedHashMap<StegGruppe, LinkedList<StegType>>()
                 for (steg in behandling.flyt().stegene()) {
                     val gruppe = stegGrupper.getOrDefault(steg.gruppe, LinkedList<StegType>())
@@ -155,22 +155,22 @@ fun NormalOpenAPIRoute.behandlingApi() {
                 }
 
                 respond(
-                    no.nav.aap.behandlingsflyt.flate.behandling.BehandlingFlytOgTilstand2Dto(
+                    BehandlingFlytOgTilstand2Dto(
                         stegGrupper.map { gruppe ->
-                            no.nav.aap.behandlingsflyt.flate.behandling.FlytGruppe(
+                            FlytGruppe(
                                 gruppe.key,
                                 gruppe.value.map { stegType ->
-                                    no.nav.aap.behandlingsflyt.flate.behandling.FlytSteg(stegType,
+                                    FlytSteg(stegType,
                                         behandling.avklaringsbehov()
                                             .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
                                             .map { behov ->
-                                                no.nav.aap.behandlingsflyt.flate.behandling.AvklaringsbehovDTO(
+                                                AvklaringsbehovDTO(
                                                     behov.definisjon,
                                                     behov.status(),
                                                     emptyList()
                                                 )
                                             },
-                                        no.nav.aap.behandlingsflyt.flate.behandling.hentUtRelevantVilkårForSteg(
+                                        hentUtRelevantVilkårForSteg(
                                             behandling.vilkårsresultat(),
                                             stegType
                                         )
@@ -186,12 +186,12 @@ fun NormalOpenAPIRoute.behandlingApi() {
     }
 }
 
-private fun behandling(req: no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse): Behandling {
+private fun behandling(req: BehandlingReferanse): Behandling {
     val eksternReferanse: UUID
     try {
         eksternReferanse = req.ref()
     } catch (exception: IllegalArgumentException) {
-        throw no.nav.aap.behandlingsflyt.domene.ElementNotFoundException()
+        throw ElementNotFoundException()
     }
 
     val behandling = BehandlingTjeneste.hent(eksternReferanse)

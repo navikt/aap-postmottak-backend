@@ -13,13 +13,13 @@ import no.nav.aap.behandlingsflyt.flyt.steg.VurderSykdomSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.VurderYrkesskadeÅrsakssammenhengSteg
 
 interface BehandlingType {
-    fun flyt(): no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
+    fun flyt(): BehandlingFlyt
     fun identifikator(): String
 }
 
 object Førstegangsbehandling : BehandlingType {
-    override fun flyt(): no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt {
-        return no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder()
+    override fun flyt(): BehandlingFlyt {
+        return BehandlingFlytBuilder()
             .medSteg(StartBehandlingSteg())
             .medSteg(InnhentRegisterdataSteg())
             .medSteg(VurderAlderSteg())
@@ -46,7 +46,7 @@ object Førstegangsbehandling : BehandlingType {
 }
 
 object Revurdering : BehandlingType {
-    override fun flyt(): no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt {
+    override fun flyt(): BehandlingFlyt {
         return Førstegangsbehandling.flyt() // Returnerer bare samme fly atm
     }
 
@@ -56,7 +56,7 @@ object Revurdering : BehandlingType {
 }
 
 object Klage : BehandlingType {
-    override fun flyt(): no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt {
+    override fun flyt(): BehandlingFlyt {
         TODO("Not yet implemented")
     }
 
@@ -67,7 +67,7 @@ object Klage : BehandlingType {
 }
 
 object Anke : BehandlingType {
-    override fun flyt(): no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt {
+    override fun flyt(): BehandlingFlyt {
         TODO("Not yet implemented")
     }
 
@@ -78,7 +78,7 @@ object Anke : BehandlingType {
 }
 
 object Tilbakekreving : BehandlingType {
-    override fun flyt(): no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt {
+    override fun flyt(): BehandlingFlyt {
         TODO("Not yet implemented")
     }
 
