@@ -3,10 +3,10 @@ package no.nav.aap.behandlingsflyt.domene.behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.flyt.BehandlingFlyt
-import no.nav.aap.flyt.StegStatus
-import no.nav.aap.flyt.StegType
-import no.nav.aap.flyt.Tilstand
+import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
+import no.nav.aap.behandlingsflyt.flyt.StegStatus
+import no.nav.aap.behandlingsflyt.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.Tilstand
 import java.time.LocalDateTime
 import java.util.*
 
@@ -75,7 +75,7 @@ class Behandling(
     }
 
     fun vilkårsresultat(): Vilkårsresultat = vilkårsresultat
-    fun flyt(): BehandlingFlyt = type.flyt()
+    fun flyt(): no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt = type.flyt()
     fun avklaringsbehov(): List<Avklaringsbehov> = avklaringsbehovene.alle()
     fun åpneAvklaringsbehov(): List<Avklaringsbehov> = avklaringsbehovene.åpne()
     fun skalHoppesTilbake(definisjoner: List<Definisjon>): Boolean {

@@ -1,7 +1,7 @@
 package no.nav.aap.prosessering
 
-import no.nav.aap.flyt.kontroll.FlytKontekst
-import no.nav.aap.flyt.kontroll.FlytKontroller
+import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontekst
+import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontroller
 
 object ProsesserBehandlingOppgave : Oppgave() {
 

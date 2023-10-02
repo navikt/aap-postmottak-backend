@@ -12,8 +12,8 @@ import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
-import no.nav.aap.flyt.StegGruppe
-import no.nav.aap.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.StegGruppe
+import no.nav.aap.behandlingsflyt.flyt.StegType
 import java.util.*
 
 fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: StegType): no.nav.aap.behandlingsflyt.flate.behandling.VilkårDTO? {

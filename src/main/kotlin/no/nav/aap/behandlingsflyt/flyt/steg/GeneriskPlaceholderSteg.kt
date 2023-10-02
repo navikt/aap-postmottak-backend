@@ -1,0 +1,13 @@
+package no.nav.aap.behandlingsflyt.flyt.steg
+
+import no.nav.aap.behandlingsflyt.flyt.StegType
+
+class GeneriskPlaceholderSteg(private val stegType: StegType) : BehandlingSteg {
+    override fun utfør(input: StegInput): StegResultat {
+        return StegResultat() // DO NOTHING
+    }
+
+    override fun type(): StegType {
+        return stegType
+    }
+}

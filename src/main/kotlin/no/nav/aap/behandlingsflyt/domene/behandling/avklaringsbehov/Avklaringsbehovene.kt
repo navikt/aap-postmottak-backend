@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
-import no.nav.aap.flyt.BehandlingFlyt
-import no.nav.aap.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
+import no.nav.aap.behandlingsflyt.flyt.StegType
 
 class Avklaringsbehovene {
 
@@ -37,7 +37,7 @@ class Avklaringsbehovene {
     fun åpne(): List<Avklaringsbehov> = avklaringsbehovene.filter { it.erÅpent() }.toList()
 
     fun skalHoppesTilbake(
-        behandlingFlyt: BehandlingFlyt,
+        behandlingFlyt: no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt,
         aktivtSteg: StegTilstand,
         definisjoner: List<Definisjon>
     ): Boolean {
