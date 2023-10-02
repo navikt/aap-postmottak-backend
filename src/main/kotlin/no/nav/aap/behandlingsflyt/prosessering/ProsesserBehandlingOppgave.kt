@@ -1,4 +1,4 @@
-package no.nav.aap.prosessering
+package no.nav.aap.behandlingsflyt.prosessering
 
 import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontroller

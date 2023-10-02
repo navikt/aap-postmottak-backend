@@ -39,7 +39,7 @@ import no.nav.aap.behandlingsflyt.flate.sak.saksApi
 import no.nav.aap.behandlingsflyt.flyt.ErrorRespons
 import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
-import no.nav.aap.prosessering.Motor
+import no.nav.aap.behandlingsflyt.prosessering.Motor
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 

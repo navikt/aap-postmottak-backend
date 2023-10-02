@@ -1,4 +1,4 @@
-package no.nav.aap.prosessering
+package no.nav.aap.behandlingsflyt.prosessering
 
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.sak.Sak

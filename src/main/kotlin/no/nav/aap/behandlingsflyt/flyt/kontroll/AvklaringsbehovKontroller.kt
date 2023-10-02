@@ -10,10 +10,10 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøser
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.prosessering.Gruppe
-import no.nav.aap.prosessering.OppgaveInput
-import no.nav.aap.prosessering.OppgaveRepository
-import no.nav.aap.prosessering.ProsesserBehandlingOppgave
+import no.nav.aap.behandlingsflyt.prosessering.Gruppe
+import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
+import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
+import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
 import org.slf4j.LoggerFactory
 
 class AvklaringsbehovKontroller {

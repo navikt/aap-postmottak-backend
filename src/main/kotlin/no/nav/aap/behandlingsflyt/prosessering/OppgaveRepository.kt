@@ -1,4 +1,4 @@
-package no.nav.aap.prosessering
+package no.nav.aap.behandlingsflyt.prosessering
 
 import org.slf4j.LoggerFactory
 import java.util.*

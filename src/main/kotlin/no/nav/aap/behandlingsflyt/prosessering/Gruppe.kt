@@ -1,4 +1,4 @@
-package no.nav.aap.prosessering
+package no.nav.aap.behandlingsflyt.prosessering
 
 import java.util.*
 

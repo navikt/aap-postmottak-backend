@@ -13,10 +13,10 @@ import no.nav.aap.behandlingsflyt.flyt.kontroll.AvklaringsbehovKontroller
 import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontroller
 import no.nav.aap.behandlingsflyt.flyt.kontroll.ValiderBehandlingTilstand
-import no.nav.aap.prosessering.Gruppe
-import no.nav.aap.prosessering.OppgaveInput
-import no.nav.aap.prosessering.OppgaveRepository
-import no.nav.aap.prosessering.ProsesserBehandlingOppgave
+import no.nav.aap.behandlingsflyt.prosessering.Gruppe
+import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
+import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
+import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
 
 object HendelsesMottak {
 

@@ -1,4 +1,4 @@
-package no.nav.aap.prosessering
+package no.nav.aap.behandlingsflyt.prosessering
 
 import kotlinx.coroutines.Runnable
 import org.slf4j.LoggerFactory
@@ -33,7 +33,7 @@ object Motor {
         override fun run() {
             running = true
             while (running) {
-                val gruppe = repo.plukk()
+                val gruppe = OppgaveRepository.plukk()
                 if (gruppe != null) {
                     val utførteOppgaver = mutableListOf<String>()
                     try {
@@ -60,10 +60,10 @@ object Motor {
                             .filter { oppgave -> utførteOppgaver.any { uo -> oppgave.type() == uo } }
                             .forEach { nyGruppe.leggTil(it) }
                         log.warn("Feil under prosessering av gruppe {}, gjenstående opgaver {}", gruppe, nyGruppe)
-                        repo.leggTil(gruppe = nyGruppe)
+                        OppgaveRepository.leggTil(gruppe = nyGruppe)
                     }
                 }
-                if (running && !repo.harOppgaver()) {
+                if (running && !OppgaveRepository.harOppgaver()) {
                     Thread.sleep(500L)
                 }
             }
