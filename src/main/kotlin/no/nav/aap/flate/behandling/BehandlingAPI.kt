@@ -12,6 +12,7 @@ import no.nav.aap.domene.behandling.Vilkårsresultat
 import no.nav.aap.domene.behandling.Vilkårstype
 import no.nav.aap.domene.behandling.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.domene.behandling.grunnlag.yrkesskade.YrkesskadeTjeneste
+import no.nav.aap.flyt.StegGruppe
 import no.nav.aap.flyt.StegType
 import java.util.*
 
@@ -128,6 +129,42 @@ fun NormalOpenAPIRoute.behandlingApi() {
                         hentUtRelevantVilkårForSteg(behandling.vilkårsresultat(), stegType)
                     )
                 }, behandling.aktivtSteg().tilstand.steg()))
+            }
+        }
+        route("/{referanse}/flyt-2") {
+            get<BehandlingReferanse, BehandlingFlytOgTilstand2Dto> { req ->
+                val behandling = behandling(req)
+                val stegGrupper = LinkedHashMap<StegGruppe, LinkedList<StegType>>()
+                for (steg in behandling.flyt().stegene()) {
+                    val gruppe = stegGrupper.getOrDefault(steg.gruppe, LinkedList<StegType>())
+                    gruppe.add(steg)
+                    stegGrupper[steg.gruppe] = gruppe
+                }
+
+                respond(
+                    BehandlingFlytOgTilstand2Dto(
+                        stegGrupper.map { gruppe ->
+                            FlytGruppe(
+                                gruppe.key,
+                                gruppe.value.map { stegType ->
+                                    FlytSteg(stegType,
+                                        behandling.avklaringsbehov()
+                                            .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
+                                            .map { behov ->
+                                                AvklaringsbehovDTO(
+                                                    behov.definisjon,
+                                                    behov.status(),
+                                                    emptyList()
+                                                )
+                                            },
+                                        hentUtRelevantVilkårForSteg(behandling.vilkårsresultat(), stegType)
+                                    )
+                                }
+                            )
+                        }, behandling.aktivtSteg().tilstand.steg(),
+                        behandling.aktivtSteg().tilstand.steg().gruppe
+                    )
+                )
             }
         }
     }
