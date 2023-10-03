@@ -57,6 +57,12 @@ class FlytKontroller {
             }
 
             if (result.erTilbakeføring()) {
+                log.info(
+                    "[{} - {}] Tilakeført fra '{}' til '{}'",
+                    kontekst.sakId,
+                    kontekst.behandlingId,
+                    aktivtSteg.tilstand, result.tilSteg()
+                )
                 hoppTilbakeTilSteg(kontekst, behandling, result.tilSteg(), StegStatus.START)
                 aktivtSteg = behandling.aktivtSteg()
             }
