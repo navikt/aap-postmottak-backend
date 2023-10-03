@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass.set("no.nav.aap.AppKt")
+    mainClass.set("no.nav.aap.behandlingsflyt.AppKt")
 }
 
 allprojects {
