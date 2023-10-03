@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.flate.behandling.periode
+package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.FunksjonellGruppe

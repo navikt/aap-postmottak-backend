@@ -6,7 +6,6 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.domene.vilkår.sykdom.SykdomsFaktagrunnlag
 import no.nav.aap.behandlingsflyt.domene.vilkår.sykdom.Sykdomsvilkår
-import no.nav.aap.behandlingsflyt.flate.behandling.periode.PeriodeTilVurderingTjeneste
 import no.nav.aap.behandlingsflyt.flyt.StegType
 
 class VurderSykdomSteg : BehandlingSteg {
