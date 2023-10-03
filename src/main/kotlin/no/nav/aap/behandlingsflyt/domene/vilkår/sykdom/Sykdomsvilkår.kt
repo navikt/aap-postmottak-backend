@@ -6,18 +6,21 @@ import no.nav.aap.behandlingsflyt.domene.behandling.TomtBeslutningstre
 import no.nav.aap.behandlingsflyt.domene.behandling.Utfall
 import no.nav.aap.behandlingsflyt.domene.behandling.Vilkår
 import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårsperiode
+import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.vilkår.Vilkårsvurderer
 import no.nav.aap.behandlingsflyt.domene.vilkår.VurderingsResultat
 
-class Sykdomsvilkår(val vilkår: Vilkår) : Vilkårsvurderer<SykdomsFaktagrunnlag> {
+class Sykdomsvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<SykdomsFaktagrunnlag> {
+    private val vilkår: Vilkår
+
     init {
-        require(vilkår.type == Vilkårstype.SYKDOMSVILKÅRET) { "${vilkår.type} er ikke SYKDOMSVILKÅRET" }
+        this.vilkår = vilkårsresultat.finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
     }
 
     override fun vurder(grunnlag: SykdomsFaktagrunnlag): VurderingsResultat {
         val utfall: Utfall
-        var avslagsårsak : Avslagsårsak? = null
+        var avslagsårsak: Avslagsårsak? = null
 
         val sykdomsvurdering = grunnlag.sykdomsvurdering
 

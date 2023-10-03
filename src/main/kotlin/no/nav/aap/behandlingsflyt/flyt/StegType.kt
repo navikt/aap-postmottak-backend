@@ -7,7 +7,8 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.START_BEHANDLING,
         status = Status.OPPRETTET
     ),
-    VURDER_ALDER(gruppe = StegGruppe.ALDER, status = Status.UTREDES), VURDER_LOVVALG(
+    VURDER_ALDER(gruppe = StegGruppe.ALDER, status = Status.UTREDES),
+    VURDER_LOVVALG(
         gruppe = StegGruppe.LOVVALG,
         status = Status.UTREDES
     ),
@@ -19,11 +20,13 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES
     ),
-    BARNETILLEGG(gruppe = StegGruppe.BARNETILLEGG, status = Status.UTREDES), SAMORDNING(
+    BARNETILLEGG(gruppe = StegGruppe.BARNETILLEGG, status = Status.UTREDES),
+    SAMORDNING(
         gruppe = StegGruppe.SAMORDNING,
         status = Status.UTREDES
     ),
-    AVKLAR_YRKESSKADE(gruppe = StegGruppe.SYKDOM, status = Status.UTREDES), AVKLAR_SYKDOM(
+    AVKLAR_YRKESSKADE(gruppe = StegGruppe.SYKDOM, status = Status.UTREDES),
+    AVKLAR_SYKDOM(
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES
     ),
@@ -35,7 +38,8 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES
     ),
-    FASTSETT_GRUNNLAG(gruppe = StegGruppe.GRUNNLAG, status = Status.UTREDES), FASTSETT_UTTAK(
+    FASTSETT_GRUNNLAG(gruppe = StegGruppe.GRUNNLAG, status = Status.UTREDES),
+    FASTSETT_UTTAK(
         gruppe = StegGruppe.UTTAK,
         status = Status.UTREDES
     ),
@@ -55,7 +59,8 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.FATTE_VEDTAK,
         status = Status.UTREDES
     ),
-    IVERKSETT_VEDTAK(gruppe = StegGruppe.IVERKSETT_VEDTAK, status = Status.AVSLUTTET), UDEFINERT(
+    IVERKSETT_VEDTAK(gruppe = StegGruppe.IVERKSETT_VEDTAK, status = Status.AVSLUTTET),
+    UDEFINERT(
         gruppe = StegGruppe.UDEFINERT, status = Status.UTREDES, tekniskSteg = true
     ), // Forbeholdt deklarasjon for avklaringsbehov som
 

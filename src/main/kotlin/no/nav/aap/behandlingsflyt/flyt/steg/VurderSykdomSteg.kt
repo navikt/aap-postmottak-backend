@@ -3,10 +3,10 @@ package no.nav.aap.behandlingsflyt.flyt.steg
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.domene.vilkår.sykdom.SykdomsFaktagrunnlag
 import no.nav.aap.behandlingsflyt.domene.vilkår.sykdom.Sykdomsvilkår
 import no.nav.aap.behandlingsflyt.flyt.StegType
+import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 
 class VurderSykdomSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
@@ -16,7 +16,6 @@ class VurderSykdomSteg : BehandlingSteg {
             PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårstype.SYKDOMSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
-            val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
             val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
 
             if (sykdomsGrunnlag != null && sykdomsGrunnlag.erKonsistent()) {
@@ -27,9 +26,10 @@ class VurderSykdomSteg : BehandlingSteg {
                         sykdomsGrunnlag.yrkesskadevurdering,
                         sykdomsGrunnlag.sykdomsvurdering!!
                     )
-                    Sykdomsvilkår(sykdomsvilkåret).vurder(faktagrunnlag)
+                    Sykdomsvilkår(behandling.vilkårsresultat()).vurder(faktagrunnlag)
                 }
             }
+            val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
 
             if (sykdomsvilkåret.harPerioderSomIkkeErVurdert(periodeTilVurdering) || sykdomsGrunnlag?.erKonsistent() != true) {
                 return StegResultat(listOf(Definisjon.AVKLAR_SYKDOM))
