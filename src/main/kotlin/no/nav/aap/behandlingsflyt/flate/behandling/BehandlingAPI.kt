@@ -10,7 +10,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
-import no.nav.aap.behandlingsflyt.flyt.StegGruppe
+import no.nav.aap.behandlingsflyt.flyt.steg.StegGruppe
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import java.util.*
 

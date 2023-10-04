@@ -18,7 +18,9 @@ import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
+import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
 import no.nav.aap.behandlingsflyt.grunnlag.person.Fødselsdato
 import no.nav.aap.behandlingsflyt.grunnlag.person.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.grunnlag.person.Personinfo
