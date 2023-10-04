@@ -3,15 +3,15 @@ package no.nav.aap.behandlingsflyt.domene.behandling
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder
 import no.nav.aap.behandlingsflyt.flyt.StegType
-import no.nav.aap.behandlingsflyt.flyt.steg.FatteVedtakSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.ForeslåVedtakSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.GeneriskPlaceholderSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.InnhentPersonopplysningerSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.InnhentYrkesskadeSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.StartBehandlingSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.VurderAlderSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.VurderSykdomSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.VurderYrkesskadeÅrsakssammenhengSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.FatteVedtakSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.ForeslåVedtakSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.GeneriskPlaceholderSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.InnhentPersonopplysningerSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.InnhentYrkesskadeSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.StartBehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderAlderSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykdomSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderYrkesskadeÅrsakssammenhengSteg
 
 interface BehandlingType {
     fun flyt(): BehandlingFlyt

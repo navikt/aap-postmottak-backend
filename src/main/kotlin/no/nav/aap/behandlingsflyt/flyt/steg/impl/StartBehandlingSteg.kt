@@ -1,10 +1,13 @@
-package no.nav.aap.behandlingsflyt.flyt.steg
+package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
+import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 
 class StartBehandlingSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {

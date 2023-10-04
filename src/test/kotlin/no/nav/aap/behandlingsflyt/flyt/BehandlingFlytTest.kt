@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.flyt.steg.GeneriskPlaceholderSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.InnhentPersonopplysningerSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.StartBehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.GeneriskPlaceholderSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.InnhentPersonopplysningerSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.StartBehandlingSteg
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
