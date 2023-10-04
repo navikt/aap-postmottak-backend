@@ -87,10 +87,7 @@ class FlytKontroller {
                 behandling.aktivtSteg(),
                 behandling.avklaringsbehov()
                     .filter { behov -> definisjoner.any { it == behov.definisjon } })
-            val tilStegStatus =
-                utledStegStatus(definisjoner
-                    .filter { it.løsesISteg == tilSteg }
-                    .map { it.vurderingspunkt.stegStatus })
+            val tilStegStatus = StegStatus.AVKLARINGSPUNKT
 
             hoppTilbakeTilSteg(kontekst, behandling, tilSteg, tilStegStatus)
         } else if (skalRekjøreSteg(definisjoner, behandling)) {
@@ -125,7 +122,7 @@ class FlytKontroller {
             // TODO: Refactor
             if (forrige == null) {
                 kanFortsette = false
-            } else if (forrige.type() == tilSteg && tilStegStatus != StegStatus.INNGANG) {
+            } else if (forrige.type() == tilSteg && tilStegStatus != StegStatus.AVKLARINGSPUNKT) {
                 utførTilstandsEndring(
                     kontekst = kontekst,
                     nesteStegStatus = tilStegStatus,
@@ -142,9 +139,6 @@ class FlytKontroller {
                     aktivtSteg = forrige,
                     behandling = behandling
                 )
-            }
-            if (kanFortsette && forrige!!.type() == tilSteg && tilStegStatus == StegStatus.INNGANG) {
-                kanFortsette = false
             }
             if (!kanFortsette) {
                 loggStopp(kontekst, behandling)
@@ -169,13 +163,6 @@ class FlytKontroller {
         val nyStegTilstand =
             StegTilstand(tilstand = Tilstand(behandling.aktivtSteg().tilstand.steg(), StegStatus.START))
         behandling.visit(nyStegTilstand)
-    }
-
-    private fun utledStegStatus(stegStatuser: List<StegStatus>): StegStatus {
-        if (stegStatuser.contains(StegStatus.UTGANG)) {
-            return StegStatus.UTGANG
-        }
-        return StegStatus.INNGANG
     }
 
     private fun utledSteg(
@@ -216,7 +203,7 @@ class FlytKontroller {
                 behandlingFlyt.erStegFør(
                     definisjon.løsesISteg,
                     nesteSteg
-                ) || definisjon.vurderingspunkt.stegStatus.erFør(nesteStegStatus)
+                )
             }
         if (uhåndterteBehov.isNotEmpty()) {
             throw IllegalStateException("Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg' med status = '$nesteStegStatus'")
@@ -241,9 +228,12 @@ class FlytKontroller {
             nesteStegStatus
         )
         val transisjon = when (nesteStegStatus) {
-            StegStatus.INNGANG -> harAvklaringspunkt(aktivtSteg.type(), nesteStegStatus, relevanteAvklaringsbehov)
             StegStatus.UTFØRER -> behandleSteg(aktivtSteg, kontekst)
-            StegStatus.UTGANG -> harAvklaringspunkt(aktivtSteg.type(), nesteStegStatus, relevanteAvklaringsbehov)
+            StegStatus.AVKLARINGSPUNKT -> harAvklaringspunkt(
+                aktivtSteg.type(),
+                relevanteAvklaringsbehov
+            )
+
             StegStatus.AVSLUTTER -> harTruffetSlutten(aktivtSteg.type(), behandling.flyt())
             StegStatus.TILBAKEFØRT -> behandleStegBakover(aktivtSteg, kontekst)
             else -> Fortsett
@@ -278,11 +268,10 @@ class FlytKontroller {
 
     private fun harAvklaringspunkt(
         steg: StegType,
-        nesteStegStatus: StegStatus,
         avklaringsbehov: List<Avklaringsbehov>
     ): Transisjon {
 
-        if (avklaringsbehov.any { behov -> behov.skalStoppeHer(steg, nesteStegStatus) }) {
+        if (avklaringsbehov.any { behov -> behov.skalStoppeHer(steg) }) {
             return Stopp
         }
 

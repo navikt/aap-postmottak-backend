@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.flyt.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.StegType
 
 class Avklaringsbehov(
@@ -32,8 +31,8 @@ class Avklaringsbehov(
         return historikk.last().status in setOf(Status.OPPRETTET, Status.SENDT_TILBAKE_FRA_BESLUTTER)
     }
 
-    fun skalStoppeHer(stegType: StegType, stegStatus: StegStatus): Boolean {
-        return definisjon.skalLøsesISteg(stegType, funnetISteg) && definisjon.påStegStatus(stegStatus) && erÅpent()
+    fun skalStoppeHer(stegType: StegType): Boolean {
+        return definisjon.skalLøsesISteg(stegType, funnetISteg) && erÅpent()
     }
 
     fun løs(begrunnelse: String, endretAv: String) {

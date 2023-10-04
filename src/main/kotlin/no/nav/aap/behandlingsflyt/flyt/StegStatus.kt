@@ -7,11 +7,6 @@ enum class StegStatus {
     START,
 
     /**
-     * Punkt for å vente på avklaringsbehov
-     */
-    INNGANG,
-
-    /**
      * Utfører forettningslogikken i steget
      */
     UTFØRER,
@@ -24,7 +19,7 @@ enum class StegStatus {
     /**
      * Punkt for å vente på avklaringsbehov
      */
-    UTGANG,
+    AVKLARINGSPUNKT,
 
     /**
      * Teknisk status, finne neste steg
@@ -46,25 +41,9 @@ enum class StegStatus {
         return START
     }
 
-    fun erFør(otherStatus: StegStatus): Boolean {
-        val nåværeStatus = utledStatus(this)
-        val relevantStatus = utledStatus(otherStatus)
-
-        val indexOfThis = rekkefølge().indexOf(nåværeStatus)
-        val indexOfOther = rekkefølge().indexOf(relevantStatus)
-
-        return indexOfThis < indexOfOther
-    }
-
-    private fun utledStatus(stegStatus: StegStatus) = if (rekkefølge().contains(stegStatus)) {
-        stegStatus
-    } else {
-        START
-    }
-
     companion object {
         fun rekkefølge(): List<StegStatus> {
-            return listOf(START, INNGANG, UTFØRER, UTGANG, AVSLUTTER)
+            return listOf(START, UTFØRER, AVKLARINGSPUNKT, AVSLUTTER)
         }
     }
 }

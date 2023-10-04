@@ -3,7 +3,6 @@ package no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.aap.behandlingsflyt.flyt.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.StegType
 import java.time.Period
 import java.util.*
@@ -22,7 +21,6 @@ enum class Definisjon(
     private val type: BehovType = BehovType.MANUELT,
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
-    @JsonIgnore val vurderingspunkt: Vurderingspunkt,
     @JsonIgnore val rekjørSteg: Boolean = false,
     val kreverToTrinn: Boolean = false
 ) {
@@ -31,32 +29,27 @@ enum class Definisjon(
         kode = MANUELT_SATT_PÅ_VENT_KODE,
         type = BehovType.AUTOMATISK,
         defaultFrist = Period.ofWeeks(3),
-        vurderingspunkt = Vurderingspunkt.UT,
         rekjørSteg = true
     ),
     AVKLAR_SYKDOM(
         kode = AVKLAR_SYKDOM_KODE,
         løsesISteg = StegType.AVKLAR_SYKDOM,
-        vurderingspunkt = Vurderingspunkt.UT,
         rekjørSteg = true, // Bør rekjøre steget for å se om det er i gyldig state
         kreverToTrinn = true
     ),
     AVKLAR_YRKESSKADE(
         kode = AVKLAR_YRKESSKADE_KODE,
         løsesISteg = StegType.AVKLAR_YRKESSKADE,
-        vurderingspunkt = Vurderingspunkt.UT,
         rekjørSteg = false, // Bør rekjøre steget for å se om det er i gyldig state
         kreverToTrinn = true
     ),
     FORESLÅ_VEDTAK(
         kode = FORESLÅ_VEDTAK_KODE,
         løsesISteg = StegType.FORESLÅ_VEDTAK,
-        vurderingspunkt = Vurderingspunkt.UT
     ),
     FATTE_VEDTAK(
         kode = FATTE_VEDTAK_KODE,
         løsesISteg = StegType.FATTE_VEDTAK,
-        vurderingspunkt = Vurderingspunkt.UT,
         rekjørSteg = true
     );
 
@@ -90,10 +83,6 @@ enum class Definisjon(
             return steg == funnetISteg
         }
         return løsesISteg == steg
-    }
-
-    fun påStegStatus(status: StegStatus): Boolean {
-        return vurderingspunkt.stegStatus == status
     }
 
     private fun validerManuelt() {
