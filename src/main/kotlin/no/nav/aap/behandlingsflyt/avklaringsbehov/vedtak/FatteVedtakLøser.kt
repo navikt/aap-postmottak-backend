@@ -15,8 +15,8 @@ class FatteVedtakLøser : AvklaringsbehovsLøser<FatteVedtakLøsning> {
         løsning.vurderinger.forEach { vurdering ->
             avklaringsbehovene.vurderTotrinn(
                 Definisjon.forKode(vurdering.definisjon),
-                vurdering.godkjent,
-                vurdering.begrunnelse
+                vurdering.godkjent!!,
+                vurdering.begrunnelse!!
             )
         }
 
@@ -24,7 +24,7 @@ class FatteVedtakLøser : AvklaringsbehovsLøser<FatteVedtakLøsning> {
     }
 
     private fun sammenstillBegrunnelse(løsning: FatteVedtakLøsning): String {
-        return løsning.vurderinger.joinToString("\\n") { it.begrunnelse }
+        return løsning.vurderinger.joinToString("\\n") { it.begrunnelse!! }
     }
 
     override fun forBehov(): Definisjon {
