@@ -1,9 +1,9 @@
 package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
-import no.nav.aap.behandlingsflyt.domene.behandling.FunksjonellGruppe
+import no.nav.aap.behandlingsflyt.flyt.vilkår.FunksjonellGruppe
 import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.domene.Periode
 

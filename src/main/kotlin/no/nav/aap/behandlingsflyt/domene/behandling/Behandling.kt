@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.StegType
 import no.nav.aap.behandlingsflyt.flyt.Tilstand
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import java.time.LocalDateTime
 import java.util.*
 

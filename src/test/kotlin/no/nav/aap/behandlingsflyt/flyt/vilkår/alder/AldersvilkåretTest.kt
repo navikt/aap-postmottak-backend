@@ -1,6 +1,8 @@
-package no.nav.aap.behandlingsflyt.domene.vilkår.alder
+package no.nav.aap.behandlingsflyt.flyt.vilkår.alder
 
-import no.nav.aap.behandlingsflyt.domene.behandling.Utfall
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
+import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
+import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
 import no.nav.aap.behandlingsflyt.grunnlag.person.Fødselsdato
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

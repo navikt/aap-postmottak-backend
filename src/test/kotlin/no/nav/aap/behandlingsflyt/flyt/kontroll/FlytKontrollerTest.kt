@@ -12,7 +12,7 @@ import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.domene.behandling.Status
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.domene.person.Ident

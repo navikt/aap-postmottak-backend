@@ -1,15 +1,15 @@
-package no.nav.aap.behandlingsflyt.domene.vilkår.sykdom
+package no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom
 
 import no.nav.aap.behandlingsflyt.domene.Periode
-import no.nav.aap.behandlingsflyt.domene.behandling.Avslagsårsak
-import no.nav.aap.behandlingsflyt.domene.behandling.TomtBeslutningstre
-import no.nav.aap.behandlingsflyt.domene.behandling.Utfall
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkår
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårsperiode
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
-import no.nav.aap.behandlingsflyt.domene.vilkår.Vilkårsvurderer
-import no.nav.aap.behandlingsflyt.domene.vilkår.VurderingsResultat
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Avslagsårsak
+import no.nav.aap.behandlingsflyt.flyt.vilkår.TomtBeslutningstre
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsvurderer
+import no.nav.aap.behandlingsflyt.flyt.vilkår.VurderingsResultat
 
 class Sykdomsvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<SykdomsFaktagrunnlag> {
     private val vilkår: Vilkår

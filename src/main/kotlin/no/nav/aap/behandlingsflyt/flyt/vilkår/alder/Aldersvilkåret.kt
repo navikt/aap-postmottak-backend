@@ -1,9 +1,9 @@
-package no.nav.aap.behandlingsflyt.domene.vilkår.alder
+package no.nav.aap.behandlingsflyt.flyt.vilkår.alder
 
-import no.nav.aap.behandlingsflyt.domene.behandling.TomtBeslutningstre
-import no.nav.aap.behandlingsflyt.domene.behandling.Utfall
-import no.nav.aap.behandlingsflyt.domene.vilkår.Vilkårsvurderer
-import no.nav.aap.behandlingsflyt.domene.vilkår.VurderingsResultat
+import no.nav.aap.behandlingsflyt.flyt.vilkår.TomtBeslutningstre
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsvurderer
+import no.nav.aap.behandlingsflyt.flyt.vilkår.VurderingsResultat
 
 object Aldersvilkåret : Vilkårsvurderer<Aldersgrunnlag> {
     // TODO Det må avklares hva som er riktig adferd dersom bruker søker før fylte 18

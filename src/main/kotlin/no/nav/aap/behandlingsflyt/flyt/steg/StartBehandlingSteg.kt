@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.flyt.StegType
 

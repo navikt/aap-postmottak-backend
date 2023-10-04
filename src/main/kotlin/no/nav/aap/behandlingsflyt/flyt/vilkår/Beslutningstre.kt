@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.domene.behandling
+package no.nav.aap.behandlingsflyt.flyt.vilkår
 
 interface Beslutningstre
 

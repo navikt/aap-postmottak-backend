@@ -7,9 +7,9 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkår
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.flyt.StegGruppe
 import no.nav.aap.behandlingsflyt.flyt.StegType
 import java.util.*

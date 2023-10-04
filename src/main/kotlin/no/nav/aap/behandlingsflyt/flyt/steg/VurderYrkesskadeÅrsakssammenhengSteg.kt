@@ -2,8 +2,8 @@ package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkår
-import no.nav.aap.behandlingsflyt.domene.behandling.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsGrunnlag
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste

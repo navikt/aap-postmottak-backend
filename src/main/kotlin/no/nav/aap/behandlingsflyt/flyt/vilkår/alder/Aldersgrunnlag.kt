@@ -1,6 +1,6 @@
-package no.nav.aap.behandlingsflyt.domene.vilkår.alder
+package no.nav.aap.behandlingsflyt.flyt.vilkår.alder
 
-import no.nav.aap.behandlingsflyt.domene.behandling.Faktagrunnlag
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Faktagrunnlag
 import no.nav.aap.behandlingsflyt.grunnlag.person.Fødselsdato
 import java.time.LocalDate
 
