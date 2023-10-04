@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
-import no.nav.aap.behandlingsflyt.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
 class Avklaringsbehovene {
 

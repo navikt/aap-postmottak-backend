@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbe
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.StegStatus
-import no.nav.aap.behandlingsflyt.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.Tilstand
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import java.time.LocalDateTime

@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt
 
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.GeneriskPlaceholderSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.InnhentPersonopplysningerSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.StartBehandlingSteg

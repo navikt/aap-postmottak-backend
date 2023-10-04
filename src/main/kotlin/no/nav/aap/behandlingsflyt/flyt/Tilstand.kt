@@ -1,5 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt
 
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
+
 class Tilstand(private val type: StegType, private val status: StegStatus) {
 
     fun status(): StegStatus {

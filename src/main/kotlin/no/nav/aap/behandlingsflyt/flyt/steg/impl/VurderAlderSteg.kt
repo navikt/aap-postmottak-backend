@@ -1,15 +1,15 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
-import no.nav.aap.behandlingsflyt.grunnlag.person.PersoninformasjonTjeneste
-import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
-import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
-import no.nav.aap.behandlingsflyt.flyt.StegType
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
+import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
+import no.nav.aap.behandlingsflyt.grunnlag.person.PersoninformasjonTjeneste
 
 class VurderAlderSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {

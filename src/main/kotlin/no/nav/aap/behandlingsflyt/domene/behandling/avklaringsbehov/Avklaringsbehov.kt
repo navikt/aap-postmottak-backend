@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
 class Avklaringsbehov(
     val definisjon: Definisjon,

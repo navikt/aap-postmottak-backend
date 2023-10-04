@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.domene.behandling
 
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder
-import no.nav.aap.behandlingsflyt.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.FatteVedtakSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.ForeslåVedtakSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.GeneriskPlaceholderSteg

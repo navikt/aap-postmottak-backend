@@ -1,7 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.flyt.StegType
 import no.nav.aap.behandlingsflyt.flyt.Fortsett
 import no.nav.aap.behandlingsflyt.flyt.FunnetAvklaringsbehov
 import no.nav.aap.behandlingsflyt.flyt.Tilbakeført
