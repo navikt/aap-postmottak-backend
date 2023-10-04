@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.flyt.kontroll
+package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser

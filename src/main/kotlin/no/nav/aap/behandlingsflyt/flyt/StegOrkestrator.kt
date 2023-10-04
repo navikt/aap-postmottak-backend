@@ -3,10 +3,6 @@ package no.nav.aap.behandlingsflyt.flyt
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontekst
-import no.nav.aap.behandlingsflyt.flyt.kontroll.Fortsett
-import no.nav.aap.behandlingsflyt.flyt.kontroll.Stopp
-import no.nav.aap.behandlingsflyt.flyt.kontroll.Transisjon
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import org.slf4j.LoggerFactory

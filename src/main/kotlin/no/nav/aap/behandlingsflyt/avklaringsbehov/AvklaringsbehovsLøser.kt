@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontekst
+import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
 interface AvklaringsbehovsLøser<T : AvklaringsbehovLøsning> {
 

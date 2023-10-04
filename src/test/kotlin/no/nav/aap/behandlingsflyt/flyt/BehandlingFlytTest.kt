@@ -6,14 +6,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StartBehandlingSteg
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class DefinisjonTest {
-
-    private val førstegangsbehandling = BehandlingFlytBuilder()
-        .medSteg(StartBehandlingSteg())
-        .medSteg(InnhentPersonopplysningerSteg())
-        .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_MEDLEMSKAP))
-        .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_GRUNNLAG))
-        .build()
+class BehandlingFlytTest {
 
     @Test
     fun `Skal finne neste steg for førstegangsbehandling`() {
@@ -28,4 +21,11 @@ class DefinisjonTest {
 
         assertThat(forrige!!.type()).isEqualTo(StegType.VURDER_MEDLEMSKAP)
     }
+
+    private val førstegangsbehandling = BehandlingFlytBuilder()
+        .medSteg(StartBehandlingSteg())
+        .medSteg(InnhentPersonopplysningerSteg())
+        .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_MEDLEMSKAP))
+        .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_GRUNNLAG))
+        .build()
 }

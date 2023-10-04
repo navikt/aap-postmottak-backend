@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.flyt.kontroll
+package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
@@ -6,11 +6,6 @@ import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
-import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
-import no.nav.aap.behandlingsflyt.flyt.StegOrkestrator
-import no.nav.aap.behandlingsflyt.flyt.StegStatus
-import no.nav.aap.behandlingsflyt.flyt.StegType
-import no.nav.aap.behandlingsflyt.flyt.Tilstand
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import org.slf4j.LoggerFactory
 

@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.flyt.kontroll.FlytKontekst
+import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
 class ForeslåVedtakLøser : AvklaringsbehovsLøser<ForeslåVedtakLøsning> {
 

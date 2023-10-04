@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.flyt.kontroll
+package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.Status
