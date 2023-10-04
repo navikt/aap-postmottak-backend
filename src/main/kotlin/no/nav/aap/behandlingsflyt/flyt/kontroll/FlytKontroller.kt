@@ -7,11 +7,11 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbe
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
+import no.nav.aap.behandlingsflyt.flyt.StegOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.StegType
 import no.nav.aap.behandlingsflyt.flyt.Tilstand
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FlytKontroller::class.java)
@@ -44,7 +44,12 @@ class FlytKontroller {
                 nesteStegStatus
             )
 
-            val result = utførTilstandsEndring(kontekst, nesteStegStatus, avklaringsbehov, nesteSteg, behandling)
+            val result = StegOrkestrator(nesteSteg).utførTilstandsEndring(
+                kontekst,
+                nesteStegStatus,
+                avklaringsbehov,
+                behandling
+            )
 
             if (result.funnetAvklaringsbehov().isNotEmpty()) {
                 log.info(
@@ -124,20 +129,18 @@ class FlytKontroller {
             if (forrige == null) {
                 kanFortsette = false
             } else if (forrige.type() == tilSteg && tilStegStatus != StegStatus.AVKLARINGSPUNKT) {
-                utførTilstandsEndring(
+                StegOrkestrator(forrige).utførTilstandsEndring(
                     kontekst = kontekst,
                     nesteStegStatus = tilStegStatus,
                     avklaringsbehov = listOf(),
-                    aktivtSteg = forrige,
                     behandling = behandling
                 )
                 kanFortsette = false
             } else {
-                utførTilstandsEndring(
+                StegOrkestrator(forrige).utførTilstandsEndring(
                     kontekst = kontekst,
                     nesteStegStatus = StegStatus.TILBAKEFØRT,
                     avklaringsbehov = listOf(),
-                    aktivtSteg = forrige,
                     behandling = behandling
                 )
             }
@@ -209,74 +212,6 @@ class FlytKontroller {
         if (uhåndterteBehov.isNotEmpty()) {
             throw IllegalStateException("Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg' med status = '$nesteStegStatus'")
         }
-    }
-
-    private fun utførTilstandsEndring(
-        kontekst: FlytKontekst,
-        nesteStegStatus: StegStatus,
-        avklaringsbehov: List<Avklaringsbehov>,
-        aktivtSteg: BehandlingSteg,
-        behandling: Behandling
-    ): Transisjon {
-        val relevanteAvklaringsbehov =
-            avklaringsbehov.filter { behov -> behov.skalLøsesISteg(aktivtSteg.type()) }
-
-        log.debug(
-            "[{} - {}] Behandler steg({}) med status({})",
-            kontekst.sakId,
-            kontekst.behandlingId,
-            aktivtSteg.type(),
-            nesteStegStatus
-        )
-        val transisjon = when (nesteStegStatus) {
-            StegStatus.UTFØRER -> behandleSteg(aktivtSteg, kontekst)
-            StegStatus.AVKLARINGSPUNKT -> harAvklaringspunkt(
-                aktivtSteg.type(),
-                relevanteAvklaringsbehov
-            )
-
-            StegStatus.AVSLUTTER -> harTruffetSlutten(aktivtSteg.type(), behandling.flyt())
-            StegStatus.TILBAKEFØRT -> behandleStegBakover(aktivtSteg, kontekst)
-            else -> Fortsett
-        }
-
-        val nyStegTilstand = StegTilstand(tilstand = Tilstand(aktivtSteg.type(), nesteStegStatus))
-        behandling.visit(nyStegTilstand)
-
-        return transisjon
-    }
-
-    private fun behandleStegBakover(steg: BehandlingSteg, kontekst: FlytKontekst): Transisjon {
-        val input = StegInput(kontekst)
-        steg.vedTilbakeføring(input)
-
-        return Fortsett
-    }
-
-    private fun harTruffetSlutten(aktivtSteg: StegType, flyt: BehandlingFlyt): Transisjon {
-        return when (flyt.harTruffetSlutten(aktivtSteg)) {
-            true -> Stopp
-            else -> Fortsett
-        }
-    }
-
-    private fun behandleSteg(steg: BehandlingSteg, kontekst: FlytKontekst): Transisjon {
-        val input = StegInput(kontekst)
-        val stegResultat = steg.utfør(input)
-
-        return stegResultat.transisjon()
-    }
-
-    private fun harAvklaringspunkt(
-        steg: StegType,
-        avklaringsbehov: List<Avklaringsbehov>
-    ): Transisjon {
-
-        if (avklaringsbehov.any { behov -> behov.skalStoppeHer(steg) }) {
-            return Stopp
-        }
-
-        return Fortsett
     }
 
     fun settBehandlingPåVent(kontekst: FlytKontekst) {
