@@ -15,4 +15,26 @@ data class InnhentetSykdomsOpplysninger(
     val innhentedeYrkesskader: List<RegistrertYrkesskade>
 )
 
+
+data class SykdomSykdomsGrunnlagDto(
+    val opplysninger: SykdomInnhentetSykdomsOpplysninger,
+    val sykdomsvurdering: Sykdomsvurdering?
+)
+
+data class SykdomInnhentetSykdomsOpplysninger(
+    val oppgittYrkesskadeISøknad: Boolean,
+    val innhentedeYrkesskader: List<RegistrertYrkesskade>,
+    val erÅrsakssammenheng: Boolean?
+)
+
+data class SykdomYrkesskadeGrunnlagDto(
+    val opplysninger: SykdomInnhentetYrkesskadeOpplysninger,
+    val yrkesskadevurdering: Yrkesskadevurdering?,
+)
+
+data class SykdomInnhentetYrkesskadeOpplysninger(
+    val oppgittYrkesskadeISøknad: Boolean,
+    val innhentedeYrkesskader: List<RegistrertYrkesskade>,
+)
+
 data class RegistrertYrkesskade(val ref: String, val periode: Periode, val kilde: String)

@@ -42,6 +42,55 @@ fun NormalOpenAPIRoute.behandlingsgrunnlagApi() {
                 )
             }
         }
+        route("/{referanse}/grunnlag/sykdom/sykdom") {
+            get<BehandlingReferanse, SykdomSykdomsGrunnlagDto> { req ->
+                val behandling = behandling(req)
+
+                val yrkesskadeGrunnlagOptional = YrkesskadeTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
+                val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
+
+                respond(
+                    SykdomSykdomsGrunnlagDto(
+                        opplysninger = SykdomInnhentetSykdomsOpplysninger(
+                            oppgittYrkesskadeISøknad = false,
+                            innhentedeYrkesskader = yrkesskadeGrunnlagOptional?.yrkesskader?.yrkesskader?.map { yrkesskade ->
+                                RegistrertYrkesskade(
+                                    ref = yrkesskade.ref,
+                                    periode = yrkesskade.periode,
+                                    kilde = "Yrkesskaderegisteret"
+                                )
+                            } ?: emptyList(),
+                            erÅrsakssammenheng = sykdomsGrunnlag?.yrkesskadevurdering?.erÅrsakssammenheng
+                        ),
+                        sykdomsvurdering = sykdomsGrunnlag?.sykdomsvurdering
+                    )
+                )
+            }
+        }
+        route("/{referanse}/grunnlag/sykdom/yrkesskade") {
+            get<BehandlingReferanse, SykdomYrkesskadeGrunnlagDto> { req ->
+                val behandling = behandling(req)
+
+                val yrkesskadeGrunnlag = YrkesskadeTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
+                val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
+
+                respond(
+                    SykdomYrkesskadeGrunnlagDto(
+                        opplysninger = SykdomInnhentetYrkesskadeOpplysninger(
+                            oppgittYrkesskadeISøknad = false,
+                            innhentedeYrkesskader = yrkesskadeGrunnlag?.yrkesskader?.yrkesskader?.map { yrkesskade ->
+                                RegistrertYrkesskade(
+                                    ref = yrkesskade.ref,
+                                    periode = yrkesskade.periode,
+                                    kilde = "Yrkesskaderegisteret"
+                                )
+                            } ?: emptyList()
+                        ),
+                        yrkesskadevurdering = sykdomsGrunnlag?.yrkesskadevurdering,
+                    )
+                )
+            }
+        }
         route("/{referanse}/grunnlag/medlemskap") {
             get<BehandlingReferanse, MedlemskapGrunnlagDto> { req ->
                 val behandling = behandling(req)
