@@ -11,14 +11,16 @@ class BehandlingFlytTest {
 
     @Test
     fun `Skal finne neste steg for førstegangsbehandling`() {
-        val neste = førstegangsbehandling.neste(StegType.START_BEHANDLING)
+        førstegangsbehandling.forberedFlyt(StegType.START_BEHANDLING)
+        val neste = førstegangsbehandling.neste()
 
         assertThat(neste!!.type()).isEqualTo(StegType.INNHENT_PERSONOPPLYSNINGER)
     }
 
     @Test
     fun `Skal finne forrige steg for førstegangsbehandling`() {
-        val forrige = førstegangsbehandling.forrige(StegType.FASTSETT_GRUNNLAG)
+        førstegangsbehandling.forberedFlyt(StegType.FASTSETT_GRUNNLAG)
+        val forrige = førstegangsbehandling.forrige()
 
         assertThat(forrige!!.type()).isEqualTo(StegType.VURDER_MEDLEMSKAP)
     }

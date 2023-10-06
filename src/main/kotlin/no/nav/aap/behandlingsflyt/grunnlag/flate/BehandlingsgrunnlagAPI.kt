@@ -37,7 +37,7 @@ fun NormalOpenAPIRoute.behandlingsgrunnlagApi() {
                             } ?: emptyList(),
                         ),
                         sykdomsvurdering = sykdomsGrunnlag?.sykdomsvurdering,
-                            erÅrsakssammenheng = sykdomsGrunnlag?.yrkesskadevurdering?.erÅrsakssammenheng
+                        erÅrsakssammenheng = sykdomsGrunnlag?.yrkesskadevurdering?.erÅrsakssammenheng
                     )
                 )
             }

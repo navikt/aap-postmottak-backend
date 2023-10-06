@@ -29,6 +29,7 @@ class FlytOrkestrator {
         val behandlingFlyt = behandling.flyt()
 
         var aktivtSteg = behandling.aktivtSteg()
+        behandlingFlyt.forberedFlyt(aktivtSteg.tilstand.steg())
         var nesteStegStatus = aktivtSteg.tilstand.status()
         var nesteSteg = behandlingFlyt.steg(aktivtSteg.tilstand.steg())
 
@@ -72,12 +73,19 @@ class FlytOrkestrator {
                 aktivtSteg = behandling.aktivtSteg()
             }
 
-            kanFortsette = result.kanFortsette() && behandlingFlyt.utledNesteSteg(aktivtSteg, nesteStegStatus) != null
+            val neste =
+                if (aktivtSteg.tilstand.status() == StegStatus.AVSLUTTER && nesteStegStatus == StegStatus.START) {
+                    behandlingFlyt.neste()
+                } else {
+                    nesteSteg
+                }
+
+            kanFortsette = result.kanFortsette() && neste != null
 
             if (kanFortsette) {
                 aktivtSteg = behandling.aktivtSteg()
                 nesteStegStatus = aktivtSteg.utledNesteStegStatus()
-                nesteSteg = behandlingFlyt.utledNesteSteg(aktivtSteg, nesteStegStatus)!!
+                nesteSteg = neste!!
             } else {
                 // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
                 loggStopp(kontekst, behandling)
@@ -115,14 +123,14 @@ class FlytOrkestrator {
         tilSteg: StegType,
         tilStegStatus: StegStatus
     ) {
-        val behandlingFlyt = behandling.type.flyt()
+        val behandlingFlyt = behandling.flyt()
 
         val aktivtSteg = behandling.aktivtSteg()
         var forrige: BehandlingSteg? = behandlingFlyt.steg(aktivtSteg.tilstand.steg())
 
         var kanFortsette = true
         while (kanFortsette) {
-            forrige = behandlingFlyt.forrige(forrige!!.type())
+            forrige = behandlingFlyt.forrige()
 
             // TODO: Refactor
             if (forrige == null) {

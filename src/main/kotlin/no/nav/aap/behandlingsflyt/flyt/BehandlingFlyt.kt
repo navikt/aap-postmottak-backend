@@ -1,9 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.domene.behandling.EndringType
-import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import java.util.*
 
@@ -11,31 +9,37 @@ import java.util.*
  * Holder styr på den definerte behandlingsflyten og regner ut hvilket steg det skal flyttes
  */
 class BehandlingFlyt(
-    private var flyt: List<BehandlingSteg>,
-    private var endringTilSteg: Map<EndringType, StegType>
+    private val flyt: List<BehandlingSteg>,
+    private val endringTilSteg: Map<EndringType, StegType>
 ) {
+    private var aktivtSteg: BehandlingSteg = flyt.first()
 
-    fun utledNesteSteg(aktivtSteg: StegTilstand, nesteStegStatus: StegStatus): BehandlingSteg? {
-        if (aktivtSteg.tilstand.status() == StegStatus.AVSLUTTER && nesteStegStatus == StegStatus.START) {
-            return neste(aktivtSteg.tilstand.steg())
-        }
-        return steg(aktivtSteg.tilstand.steg())
+    fun forberedFlyt(aktivtSteg: StegType) {
+        this.aktivtSteg = steg(aktivtSteg)
     }
 
     /**
      * Finner neste steget som skal prosesseres etter at nåværende er ferdig
      */
-    fun neste(nåværendeSteg: StegType): BehandlingSteg? {
-        val nåværendeIndex = this.flyt.indexOfFirst { it.type() == nåværendeSteg }
-        if (nåværendeIndex == -1) {
-            throw IllegalStateException("[Utvikler feil] Nåværende steg '$nåværendeSteg' er ikke en del av den definerte prosessen")
-        }
-
+    fun neste(): BehandlingSteg? {
+        val nåværendeIndex = this.flyt.indexOfFirst { it === this.aktivtSteg }
         val iterator = this.flyt.listIterator(nåværendeIndex)
         iterator.next() // Er alltid nåværende steg
 
         if (iterator.hasNext()) {
-            return iterator.next()
+            aktivtSteg = iterator.next()
+            return aktivtSteg
+        }
+
+        return null
+    }
+
+    fun forrige(): BehandlingSteg? {
+        val nåværendeIndex = this.flyt.indexOfFirst { it === aktivtSteg }
+        val iterator = this.flyt.listIterator(nåværendeIndex)
+        if (iterator.hasPrevious()) {
+            aktivtSteg = iterator.previous()
+            return aktivtSteg
         }
 
         return null
@@ -81,21 +85,6 @@ class BehandlingFlyt(
         val bIndex = flyt.indexOfFirst { it.type() == stegB }
 
         return aIndex <= bIndex
-    }
-
-    fun forrige(nåværendeSteg: StegType): BehandlingSteg? {
-        val nåværendeIndex = flyt.indexOfFirst { it.type() == nåværendeSteg }
-
-        if (nåværendeIndex == -1) {
-            throw IllegalStateException("[Utvikler feil] '$nåværendeSteg' er ikke en del av den definerte prosessen")
-        }
-
-        val iterator = this.flyt.listIterator(nåværendeIndex)
-        if (iterator.hasPrevious()) {
-            return iterator.previous()
-        }
-
-        return null
     }
 
     fun stegene(): List<StegType> {

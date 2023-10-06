@@ -24,6 +24,8 @@ class Behandling(
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now()
 ) : Comparable<Behandling> {
 
+    private val flyt: BehandlingFlyt = type.flyt()
+
     fun visit(stegTilstand: StegTilstand) {
         if (!stegTilstand.aktiv) {
             throw IllegalStateException("Utvikler feil, prøver legge til steg med aktivtflagg false.")
@@ -64,7 +66,12 @@ class Behandling(
 
     fun settPåVent() {
         status = Status.PÅ_VENT
-        avklaringsbehovene.leggTil(Avklaringsbehov(Definisjon.MANUELT_SATT_PÅ_VENT, funnetISteg = aktivtSteg().tilstand.steg()))
+        avklaringsbehovene.leggTil(
+            Avklaringsbehov(
+                Definisjon.MANUELT_SATT_PÅ_VENT,
+                funnetISteg = aktivtSteg().tilstand.steg()
+            )
+        )
     }
 
     fun leggTil(funnetAvklaringsbehov: List<Definisjon>) {
@@ -76,13 +83,14 @@ class Behandling(
     }
 
     fun vilkårsresultat(): Vilkårsresultat = vilkårsresultat
-    fun flyt(): BehandlingFlyt = type.flyt()
+    fun flyt(): BehandlingFlyt = flyt
     fun avklaringsbehov(): List<Avklaringsbehov> = avklaringsbehovene.alle()
     fun avklaringsbehovene(): Avklaringsbehovene = avklaringsbehovene
     fun åpneAvklaringsbehov(): List<Avklaringsbehov> = avklaringsbehovene.åpne()
     fun skalHoppesTilbake(definisjoner: List<Definisjon>): Boolean {
         return avklaringsbehovene.skalHoppesTilbake(flyt(), aktivtSteg(), definisjoner)
     }
+
     fun årsaker(): List<Årsak> = årsaker.toList()
     fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()
     fun status(): Status = status
