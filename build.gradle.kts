@@ -1,6 +1,8 @@
+val ktorVersion = "2.3.5"
+
 plugins {
-    kotlin("jvm") version "1.9.0"
-    id("io.ktor.plugin") version "2.3.3"
+    kotlin("jvm") version "1.9.10"
+    id("io.ktor.plugin") version "2.3.5"
 }
 
 application {
@@ -32,8 +34,6 @@ allprojects {
     sourceSets["test"].resources.srcDirs("test")
 }
 
-val ktorVersion = "2.3.3"
-
 dependencies {
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
@@ -54,12 +54,12 @@ dependencies {
     implementation("dev.forst:ktor-openapi-generator:0.6.1")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.11.2")
-    implementation("ch.qos.logback:logback-classic:1.4.9")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.11.4")
+    implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
-    testImplementation("org.assertj:assertj-core:3.18.0")
+    testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation(kotlin("test"))
 }
