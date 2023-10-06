@@ -22,7 +22,7 @@ class FunnetAvklaringsbehov(var avklaringsbehov: List<Definisjon>) : Transisjon 
     }
 }
 
-class TilbakeførtFraBeslutter : Transisjon {
+object TilbakeførtFraBeslutter : Transisjon {
     override fun erTilbakeføring(): Boolean {
         return true
     }

@@ -9,7 +9,7 @@ class StegResultat(
 
     fun transisjon(): Transisjon {
         if (tilbakeførtFraBeslutter) {
-            return TilbakeførtFraBeslutter()
+            return TilbakeførtFraBeslutter
         }
         if (avklaringsbehov.isNotEmpty()) {
             return FunnetAvklaringsbehov(avklaringsbehov)
