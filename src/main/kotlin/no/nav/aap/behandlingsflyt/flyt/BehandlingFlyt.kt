@@ -15,8 +15,9 @@ class BehandlingFlyt(
 ) {
     private var aktivtSteg: BehandlingSteg = flyt.first()
 
-    fun forberedFlyt(aktivtSteg: StegType) {
+    fun forberedFlyt(aktivtSteg: StegType): BehandlingSteg {
         this.aktivtSteg = steg(aktivtSteg)
+        return this.aktivtSteg
     }
 
     /**
@@ -66,7 +67,7 @@ class BehandlingFlyt(
         return flyt[flyt.indexOfFirst { it.type() == nåværendeSteg }]
     }
 
-    fun steg(nåværendeSteg: StegType): BehandlingSteg {
+    private fun steg(nåværendeSteg: StegType): BehandlingSteg {
         return flyt[flyt.indexOfFirst { it.type() == nåværendeSteg }]
     }
 

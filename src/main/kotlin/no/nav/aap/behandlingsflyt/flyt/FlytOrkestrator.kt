@@ -29,9 +29,8 @@ class FlytOrkestrator {
         val behandlingFlyt = behandling.flyt()
 
         var aktivtSteg = behandling.aktivtSteg()
-        behandlingFlyt.forberedFlyt(aktivtSteg.tilstand.steg())
+        var nesteSteg = behandlingFlyt.forberedFlyt(aktivtSteg.tilstand.steg())
         var nesteStegStatus = aktivtSteg.tilstand.status()
-        var nesteSteg = behandlingFlyt.steg(aktivtSteg.tilstand.steg())
 
         var kanFortsette = true
         while (kanFortsette) {
@@ -186,10 +185,12 @@ class FlytOrkestrator {
         behandlingFlyt: BehandlingFlyt,
         aktivtSteg: StegTilstand,
         løsesISteg: StegType
-    ) = behandlingFlyt.erStegFør(
-        løsesISteg,
-        aktivtSteg.tilstand.steg()
-    )
+    ): Boolean {
+        return behandlingFlyt.erStegFør(
+            løsesISteg,
+            aktivtSteg.tilstand.steg()
+        )
+    }
 
     private fun validerPlassering(
         behandlingFlyt: BehandlingFlyt,
@@ -197,12 +198,6 @@ class FlytOrkestrator {
         nesteSteg: StegType
     ) {
         val uhåndterteBehov = åpneAvklaringsbehov
-            .filter { definisjon ->
-                behandlingFlyt.erStegFørEllerLik(
-                    definisjon.løsesISteg,
-                    nesteSteg
-                )
-            }
             .filter { definisjon ->
                 behandlingFlyt.erStegFør(
                     definisjon.løsesISteg,
