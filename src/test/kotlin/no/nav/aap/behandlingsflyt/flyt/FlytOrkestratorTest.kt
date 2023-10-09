@@ -1,5 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt
 
+import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.AvklarBistandsbehovLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.BistandsVurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
@@ -12,7 +14,6 @@ import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.domene.behandling.Status
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.domene.person.Ident
@@ -21,6 +22,7 @@ import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.grunnlag.person.Fødselsdato
 import no.nav.aap.behandlingsflyt.grunnlag.person.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.grunnlag.person.Personinfo
@@ -102,6 +104,20 @@ class FlytOrkestratorTest {
                         nedreGrense = NedreGrense.FEMTI,
                         nedsattArbeidsevneDato = LocalDate.now()
                     )
+                )
+            )
+        )
+        ventPåSvar()
+
+        HendelsesMottak.håndtere(
+            behandling.id,
+            LøsAvklaringsbehovBehandlingHendelse(
+                versjon = 1L,
+                løsning = AvklarBistandsbehovLøsning(
+                    bistandsVurdering = BistandsVurdering(
+                        begrunnelse = "Trenger hjelp fra nav",
+                        erBehovForBistand = true
+                    ),
                 )
             )
         )

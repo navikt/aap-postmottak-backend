@@ -10,6 +10,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.impl.InnhentPersonopplysningerSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.InnhentYrkesskadeSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.StartBehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderAlderSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderBistandsbehovSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykdomSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderYrkesskadeÅrsakssammenhengSteg
 
@@ -28,7 +29,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(InnhentYrkesskadeSteg())
             .medSteg(VurderYrkesskadeÅrsakssammenhengSteg())
             .medSteg(VurderSykdomSteg())
-            .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_BISTANDSBEHOV))
+            .medSteg(VurderBistandsbehovSteg())
             .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_SYKEPENGEERSTATNING))
             .medSteg(GeneriskPlaceholderSteg(StegType.FRITAK_MELDEPLIKT))
             .medSteg(GeneriskPlaceholderSteg(StegType.INNHENT_MEDLEMSKAP))
