@@ -24,8 +24,7 @@ class FlytOrkestrator {
 
         val behandlingFlyt = behandling.flyt()
 
-        var aktivtSteg = behandling.aktivtSteg()
-        var nesteSteg = behandlingFlyt.forberedFlyt(aktivtSteg.tilstand.steg())
+        var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg().tilstand.steg())
 
         var kanFortsette = true
         while (kanFortsette) {
@@ -34,10 +33,10 @@ class FlytOrkestrator {
                 behandlingFlyt,
                 avklaringsbehov.filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER }
                     .map { behov -> behov.definisjon },
-                nesteSteg.type()
+                gjeldendeSteg.type()
             )
 
-            val result = StegOrkestrator(nesteSteg).utfør(
+            val result = StegOrkestrator(gjeldendeSteg).utfør(
                 kontekst,
                 avklaringsbehov,
                 behandling
@@ -50,12 +49,11 @@ class FlytOrkestrator {
                     "[{} - {}] Tilakeført fra '{}' til '{}'",
                     kontekst.sakId,
                     kontekst.behandlingId,
-                    aktivtSteg.tilstand,
+                    gjeldendeSteg.type(),
                     tilbakeføringsflyt.stegene().last()
                 )
                 tilbakefør(kontekst, behandling, tilbakeføringsflyt)
-                aktivtSteg = behandling.aktivtSteg()
-                nesteSteg = behandlingFlyt.aktivtSteg()!!
+                gjeldendeSteg = behandlingFlyt.aktivtSteg()!!
             }
 
             val neste = behandlingFlyt.neste()
@@ -63,8 +61,7 @@ class FlytOrkestrator {
             kanFortsette = result.kanFortsette() && neste != null
 
             if (kanFortsette) {
-                aktivtSteg = behandling.aktivtSteg()
-                nesteSteg = neste!!
+                gjeldendeSteg = neste!!
             } else {
                 // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
                 loggStopp(kontekst, behandling)
