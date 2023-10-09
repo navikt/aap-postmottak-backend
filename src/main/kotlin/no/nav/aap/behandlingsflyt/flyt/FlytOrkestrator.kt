@@ -4,7 +4,6 @@ import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
-import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import org.slf4j.LoggerFactory
@@ -55,13 +54,12 @@ class FlytOrkestrator {
 
             val neste = behandlingFlyt.neste()
 
-            if (result.kanFortsette() && neste != null) {
-                gjeldendeSteg = neste
-            } else {
+            if (!result.kanFortsette() || neste == null) {
                 // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
                 loggStopp(kontekst, behandling)
                 return
             }
+            gjeldendeSteg = neste
         }
     }
 
@@ -89,12 +87,11 @@ class FlytOrkestrator {
             if (neste == null) {
                 loggStopp(kontekst, behandling)
                 return
-            } else {
-                StegOrkestrator(neste).utførTilbakefør(
-                    kontekst = kontekst,
-                    behandling = behandling
-                )
             }
+            StegOrkestrator(neste).utførTilbakefør(
+                kontekst = kontekst,
+                behandling = behandling
+            )
         }
     }
 
