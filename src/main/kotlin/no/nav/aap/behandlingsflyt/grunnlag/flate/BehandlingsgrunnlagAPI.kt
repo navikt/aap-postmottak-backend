@@ -11,6 +11,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.grunnlag.meldeplikt.MeldepliktTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeTjeneste
 import java.util.*
@@ -70,6 +71,20 @@ fun NormalOpenAPIRoute.behandlingsgrunnlagApi() {
             get<BehandlingReferanse, MedlemskapGrunnlagDto> { req ->
                 val behandling = behandling(req)
                 respond(MedlemskapGrunnlagDto())
+            }
+        }
+        route("/{referanse}/grunnlag/bistand") {
+            get<BehandlingReferanse, MedlemskapGrunnlagDto> { req ->
+                val behandling = behandling(req)
+                respond(MedlemskapGrunnlagDto())
+            }
+        }
+        route("/{referanse}/grunnlag/fritak-meldeplikt") {
+            get<BehandlingReferanse, FritakMeldepliktGrunnlagDto> { req ->
+                val behandling = behandling(req)
+
+                val meldepliktGrunnlag = MeldepliktTjeneste.hentHvisEksisterer(behandling.id)
+                respond(FritakMeldepliktGrunnlagDto(meldepliktGrunnlag?.vurderinger.orEmpty()))
             }
         }
         route("/{referanse}/grunnlag/fatte-vedtak") {
