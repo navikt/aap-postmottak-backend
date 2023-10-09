@@ -10,18 +10,31 @@ import java.util.*
 /**
  * Holder styr på den definerte behandlingsflyten og regner ut hvilket steg det skal flyttes
  */
-class BehandlingFlyt(
+class BehandlingFlyt private constructor(
     private val flyt: List<BehandlingSteg>,
     private val endringTilSteg: Map<EndringType, StegType>,
-    private val onCompletedFlyt: (StegType) -> Unit = { }
+    private var parent: BehandlingFlyt?
 ) {
     private var aktivtSteg: BehandlingSteg? = flyt.firstOrNull()
 
+    constructor(
+        flyt: List<BehandlingSteg>,
+        endringTilSteg: Map<EndringType, StegType>,
+    ) : this(
+        flyt = flyt,
+        endringTilSteg = endringTilSteg,
+        parent = null
+    )
+
     fun forberedFlyt(aktivtSteg: StegType): BehandlingSteg {
-        this.aktivtSteg = steg(aktivtSteg)
-        return this.aktivtSteg!!
+        return forberedFlyt(steg(aktivtSteg))
     }
 
+    private fun forberedFlyt(aktivtSteg: BehandlingSteg): BehandlingSteg {
+        this.aktivtSteg = aktivtSteg
+        parent?.forberedFlyt(aktivtSteg)
+        return aktivtSteg
+    }
 
     /**
      * Finner neste steget som skal prosesseres etter at nåværende er ferdig
@@ -36,10 +49,9 @@ class BehandlingFlyt(
         iterator.next() // Er alltid nåværende steg
 
         if (iterator.hasNext()) {
-            aktivtSteg = iterator.next()
-            return aktivtSteg
+            val nesteSteg = iterator.next()
+            return forberedFlyt(nesteSteg)
         }
-        onCompletedFlyt(flyt.last().type())
 
         return null
     }
@@ -93,10 +105,6 @@ class BehandlingFlyt(
         return flyt.map { it.type() }
     }
 
-    fun aktivtSteg(): BehandlingSteg? {
-        return aktivtSteg
-    }
-
     fun tilbakeflyt(avklaringsbehov: List<Avklaringsbehov>): BehandlingFlyt {
         val skalTilSteg = avklaringsbehov.map { it.løsesISteg() }.minWithOrNull(compareable())
 
@@ -110,7 +118,11 @@ class BehandlingFlyt(
             return BehandlingFlyt(emptyList(), emptyMap())
         }
 
-        return BehandlingFlyt(returflyt.reversed(), emptyMap(), this::forberedFlyt)
+        return BehandlingFlyt(
+            flyt = returflyt.reversed(),
+            endringTilSteg = emptyMap(),
+            parent = this
+        )
     }
 
     fun erTom(): Boolean {
