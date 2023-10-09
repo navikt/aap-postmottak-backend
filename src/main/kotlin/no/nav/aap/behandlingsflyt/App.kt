@@ -61,6 +61,7 @@ internal fun Application.server() {
             registerModule(JavaTimeModule())
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             registerSubtypes(
+                // TODO: Dette bør skje via reflection elns så dette ikke blir manuelt vedlikehold
                 AvklarYrkesskadeLøsning::class.java,
                 AvklarSykdomLøsning::class.java,
                 AvklarBistandsbehovLøsning::class.java,
