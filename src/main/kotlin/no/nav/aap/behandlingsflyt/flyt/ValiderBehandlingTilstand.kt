@@ -16,7 +16,7 @@ object ValiderBehandlingTilstand {
             throw IllegalArgumentException("Forsøker løse aksjonspunkt ikke knyttet til behandlingen, har ${behandling.avklaringsbehov()}")
         }
         if (avklaringsbehov.any {
-                !behandling.type.flyt().erStegFørEllerLik(it.løsesISteg, behandling.aktivtSteg().tilstand.steg())
+                !behandling.type.flyt().erStegFørEllerLik(it.løsesISteg, behandling.aktivtSteg())
             }) {
             throw IllegalArgumentException("Forsøker løse aksjonspunkt ikke knyttet til behandlingen")
         }

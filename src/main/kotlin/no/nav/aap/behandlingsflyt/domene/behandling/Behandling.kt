@@ -30,7 +30,7 @@ class Behandling(
         if (!stegTilstand.aktiv) {
             throw IllegalStateException("Utvikler feil, prøver legge til steg med aktivtflagg false.")
         }
-        if (stegHistorikk.isEmpty() || aktivtSteg() != stegTilstand) {
+        if (stegHistorikk.isEmpty() || aktivtStegTilstand() != stegTilstand) {
             stegHistorikk.stream().filter { tilstand -> tilstand.aktiv }.forEach { tilstand -> tilstand.deaktiver() }
             stegHistorikk += stegTilstand
             stegHistorikk = stegHistorikk.sorted()
@@ -53,7 +53,7 @@ class Behandling(
         }
     }
 
-    fun aktivtSteg(): StegTilstand {
+    private fun aktivtStegTilstand(): StegTilstand {
         return stegHistorikk.stream()
             .filter { tilstand -> tilstand.aktiv }
             .findAny()
@@ -64,18 +64,29 @@ class Behandling(
             )
     }
 
+    fun aktivtSteg(): StegType {
+        return stegHistorikk.stream()
+            .filter { tilstand -> tilstand.aktiv }
+            .findAny()
+            .orElse(
+                StegTilstand(
+                    tilstand = Tilstand(StegType.START_BEHANDLING, StegStatus.START)
+                )
+            ).tilstand.steg()
+    }
+
     fun settPåVent() {
         status = Status.PÅ_VENT
         avklaringsbehovene.leggTil(
             Avklaringsbehov(
                 Definisjon.MANUELT_SATT_PÅ_VENT,
-                funnetISteg = aktivtSteg().tilstand.steg()
+                funnetISteg = aktivtSteg()
             )
         )
     }
 
     fun leggTil(funnetAvklaringsbehov: List<Definisjon>) {
-        avklaringsbehovene.leggTil(funnetAvklaringsbehov, aktivtSteg().tilstand.steg())
+        avklaringsbehovene.leggTil(funnetAvklaringsbehov, aktivtSteg())
     }
 
     fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String) {

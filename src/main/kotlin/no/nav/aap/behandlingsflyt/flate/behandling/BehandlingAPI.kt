@@ -82,7 +82,7 @@ fun NormalOpenAPIRoute.behandlingApi() {
                                     stegType
                                 )
                             )
-                        }, behandling.aktivtSteg().tilstand.steg()
+                        }, behandling.aktivtSteg()
                     )
                 )
             }
@@ -93,7 +93,7 @@ fun NormalOpenAPIRoute.behandlingApi() {
                 val stegGrupper: Map<StegGruppe, List<StegType>> =
                     behandling.flyt().stegene().groupBy { steg -> steg.gruppe }
 
-                val aktivtSteg = behandling.aktivtSteg().tilstand.steg()
+                val aktivtSteg = behandling.aktivtSteg()
                 var erFullført = true
                 respond(
                     BehandlingFlytOgTilstand2Dto(

@@ -24,7 +24,7 @@ class FlytOrkestrator {
 
         val behandlingFlyt = behandling.flyt()
 
-        var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg().tilstand.steg())
+        var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
         var kanFortsette = true
         while (kanFortsette) {
@@ -112,7 +112,7 @@ class FlytOrkestrator {
             "[{} - {}] Stopper opp ved {} med {}",
             kontekst.sakId,
             kontekst.behandlingId,
-            behandling.aktivtSteg().tilstand,
+            behandling.aktivtSteg(),
             behandling.åpneAvklaringsbehov()
         )
     }
