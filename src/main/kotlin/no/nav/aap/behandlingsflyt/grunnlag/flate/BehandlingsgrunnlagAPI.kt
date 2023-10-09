@@ -11,6 +11,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.grunnlag.bistand.BistandsTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.meldeplikt.MeldepliktTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeTjeneste
@@ -74,9 +75,11 @@ fun NormalOpenAPIRoute.behandlingsgrunnlagApi() {
             }
         }
         route("/{referanse}/grunnlag/bistand") {
-            get<BehandlingReferanse, MedlemskapGrunnlagDto> { req ->
+            get<BehandlingReferanse, BistandGrunnlagDto> { req ->
                 val behandling = behandling(req)
-                respond(MedlemskapGrunnlagDto())
+
+                val bistandsGrunnlag = BistandsTjeneste.hentHvisEksisterer(behandling.id)
+                respond(BistandGrunnlagDto(bistandsGrunnlag?.vurdering))
             }
         }
         route("/{referanse}/grunnlag/fritak-meldeplikt") {
