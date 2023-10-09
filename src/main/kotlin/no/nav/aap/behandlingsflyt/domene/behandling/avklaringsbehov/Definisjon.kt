@@ -21,7 +21,6 @@ enum class Definisjon(
     private val type: BehovType = BehovType.MANUELT,
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
-    @JsonIgnore val rekjørSteg: Boolean = false,
     val kreverToTrinn: Boolean = false
 ) {
 
@@ -29,18 +28,15 @@ enum class Definisjon(
         kode = MANUELT_SATT_PÅ_VENT_KODE,
         type = BehovType.AUTOMATISK,
         defaultFrist = Period.ofWeeks(3),
-        rekjørSteg = true
     ),
     AVKLAR_SYKDOM(
         kode = AVKLAR_SYKDOM_KODE,
         løsesISteg = StegType.AVKLAR_SYKDOM,
-        rekjørSteg = true, // Bør rekjøre steget for å se om det er i gyldig state
         kreverToTrinn = true
     ),
     AVKLAR_YRKESSKADE(
         kode = AVKLAR_YRKESSKADE_KODE,
         løsesISteg = StegType.AVKLAR_YRKESSKADE,
-        rekjørSteg = false, // Bør rekjøre steget for å se om det er i gyldig state
         kreverToTrinn = true
     ),
     FORESLÅ_VEDTAK(
@@ -50,7 +46,6 @@ enum class Definisjon(
     FATTE_VEDTAK(
         kode = FATTE_VEDTAK_KODE,
         løsesISteg = StegType.FATTE_VEDTAK,
-        rekjørSteg = true
     );
 
     companion object {
