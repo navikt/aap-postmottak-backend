@@ -20,7 +20,6 @@ fun NormalOpenAPIRoute.avklaringsbehovApi() {
 
                 ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf(request.behov.definisjon()))
 
-                // TODO: Slipp denne async videre
                 HendelsesMottak.håndtere(
                     key = behandling.id,
                     hendelse = LøsAvklaringsbehovBehandlingHendelse(request.behov, request.behandlingVersjon)
