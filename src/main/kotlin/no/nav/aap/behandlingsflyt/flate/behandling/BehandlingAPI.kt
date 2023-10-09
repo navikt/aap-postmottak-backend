@@ -151,6 +151,9 @@ private fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, ste
     if (stegType == StegType.VURDER_ALDER) {
         vilkår = vilkårsresultat.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
     }
+    if (stegType == StegType.VURDER_BISTANDSBEHOV) {
+        vilkår = vilkårsresultat.finnVilkår(Vilkårstype.BISTANDSVILKÅRET)
+    }
     if (vilkår == null) {
         return null
     }
