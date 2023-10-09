@@ -12,8 +12,6 @@ enum class StegGruppe {
     UTTAK,
     TILKJENT_YTELSE,
     SIMULERING,
-    FORESLÅ_VEDTAK,
-    FATTE_VEDTAK,
-    IVERKSETT_VEDTAK,
+    VEDTAK,
     UDEFINERT
 }
