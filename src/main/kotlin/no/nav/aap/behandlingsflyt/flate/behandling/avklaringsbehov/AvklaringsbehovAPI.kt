@@ -16,19 +16,17 @@ fun NormalOpenAPIRoute.avklaringsbehovApi() {
         route("/løs-behov").throws(HttpStatusCode.BadRequest, IllegalArgumentException::class) {
             post<Unit, LøsAvklaringsbehovPåBehandling, LøsAvklaringsbehovPåBehandling> { _, request ->
 
-                val dto = request
+                val behandling = BehandlingTjeneste.hent(request.referanse)
 
-                val behandling = BehandlingTjeneste.hent(dto.referanse)
-
-                ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf(dto.behov.definisjon()))
+                ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf(request.behov.definisjon()))
 
                 // TODO: Slipp denne async videre
                 HendelsesMottak.håndtere(
                     key = behandling.id,
-                    hendelse = LøsAvklaringsbehovBehandlingHendelse(dto.behov, dto.behandlingVersjon)
+                    hendelse = LøsAvklaringsbehovBehandlingHendelse(request.behov, request.behandlingVersjon)
                 )
 
-                respond(dto)
+                respond(request)
             }
         }
     }
