@@ -63,6 +63,10 @@ class Avklaringsbehov(
         return definisjon.skalLøsesISteg(type, funnetISteg)
     }
 
+    fun erForeslåttVedtak(): Boolean {
+        return definisjon == Definisjon.FORESLÅ_VEDTAK
+    }
+
     fun løsesISteg(): StegType {
         if (definisjon.løsesISteg == StegType.UDEFINERT) {
             return funnetISteg

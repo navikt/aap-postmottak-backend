@@ -26,7 +26,7 @@ class ForeslåVedtakSteg : BehandlingSteg {
     private fun harIkkeForeslåttVedtak(behandling: Behandling): Boolean {
         return behandling
             .avklaringsbehov()
-            .filter { avklaringsbehov -> avklaringsbehov.definisjon == Definisjon.FORESLÅ_VEDTAK }
+            .filter { avklaringsbehov -> avklaringsbehov.erForeslåttVedtak() }
             .none { it.status() == Status.AVSLUTTET }
     }
 

@@ -2,14 +2,11 @@ package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
-import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FlytOrkestrator::class.java)
@@ -82,19 +79,6 @@ class FlytOrkestrator {
         val tilbakeføringsflyt = behandling.flyt().tilbakeflyt(behovForLøsninger)
 
         tilbakefør(kontekst, behandling, tilbakeføringsflyt)
-
-        if (skalRekjøreSteg(definisjoner, behandling) && tilbakeføringsflyt.erTom()) {
-            flyttTilStartAvAktivtSteg(behandling)
-        }
-    }
-
-    private fun skalRekjøreSteg(
-        avklaringsbehov: List<Definisjon>,
-        behandling: Behandling
-    ): Boolean {
-        return avklaringsbehov
-            .filter { it.løsesISteg == behandling.aktivtSteg().tilstand.steg() }
-            .any { it.rekjørSteg }
     }
 
     private fun tilbakefør(
@@ -111,9 +95,8 @@ class FlytOrkestrator {
             if (neste == null) {
                 kanFortsette = false
             } else {
-                StegOrkestrator(neste).utførTilstandsEndring(
+                StegOrkestrator(neste).utførTilbakefør(
                     kontekst = kontekst,
-                    nesteStegStatus = StegStatus.TILBAKEFØRT,
                     avklaringsbehov = listOf(),
                     behandling = behandling
                 )
@@ -135,12 +118,6 @@ class FlytOrkestrator {
             behandling.aktivtSteg().tilstand,
             behandling.åpneAvklaringsbehov()
         )
-    }
-
-    private fun flyttTilStartAvAktivtSteg(behandling: Behandling) {
-        val nyStegTilstand =
-            StegTilstand(tilstand = Tilstand(behandling.aktivtSteg().tilstand.steg(), StegStatus.START))
-        behandling.visit(nyStegTilstand)
     }
 
     private fun validerPlassering(

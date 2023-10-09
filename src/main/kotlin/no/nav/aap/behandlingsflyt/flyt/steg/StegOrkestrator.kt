@@ -37,6 +37,14 @@ class StegOrkestrator(private val aktivtSteg: BehandlingSteg) {
         }
     }
 
+    fun utførTilbakefør(
+        kontekst: FlytKontekst,
+        avklaringsbehov: List<Avklaringsbehov>,
+        behandling: Behandling
+    ): Transisjon {
+        return utførTilstandsEndring(kontekst, StegStatus.TILBAKEFØRT, avklaringsbehov, behandling)
+    }
+
     fun utførTilstandsEndring(
         kontekst: FlytKontekst,
         nesteStegStatus: StegStatus,
