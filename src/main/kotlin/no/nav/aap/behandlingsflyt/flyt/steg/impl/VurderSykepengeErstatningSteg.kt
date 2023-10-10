@@ -1,0 +1,48 @@
+package no.nav.aap.behandlingsflyt.flyt.steg.impl
+
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
+import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykepengerErstatningFaktagrunnlag
+import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykepengerErstatningVilkår
+import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykepengerErstatningTjeneste
+
+class VurderSykepengeErstatningSteg : BehandlingSteg {
+    override fun utfør(input: StegInput): StegResultat {
+        val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
+        val sak = Sakslager.hent(input.kontekst.sakId)
+
+        val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
+        val bistandsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.BISTANDSVILKÅRET)
+
+        // TODO: Dette må gjøres mye mer robust og sjekkes konsistent mot 11-6...
+        if (bistandsvilkåret.vilkårsperioder().all { !it.erOppfylt() } &&
+            sykdomsvilkåret.vilkårsperioder().any { it.erOppfylt() }) {
+
+            val grunnlag = SykepengerErstatningTjeneste.hentHvisEksisterer(behandling.id)
+
+            if (grunnlag?.vurdering != null) {
+                val vurderingsdato = sak.rettighetsperiode.fom
+                val faktagrunnlag = SykepengerErstatningFaktagrunnlag(
+                    vurderingsdato,
+                    vurderingsdato.plusMonths(6),
+                    grunnlag.vurdering
+                )
+                SykepengerErstatningVilkår(behandling.vilkårsresultat()).vurder(faktagrunnlag)
+            } else {
+                return StegResultat(listOf(Definisjon.AVKLAR_SYKEPENGEERSTATNING))
+            }
+        }
+
+        return StegResultat()
+    }
+
+    override fun type(): StegType {
+        return StegType.VURDER_SYKEPENGEERSTATNING
+    }
+}

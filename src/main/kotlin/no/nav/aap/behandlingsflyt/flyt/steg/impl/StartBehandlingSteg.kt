@@ -11,13 +11,17 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 
 class StartBehandlingSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
-        // TODO: Init vilkår
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
 
         if (behandling.type == Førstegangsbehandling) {
             val vilkårsresultat = behandling.vilkårsresultat()
             val rettighetsperiode = Sakslager.hent(behandling.sakId).rettighetsperiode
-            Vilkårstype.entries.forEach { vilkårstype -> vilkårsresultat.leggTilHvisIkkeEksisterer(vilkårstype).leggTilIkkeVurdertPeriode(rettighetsperiode) }
+            Vilkårstype
+                .entries
+                .filter { it.obligatorisk }
+                .forEach { vilkårstype ->
+                    vilkårsresultat.leggTilHvisIkkeEksisterer(vilkårstype).leggTilIkkeVurdertPeriode(rettighetsperiode)
+                }
         }
 
         return StegResultat()

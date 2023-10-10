@@ -1,0 +1,14 @@
+package no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonTypeName
+import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovLøsning
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.VURDER_SYKEPENGEERSTATNING_KODE
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeName(value = VURDER_SYKEPENGEERSTATNING_KODE)
+class AvklarSykepengerErstatningLøsning(
+    @JsonProperty("vurdering", required = true) val vurdering: SykepengerVurdering
+) :
+    AvklaringsbehovLøsning

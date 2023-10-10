@@ -13,6 +13,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.impl.StartBehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderAlderSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderBistandsbehovSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykdomSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykepengeErstatningSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderYrkesskadeÅrsakssammenhengSteg
 
 interface BehandlingType {
@@ -32,7 +33,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(VurderSykdomSteg())
             .medSteg(FritakMeldepliktSteg())
             .medSteg(VurderBistandsbehovSteg())
-            .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_SYKEPENGEERSTATNING))
+            .medSteg(VurderSykepengeErstatningSteg())
             .medSteg(GeneriskPlaceholderSteg(StegType.INNHENT_MEDLEMSKAP))
             .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_MEDLEMSKAP))
             .medSteg(GeneriskPlaceholderSteg(StegType.INNHENT_INNTEKTSOPPLYSNINGER))

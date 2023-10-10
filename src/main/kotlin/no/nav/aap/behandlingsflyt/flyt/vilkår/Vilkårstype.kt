@@ -3,7 +3,8 @@ package no.nav.aap.behandlingsflyt.flyt.vilkår
 enum class Vilkårstype(
     val kode: String,
     val avslagsårsaker: List<Avslagsårsak>,
-    val hjemmel: String
+    val hjemmel: String,
+    val obligatorisk: Boolean = true
 ) {
     ALDERSVILKÅRET(
         kode = "AAP-4",
@@ -34,6 +35,14 @@ enum class Vilkårstype(
             Avslagsårsak.MANGLENDE_DOKUMENTASJON
         ),
         hjemmel = "§ 11-19"
+    ),
+    SYKEPENGEERSTATNING(
+        kode = "AAP-13",
+        avslagsårsaker = listOf(
+            Avslagsårsak.MANGLENDE_DOKUMENTASJON
+        ),
+        hjemmel = "§ 11-13",
+        obligatorisk = false
     )
 
 }

@@ -25,6 +25,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.AvklarBistandsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.meldeplikt.FritakMeldepliktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykepengerErstatningLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
@@ -64,6 +65,7 @@ internal fun Application.server() {
                 // TODO: Dette bør skje via reflection elns så dette ikke blir manuelt vedlikehold
                 AvklarYrkesskadeLøsning::class.java,
                 AvklarSykdomLøsning::class.java,
+                AvklarSykepengerErstatningLøsning::class.java,
                 AvklarBistandsbehovLøsning::class.java,
                 FritakMeldepliktLøsning::class.java,
                 ForeslåVedtakLøsning::class.java,

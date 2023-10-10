@@ -13,6 +13,7 @@ const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
 const val AVKLAR_YRKESSKADE_KODE = "5002"
 const val AVKLAR_BISTANDSBEHOV_KODE = "5003"
 const val FRITAK_MELDEPLIKT_KODE = "5004"
+const val VURDER_SYKEPENGEERSTATNING_KODE = "5005"
 const val AVKLAR_SYKDOM_KODE = "5001"
 const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
@@ -47,6 +48,11 @@ enum class Definisjon(
     AVKLAR_YRKESSKADE(
         kode = AVKLAR_YRKESSKADE_KODE,
         løsesISteg = StegType.AVKLAR_YRKESSKADE,
+        kreverToTrinn = true
+    ),
+    AVKLAR_SYKEPENGEERSTATNING(
+        kode = VURDER_SYKEPENGEERSTATNING_KODE,
+        løsesISteg = StegType.VURDER_SYKEPENGEERSTATNING,
         kreverToTrinn = true
     ),
     FORESLÅ_VEDTAK(
