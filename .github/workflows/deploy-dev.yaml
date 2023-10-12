@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE: europe-north1-docker.pkg.dev/${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}/aap/${{ github.repository }}-${{ github.sha }}
+  IMAGE: europe-north1-docker.pkg.dev/${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}/aap/${{ github.repository }}:${{ github.sha }}
 
 jobs:
   build:
@@ -37,7 +37,7 @@ jobs:
         with:
             context: .
             file: Dockerfile
-            tags: ${{ env.IMAGE }}:latest
+            tags: ${{ env.IMAGE }}
             push: true
             cache-from: type=gha
             cache-to: type=gha,mode=max
