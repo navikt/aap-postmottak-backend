@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
 import no.nav.aap.behandlingsflyt.grunnlag.bistand.BistandsTjeneste
@@ -16,7 +16,7 @@ class VurderBistandsbehovSteg : BehandlingSteg {
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
 
         val periodeTilVurdering =
-            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårstype.BISTANDSVILKÅRET)
+            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.BISTANDSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
 
@@ -29,7 +29,7 @@ class VurderBistandsbehovSteg : BehandlingSteg {
                 }
             }
 
-            val vilkår = behandling.vilkårsresultat().finnVilkår(Vilkårstype.BISTANDSVILKÅRET)
+            val vilkår = behandling.vilkårsresultat().finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
 
             if (vilkår.harPerioderSomIkkeErVurdert(periodeTilVurdering)) {
                 return StegResultat(listOf(Definisjon.AVKLAR_BISTANDSBEHOV))

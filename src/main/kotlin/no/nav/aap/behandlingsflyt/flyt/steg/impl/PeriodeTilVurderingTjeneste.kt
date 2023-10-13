@@ -4,11 +4,11 @@ import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
 object PeriodeTilVurderingTjeneste {
 
-    fun utled(behandling: Behandling, vilkår: Vilkårstype): Set<Periode> {
+    fun utled(behandling: Behandling, vilkår: Vilkårtype): Set<Periode> {
         if (behandling.type == Førstegangsbehandling) {
             // ved førstegangsbehandling skal hele perioden alltid vurderes for alle vilkår?
             val sak = Sakslager.hent(behandling.sakId)

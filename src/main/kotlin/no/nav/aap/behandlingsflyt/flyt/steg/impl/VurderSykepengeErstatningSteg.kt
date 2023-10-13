@@ -7,7 +7,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykepengerErstatningFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykepengerErstatningVilkår
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykepengerErstatningTjeneste
@@ -17,8 +17,8 @@ class VurderSykepengeErstatningSteg : BehandlingSteg {
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
         val sak = Sakslager.hent(input.kontekst.sakId)
 
-        val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
-        val bistandsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.BISTANDSVILKÅRET)
+        val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
+        val bistandsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
 
         // TODO: Dette må gjøres mye mer robust og sjekkes konsistent mot 11-6...
         if (bistandsvilkåret.vilkårsperioder().all { !it.erOppfylt() } &&

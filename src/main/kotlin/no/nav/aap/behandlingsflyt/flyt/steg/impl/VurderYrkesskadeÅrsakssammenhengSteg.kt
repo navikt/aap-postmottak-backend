@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsGrunnlag
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeGrunnlag
@@ -17,11 +17,11 @@ class VurderYrkesskadeÅrsakssammenhengSteg : BehandlingSteg {
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
 
         val periodeTilVurdering =
-            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårstype.SYKDOMSVILKÅRET)
+            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
             val yrkesskadeGrunnlag = YrkesskadeTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
-            val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
+            val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
             val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
 
             if (erBehovForAvklaring(yrkesskadeGrunnlag, sykdomsGrunnlag)) {

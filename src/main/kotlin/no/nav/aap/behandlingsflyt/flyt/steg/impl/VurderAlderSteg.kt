@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
 import no.nav.aap.behandlingsflyt.grunnlag.person.PersoninformasjonTjeneste
@@ -16,7 +16,7 @@ class VurderAlderSteg : BehandlingSteg {
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
 
         val periodeTilVurdering =
-            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårstype.ALDERSVILKÅRET)
+            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.ALDERSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
             val personinfoGrunnlag = PersoninformasjonTjeneste.hentHvisEksisterer(input.kontekst.behandlingId)
@@ -30,7 +30,7 @@ class VurderAlderSteg : BehandlingSteg {
                 val vurdering = Aldersvilkåret.vurder(
                     aldersgrunnlag
                 )
-                val aldersvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.ALDERSVILKÅRET)
+                val aldersvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.ALDERSVILKÅRET)
                 aldersvilkåret.leggTilVurdering(
                     Vilkårsperiode(
                         periode = periode,

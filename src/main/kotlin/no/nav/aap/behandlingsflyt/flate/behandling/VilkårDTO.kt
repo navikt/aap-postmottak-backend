@@ -1,5 +1,5 @@
 package no.nav.aap.behandlingsflyt.flate.behandling
 
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
-data class VilkårDTO(val vilkårstype: Vilkårstype, val perioder: List<VilkårsperiodeDTO>)
+data class VilkårDTO(val vilkårtype: Vilkårtype, val perioder: List<VilkårsperiodeDTO>)

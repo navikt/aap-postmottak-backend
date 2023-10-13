@@ -11,7 +11,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegGruppe
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import java.util.*
 
 fun NormalOpenAPIRoute.behandlingApi() {
@@ -41,7 +41,7 @@ fun NormalOpenAPIRoute.behandlingApi() {
                     },
                     vilkår = behandling.vilkårsresultat().alle().map { vilkår ->
                         VilkårDTO(
-                            vilkårstype = vilkår.type,
+                            vilkårtype = vilkår.type,
                             perioder = vilkår.vilkårsperioder()
                                 .map { vp ->
                                     VilkårsperiodeDTO(
@@ -146,13 +146,13 @@ private fun behandling(req: BehandlingReferanse): Behandling {
 private fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: StegType): VilkårDTO? {
     var vilkår: Vilkår? = null
     if (stegType == StegType.AVKLAR_SYKDOM) {
-        vilkår = vilkårsresultat.finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
+        vilkår = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
     }
     if (stegType == StegType.VURDER_ALDER) {
-        vilkår = vilkårsresultat.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
+        vilkår = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
     }
     if (stegType == StegType.VURDER_BISTANDSBEHOV) {
-        vilkår = vilkårsresultat.finnVilkår(Vilkårstype.BISTANDSVILKÅRET)
+        vilkår = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
     }
     if (vilkår == null) {
         return null

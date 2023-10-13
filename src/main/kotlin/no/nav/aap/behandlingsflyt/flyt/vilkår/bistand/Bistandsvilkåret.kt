@@ -7,15 +7,15 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsvurderer
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VurderingsResultat
 
 class Bistandsvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<BistandFaktagrunnlag> {
     private val vilkår: Vilkår
 
     init {
-        this.vilkår = vilkårsresultat.finnVilkår(Vilkårstype.BISTANDSVILKÅRET)
+        this.vilkår = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
     }
 
     override fun vurder(grunnlag: BistandFaktagrunnlag): VurderingsResultat {

@@ -3,15 +3,15 @@ package no.nav.aap.behandlingsflyt.flyt.vilkår
 class Vilkårsresultat(
     private val vilkår: MutableList<Vilkår> = mutableListOf()
 ) {
-    fun leggTilHvisIkkeEksisterer(vilkårstype: Vilkårstype): Vilkår {
-        if (vilkår.none { it.type == vilkårstype }) {
-            this.vilkår.add(Vilkår(vilkårstype))
+    fun leggTilHvisIkkeEksisterer(vilkårtype: Vilkårtype): Vilkår {
+        if (vilkår.none { it.type == vilkårtype }) {
+            this.vilkår.add(Vilkår(vilkårtype))
         }
-        return finnVilkår(vilkårstype)
+        return finnVilkår(vilkårtype)
     }
 
-    fun finnVilkår(vilkårstype: Vilkårstype): Vilkår {
-        return vilkår.first { it.type == vilkårstype }
+    fun finnVilkår(vilkårtype: Vilkårtype): Vilkår {
+        return vilkår.first { it.type == vilkårtype }
     }
 
     fun alle(): List<Vilkår> {

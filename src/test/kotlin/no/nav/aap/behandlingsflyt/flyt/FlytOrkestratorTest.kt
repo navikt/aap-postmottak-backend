@@ -22,7 +22,7 @@ import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.grunnlag.person.Fødselsdato
 import no.nav.aap.behandlingsflyt.grunnlag.person.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.grunnlag.person.Personinfo
@@ -155,13 +155,13 @@ class FlytOrkestratorTest {
         //Henter vurder alder-vilkår
         //Assert utfall
         val vilkårsresultat = behandling.vilkårsresultat()
-        val aldersvilkår = vilkårsresultat.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
+        val aldersvilkår = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
 
         assertThat(aldersvilkår.vilkårsperioder())
             .hasSize(1)
             .allMatch { vilkårsperiode -> vilkårsperiode.erOppfylt() }
 
-        val sykdomsvilkåret = vilkårsresultat.finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
+        val sykdomsvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
 
         assertThat(sykdomsvilkåret.vilkårsperioder())
             .hasSize(1)
@@ -195,7 +195,7 @@ class FlytOrkestratorTest {
         //Henter vurder alder-vilkår
         //Assert utfall
         val vilkårsresultat = behandling.vilkårsresultat()
-        val aldersvilkår = vilkårsresultat.finnVilkår(Vilkårstype.ALDERSVILKÅRET)
+        val aldersvilkår = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
 
         assertThat(aldersvilkår.vilkårsperioder())
             .hasSize(1)

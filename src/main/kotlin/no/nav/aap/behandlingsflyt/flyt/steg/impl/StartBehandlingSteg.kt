@@ -7,7 +7,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
 class StartBehandlingSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
@@ -16,7 +16,7 @@ class StartBehandlingSteg : BehandlingSteg {
         if (behandling.type == Førstegangsbehandling) {
             val vilkårsresultat = behandling.vilkårsresultat()
             val rettighetsperiode = Sakslager.hent(behandling.sakId).rettighetsperiode
-            Vilkårstype
+            Vilkårtype
                 .entries
                 .filter { it.obligatorisk }
                 .forEach { vilkårstype ->

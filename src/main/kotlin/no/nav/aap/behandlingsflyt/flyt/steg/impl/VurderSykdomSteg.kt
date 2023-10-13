@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykdomsFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.Sykdomsvilkår
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
@@ -16,7 +16,7 @@ class VurderSykdomSteg : BehandlingSteg {
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
 
         val periodeTilVurdering =
-            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårstype.SYKDOMSVILKÅRET)
+            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
             val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
@@ -32,7 +32,7 @@ class VurderSykdomSteg : BehandlingSteg {
                     Sykdomsvilkår(behandling.vilkårsresultat()).vurder(faktagrunnlag)
                 }
             }
-            val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
+            val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
 
             if (sykdomsvilkåret.harPerioderSomIkkeErVurdert(periodeTilVurdering) || sykdomsGrunnlag?.erKonsistent() != true) {
                 return StegResultat(listOf(Definisjon.AVKLAR_SYKDOM))

@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.flyt.vilkår
 import no.nav.aap.behandlingsflyt.domene.Periode
 
 class Vilkår(
-    val type: Vilkårstype
+    val type: Vilkårtype
 ) {
     private val vilkårsperioder: MutableSet<Vilkårsperiode> = mutableSetOf()
 

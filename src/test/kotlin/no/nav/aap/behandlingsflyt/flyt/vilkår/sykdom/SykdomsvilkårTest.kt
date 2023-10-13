@@ -4,9 +4,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
-import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykdomsFaktagrunnlag
-import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.Sykdomsvilkår
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -17,7 +15,7 @@ class SykdomsvilkårTest {
     @Test
     fun `testNye vurderinger skal overskrive`() {
         val vilkårsresultat = Vilkårsresultat()
-        vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårstype.SYKDOMSVILKÅRET)
+        vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.SYKDOMSVILKÅRET)
 
         Sykdomsvilkår(vilkårsresultat).vurder(
             SykdomsFaktagrunnlag(
@@ -27,7 +25,7 @@ class SykdomsvilkårTest {
                 Sykdomsvurdering("", listOf(), true, true, NedreGrense.FEMTI, LocalDate.now().minusYears(1))
             )
         )
-        val vilkår = vilkårsresultat.finnVilkår(Vilkårstype.SYKDOMSVILKÅRET)
+        val vilkår = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
 
         assertThat(vilkår.vilkårsperioder()).hasSize(1).allMatch { periode -> periode.utfall == Utfall.OPPFYLT }
 

@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.domene.person.Personlager
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykdomSteg
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.grunnlag.person.Fødselsdato
 import no.nav.aap.behandlingsflyt.grunnlag.person.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.grunnlag.person.Personinfo
@@ -50,7 +50,7 @@ class StegOrkestratorTest {
     private fun initierVilkårenePåBehandlingen(behandling: Behandling) {
         val vilkårsresultat = behandling.vilkårsresultat()
         val rettighetsperiode = Sakslager.hent(behandling.sakId).rettighetsperiode
-        Vilkårstype.entries.forEach { vilkårstype ->
+        Vilkårtype.entries.forEach { vilkårstype ->
             vilkårsresultat.leggTilHvisIkkeEksisterer(vilkårstype).leggTilIkkeVurdertPeriode(rettighetsperiode)
         }
     }

@@ -7,15 +7,15 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårstype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsvurderer
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VurderingsResultat
 
 class SykepengerErstatningVilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<SykepengerErstatningFaktagrunnlag> {
     private val vilkår: Vilkår
 
     init {
-        this.vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårstype.SYKEPENGEERSTATNING)
+        this.vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.SYKEPENGEERSTATNING)
     }
 
     override fun vurder(grunnlag: SykepengerErstatningFaktagrunnlag): VurderingsResultat {

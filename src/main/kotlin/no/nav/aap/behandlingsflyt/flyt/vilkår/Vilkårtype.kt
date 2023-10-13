@@ -1,13 +1,15 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår
 
-enum class Vilkårstype(
+enum class Vilkårtype(
     val kode: String,
+    val spesielleInnvilgelsesÅrsaker: List<Innvilgelsesårsak>,
     val avslagsårsaker: List<Avslagsårsak>,
     val hjemmel: String,
     val obligatorisk: Boolean = true
 ) {
     ALDERSVILKÅRET(
         kode = "AAP-4",
+        spesielleInnvilgelsesÅrsaker = listOf(),
         avslagsårsaker = listOf(
             Avslagsårsak.BRUKER_OVER_67,
             Avslagsårsak.BRUKER_UNDER_18,
@@ -17,6 +19,7 @@ enum class Vilkårstype(
     ),
     SYKDOMSVILKÅRET(
         kode = "AAP-5",
+        spesielleInnvilgelsesÅrsaker = listOf(Innvilgelsesårsak.YRKESSKADE_ÅRSAKSSAMMENHENG),
         avslagsårsaker = listOf(
             Avslagsårsak.MANGLENDE_DOKUMENTASJON
         ),
@@ -24,6 +27,7 @@ enum class Vilkårstype(
     ),
     BISTANDSVILKÅRET(
         kode = "AAP-6",
+        spesielleInnvilgelsesÅrsaker = listOf(),
         avslagsårsaker = listOf(
             Avslagsårsak.MANGLENDE_DOKUMENTASJON
         ),
@@ -31,6 +35,7 @@ enum class Vilkårstype(
     ),
     GRUNNLAGET(
         kode = "AAP-20",
+        spesielleInnvilgelsesÅrsaker = listOf(),
         avslagsårsaker = listOf(
             Avslagsårsak.MANGLENDE_DOKUMENTASJON
         ),
@@ -38,6 +43,7 @@ enum class Vilkårstype(
     ),
     SYKEPENGEERSTATNING(
         kode = "AAP-13",
+        spesielleInnvilgelsesÅrsaker = listOf(),
         avslagsårsaker = listOf(
             Avslagsårsak.MANGLENDE_DOKUMENTASJON
         ),
