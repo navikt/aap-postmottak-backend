@@ -9,6 +9,13 @@ application {
     mainClass.set("no.nav.aap.behandlingsflyt.AppKt")
 }
 
+val javaVersion = 20
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(javaVersion)
+    }
+}
+
 allprojects {
     repositories {
         mavenCentral()
@@ -18,7 +25,7 @@ allprojects {
 
     tasks {
         withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-            kotlinOptions.jvmTarget = "20"
+            kotlinOptions.jvmTarget = "$javaVersion"
         }
 
         withType<Test> {
