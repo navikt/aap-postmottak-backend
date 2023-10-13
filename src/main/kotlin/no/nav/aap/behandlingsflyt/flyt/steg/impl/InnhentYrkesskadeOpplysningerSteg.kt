@@ -2,16 +2,16 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.Yrkesskade
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.Yrkesskader
 
-class InnhentYrkesskadeSteg : BehandlingSteg {
+class InnhentYrkesskadeOpplysningerSteg : BehandlingSteg {
 
     override fun utfør(input: StegInput): StegResultat {
         val sak = Sakslager.hent(input.kontekst.sakId)
