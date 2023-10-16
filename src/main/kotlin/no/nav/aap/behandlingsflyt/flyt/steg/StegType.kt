@@ -20,6 +20,10 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.MEDLEMSKAP,
         status = Status.UTREDES
     ),
+    VURDER_STUDENT(
+        gruppe = StegGruppe.STUDENT,
+        status = Status.UTREDES
+    ),
     VURDER_BISTANDSBEHOV(
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES
