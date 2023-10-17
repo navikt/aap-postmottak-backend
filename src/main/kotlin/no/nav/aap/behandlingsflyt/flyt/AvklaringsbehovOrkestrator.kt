@@ -10,6 +10,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykepengerErstatn
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.student.AvklarStudentLøser
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
@@ -34,6 +35,7 @@ class AvklaringsbehovOrkestrator {
         avklaringsbehovsLøsere[Definisjon.AVKLAR_BISTANDSBEHOV] = AvklarBistandLøser()
         avklaringsbehovsLøsere[Definisjon.AVKLAR_YRKESSKADE] = AvklarYrkesskadeLøser()
         avklaringsbehovsLøsere[Definisjon.FORESLÅ_VEDTAK] = ForeslåVedtakLøser()
+        avklaringsbehovsLøsere[Definisjon.AVKLAR_STUDENT] = AvklarStudentLøser()
         avklaringsbehovsLøsere[Definisjon.FATTE_VEDTAK] = FatteVedtakLøser()
     }
 

@@ -32,10 +32,10 @@ class VurderStudentSteg : BehandlingSteg {
                     Studentvilkår(behandling.vilkårsresultat()).vurder(faktagrunnlag)
                 }
             }
-            val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
+            val studentvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.STUDENTVILKÅRET)
 
-            if (sykdomsvilkåret.harPerioderSomIkkeErVurdert(periodeTilVurdering) || studentGrunnlag?.erKonsistent() != true) {
-                return StegResultat(listOf(Definisjon.AVKLAR_SYKDOM))
+            if (studentvilkåret.harPerioderSomIkkeErVurdert(periodeTilVurdering) || studentGrunnlag?.erKonsistent() != true) {
+                return StegResultat(listOf(Definisjon.AVKLAR_STUDENT))
             }
         }
 

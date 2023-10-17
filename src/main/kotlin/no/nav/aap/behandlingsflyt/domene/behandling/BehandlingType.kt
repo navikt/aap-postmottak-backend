@@ -15,6 +15,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderBistandsbehovSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykdomSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykepengeErstatningSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderYrkesskadeÅrsakssammenhengSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderStudentSteg
 
 interface BehandlingType {
     fun flyt(): BehandlingFlyt
@@ -28,7 +29,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(InnhentPersonopplysningerSteg())
             .medSteg(VurderAlderSteg())
             .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_LOVVALG))
-            .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_STUDENT))
+            .medSteg(VurderStudentSteg())
             .medSteg(InnhentYrkesskadeOpplysningerSteg())
             .medSteg(VurderYrkesskadeÅrsakssammenhengSteg())
             .medSteg(VurderSykdomSteg())
