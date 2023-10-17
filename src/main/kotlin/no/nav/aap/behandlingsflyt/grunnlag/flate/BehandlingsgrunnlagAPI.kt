@@ -15,10 +15,23 @@ import no.nav.aap.behandlingsflyt.grunnlag.bistand.BistandsTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.meldeplikt.MeldepliktTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeTjeneste
+import no.nav.aap.behandlingsflyt.grunnlag.flate.StudentGrunnlagDto
+import no.nav.aap.behandlingsflyt.grunnlag.student.StudentTjeneste
 import java.util.*
 
 fun NormalOpenAPIRoute.behandlingsgrunnlagApi() {
     route("/api/behandling") {
+        route("/{referanse}/grunnlag/student") {
+            get<BehandlingReferanse, StudentGrunnlagDto> { req ->
+                val behandling = behandling(req)
+
+                val studentGrunnlag = StudentTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
+
+                respond(StudentGrunnlagDto(
+                    studentvurdering = studentGrunnlag?.studentvurdering
+                ))
+            }
+        }
         route("/{referanse}/grunnlag/sykdom/sykdom") {
             get<BehandlingReferanse, SykdomsGrunnlagDto> { req ->
                 val behandling = behandling(req)

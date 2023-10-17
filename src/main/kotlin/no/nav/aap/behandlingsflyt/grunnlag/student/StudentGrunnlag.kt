@@ -8,9 +8,6 @@ class StudentGrunnlag(
         val studentvurdering: StudentVurdering?,
 ) {
     fun erKonsistent(): Boolean {
-        if (studentvurdering == null) {
-            return false
-        }
-        return true
+        return studentvurdering != null
     }
 }

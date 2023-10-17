@@ -1,4 +1,3 @@
-
 package no.nav.aap.behandlingsflyt.flyt.vilkår.student
 
 import no.nav.aap.behandlingsflyt.domene.Periode
@@ -10,6 +9,8 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsvurderer
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VurderingsResultat
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Avslagsårsak
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Innvilgelsesårsak
 
 class Studentvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<StudentFaktagrunnlag> {
     private val vilkår: Vilkår
@@ -19,12 +20,25 @@ class Studentvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Stud
     }
 
     override fun vurder(grunnlag: StudentFaktagrunnlag): VurderingsResultat {
+        val utfall: Utfall
+        var avslagsårsak: Avslagsårsak? = null
+        var innvilgelsesårsak: Innvilgelsesårsak? = null
+
+        val studentvurdering = grunnlag.studentvurdering
+
+        if (studentvurdering.oppfyller11_14 && studentvurdering.oppfyller7) {
+            utfall = Utfall.OPPFYLT
+        } else {
+            utfall = Utfall.IKKE_OPPFYLT
+            avslagsårsak = Avslagsårsak.MANGLENDE_DOKUMENTASJON // TODO noe mer rett
+        }
+
         return lagre(
             grunnlag,
             VurderingsResultat(
-                utfall = Utfall.OPPFYLT,
-                avslagsårsak = null,
-                innvilgelsesårsak = null,
+                utfall = utfall,
+                avslagsårsak = avslagsårsak,
+                innvilgelsesårsak = innvilgelsesårsak,
                 beslutningstre = TomtBeslutningstre()
             )
         )

@@ -12,11 +12,10 @@ class AvklarStudentLøser : AvklaringsbehovsLøser<AvklarStudentLøsning> {
 
     override fun løs(kontekst: FlytKontekst, løsning: AvklarStudentLøsning): LøsningsResultat {
         val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
-        val studentGrunnlag = StudentTjeneste.hentHvisEksisterer(kontekst.behandlingId)
 
         StudentTjeneste.lagre(
             behandlingId = behandling.id,
-            studentvurdering = studentGrunnlag?.studentvurdering,
+            studentvurdering = løsning?.studentvurdering,
         )
 
         return LøsningsResultat(
