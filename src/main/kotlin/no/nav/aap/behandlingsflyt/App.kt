@@ -29,6 +29,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykepengerErstatn
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.student.AvklarStudentLøsning
 import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.person.Ident
@@ -63,6 +64,7 @@ internal fun Application.server() {
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             registerSubtypes(
                 // TODO: Dette bør skje via reflection elns så dette ikke blir manuelt vedlikehold
+                AvklarStudentLøsning::class.java,
                 AvklarYrkesskadeLøsning::class.java,
                 AvklarSykdomLøsning::class.java,
                 AvklarSykepengerErstatningLøsning::class.java,
