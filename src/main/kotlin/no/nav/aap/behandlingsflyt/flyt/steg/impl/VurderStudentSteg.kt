@@ -1,22 +1,24 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
+import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
-import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.grunnlag.student.StudentTjeneste
 import no.nav.aap.behandlingsflyt.flyt.vilkår.student.StudentFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.student.Studentvilkår
+import no.nav.aap.behandlingsflyt.grunnlag.student.StudentTjeneste
 
 class VurderStudentSteg : BehandlingSteg {
 
     override fun utfør(input: StegInput): StegResultat {
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
 
-        val periodeTilVurdering = PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.STUDENTVILKÅRET)
+        val periodeTilVurdering =
+            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.STUDENTVILKÅRET)
+
         if (periodeTilVurdering.isNotEmpty()) {
             val studentGrunnlag = StudentTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
 
@@ -36,6 +38,8 @@ class VurderStudentSteg : BehandlingSteg {
                 return StegResultat(listOf(Definisjon.AVKLAR_SYKDOM))
             }
         }
+
+        return StegResultat()
     }
 
     override fun type(): StegType {

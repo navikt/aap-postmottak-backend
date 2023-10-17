@@ -1,6 +1,16 @@
 
 package no.nav.aap.behandlingsflyt.flyt.vilkår.student
 
+import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.flyt.vilkår.TomtBeslutningstre
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsvurderer
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
+import no.nav.aap.behandlingsflyt.flyt.vilkår.VurderingsResultat
+
 class Studentvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<StudentFaktagrunnlag> {
     private val vilkår: Vilkår
 
