@@ -1,25 +1,57 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår.alder
 
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Avslagsårsak
 import no.nav.aap.behandlingsflyt.flyt.vilkår.TomtBeslutningstre
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsvurderer
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VurderingsResultat
 
-object Aldersvilkåret : Vilkårsvurderer<Aldersgrunnlag> {
+class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Aldersgrunnlag> {
+    private val vilkår: Vilkår
+
+    init {
+        this.vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.ALDERSVILKÅRET)
+    }
+
     // TODO Det må avklares hva som er riktig adferd dersom bruker søker før fylte 18
     override fun vurder(grunnlag: Aldersgrunnlag): VurderingsResultat {
+        val utfall: Utfall
+        var avslagsårsak: Avslagsårsak? = null
+
         val alderPåSøknadsdato = grunnlag.alderPåSøknadsdato()
-        val resultat = if (alderPåSøknadsdato < 18) {
-            Utfall.IKKE_OPPFYLT // TODO: Årsak + hjemmel ?
+
+        if (alderPåSøknadsdato < 18) {
+            utfall = Utfall.IKKE_OPPFYLT // TODO: Årsak + hjemmel ?
+        } else if (alderPåSøknadsdato >= 67) {
+            utfall = Utfall.IKKE_OPPFYLT // TODO: Årsak + hjemmel ?
         } else {
-            if (alderPåSøknadsdato >= 67) {
-                Utfall.IKKE_OPPFYLT // TODO: Årsak + hjemmel ?
-            } else {
-                Utfall.OPPFYLT
-            }
+            utfall = Utfall.OPPFYLT
         }
 
-        return VurderingsResultat(resultat, null, TomtBeslutningstre(), null)
+        return lagre(grunnlag, VurderingsResultat(
+            utfall = utfall,
+            avslagsårsak,
+            TomtBeslutningstre(),
+            null
+        ))
+    }
+
+    private fun lagre(grunnlag: Aldersgrunnlag, vurderingsResultat: VurderingsResultat): VurderingsResultat {
+        vilkår.leggTilVurdering(
+            Vilkårsperiode(
+                periode = grunnlag.periode,
+                utfall = vurderingsResultat.utfall,
+                begrunnelse = null,
+                faktagrunnlag = grunnlag,
+                beslutningstre = vurderingsResultat.beslutningstre
+            )
+        )
+
+        return vurderingsResultat
     }
 
 }

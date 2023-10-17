@@ -1,6 +1,8 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår.alder
 
+import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
 import no.nav.aap.behandlingsflyt.grunnlag.person.Fødselsdato
@@ -12,12 +14,13 @@ class AldersvilkåretTest {
 
     @Test
     fun `vilkåret er ikke oppfylt hvis bruker søker når de er under 18 år`() {
+        val nå = LocalDate.now()
         val aldersgrunnlaget = Aldersgrunnlag(
-            søknadsdato = LocalDate.now(),
+            periode = Periode(nå, nå.plusYears(3)),
             fødselsdato = Fødselsdato(LocalDate.now().minusYears(17))
         )
 
-        val resultat = Aldersvilkåret.vurder(aldersgrunnlaget)
+        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
 
         assertThat(resultat.utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
     }
@@ -26,24 +29,27 @@ class AldersvilkåretTest {
     fun `vilkåret er ikke oppfylt hvis bruker søker dagen før 18-årsdagen`() {
         val fødselsdato = LocalDate.now().minusYears(18)
         val dagenFør18årsdagen = LocalDate.now().minusDays(1)
+        val rettighetsperiode = Periode(dagenFør18årsdagen, dagenFør18årsdagen.plusYears(3))
         val aldersgrunnlaget = Aldersgrunnlag(
-            søknadsdato = dagenFør18årsdagen,
+            periode = rettighetsperiode,
             fødselsdato = Fødselsdato(fødselsdato)
         )
 
-        val resultat = Aldersvilkåret.vurder(aldersgrunnlaget)
+        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
 
         assertThat(resultat.utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
     }
 
     @Test
     fun `vilkåret er ikke oppfylt hvis bruker søker etter de har fylt 67 år`() {
+        val søknadsdato = LocalDate.now()
+        val rettighetsperiode = Periode(søknadsdato, søknadsdato.plusYears(3))
         val aldersgrunnlaget = Aldersgrunnlag(
-            søknadsdato = LocalDate.now(),
+            periode = rettighetsperiode,
             fødselsdato = Fødselsdato(LocalDate.now().minusYears(68))
         )
 
-        val resultat = Aldersvilkåret.vurder(aldersgrunnlaget)
+        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
 
         assertThat(resultat.utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
     }
@@ -52,24 +58,27 @@ class AldersvilkåretTest {
     fun `vilkåret er ikke oppfylt hvis bruker søker på 67-årsdagen`() {
         val fødselsdato = LocalDate.now().minusYears(67)
         val dagenManFyller67år = LocalDate.now()
+        val rettighetsperiode = Periode(dagenManFyller67år, dagenManFyller67år.plusYears(3))
         val aldersgrunnlaget = Aldersgrunnlag(
-            søknadsdato = dagenManFyller67år,
+            periode = rettighetsperiode,
             fødselsdato = Fødselsdato(fødselsdato)
         )
 
-        val resultat = Aldersvilkåret.vurder(aldersgrunnlaget)
+        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
 
         assertThat(resultat.utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
     }
 
     @Test
     fun `vilkåret er oppfylt hvis bruker er mellom 18 og 67`() {
+        val søknadsdato = LocalDate.now()
+        val rettighetsperiode = Periode(søknadsdato, søknadsdato.plusYears(3))
         val aldersgrunnlaget = Aldersgrunnlag(
-            søknadsdato = LocalDate.now(),
+            periode = rettighetsperiode,
             fødselsdato = Fødselsdato(LocalDate.now().minusYears(45))
         )
 
-        val resultat = Aldersvilkåret.vurder(aldersgrunnlaget)
+        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
 
         assertThat(resultat.utfall).isEqualTo(Utfall.OPPFYLT)
     }

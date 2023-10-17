@@ -5,7 +5,6 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
@@ -23,23 +22,8 @@ class VurderAlderSteg : BehandlingSteg {
                 ?: throw IllegalStateException("Forventet å finne personopplysninger")
 
             for (periode in periodeTilVurdering) {
-                val aldersgrunnlag = Aldersgrunnlag(
-                    periode.fom,
-                    personinfoGrunnlag.personinfo.fødselsdato
-                )
-                val vurdering = Aldersvilkåret.vurder(
-                    aldersgrunnlag
-                )
-                val aldersvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.ALDERSVILKÅRET)
-                aldersvilkåret.leggTilVurdering(
-                    Vilkårsperiode(
-                        periode = periode,
-                        utfall = vurdering.utfall,
-                        begrunnelse = null,
-                        faktagrunnlag = aldersgrunnlag,
-                        beslutningstre = vurdering.beslutningstre
-                    )
-                )
+                val aldersgrunnlag = Aldersgrunnlag(periode, personinfoGrunnlag.personinfo.fødselsdato)
+                Aldersvilkåret(behandling.vilkårsresultat()).vurder(aldersgrunnlag)
             }
         }
 
