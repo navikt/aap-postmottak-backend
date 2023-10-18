@@ -2,6 +2,8 @@ package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.AvklarBistandsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.BistandsVurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.student.AvklarStudentLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.student.StudentVurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
@@ -74,6 +76,23 @@ class FlytOrkestratorTest {
 
         assertThat(behandling.avklaringsbehov()).isNotEmpty()
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+
+        HendelsesMottak.håndtere(
+            behandling.id,
+            LøsAvklaringsbehovBehandlingHendelse(
+                versjon = 1L,
+                løsning = AvklarStudentLøsning(
+                    studentvurdering = StudentVurdering(
+                        begrunnelse = "Er student",
+                        dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                        oppfyller11_14 = false,
+                        oppfyller7 = null,
+                        avbruttStudieDato = null
+                    )
+                )
+            )
+        )
+        ventPåSvar()
 
         HendelsesMottak.håndtere(
             behandling.id,
