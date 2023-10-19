@@ -39,9 +39,8 @@ class BehandlingFlyt private constructor(
     fun faktagrunnlagFremTilGjeldendeSteg(): List<Grunnlagstype<*>> {
         return flyt
             .takeWhile { it != aktivtSteg }
-            .plus(aktivtSteg)
-            .filterNotNull()
             .flatMap { it.kravliste }
+            .plus(faktagrunnlagForGjeldendeSteg())
     }
 
     fun forberedFlyt(aktivtSteg: StegType): BehandlingSteg {
@@ -159,8 +158,8 @@ class StegComparator(private var flyt: List<BehandlingFlyt.Behandlingsflytsteg>)
 }
 
 class BehandlingFlytBuilder {
-    private var flyt: MutableList<BehandlingFlyt.Behandlingsflytsteg> = mutableListOf()
-    private var endringTilSteg: MutableMap<EndringType, StegType> = mutableMapOf()
+    private val flyt: MutableList<BehandlingFlyt.Behandlingsflytsteg> = mutableListOf()
+    private val endringTilSteg: MutableMap<EndringType, StegType> = mutableMapOf()
     private var buildt = false
 
     fun medSteg(
