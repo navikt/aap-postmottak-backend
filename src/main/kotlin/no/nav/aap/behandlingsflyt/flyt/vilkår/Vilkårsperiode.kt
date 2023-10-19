@@ -20,7 +20,22 @@ class Vilkårsperiode(
         begrunnelse: String?,
         avslagsårsak: Avslagsårsak? = null,
         innvilgelsesårsak: Innvilgelsesårsak? = null,
-    ) : this(periode, utfall, manuellVurdering, begrunnelse, innvilgelsesårsak, avslagsårsak, faktagrunnlag, TomtBeslutningstre())
+    ) : this(
+        periode,
+        utfall,
+        manuellVurdering,
+        begrunnelse,
+        innvilgelsesårsak,
+        avslagsårsak,
+        faktagrunnlag,
+        TomtBeslutningstre()
+    )
+
+    init {
+        if (utfall == Utfall.IKKE_OPPFYLT && avslagsårsak == null) {
+            throw IllegalStateException("Avslagsårsak må være satt ved IKKE_OPPFYLT som utfall")
+        }
+    }
 
     fun erOppfylt(): Boolean {
         return utfall == Utfall.OPPFYLT

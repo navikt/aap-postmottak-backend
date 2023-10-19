@@ -34,12 +34,12 @@ class Sykdomsvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Sykd
             }
         } else {
             utfall = Utfall.IKKE_OPPFYLT
-            if (!sykdomsvurdering.erSkadeSykdomEllerLyteVesentligdel) {
-
+            avslagsårsak = if (!sykdomsvurdering.erSkadeSykdomEllerLyteVesentligdel) {
+                Avslagsårsak.IKKE_SYKDOM_SKADE_LYTE_VESENTLIGDEL
             } else if (sykdomsvurdering.erNedsettelseIArbeidsevneHøyereEnnNedreGrense == false) {
-
+                Avslagsårsak.IKKE_NOK_REDUSERT_ARBEIDSEVNE
             } else {
-                avslagsårsak = Avslagsårsak.MANGLENDE_DOKUMENTASJON // TODO noe mer rett
+                Avslagsårsak.MANGLENDE_DOKUMENTASJON // TODO noe mer rett
             }
         }
 

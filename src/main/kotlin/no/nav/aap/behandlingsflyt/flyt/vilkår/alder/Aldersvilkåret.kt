@@ -26,18 +26,22 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
 
         if (alderPåSøknadsdato < 18) {
             utfall = Utfall.IKKE_OPPFYLT // TODO: Årsak + hjemmel ?
+            avslagsårsak = Avslagsårsak.BRUKER_UNDER_18
         } else if (alderPåSøknadsdato >= 67) {
             utfall = Utfall.IKKE_OPPFYLT // TODO: Årsak + hjemmel ?
+            avslagsårsak = Avslagsårsak.BRUKER_OVER_67
         } else {
             utfall = Utfall.OPPFYLT
         }
 
-        return lagre(grunnlag, VurderingsResultat(
-            utfall = utfall,
-            avslagsårsak,
-            TomtBeslutningstre(),
-            null
-        ))
+        return lagre(
+            grunnlag, VurderingsResultat(
+                utfall = utfall,
+                avslagsårsak = avslagsårsak,
+                beslutningstre = TomtBeslutningstre(),
+                innvilgelsesårsak = null
+            )
+        )
     }
 
     private fun lagre(grunnlag: Aldersgrunnlag, vurderingsResultat: VurderingsResultat): VurderingsResultat {
@@ -45,6 +49,7 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
             Vilkårsperiode(
                 periode = grunnlag.periode,
                 utfall = vurderingsResultat.utfall,
+                avslagsårsak = vurderingsResultat.avslagsårsak,
                 begrunnelse = null,
                 faktagrunnlag = grunnlag,
                 beslutningstre = vurderingsResultat.beslutningstre
