@@ -8,6 +8,10 @@ class StudentGrunnlag(
         val studentvurdering: StudentVurdering?,
 ) {
     fun erKonsistent(): Boolean {
+        // TODO: Kommenter inn når lagring er på plass
+//        if (oppgittStudent == null) {
+//            return true
+//        }
         return studentvurdering != null
     }
 }

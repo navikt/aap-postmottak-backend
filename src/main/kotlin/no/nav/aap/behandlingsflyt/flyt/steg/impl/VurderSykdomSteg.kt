@@ -9,6 +9,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykdomsFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.Sykdomsvilkår
+import no.nav.aap.behandlingsflyt.grunnlag.student.db.InMemoryStudentRepository
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 
 class VurderSykdomSteg : BehandlingSteg {
@@ -20,14 +21,16 @@ class VurderSykdomSteg : BehandlingSteg {
 
         if (periodeTilVurdering.isNotEmpty()) {
             val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
+            val studentGrunnlag = InMemoryStudentRepository.hentHvisEksisterer(behandlingId = behandling.id)
 
-            if (sykdomsGrunnlag != null && sykdomsGrunnlag.erKonsistent()) {
+            if (sykdomsGrunnlag != null && (sykdomsGrunnlag.erKonsistent() || studentGrunnlag?.studentvurdering?.oppfyller11_14 == true)) {
                 for (periode in periodeTilVurdering) {
                     val faktagrunnlag = SykdomsFaktagrunnlag(
                         periode.fom,
                         periode.tom,
                         sykdomsGrunnlag.yrkesskadevurdering,
-                        sykdomsGrunnlag.sykdomsvurdering!!
+                        sykdomsGrunnlag.sykdomsvurdering,
+                        studentGrunnlag?.studentvurdering
                     )
                     Sykdomsvilkår(behandling.vilkårsresultat()).vurder(faktagrunnlag)
                 }

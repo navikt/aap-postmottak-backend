@@ -10,6 +10,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
 import no.nav.aap.behandlingsflyt.grunnlag.bistand.BistandsTjeneste
+import no.nav.aap.behandlingsflyt.grunnlag.student.db.InMemoryStudentRepository
 
 class VurderBistandsbehovSteg : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
@@ -21,10 +22,11 @@ class VurderBistandsbehovSteg : BehandlingSteg {
         if (periodeTilVurdering.isNotEmpty()) {
 
             val bistandsGrunnlag = BistandsTjeneste.hentHvisEksisterer(behandling.id)
+            val studentGrunnlag = InMemoryStudentRepository.hentHvisEksisterer(behandling.id)
 
-            if (bistandsGrunnlag != null) {
+            if (studentGrunnlag?.studentvurdering?.oppfyller11_14 == true || bistandsGrunnlag != null) {
                 for (periode in periodeTilVurdering) {
-                    val grunnlag = BistandFaktagrunnlag(periode.fom, periode.tom, bistandsGrunnlag.vurdering!!)
+                    val grunnlag = BistandFaktagrunnlag(periode.fom, periode.tom, bistandsGrunnlag?.vurdering, studentGrunnlag?.studentvurdering)
                     Bistandsvilkåret(behandling.vilkårsresultat()).vurder(grunnlag = grunnlag)
                 }
             }

@@ -3,11 +3,11 @@ package no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import java.time.Period
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.reflect.KFunction1
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
 const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
 const val AVKLAR_YRKESSKADE_KODE = "5002"
@@ -39,7 +39,7 @@ enum class Definisjon(
     ),
     AVKLAR_STUDENT(
             kode = AVKLAR_STUDENT_KODE,
-            løsesISteg = StegType.AVKLAR_STUDENT,
+            løsesISteg = StegType.VURDER_STUDENT,
     ),
     AVKLAR_BISTANDSBEHOV(
             kode = AVKLAR_BISTANDSBEHOV_KODE,

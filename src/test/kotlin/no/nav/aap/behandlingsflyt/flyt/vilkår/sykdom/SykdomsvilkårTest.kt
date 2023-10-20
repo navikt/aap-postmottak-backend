@@ -22,7 +22,8 @@ class SykdomsvilkårTest {
                 LocalDate.now(),
                 LocalDate.now().plusYears(3),
                 null,
-                Sykdomsvurdering("", listOf(), true, true, NedreGrense.FEMTI, LocalDate.now().minusYears(1))
+                Sykdomsvurdering("", listOf(), true, true, NedreGrense.FEMTI, LocalDate.now().minusYears(1)),
+                null
             )
         )
         val vilkår = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
@@ -34,7 +35,8 @@ class SykdomsvilkårTest {
                 LocalDate.now(),
                 LocalDate.now().plusYears(3),
                 null,
-                Sykdomsvurdering("", listOf(), true, false, NedreGrense.FEMTI, LocalDate.now().minusYears(1))
+                Sykdomsvurdering("", listOf(), true, false, NedreGrense.FEMTI, LocalDate.now().minusYears(1)),
+                null
             )
         )
 

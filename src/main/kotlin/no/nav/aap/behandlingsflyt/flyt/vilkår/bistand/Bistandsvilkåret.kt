@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt.vilkår.bistand
 
 import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Avslagsårsak
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Innvilgelsesårsak
 import no.nav.aap.behandlingsflyt.flyt.vilkår.TomtBeslutningstre
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
@@ -21,20 +22,26 @@ class Bistandsvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<B
     override fun vurder(grunnlag: BistandFaktagrunnlag): VurderingsResultat {
         val utfall: Utfall
         var avslagsårsak: Avslagsårsak? = null
+        var innvilgelsesårsak: Innvilgelsesårsak? = null
 
-        if (grunnlag.vurdering.erBehovForBistand) {
+        if (grunnlag.studentvurdering?.oppfyller11_14 == true) {
+            utfall = Utfall.OPPFYLT
+            innvilgelsesårsak = Innvilgelsesårsak.STUDENT
+        } else if (grunnlag.vurdering?.erBehovForBistand == true) {
             utfall = Utfall.OPPFYLT
         } else {
             utfall = Utfall.IKKE_OPPFYLT
             avslagsårsak = Avslagsårsak.MANGLENDE_DOKUMENTASJON // TODO: Må ha mer
         }
 
-        return lagre(grunnlag, VurderingsResultat(
-            utfall = utfall,
-            avslagsårsak,
-            TomtBeslutningstre(),
-            null
-        ))
+        return lagre(
+            grunnlag, VurderingsResultat(
+                utfall = utfall,
+                avslagsårsak = avslagsårsak,
+                beslutningstre = TomtBeslutningstre(),
+                innvilgelsesårsak = innvilgelsesårsak
+            )
+        )
     }
 
     private fun lagre(grunnlag: BistandFaktagrunnlag, vurderingsResultat: VurderingsResultat): VurderingsResultat {
@@ -44,7 +51,7 @@ class Bistandsvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<B
                 vurderingsResultat.utfall,
                 false,
                 null,
-                null,
+                vurderingsResultat.innvilgelsesårsak,
                 vurderingsResultat.avslagsårsak,
                 grunnlag,
                 vurderingsResultat.beslutningstre

@@ -21,7 +21,7 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         status = Status.UTREDES
     ),
     VURDER_STUDENT(
-        gruppe = StegGruppe.STUDENT,
+        gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES
     ),
     VURDER_BISTANDSBEHOV(
@@ -42,10 +42,6 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         status = Status.UTREDES
     ),
     AVKLAR_YRKESSKADE(gruppe = StegGruppe.SYKDOM, status = Status.UTREDES),
-    AVKLAR_STUDENT(
-        gruppe = StegGruppe.STUDENT,
-        status = Status.UTREDES
-    ),
     AVKLAR_SYKDOM(
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES

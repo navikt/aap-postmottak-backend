@@ -26,7 +26,10 @@ class Sykdomsvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Sykd
 
         val sykdomsvurdering = grunnlag.sykdomsvurdering
 
-        if (sykdomsvurdering.erSkadeSykdomEllerLyteVesentligdel && sykdomsvurdering.erNedsettelseIArbeidsevneHøyereEnnNedreGrense == true) {
+        if (grunnlag.studentvurdering?.oppfyller11_14 == true) {
+            utfall = Utfall.OPPFYLT
+            innvilgelsesårsak = Innvilgelsesårsak.STUDENT
+        } else if (sykdomsvurdering?.erSkadeSykdomEllerLyteVesentligdel == true && sykdomsvurdering.erNedsettelseIArbeidsevneHøyereEnnNedreGrense == true) {
             utfall = Utfall.OPPFYLT
             val yrkesskadevurdering = grunnlag.yrkesskadevurdering
             if (yrkesskadevurdering != null && yrkesskadevurdering.erÅrsakssammenheng) {
@@ -34,9 +37,9 @@ class Sykdomsvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Sykd
             }
         } else {
             utfall = Utfall.IKKE_OPPFYLT
-            avslagsårsak = if (!sykdomsvurdering.erSkadeSykdomEllerLyteVesentligdel) {
+            avslagsårsak = if (sykdomsvurdering?.erSkadeSykdomEllerLyteVesentligdel == false) {
                 Avslagsårsak.IKKE_SYKDOM_SKADE_LYTE_VESENTLIGDEL
-            } else if (sykdomsvurdering.erNedsettelseIArbeidsevneHøyereEnnNedreGrense == false) {
+            } else if (sykdomsvurdering?.erNedsettelseIArbeidsevneHøyereEnnNedreGrense == false) {
                 Avslagsårsak.IKKE_NOK_REDUSERT_ARBEIDSEVNE
             } else {
                 Avslagsårsak.MANGLENDE_DOKUMENTASJON // TODO noe mer rett
