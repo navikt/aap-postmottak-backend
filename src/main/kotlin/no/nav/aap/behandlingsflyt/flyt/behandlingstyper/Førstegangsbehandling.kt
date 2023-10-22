@@ -22,17 +22,19 @@ import no.nav.aap.behandlingsflyt.grunnlag.student.db.InMemoryStudentRepository
 
 object Førstegangsbehandling : BehandlingType {
     override fun flyt(): BehandlingFlyt {
+        val studentRepository = InMemoryStudentRepository
+
         return BehandlingFlytBuilder()
             .medSteg(steg = StartBehandlingSteg())
             .medSteg(steg = InnhentPersonopplysningerSteg())
             .medSteg(steg = VurderAlderSteg())
             .medSteg(steg = GeneriskPlaceholderSteg(StegType.VURDER_LOVVALG))
-            .medSteg(steg = VurderStudentSteg(InMemoryStudentRepository))
+            .medSteg(steg = VurderStudentSteg(studentRepository))
             .medSteg(steg = InnhentYrkesskadeOpplysningerSteg())
-            .medSteg(steg = VurderYrkesskadeÅrsakssammenhengSteg(), informasjonskrav = listOf(Yrkesskade))
-            .medSteg(steg = VurderSykdomSteg(), informasjonskrav = listOf(Legeerklæring))
+            .medSteg(steg = VurderYrkesskadeÅrsakssammenhengSteg(studentRepository), informasjonskrav = listOf(Yrkesskade))
+            .medSteg(steg = VurderSykdomSteg(studentRepository), informasjonskrav = listOf(Legeerklæring))
             .medSteg(steg = FritakMeldepliktSteg())
-            .medSteg(steg = VurderBistandsbehovSteg())
+            .medSteg(steg = VurderBistandsbehovSteg(studentRepository))
             .medSteg(steg = VurderSykepengeErstatningSteg())
             .medSteg(steg = GeneriskPlaceholderSteg(StegType.INNHENT_MEDLEMSKAP))
             .medSteg(steg = GeneriskPlaceholderSteg(StegType.VURDER_MEDLEMSKAP))

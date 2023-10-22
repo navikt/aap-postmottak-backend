@@ -13,6 +13,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.grunnlag.person.Fødselsdato
 import no.nav.aap.behandlingsflyt.grunnlag.person.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.grunnlag.person.Personinfo
+import no.nav.aap.behandlingsflyt.grunnlag.student.db.InMemoryStudentRepository
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeRegisterMock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -38,7 +39,7 @@ class StegOrkestratorTest {
 
         val kontekst = FlytKontekst(sak.id, behandling.id)
 
-        val resultat = StegOrkestrator(VurderSykdomSteg()).utfør(kontekst, behandling)
+        val resultat = StegOrkestrator(VurderSykdomSteg(InMemoryStudentRepository)).utfør(kontekst, behandling)
         assertThat(resultat).isNotNull
 
         assertThat(behandling.stegHistorikk()).hasSize(3)

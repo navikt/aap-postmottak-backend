@@ -13,9 +13,9 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
 import no.nav.aap.behandlingsflyt.grunnlag.bistand.BistandsTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.student.StudentGrunnlag
-import no.nav.aap.behandlingsflyt.grunnlag.student.db.InMemoryStudentRepository
+import no.nav.aap.behandlingsflyt.grunnlag.student.StudentRepository
 
-class VurderBistandsbehovSteg : BehandlingSteg {
+class VurderBistandsbehovSteg(private val studentRepository: StudentRepository) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
 
@@ -25,7 +25,7 @@ class VurderBistandsbehovSteg : BehandlingSteg {
         if (periodeTilVurdering.isNotEmpty()) {
 
             val bistandsGrunnlag = BistandsTjeneste.hentHvisEksisterer(behandling.id)
-            val studentGrunnlag = InMemoryStudentRepository.hentHvisEksisterer(behandling.id)
+            val studentGrunnlag = studentRepository.hentHvisEksisterer(behandling.id)
 
             if (studentGrunnlag?.studentvurdering?.oppfyller11_14 == true || bistandsGrunnlag != null) {
                 for (periode in periodeTilVurdering) {

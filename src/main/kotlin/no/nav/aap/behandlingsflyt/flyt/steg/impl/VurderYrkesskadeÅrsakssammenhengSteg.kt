@@ -8,13 +8,13 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.grunnlag.student.StudentGrunnlag
-import no.nav.aap.behandlingsflyt.grunnlag.student.db.InMemoryStudentRepository
+import no.nav.aap.behandlingsflyt.grunnlag.student.StudentRepository
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsGrunnlag
 import no.nav.aap.behandlingsflyt.grunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeGrunnlag
 import no.nav.aap.behandlingsflyt.grunnlag.yrkesskade.YrkesskadeTjeneste
 
-class VurderYrkesskadeÅrsakssammenhengSteg : BehandlingSteg {
+class VurderYrkesskadeÅrsakssammenhengSteg(private val studentRepository: StudentRepository) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
         val behandling = BehandlingTjeneste.hent(input.kontekst.behandlingId)
 
@@ -24,7 +24,7 @@ class VurderYrkesskadeÅrsakssammenhengSteg : BehandlingSteg {
         if (periodeTilVurdering.isNotEmpty()) {
             val yrkesskadeGrunnlag = YrkesskadeTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
             val sykdomsGrunnlag = SykdomsTjeneste.hentHvisEksisterer(behandlingId = behandling.id)
-            val studentGrunnlag = InMemoryStudentRepository.hentHvisEksisterer(behandlingId = behandling.id)
+            val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId = behandling.id)
 
             if (erBehovForAvklaring(yrkesskadeGrunnlag, sykdomsGrunnlag, studentGrunnlag)) {
                 return StegResultat(listOf(Definisjon.AVKLAR_YRKESSKADE))
