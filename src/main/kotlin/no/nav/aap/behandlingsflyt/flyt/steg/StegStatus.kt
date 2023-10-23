@@ -33,7 +33,6 @@ enum class StegStatus {
 
     fun neste(): StegStatus {
         val rekkefølge = rekkefølge()
-        rekkefølge.listIterator().
         val indexOf = rekkefølge.indexOf(this)
 
         if (indexOf > -1 && indexOf < rekkefølge.size - 1) {
