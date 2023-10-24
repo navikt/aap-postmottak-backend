@@ -44,6 +44,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = GeneriskPlaceholderSteg(StegType.SIMULERING))
             .medSteg(steg = GeneriskPlaceholderSteg(StegType.BEREGN_TILKJENT_YTELSE))
             .medSteg(steg = ForeslåVedtakSteg(behandlingTjeneste)) // en-trinn
+            .sluttÅOppdatereFaktagrunnlag()
             .medSteg(steg = FatteVedtakSteg(behandlingTjeneste)) // to-trinn
             .medSteg(steg = GeneriskPlaceholderSteg(StegType.IVERKSETT_VEDTAK))
             .build()

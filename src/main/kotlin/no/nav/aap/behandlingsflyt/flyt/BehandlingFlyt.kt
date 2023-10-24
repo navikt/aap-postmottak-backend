@@ -20,7 +20,8 @@ class BehandlingFlyt private constructor(
 
     class Behandlingsflytsteg(
         val steg: BehandlingSteg,
-        val kravliste: List<Grunnlag<*>>
+        val kravliste: List<Grunnlag<*>>,
+        val oppdaterFaktagrunnlag: Boolean
     )
 
     constructor(
@@ -37,6 +38,10 @@ class BehandlingFlyt private constructor(
     }
 
     fun faktagrunnlagFremTilGjeldendeSteg(): List<Grunnlag<*>> {
+        if (aktivtSteg?.oppdaterFaktagrunnlag != true){
+            return emptyList()
+        }
+
         return flyt
             .takeWhile { it != aktivtSteg }
             .flatMap { it.kravliste }
@@ -180,6 +185,7 @@ class StegComparator(private var flyt: List<BehandlingFlyt.Behandlingsflytsteg>)
 class BehandlingFlytBuilder {
     private val flyt: MutableList<BehandlingFlyt.Behandlingsflytsteg> = mutableListOf()
     private val endringTilSteg: MutableMap<EndringType, StegType> = mutableMapOf()
+    private var oppdaterFaktagrunnlag = true
     private var buildt = false
 
     fun medSteg(
@@ -193,10 +199,15 @@ class BehandlingFlytBuilder {
         if (StegType.UDEFINERT == steg.type()) {
             throw IllegalStateException("[Utvikler feil] StegType UDEFINERT er ugyldig å legge til i flyten")
         }
-        this.flyt.add(BehandlingFlyt.Behandlingsflytsteg(steg, informasjonskrav.toList()))
+        this.flyt.add(BehandlingFlyt.Behandlingsflytsteg(steg, informasjonskrav.toList(), oppdaterFaktagrunnlag))
         endringer.forEach { endring ->
             this.endringTilSteg[endring] = steg.type()
         }
+        return this
+    }
+
+    fun sluttÅOppdatereFaktagrunnlag(): BehandlingFlytBuilder {
+        oppdaterFaktagrunnlag = false
         return this
     }
 
