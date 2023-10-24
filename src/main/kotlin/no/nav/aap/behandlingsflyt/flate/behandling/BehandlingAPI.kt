@@ -49,7 +49,8 @@ fun NormalOpenAPIRoute.behandlingApi() {
                                         utfall = vp.utfall,
                                         manuellVurdering = vp.manuellVurdering,
                                         begrunnelse = vp.begrunnelse,
-                                        avslagsårsak = vp.avslagsårsak
+                                        avslagsårsak = vp.avslagsårsak,
+                                        innvilgelsesårsak = vp.innvilgelsesårsak
                                     )
                                 })
                     },
@@ -165,7 +166,8 @@ private fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, ste
                 vp.utfall,
                 vp.manuellVurdering,
                 vp.begrunnelse,
-                vp.avslagsårsak
+                vp.avslagsårsak,
+                vp.innvilgelsesårsak
             )
         })
 }
