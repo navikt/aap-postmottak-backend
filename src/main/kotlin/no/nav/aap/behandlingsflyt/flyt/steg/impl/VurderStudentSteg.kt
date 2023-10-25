@@ -2,11 +2,10 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 
 class VurderStudentSteg(
     private val behandlingTjeneste: BehandlingTjeneste,
@@ -22,9 +21,5 @@ class VurderStudentSteg(
         }
 
         return StegResultat()
-    }
-
-    override fun type(): StegType {
-        return StegType.AVKLAR_STUDENT
     }
 }

@@ -1,12 +1,11 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
 class StartBehandlingSteg(private val behandlingTjeneste: BehandlingTjeneste) : BehandlingSteg {
@@ -25,9 +24,5 @@ class StartBehandlingSteg(private val behandlingTjeneste: BehandlingTjeneste) : 
         }
 
         return StegResultat()
-    }
-
-    override fun type(): StegType {
-        return StegType.START_BEHANDLING
     }
 }

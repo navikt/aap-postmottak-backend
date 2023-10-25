@@ -5,7 +5,6 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
 class ForeslåVedtakSteg(private val behandlingTjeneste: BehandlingTjeneste) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
@@ -16,10 +15,6 @@ class ForeslåVedtakSteg(private val behandlingTjeneste: BehandlingTjeneste) : B
         }
 
         return StegResultat() // DO NOTHING
-    }
-
-    override fun type(): StegType {
-        return StegType.FORESLÅ_VEDTAK
     }
 
     override fun vedTilbakeføring(input: StegInput) {

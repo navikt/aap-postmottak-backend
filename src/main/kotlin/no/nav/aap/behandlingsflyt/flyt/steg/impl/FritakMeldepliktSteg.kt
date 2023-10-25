@@ -8,7 +8,6 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
 class FritakMeldepliktSteg(private val behandlingTjeneste: BehandlingTjeneste) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
@@ -34,9 +33,5 @@ class FritakMeldepliktSteg(private val behandlingTjeneste: BehandlingTjeneste) :
         }
 
         return StegResultat()
-    }
-
-    override fun type(): StegType {
-        return StegType.FRITAK_MELDEPLIKT
     }
 }

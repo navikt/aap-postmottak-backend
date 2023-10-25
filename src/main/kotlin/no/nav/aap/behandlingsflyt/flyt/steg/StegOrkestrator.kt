@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
 
-class StegOrkestrator(private val transaksjonsconnection: DbConnection, private val aktivtSteg: BehandlingSteg) {
+class StegOrkestrator(private val transaksjonsconnection: DbConnection, private val aktivtSteg: FlytSteg) {
 
     fun utfør(
         kontekst: FlytKontekst,
@@ -75,15 +75,17 @@ class StegOrkestrator(private val transaksjonsconnection: DbConnection, private 
         return transisjon
     }
 
-    private fun behandleStegBakover(steg: BehandlingSteg, kontekst: FlytKontekst): Transisjon {
-        val input = StegInput(kontekst, transaksjonsconnection)
+    private fun behandleStegBakover(flytSteg: FlytSteg, kontekst: FlytKontekst): Transisjon {
+        val input = StegInput(kontekst)
+        val steg = flytSteg.konstruer(transaksjonsconnection)
         steg.vedTilbakeføring(input)
 
         return Fortsett
     }
 
-    private fun behandleSteg(steg: BehandlingSteg, kontekst: FlytKontekst): Transisjon {
-        val input = StegInput(kontekst, transaksjonsconnection)
+    private fun behandleSteg(flytSteg: FlytSteg, kontekst: FlytKontekst): Transisjon {
+        val input = StegInput(kontekst)
+        val steg = flytSteg.konstruer(transaksjonsconnection)
         val stegResultat = steg.utfør(input)
 
         return stegResultat.transisjon()

@@ -1,9 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.steg.impl.GeneriskPlaceholderSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.impl.StartBehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.GeneriskPlaceholderFlytSteg
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -18,8 +16,8 @@ class BehandlingFlytTest {
     }
 
     private val førstegangsbehandling = BehandlingFlytBuilder()
-        .medSteg(StartBehandlingSteg(BehandlingTjeneste))
-        .medSteg(GeneriskPlaceholderSteg(StegType.VURDER_MEDLEMSKAP))
-        .medSteg(GeneriskPlaceholderSteg(StegType.FASTSETT_GRUNNLAG))
+        .medSteg(GeneriskPlaceholderFlytSteg(StegType.START_BEHANDLING))
+        .medSteg(GeneriskPlaceholderFlytSteg(StegType.VURDER_MEDLEMSKAP))
+        .medSteg(GeneriskPlaceholderFlytSteg(StegType.FASTSETT_GRUNNLAG))
         .build()
 }

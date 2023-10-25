@@ -11,11 +11,10 @@ import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personinfo
-import no.nav.aap.behandlingsflyt.faktagrunnlag.student.db.InMemoryStudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
-import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykdomSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykdomFlytSteg
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -45,7 +44,7 @@ class StegOrkestratorTest {
 
         val resultat = StegOrkestrator(
             transaksjonsconnection,
-            VurderSykdomSteg(BehandlingTjeneste, InMemoryStudentRepository)
+            VurderSykdomFlytSteg
         ).utfør(kontekst, behandling)
         assertThat(resultat).isNotNull
 

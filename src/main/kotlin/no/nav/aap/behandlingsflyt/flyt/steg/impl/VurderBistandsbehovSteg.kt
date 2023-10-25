@@ -3,18 +3,17 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandsTjeneste
+import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Innvilgelsesårsak
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
-import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandsTjeneste
-import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 
 class VurderBistandsbehovSteg(
     private val behandlingTjeneste: BehandlingTjeneste,
@@ -66,9 +65,5 @@ class VurderBistandsbehovSteg(
     private fun harInnvilgetForStudentUtenÅVæreStudent(vilkår: Vilkår, studentGrunnlag: StudentGrunnlag?): Boolean {
         return studentGrunnlag?.studentvurdering?.oppfyller11_14 == false && vilkår.vilkårsperioder()
             .any { it.innvilgelsesårsak == Innvilgelsesårsak.STUDENT }
-    }
-
-    override fun type(): StegType {
-        return StegType.VURDER_BISTANDSBEHOV
     }
 }

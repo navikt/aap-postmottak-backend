@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.flyt
 import no.nav.aap.behandlingsflyt.domene.behandling.EndringType
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
-import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import java.util.*
 
@@ -19,7 +19,7 @@ class BehandlingFlyt private constructor(
     private var aktivtSteg: Behandlingsflytsteg? = flyt.firstOrNull()
 
     class Behandlingsflytsteg(
-        val steg: BehandlingSteg,
+        val steg: FlytSteg,
         val kravliste: List<Grunnlag<*>>,
         val oppdaterFaktagrunnlag: Boolean
     )
@@ -48,7 +48,7 @@ class BehandlingFlyt private constructor(
             .plus(faktagrunnlagForGjeldendeSteg())
     }
 
-    fun forberedFlyt(aktivtSteg: StegType): BehandlingSteg {
+    fun forberedFlyt(aktivtSteg: StegType): FlytSteg {
         return forberedFlyt(steg(aktivtSteg)).steg
     }
 
@@ -61,7 +61,7 @@ class BehandlingFlyt private constructor(
     /**
      * Finner neste steget som skal prosesseres etter at nåværende er ferdig
      */
-    fun neste(): BehandlingSteg? {
+    fun neste(): FlytSteg? {
         if (this.flyt.isEmpty()) {
             return null
         }
@@ -81,7 +81,7 @@ class BehandlingFlyt private constructor(
     /**
      * Avgjør hvilket steg prosessen skal fortsette fra. Hvis ingen endring så står pekeren stille
      */
-    fun nesteEtterEndringer(nåværendeSteg: StegType, vararg endringer: EndringType): BehandlingSteg {
+    fun nesteEtterEndringer(nåværendeSteg: StegType, vararg endringer: EndringType): FlytSteg {
         if (endringer.isNotEmpty()) {
             val nåværendeIndex = flyt.indexOfFirst { it.steg.type() == nåværendeSteg }
             if (nåværendeIndex == -1) {
@@ -189,7 +189,7 @@ class BehandlingFlytBuilder {
     private var buildt = false
 
     fun medSteg(
-        steg: BehandlingSteg,
+        steg: FlytSteg,
         vararg endringer: EndringType,
         informasjonskrav: List<Grunnlag<*>> = emptyList()
     ): BehandlingFlytBuilder {

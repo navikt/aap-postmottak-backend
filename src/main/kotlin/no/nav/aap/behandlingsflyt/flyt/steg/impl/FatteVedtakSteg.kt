@@ -6,7 +6,6 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
 class FatteVedtakSteg(private val behandlingTjeneste: BehandlingTjeneste) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
@@ -30,8 +29,4 @@ class FatteVedtakSteg(private val behandlingTjeneste: BehandlingTjeneste) : Beha
         behandling.avklaringsbehov()
             .filter { avklaringsbehov -> avklaringsbehov.erIkkeAvbrutt() }
             .any { avklaringsbehov -> avklaringsbehov.erTotrinn() && !avklaringsbehov.erTotrinnsVurdert() }
-
-    override fun type(): StegType {
-        return StegType.FATTE_VEDTAK
-    }
 }

@@ -2,17 +2,16 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
-import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsTjeneste
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRepository
+import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
+import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
 class VurderYrkesskadeÅrsakssammenhengSteg(
     private val behandlingTjeneste: BehandlingTjeneste,
@@ -47,9 +46,5 @@ class VurderYrkesskadeÅrsakssammenhengSteg(
         }
         return yrkesskadeGrunnlag?.yrkesskader?.yrkesskader?.isNotEmpty() == true
                 && sykdomsGrunnlag?.yrkesskadevurdering == null
-    }
-
-    override fun type(): StegType {
-        return StegType.AVKLAR_YRKESSKADE
     }
 }
