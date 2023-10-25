@@ -32,8 +32,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykepengerErstatn
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
-import no.nav.aap.behandlingsflyt.domene.Periode
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.flate.bistandsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.medlemskap.flate.medlemskapsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.meldeplikt.flate.meldepliktsgrunnlagApi
@@ -86,7 +85,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            if (cause is no.nav.aap.behandlingsflyt.domene.ElementNotFoundException) {
+            if (cause is ElementNotFoundException) {
                 call.respondText(status = HttpStatusCode.NotFound, text = "")
             } else {
                 LoggerFactory.getLogger(App::class.java)

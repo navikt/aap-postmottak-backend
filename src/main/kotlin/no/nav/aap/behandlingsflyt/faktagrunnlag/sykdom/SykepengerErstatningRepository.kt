@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.SykepengerVurdering
-import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.Behandling
 import java.util.concurrent.atomic.AtomicLong
 
 object SykepengerErstatningRepository {

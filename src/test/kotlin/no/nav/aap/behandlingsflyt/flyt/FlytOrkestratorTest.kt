@@ -13,11 +13,11 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.dbstuff.InitTestDatabase
-import no.nav.aap.behandlingsflyt.domene.Periode
-import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.behandling.Status
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.Periode
+import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.Status
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personinfo

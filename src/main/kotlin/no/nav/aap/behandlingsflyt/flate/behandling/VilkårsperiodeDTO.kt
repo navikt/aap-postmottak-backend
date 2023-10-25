@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flate.behandling
 
-import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Avslagsårsak
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Innvilgelsesårsak
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall

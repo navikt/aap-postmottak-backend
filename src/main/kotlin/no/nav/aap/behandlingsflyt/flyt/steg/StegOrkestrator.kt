@@ -1,9 +1,9 @@
 package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
-import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
-import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.StegTilstand
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import org.slf4j.LoggerFactory
 

@@ -1,6 +1,6 @@
-package no.nav.aap.behandlingsflyt.domene.behandling
+package no.nav.aap.behandlingsflyt.behandling
 
-import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
+import no.nav.aap.behandlingsflyt.ElementNotFoundException
 import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Revurdering

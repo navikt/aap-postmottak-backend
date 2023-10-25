@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov
+package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -21,11 +21,11 @@ const val FATTE_VEDTAK_KODE = "5099"
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
-        @JsonProperty("kode") val kode: String,
-        private val type: BehovType = BehovType.MANUELT,
-        @JsonIgnore private val defaultFrist: Period = Period.ZERO,
-        @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
-        val kreverToTrinn: Boolean = false
+    @JsonProperty("kode") val kode: String,
+    private val type: BehovType = BehovType.MANUELT,
+    @JsonIgnore private val defaultFrist: Period = Period.ZERO,
+    @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
+    val kreverToTrinn: Boolean = false
 ) {
     MANUELT_SATT_PÅ_VENT(
             kode = MANUELT_SATT_PÅ_VENT_KODE,

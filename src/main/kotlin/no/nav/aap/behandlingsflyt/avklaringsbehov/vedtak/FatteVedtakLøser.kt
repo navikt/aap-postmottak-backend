@@ -2,8 +2,8 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
-import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
 class FatteVedtakLøser : AvklaringsbehovsLøser<FatteVedtakLøsning> {

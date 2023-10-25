@@ -7,12 +7,12 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.student.AvklarStudentLøsning
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.AVKLAR_SYKDOM_KODE
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.FATTE_VEDTAK_KODE
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.FORESLÅ_VEDTAK_KODE
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.AVKLAR_STUDENT_KODE
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.MANUELT_SATT_PÅ_VENT_KODE
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AVKLAR_SYKDOM_KODE
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.FATTE_VEDTAK_KODE
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.FORESLÅ_VEDTAK_KODE
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AVKLAR_STUDENT_KODE
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.MANUELT_SATT_PÅ_VENT_KODE
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@type", visible = true)

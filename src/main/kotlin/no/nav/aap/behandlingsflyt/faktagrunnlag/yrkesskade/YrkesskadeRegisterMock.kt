@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
 import no.nav.aap.behandlingsflyt.sak.person.Ident
-import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.Periode
 
 object YrkesskadeRegisterMock {
 

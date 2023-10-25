@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår
 
-import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.Periode
 
 class Vilkårsperiode(
     val periode: Periode,

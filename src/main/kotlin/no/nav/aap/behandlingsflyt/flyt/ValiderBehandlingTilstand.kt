@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
-import no.nav.aap.behandlingsflyt.domene.behandling.Status
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.Status
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 
 object ValiderBehandlingTilstand {
     fun validerTilstandBehandling(

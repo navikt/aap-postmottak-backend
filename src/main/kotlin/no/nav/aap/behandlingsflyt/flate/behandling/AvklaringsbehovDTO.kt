@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.flate.behandling
 
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import java.time.LocalDateTime
 
 data class AvklaringsbehovDTO(

@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.behandlingstyper
 
-import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingType
+import no.nav.aap.behandlingsflyt.behandling.BehandlingType
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonopplysningService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt

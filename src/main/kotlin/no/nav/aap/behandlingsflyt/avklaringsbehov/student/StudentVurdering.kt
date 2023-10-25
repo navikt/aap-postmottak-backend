@@ -1,7 +1,7 @@
 
 package no.nav.aap.behandlingsflyt.avklaringsbehov.student
 
-import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import java.time.LocalDate
 
 data class StudentVurdering(

@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flate.sak
 
-import no.nav.aap.behandlingsflyt.domene.behandling.Status
+import no.nav.aap.behandlingsflyt.behandling.Status
 import java.time.LocalDateTime
 import java.util.*
 

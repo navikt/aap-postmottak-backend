@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.domene
+package no.nav.aap.behandlingsflyt
 
 import java.time.LocalDate
 

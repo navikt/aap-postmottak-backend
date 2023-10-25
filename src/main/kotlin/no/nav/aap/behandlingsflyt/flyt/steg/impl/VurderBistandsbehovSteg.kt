@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.domene.Periode
-import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.Periode
+import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandsRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository

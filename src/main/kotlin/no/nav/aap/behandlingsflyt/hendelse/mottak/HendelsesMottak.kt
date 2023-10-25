@@ -2,10 +2,10 @@ package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.dbstuff.transaction
-import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.behandling.EndringType
-import no.nav.aap.behandlingsflyt.domene.behandling.Status
-import no.nav.aap.behandlingsflyt.domene.behandling.Årsak
+import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.EndringType
+import no.nav.aap.behandlingsflyt.behandling.Status
+import no.nav.aap.behandlingsflyt.behandling.Årsak
 import no.nav.aap.behandlingsflyt.sak.person.Ident
 import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository

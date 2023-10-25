@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger
 
-import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.Behandling
 import java.util.concurrent.atomic.AtomicLong
 
 object PersoninformasjonRepository {

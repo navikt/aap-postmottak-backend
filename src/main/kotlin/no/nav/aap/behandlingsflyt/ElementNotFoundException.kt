@@ -1,3 +1,3 @@
-package no.nav.aap.behandlingsflyt.domene
+package no.nav.aap.behandlingsflyt
 
 class ElementNotFoundException : RuntimeException()

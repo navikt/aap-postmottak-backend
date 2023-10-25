@@ -5,8 +5,8 @@ import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.TotrinnsVurdering
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.faktagrunnlag.BehandlingReferanseService
 import no.nav.aap.behandlingsflyt.flate.behandling.BehandlingReferanse
 

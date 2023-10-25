@@ -2,8 +2,8 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag
 
 import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.dbstuff.MockConnection
-import no.nav.aap.behandlingsflyt.domene.Periode
-import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.Periode
+import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.sak.person.Ident
 import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository

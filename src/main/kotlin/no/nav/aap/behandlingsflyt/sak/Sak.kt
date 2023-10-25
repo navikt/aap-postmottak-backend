@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.sak
 
 import no.nav.aap.behandlingsflyt.sak.person.Person
-import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.Periode
 import java.util.*
 
 class Sak(

@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov
+package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
 import java.time.LocalDateTime
 

@@ -1,9 +1,9 @@
-package no.nav.aap.behandlingsflyt.domene.behandling
+package no.nav.aap.behandlingsflyt.behandling
 
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehovene
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Status.AVSLUTTET
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status.AVSLUTTET
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType

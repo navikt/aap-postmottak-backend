@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flate.behandling
 
-import no.nav.aap.behandlingsflyt.domene.behandling.Status
+import no.nav.aap.behandlingsflyt.behandling.Status
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import java.time.LocalDateTime
 import java.util.*

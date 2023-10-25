@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.sak
 
-import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
-import no.nav.aap.behandlingsflyt.domene.Periode
+import no.nav.aap.behandlingsflyt.ElementNotFoundException
+import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.sak.person.Person
 
 object SakRepository {
