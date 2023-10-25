@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
 import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.person.Person
 
-object Sakslager {
+object SakRepository {
     private var saker = HashMap<Long, Sak>()
 
     private val LOCK = Object()

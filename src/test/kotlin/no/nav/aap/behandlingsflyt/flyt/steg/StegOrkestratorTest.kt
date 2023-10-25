@@ -7,7 +7,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
-import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personinfo
@@ -34,7 +34,7 @@ class StegOrkestratorTest {
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(18))))
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
 
-        val sak = Sakslager.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
+        val sak = SakRepository.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
         val behandling = BehandlingTjeneste.opprettBehandling(sak.id, emptyList())
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
@@ -56,7 +56,7 @@ class StegOrkestratorTest {
 
     private fun initierVilkårenePåBehandlingen(behandling: Behandling) {
         val vilkårsresultat = behandling.vilkårsresultat()
-        val rettighetsperiode = Sakslager.hent(behandling.sakId).rettighetsperiode
+        val rettighetsperiode = SakRepository.hent(behandling.sakId).rettighetsperiode
         Vilkårtype.entries.forEach { vilkårstype ->
             vilkårsresultat.leggTilHvisIkkeEksisterer(vilkårstype).leggTilIkkeVurdertPeriode(rettighetsperiode)
         }

@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykepengerErstatningTjeneste
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
@@ -14,7 +14,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykepengerErstatningVilkå
 class VurderSykepengeErstatningSteg(private val behandlingTjeneste: BehandlingTjeneste) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
         val behandling = behandlingTjeneste.hent(input.kontekst.behandlingId)
-        val sak = Sakslager.hent(input.kontekst.sakId)
+        val sak = SakRepository.hent(input.kontekst.sakId)
 
         val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
         val bistandsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.BISTANDSVILKÅRET)

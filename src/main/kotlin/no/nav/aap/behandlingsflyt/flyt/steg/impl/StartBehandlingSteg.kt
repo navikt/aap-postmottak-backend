@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.SakRepository
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
@@ -14,7 +14,7 @@ class StartBehandlingSteg(private val behandlingTjeneste: BehandlingTjeneste) : 
 
         if (behandling.type == Førstegangsbehandling) {
             val vilkårsresultat = behandling.vilkårsresultat()
-            val rettighetsperiode = Sakslager.hent(behandling.sakId).rettighetsperiode
+            val rettighetsperiode = SakRepository.hent(behandling.sakId).rettighetsperiode
             Vilkårtype
                 .entries
                 .filter { it.obligatorisk }

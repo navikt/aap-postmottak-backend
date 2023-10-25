@@ -2,14 +2,14 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
 import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
-import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
 class YrkesskadeService : Grunnlag {
 
     override fun oppdater(transaksjonsconnection: DbConnection, kontekst: FlytKontekst): Boolean {
-        val sak = Sakslager.hent(kontekst.sakId)
+        val sak = SakRepository.hent(kontekst.sakId)
         val person = Personlager.hent(sak.person.identifikator)
         val behandlingId = kontekst.behandlingId
 

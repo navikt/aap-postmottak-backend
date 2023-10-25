@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.Status
 import no.nav.aap.behandlingsflyt.domene.behandling.Årsak
 import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
-import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.SakRepository
 import no.nav.aap.behandlingsflyt.domene.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.flyt.AvklaringsbehovOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
@@ -25,7 +25,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
     fun håndtere(key: Ident, hendelse: PersonHendelse) {
         val person = Personlager.finnEllerOpprett(key)
 
-        val sak = Sakslager.finnEllerOpprett(person, hendelse.periode())
+        val sak = SakRepository.finnEllerOpprett(person, hendelse.periode())
 
         // Legg til kø for sak, men mocker ved å kalle videre bare
 
@@ -33,7 +33,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
     }
 
     fun håndtere(key: Saksnummer, hendelse: SakHendelse) {
-        val sak = Sakslager.hent(key)
+        val sak = SakRepository.hent(key)
         val sisteBehandlingOpt = BehandlingTjeneste.finnSisteBehandlingFor(sak.id)
 
         val sisteBehandling = if (sisteBehandlingOpt != null && !sisteBehandlingOpt.status().erAvsluttet()) {
@@ -53,7 +53,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
             val behandling = BehandlingTjeneste.hent(key)
             ValiderBehandlingTilstand.validerTilstandBehandling(behandling = behandling)
 
-            val sak = Sakslager.hent(behandling.sakId)
+            val sak = SakRepository.hent(behandling.sakId)
 
             val kontekst = FlytKontekst(sakId = sak.id, behandlingId = behandling.id)
             val avklaringsbehovKontroller = AvklaringsbehovOrkestrator(connection)
@@ -69,7 +69,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
             val behandling = BehandlingTjeneste.hent(key)
             ValiderBehandlingTilstand.validerTilstandBehandling(behandling = behandling)
 
-            val sak = Sakslager.hent(behandling.sakId)
+            val sak = SakRepository.hent(behandling.sakId)
 
             val kontekst = FlytKontekst(sakId = sak.id, behandlingId = behandling.id)
             val kontroller = FlytOrkestrator(connection)
@@ -82,7 +82,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
             val behandling = BehandlingTjeneste.hent(key)
             ValiderBehandlingTilstand.validerTilstandBehandling(behandling = behandling)
 
-            val sak = Sakslager.hent(behandling.sakId)
+            val sak = SakRepository.hent(behandling.sakId)
 
             val kontekst = FlytKontekst(sakId = sak.id, behandlingId = behandling.id)
             if (hendelse is LøsAvklaringsbehovBehandlingHendelse) {

@@ -20,7 +20,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
-import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personinfo
@@ -75,7 +75,7 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
         ventPåSvar()
 
-        val sak = Sakslager.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
+        val sak = SakRepository.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
         val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
@@ -208,7 +208,7 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
         ventPåSvar()
 
-        val sak = Sakslager.finnEllerOpprett(person, periode)
+        val sak = SakRepository.finnEllerOpprett(person, periode)
         val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
@@ -235,7 +235,7 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
         ventPåSvar()
 
-        val sak = Sakslager.finnSakerFor(Personlager.finnEllerOpprett(ident)).single()
+        val sak = SakRepository.finnSakerFor(Personlager.finnEllerOpprett(ident)).single()
         val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
 
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)

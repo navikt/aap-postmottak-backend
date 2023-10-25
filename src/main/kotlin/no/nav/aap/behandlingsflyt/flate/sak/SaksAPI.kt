@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
-import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.SakRepository
 import no.nav.aap.behandlingsflyt.domene.sak.Saksnummer
 
 fun NormalOpenAPIRoute.saksApi() {
@@ -21,7 +21,7 @@ fun NormalOpenAPIRoute.saksApi() {
             if (person == null) {
                 throw ElementNotFoundException()
             } else {
-                val saker = Sakslager.finnSakerFor(person)
+                val saker = SakRepository.finnSakerFor(person)
                     .map { sak ->
                         SaksinfoDTO(
                             saksnummer = sak.saksnummer.toString(),
@@ -34,7 +34,7 @@ fun NormalOpenAPIRoute.saksApi() {
         }
         route("") {
             route("/alle").get<Unit, List<SaksinfoDTO>> {
-                val saker = Sakslager.finnAlle()
+                val saker = SakRepository.finnAlle()
                     .map { sak ->
                         SaksinfoDTO(
                             saksnummer = sak.saksnummer.toString(),
@@ -47,7 +47,7 @@ fun NormalOpenAPIRoute.saksApi() {
             route("/{saksnummer}").get<HentSakDTO, UtvidetSaksinfoDTO> { req ->
                 val saksnummer = req.saksnummer
 
-                val sak = Sakslager.hent(saksnummer = Saksnummer(saksnummer))
+                val sak = SakRepository.hent(saksnummer = Saksnummer(saksnummer))
 
                 val behandlinger = BehandlingTjeneste.hentAlleFor(sak.id).map { behandling ->
                     BehandlinginfoDTO(

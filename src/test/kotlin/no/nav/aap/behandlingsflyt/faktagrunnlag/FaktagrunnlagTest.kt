@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
-import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
+import no.nav.aap.behandlingsflyt.domene.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personinfo
@@ -22,7 +22,7 @@ class FaktagrunnlagTest {
 
     val ident = Ident("123123123123")
     val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
-    val sak = Sakslager.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
+    val sak = SakRepository.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
     val behandling =
         BehandlingTjeneste.finnSisteBehandlingFor(sak.id) ?: BehandlingTjeneste.opprettBehandling(sak.id, listOf())
     val kontekst = FlytKontekst(sak.id, behandling.id)
