@@ -17,9 +17,10 @@ private val log = LoggerFactory.getLogger(FlytOrkestrator::class.java)
  * Har ansvar for å drive flyten til en gitt behandling. Typen behandling styrer hvilke steg som skal utføres.
  */
 class FlytOrkestrator(
-    private val faktagrunnlag: Faktagrunnlag,
     private val transaksjonsconnection: DbConnection
 ) {
+
+    private val faktagrunnlag = Faktagrunnlag(transaksjonsconnection)
 
     fun forberedBehandling(kontekst: FlytKontekst) {
         val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)

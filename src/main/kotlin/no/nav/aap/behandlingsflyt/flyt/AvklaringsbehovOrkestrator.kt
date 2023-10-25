@@ -15,7 +15,6 @@ import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
 import no.nav.aap.behandlingsflyt.prosessering.Gruppe
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
@@ -68,7 +67,7 @@ class AvklaringsbehovOrkestrator(private val connection: DbConnection) {
         ValiderBehandlingTilstand.validerTilstandBehandling(behandling, definisjoner)
 
         // løses det behov som fremtvinger tilbakehopp?
-        val flytOrkestrator = FlytOrkestrator(Faktagrunnlag(), connection)
+        val flytOrkestrator = FlytOrkestrator(connection)
         flytOrkestrator.forberedLøsingAvBehov(definisjoner, behandling, kontekst)
 
         // Bør ideelt kalle på

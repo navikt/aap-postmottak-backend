@@ -10,7 +10,6 @@ import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.domene.sak.Saksnummer
-import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.AvklaringsbehovOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
@@ -73,7 +72,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
             val sak = Sakslager.hent(behandling.sakId)
 
             val kontekst = FlytKontekst(sakId = sak.id, behandlingId = behandling.id)
-            val kontroller = FlytOrkestrator(Faktagrunnlag(), connection)
+            val kontroller = FlytOrkestrator(connection)
             kontroller.settBehandlingPåVent(kontekst)
         }
     }

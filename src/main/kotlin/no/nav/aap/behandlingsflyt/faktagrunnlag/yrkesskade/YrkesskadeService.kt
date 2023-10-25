@@ -1,13 +1,14 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
+import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
-class YrkesskadeService : Grunnlag<YrkesskadeGrunnlag> {
+class YrkesskadeService : Grunnlag {
 
-    override fun oppdater(kontekst: FlytKontekst): Boolean {
+    override fun oppdater(transaksjonsconnection: DbConnection, kontekst: FlytKontekst): Boolean {
         val sak = Sakslager.hent(kontekst.sakId)
         val person = Personlager.hent(sak.person.identifikator)
         val behandlingId = kontekst.behandlingId
@@ -27,9 +28,5 @@ class YrkesskadeService : Grunnlag<YrkesskadeGrunnlag> {
         val nyeData = YrkesskadeRepository.hentHvisEksisterer(behandlingId)
 
         return nyeData == gamleData
-    }
-
-    override fun hent(kontekst: FlytKontekst): YrkesskadeGrunnlag? {
-        return YrkesskadeRepository.hentHvisEksisterer(kontekst.behandlingId)
     }
 }

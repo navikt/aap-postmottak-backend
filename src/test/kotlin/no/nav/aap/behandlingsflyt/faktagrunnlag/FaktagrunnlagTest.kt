@@ -1,16 +1,18 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag
 
+import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
+import no.nav.aap.behandlingsflyt.dbstuff.MockConnection
 import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.domene.person.Ident
 import no.nav.aap.behandlingsflyt.domene.person.Personlager
 import no.nav.aap.behandlingsflyt.domene.sak.Sakslager
-import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
-import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personinfo
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
+import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -30,9 +32,11 @@ class FaktagrunnlagTest {
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(18))))
     }
 
+    private val dbConnection = DbConnection(MockConnection())
+
     @Test
     fun `Yrkesskadedata er oppdatert`() {
-        val faktagrunnlag = Faktagrunnlag()
+        val faktagrunnlag = Faktagrunnlag(dbConnection)
 
         faktagrunnlag.oppdaterFaktagrunnlagForKravliste(listOf(YrkesskadeService()), kontekst)
         val erOppdatert = faktagrunnlag.oppdaterFaktagrunnlagForKravliste(listOf(YrkesskadeService()), kontekst)
@@ -42,7 +46,7 @@ class FaktagrunnlagTest {
 
     @Test
     fun `Yrkesskadedata er ikke oppdatert`() {
-        val faktagrunnlag = Faktagrunnlag()
+        val faktagrunnlag = Faktagrunnlag(dbConnection)
 
         val yrkesskadeService = YrkesskadeService()
 
@@ -57,7 +61,7 @@ class FaktagrunnlagTest {
 
     @Test
     fun `Yrkesskadedata er utdatert, men har ingen endring fra registeret`() {
-        val faktagrunnlag = Faktagrunnlag()
+        val faktagrunnlag = Faktagrunnlag(dbConnection)
 
         val erOppdatert = faktagrunnlag.oppdaterFaktagrunnlagForKravliste(listOf(YrkesskadeService()), kontekst)
 

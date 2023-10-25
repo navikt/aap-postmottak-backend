@@ -1,11 +1,12 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag
 
+import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
-class Faktagrunnlag {
+class Faktagrunnlag(private val transaksjonsconnection: DbConnection) {
 
-    fun oppdaterFaktagrunnlagForKravliste(kravliste: List<Grunnlag<*>>, kontekst: FlytKontekst): List<Grunnlag<*>> {
+    fun oppdaterFaktagrunnlagForKravliste(kravliste: List<Grunnlag>, kontekst: FlytKontekst): List<Grunnlag> {
         // Hva gir dette leddet?
-        return kravliste.filterNot { grunnlagstype -> grunnlagstype.oppdater(kontekst) }
+        return kravliste.filterNot { grunnlagstype -> grunnlagstype.oppdater(transaksjonsconnection, kontekst) }
     }
 }

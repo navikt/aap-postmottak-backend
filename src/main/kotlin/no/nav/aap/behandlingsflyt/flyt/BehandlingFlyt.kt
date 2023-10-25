@@ -20,7 +20,7 @@ class BehandlingFlyt private constructor(
 
     class Behandlingsflytsteg(
         val steg: FlytSteg,
-        val kravliste: List<Grunnlag<*>>,
+        val kravliste: List<Grunnlag>,
         val oppdaterFaktagrunnlag: Boolean
     )
 
@@ -33,11 +33,11 @@ class BehandlingFlyt private constructor(
         parent = null
     )
 
-    fun faktagrunnlagForGjeldendeSteg(): List<Grunnlag<*>> {
+    fun faktagrunnlagForGjeldendeSteg(): List<Grunnlag> {
         return aktivtSteg?.kravliste ?: emptyList()
     }
 
-    fun faktagrunnlagFremTilGjeldendeSteg(): List<Grunnlag<*>> {
+    fun faktagrunnlagFremTilGjeldendeSteg(): List<Grunnlag> {
         if (aktivtSteg?.oppdaterFaktagrunnlag != true){
             return emptyList()
         }
@@ -147,7 +147,7 @@ class BehandlingFlyt private constructor(
         )
     }
 
-    fun tilbakeflytEtterEndringer(oppdaterteGrunnlagstype: List<Grunnlag<*>>): BehandlingFlyt {
+    fun tilbakeflytEtterEndringer(oppdaterteGrunnlagstype: List<Grunnlag>): BehandlingFlyt {
         val skalTilSteg = flyt.filter { it.kravliste.any { at -> oppdaterteGrunnlagstype.contains(at) } }.map { it.steg.type() }.minWithOrNull(compareable())
 
         if (skalTilSteg == null) {
@@ -191,7 +191,7 @@ class BehandlingFlytBuilder {
     fun medSteg(
         steg: FlytSteg,
         vararg endringer: EndringType,
-        informasjonskrav: List<Grunnlag<*>> = emptyList()
+        informasjonskrav: List<Grunnlag> = emptyList()
     ): BehandlingFlytBuilder {
         if (buildt) {
             throw IllegalStateException("[Utvikler feil] Builder er allerede bygget")
