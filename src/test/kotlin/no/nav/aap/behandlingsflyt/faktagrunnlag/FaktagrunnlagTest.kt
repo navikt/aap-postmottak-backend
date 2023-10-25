@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag
 import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.dbstuff.MockConnection
 import no.nav.aap.behandlingsflyt.Periode
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sak.person.Ident
 import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
@@ -24,7 +24,7 @@ class FaktagrunnlagTest {
     val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
     val sak = SakRepository.finnEllerOpprett(PersonRepository.finnEllerOpprett(ident), periode)
     val behandling =
-        BehandlingTjeneste.finnSisteBehandlingFor(sak.id) ?: BehandlingTjeneste.opprettBehandling(sak.id, listOf())
+        BehandlingRepository.finnSisteBehandlingFor(sak.id) ?: BehandlingRepository.opprettBehandling(sak.id, listOf())
     val kontekst = FlytKontekst(sak.id, behandling.id)
 
     @BeforeEach

@@ -6,7 +6,7 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.ElementNotFoundException
 import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.StegGruppe
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
@@ -140,7 +140,7 @@ private fun behandling(req: BehandlingReferanse): Behandling {
         throw ElementNotFoundException()
     }
 
-    val behandling = BehandlingTjeneste.hent(eksternReferanse)
+    val behandling = BehandlingRepository.hent(eksternReferanse)
     return behandling
 }
 

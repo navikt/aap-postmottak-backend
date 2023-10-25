@@ -13,7 +13,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøser
 import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.prosessering.Gruppe
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
@@ -59,7 +59,7 @@ class AvklaringsbehovOrkestrator(private val connection: DbConnection) {
         kontekst: FlytKontekst,
         avklaringsbehov: List<AvklaringsbehovLøsning>
     ) {
-        val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
+        val behandling = BehandlingRepository.hent(kontekst.behandlingId)
         log.info("Forsøker løse avklaringsbehov på behandling[${behandling.referanse}")
 
         val definisjoner = avklaringsbehov.map { løsning -> løsning.definisjon() }

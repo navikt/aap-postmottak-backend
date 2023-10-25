@@ -14,7 +14,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.dbstuff.InitTestDatabase
 import no.nav.aap.behandlingsflyt.Periode
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.Status
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
@@ -76,7 +76,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         val sak = SakRepository.finnEllerOpprett(PersonRepository.finnEllerOpprett(ident), periode)
-        val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
+        val behandling = requireNotNull(BehandlingRepository.finnSisteBehandlingFor(sak.id))
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
         assertThat(behandling.avklaringsbehov()).isNotEmpty()
@@ -209,7 +209,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         val sak = SakRepository.finnEllerOpprett(person, periode)
-        val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
+        val behandling = requireNotNull(BehandlingRepository.finnSisteBehandlingFor(sak.id))
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
         val stegHistorikk = behandling.stegHistorikk()
@@ -236,7 +236,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         val sak = SakRepository.finnSakerFor(PersonRepository.finnEllerOpprett(ident)).single()
-        val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
+        val behandling = requireNotNull(BehandlingRepository.finnSisteBehandlingFor(sak.id))
 
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }

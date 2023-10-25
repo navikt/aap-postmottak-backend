@@ -7,7 +7,7 @@ import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Revurdering
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
-object BehandlingTjeneste {
+object BehandlingRepository {
     private var behandliger = HashMap<Long, Behandling>()
     private val key = AtomicLong()
 

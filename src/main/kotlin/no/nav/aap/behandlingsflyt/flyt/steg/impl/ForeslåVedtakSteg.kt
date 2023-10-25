@@ -1,14 +1,14 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 
-class ForeslåVedtakSteg(private val behandlingTjeneste: BehandlingTjeneste) : BehandlingSteg {
+class ForeslåVedtakSteg(private val behandlingService: BehandlingService) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
-        val behandling = behandlingTjeneste.hent(input.kontekst.behandlingId)
+        val behandling = behandlingService.hent(input.kontekst.behandlingId)
 
         if (behandling.harHattAvklaringsbehov() && behandling.harIkkeForeslåttVedtak()) {
             return StegResultat(listOf(Definisjon.FORESLÅ_VEDTAK))
@@ -18,7 +18,7 @@ class ForeslåVedtakSteg(private val behandlingTjeneste: BehandlingTjeneste) : B
     }
 
     override fun vedTilbakeføring(input: StegInput) {
-        val behandling = behandlingTjeneste.hent(input.kontekst.behandlingId)
+        val behandling = behandlingService.hent(input.kontekst.behandlingId)
         val avklaringsbehovene = behandling.avklaringsbehovene()
         val relevanteBehov = avklaringsbehovene.hentBehovForDefinisjon(listOf(Definisjon.FORESLÅ_VEDTAK))
 

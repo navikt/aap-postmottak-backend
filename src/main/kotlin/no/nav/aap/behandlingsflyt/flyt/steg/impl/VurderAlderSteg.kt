@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersoninformasjonRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
@@ -9,12 +9,13 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
 
-class VurderAlderSteg(private val behandlingTjeneste: BehandlingTjeneste) : BehandlingSteg {
+class VurderAlderSteg(private val behandlingService: BehandlingService) : BehandlingSteg {
 
     override fun utfør(input: StegInput): StegResultat {
 
-        val behandling = behandlingTjeneste.hent(input.kontekst.behandlingId)
+        val behandling = behandlingService.hent(input.kontekst.behandlingId)
 
+        //TODO: Trekk ut PeriodeTilVurderinTjeneste som en dependency
         val periodeTilVurdering =
             PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.ALDERSVILKÅRET)
 

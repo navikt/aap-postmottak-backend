@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykepengerErstatningRepository
@@ -10,7 +10,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykepengerErstatningRepos
 class AvklarSykepengerErstatningLøser : AvklaringsbehovsLøser<AvklarSykepengerErstatningLøsning> {
 
     override fun løs(kontekst: FlytKontekst, løsning: AvklarSykepengerErstatningLøsning): LøsningsResultat {
-        val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
+        val behandling = BehandlingRepository.hent(kontekst.behandlingId)
 
         SykepengerErstatningRepository.lagre(
             behandlingId = behandling.id,

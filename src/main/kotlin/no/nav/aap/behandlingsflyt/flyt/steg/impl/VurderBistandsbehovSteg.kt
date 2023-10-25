@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.Periode
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandsRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
@@ -16,12 +16,12 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
 
 class VurderBistandsbehovSteg(
-    private val behandlingTjeneste: BehandlingTjeneste,
+    private val behandlingService: BehandlingService,
     private val studentRepository: StudentRepository
 ) : BehandlingSteg {
 
     override fun utfør(input: StegInput): StegResultat {
-        val behandling = behandlingTjeneste.hent(input.kontekst.behandlingId)
+        val behandling = behandlingService.hent(input.kontekst.behandlingId)
 
         val periodeTilVurdering =
             PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.BISTANDSVILKÅRET)

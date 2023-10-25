@@ -1,7 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
-import no.nav.aap.behandlingsflyt.sak.SakRepository
+import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
@@ -10,12 +9,12 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.sak.SakService
 
 class StartBehandlingSteg(
-    private val behandlingTjeneste: BehandlingTjeneste,
+    private val behandlingService: BehandlingService,
     private val sakService: SakService
 ) : BehandlingSteg {
 
     override fun utfør(input: StegInput): StegResultat {
-        val behandling = behandlingTjeneste.hent(input.kontekst.behandlingId)
+        val behandling = behandlingService.hent(input.kontekst.behandlingId)
 
         if (behandling.type == Førstegangsbehandling) {
             val vilkårsresultat = behandling.vilkårsresultat()

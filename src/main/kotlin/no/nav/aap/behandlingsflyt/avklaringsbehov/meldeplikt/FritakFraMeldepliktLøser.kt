@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov.meldeplikt
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.faktagrunnlag.meldeplikt.MeldepliktRepository
@@ -10,7 +10,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.meldeplikt.MeldepliktRepository
 class FritakFraMeldepliktLøser : AvklaringsbehovsLøser<FritakMeldepliktLøsning> {
 
     override fun løs(kontekst: FlytKontekst, løsning: FritakMeldepliktLøsning): LøsningsResultat {
-        val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
+        val behandling = BehandlingRepository.hent(kontekst.behandlingId)
 
         val meldepliktGrunnlag = MeldepliktRepository.hentHvisEksisterer(behandling.id)
 

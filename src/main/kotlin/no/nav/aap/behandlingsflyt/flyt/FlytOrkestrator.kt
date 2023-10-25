@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
@@ -23,7 +23,7 @@ class FlytOrkestrator(
     private val faktagrunnlag = Faktagrunnlag(transaksjonsconnection)
 
     fun forberedBehandling(kontekst: FlytKontekst) {
-        val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
+        val behandling = BehandlingRepository.hent(kontekst.behandlingId)
 
         ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf())
 
@@ -51,7 +51,7 @@ class FlytOrkestrator(
     }
 
     fun prosesserBehandling(kontekst: FlytKontekst) {
-        val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
+        val behandling = BehandlingRepository.hent(kontekst.behandlingId)
 
         ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf())
 
@@ -168,7 +168,7 @@ class FlytOrkestrator(
     }
 
     fun settBehandlingPåVent(kontekst: FlytKontekst) {
-        val behandling = BehandlingTjeneste.hent(kontekst.behandlingId)
+        val behandling = BehandlingRepository.hent(kontekst.behandlingId)
         behandling.settPåVent()
     }
 }

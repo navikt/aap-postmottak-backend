@@ -6,7 +6,7 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.ElementNotFoundException
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sak.person.Ident
 import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
@@ -49,7 +49,7 @@ fun NormalOpenAPIRoute.saksApi() {
 
                 val sak = SakRepository.hent(saksnummer = Saksnummer(saksnummer))
 
-                val behandlinger = BehandlingTjeneste.hentAlleFor(sak.id).map { behandling ->
+                val behandlinger = BehandlingRepository.hentAlleFor(sak.id).map { behandling ->
                     BehandlinginfoDTO(
                         referanse = behandling.referanse,
                         type = behandling.type.identifikator(),

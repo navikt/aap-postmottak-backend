@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Endring
@@ -9,9 +9,9 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegInput
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 
-class FritakMeldepliktSteg(private val behandlingTjeneste: BehandlingTjeneste) : BehandlingSteg {
+class FritakMeldepliktSteg(private val behandlingService: BehandlingService) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
-        val behandling = behandlingTjeneste.hent(input.kontekst.behandlingId)
+        val behandling = behandlingService.hent(input.kontekst.behandlingId)
 
         val avklaringsbehovene = behandling.avklaringsbehovene()
         val avklaringsbehov = avklaringsbehovene.hentBehovForDefinisjon(Definisjon.FRITAK_MELDEPLIKT)

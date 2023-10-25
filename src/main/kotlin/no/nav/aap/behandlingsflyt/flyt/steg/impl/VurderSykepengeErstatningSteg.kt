@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykepengerErstatningRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
@@ -12,11 +12,11 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykepengerErstatningVilkå
 import no.nav.aap.behandlingsflyt.sak.SakService
 
 class VurderSykepengeErstatningSteg(
-    private val behandlingTjeneste: BehandlingTjeneste,
+    private val behandlingService: BehandlingService,
     private val sakService: SakService
 ) : BehandlingSteg {
     override fun utfør(input: StegInput): StegResultat {
-        val behandling = behandlingTjeneste.hent(input.kontekst.behandlingId)
+        val behandling = behandlingService.hent(input.kontekst.behandlingId)
         val sak = sakService.hent(input.kontekst.sakId)
 
         val sykdomsvilkåret = behandling.vilkårsresultat().finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)

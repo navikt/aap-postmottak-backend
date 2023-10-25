@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.dbstuff.MockConnection
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.behandlingsflyt.behandling.BehandlingTjeneste
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sak.person.Ident
 import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
@@ -35,7 +35,7 @@ class StegOrkestratorTest {
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
 
         val sak = SakRepository.finnEllerOpprett(PersonRepository.finnEllerOpprett(ident), periode)
-        val behandling = BehandlingTjeneste.opprettBehandling(sak.id, emptyList())
+        val behandling = BehandlingRepository.opprettBehandling(sak.id, emptyList())
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
         initierVilkårenePåBehandlingen(behandling)
