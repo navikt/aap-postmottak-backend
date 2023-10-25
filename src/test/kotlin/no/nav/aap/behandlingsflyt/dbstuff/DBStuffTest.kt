@@ -10,7 +10,7 @@ internal class DBStuffTest : DatabaseTestBase() {
         val result = InitTestDatabase.dataSource.transaction { connection ->
             connection.prepareExecuteStatement("INSERT INTO test VALUES ('1')") {}
             connection.prepareQueryStatement("SELECT test FROM test") {
-                setRowMapper { getString("test") }
+                setRowMapper { row -> row.getString("test") }
                 setResultMapper { it.first() }
             }
         }

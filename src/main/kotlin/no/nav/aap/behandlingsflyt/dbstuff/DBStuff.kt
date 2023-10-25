@@ -91,14 +91,14 @@ class DbConnection(private val connection: Connection) {
 }
 
 class PreparedQueryStatement<T : Any, R>(private val preparedStatement: PreparedStatement) {
-    private lateinit var rowMapper: Row.() -> T
+    private lateinit var rowMapper: (Row) -> T
     private lateinit var resultMapper: (Sequence<T>) -> R
 
     fun setParams(block: Params.() -> Unit) {
         Params(preparedStatement).block()
     }
 
-    fun setRowMapper(block: Row.() -> T) {
+    fun setRowMapper(block: (Row) -> T) {
         rowMapper = block
     }
 
@@ -110,7 +110,7 @@ class PreparedQueryStatement<T : Any, R>(private val preparedStatement: Prepared
         val resultSet = preparedStatement.executeQuery()
         return resultSet
             .map { currentResultSet ->
-                Row(currentResultSet).rowMapper()
+                rowMapper(Row(currentResultSet))
             }
             .let(resultMapper)
 
