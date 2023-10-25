@@ -59,10 +59,10 @@ import javax.sql.DataSource
 class App
 
 fun main() {
-    embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
+    embeddedServer(Netty, port = 8080) { server(DbConfig()) }.start(wait = true)
 }
 
-internal fun Application.server() {
+internal fun Application.server(dbConfig: DbConfig) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
     install(MicrometerMetrics) { registry = prometheus }
@@ -124,13 +124,13 @@ internal fun Application.server() {
             actuator(prometheus)
         }
     }
-    module()
+    module(dbConfig)
 }
 
-val dataSource = initDatasource(DbConfig())
-val motor = Motor(dataSource)
+fun Application.module(dbConfig: DbConfig) {
+    val dataSource = initDatasource(dbConfig)
+    val motor = Motor(dataSource)
 
-fun Application.module() {
     environment.monitor.subscribe(ApplicationStarted) {
         motor.start()
     }
