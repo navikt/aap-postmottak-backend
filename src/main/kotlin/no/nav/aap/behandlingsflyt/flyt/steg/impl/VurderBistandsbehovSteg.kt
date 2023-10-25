@@ -17,14 +17,15 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
 
 class VurderBistandsbehovSteg(
     private val behandlingService: BehandlingService,
-    private val studentRepository: StudentRepository
+    private val studentRepository: StudentRepository,
+    private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
 
     override fun utfør(input: StegInput): StegResultat {
         val behandling = behandlingService.hent(input.kontekst.behandlingId)
 
         val periodeTilVurdering =
-            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.BISTANDSVILKÅRET)
+            periodeTilVurderingService.utled(behandling = behandling, vilkår = Vilkårtype.BISTANDSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
 

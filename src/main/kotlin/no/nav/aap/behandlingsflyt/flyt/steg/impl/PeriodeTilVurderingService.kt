@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.sak.SakService
 
-object PeriodeTilVurderingTjeneste {
+object PeriodeTilVurderingService {
 
     fun utled(behandling: Behandling, vilkår: Vilkårtype): Set<Periode> {
         if (behandling.type == Førstegangsbehandling) {

@@ -9,7 +9,10 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
 
-class VurderAlderSteg(private val behandlingService: BehandlingService) : BehandlingSteg {
+class VurderAlderSteg(
+    private val behandlingService: BehandlingService,
+    private val periodeTilVurderingService: PeriodeTilVurderingService
+) : BehandlingSteg {
 
     override fun utfør(input: StegInput): StegResultat {
 
@@ -17,7 +20,7 @@ class VurderAlderSteg(private val behandlingService: BehandlingService) : Behand
 
         //TODO: Trekk ut PeriodeTilVurderinTjeneste som en dependency
         val periodeTilVurdering =
-            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.ALDERSVILKÅRET)
+            periodeTilVurderingService.utled(behandling = behandling, vilkår = Vilkårtype.ALDERSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
             val personinfoGrunnlag = PersoninformasjonRepository.hentHvisEksisterer(input.kontekst.behandlingId)

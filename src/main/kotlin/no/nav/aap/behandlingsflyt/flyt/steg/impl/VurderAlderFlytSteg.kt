@@ -9,7 +9,9 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 object VurderAlderFlytSteg : FlytSteg {
 
     override fun konstruer(connection: DbConnection): BehandlingSteg {
-        return VurderAlderSteg(BehandlingService(connection))
+        return VurderAlderSteg(
+            BehandlingService(connection),
+            PeriodeTilVurderingService)
     }
 
     override fun type() = StegType.VURDER_ALDER

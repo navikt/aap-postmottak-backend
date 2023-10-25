@@ -15,14 +15,15 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
 class VurderYrkesskadeÅrsakssammenhengSteg(
     private val behandlingService: BehandlingService,
-    private val studentRepository: StudentRepository
+    private val studentRepository: StudentRepository,
+    private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
 
     override fun utfør(input: StegInput): StegResultat {
         val behandling = behandlingService.hent(input.kontekst.behandlingId)
 
         val periodeTilVurdering =
-            PeriodeTilVurderingTjeneste.utled(behandling = behandling, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
+            periodeTilVurderingService.utled(behandling = behandling, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
             val yrkesskadeGrunnlag = YrkesskadeRepository.hentHvisEksisterer(behandlingId = behandling.id)

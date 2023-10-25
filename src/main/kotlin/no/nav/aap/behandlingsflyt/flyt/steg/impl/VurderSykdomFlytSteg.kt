@@ -10,7 +10,10 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 object VurderSykdomFlytSteg : FlytSteg {
 
     override fun konstruer(connection: DbConnection): BehandlingSteg {
-        return VurderSykdomSteg(BehandlingService(connection), InMemoryStudentRepository)
+        return VurderSykdomSteg(
+            BehandlingService(connection),
+            InMemoryStudentRepository,
+            PeriodeTilVurderingService)
     }
 
     override fun type(): StegType {
