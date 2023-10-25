@@ -5,11 +5,14 @@ import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
+import no.nav.aap.behandlingsflyt.sak.SakService
 
 class YrkesskadeService : Grunnlag {
 
     override fun oppdater(transaksjonsconnection: DbConnection, kontekst: FlytKontekst): Boolean {
-        val sak = SakRepository.hent(kontekst.sakId)
+        val sakService = SakService(transaksjonsconnection)
+        val sak = sakService.hent(kontekst.sakId)
+        //TODO: Trenger ikke PersonRepository når vi finner identer via sak
         val person = PersonRepository.hent(sak.person.identifikator)
         val behandlingId = kontekst.behandlingId
 
