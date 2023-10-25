@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.steg
 
+import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.domene.behandling.Behandling
 import no.nav.aap.behandlingsflyt.domene.behandling.StegTilstand
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Avklaringsbehov
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
 
-class StegOrkestrator(private val aktivtSteg: BehandlingSteg) {
+class StegOrkestrator(private val transaksjonsconnection: DbConnection, private val aktivtSteg: BehandlingSteg) {
 
     fun utfør(
         kontekst: FlytKontekst,
@@ -75,14 +76,14 @@ class StegOrkestrator(private val aktivtSteg: BehandlingSteg) {
     }
 
     private fun behandleStegBakover(steg: BehandlingSteg, kontekst: FlytKontekst): Transisjon {
-        val input = StegInput(kontekst)
+        val input = StegInput(kontekst, transaksjonsconnection)
         steg.vedTilbakeføring(input)
 
         return Fortsett
     }
 
     private fun behandleSteg(steg: BehandlingSteg, kontekst: FlytKontekst): Transisjon {
-        val input = StegInput(kontekst)
+        val input = StegInput(kontekst, transaksjonsconnection)
         val stegResultat = steg.utfør(input)
 
         return stegResultat.transisjon()

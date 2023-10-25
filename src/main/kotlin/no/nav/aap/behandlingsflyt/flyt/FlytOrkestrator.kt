@@ -77,7 +77,7 @@ class FlytOrkestrator(
 
             transaksjonsconnection.markerSavepoint()
 
-            val result = StegOrkestrator(gjeldendeSteg).utfør(kontekst, behandling)
+            val result = StegOrkestrator(transaksjonsconnection, gjeldendeSteg).utfør(kontekst, behandling)
 
             if (result.erTilbakeføring()) {
                 val tilbakeføringsflyt =
@@ -129,7 +129,7 @@ class FlytOrkestrator(
                 loggStopp(kontekst, behandling)
                 return
             }
-            StegOrkestrator(neste).utførTilbakefør(
+            StegOrkestrator(transaksjonsconnection, neste).utførTilbakefør(
                 kontekst = kontekst,
                 behandling = behandling
             )
