@@ -7,7 +7,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.EndringType
 import no.nav.aap.behandlingsflyt.domene.behandling.Status
 import no.nav.aap.behandlingsflyt.domene.behandling.Årsak
 import no.nav.aap.behandlingsflyt.sak.person.Ident
-import no.nav.aap.behandlingsflyt.sak.person.Personlager
+import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
 import no.nav.aap.behandlingsflyt.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.flyt.AvklaringsbehovOrkestrator
@@ -23,7 +23,7 @@ import javax.sql.DataSource
 class HendelsesMottak(private val dataSource: DataSource) {
 
     fun håndtere(key: Ident, hendelse: PersonHendelse) {
-        val person = Personlager.finnEllerOpprett(key)
+        val person = PersonRepository.finnEllerOpprett(key)
 
         val sak = SakRepository.finnEllerOpprett(person, hendelse.periode())
 

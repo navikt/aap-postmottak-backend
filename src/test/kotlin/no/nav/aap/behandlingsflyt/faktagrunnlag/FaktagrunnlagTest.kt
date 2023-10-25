@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.dbstuff.MockConnection
 import no.nav.aap.behandlingsflyt.domene.Periode
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.sak.person.Ident
-import no.nav.aap.behandlingsflyt.sak.person.Personlager
+import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonRegisterMock
@@ -22,7 +22,7 @@ class FaktagrunnlagTest {
 
     val ident = Ident("123123123123")
     val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
-    val sak = SakRepository.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
+    val sak = SakRepository.finnEllerOpprett(PersonRepository.finnEllerOpprett(ident), periode)
     val behandling =
         BehandlingTjeneste.finnSisteBehandlingFor(sak.id) ?: BehandlingTjeneste.opprettBehandling(sak.id, listOf())
     val kontekst = FlytKontekst(sak.id, behandling.id)

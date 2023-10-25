@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.sak.person
 
 import java.util.*
 
-object Personlager {
+object PersonRepository {
     private var personer = HashMap<UUID, Person>() // Skal være en db eller noe liknende for persistens
 
     private val LOCK = Object()

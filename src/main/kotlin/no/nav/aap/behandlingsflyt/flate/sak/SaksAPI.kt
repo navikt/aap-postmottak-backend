@@ -8,7 +8,7 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.domene.ElementNotFoundException
 import no.nav.aap.behandlingsflyt.domene.behandling.BehandlingTjeneste
 import no.nav.aap.behandlingsflyt.sak.person.Ident
-import no.nav.aap.behandlingsflyt.sak.person.Personlager
+import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
 import no.nav.aap.behandlingsflyt.sak.Saksnummer
 
@@ -16,7 +16,7 @@ fun NormalOpenAPIRoute.saksApi() {
     route("/api/sak") {
         route("/finn").post<Unit, List<SaksinfoDTO>, FinnSakForIdentDTO> { _, dto ->
             val ident = Ident(dto.ident)
-            val person = Personlager.finn(ident)
+            val person = PersonRepository.finn(ident)
 
             if (person == null) {
                 throw ElementNotFoundException()

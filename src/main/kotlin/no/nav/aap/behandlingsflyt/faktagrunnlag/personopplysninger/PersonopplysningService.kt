@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger
 
 import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
-import no.nav.aap.behandlingsflyt.sak.person.Personlager
+import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
@@ -10,7 +10,7 @@ class PersonopplysningService : Grunnlag {
 
     override fun oppdater(transaksjonsconnection: DbConnection, kontekst: FlytKontekst): Boolean {
         val sak = SakRepository.hent(kontekst.sakId)
-        val person = Personlager.hent(sak.person.identifikator)
+        val person = PersonRepository.hent(sak.person.identifikator)
         val behandlingId = kontekst.behandlingId
 
         val gamleData = PersoninformasjonRepository.hentHvisEksisterer(behandlingId)

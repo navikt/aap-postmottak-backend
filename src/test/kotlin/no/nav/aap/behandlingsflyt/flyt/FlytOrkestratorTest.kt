@@ -19,7 +19,7 @@ import no.nav.aap.behandlingsflyt.domene.behandling.Status
 import no.nav.aap.behandlingsflyt.domene.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.domene.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.sak.person.Ident
-import no.nav.aap.behandlingsflyt.sak.person.Personlager
+import no.nav.aap.behandlingsflyt.sak.person.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.SakRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonRegisterMock
@@ -75,7 +75,7 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
         ventPåSvar()
 
-        val sak = SakRepository.finnEllerOpprett(Personlager.finnEllerOpprett(ident), periode)
+        val sak = SakRepository.finnEllerOpprett(PersonRepository.finnEllerOpprett(ident), periode)
         val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
@@ -200,7 +200,7 @@ class FlytOrkestratorTest {
     @Test
     fun `Ikke oppfylt på grunn av alder på søknadstidspunkt`() {
         val ident = Ident("123123123125")
-        val person = Personlager.finnEllerOpprett(ident)
+        val person = PersonRepository.finnEllerOpprett(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))
@@ -235,7 +235,7 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
         ventPåSvar()
 
-        val sak = SakRepository.finnSakerFor(Personlager.finnEllerOpprett(ident)).single()
+        val sak = SakRepository.finnSakerFor(PersonRepository.finnEllerOpprett(ident)).single()
         val behandling = requireNotNull(BehandlingTjeneste.finnSisteBehandlingFor(sak.id))
 
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
