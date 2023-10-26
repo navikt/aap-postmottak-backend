@@ -16,11 +16,17 @@ private class ResultSetSequence(private val resultSet: ResultSet) : Sequence<Res
     }
 
     private inner class ResultSetIterator : Iterator<ResultSet> {
+        private var callHasNext = true
         override fun hasNext(): Boolean {
-            return resultSet.next()
+            if (callHasNext) {
+                callHasNext = false
+                return resultSet.next()
+            }
+            return true
         }
 
         override fun next(): ResultSet {
+            callHasNext = true
             return resultSet
         }
     }
