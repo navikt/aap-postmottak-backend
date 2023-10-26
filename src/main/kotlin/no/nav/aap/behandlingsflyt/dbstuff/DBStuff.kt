@@ -141,12 +141,19 @@ class PreparedQueryStatement<T : Any, R>(private val preparedStatement: Prepared
 }
 
 class PreparedExecuteStatement(private val preparedStatement: PreparedStatement) {
+    private var resultValidator: (Int) -> Unit = {}
+
     fun setParams(block: Params.() -> Unit) {
         Params(preparedStatement).block()
     }
 
+    fun setResultValidator(block: (Int) -> Unit) {
+        resultValidator = block
+    }
+
     fun execute() {
-        preparedStatement.execute()
+        val rowsUpdated = preparedStatement.executeUpdate()
+        resultValidator(rowsUpdated)
     }
 }
 
