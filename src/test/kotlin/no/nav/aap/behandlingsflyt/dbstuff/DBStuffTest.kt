@@ -43,7 +43,25 @@ internal class DBStuffTest : DatabaseTestBase() {
         val result = InitTestDatabase.dataSource.transaction { connection ->
             connection.prepareQueryStatement("SELECT test FROM test") {
                 setRowMapper { row -> row.getString("test") }
-                setResultMapper { it.toList() }
+                setResultMapper(Sequence<String>::toList)
+            }
+        }
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `Henter tomt resultat fra DB 2`() {
+        val result = InitTestDatabase.dataSource.transaction { connection ->
+            connection.prepareExecuteStatement("INSERT INTO test (test) VALUES ('a'), ('b'), ('c'), ('d')") {}
+            connection.prepareQueryStatement("SELECT test FROM test") {
+                setRowMapper { row -> row.getString("test") }
+                setResultMapper {
+                    val iterator = it.iterator()
+                    // To kall på samme iterator skal ikke føre til exception
+                    iterator.asSequence().toList() // Radene blir hentet ut her
+                    iterator.asSequence().toList()// Denne lista blir tom, siden radene allerede er lest
+                }
             }
         }
 
