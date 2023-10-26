@@ -12,7 +12,7 @@ class SakRepository(private val connection: DbConnection) {
     private val personRepository = PersonRepository(connection)
 
     fun hent(sakId: Long): Sak {
-        return connection.prepareQueryStatement("SELECT id, saksnummer, person_id, rettighetsperiode FROM SAK WHERE id = ?") {
+        return connection.prepareQueryStatement("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE id = ?") {
             setParams {
                 setLong(1, sakId)
             }
@@ -24,7 +24,7 @@ class SakRepository(private val connection: DbConnection) {
     }
 
     fun hent(saksnummer: Saksnummer): Sak {
-        return connection.prepareQueryStatement("SELECT id, saksnummer, person_id, rettighetsperiode FROM SAK WHERE saksnummer = ?") {
+        return connection.prepareQueryStatement("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE saksnummer = ?") {
             setParams {
                 setString(1, saksnummer.toString())
             }
@@ -69,7 +69,7 @@ class SakRepository(private val connection: DbConnection) {
 
     fun finnEllerOpprett(person: Person, periode: Periode): Sak {
         val relevantesaker = connection.prepareQueryStatement(
-            "SELECT id, saksnummer, person_id, rettighetsperiode " +
+            "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
                     "FROM SAK " +
                     "WHERE person_id = ? AND rettighetsperiode && ?::daterange"
         ) {
@@ -94,7 +94,7 @@ class SakRepository(private val connection: DbConnection) {
 
     fun finnSakerFor(person: Person): List<Sak> {
         return connection.prepareQueryStatement(
-            "SELECT id, saksnummer, person_id, rettighetsperiode " +
+            "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
                     "FROM SAK " +
                     "WHERE person_id = ?"
         ) {
@@ -112,12 +112,13 @@ class SakRepository(private val connection: DbConnection) {
         id = row.getLong("id"),
         person = personRepository.hent(row.getLong("person_id")),
         rettighetsperiode = row.getDateRange("rettighetsperiode"),
-        saksnummer = Saksnummer(row.getString("saksnummer"))
+        saksnummer = Saksnummer(row.getString("saksnummer")),
+        status = Status.valueOf(row.getString("status"))
     )
 
     fun finnAlle(): List<Sak> {
         return connection.prepareQueryStatement(
-            "SELECT id, saksnummer, person_id, rettighetsperiode " +
+            "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
                     "FROM SAK"
         ) {
             setRowMapper { row ->

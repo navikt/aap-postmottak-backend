@@ -8,7 +8,7 @@ class Sak(
     val saksnummer: Saksnummer,
     val person: Person,
     val rettighetsperiode: Periode,
-    private var status: Status = Status.OPPRETTET
+    private val status: Status = Status.OPPRETTET
 ) {
 
     fun status(): Status {

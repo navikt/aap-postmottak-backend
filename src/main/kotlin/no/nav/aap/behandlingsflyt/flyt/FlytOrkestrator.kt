@@ -1,11 +1,12 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
+import no.nav.aap.behandlingsflyt.dbstuff.DbConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
+import no.nav.aap.behandlingsflyt.flyt.internal.FlytOperasjonRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import org.slf4j.LoggerFactory
@@ -21,6 +22,7 @@ class FlytOrkestrator(
 ) {
 
     private val faktagrunnlag = Faktagrunnlag(transaksjonsconnection)
+    private val flytOperasjonRepository = FlytOperasjonRepository(transaksjonsconnection)
 
     fun forberedBehandling(kontekst: FlytKontekst) {
         val behandling = BehandlingRepository.hent(kontekst.behandlingId)
@@ -29,6 +31,10 @@ class FlytOrkestrator(
 
         val behandlingFlyt = behandling.flyt()
         behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
+
+        if (starterOppBehandling(behandling)) {
+            flytOperasjonRepository.oppdaterSakStatus(kontekst.sakId, no.nav.aap.behandlingsflyt.sak.Status.UTREDES)
+        }
 
         val oppdaterFaktagrunnlagForKravliste =
             faktagrunnlag.oppdaterFaktagrunnlagForKravliste(
@@ -48,6 +54,10 @@ class FlytOrkestrator(
             )
         }
         tilbakefør(kontekst, behandling, tilbakeføringsflyt)
+    }
+
+    private fun starterOppBehandling(behandling: Behandling): Boolean {
+        return behandling.stegHistorikk().isEmpty()
     }
 
     fun prosesserBehandling(kontekst: FlytKontekst) {
@@ -92,7 +102,6 @@ class FlytOrkestrator(
                 )
                 tilbakefør(kontekst, behandling, tilbakeføringsflyt)
             }
-
 
             val neste = behandlingFlyt.neste()
 
