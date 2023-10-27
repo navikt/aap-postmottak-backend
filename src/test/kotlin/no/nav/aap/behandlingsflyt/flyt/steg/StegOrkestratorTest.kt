@@ -19,16 +19,14 @@ class StegOrkestratorTest {
 
         val kontekst = FlytKontekst(1L, behandling.id)
 
-        val resultat = StegOrkestrator(
-            transaksjonsconnection,
-            TestFlytSteg
-        ).utfør(kontekst, behandling)
+        val resultat = StegOrkestrator(transaksjonsconnection, TestFlytSteg).utfør(kontekst, behandling)
+
         assertThat(resultat).isNotNull
 
         assertThat(behandling.stegHistorikk()).hasSize(3)
-        assertThat(behandling.stegHistorikk().get(0).tilstand.status()).isEqualTo(StegStatus.START)
-        assertThat(behandling.stegHistorikk().get(1).tilstand.status()).isEqualTo(StegStatus.UTFØRER)
-        assertThat(behandling.stegHistorikk().get(2).tilstand.status()).isEqualTo(StegStatus.AVKLARINGSPUNKT)
+        assertThat(behandling.stegHistorikk()[0].tilstand.status()).isEqualTo(StegStatus.START)
+        assertThat(behandling.stegHistorikk()[1].tilstand.status()).isEqualTo(StegStatus.UTFØRER)
+        assertThat(behandling.stegHistorikk()[2].tilstand.status()).isEqualTo(StegStatus.AVKLARINGSPUNKT)
     }
 }
 
