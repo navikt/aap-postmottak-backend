@@ -109,6 +109,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     }
 
     val dataSource = initDatasource(dbConfig)
+    migrate(dataSource)
     apiRouting {
         configApi()
         saksApi(dataSource)
