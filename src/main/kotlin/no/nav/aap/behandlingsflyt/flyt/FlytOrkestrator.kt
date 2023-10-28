@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
@@ -76,8 +77,7 @@ class FlytOrkestrator(
             validerPlassering(
                 behandlingFlyt,
                 avklaringsbehov
-                    .filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER }
-                    .map { behov -> behov.definisjon },
+                    .filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER },
                 gjeldendeSteg.type()
             )
 
@@ -161,13 +161,13 @@ class FlytOrkestrator(
 
     private fun validerPlassering(
         behandlingFlyt: BehandlingFlyt,
-        åpneAvklaringsbehov: List<Definisjon>,
+        åpneAvklaringsbehov: List<Avklaringsbehov>,
         nesteSteg: StegType
     ) {
         val uhåndterteBehov = åpneAvklaringsbehov
             .filter { definisjon ->
                 behandlingFlyt.erStegFør(
-                    definisjon.løsesISteg,
+                    definisjon.løsesISteg(),
                     nesteSteg
                 )
             }
@@ -179,6 +179,10 @@ class FlytOrkestrator(
     fun settBehandlingPåVent(kontekst: FlytKontekst) {
         val behandling = BehandlingRepository(connection).hent(kontekst.behandlingId)
         behandling.settPåVent()
-        flytOperasjonRepository.leggTilAvklaringsbehov(behandling.id, Definisjon.MANUELT_SATT_PÅ_VENT, behandling.aktivtSteg())
+        flytOperasjonRepository.leggTilAvklaringsbehov(
+            behandling.id,
+            Definisjon.MANUELT_SATT_PÅ_VENT,
+            behandling.aktivtSteg()
+        )
     }
 }

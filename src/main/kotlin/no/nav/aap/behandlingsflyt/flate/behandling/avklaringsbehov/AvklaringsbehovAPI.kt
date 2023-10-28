@@ -11,6 +11,7 @@ import no.nav.aap.behandlingsflyt.dbstuff.transaction
 import no.nav.aap.behandlingsflyt.flyt.ValiderBehandlingTilstand
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.hendelse.mottak.LøsAvklaringsbehovBehandlingHendelse
+import no.nav.aap.behandlingsflyt.prosessering.TaSkriveLåsRepository
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
@@ -19,6 +20,8 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
             post<Unit, LøsAvklaringsbehovPåBehandling, LøsAvklaringsbehovPåBehandling> { _, request ->
                 dataSource.transaction {
                     val behandling = BehandlingRepository(it).hent(request.referanse)
+                    val taSkriveLåsRepository = TaSkriveLåsRepository(it)
+                    val lås = taSkriveLåsRepository.lås(behandlingId = behandling.id, sakId = behandling.sakId)
 
                     ValiderBehandlingTilstand.validerTilstandBehandling(
                         behandling,
@@ -29,6 +32,7 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                         key = behandling.id,
                         hendelse = LøsAvklaringsbehovBehandlingHendelse(request.behov, request.behandlingVersjon)
                     )
+                    taSkriveLåsRepository.verifiserSkrivelås(lås)
                 }
                 respond(request)
             }
