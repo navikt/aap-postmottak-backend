@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 
 class TaSkriveLåsRepository(private val connection: DBConnection) {
 
-    fun låsSak(sakId: Long): Skrivelås {
+    fun låsSak(sakId: Long): SakSkrivelås {
         val query = """SELECT versjon FROM SAK WHERE ID = ? FOR UPDATE"""
 
         return connection.queryFirst(query) {
@@ -12,23 +12,62 @@ class TaSkriveLåsRepository(private val connection: DBConnection) {
                 setLong(1, sakId)
             }
             setRowMapper {
-                Skrivelås(sakId, it.getLong("versjon"))
+                SakSkrivelås(sakId, it.getLong("versjon"))
             }
         }
     }
 
-    fun verifiserSkrivelås(skrivelås: Skrivelås) {
+    fun lås(sakId: Long, behandlingId: Long): Skrivelås {
+        val behandling = låsBehandling(behandlingId)
+        val sak = låsSak(sakId)
+        return Skrivelås(sak, behandling)
+    }
+
+    fun låsBehandling(behandlingId: Long): BehandlingSkrivelås {
+        val query = """SELECT versjon FROM BEHANDLING WHERE ID = ? FOR UPDATE"""
+
+        return connection.queryFirst(query) {
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper {
+                BehandlingSkrivelås(behandlingId, it.getLong("versjon"))
+            }
+        }
+    }
+
+    fun verifiserSkrivelås(skrivelås: SakSkrivelås) {
         val query = """UPDATE sak SET versjon = ? WHERE ID = ? and versjon = ?"""
 
         return connection.execute(query) {
             setParams {
-                setLong(1, skrivelås.sakVersjon + 1)
-                setLong(2, skrivelås.sakId)
-                setLong(3, skrivelås.sakVersjon)
+                setLong(1, skrivelås.versjon + 1)
+                setLong(2, skrivelås.id)
+                setLong(3, skrivelås.versjon)
             }
             setResultValidator {
                 require(it == 1)
             }
         }
+    }
+
+    fun verifiserSkrivelås(skrivelås: BehandlingSkrivelås) {
+        val query = """UPDATE behandling SET versjon = ? WHERE ID = ? and versjon = ?"""
+
+        return connection.execute(query) {
+            setParams {
+                setLong(1, skrivelås.versjon + 1)
+                setLong(2, skrivelås.id)
+                setLong(3, skrivelås.versjon)
+            }
+            setResultValidator {
+                require(it == 1)
+            }
+        }
+    }
+
+    fun verifiserSkrivelås(skrivelås: Skrivelås) {
+        verifiserSkrivelås(skrivelås.behandlingSkrivelås)
+        verifiserSkrivelås(skrivelås.sakSkrivelås)
     }
 }

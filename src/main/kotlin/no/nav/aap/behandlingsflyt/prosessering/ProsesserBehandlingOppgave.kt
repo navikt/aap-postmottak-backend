@@ -8,7 +8,7 @@ object ProsesserBehandlingOppgave : Oppgave() {
 
     override fun utfør(connection: DBConnection, input: OppgaveInput) {
         val låsRepository = TaSkriveLåsRepository(connection)
-        val skrivelås = låsRepository.låsSak(input.sakId())
+        val skrivelås = låsRepository.lås(input.sakId(), input.behandlingId())
 
         val kontroller = FlytOrkestrator(connection)
         kontroller.forberedBehandling(FlytKontekst(sakId = input.sakId(), behandlingId = input.behandlingId()))
