@@ -8,7 +8,7 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
     fun oppdaterSakStatus(sakId: Long, status: Status) {
         val query = """UPDATE sak SET status = ? WHERE ID = ?"""
 
-        return connection.prepareExecuteStatement(query) {
+        return connection.execute(query) {
             setParams {
                 setString(1, status.name)
                 setLong(2, sakId)

@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.dbstuff
 
 import java.sql.PreparedStatement
 
-class PreparedFirstQueryStatement<T : Any>(private val preparedStatement: PreparedStatement) {
+class Query<T>(private val preparedStatement: PreparedStatement) {
     private lateinit var rowMapper: (Row) -> T
 
     fun setParams(block: Params.() -> Unit) {
@@ -13,12 +13,11 @@ class PreparedFirstQueryStatement<T : Any>(private val preparedStatement: Prepar
         rowMapper = block
     }
 
-    fun executeQuery(): T {
+    fun executeQuery(): Sequence<T> {
         val resultSet = preparedStatement.executeQuery()
         return resultSet
             .map { currentResultSet ->
                 rowMapper(Row(currentResultSet))
             }
-            .first()
     }
 }

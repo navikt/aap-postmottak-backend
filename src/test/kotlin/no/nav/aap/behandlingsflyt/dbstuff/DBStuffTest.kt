@@ -8,8 +8,8 @@ internal class DBStuffTest : DatabaseTestBase() {
     @Test
     fun `Skriver og henter en rad mot DB`() {
         val result = InitTestDatabase.dataSource.transaction { connection ->
-            connection.prepareExecuteStatement("INSERT INTO test (test) VALUES ('a')") {}
-            connection.prepareFirstQueryStatement("SELECT test FROM test") {
+            connection.execute("INSERT INTO test (test) VALUES ('a')")
+            connection.queryFirst("SELECT test FROM test") {
                 setRowMapper { row -> row.getString("test") }
             }
         }
@@ -20,8 +20,8 @@ internal class DBStuffTest : DatabaseTestBase() {
     @Test
     fun `Skriver og henter to rader mot DB`() {
         val result = InitTestDatabase.dataSource.transaction { connection ->
-            connection.prepareExecuteStatement("INSERT INTO test (test) VALUES ('a'), ('b')") {}
-            connection.prepareListQueryStatement("SELECT test FROM test") {
+            connection.execute("INSERT INTO test (test) VALUES ('a'), ('b')")
+            connection.queryList("SELECT test FROM test") {
                 setRowMapper { row -> row.getString("test") }
             }
         }
@@ -34,7 +34,7 @@ internal class DBStuffTest : DatabaseTestBase() {
     @Test
     fun `Henter ingen rader fra DB`() {
         val result = InitTestDatabase.dataSource.transaction { connection ->
-            connection.prepareFirstOrNullQueryStatement("SELECT test FROM test") {
+            connection.queryFirstOrNull("SELECT test FROM test") {
                 setRowMapper { row -> row.getString("test") }
             }
         }
@@ -45,10 +45,9 @@ internal class DBStuffTest : DatabaseTestBase() {
     @Test
     fun `Skriver og henter keys og verdier fra DB`() {
         val (result, keys) = InitTestDatabase.dataSource.transaction { connection ->
-            connection.prepareExecuteStatement("INSERT INTO test (test) VALUES ('a'), ('b')") {}
-            val keys =
-                connection.prepareExecuteStatementReturnAutoGenKeys("INSERT INTO test (test) VALUES ('c'), ('d')") {}
-            connection.prepareListQueryStatement("SELECT test FROM test") {
+            connection.execute("INSERT INTO test (test) VALUES ('a'), ('b')")
+            val keys = connection.executeReturnKeys("INSERT INTO test (test) VALUES ('c'), ('d')")
+            connection.queryList("SELECT test FROM test") {
                 setRowMapper { row -> row.getString("test") }
             } to keys
         }
@@ -64,7 +63,7 @@ internal class DBStuffTest : DatabaseTestBase() {
     @Test
     fun `Henter tomt resultat fra DB`() {
         val result = InitTestDatabase.dataSource.transaction { connection ->
-            connection.prepareListQueryStatement("SELECT test FROM test") {
+            connection.queryList("SELECT test FROM test") {
                 setRowMapper { row -> row.getString("test") }
             }
         }
@@ -75,7 +74,7 @@ internal class DBStuffTest : DatabaseTestBase() {
 //    @Test
 //    fun `ResultSetIterator må svare false på hasNext hvis den forsøkes å itereres over flere ganger`() {
 //        val result = InitTestDatabase.dataSource.transaction { connection ->
-//            connection.prepareExecuteStatement("INSERT INTO test (test) VALUES ('a'), ('b'), ('c'), ('d')") {}
+//            connection.prepareExecuteStatement("INSERT INTO test (test) VALUES ('a'), ('b'), ('c'), ('d')")
 //            connection.prepareQueryStatement("SELECT test FROM test") {
 //                setRowMapper { row -> row.getString("test") }
 //                setResultMapper {

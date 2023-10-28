@@ -7,7 +7,7 @@ class TaSkriveLåsRepository(private val connection: DBConnection) {
     fun låsSak(sakId: Long): Skrivelås {
         val query = """SELECT versjon FROM SAK WHERE ID = ? FOR UPDATE"""
 
-        return connection.prepareFirstQueryStatement(query) {
+        return connection.queryFirst(query) {
             setParams {
                 setLong(1, sakId)
             }
@@ -20,7 +20,7 @@ class TaSkriveLåsRepository(private val connection: DBConnection) {
     fun verifiserSkrivelås(skrivelås: Skrivelås) {
         val query = """UPDATE sak SET versjon = ? WHERE ID = ? and versjon = ?"""
 
-        return connection.prepareExecuteStatement(query) {
+        return connection.execute(query) {
             setParams {
                 setLong(1, skrivelås.sakVersjon + 1)
                 setLong(2, skrivelås.sakId)

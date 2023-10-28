@@ -10,7 +10,7 @@ class SakRepository(private val connection: DBConnection) {
     private val personRepository = PersonRepository(connection)
 
     fun hent(sakId: Long): Sak {
-        return connection.prepareFirstQueryStatement("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE id = ?") {
+        return connection.queryFirst("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE id = ?") {
             setParams {
                 setLong(1, sakId)
             }
@@ -21,7 +21,7 @@ class SakRepository(private val connection: DBConnection) {
     }
 
     fun hent(saksnummer: Saksnummer): Sak {
-        return connection.prepareFirstQueryStatement("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE saksnummer = ?") {
+        return connection.queryFirst("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE saksnummer = ?") {
             setParams {
                 setString(1, saksnummer.toString())
             }
@@ -41,13 +41,13 @@ class SakRepository(private val connection: DBConnection) {
     }
 
     private fun opprett(person: Person, periode: Periode): Sak {
-        val sakId = connection.prepareFirstQueryStatement("SELECT nextval('SEQ_SAKSNUMMER') as nextval") {
+        val sakId = connection.queryFirst("SELECT nextval('SEQ_SAKSNUMMER') as nextval") {
             setRowMapper { row ->
                 row.getLong("nextval")
             }
         }
         val saksnummer = genererSaksnummer(sakId)
-        val keys = connection.prepareExecuteStatementReturnAutoGenKeys(
+        val keys = connection.executeReturnKeys(
             "INSERT INTO " +
                     "SAK (saksnummer, person_id, rettighetsperiode, status) " +
                     "VALUES (?, ?, ?::daterange, ?)"
@@ -63,7 +63,7 @@ class SakRepository(private val connection: DBConnection) {
     }
 
     fun finnEllerOpprett(person: Person, periode: Periode): Sak {
-        val relevantesaker = connection.prepareListQueryStatement(
+        val relevantesaker = connection.queryList(
             "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
                     "FROM SAK " +
                     "WHERE person_id = ? AND rettighetsperiode && ?::daterange"
@@ -87,7 +87,7 @@ class SakRepository(private val connection: DBConnection) {
     }
 
     fun finnSakerFor(person: Person): List<Sak> {
-        return connection.prepareListQueryStatement(
+        return connection.queryList(
             "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
                     "FROM SAK " +
                     "WHERE person_id = ?"
@@ -110,7 +110,7 @@ class SakRepository(private val connection: DBConnection) {
     )
 
     fun finnAlle(): List<Sak> {
-        return connection.prepareListQueryStatement(
+        return connection.queryList(
             "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
                     "FROM SAK"
         ) {

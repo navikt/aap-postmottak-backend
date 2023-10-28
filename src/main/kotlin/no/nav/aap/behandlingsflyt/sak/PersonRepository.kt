@@ -7,7 +7,7 @@ import java.util.*
 class PersonRepository(private val connection: DBConnection) {
 
     fun finnEllerOpprett(ident: Ident): Person {
-        val relevantePersoner = connection.prepareListQueryStatement(
+        val relevantePersoner = connection.queryList(
             """SELECT person.id, person.referanse 
                     FROM person 
                     INNER JOIN person_ident ON person_ident.person_id = person.id 
@@ -31,7 +31,7 @@ class PersonRepository(private val connection: DBConnection) {
     }
 
     fun hent(identifikator: UUID): Person {
-        return connection.prepareFirstQueryStatement("SELECT id, referanse FROM PERSON WHERE referanse = ?") {
+        return connection.queryFirst("SELECT id, referanse FROM PERSON WHERE referanse = ?") {
             setParams {
                 setUUID(1, identifikator)
             }
@@ -48,7 +48,7 @@ class PersonRepository(private val connection: DBConnection) {
 
 
     fun hent(personId: Long): Person {
-        return connection.prepareFirstQueryStatement("SELECT referanse FROM PERSON WHERE id = ?") {
+        return connection.queryFirst("SELECT referanse FROM PERSON WHERE id = ?") {
             setParams {
                 setLong(1, personId)
             }
@@ -59,7 +59,7 @@ class PersonRepository(private val connection: DBConnection) {
     }
 
     private fun hentIdenter(personId: Long): List<Ident> {
-        return connection.prepareListQueryStatement("SELECT ident FROM PERSON_IDENT WHERE person_id = ?") {
+        return connection.queryList("SELECT ident FROM PERSON_IDENT WHERE person_id = ?") {
             setParams {
                 setLong(1, personId)
             }
@@ -71,7 +71,7 @@ class PersonRepository(private val connection: DBConnection) {
 
     private fun opprettPerson(ident: Ident): Person {
         val identifikator = UUID.randomUUID()
-        val personId = connection.prepareExecuteStatementReturnAutoGenKeys(
+        val personId = connection.executeReturnKeys(
             "INSERT INTO " +
                     "PERSON (referanse) " +
                     "VALUES (?)"
@@ -80,7 +80,7 @@ class PersonRepository(private val connection: DBConnection) {
                 setUUID(1, identifikator)
             }
         }.first()
-        connection.prepareExecuteStatement(
+        connection.execute(
             "INSERT INTO " +
                     "PERSON_IDENT (ident, person_id) " +
                     "VALUES (?, ?)"
@@ -95,7 +95,7 @@ class PersonRepository(private val connection: DBConnection) {
     }
 
     fun finn(ident: Ident): Person? {
-        return connection.prepareFirstOrNullQueryStatement(
+        return connection.queryFirstOrNull(
             "SELECT unique p.id, p.referanse " +
                     "FROM PERSON p " +
                     "INNER JOIN PERSON_IDENT pi ON pi.person_id = p.id" +

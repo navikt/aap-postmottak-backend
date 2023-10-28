@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.dbstuff
 
 import java.sql.PreparedStatement
 
-class PreparedExecuteStatement(private val preparedStatement: PreparedStatement) {
+class Execute(private val preparedStatement: PreparedStatement) {
     private var resultValidator: (Int) -> Unit = {}
 
     fun setParams(block: Params.() -> Unit) {
@@ -16,5 +16,14 @@ class PreparedExecuteStatement(private val preparedStatement: PreparedStatement)
     fun execute() {
         val rowsUpdated = preparedStatement.executeUpdate()
         resultValidator(rowsUpdated)
+    }
+
+    fun executeReturnKeys(): List<Long> {
+        val rowsUpdated = preparedStatement.executeUpdate()
+        resultValidator(rowsUpdated)
+        return preparedStatement
+            .generatedKeys
+            .map { it.getLong(1) }
+            .toList()
     }
 }

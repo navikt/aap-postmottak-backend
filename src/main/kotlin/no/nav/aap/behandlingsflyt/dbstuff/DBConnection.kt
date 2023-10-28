@@ -7,58 +7,61 @@ import java.sql.Statement
 class DBConnection(private val connection: Connection) {
     private var savepoint: Savepoint? = null
 
-    fun prepareExecuteStatement(
+    fun execute(
         query: String,
-        block: PreparedExecuteStatement.() -> Unit
+        block: Execute.() -> Unit = {}
     ) {
         return this.connection.prepareStatement(query).use { preparedStatement ->
-            val myPreparedStatement = PreparedExecuteStatement(preparedStatement)
+            val myPreparedStatement = Execute(preparedStatement)
             myPreparedStatement.block()
             myPreparedStatement.execute()
         }
     }
 
-    fun prepareExecuteStatementReturnAutoGenKeys(
+    fun executeReturnKeys(
         query: String,
-        block: PreparedExecuteStatementReturnAutoGenKeys.() -> Unit
+        block: Execute.() -> Unit = {}
     ): List<Long> {
         return this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS).use { preparedStatement ->
-            val myPreparedStatement = PreparedExecuteStatementReturnAutoGenKeys(preparedStatement)
+            val myPreparedStatement = Execute(preparedStatement)
             myPreparedStatement.block()
-            myPreparedStatement.execute()
+            return@use myPreparedStatement.executeReturnKeys()
         }
     }
 
-    fun <T : Any> prepareFirstOrNullQueryStatement(
+    fun <T> queryFirstOrNull(
         query: String,
-        block: PreparedFirstOrNullQueryStatement<T>.() -> Unit
+        block: Query<T?>.() -> Unit
     ): T? {
         return this.connection.prepareStatement(query).use { preparedStatement ->
-            val preparedQueryStatement = PreparedFirstOrNullQueryStatement<T>(preparedStatement)
-            preparedQueryStatement.block()
-            preparedQueryStatement.executeQuery()
+            val queryStatement = Query<T?>(preparedStatement)
+            queryStatement.block()
+            val result = queryStatement.executeQuery()
+            return@use result.firstOrNull()
         }
     }
 
-    fun <T : Any> prepareFirstQueryStatement(
+    fun <T : Any> queryFirst(
         query: String,
-        block: PreparedFirstQueryStatement<T>.() -> Unit
+        block: Query<T>.() -> Unit
     ): T {
         return this.connection.prepareStatement(query).use { preparedStatement ->
-            val preparedQueryStatement = PreparedFirstQueryStatement<T>(preparedStatement)
-            preparedQueryStatement.block()
-            preparedQueryStatement.executeQuery()
+            val queryStatement = Query<T>(preparedStatement)
+            queryStatement.block()
+            val result = queryStatement.executeQuery()
+            return@use result.first()
         }
     }
 
-    fun <T : Any> prepareListQueryStatement(
+    fun <T : Any> queryList(
         query: String,
-        block: PreparedListQueryStatement<T>.() -> Unit
+        block: Query<T>.() -> Unit
     ): List<T> {
         return this.connection.prepareStatement(query).use { preparedStatement ->
-            val preparedQueryStatement = PreparedListQueryStatement<T>(preparedStatement)
-            preparedQueryStatement.block()
-            preparedQueryStatement.executeQuery()
+            val queryStatement = Query<T>(preparedStatement)
+            queryStatement.block()
+            val result = queryStatement.executeQuery()
+            return@use result.toList()
         }
     }
 
