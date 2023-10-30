@@ -55,7 +55,7 @@ class SakRepository(private val connection: DBConnection) {
             setParams {
                 setString(1, saksnummer.toString())
                 setLong(2, person.id)
-                setDateRange(3, periode)
+                setPeriode(3, periode)
                 setString(4, Status.OPPRETTET.name)
             }
         }
@@ -70,7 +70,7 @@ class SakRepository(private val connection: DBConnection) {
         ) {
             setParams {
                 setLong(1, person.id)
-                setDateRange(2, periode)
+                setPeriode(2, periode)
             }
             setRowMapper { row ->
                 mapSak(row)
@@ -104,7 +104,7 @@ class SakRepository(private val connection: DBConnection) {
     private fun mapSak(row: Row) = Sak(
         id = row.getLong("id"),
         person = personRepository.hent(row.getLong("person_id")),
-        rettighetsperiode = row.getDateRange("rettighetsperiode"),
+        rettighetsperiode = row.getPeriode("rettighetsperiode"),
         saksnummer = Saksnummer(row.getString("saksnummer")),
         status = Status.valueOf(row.getString("status"))
     )

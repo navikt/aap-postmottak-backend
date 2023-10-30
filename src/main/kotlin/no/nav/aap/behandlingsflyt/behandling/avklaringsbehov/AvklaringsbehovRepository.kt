@@ -40,7 +40,7 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
                 setString(2, Status.AVSLUTTET.name)
                 setString(3, begrunnelse)
                 setString(4, "Saksbehandler") // TODO: Hent fra sikkerhetscontex
-                setTimestamp(5, LocalDateTime.now()) // TODO: Hent fra sikkerhetscontex
+                setLocalDateTime(5, LocalDateTime.now()) // TODO: Hent fra sikkerhetscontex
             }
         }
     }
@@ -74,7 +74,7 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
                 setString(2, status.name)
                 setString(3, begrunnelse)
                 setString(4, "Saksbehandler") // TODO: Hent fra sikkerhetscontex
-                setTimestamp(5, LocalDateTime.now())
+                setLocalDateTime(5, LocalDateTime.now())
             }
         }
     }
@@ -101,7 +101,8 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
             id = id,
             definisjon = definisjon,
             funnetISteg = StegType.valueOf(row.getString("funnet_i_steg")),
-            kreverToTrinn = row.getBoolean("krever_to_trinn"),
+            //TODO: Skal totrinn tolkes som false hvis den ikke er satt
+            kreverToTrinn = row.getBooleanOrNull("krever_to_trinn") ?: false,
             historikk = hentEndringer(id).toMutableList()
         )
     }

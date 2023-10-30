@@ -38,10 +38,8 @@ internal object InitTestDatabase {
 internal abstract class DatabaseTestBase {
     @BeforeEach
     fun clearTables() {
-        InitTestDatabase.dataSource.connection.use { connection ->
-            connection.prepareStatement("TRUNCATE test; ALTER SEQUENCE test_id_seq RESTART WITH 1").use { preparedStatement ->
-                preparedStatement.execute()
-            }
+        InitTestDatabase.dataSource.connect { connection ->
+            connection.execute("TRUNCATE TEST, TEST_BYTES, TEST_STRING, TEST_LONG, TEST_UUID, TEST_DATERANGE, TEST_BOOLEAN, TEST_LOCALDATETIME; ALTER SEQUENCE test_id_seq RESTART WITH 1")
         }
     }
 }

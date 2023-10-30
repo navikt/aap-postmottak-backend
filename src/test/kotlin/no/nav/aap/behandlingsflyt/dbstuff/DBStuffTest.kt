@@ -1,7 +1,12 @@
 package no.nav.aap.behandlingsflyt.dbstuff
 
+import no.nav.aap.behandlingsflyt.Periode
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 internal class DBStuffTest : DatabaseTestBase() {
 
@@ -71,21 +76,186 @@ internal class DBStuffTest : DatabaseTestBase() {
         assertThat(result).isEmpty()
     }
 
-//    @Test
-//    fun `ResultSetIterator må svare false på hasNext hvis den forsøkes å itereres over flere ganger`() {
-//        val result = InitTestDatabase.dataSource.transaction { connection ->
-//            connection.prepareExecuteStatement("INSERT INTO test (test) VALUES ('a'), ('b'), ('c'), ('d')")
-//            connection.prepareQueryStatement("SELECT test FROM test") {
-//                setRowMapper { row -> row.getString("test") }
-//                setResultMapper {
-//                    val iterator = it.iterator()
-//                    // To kall på samme iterator skal ikke føre til exception
-//                    iterator.asSequence().toList() // Radene blir hentet ut her
-//                    iterator.asSequence().toList()// Denne lista blir tom, siden radene allerede er lest
-//                }
-//            }
-//        }
-//
-//        assertThat(result).isEmpty()
-//    }
+    @Test
+    fun `Skriver og leser ByteArray og null-verdi riktig`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute(
+                """
+                    INSERT INTO TEST_BYTES (TEST, TEST_NULL)
+                    VALUES (?, ?)
+                """.trimMargin()
+            ) {
+                setParams {
+                    setBytes(1, "test".toByteArray())
+                    setBytes(2, null)
+                }
+            }
+            connection.queryFirst("SELECT * FROM TEST_BYTES") {
+                setRowMapper { row ->
+                    assertThat(row.getBytesOrNull("TEST")).asString().isEqualTo("test")
+                    assertThat(row.getBytes("TEST")).asString().isEqualTo("test")
+                    assertThat(row.getBytesOrNull("TEST_NULL")).isNull()
+                    assertThrows<IllegalArgumentException> { row.getBytes("TEST_NULL") }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Skriver og leser String og null-verdi riktig`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute(
+                """
+                    INSERT INTO TEST_STRING (TEST, TEST_NULL)
+                    VALUES (?, ?)
+                """.trimMargin()
+            ) {
+                setParams {
+                    setString(1, "test")
+                    setString(2, null)
+                }
+            }
+            connection.queryFirst("SELECT * FROM TEST_STRING") {
+                setRowMapper { row ->
+                    assertThat(row.getStringOrNull("TEST")).isEqualTo("test")
+                    assertThat(row.getString("TEST")).isEqualTo("test")
+                    assertThat(row.getStringOrNull("TEST_NULL")).isNull()
+                    assertThrows<IllegalArgumentException> { row.getString("TEST_NULL") }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Skriver og leser Long og null-verdi riktig`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute(
+                """
+                    INSERT INTO TEST_LONG (TEST_0, TEST_1, TEST_NULL)
+                    VALUES (?, ?, ?)
+                """.trimMargin()
+            ) {
+                setParams {
+                    setLong(1, 0)
+                    setLong(2, 1)
+                    setLong(3, null)
+                }
+            }
+            connection.queryFirst("SELECT * FROM TEST_LONG") {
+                setRowMapper { row ->
+                    assertThat(row.getLongOrNull("TEST_0")).isEqualTo(0)
+                    assertThat(row.getLong("TEST_0")).isEqualTo(0)
+                    assertThat(row.getLongOrNull("TEST_1")).isEqualTo(1)
+                    assertThat(row.getLong("TEST_1")).isEqualTo(1)
+                    assertThat(row.getLongOrNull("TEST_NULL")).isNull()
+                    assertThrows<IllegalArgumentException> { row.getLong("TEST_NULL") }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Skriver og leser UUID og null-verdi riktig`() {
+        val randomUUID = UUID.randomUUID()
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute(
+                """
+                    INSERT INTO TEST_UUID (TEST, TEST_NULL)
+                    VALUES (?, ?)
+                """.trimMargin()
+            ) {
+                setParams {
+                    setUUID(1, randomUUID)
+                    setUUID(2, null)
+                }
+            }
+            connection.queryFirst("SELECT * FROM TEST_UUID") {
+                setRowMapper { row ->
+                    assertThat(row.getUUIDOrNull("TEST")).isEqualTo(randomUUID)
+                    assertThat(row.getUUID("TEST")).isEqualTo(randomUUID)
+                    assertThat(row.getUUIDOrNull("TEST_NULL")).isNull()
+                    assertThrows<IllegalArgumentException> { row.getUUID("TEST_NULL") }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Skriver og leser Periode og null-verdi riktig`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute(
+                """
+                    INSERT INTO TEST_DATERANGE (TEST, TEST_NULL)
+                    VALUES (?::daterange, ?::daterange)
+                """.trimMargin()
+            ) {
+                setParams {
+                    setPeriode(1, Periode(LocalDate.now(), LocalDate.now()))
+                    setPeriode(2, null)
+                }
+            }
+            connection.queryFirst("SELECT * FROM TEST_DATERANGE") {
+                setRowMapper { row ->
+                    assertThat(row.getPeriodeOrNull("TEST")).isEqualTo(Periode(LocalDate.now(), LocalDate.now()))
+                    assertThat(row.getPeriode("TEST")).isEqualTo(Periode(LocalDate.now(), LocalDate.now()))
+                    assertThat(row.getPeriodeOrNull("TEST_NULL")).isNull()
+                    assertThrows<IllegalArgumentException> { row.getPeriode("TEST_NULL") }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Skriver og leser Boolean og null-verdi riktig`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute(
+                """
+                    INSERT INTO TEST_BOOLEAN (TEST_FALSE, TEST_TRUE, TEST_NULL)
+                    VALUES (?, ?, ?)
+                """.trimMargin()
+            ) {
+                setParams {
+                    setBoolean(1, false)
+                    setBoolean(2, true)
+                    setBoolean(3, null)
+                }
+            }
+            connection.queryFirst("SELECT * FROM TEST_BOOLEAN") {
+                setRowMapper { row ->
+                    assertThat(row.getBooleanOrNull("TEST_FALSE")).isFalse
+                    assertThat(row.getBoolean("TEST_FALSE")).isFalse
+                    assertThat(row.getBooleanOrNull("TEST_TRUE")).isTrue
+                    assertThat(row.getBoolean("TEST_TRUE")).isTrue
+                    assertThat(row.getBooleanOrNull("TEST_NULL")).isNull()
+                    assertThrows<IllegalArgumentException> { row.getBoolean("TEST_NULL") }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Skriver og leser LocalDateTime og null-verdi riktig`() {
+        val localDateTime = LocalDateTime.now()
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute(
+                """
+                    INSERT INTO TEST_LOCALDATETIME (TEST, TEST_NULL)
+                    VALUES (?, ?)
+                """.trimMargin()
+            ) {
+                setParams {
+                    setLocalDateTime(1, localDateTime)
+                    setLocalDateTime(2, null)
+                }
+            }
+            connection.queryFirst("SELECT * FROM TEST_LOCALDATETIME") {
+                setRowMapper { row ->
+                    assertThat(row.getLocalDateTimeOrNull("TEST")).isEqualTo(localDateTime)
+                    assertThat(row.getLocalDateTime("TEST")).isEqualTo(localDateTime)
+                    assertThat(row.getLocalDateTimeOrNull("TEST_NULL")).isNull()
+                    assertThrows<IllegalArgumentException> { row.getLocalDateTime("TEST_NULL") }
+                }
+            }
+        }
+    }
 }

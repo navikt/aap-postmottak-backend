@@ -3,35 +3,44 @@ package no.nav.aap.behandlingsflyt.dbstuff
 import no.nav.aap.behandlingsflyt.Periode
 import java.sql.PreparedStatement
 import java.sql.Timestamp
+import java.sql.Types
 import java.time.LocalDateTime
 import java.util.*
 
 class Params(private val preparedStatement: PreparedStatement) {
-    fun setBytes(index: Int, bytes: ByteArray) {
+    fun setBytes(index: Int, bytes: ByteArray?) {
         preparedStatement.setBytes(index, bytes)
     }
 
-    fun setString(index: Int, value: String) {
+    fun setString(index: Int, value: String?) {
         preparedStatement.setString(index, value)
     }
 
-    fun setTimestamp(index: Int, localDateTime: LocalDateTime) {
-        preparedStatement.setTimestamp(index, Timestamp.valueOf(localDateTime))
+    fun setLocalDateTime(index: Int, localDateTime: LocalDateTime?) {
+        preparedStatement.setTimestamp(index, localDateTime?.let(Timestamp::valueOf))
     }
 
-    fun setUUID(index: Int, uuid: UUID) {
+    fun setUUID(index: Int, uuid: UUID?) {
         preparedStatement.setObject(index, uuid)
     }
 
-    fun setDateRange(index: Int, periode: Periode) {
-        preparedStatement.setString(index, DaterangeParser.toSQL(periode))
+    fun setPeriode(index: Int, periode: Periode?) {
+        preparedStatement.setString(index, periode?.let(DaterangeParser::toSQL))
     }
 
-    fun setLong(index: Int, value: Long) {
-        preparedStatement.setLong(index, value)
+    fun setLong(index: Int, value: Long?) {
+        if (value == null) {
+            preparedStatement.setNull(index, Types.NUMERIC)
+        } else {
+            preparedStatement.setLong(index, value)
+        }
     }
 
-    fun setBoolean(indewx: Int, value: Boolean) {
-        preparedStatement.setBoolean(indewx, value)
+    fun setBoolean(index: Int, value: Boolean?) {
+        if (value == null) {
+            preparedStatement.setNull(index, Types.BOOLEAN)
+        } else {
+            preparedStatement.setBoolean(index, value)
+        }
     }
 }

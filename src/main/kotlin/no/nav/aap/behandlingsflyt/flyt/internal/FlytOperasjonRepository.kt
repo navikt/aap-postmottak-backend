@@ -55,7 +55,7 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
                 setString(2, no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status.OPPRETTET.name)
                 setString(3, "")
                 setString(4, "Kelvin")
-                setTimestamp(5, LocalDateTime.now())
+                setLocalDateTime(5, LocalDateTime.now())
             }
         }
     }
@@ -120,7 +120,7 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
                 setString(2, tilstand.steg().name)
                 setString(3, tilstand.status().name)
                 setBoolean(4, true)
-                setTimestamp(5, LocalDateTime.now())
+                setLocalDateTime(5, LocalDateTime.now())
             }
         }
     }

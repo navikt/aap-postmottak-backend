@@ -193,19 +193,16 @@ class FlytOrkestratorTest {
     }
 
     private fun hentSak(ident: Ident, periode: Periode): Sak {
-        var sak: Sak? = null
-        dataSource.transaction {
-            sak = SakRepository(it).finnEllerOpprett(PersonRepository(it).finnEllerOpprett(ident), periode)
+        return dataSource.transaction { connection ->
+            SakRepository(connection).finnEllerOpprett(PersonRepository(connection).finnEllerOpprett(ident), periode)
         }
-        return sak!!
     }
 
     private fun hentBehandling(sakId: Long): Behandling {
-        var behandling: Behandling? = null
-        dataSource.transaction {
-            behandling = BehandlingRepository(it).finnSisteBehandlingFor(sakId)
+        return dataSource.transaction { connection ->
+            val finnSisteBehandlingFor = BehandlingRepository(connection).finnSisteBehandlingFor(sakId)
+            requireNotNull(finnSisteBehandlingFor)
         }
-        return behandling!!
     }
 
     private fun ventPåSvar() {
@@ -230,7 +227,12 @@ class FlytOrkestratorTest {
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
         val stegHistorikk = behandling.stegHistorikk()
-        assertThat(stegHistorikk.map { it.tilstand }).contains(Tilstand(StegType.AVKLAR_STUDENT, StegStatus.AVKLARINGSPUNKT))
+        assertThat(stegHistorikk.map { it.tilstand }).contains(
+            Tilstand(
+                StegType.AVKLAR_STUDENT,
+                StegStatus.AVKLARINGSPUNKT
+            )
+        )
 
         //Henter vurder alder-vilkår
         //Assert utfall
