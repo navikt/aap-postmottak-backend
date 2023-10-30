@@ -90,7 +90,6 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
-                versjon = 1L,
                 løsning = AvklarStudentLøsning(
                     studentvurdering = StudentVurdering(
                         begrunnelse = "Er student",
@@ -106,7 +105,6 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
-                versjon = 1L,
                 løsning = AvklarYrkesskadeLøsning(
                     yrkesskadevurdering = Yrkesskadevurdering(
                         begrunnelse = "Er syk nok",
@@ -122,7 +120,6 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
-                versjon = 1L,
                 løsning = AvklarSykdomLøsning(
                     sykdomsvurdering = Sykdomsvurdering(
                         begrunnelse = "Er syk nok",
@@ -140,7 +137,6 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
-                versjon = 1L,
                 løsning = AvklarBistandsbehovLøsning(
                     bistandsVurdering = BistandsVurdering(
                         begrunnelse = "Trenger hjelp fra nav",
@@ -158,7 +154,6 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
-                versjon = 1L,
                 løsning = ForeslåVedtakLøsning("Begrunnelse")
             )
         )
@@ -172,7 +167,6 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(
             behandling.id,
             LøsAvklaringsbehovBehandlingHendelse(
-                versjon = 1L,
                 løsning = FatteVedtakLøsning(behandling.avklaringsbehov().filter { it.erTotrinn() }
                     .map { TotrinnsVurdering(it.definisjon.kode, true, "begrunnelse") })
             )
@@ -223,7 +217,7 @@ class FlytOrkestratorTest {
     @Test
     fun `Ikke oppfylt på grunn av alder på søknadstidspunkt`() {
         val ident = Ident("123123123125")
-        val person = hentPerson(ident)
+        hentPerson(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(17))))

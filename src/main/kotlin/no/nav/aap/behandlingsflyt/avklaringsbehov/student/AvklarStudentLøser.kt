@@ -11,12 +11,14 @@ import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
 class AvklarStudentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarStudentLøsning> {
 
+    private val behandlingRepository = BehandlingRepository(connection)
+
     override fun løs(kontekst: FlytKontekst, løsning: AvklarStudentLøsning): LøsningsResultat {
-        val behandling = BehandlingRepository(connection).hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         InMemoryStudentRepository.lagre(
             behandlingId = behandling.id,
-            studentvurdering = løsning?.studentvurdering,
+            studentvurdering = løsning.studentvurdering,
         )
 
         return LøsningsResultat(

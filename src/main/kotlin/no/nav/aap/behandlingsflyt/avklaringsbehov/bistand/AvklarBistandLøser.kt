@@ -10,8 +10,10 @@ import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
 class AvklarBistandLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarBistandsbehovLøsning> {
 
+    private val behandlingRepository = BehandlingRepository(connection)
+
     override fun løs(kontekst: FlytKontekst, løsning: AvklarBistandsbehovLøsning): LøsningsResultat {
-        val behandling = BehandlingRepository(connection).hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         BistandsRepository.lagre(
             behandlingId = behandling.id,

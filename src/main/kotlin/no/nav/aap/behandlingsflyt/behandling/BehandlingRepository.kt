@@ -39,9 +39,15 @@ class BehandlingRepository(private val connection: DBConnection) {
             }
         }.first()
 
-        val behandling = Behandling(id = behandlingId, sakId = sakId, type = behandlingType, årsaker = årsaker)
+        val behandling = Behandling(
+            id = behandlingId,
+            sakId = sakId,
+            type = behandlingType,
+            årsaker = årsaker,
+            versjon = 0
+        )
         if (sisteBehandlingFor != null) {
-            GrunnlagKopierer.overfør(sisteBehandlingFor, behandling)
+            GrunnlagKopierer(connection).overfør(sisteBehandlingFor, behandling)
         }
 
         return behandling
@@ -71,7 +77,8 @@ class BehandlingRepository(private val connection: DBConnection) {
             type = utledType(it.getString("type")),
             status = Status.valueOf(it.getString("status")),
             avklaringsbehovene = avklaringsbehovRepository.hent(behandlingId),
-            stegHistorikk = hentStegHistorikk(behandlingId)
+            stegHistorikk = hentStegHistorikk(behandlingId),
+            versjon = it.getLong("versjon")
         )
     }
 

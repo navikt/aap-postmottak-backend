@@ -21,4 +21,16 @@ object ValiderBehandlingTilstand {
             throw IllegalArgumentException("Forsøker løse avklaringsbehov $avklaringsbehov ikke knyttet til behandlingen")
         }
     }
+
+    fun validerTilstandBehandling(
+        behandling: Behandling,
+        avklaringsbehov: List<Definisjon> = listOf(),
+        versjon: Long
+    ) {
+        validerTilstandBehandling(behandling, avklaringsbehov)
+
+        //if (behandling.versjon != versjon) {
+        //    throw OutdatedBehandlingException("Behandlingen har blitt oppdatert. Versjonsnummer ulikt fra siste")
+        //}
+    }
 }

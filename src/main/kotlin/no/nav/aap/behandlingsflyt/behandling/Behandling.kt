@@ -20,7 +20,8 @@ class Behandling(
     private var årsaker: List<Årsak> = mutableListOf(),
     private val avklaringsbehovene: Avklaringsbehovene = Avklaringsbehovene(mutableListOf()),
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
-    val opprettetTidspunkt: LocalDateTime = LocalDateTime.now()
+    val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
+    val versjon: Long
 ) : Comparable<Behandling> {
 
     private val flyt: BehandlingFlyt = type.flyt()

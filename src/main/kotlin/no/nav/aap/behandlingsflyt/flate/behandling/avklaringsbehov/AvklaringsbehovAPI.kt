@@ -25,12 +25,13 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
 
                     ValiderBehandlingTilstand.validerTilstandBehandling(
                         behandling,
-                        listOf(request.behov.definisjon())
+                        listOf(request.behov.definisjon()),
+                        request.behandlingVersjon
                     )
 
                     HendelsesMottak(dataSource).håndtere(
                         key = behandling.id,
-                        hendelse = LøsAvklaringsbehovBehandlingHendelse(request.behov, request.behandlingVersjon)
+                        hendelse = LøsAvklaringsbehovBehandlingHendelse(request.behov)
                     )
                     taSkriveLåsRepository.verifiserSkrivelås(lås)
                 }
