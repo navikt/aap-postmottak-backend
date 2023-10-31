@@ -101,8 +101,7 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
             id = id,
             definisjon = definisjon,
             funnetISteg = StegType.valueOf(row.getString("funnet_i_steg")),
-            //TODO: Skal totrinn tolkes som false hvis den ikke er satt
-            kreverToTrinn = row.getBooleanOrNull("krever_to_trinn") ?: false,
+            kreverToTrinn = row.getBooleanOrNull("krever_to_trinn"),
             historikk = hentEndringer(id).toMutableList()
         )
     }

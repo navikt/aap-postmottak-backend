@@ -10,7 +10,14 @@ class AvklaringsbehoveneTest {
     @Test
     fun `skal kunne legge til nytt avklaringsbehov`() {
         val avklaringsbehovene = Avklaringsbehovene()
-        avklaringsbehovene.leggTil(Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM, id = 1L))
+        avklaringsbehovene.leggTil(
+            Avklaringsbehov(
+                definisjon = Definisjon.AVKLAR_SYKDOM,
+                funnetISteg = StegType.AVKLAR_SYKDOM,
+                id = 1L,
+                kreverToTrinn = null
+            )
+        )
 
         assertThat(avklaringsbehovene.alle()).hasSize(1)
     }
@@ -18,8 +25,22 @@ class AvklaringsbehoveneTest {
     @Test
     fun `skal ikke legge til duplikate avklaringsbehov`() {
         val avklaringsbehovene = Avklaringsbehovene()
-        avklaringsbehovene.leggTil(Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM, id = 1L))
-        avklaringsbehovene.leggTil(Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM, id = 1L))
+        avklaringsbehovene.leggTil(
+            Avklaringsbehov(
+                definisjon = Definisjon.AVKLAR_SYKDOM,
+                funnetISteg = StegType.AVKLAR_SYKDOM,
+                id = 1L,
+                kreverToTrinn = null
+            )
+        )
+        avklaringsbehovene.leggTil(
+            Avklaringsbehov(
+                definisjon = Definisjon.AVKLAR_SYKDOM,
+                funnetISteg = StegType.AVKLAR_SYKDOM,
+                id = 1L,
+                kreverToTrinn = null
+            )
+        )
 
         assertThat(avklaringsbehovene.alle()).hasSize(1)
     }
@@ -27,7 +48,12 @@ class AvklaringsbehoveneTest {
     @Test
     fun `skal løse avklaringsbehov`() {
         val avklaringsbehovene = Avklaringsbehovene()
-        val avklaringsbehov = Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM, id = 1L)
+        val avklaringsbehov = Avklaringsbehov(
+            definisjon = Definisjon.AVKLAR_SYKDOM,
+            funnetISteg = StegType.AVKLAR_SYKDOM,
+            id = 1L,
+            kreverToTrinn = null
+        )
         avklaringsbehovene.leggTil(avklaringsbehov)
 
         assertThat(avklaringsbehov.erÅpent()).isTrue
@@ -40,15 +66,24 @@ class AvklaringsbehoveneTest {
     @Test
     fun `forsøk på å løse et avklaringsbehov som ikke finnes skal gi exception`() {
         val avklaringsbehovene = Avklaringsbehovene()
-        val avklaringsbehov = Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM, id = 1L)
+        val avklaringsbehov = Avklaringsbehov(
+            definisjon = Definisjon.AVKLAR_SYKDOM,
+            funnetISteg = StegType.AVKLAR_SYKDOM,
+            id = 1L,
+            kreverToTrinn = null
+        )
         avklaringsbehovene.leggTil(avklaringsbehov)
 
         assertThat(avklaringsbehov.erÅpent()).isTrue
 
-        assertFailsWith<NoSuchElementException> (
+        assertFailsWith<NoSuchElementException>(
             message = "Collection contains no element matching the predicate.",
             block = {
-                avklaringsbehovene.løsAvklaringsbehov(Definisjon.MANUELT_SATT_PÅ_VENT, begrunnelse = "Derfor", endretAv = "Meg")
+                avklaringsbehovene.løsAvklaringsbehov(
+                    Definisjon.MANUELT_SATT_PÅ_VENT,
+                    begrunnelse = "Derfor",
+                    endretAv = "Meg"
+                )
             }
         )
     }
@@ -56,8 +91,22 @@ class AvklaringsbehoveneTest {
     @Test
     fun `skal returnere alle åpne avklaringsbehov`() {
         val avklaringsbehovene = Avklaringsbehovene()
-        avklaringsbehovene.leggTil(Avklaringsbehov(definisjon = Definisjon.AVKLAR_SYKDOM, funnetISteg = StegType.AVKLAR_SYKDOM, id = 1L))
-        avklaringsbehovene.leggTil(Avklaringsbehov(definisjon = Definisjon.FATTE_VEDTAK, funnetISteg = StegType.FATTE_VEDTAK, id = 1L))
+        avklaringsbehovene.leggTil(
+            Avklaringsbehov(
+                definisjon = Definisjon.AVKLAR_SYKDOM,
+                funnetISteg = StegType.AVKLAR_SYKDOM,
+                id = 1L,
+                kreverToTrinn = null
+            )
+        )
+        avklaringsbehovene.leggTil(
+            Avklaringsbehov(
+                definisjon = Definisjon.FATTE_VEDTAK,
+                funnetISteg = StegType.FATTE_VEDTAK,
+                id = 1L,
+                kreverToTrinn = null
+            )
+        )
 
         assertThat(avklaringsbehovene.åpne()).hasSize(2)
 

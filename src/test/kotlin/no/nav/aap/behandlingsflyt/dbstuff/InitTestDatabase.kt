@@ -38,7 +38,7 @@ internal object InitTestDatabase {
 internal abstract class DatabaseTestBase {
     @BeforeEach
     fun clearTables() {
-        InitTestDatabase.dataSource.connect { connection ->
+        InitTestDatabase.dataSource.transaction { connection ->
             connection.execute("TRUNCATE TEST, TEST_BYTES, TEST_STRING, TEST_LONG, TEST_UUID, TEST_DATERANGE, TEST_BOOLEAN, TEST_LOCALDATETIME; ALTER SEQUENCE test_id_seq RESTART WITH 1")
         }
     }

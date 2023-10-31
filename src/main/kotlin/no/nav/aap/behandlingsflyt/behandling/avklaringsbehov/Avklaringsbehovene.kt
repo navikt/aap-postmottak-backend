@@ -14,9 +14,10 @@ class Avklaringsbehovene(avklaringsbehovene: List<Avklaringsbehov> = mutableList
         funnetAvklaringsbehov.stream()
             .map { definisjon ->
                 Avklaringsbehov(
-                    Long.MAX_VALUE,
-                    definisjon,
-                    funnetISteg = steg
+                    id = Long.MAX_VALUE,
+                    definisjon = definisjon,
+                    funnetISteg = steg,
+                    kreverToTrinn = null
                 )
             }
             .forEach { this.leggTil(it) }

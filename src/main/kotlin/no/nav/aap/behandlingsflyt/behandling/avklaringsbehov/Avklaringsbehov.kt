@@ -7,7 +7,7 @@ class Avklaringsbehov(
     val definisjon: Definisjon,
     val historikk: MutableList<Endring> = mutableListOf(),
     val funnetISteg: StegType,
-    private var kreverToTrinn: Boolean = false
+    private var kreverToTrinn: Boolean?
 ) {
     init {
         if (historikk.isEmpty()) {
@@ -42,7 +42,7 @@ class Avklaringsbehov(
     }
 
     fun løs(begrunnelse: String, endretAv: String, kreverToTrinn: Boolean) {
-        if (!this.kreverToTrinn) {
+        if (this.kreverToTrinn != true) {
             this.kreverToTrinn = kreverToTrinn
         }
         historikk.add(Endring(status = Status.AVSLUTTET, begrunnelse = begrunnelse, endretAv = endretAv))
@@ -52,7 +52,7 @@ class Avklaringsbehov(
         if (definisjon.kreverToTrinn) {
             return true
         }
-        return kreverToTrinn
+        return kreverToTrinn == true
     }
 
     fun erTotrinnsVurdert(): Boolean {

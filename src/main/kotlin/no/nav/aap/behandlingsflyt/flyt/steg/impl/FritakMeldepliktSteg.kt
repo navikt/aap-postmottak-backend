@@ -28,7 +28,8 @@ class FritakMeldepliktSteg(private val behandlingService: BehandlingService) : B
                             endretAv = "system"
                         )
                     ),
-                    funnetISteg = behandling.aktivtSteg()
+                    funnetISteg = behandling.aktivtSteg(),
+                    kreverToTrinn = null
                 )
             )
         }

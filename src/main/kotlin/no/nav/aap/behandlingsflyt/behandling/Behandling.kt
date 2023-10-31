@@ -83,9 +83,10 @@ class Behandling(
         status = Status.PÅ_VENT
         avklaringsbehovene.leggTil(
             Avklaringsbehov(
-                Long.MAX_VALUE,
-                Definisjon.MANUELT_SATT_PÅ_VENT,
-                funnetISteg = aktivtSteg()
+                id = Long.MAX_VALUE,
+                definisjon = Definisjon.MANUELT_SATT_PÅ_VENT,
+                funnetISteg = aktivtSteg(),
+                kreverToTrinn = null
             )
         )
     }
