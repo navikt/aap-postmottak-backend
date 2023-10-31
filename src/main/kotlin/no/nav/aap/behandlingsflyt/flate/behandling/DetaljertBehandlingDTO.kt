@@ -12,5 +12,6 @@ data class DetaljertBehandlingDTO(
     val opprettet: LocalDateTime,
     val avklaringsbehov: List<AvklaringsbehovDTO>,
     val vilkår: List<VilkårDTO>,
-    val aktivtSteg: StegType
+    val aktivtSteg: StegType,
+    val versjon: Long
 )

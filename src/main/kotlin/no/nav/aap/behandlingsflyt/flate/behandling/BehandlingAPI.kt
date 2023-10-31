@@ -55,7 +55,8 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: HikariDataSource) {
                                     )
                                 })
                     },
-                    aktivtSteg = behandling.stegHistorikk().last().tilstand.steg()
+                    aktivtSteg = behandling.stegHistorikk().last().tilstand.steg(),
+                    versjon = behandling.versjon
                 )
 
                 respond(dto)
@@ -67,24 +68,25 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: HikariDataSource) {
 
                 respond(
                     BehandlingFlytOgTilstandDto(
-                        behandling.flyt().stegene().map { stegType ->
+                        flyt = behandling.flyt().stegene().map { stegType ->
                             FlytSteg(
-                                stegType,
-                                behandling.avklaringsbehov()
+                                stegType = stegType,
+                                avklaringsbehov = behandling.avklaringsbehov()
                                     .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
                                     .map { behov ->
                                         AvklaringsbehovDTO(
-                                            behov.definisjon,
-                                            behov.status(),
-                                            emptyList()
+                                            definisjon = behov.definisjon,
+                                            status = behov.status(),
+                                            endringer = emptyList()
                                         )
                                     },
-                                hentUtRelevantVilkårForSteg(
+                                vilkårDTO = hentUtRelevantVilkårForSteg(
                                     VilkårsresultatRepository.hent(behandling.id),
                                     stegType
                                 )
                             )
-                        }, behandling.aktivtSteg()
+                        },
+                        aktivtSteg = behandling.aktivtSteg()
                     )
                 )
             }
@@ -125,7 +127,8 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: HikariDataSource) {
                             )
                         },
                         aktivtSteg = aktivtSteg,
-                        aktivGruppe = aktivtSteg.gruppe
+                        aktivGruppe = aktivtSteg.gruppe,
+                        behandlingVersjon = behandling.versjon
                     )
                 )
             }
