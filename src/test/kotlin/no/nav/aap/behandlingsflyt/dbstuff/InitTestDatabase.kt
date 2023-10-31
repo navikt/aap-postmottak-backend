@@ -18,12 +18,13 @@ internal object InitTestDatabase {
             jdbcUrl = postgres.jdbcUrl
             username = postgres.username
             password = postgres.password
-            maximumPoolSize = 3
             minimumIdle = 1
+            maximumPoolSize = 3
             initializationFailTimeout = 30000
             idleTimeout = 10000
             connectionTimeout = 30000
-            maxLifetime = 30000
+            maxLifetime = 900000
+            connectionTestQuery = "SELECT 1"
         })
 
         Flyway
