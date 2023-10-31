@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Yrkesskadevurdering
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -13,7 +14,7 @@ class SykdomsGrunnlagTest {
     fun `er konsistent hvis ikke yrkesskade og 50 prosent`() {
         val sykdomsGrunnlag = SykdomsGrunnlag(
             id = 1L,
-            behandlingId = 1L,
+            behandlingId = BehandlingId(1L),
             yrkesskadevurdering = null,
             sykdomsvurdering = Sykdomsvurdering(
                 begrunnelse = "",
@@ -32,7 +33,7 @@ class SykdomsGrunnlagTest {
     fun `er ikke konsistent hvis ikke yrkesskade og 30 prosent`() {
         val sykdomsGrunnlag = SykdomsGrunnlag(
             id = 1L,
-            behandlingId = 1L,
+            behandlingId = BehandlingId(1L),
             yrkesskadevurdering = null,
             sykdomsvurdering = Sykdomsvurdering(
                 begrunnelse = "",
@@ -51,7 +52,7 @@ class SykdomsGrunnlagTest {
     fun `er konsistent hvis yrkesskade med årsakssammenheng og 30 prosent`() {
         val sykdomsGrunnlag = SykdomsGrunnlag(
             id = 1L,
-            behandlingId = 1L,
+            behandlingId = BehandlingId(1L),
             yrkesskadevurdering = Yrkesskadevurdering(
                 begrunnelse = "",
                 dokumenterBruktIVurdering = emptyList(),
@@ -75,7 +76,7 @@ class SykdomsGrunnlagTest {
     fun `er ikke konsistent hvis yrkesskade med årsakssammenheng og 50 prosent`() {
         val sykdomsGrunnlag = SykdomsGrunnlag(
             id = 1L,
-            behandlingId = 1L,
+            behandlingId = BehandlingId(1L),
             yrkesskadevurdering = Yrkesskadevurdering(
                 begrunnelse = "",
                 dokumenterBruktIVurdering = emptyList(),
@@ -99,7 +100,7 @@ class SykdomsGrunnlagTest {
     fun `er ikke konsistent hvis yrkesskade uten årsakssammenheng og 30 prosent`() {
         val sykdomsGrunnlag = SykdomsGrunnlag(
             id = 1L,
-            behandlingId = 1L,
+            behandlingId = BehandlingId(1L),
             yrkesskadevurdering = Yrkesskadevurdering(
                 begrunnelse = "",
                 dokumenterBruktIVurdering = emptyList(),
@@ -123,7 +124,7 @@ class SykdomsGrunnlagTest {
     fun `er konsistent hvis yrkesskade uten årsakssammenheng og 50 prosent`() {
         val sykdomsGrunnlag = SykdomsGrunnlag(
             id = 1L,
-            behandlingId = 1L,
+            behandlingId = BehandlingId(1L),
             yrkesskadevurdering = Yrkesskadevurdering(
                 begrunnelse = "",
                 dokumenterBruktIVurdering = emptyList(),

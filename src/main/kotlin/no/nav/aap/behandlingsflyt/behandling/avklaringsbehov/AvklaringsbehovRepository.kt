@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.dbstuff.Row
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
@@ -7,7 +8,7 @@ import java.time.LocalDateTime
 
 class AvklaringsbehovRepository(private val connection: DBConnection) {
 
-    fun løs(behandlingId: Long, definisjon: Definisjon, begrunnelse: String, kreverToTrinn: Boolean?) {
+    fun løs(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, kreverToTrinn: Boolean?) {
         val avklaringsbehovene = hent(behandlingId)
 
         val avklaringsbehov = avklaringsbehovene.hentBehovForDefinisjon(definisjon)
@@ -45,7 +46,7 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
         }
     }
 
-    fun toTrinnsVurdering(behandlingId: Long, definisjon: Definisjon, begrunnelse: String, godkjent: Boolean) {
+    fun toTrinnsVurdering(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, godkjent: Boolean) {
         val avklaringsbehovene = hent(behandlingId)
 
         val avklaringsbehov = avklaringsbehovene.hentBehovForDefinisjon(definisjon)
@@ -79,14 +80,14 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hent(behandlingId: Long): Avklaringsbehovene {
+    fun hent(behandlingId: BehandlingId): Avklaringsbehovene {
         val query = """
             SELECT * FROM AVKLARINGSBEHOV WHERE behandling_id = ?
             """.trimIndent()
 
         return Avklaringsbehovene(connection.queryList(query) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, behandlingId.toLong())
             }
             setRowMapper {
                 mapAvklaringsbehov(it)

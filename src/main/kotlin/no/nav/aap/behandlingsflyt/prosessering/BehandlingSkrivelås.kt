@@ -1,3 +1,5 @@
 package no.nav.aap.behandlingsflyt.prosessering
 
-data class BehandlingSkrivelås(val id: Long, val versjon: Long)
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+
+data class BehandlingSkrivelås(val id: BehandlingId, val versjon: Long)

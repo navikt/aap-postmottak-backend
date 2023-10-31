@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.internal
 
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
@@ -24,13 +25,13 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
         }
     }
 
-    fun oppdaterBehandlingStatus(behandlingId: Long, status: no.nav.aap.behandlingsflyt.behandling.Status) {
+    fun oppdaterBehandlingStatus(behandlingId: BehandlingId, status: no.nav.aap.behandlingsflyt.behandling.Status) {
         val query = """UPDATE behandling SET status = ? WHERE ID = ?"""
 
         return connection.execute(query) {
             setParams {
                 setString(1, status.name)
-                setLong(2, behandlingId)
+                setLong(2, behandlingId.toLong())
             }
             setResultValidator {
                 require(it == 1)
@@ -38,11 +39,11 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
         }
     }
 
-    fun leggTilAvklaringsbehov(behandlingId: Long, definisjoner: List<Definisjon>, funnetISteg: StegType) {
+    fun leggTilAvklaringsbehov(behandlingId: BehandlingId, definisjoner: List<Definisjon>, funnetISteg: StegType) {
         definisjoner.forEach { definisjon -> leggTilAvklaringsbehov(behandlingId, definisjon, funnetISteg) }
     }
 
-    fun leggTilAvklaringsbehov(behandlingId: Long, definisjon: Definisjon, funnetISteg: StegType) {
+    fun leggTilAvklaringsbehov(behandlingId: BehandlingId, definisjon: Definisjon, funnetISteg: StegType) {
         val avklaringsbehovId = hentRelevantAvklaringsbehov(behandlingId, definisjon, funnetISteg)
 
         val queryEndring = """
@@ -62,7 +63,7 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
     }
 
     private fun hentRelevantAvklaringsbehov(
-        behandlingId: Long,
+        behandlingId: BehandlingId,
         definisjon: Definisjon,
         funnetISteg: StegType
     ): Long {
@@ -73,7 +74,7 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
 
         val avklaringsbehovId = connection.queryFirstOrNull(selectQuery) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, behandlingId.toLong())
                 setString(2, definisjon.kode)
             }
             setRowMapper {
@@ -92,21 +93,21 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
 
         return connection.executeReturnKey(query) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, behandlingId.toLong())
                 setString(2, definisjon.kode)
                 setString(3, funnetISteg.name)
             }
         }
     }
 
-    fun loggBesøktSteg(behandlingId: Long, tilstand: Tilstand) {
+    fun loggBesøktSteg(behandlingId: BehandlingId, tilstand: Tilstand) {
         val updateQuery = """
             UPDATE STEG_HISTORIKK set aktiv = false WHERE behandling_id = ? and aktiv = true
         """.trimIndent()
 
         connection.execute(updateQuery) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, behandlingId.toLong())
             }
         }
 
@@ -117,7 +118,7 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
 
         connection.execute(query) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, behandlingId.toLong())
                 setString(2, tilstand.steg().name)
                 setString(3, tilstand.status().name)
                 setBoolean(4, true)

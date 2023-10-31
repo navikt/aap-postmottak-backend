@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.EndringType
 import no.nav.aap.behandlingsflyt.behandling.Status
@@ -56,7 +57,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
         håndtere(key = sisteBehandling!!.id, hendelse.tilBehandlingHendelse())
     }
 
-    fun håndtere(key: Long, hendelse: LøsAvklaringsbehovBehandlingHendelse) {
+    fun håndtere(key: BehandlingId, hendelse: LøsAvklaringsbehovBehandlingHendelse) {
         dataSource.transaction { connection ->
             val behandling = BehandlingRepository(connection).hent(key)
             ValiderBehandlingTilstand.validerTilstandBehandling(behandling = behandling)
@@ -73,7 +74,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
         }
     }
 
-    fun håndtere(key: Long, hendelse: BehandlingSattPåVent) {
+    fun håndtere(key: BehandlingId, hendelse: BehandlingSattPåVent) {
         dataSource.transaction { connection ->
             val behandling = BehandlingRepository(connection).hent(key)
             ValiderBehandlingTilstand.validerTilstandBehandling(behandling = behandling)
@@ -87,7 +88,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
         }
     }
 
-    fun håndtere(key: Long, hendelse: BehandlingHendelse) {
+    fun håndtere(key: BehandlingId, hendelse: BehandlingHendelse) {
         dataSource.transaction { connection ->
             val behandling = BehandlingRepository(connection).hent(key)
             ValiderBehandlingTilstand.validerTilstandBehandling(behandling = behandling)

@@ -1,22 +1,23 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger
 
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import java.util.concurrent.atomic.AtomicLong
 
 object PersoninformasjonRepository {
 
-    private var grunnlagene = HashMap<Long, PersoninfoGrunnlag>()
+    private var grunnlagene = HashMap<BehandlingId, PersoninfoGrunnlag>()
 
     private val key = AtomicLong()
     private val LOCK = Object()
 
-    fun hentHvisEksisterer(behandlingId: Long): PersoninfoGrunnlag? {
+    fun hentHvisEksisterer(behandlingId: BehandlingId): PersoninfoGrunnlag? {
         synchronized(LOCK) {
             return grunnlagene[behandlingId]
         }
     }
 
-    fun lagre(behandlingId: Long, personinfo: Personinfo?) {
+    fun lagre(behandlingId: BehandlingId, personinfo: Personinfo?) {
         synchronized(LOCK) {
             if (personinfo != null) {
                 grunnlagene.put(

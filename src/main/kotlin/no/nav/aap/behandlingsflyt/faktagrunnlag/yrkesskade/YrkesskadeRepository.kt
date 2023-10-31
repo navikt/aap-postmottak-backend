@@ -1,16 +1,17 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import java.util.concurrent.atomic.AtomicLong
 
 object YrkesskadeRepository {
 
-    private var grunnlagene = HashMap<Long, YrkesskadeGrunnlag>()
+    private var grunnlagene = HashMap<BehandlingId, YrkesskadeGrunnlag>()
 
     private val key = AtomicLong()
     private val LOCK = Object()
 
-    fun lagre(behandlingId: Long, yrkesskader: Yrkesskader?) {
+    fun lagre(behandlingId: BehandlingId, yrkesskader: Yrkesskader?) {
         synchronized(LOCK) {
             if (yrkesskader != null) {
                 grunnlagene.put(
@@ -31,7 +32,7 @@ object YrkesskadeRepository {
         }
     }
 
-    fun hentHvisEksisterer(behandlingId: Long): YrkesskadeGrunnlag? {
+    fun hentHvisEksisterer(behandlingId: BehandlingId): YrkesskadeGrunnlag? {
         synchronized(LOCK) {
             return grunnlagene[behandlingId]
         }

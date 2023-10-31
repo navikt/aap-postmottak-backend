@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 class Behandling(
-    val id: Long,
+    val id: BehandlingId,
     val referanse: UUID = UUID.randomUUID(),
     val sakId: SakId,
     val type: BehandlingType,

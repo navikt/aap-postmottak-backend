@@ -2,18 +2,19 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.student.db
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.student.StudentVurdering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 import java.util.concurrent.atomic.AtomicLong
 
 object InMemoryStudentRepository : StudentRepository {
 
-    private var grunnlagene = HashMap<Long, StudentGrunnlag>()
+    private var grunnlagene = HashMap<BehandlingId, StudentGrunnlag>()
 
     private val key = AtomicLong()
     private val LOCK = Object()
 
-    override fun lagre(behandlingId: Long, studentvurdering: StudentVurdering?) {
+    override fun lagre(behandlingId: BehandlingId, studentvurdering: StudentVurdering?) {
         synchronized(LOCK) {
             grunnlagene.put(
                 behandlingId,
@@ -34,13 +35,13 @@ object InMemoryStudentRepository : StudentRepository {
         }
     }
 
-    override fun hentHvisEksisterer(behandlingId: Long): StudentGrunnlag? {
+    override fun hentHvisEksisterer(behandlingId: BehandlingId): StudentGrunnlag? {
         synchronized(LOCK) {
             return grunnlagene[behandlingId]
         }
     }
 
-    override fun hent(behandlingId: Long): StudentGrunnlag {
+    override fun hent(behandlingId: BehandlingId): StudentGrunnlag {
         synchronized(LOCK) {
             return grunnlagene.getValue(behandlingId)
         }

@@ -25,7 +25,7 @@ class BehandlingRepository(private val connection: DBConnection) {
         }
 
         val behandlingType = utledBehandlingType(sisteBehandlingFor != null)
-        val referanse = UUID.randomUUID()
+        val referanse = UUID.randomUUID() //TODO: Hva gjør vi her med refaranse?
 
         val query = """
             INSERT INTO BEHANDLING (sak_id, referanse, status, type)
@@ -41,7 +41,7 @@ class BehandlingRepository(private val connection: DBConnection) {
         }
 
         val behandling = Behandling(
-            id = behandlingId,
+            id = BehandlingId(behandlingId),
             sakId = sakId,
             type = behandlingType,
             årsaker = årsaker,
@@ -70,7 +70,7 @@ class BehandlingRepository(private val connection: DBConnection) {
     }
 
     private fun mapBehandling(it: Row): Behandling {
-        val behandlingId = it.getLong("id")
+        val behandlingId = BehandlingId(it.getLong("id"))
         return Behandling(
             id = behandlingId,
             referanse = it.getUUID("referanse"),
@@ -83,14 +83,14 @@ class BehandlingRepository(private val connection: DBConnection) {
         )
     }
 
-    private fun hentStegHistorikk(behandlingId: Long): List<StegTilstand> {
+    private fun hentStegHistorikk(behandlingId: BehandlingId): List<StegTilstand> {
         val query = """
             SELECT * FROM STEG_HISTORIKK WHERE behandling_id = ? and aktiv = true
         """.trimIndent()
 
         return connection.queryList(query) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, behandlingId.toLong())
             }
             setRowMapper {
                 StegTilstand(
@@ -126,14 +126,14 @@ class BehandlingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hent(behandlingId: Long): Behandling {
+    fun hent(behandlingId: BehandlingId): Behandling {
         val query = """
             SELECT * FROM BEHANDLING WHERE id = ?
             """.trimIndent()
 
         return connection.queryFirst(query) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, behandlingId.toLong())
             }
             setRowMapper {
                 mapBehandling(it)

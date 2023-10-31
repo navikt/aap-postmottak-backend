@@ -1,6 +1,8 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
-class YrkesskadeGrunnlag(val id: Long, val behandlingId: Long, val yrkesskader: Yrkesskader){
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+
+class YrkesskadeGrunnlag(val id: Long, val behandlingId: BehandlingId, val yrkesskader: Yrkesskader){
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -6,7 +6,7 @@ class BehandlingService(connection: DBConnection) {
 
     private val behandlingRepository = BehandlingRepository(connection)
 
-    fun hent(behandlingId: Long): Behandling {
+    fun hent(behandlingId: BehandlingId): Behandling {
         return behandlingRepository.hent(behandlingId)
     }
 }

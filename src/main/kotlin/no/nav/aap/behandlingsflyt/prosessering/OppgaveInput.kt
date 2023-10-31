@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.prosessering
 
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.SakId
 
@@ -8,7 +9,7 @@ class OppgaveInput(val oppgave: Oppgave) {
 
     internal var id: Long? = null
     private var sakId: SakId? = null
-    private var behandlingId: Long? = null
+    private var behandlingId: BehandlingId? = null
 
     internal fun medId(id: Long): OppgaveInput {
         this.id = id
@@ -28,7 +29,7 @@ class OppgaveInput(val oppgave: Oppgave) {
         return this
     }
 
-    fun forBehandling(sakId: SakId?, behandlingId: Long?): OppgaveInput {
+    fun forBehandling(sakId: SakId?, behandlingId: BehandlingId?): OppgaveInput {
         this.sakId = sakId
         this.behandlingId = behandlingId
 
@@ -43,11 +44,11 @@ class OppgaveInput(val oppgave: Oppgave) {
         return sakId!!
     }
 
-    fun behandlingId(): Long {
+    fun behandlingId(): BehandlingId {
         return behandlingId!!
     }
 
-    fun behandlingIdOrNull(): Long? {
+    fun behandlingIdOrNull(): BehandlingId? {
         return behandlingId
     }
 

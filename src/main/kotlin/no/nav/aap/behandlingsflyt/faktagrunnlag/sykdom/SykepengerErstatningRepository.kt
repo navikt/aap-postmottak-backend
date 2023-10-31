@@ -2,16 +2,17 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.SykepengerVurdering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import java.util.concurrent.atomic.AtomicLong
 
 object SykepengerErstatningRepository {
 
-    private var grunnlagene = HashMap<Long, SykepengerErstatningGrunnlag>()
+    private var grunnlagene = HashMap<BehandlingId, SykepengerErstatningGrunnlag>()
 
     private val key = AtomicLong()
     private val LOCK = Object()
 
-    fun lagre(behandlingId: Long, vurdering: SykepengerVurdering?) {
+    fun lagre(behandlingId: BehandlingId, vurdering: SykepengerVurdering?) {
         synchronized(LOCK) {
             grunnlagene.put(
                 behandlingId,
@@ -32,13 +33,13 @@ object SykepengerErstatningRepository {
         }
     }
 
-    fun hentHvisEksisterer(behandlingId: Long): SykepengerErstatningGrunnlag? {
+    fun hentHvisEksisterer(behandlingId: BehandlingId): SykepengerErstatningGrunnlag? {
         synchronized(LOCK) {
             return grunnlagene[behandlingId]
         }
     }
 
-    fun hent(behandlingId: Long): SykepengerErstatningGrunnlag {
+    fun hent(behandlingId: BehandlingId): SykepengerErstatningGrunnlag {
         synchronized(LOCK) {
             return grunnlagene.getValue(behandlingId)
         }

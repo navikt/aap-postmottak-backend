@@ -2,16 +2,17 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.bistand
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.BistandsVurdering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import java.util.concurrent.atomic.AtomicLong
 
 object BistandsRepository {
 
-    private var grunnlagene = HashMap<Long, BistandsGrunnlag>()
+    private var grunnlagene = HashMap<BehandlingId, BistandsGrunnlag>()
 
     private val key = AtomicLong()
     private val LOCK = Object()
 
-    fun lagre(behandlingId: Long, bistandsVurdering: BistandsVurdering) {
+    fun lagre(behandlingId: BehandlingId, bistandsVurdering: BistandsVurdering) {
         synchronized(LOCK) {
             grunnlagene.put(
                 behandlingId,
@@ -32,13 +33,13 @@ object BistandsRepository {
         }
     }
 
-    fun hentHvisEksisterer(behandlingId: Long): BistandsGrunnlag? {
+    fun hentHvisEksisterer(behandlingId: BehandlingId): BistandsGrunnlag? {
         synchronized(LOCK) {
             return grunnlagene[behandlingId]
         }
     }
 
-    fun hent(behandlingId: Long): BistandsGrunnlag {
+    fun hent(behandlingId: BehandlingId): BistandsGrunnlag {
         synchronized(LOCK) {
             return grunnlagene.getValue(behandlingId)
         }
