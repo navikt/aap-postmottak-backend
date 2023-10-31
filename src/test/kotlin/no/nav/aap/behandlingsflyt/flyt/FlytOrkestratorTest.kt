@@ -53,6 +53,7 @@ class FlytOrkestratorTest {
     companion object {
         val dataSource = InitTestDatabase.dataSource
         val motor = Motor(dataSource, 1)
+        val hendelsesMottak = HendelsesMottak(dataSource)
 
         @BeforeAll
         @JvmStatic
@@ -66,8 +67,6 @@ class FlytOrkestratorTest {
             motor.stop()
         }
     }
-
-    private val hendelsesMottak = HendelsesMottak(dataSource)
 
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade`() {
