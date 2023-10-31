@@ -3,33 +3,53 @@ package no.nav.aap.behandlingsflyt.prosessering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sak.Sak
 
-private const val SAK_ID = "sakId"
-private const val BEHANDLING_ID = "behandlingId"
+class OppgaveInput(val oppgave: Oppgave) {
 
-class OppgaveInput(private val parameter: HashMap<String, String> = HashMap(), val oppgave: Oppgave) {
+    internal var id: Long? = null
+    private var sakId: Long? = null
+    private var behandlingId: Long? = null
+
+    internal fun medId(id: Long): OppgaveInput {
+        this.id = id
+        return this
+    }
 
     fun forSak(sak: Sak): OppgaveInput {
-        parameter[SAK_ID] = sak.id.toString()
+        sakId = sak.id
 
         return this
     }
 
     fun forBehandling(behandling: Behandling): OppgaveInput {
-        parameter[SAK_ID] = behandling.sakId.toString()
-        parameter[BEHANDLING_ID] = behandling.sakId.toString()
+        sakId = behandling.sakId
+        behandlingId = behandling.sakId
 
         return this
     }
 
-    fun forBehandling(sakId: Long, behandlingId: Long): OppgaveInput {
-        parameter[SAK_ID] = sakId.toString()
-        parameter[BEHANDLING_ID] = behandlingId.toString()
+    fun forBehandling(sakId: Long?, behandlingId: Long?): OppgaveInput {
+        this.sakId = sakId
+        this.behandlingId = behandlingId
 
         return this
     }
 
-    fun sakId() = parameter.getValue(SAK_ID).toLong()
-    fun behandlingId() = parameter.getValue(BEHANDLING_ID).toLong()
+    fun sakIdOrNull(): Long? {
+        return sakId
+    }
+
+    fun sakId(): Long {
+        return sakId!!
+    }
+
+    fun behandlingId(): Long {
+        return behandlingId!!
+    }
+
+    fun behandlingIdOrNull(): Long? {
+        return behandlingId
+    }
+
     fun type(): String = oppgave.type()
 
     override fun toString(): String {

@@ -35,6 +35,7 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.hendelse.mottak.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.prosessering.Motor
+import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.Person
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
@@ -206,8 +207,10 @@ class FlytOrkestratorTest {
     }
 
     private fun ventPåSvar() {
-        while (motor.harOppgaverSomIkkeErProssessert()) {
-            Thread.sleep(50L)
+        dataSource.transaction {
+            while (OppgaveRepository(it).harOppgaver() || motor.harOppgaverKjørende()) {
+                Thread.sleep(50L)
+            }
         }
     }
 

@@ -11,7 +11,6 @@ import no.nav.aap.behandlingsflyt.flyt.AvklaringsbehovOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.ValiderBehandlingTilstand
-import no.nav.aap.behandlingsflyt.prosessering.Gruppe
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
@@ -107,12 +106,10 @@ class HendelsesMottak(private val dataSource: DataSource) {
                         avklaringsbehov = listOf(SattPåVentLøsning())
                     )
                 }
-                OppgaveRepository.leggTil(
-                    Gruppe().leggTil(
-                        OppgaveInput(oppgave = ProsesserBehandlingOppgave).forBehandling(
-                            kontekst.sakId,
-                            kontekst.behandlingId
-                        )
+                OppgaveRepository(connection).leggTil(
+                    OppgaveInput(oppgave = ProsesserBehandlingOppgave).forBehandling(
+                        kontekst.sakId,
+                        kontekst.behandlingId
                     )
                 )
             }

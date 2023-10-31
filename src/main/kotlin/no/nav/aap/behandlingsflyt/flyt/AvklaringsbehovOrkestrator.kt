@@ -16,7 +16,6 @@ import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
-import no.nav.aap.behandlingsflyt.prosessering.Gruppe
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
@@ -47,12 +46,10 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
     ) {
         løsAvklaringsbehov(kontekst, avklaringsbehov)
 
-        OppgaveRepository.leggTil(
-            Gruppe().leggTil(
-                OppgaveInput(oppgave = ProsesserBehandlingOppgave).forBehandling(
-                    kontekst.sakId,
-                    kontekst.behandlingId
-                )
+        OppgaveRepository(connection).leggTil(
+            OppgaveInput(oppgave = ProsesserBehandlingOppgave).forBehandling(
+                kontekst.sakId,
+                kontekst.behandlingId
             )
         )
     }

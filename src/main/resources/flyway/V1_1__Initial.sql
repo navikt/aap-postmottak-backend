@@ -89,3 +89,26 @@ CREATE TABLE STEG_HISTORIKK
     OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 CREATE UNIQUE INDEX UIDX_STEG_HISTORIKK ON STEG_HISTORIKK (BEHANDLING_ID) WHERE (AKTIV = TRUE);
+
+
+--
+CREATE TABLE OPPGAVE
+(
+    id            BIGSERIAL                              NOT NULL PRIMARY KEY,
+    status        varchar(50)  DEFAULT 'KLAR'            not null,
+    type          varchar(50)                            not null,
+    sak_id        bigint                                 null REFERENCES SAK (id),
+    behandling_id bigint                                 null REFERENCES BEHANDLING (id),
+    neste_kjoring TIMESTAMP(3)                           NOT NULL,
+    opprettet_tid TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+CREATE INDEX IDX_OPPGAVE_STATUS ON OPPGAVE (status, sak_id, behandling_id, neste_kjoring);
+
+CREATE TABLE OPPGAVE_HISTORIKK
+(
+    id            BIGSERIAL                              NOT NULL PRIMARY KEY,
+    oppgave_id    BIGINT                                 not null REFERENCES OPPGAVE (id),
+    status        varchar(50)                            not null,
+    feilmelding   varchar(4000)                          null,
+    opprettet_tid TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
