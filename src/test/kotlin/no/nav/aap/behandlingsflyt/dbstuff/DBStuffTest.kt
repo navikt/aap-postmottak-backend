@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Month
 import java.util.*
 
 internal class DBStuffTest : DatabaseTestBase() {
@@ -251,7 +252,7 @@ internal class DBStuffTest : DatabaseTestBase() {
 
     @Test
     fun `Skriver og leser LocalDateTime og null-verdi riktig`() {
-        val localDateTime = LocalDateTime.now()
+        val localDateTime = LocalDateTime.of(2016, Month.AUGUST, 12, 9, 38, 12, 123456000);
         InitTestDatabase.dataSource.transaction { connection ->
             connection.execute(
                 """
