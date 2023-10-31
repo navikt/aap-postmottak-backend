@@ -22,7 +22,7 @@ internal object InitTestDatabase {
             maximumPoolSize = 3
             initializationFailTimeout = 30000
             idleTimeout = 10000
-            connectionTimeout = 30000
+            connectionTimeout = 50000
             maxLifetime = 900000
             connectionTestQuery = "SELECT 1"
         })
