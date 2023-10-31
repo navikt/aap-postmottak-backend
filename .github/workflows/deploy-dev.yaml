@@ -23,7 +23,7 @@ jobs:
 
       - uses: gradle/gradle-build-action@v2.8.0
         with:
-          arguments: test buildFatJar --continue --no-daemon --configuration-cache
+          arguments: test buildFatJar --continue --no-daemon --configuration-cache --stacktrace --info
 
       - name: Login GAR
         uses: nais/login@v0
