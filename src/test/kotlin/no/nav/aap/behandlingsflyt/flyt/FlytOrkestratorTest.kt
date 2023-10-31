@@ -46,6 +46,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class FlytOrkestratorTest {
@@ -70,127 +72,134 @@ class FlytOrkestratorTest {
 
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade`() {
-        val ident = Ident("123123123123")
-        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        try {
 
-        // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(18))))
-        YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
 
-        // Sender inn en søknad
-        hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
-        ventPåSvar()
+            val ident = Ident("123123123123")
+            val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
-        val sak = hentSak(ident, periode)
-        var behandling = hentBehandling(sak.id)
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
+            // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
+            PersonRegisterMock.konstruer(ident, Personinfo(Fødselsdato(LocalDate.now().minusYears(18))))
+            YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
 
-        assertThat(behandling.avklaringsbehov()).isNotEmpty()
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+            // Sender inn en søknad
+            hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
+            ventPåSvar()
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = AvklarStudentLøsning(
-                    studentvurdering = StudentVurdering(
-                        begrunnelse = "Er student",
-                        dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                        oppfyller11_14 = false,
-                        avbruttStudieDato = null
+            val sak = hentSak(ident, periode)
+            var behandling = hentBehandling(sak.id)
+            assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
+
+            assertThat(behandling.avklaringsbehov()).isNotEmpty()
+            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+
+            hendelsesMottak.håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarStudentLøsning(
+                        studentvurdering = StudentVurdering(
+                            begrunnelse = "Er student",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            oppfyller11_14 = false,
+                            avbruttStudieDato = null
+                        )
                     )
                 )
             )
-        )
-        ventPåSvar()
+            ventPåSvar()
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = AvklarYrkesskadeLøsning(
-                    yrkesskadevurdering = Yrkesskadevurdering(
-                        begrunnelse = "Er syk nok",
-                        dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                        erÅrsakssammenheng = false,
-                        skadetidspunkt = null
+            hendelsesMottak.håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarYrkesskadeLøsning(
+                        yrkesskadevurdering = Yrkesskadevurdering(
+                            begrunnelse = "Er syk nok",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            erÅrsakssammenheng = false,
+                            skadetidspunkt = null
+                        )
                     )
                 )
             )
-        )
-        ventPåSvar()
+            ventPåSvar()
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = AvklarSykdomLøsning(
-                    sykdomsvurdering = Sykdomsvurdering(
-                        begrunnelse = "Er syk nok",
-                        dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                        erSkadeSykdomEllerLyteVesentligdel = true,
-                        erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
-                        nedreGrense = NedreGrense.FEMTI,
-                        nedsattArbeidsevneDato = LocalDate.now()
+            hendelsesMottak.håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarSykdomLøsning(
+                        sykdomsvurdering = Sykdomsvurdering(
+                            begrunnelse = "Er syk nok",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            erSkadeSykdomEllerLyteVesentligdel = true,
+                            erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
+                            nedreGrense = NedreGrense.FEMTI,
+                            nedsattArbeidsevneDato = LocalDate.now()
+                        )
                     )
                 )
             )
-        )
-        ventPåSvar()
+            ventPåSvar()
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = AvklarBistandsbehovLøsning(
-                    bistandsVurdering = BistandsVurdering(
-                        begrunnelse = "Trenger hjelp fra nav",
-                        erBehovForBistand = true
-                    ),
+            hendelsesMottak.håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarBistandsbehovLøsning(
+                        bistandsVurdering = BistandsVurdering(
+                            begrunnelse = "Trenger hjelp fra nav",
+                            erBehovForBistand = true
+                        ),
+                    )
                 )
             )
-        )
-        ventPåSvar()
+            ventPåSvar()
 
-        // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
-        assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+            // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
+            assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
+            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = ForeslåVedtakLøsning("Begrunnelse")
+            hendelsesMottak.håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = ForeslåVedtakLøsning("Begrunnelse")
+                )
             )
-        )
-        ventPåSvar()
+            ventPåSvar()
 
-        // Saken står til To-trinnskontroll hos beslutter
-        assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FATTE_VEDTAK }
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
-        behandling = hentBehandling(sak.id)
+            // Saken står til To-trinnskontroll hos beslutter
+            assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FATTE_VEDTAK }
+            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+            behandling = hentBehandling(sak.id)
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = FatteVedtakLøsning(behandling.avklaringsbehov().filter { it.erTotrinn() }
-                    .map { TotrinnsVurdering(it.definisjon.kode, true, "begrunnelse") })
+            hendelsesMottak.håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = FatteVedtakLøsning(behandling.avklaringsbehov().filter { it.erTotrinn() }
+                        .map { TotrinnsVurdering(it.definisjon.kode, true, "begrunnelse") })
+                )
             )
-        )
-        ventPåSvar()
+            ventPåSvar()
 
-        behandling = hentBehandling(sak.id)
-        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+            behandling = hentBehandling(sak.id)
+            assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
 
-        //Henter vurder alder-vilkår
-        //Assert utfall
-        val vilkårsresultat = VilkårsresultatRepository.hent(behandlingId = behandling.id)
-        val aldersvilkår = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
+            //Henter vurder alder-vilkår
+            //Assert utfall
+            val vilkårsresultat = VilkårsresultatRepository.hent(behandlingId = behandling.id)
+            val aldersvilkår = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
 
-        assertThat(aldersvilkår.vilkårsperioder())
-            .hasSize(1)
-            .allMatch { vilkårsperiode -> vilkårsperiode.erOppfylt() }
+            assertThat(aldersvilkår.vilkårsperioder())
+                .hasSize(1)
+                .allMatch { vilkårsperiode -> vilkårsperiode.erOppfylt() }
 
-        val sykdomsvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
+            val sykdomsvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
 
-        assertThat(sykdomsvilkåret.vilkårsperioder())
-            .hasSize(1)
-            .allMatch { vilkårsperiode -> vilkårsperiode.erOppfylt() }
+            assertThat(sykdomsvilkåret.vilkårsperioder())
+                .hasSize(1)
+                .allMatch { vilkårsperiode -> vilkårsperiode.erOppfylt() }
+        } catch (excetion: Throwable) {
+            LoggerFactory.getLogger(FlytOrkestrator::class.java).info("feil under test", excetion)
+            fail(excetion)
+        }
     }
 
     private fun hentSak(ident: Ident, periode: Periode): Sak {
