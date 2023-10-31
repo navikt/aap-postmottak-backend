@@ -1,5 +1,8 @@
 package no.nav.aap.behandlingsflyt.sak
 
+/**
+ * Representerer databaseId for en sak - er ikke ment å dele utenfor domenet.
+ */
 class SakId(private val id: Long) {
 
     override fun equals(other: Any?): Boolean {

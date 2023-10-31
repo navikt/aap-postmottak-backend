@@ -1,5 +1,8 @@
 package no.nav.aap.behandlingsflyt.behandling
 
+/**
+ * Representerer databaseId for en behandling - er ikke ment å dele utenfor domenet.
+ */
 class BehandlingId(private var id: Long) {
 
     override fun equals(other: Any?): Boolean {
