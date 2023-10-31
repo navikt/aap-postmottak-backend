@@ -18,12 +18,19 @@ class Execute(private val preparedStatement: PreparedStatement) {
         resultValidator(rowsUpdated)
     }
 
+    fun executeReturnKey(): Long {
+        return executeReturnKeysPrivate().single()
+    }
+
     fun executeReturnKeys(): List<Long> {
+        return executeReturnKeysPrivate().toList()
+    }
+
+    private fun executeReturnKeysPrivate(): Sequence<Long> {
         val rowsUpdated = preparedStatement.executeUpdate()
         resultValidator(rowsUpdated)
         return preparedStatement
             .generatedKeys
             .map { it.getLong(1) }
-            .toList()
     }
 }

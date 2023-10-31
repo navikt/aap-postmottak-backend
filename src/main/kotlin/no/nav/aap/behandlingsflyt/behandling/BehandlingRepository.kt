@@ -30,14 +30,14 @@ class BehandlingRepository(private val connection: DBConnection) {
             INSERT INTO BEHANDLING (sak_id, referanse, status, type)
                  VALUES (?, ?, ?, ?)
             """.trimIndent()
-        val behandlingId = connection.executeReturnKeys(query) {
+        val behandlingId = connection.executeReturnKey(query) {
             setParams {
                 setLong(1, sakId)
                 setUUID(2, referanse)
                 setString(3, Status.OPPRETTET.name)
                 setString(4, behandlingType.identifikator())
             }
-        }.first()
+        }
 
         val behandling = Behandling(
             id = behandlingId,

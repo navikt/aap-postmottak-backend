@@ -89,13 +89,13 @@ class FlytOperasjonRepository(private val connection: DBConnection) {
                 VALUES (?, ?, ?)
                 """.trimIndent()
 
-        return connection.executeReturnKeys(query) {
+        return connection.executeReturnKey(query) {
             setParams {
                 setLong(1, behandlingId)
                 setString(2, definisjon.kode)
                 setString(3, funnetISteg.name)
             }
-        }.first()
+        }
     }
 
     fun loggBesøktSteg(behandlingId: Long, tilstand: Tilstand) {

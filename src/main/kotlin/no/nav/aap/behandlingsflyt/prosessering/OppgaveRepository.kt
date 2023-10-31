@@ -13,14 +13,14 @@ class OppgaveRepository(private val connection: DBConnection) {
             (sak_id, behandling_id, type, neste_kjoring) VALUES (?, ?, ?, ?)
         """.trimIndent()
 
-        val oppgaveId = connection.executeReturnKeys(oppgave) {
+        val oppgaveId = connection.executeReturnKey(oppgave) {
             setParams {
                 setLong(1, oppgaveInput.sakIdOrNull())
                 setLong(2, oppgaveInput.behandlingIdOrNull())
                 setString(3, oppgaveInput.type())
                 setLocalDateTime(4, LocalDateTime.now())
             }
-        }.first()
+        }
 
         val historikk = """
             INSERT INTO OPPGAVE_HISTORIKK 

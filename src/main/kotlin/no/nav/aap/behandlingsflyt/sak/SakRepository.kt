@@ -37,7 +37,7 @@ class SakRepository(private val connection: DBConnection) {
             }
         }
         val saksnummer = Saksnummer.valueOf(sakId)
-        val keys = connection.executeReturnKeys(
+        val keys = connection.executeReturnKey(
             "INSERT INTO " +
                     "SAK (saksnummer, person_id, rettighetsperiode, status) " +
                     "VALUES (?, ?, ?::daterange, ?)"
@@ -49,7 +49,7 @@ class SakRepository(private val connection: DBConnection) {
                 setString(4, Status.OPPRETTET.name)
             }
         }
-        return Sak(keys.first(), saksnummer, person, periode)
+        return Sak(keys, saksnummer, person, periode)
     }
 
     fun finnEllerOpprett(person: Person, periode: Periode): Sak {

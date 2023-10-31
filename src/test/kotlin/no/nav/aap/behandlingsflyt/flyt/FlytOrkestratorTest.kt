@@ -82,7 +82,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         val sak = hentSak(ident, periode)
-        var behandling = requireNotNull(hentBehandling(sak.id))
+        var behandling = hentBehandling(sak.id)
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
         assertThat(behandling.avklaringsbehov()).isNotEmpty()

@@ -16,9 +16,7 @@ class PersonRepository(private val connection: DBConnection) {
             setParams {
                 setString(1, ident.identifikator)
             }
-            setRowMapper { row ->
-                mapPerson(row)
-            }
+            setRowMapper(::mapPerson)
         }
         return if (relevantePersoner.isNotEmpty()) {
             if (relevantePersoner.size > 1) {
@@ -35,9 +33,7 @@ class PersonRepository(private val connection: DBConnection) {
             setParams {
                 setUUID(1, identifikator)
             }
-            setRowMapper { row ->
-                mapPerson(row)
-            }
+            setRowMapper(::mapPerson)
         }
     }
 
@@ -71,7 +67,7 @@ class PersonRepository(private val connection: DBConnection) {
 
     private fun opprettPerson(ident: Ident): Person {
         val identifikator = UUID.randomUUID()
-        val personId = connection.executeReturnKeys(
+        val personId = connection.executeReturnKey(
             "INSERT INTO " +
                     "PERSON (referanse) " +
                     "VALUES (?)"
@@ -79,7 +75,7 @@ class PersonRepository(private val connection: DBConnection) {
             setParams {
                 setUUID(1, identifikator)
             }
-        }.first()
+        }
         connection.execute(
             "INSERT INTO " +
                     "PERSON_IDENT (ident, person_id) " +

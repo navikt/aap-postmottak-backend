@@ -11,7 +11,7 @@ class OppgaveRepositoryTest {
     }
 
     @Test
-    fun `'skal plukke første opprettede oppgave'`() {
+    fun `skal plukke første opprettede oppgave`() {
         var plukketOppgave: OppgaveInput? = null
         dataSource.transaction { connection ->
             val repository = OppgaveRepository(connection)

@@ -48,6 +48,22 @@ internal class DBStuffTest : DatabaseTestBase() {
     }
 
     @Test
+    fun `Skriver og henter key og verdier fra DB`() {
+        val (result, keys) = InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute("INSERT INTO test (test) VALUES ('a')")
+            val key = connection.executeReturnKey("INSERT INTO test (test) VALUES ('b')")
+            connection.queryList("SELECT test FROM test") {
+                setRowMapper { row -> row.getString("test") }
+            } to key
+        }
+
+        assertThat(result)
+            .hasSize(2)
+            .contains("a", "b")
+        assertThat(keys).isEqualTo(2)
+    }
+
+    @Test
     fun `Skriver og henter keys og verdier fra DB`() {
         val (result, keys) = InitTestDatabase.dataSource.transaction { connection ->
             connection.execute("INSERT INTO test (test) VALUES ('a'), ('b')")

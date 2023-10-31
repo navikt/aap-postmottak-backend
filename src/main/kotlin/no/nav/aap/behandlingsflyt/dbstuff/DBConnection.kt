@@ -18,6 +18,17 @@ class DBConnection(private val connection: Connection) {
         }
     }
 
+    fun executeReturnKey(
+        query: String,
+        block: Execute.() -> Unit = {}
+    ): Long {
+        return this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS).use { preparedStatement ->
+            val myPreparedStatement = Execute(preparedStatement)
+            myPreparedStatement.block()
+            return@use myPreparedStatement.executeReturnKey()
+        }
+    }
+
     fun executeReturnKeys(
         query: String,
         block: Execute.() -> Unit = {}
