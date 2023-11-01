@@ -13,7 +13,7 @@ internal object InitTestDatabase {
     init {
         var password = "postgres"
         var username = "postgres"
-        var jdbcUrl = "jdbc:postgresql://localhost:5432/public"
+        var jdbcUrl = "jdbc:postgresql://localhost:5432/postgres"
         if (System.getenv("GITHUB_ACTIONS") != "true") {
             val postgres = PostgreSQLContainer<Nothing>("postgres:16")
             postgres.start()
