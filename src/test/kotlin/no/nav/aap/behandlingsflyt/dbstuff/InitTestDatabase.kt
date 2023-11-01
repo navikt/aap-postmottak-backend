@@ -26,10 +26,9 @@ internal object InitTestDatabase {
             this.username = username
             this.password = password
             minimumIdle = 1
-            maximumPoolSize = 3
             initializationFailTimeout = 30000
             idleTimeout = 10000
-            connectionTimeout = 50000
+            connectionTimeout = 10000
             maxLifetime = 900000
             connectionTestQuery = "SELECT 1"
         })
