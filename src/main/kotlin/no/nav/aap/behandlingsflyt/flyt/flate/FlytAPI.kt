@@ -94,11 +94,10 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
 }
 
 private fun behandling(dataSource: HikariDataSource, req: BehandlingReferanse): Behandling {
-    var behandling: Behandling? = null
-    dataSource.transaction {
-        behandling = BehandlingReferanseService(it).behandling(req)
+    val behandling: Behandling = dataSource.transaction {
+        BehandlingReferanseService(it).behandling(req)
     }
-    return behandling!!
+    return behandling
 }
 
 private fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: StegType): VilkårDTO? {
