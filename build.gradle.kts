@@ -3,7 +3,7 @@ import java.io.ByteArrayOutputStream
 val ktorVersion = "2.3.5"
 
 plugins {
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.20"
     id("io.ktor.plugin") version "2.3.5"
 }
 
@@ -11,7 +11,7 @@ application {
     mainClass.set("no.nav.aap.behandlingsflyt.AppKt")
 }
 
-val javaVersion = 20
+val javaVersion = 21
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(javaVersion)

@@ -76,8 +76,7 @@ class FlytOrkestrator(
             val avklaringsbehov = behandling.avklaringsbehovene().åpne()
             validerPlassering(
                 behandlingFlyt,
-                avklaringsbehov
-                    .filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER },
+                avklaringsbehov.filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER },
                 gjeldendeSteg.type()
             )
 
