@@ -90,6 +90,39 @@ CREATE TABLE STEG_HISTORIKK
 );
 CREATE UNIQUE INDEX UIDX_STEG_HISTORIKK ON STEG_HISTORIKK (BEHANDLING_ID) WHERE (AKTIV = TRUE);
 
+--
+
+CREATE TABLE VILKAR_RESULTAT
+(
+    ID            SERIAL NOT NULL PRIMARY KEY,
+    behandling_id BIGINT NOT NULL REFERENCES BEHANDLING (ID)
+);
+
+CREATE UNIQUE INDEX UIDX_VILKAR_RESULTAT ON VILKAR_RESULTAT (BEHANDLING_ID);
+
+CREATE TABLE VILKAR
+(
+    ID          SERIAL      NOT NULL PRIMARY KEY,
+    type        varchar(50) NOT NULL,
+    resultat_id bigint      not null references VILKAR_RESULTAT (ID)
+);
+
+CREATE UNIQUE INDEX UIDX_VILKAR ON VILKAR (resultat_id, type);
+
+CREATE TABLE VILKAR_PERIODE
+(
+    ID                SERIAL        NOT NULL PRIMARY KEY,
+    vilkar_id         bigint        not null references VILKAR (ID),
+    periode           daterange     NOT NULL,
+    utfall            varchar(50)   NOT NULL,
+    manuell_vurdering boolean       not null,
+    begrunnelse       varchar(4000) null,
+    innvilgelsesarsak varchar(100)  null,
+    avslagsarsak      varchar(100)  null,
+    faktagrunnlag     varchar(4000) null,
+    versjon           varchar(100)  not null
+);
+CREATE INDEX IDX_VILKAR_PERIODE_PERIODE ON VILKAR_PERIODE (vilkar_id, periode);
 
 --
 CREATE TABLE OPPGAVE
