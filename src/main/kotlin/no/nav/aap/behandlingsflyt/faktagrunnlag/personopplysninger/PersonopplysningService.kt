@@ -5,7 +5,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.adapter.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.sak.SakService
-import no.nav.aap.behandlingsflyt.sak.PersonRepository
 
 class PersonopplysningService : Grunnlag {
 

@@ -46,22 +46,21 @@ class OppgaveRepository(private val connection: DBConnection) {
             FROM (
                 SELECT id, type, sak_id, behandling_id, neste_kjoring
                 FROM OPPGAVE o
-                WHERE status = 'KLAR'
+                WHERE status = '${OppgaveStatus.KLAR.name}'
                   AND neste_kjoring < ?
                   AND NOT EXISTS
                     (
                     SELECT 1
                      FROM OPPGAVE op
-                     WHERE o.id != op.id
-                       AND o.status = 'FEILET'
-                       AND op.sak_id != null
-                       AND op.behandling_id != null
+                     WHERE op.status = '${OppgaveStatus.FEILET.name}'
+                       AND op.sak_id is not null
                        AND o.sak_id = op.sak_id
-                       AND (o.behandling_id = op.behandling_id OR op.behandling_id IS NULL)
+                       AND (o.behandling_id = op.behandling_id OR op.behandling_id IS NULL OR o.behandling_id IS NULL)
                     )
                 )
             ORDER BY neste_kjoring ASC
             FOR UPDATE SKIP LOCKED
+            LIMIT 1
         """.trimIndent()
 
         val plukketOppgave = connection.queryFirstOrNull(query) {
@@ -83,7 +82,7 @@ class OppgaveRepository(private val connection: DBConnection) {
         }
         connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ?") {
             setParams {
-                setEnumName(1, OppgaveStatus.PLUKKET)
+                setEnumName(1, OppgaveStatus.KLAR)
                 setLong(2, plukketOppgave.id)
             }
         }
@@ -96,7 +95,7 @@ class OppgaveRepository(private val connection: DBConnection) {
         connection.execute(historikk) {
             setParams {
                 setLong(1, plukketOppgave.id)
-                setEnumName(2, OppgaveStatus.KLAR)
+                setEnumName(2, OppgaveStatus.PLUKKET)
             }
         }
 
@@ -104,7 +103,7 @@ class OppgaveRepository(private val connection: DBConnection) {
     }
 
     internal fun markerKjørt(oppgaveInput: OppgaveInput) {
-        connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'PLUKKET'") {
+        connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'KLAR'") {
             setParams {
                 setEnumName(1, OppgaveStatus.FERDIG)
                 setLong(2, oppgaveInput.id)
@@ -128,7 +127,7 @@ class OppgaveRepository(private val connection: DBConnection) {
     }
 
     internal fun markerFeilet(oppgaveInput: OppgaveInput, exception: Throwable) {
-        connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'PLUKKET'") {
+        connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'KLAR'") {
             setParams {
                 setEnumName(1, OppgaveStatus.FEILET)
                 setLong(2, oppgaveInput.id)
@@ -153,7 +152,7 @@ class OppgaveRepository(private val connection: DBConnection) {
     }
 
     internal fun markerKlar(oppgaveInput: OppgaveInput) {
-        connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? and status IN ('PLUKKET', 'FEILET')") {
+        connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? and status IN ('FEILET')") {
             setParams {
                 setEnumName(1, OppgaveStatus.KLAR)
                 setLong(2, oppgaveInput.id)

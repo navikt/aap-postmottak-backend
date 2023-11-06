@@ -55,6 +55,6 @@ class OppgaveInput(val oppgave: Oppgave) {
     fun type(): String = oppgave.type()
 
     override fun toString(): String {
-        return "[${oppgave.type()}]"
+        return "[${oppgave.type()}] - sakId = $sakId, behandlingId = $behandlingId"
     }
 }
