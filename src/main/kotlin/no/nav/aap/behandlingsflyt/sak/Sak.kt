@@ -18,4 +18,23 @@ class Sak(
         return "Sak(id=$id, saksnummer='$saksnummer, person=$person, periode=$rettighetsperiode, status=$status')"
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Sak
+
+        if (saksnummer != other.saksnummer) return false
+        if (person != other.person) return false
+        if (rettighetsperiode != other.rettighetsperiode) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = saksnummer.hashCode()
+        result = 31 * result + person.hashCode()
+        result = 31 * result + rettighetsperiode.hashCode()
+        return result
+    }
 }
