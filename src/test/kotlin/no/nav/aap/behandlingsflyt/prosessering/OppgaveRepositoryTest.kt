@@ -28,6 +28,15 @@ class OppgaveRepositoryTest {
         assertThat(plukketOppgave).isNotNull
         assertThat(plukketOppgave?.id).isEqualTo(1)
 
+        dataSource.transaction { connection ->
+            val repository = OppgaveRepository(connection)
+            repository.leggTil(OppgaveInput(ProsesserBehandlingOppgave).forBehandling(null, null))
+
+            plukketOppgave = repository.plukkOppgave()
+        }
+
+        assertThat(plukketOppgave?.id).isEqualTo(2)
+
         dataSource.transaction {
             it.execute("TRUNCATE TABLE OPPGAVE cascade")
         }

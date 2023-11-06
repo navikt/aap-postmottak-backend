@@ -43,20 +43,23 @@ class OppgaveRepository(private val connection: DBConnection) {
         @Language("PostgreSQL")
         val query = """
             SELECT id, type, sak_id, behandling_id
-            FROM OPPGAVE o
-            WHERE status = 'KLAR'
-              AND neste_kjoring < ?
-              AND NOT EXISTS
-                (
-                SELECT 1
-                 FROM oppgave op
-                 WHERE o.id != op.id
-                   AND o.status = 'FEILET'
-                   AND op.sak_id != null
-                   AND op.behandling_id != null
-                   AND o.sak_id = op.sak_id
-                   AND o.behandling_id = op.behandling_id
-                   )
+            FROM (
+                SELECT id, type, sak_id, behandling_id, neste_kjoring
+                FROM OPPGAVE o
+                WHERE status = 'KLAR'
+                  AND neste_kjoring < ?
+                  AND NOT EXISTS
+                    (
+                    SELECT 1
+                     FROM OPPGAVE op
+                     WHERE o.id != op.id
+                       AND o.status = 'FEILET'
+                       AND op.sak_id != null
+                       AND op.behandling_id != null
+                       AND o.sak_id = op.sak_id
+                       AND (o.behandling_id = op.behandling_id OR op.behandling_id IS NULL)
+                    )
+                )
             ORDER BY neste_kjoring ASC
             FOR UPDATE SKIP LOCKED
         """.trimIndent()
