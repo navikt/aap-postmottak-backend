@@ -90,76 +90,91 @@ class FlytOrkestratorTest {
         assertThat(behandling.avklaringsbehov()).isNotEmpty()
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = AvklarStudentLøsning(
-                    studentvurdering = StudentVurdering(
-                        begrunnelse = "Er student",
-                        dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                        oppfyller11_14 = false,
-                        avbruttStudieDato = null
+        dataSource.transaction {
+            hendelsesMottak.håndtere(
+                it,
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarStudentLøsning(
+                        studentvurdering = StudentVurdering(
+                            begrunnelse = "Er student",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            oppfyller11_14 = false,
+                            avbruttStudieDato = null
+                        )
                     )
                 )
             )
-        )
+        }
         ventPåSvar()
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = AvklarYrkesskadeLøsning(
-                    yrkesskadevurdering = Yrkesskadevurdering(
-                        begrunnelse = "Er syk nok",
-                        dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                        erÅrsakssammenheng = false,
-                        skadetidspunkt = null
+        dataSource.transaction {
+            hendelsesMottak.håndtere(
+                it,
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarYrkesskadeLøsning(
+                        yrkesskadevurdering = Yrkesskadevurdering(
+                            begrunnelse = "Er syk nok",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            erÅrsakssammenheng = false,
+                            skadetidspunkt = null
+                        )
                     )
                 )
             )
-        )
+        }
         ventPåSvar()
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = AvklarSykdomLøsning(
-                    sykdomsvurdering = Sykdomsvurdering(
-                        begrunnelse = "Er syk nok",
-                        dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                        erSkadeSykdomEllerLyteVesentligdel = true,
-                        erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
-                        nedreGrense = NedreGrense.FEMTI,
-                        nedsattArbeidsevneDato = LocalDate.now()
+        dataSource.transaction {
+            hendelsesMottak.håndtere(
+                it,
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarSykdomLøsning(
+                        sykdomsvurdering = Sykdomsvurdering(
+                            begrunnelse = "Er syk nok",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            erSkadeSykdomEllerLyteVesentligdel = true,
+                            erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
+                            nedreGrense = NedreGrense.FEMTI,
+                            nedsattArbeidsevneDato = LocalDate.now()
+                        )
                     )
                 )
             )
-        )
+        }
         ventPåSvar()
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = AvklarBistandsbehovLøsning(
-                    bistandsVurdering = BistandsVurdering(
-                        begrunnelse = "Trenger hjelp fra nav",
-                        erBehovForBistand = true
-                    ),
+        dataSource.transaction {
+            hendelsesMottak.håndtere(
+                it,
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarBistandsbehovLøsning(
+                        bistandsVurdering = BistandsVurdering(
+                            begrunnelse = "Trenger hjelp fra nav",
+                            erBehovForBistand = true
+                        ),
+                    )
                 )
             )
-        )
+        }
         ventPåSvar()
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
         assertThat(behandling.avklaringsbehov()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = ForeslåVedtakLøsning("Begrunnelse")
+        dataSource.transaction {
+            hendelsesMottak.håndtere(
+                it,
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = ForeslåVedtakLøsning("Begrunnelse")
+                )
             )
-        )
+        }
         ventPåSvar()
 
         // Saken står til To-trinnskontroll hos beslutter
@@ -167,13 +182,16 @@ class FlytOrkestratorTest {
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         behandling = hentBehandling(sak.id)
 
-        hendelsesMottak.håndtere(
-            behandling.id,
-            LøsAvklaringsbehovBehandlingHendelse(
-                løsning = FatteVedtakLøsning(behandling.avklaringsbehov().filter { it.erTotrinn() }
-                    .map { TotrinnsVurdering(it.definisjon.kode, true, "begrunnelse") })
+        dataSource.transaction {
+            hendelsesMottak.håndtere(
+                it,
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = FatteVedtakLøsning(behandling.avklaringsbehov().filter { it.erTotrinn() }
+                        .map { TotrinnsVurdering(it.definisjon.kode, true, "begrunnelse") })
+                )
             )
-        )
+        }
         ventPåSvar()
 
         behandling = hentBehandling(sak.id)
@@ -200,6 +218,7 @@ class FlytOrkestratorTest {
             SakRepository(connection).finnEllerOpprett(PersonRepository(connection).finnEllerOpprett(ident), periode)
         }
     }
+
     private fun hentVilkårsresultat(behandlingId: BehandlingId): Vilkårsresultat {
         return dataSource.transaction { connection ->
             VilkårsresultatRepository(connection).hent(behandlingId)

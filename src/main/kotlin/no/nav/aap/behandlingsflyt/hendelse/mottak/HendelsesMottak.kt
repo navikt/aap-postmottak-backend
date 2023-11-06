@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.EndringType
 import no.nav.aap.behandlingsflyt.behandling.Status
 import no.nav.aap.behandlingsflyt.behandling.Årsak
+import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.dbstuff.transaction
 import no.nav.aap.behandlingsflyt.flyt.AvklaringsbehovOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
@@ -55,21 +56,19 @@ class HendelsesMottak(private val dataSource: DataSource) {
         håndtere(sisteBehandling.id, hendelse.tilBehandlingHendelse())
     }
 
-    fun håndtere(key: BehandlingId, hendelse: LøsAvklaringsbehovBehandlingHendelse) {
-        dataSource.transaction { connection ->
-            val behandling = BehandlingRepository(connection).hent(key)
-            ValiderBehandlingTilstand.validerTilstandBehandling(behandling = behandling)
+    fun håndtere(connection: DBConnection, key: BehandlingId, hendelse: LøsAvklaringsbehovBehandlingHendelse) {
+        val behandling = BehandlingRepository(connection).hent(key)
+        ValiderBehandlingTilstand.validerTilstandBehandling(behandling = behandling)
 
-            val sakService = SakService(connection)
-            val sak = sakService.hent(behandling.sakId)
+        val sakService = SakService(connection)
+        val sak = sakService.hent(behandling.sakId)
 
-            val kontekst = FlytKontekst(sakId = sak.id, behandlingId = behandling.id)
-            val avklaringsbehovKontroller = AvklaringsbehovOrkestrator(connection)
-            avklaringsbehovKontroller.løsAvklaringsbehovOgFortsettProsessering(
-                kontekst = kontekst,
-                avklaringsbehov = listOf(hendelse.behov())
-            )
-        }
+        val kontekst = FlytKontekst(sakId = sak.id, behandlingId = behandling.id)
+        val avklaringsbehovKontroller = AvklaringsbehovOrkestrator(connection)
+        avklaringsbehovKontroller.løsAvklaringsbehovOgFortsettProsessering(
+            kontekst = kontekst,
+            avklaringsbehov = listOf(hendelse.behov())
+        )
     }
 
     fun håndtere(key: BehandlingId, hendelse: BehandlingSattPåVent) {

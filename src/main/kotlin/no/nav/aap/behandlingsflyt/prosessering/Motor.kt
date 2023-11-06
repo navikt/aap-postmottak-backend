@@ -44,12 +44,12 @@ class Motor(
                 while (running) {
                     dataSource.transaction { connection ->
                         val repository = OppgaveRepository(connection)
-                        val oppgaveInput = repository.plukkOppgave()
-                        if (oppgaveInput != null) {
-                            utførOppgave(oppgaveInput, connection)
+                        val plukketOppgave = repository.plukkOppgave()
+                        if (plukketOppgave != null) {
+                            utførOppgave(plukketOppgave, connection)
                         }
 
-                        if (running && oppgaveInput == null) {
+                        if (running && plukketOppgave == null) {
                             running = false
                         }
                     }

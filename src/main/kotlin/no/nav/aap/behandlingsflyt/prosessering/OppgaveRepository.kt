@@ -54,6 +54,7 @@ class OppgaveRepository(private val connection: DBConnection) {
                      FROM OPPGAVE op
                      WHERE op.status = '${OppgaveStatus.FEILET.name}'
                        AND op.sak_id is not null
+                       AND o.sak_id is not null
                        AND o.sak_id = op.sak_id
                        AND (o.behandling_id = op.behandling_id OR op.behandling_id IS NULL OR o.behandling_id IS NULL)
                     )

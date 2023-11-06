@@ -28,6 +28,7 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                     )
 
                     HendelsesMottak(dataSource).håndtere(
+                        connection = connection,
                         key = behandling.id,
                         hendelse = LøsAvklaringsbehovBehandlingHendelse(request.behov)
                     )
