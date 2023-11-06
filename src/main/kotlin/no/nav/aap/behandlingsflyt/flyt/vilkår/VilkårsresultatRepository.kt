@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår
 
+import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.dbstuff.Row
@@ -154,6 +155,11 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
             innvilgelsesårsak = row.getStringOrNull("innvilgelsesarsak")?.let { Innvilgelsesårsak.valueOf(it) },
             versjon = row.getString("versjon")
         )
+    }
+
+    fun kopier(fraBehandling: Behandling, tilBehandling: Behandling) {
+        val eksisterendeResultat = hent(fraBehandling.id)
+        lagre(tilBehandling.id, eksisterendeResultat)
     }
 }
 

@@ -8,10 +8,14 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.student.db.InMemoryStudentReposi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykepengerErstatningRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRepository
+import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 
-class GrunnlagKopierer(val connection: DBConnection) {
+class GrunnlagKopierer(private val connection: DBConnection) {
+
+    private val vilkårsresultatRepository: VilkårsresultatRepository = VilkårsresultatRepository(connection)
 
     fun overfør(fraBehandling: Behandling, tilBehandling: Behandling) {
+        vilkårsresultatRepository.kopier(fraBehandling, tilBehandling)
         PersoninformasjonRepository.kopier(fraBehandling, tilBehandling)
         YrkesskadeRepository.kopier(fraBehandling, tilBehandling)
         SykdomsRepository.kopier(fraBehandling, tilBehandling)
