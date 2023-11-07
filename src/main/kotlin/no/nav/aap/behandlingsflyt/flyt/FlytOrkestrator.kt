@@ -117,7 +117,9 @@ class FlytOrkestrator(
 
         val behovForLøsninger = behandling.avklaringsbehovene().hentBehovForDefinisjon(definisjoner)
 
-        val tilbakeføringsflyt = behandling.flyt().tilbakeflyt(behovForLøsninger)
+        val flyt = behandling.flyt()
+        flyt.forberedFlyt(behandling.aktivtSteg())
+        val tilbakeføringsflyt = flyt.tilbakeflyt(behovForLøsninger)
 
         tilbakefør(kontekst, behandling, tilbakeføringsflyt)
     }
