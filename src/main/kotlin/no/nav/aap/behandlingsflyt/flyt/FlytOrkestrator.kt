@@ -30,8 +30,7 @@ class FlytOrkestrator(
 
         ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf())
 
-        val behandlingFlyt = behandling.flyt()
-        behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
+        val behandlingFlyt = behandling.forberedtFlyt()
 
         if (starterOppBehandling(behandling)) {
             flytOperasjonRepository.oppdaterSakStatus(kontekst.sakId, no.nav.aap.behandlingsflyt.sak.Status.UTREDES)
@@ -117,8 +116,7 @@ class FlytOrkestrator(
 
         val behovForLøsninger = behandling.avklaringsbehovene().hentBehovForDefinisjon(definisjoner)
 
-        val flyt = behandling.flyt()
-        flyt.forberedFlyt(behandling.aktivtSteg())
+        val flyt = behandling.forberedtFlyt()
         val tilbakeføringsflyt = flyt.tilbakeflyt(behovForLøsninger)
 
         tilbakefør(kontekst, behandling, tilbakeføringsflyt)

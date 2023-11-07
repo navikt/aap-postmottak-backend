@@ -29,6 +29,11 @@ class Behandling(
 
     fun flyt(): BehandlingFlyt = flyt
 
+    fun forberedtFlyt(): BehandlingFlyt {
+        flyt.forberedFlyt(aktivtSteg())
+        return flyt
+    }
+
     fun visit(stegTilstand: StegTilstand) {
         if (!stegTilstand.aktiv) {
             throw IllegalStateException("Utvikler feil, prøver legge til steg med aktivtflagg false.")
@@ -70,6 +75,7 @@ class Behandling(
                 )
             )
     }
+
     fun aktivtSteg(): StegType {
         return stegHistorikk.stream()
             .filter { tilstand -> tilstand.aktiv }
@@ -80,6 +86,7 @@ class Behandling(
                 )
             ).tilstand.steg()
     }
+
     fun settPåVent() {
         status = Status.PÅ_VENT
         avklaringsbehovene.leggTil(
