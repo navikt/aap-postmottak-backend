@@ -28,7 +28,7 @@ class TaSkriveLåsRepository(private val connection: DBConnection) {
     }
 
     fun lås(behandlingUUid: UUID): Skrivelås {
-        val query = """SELECT id, sak_id, versjon FROM BEHANDLING WHERE referanse = ? FOR UPDATE"""
+        val query = """SELECT id, type, sak_id, versjon FROM BEHANDLING WHERE referanse = ? FOR UPDATE"""
 
         return connection.queryFirst(query) {
             setParams {
