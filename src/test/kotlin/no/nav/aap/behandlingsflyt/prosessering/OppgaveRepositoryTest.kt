@@ -4,6 +4,8 @@ import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.dbstuff.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbstuff.transaction
+import no.nav.aap.behandlingsflyt.prosessering.retry.OPPGAVE_TYPE
+import no.nav.aap.behandlingsflyt.prosessering.retry.RetryService
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
@@ -67,6 +69,14 @@ class OppgaveRepositoryTest {
             plukketOppgave = repository.plukkOppgave()
 
             assertThat(plukketOppgave).isNull()
+        }
+        dataSource.transaction {
+            RetryService(it).enable()
+            val repository = OppgaveRepository(it)
+            plukketOppgave = repository.plukkOppgave()
+
+            assertThat(plukketOppgave).isNotNull()
+            assertThat(plukketOppgave!!.type()).isEqualTo(OPPGAVE_TYPE)
         }
     }
 }

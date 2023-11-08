@@ -36,7 +36,7 @@ class OppgaveRepository(private val connection: DBConnection) {
                 setEnumName(2, OppgaveStatus.KLAR)
             }
         }
-        log.info("Planlagt kjøring av oppgave[${oppgaveInput.type()}]")
+        log.info("Planlagt kjøring av oppgave[${oppgaveInput.type()}] med kjøring etter ${oppgaveInput.nesteKjøringTidspunkt()}")
     }
 
     internal fun plukkOppgave(): OppgaveInput? {

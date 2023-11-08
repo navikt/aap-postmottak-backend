@@ -58,6 +58,7 @@ class OppgaveInput(val oppgave: Oppgave) {
         if (nesteKjøring != null) {
             return nesteKjøring as LocalDateTime
         }
+        nesteKjøring = LocalDateTime.now()
         return LocalDateTime.now()
     }
 

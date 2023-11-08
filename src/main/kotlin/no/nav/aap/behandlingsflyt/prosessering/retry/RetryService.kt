@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.prosessering.retry
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveStatus
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 
 class RetryService(connection: DBConnection) {
     private val log = LoggerFactory.getLogger(RetryService::class.java)
@@ -11,7 +12,7 @@ class RetryService(connection: DBConnection) {
     fun enable() {
         val planlagteFeilhåndteringOppgaver = repository.planlagteFeilhåndteringOppgaver()
         if (planlagteFeilhåndteringOppgaver.isEmpty()) {
-            repository.planleggNyKjøring()
+            repository.planleggNyKjøring(LocalDateTime.now())
         } else if (!harPlanlagtKjøring(planlagteFeilhåndteringOppgaver)) {
             planlagteFeilhåndteringOppgaver.filter { it.status == OppgaveStatus.FEILET }
                 .forEach { repository.markerSomKlar(it) }

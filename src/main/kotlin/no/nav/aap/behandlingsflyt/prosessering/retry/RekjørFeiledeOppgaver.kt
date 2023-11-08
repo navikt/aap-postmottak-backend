@@ -4,10 +4,11 @@ import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.prosessering.Oppgave
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 
 internal const val OPPGAVE_TYPE = "oppgave.retryFeilede"
 
-class RekjørFeiledeOppgaver : Oppgave() {
+object RekjørFeiledeOppgaver : Oppgave() {
 
     private val log = LoggerFactory.getLogger(RekjørFeiledeOppgaver::class.java)
 
@@ -17,7 +18,7 @@ class RekjørFeiledeOppgaver : Oppgave() {
         val feilendeOppgaverMarkertForRekjøring = repository.markerAlleFeiledeForKlare()
         log.info("Markert {} oppgaver for rekjøring", feilendeOppgaverMarkertForRekjøring)
 
-        repository.planleggNyKjøring()
+        repository.planleggNyKjøring(LocalDateTime.now().plusHours(1))
     }
 
     override fun type(): String {
