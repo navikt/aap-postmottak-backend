@@ -35,6 +35,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.flate.avklaringsbehov.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.behandling.flate.behandlingApi
+import no.nav.aap.behandlingsflyt.dbstuff.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.flate.bistandsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.medlemskap.flate.medlemskapsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.meldeplikt.flate.meldepliktsgrunnlagApi
@@ -49,6 +50,7 @@ import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
 import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.prosessering.Motor
+import no.nav.aap.behandlingsflyt.prosessering.retry.RetryService
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.flate.saksApi
 import org.flywaydb.core.Flyway
@@ -134,6 +136,10 @@ internal fun Application.server(dbConfig: DbConfig) {
 
 fun Application.module(dataSource: DataSource) {
     val motor = Motor(dataSource)
+
+    dataSource.transaction {
+        RetryService(it).enable()
+    }
 
     environment.monitor.subscribe(ApplicationStarted) {
         motor.start()
