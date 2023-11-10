@@ -17,10 +17,8 @@ class VurderSykepengeErstatningSteg(
     private val vilkårsresultatRepository: VilkårsresultatRepository,
     private val sakService: SakService
 ) : BehandlingSteg {
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val behandling = behandlingService.hent(kontekst.behandlingId)
-        val sak = sakService.hent(kontekst.sakId)
 
+    override fun utfør(kontekst: FlytKontekst): StegResultat {
         val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
         val sykdomsvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
         val bistandsvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
@@ -32,6 +30,7 @@ class VurderSykepengeErstatningSteg(
             val grunnlag = SykepengerErstatningRepository.hentHvisEksisterer(kontekst.behandlingId)
 
             if (grunnlag?.vurdering != null) {
+                val sak = sakService.hent(kontekst.sakId)
                 val vurderingsdato = sak.rettighetsperiode.fom
                 val faktagrunnlag = SykepengerErstatningFaktagrunnlag(
                     vurderingsdato,
@@ -44,10 +43,13 @@ class VurderSykepengeErstatningSteg(
                 return StegResultat(listOf(Definisjon.AVKLAR_SYKEPENGEERSTATNING))
             }
         } else {
+            val behandling = behandlingService.hent(kontekst.behandlingId)
             val avklaringsbehovene = behandling.avklaringsbehovene()
             val sykepengeerstatningsBehov =
                 avklaringsbehovene.hentBehovForDefinisjon(Definisjon.AVKLAR_SYKEPENGEERSTATNING)
+
             if (sykepengeerstatningsBehov?.erÅpent() == true) {
+                //TODO: Blir/skal denne endringen lagret noe sted?
                 sykepengeerstatningsBehov.avbryt()
             }
         }
