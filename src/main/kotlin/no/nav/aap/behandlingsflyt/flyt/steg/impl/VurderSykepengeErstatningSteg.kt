@@ -15,6 +15,7 @@ import no.nav.aap.behandlingsflyt.sak.SakService
 class VurderSykepengeErstatningSteg(
     private val behandlingService: BehandlingService,
     private val vilkårsresultatRepository: VilkårsresultatRepository,
+    private val sykepengerErstatningRepository: SykepengerErstatningRepository,
     private val sakService: SakService
 ) : BehandlingSteg {
 
@@ -27,7 +28,7 @@ class VurderSykepengeErstatningSteg(
         if (bistandsvilkåret.vilkårsperioder().all { !it.erOppfylt() } &&
             sykdomsvilkåret.vilkårsperioder().any { it.erOppfylt() }) {
 
-            val grunnlag = SykepengerErstatningRepository.hentHvisEksisterer(kontekst.behandlingId)
+            val grunnlag = sykepengerErstatningRepository.hentHvisEksisterer(kontekst.behandlingId)
 
             if (grunnlag?.vurdering != null) {
                 val sak = sakService.hent(kontekst.sakId)
