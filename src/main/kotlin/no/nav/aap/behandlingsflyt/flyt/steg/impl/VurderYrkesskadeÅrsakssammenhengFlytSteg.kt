@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.db.InMemoryStudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
@@ -13,7 +13,7 @@ object VurderYrkesskadeÅrsakssammenhengFlytSteg : FlytSteg {
 
     override fun konstruer(connection: DBConnection): BehandlingSteg {
         return VurderYrkesskadeÅrsakssammenhengSteg(
-            YrkesskadeRepository,
+            YrkesskadeService(),
             SykdomsRepository,
             InMemoryStudentRepository,
             PeriodeTilVurderingService(SakService(connection))

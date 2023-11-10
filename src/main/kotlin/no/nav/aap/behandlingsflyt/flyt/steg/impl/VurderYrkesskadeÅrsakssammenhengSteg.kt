@@ -6,14 +6,14 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeGrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
 class VurderYrkesskadeÅrsakssammenhengSteg(
-    private val yrkesskadeRepository: YrkesskadeRepository,
+    private val yrkesskadeService: YrkesskadeService,
     private val sykdomsRepository: SykdomsRepository,
     private val studentRepository: StudentRepository,
     private val periodeTilVurderingService: PeriodeTilVurderingService
@@ -24,7 +24,7 @@ class VurderYrkesskadeÅrsakssammenhengSteg(
             periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
-            val yrkesskadeGrunnlag = yrkesskadeRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
+            val yrkesskadeGrunnlag = yrkesskadeService.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
             val sykdomsGrunnlag = sykdomsRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
             val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
 
