@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.db.InMemoryStudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
@@ -14,7 +13,6 @@ object VurderSykdomFlytSteg : FlytSteg {
 
     override fun konstruer(connection: DBConnection): BehandlingSteg {
         return VurderSykdomSteg(
-            BehandlingService(connection),
             SykdomsRepository,
             InMemoryStudentRepository,
             VilkårsresultatRepository(connection),

@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
@@ -13,7 +12,6 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykdomsFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.Sykdomsvilkår
 
 class VurderSykdomSteg(
-    private val behandlingService: BehandlingService,
     private val sykdomsRepository: SykdomsRepository,
     private val studentRepository: StudentRepository,
     private val vilkårsresultatRepository: VilkårsresultatRepository,
@@ -21,8 +19,6 @@ class VurderSykdomSteg(
 ) : BehandlingSteg {
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val behandling = behandlingService.hent(kontekst.behandlingId)
-
         val periodeTilVurdering =
             periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
 

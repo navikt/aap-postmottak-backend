@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingService
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
@@ -14,14 +13,11 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
 class VurderYrkesskadeÅrsakssammenhengSteg(
-    private val behandlingService: BehandlingService,
     private val studentRepository: StudentRepository,
     private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val behandling = behandlingService.hent(kontekst.behandlingId)
-
         val periodeTilVurdering =
             periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
 

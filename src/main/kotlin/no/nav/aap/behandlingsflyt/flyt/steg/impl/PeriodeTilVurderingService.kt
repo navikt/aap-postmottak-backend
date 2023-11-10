@@ -15,7 +15,8 @@ class PeriodeTilVurderingService(private val sakService: SakService) {
 
             return setOf(sak.rettighetsperiode)
         }
-        //behandling.årsaker()
+
         TODO(" Sjekk vilkår mot årsaker til vurdering (ligger på behandling)")
+        //behandling.årsaker()
     }
 }
