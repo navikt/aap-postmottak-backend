@@ -12,6 +12,7 @@ class OppgaveInput(val oppgave: Oppgave) {
     private var sakId: SakId? = null
     private var behandlingId: BehandlingId? = null
     private var nesteKjøring: LocalDateTime? = null
+    private var antallFeil: Long = 0
 
     internal fun medId(id: Long): OppgaveInput {
         this.id = id
@@ -54,6 +55,11 @@ class OppgaveInput(val oppgave: Oppgave) {
         return behandlingId
     }
 
+    fun medAntallFeil(antallFeil: Long): OppgaveInput {
+        this.antallFeil = antallFeil
+        return this
+    }
+
     internal fun nesteKjøringTidspunkt(): LocalDateTime {
         if (nesteKjøring != null) {
             return nesteKjøring as LocalDateTime
@@ -62,7 +68,9 @@ class OppgaveInput(val oppgave: Oppgave) {
         return LocalDateTime.now()
     }
 
-    fun type(): String = oppgave.type()
+    fun type(): String {
+        return oppgave.type()
+    }
 
     override fun toString(): String {
         return "[${oppgave.type()}] - sakId = $sakId, behandlingId = $behandlingId"
@@ -71,5 +79,9 @@ class OppgaveInput(val oppgave: Oppgave) {
     fun medNesteKjøring(nesteKjøring: LocalDateTime): OppgaveInput {
         this.nesteKjøring = nesteKjøring
         return this
+    }
+
+    fun skalMarkeresSomFeilet(): Boolean {
+        return oppgave.retries() >= antallFeil
     }
 }

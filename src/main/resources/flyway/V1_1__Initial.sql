@@ -142,7 +142,6 @@ CREATE TABLE OPPGAVE
     opprettet_tid TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 CREATE INDEX IDX_OPPGAVE_STATUS ON OPPGAVE (status, sak_id, behandling_id, neste_kjoring);
-
 CREATE TABLE OPPGAVE_HISTORIKK
 (
     id            BIGSERIAL                              NOT NULL PRIMARY KEY,
@@ -151,3 +150,5 @@ CREATE TABLE OPPGAVE_HISTORIKK
     feilmelding   varchar(4000)                          null,
     opprettet_tid TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+CREATE INDEX IDX_OPPGAVE_HISTORIKK_STATUS ON OPPGAVE_HISTORIKK (oppgave_id, status);

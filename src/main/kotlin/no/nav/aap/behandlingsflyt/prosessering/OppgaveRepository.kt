@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.prosessering
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
+import no.nav.aap.behandlingsflyt.dbstuff.Row
 import no.nav.aap.behandlingsflyt.sak.SakId
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
@@ -42,7 +43,7 @@ class OppgaveRepository(private val connection: DBConnection) {
     internal fun plukkOppgave(): OppgaveInput? {
         @Language("PostgreSQL")
         val query = """
-            SELECT id, type, sak_id, behandling_id, neste_kjoring
+            SELECT id, type, sak_id, behandling_id, neste_kjoring, (SELECT count(1) from oppgave_historikk h where h.oppgave_id = o.id AND h.status = 'FEILET') as antall_feil
             FROM OPPGAVE o
             WHERE status = '${OppgaveStatus.KLAR.name}'
               AND neste_kjoring < ?
@@ -66,23 +67,12 @@ class OppgaveRepository(private val connection: DBConnection) {
                 setLocalDateTime(1, LocalDateTime.now())
             }
             setRowMapper { row ->
-                OppgaveInput(OppgaveType.parse(row.getString("type")))
-                    .medId(row.getLong("id"))
-                    .forBehandling(
-                        row.getLongOrNull("sak_id")?.let(::SakId),
-                        row.getLongOrNull("behandling_id")?.let(::BehandlingId)
-                    )
+                mapOppgave(row)
             }
         }
 
         if (plukketOppgave == null) {
             return null
-        }
-        connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ?") {
-            setParams {
-                setEnumName(1, OppgaveStatus.KLAR)
-                setLong(2, plukketOppgave.id)
-            }
         }
 
         val historikk = """
@@ -99,6 +89,15 @@ class OppgaveRepository(private val connection: DBConnection) {
 
         return plukketOppgave
     }
+
+    private fun mapOppgave(row: Row) =
+        OppgaveInput(OppgaveType.parse(row.getString("type")))
+            .medId(row.getLong("id"))
+            .forBehandling(
+                row.getLongOrNull("sak_id")?.let(::SakId),
+                row.getLongOrNull("behandling_id")?.let(::BehandlingId)
+            )
+            .medAntallFeil(row.getLong("antall_feil"))
 
     internal fun markerKjørt(oppgaveInput: OppgaveInput) {
         connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'KLAR'") {
@@ -125,13 +124,15 @@ class OppgaveRepository(private val connection: DBConnection) {
     }
 
     internal fun markerFeilet(oppgaveInput: OppgaveInput, exception: Throwable) {
-        connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'KLAR'") {
-            setParams {
-                setEnumName(1, OppgaveStatus.FEILET)
-                setLong(2, oppgaveInput.id)
-            }
-            setResultValidator {
-                require(it == 1)
+        if (oppgaveInput.skalMarkeresSomFeilet()) {
+            connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'KLAR'") {
+                setParams {
+                    setEnumName(1, OppgaveStatus.FEILET)
+                    setLong(2, oppgaveInput.id)
+                }
+                setResultValidator {
+                    require(it == 1)
+                }
             }
         }
 
