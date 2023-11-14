@@ -211,8 +211,8 @@ CREATE TABLE BISTAND_GRUNNLAG
 (
     ID                   SERIAL               NOT NULL PRIMARY KEY,
     BEHANDLING_ID        BIGINT               NOT NULL REFERENCES BEHANDLING (ID),
-    BEGRUNNELSE          TEXT                 NOT NULL,
-    ER_BEHOV_FOR_BISTAND VARCHAR(4000)        NOT NULL,
+    BEGRUNNELSE          varchar(4000)        NOT NULL,
+    ER_BEHOV_FOR_BISTAND boolean              NOT NULL,
     AKTIV                BOOLEAN DEFAULT TRUE NOT NULL
 );
 
@@ -237,3 +237,27 @@ CREATE TABLE MELDEPLIKT_FRITAK_VURDERING
 );
 
 CREATE INDEX IDX_MELDEPLIKT_FRITAK_VURDERING_GRUNNLAG_ID ON MELDEPLIKT_FRITAK_VURDERING (GRUNNLAG_ID);
+
+-- student
+
+CREATE TABLE STUDENT_VURDERING
+(
+    ID           SERIAL        NOT NULL PRIMARY KEY,
+    begrunnelse  varchar(4000) null,
+    oppfylt      boolean       not null,
+    avbrutt_dato date          null
+);
+CREATE TABLE STUDENT_VURDERING_DOKUMENTER
+(
+    ID           SERIAL      NOT NULL PRIMARY KEY,
+    vurdering_id bigint      not null references STUDENT_VURDERING,
+    journalpost  varchar(25) not null
+);
+CREATE TABLE STUDENT_GRUNNLAG
+(
+    ID            SERIAL               NOT NULL PRIMARY KEY,
+    behandling_id BIGINT               NOT NULL REFERENCES BEHANDLING (ID),
+    student_id    BIGINT               null references STUDENT_VURDERING,
+    aktiv         boolean default true NOT NULL
+);
+CREATE UNIQUE INDEX UIDX_STUDENT_GRUNNLAG_HISTORIKK ON STUDENT_GRUNNLAG (BEHANDLING_ID) WHERE (AKTIV = TRUE);

@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.BehandlingReferanseService
-import no.nav.aap.behandlingsflyt.faktagrunnlag.student.db.InMemoryStudentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 
 fun NormalOpenAPIRoute.studentgrunnlagApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
@@ -19,11 +19,15 @@ fun NormalOpenAPIRoute.studentgrunnlagApi(dataSource: HikariDataSource) {
                     BehandlingReferanseService(it).behandling(req)
                 }
 
-                val studentGrunnlag = InMemoryStudentRepository.hentHvisEksisterer(behandlingId = behandling.id)
+                val studentGrunnlag = dataSource.transaction {
+                    StudentRepository(it).hentHvisEksisterer(behandlingId = behandling.id)
+                }
 
-                respond(StudentGrunnlagDto(
-                    studentvurdering = studentGrunnlag?.studentvurdering
-                ))
+                respond(
+                    StudentGrunnlagDto(
+                        studentvurdering = studentGrunnlag?.studentvurdering
+                    )
+                )
             }
         }
     }
