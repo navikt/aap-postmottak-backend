@@ -82,6 +82,6 @@ class OppgaveInput(val oppgave: Oppgave) {
     }
 
     fun skalMarkeresSomFeilet(): Boolean {
-        return oppgave.retries() >= antallFeil
+        return oppgave.retries() >= antallFeil+1
     }
 }
