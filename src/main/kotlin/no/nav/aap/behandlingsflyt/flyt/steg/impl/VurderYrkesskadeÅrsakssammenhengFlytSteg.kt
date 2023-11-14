@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.db.InMemoryStudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService

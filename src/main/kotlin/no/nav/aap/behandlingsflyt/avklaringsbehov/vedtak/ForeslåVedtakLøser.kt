@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
 class ForeslåVedtakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<ForeslåVedtakLøsning> {

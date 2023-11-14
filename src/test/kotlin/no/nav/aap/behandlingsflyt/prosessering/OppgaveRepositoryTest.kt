@@ -1,9 +1,9 @@
 package no.nav.aap.behandlingsflyt.prosessering
 
 import no.nav.aap.behandlingsflyt.Periode
-import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
-import no.nav.aap.behandlingsflyt.dbstuff.InitTestDatabase
-import no.nav.aap.behandlingsflyt.dbstuff.transaction
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
+import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.prosessering.retry.OPPGAVE_TYPE
 import no.nav.aap.behandlingsflyt.prosessering.retry.RetryService
 import no.nav.aap.behandlingsflyt.sak.Ident

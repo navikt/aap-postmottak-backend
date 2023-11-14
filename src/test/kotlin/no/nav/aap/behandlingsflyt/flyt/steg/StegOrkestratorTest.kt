@@ -2,8 +2,8 @@ package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
-import no.nav.aap.behandlingsflyt.dbstuff.InitTestDatabase
-import no.nav.aap.behandlingsflyt.dbstuff.transaction
+import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
+import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.tilKontekst
 import no.nav.aap.behandlingsflyt.sak.Ident

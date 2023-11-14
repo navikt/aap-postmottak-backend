@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår
 
-import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 
 class LazyFaktaGrunnlag(private val periodeId: Long, private val connection: DBConnection) : Faktagrunnlag {
     override fun hent(): String? {

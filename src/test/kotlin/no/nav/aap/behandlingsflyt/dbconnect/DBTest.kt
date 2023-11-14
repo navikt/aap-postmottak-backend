@@ -1,7 +1,8 @@
-package no.nav.aap.behandlingsflyt.dbstuff
+package no.nav.aap.behandlingsflyt.dbconnect
 
 import no.nav.aap.behandlingsflyt.Periode
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -9,7 +10,14 @@ import java.time.LocalDateTime
 import java.time.Month
 import java.util.*
 
-internal class DBStuffTest : DatabaseTestBase() {
+internal class DBTest {
+
+    @BeforeEach
+    fun setup() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute("TRUNCATE TEST, TEST_BYTES, TEST_STRING, TEST_LONG, TEST_UUID, TEST_DATERANGE, TEST_BOOLEAN, TEST_LOCALDATETIME; ALTER SEQUENCE test_id_seq RESTART WITH 1")
+        }
+    }
 
     @Test
     fun `Skriver og henter en rad mot DB`() {
@@ -245,6 +253,32 @@ internal class DBStuffTest : DatabaseTestBase() {
                     assertThat(row.getBoolean("TEST_TRUE")).isTrue
                     assertThat(row.getBooleanOrNull("TEST_NULL")).isNull()
                     assertThrows<IllegalArgumentException> { row.getBoolean("TEST_NULL") }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Skriver og leser LocalDate og null-verdi riktig`() {
+        val localDate = LocalDate.of(2016, Month.AUGUST, 12);
+        InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute(
+                """
+                    INSERT INTO TEST_LOCALDATE (TEST, TEST_NULL)
+                    VALUES (?, ?)
+                """.trimMargin()
+            ) {
+                setParams {
+                    setLocalDate(1, localDate)
+                    setLocalDate(2, null)
+                }
+            }
+            connection.queryFirst("SELECT * FROM TEST_LOCALDATE") {
+                setRowMapper { row ->
+                    assertThat(row.getLocalDateOrNull("TEST")).isEqualTo(localDate)
+                    assertThat(row.getLocalDate("TEST")).isEqualTo(localDate)
+                    assertThat(row.getLocalDateOrNull("TEST_NULL")).isNull()
+                    assertThrows<IllegalArgumentException> { row.getLocalDate("TEST_NULL") }
                 }
             }
         }

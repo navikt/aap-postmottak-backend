@@ -2,8 +2,8 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger
 
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
-import no.nav.aap.behandlingsflyt.dbstuff.InitTestDatabase
-import no.nav.aap.behandlingsflyt.dbstuff.transaction
+import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
+import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.mars
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
@@ -18,8 +18,6 @@ import java.time.LocalDate
 class PersonopplysningRepositoryTest {
 
     private companion object {
-        private val dataSource = InitTestDatabase.dataSource
-
         private val ident = Ident("123123123124")
         private val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
     }
@@ -28,22 +26,22 @@ class PersonopplysningRepositoryTest {
 
     @BeforeEach
     fun setup() {
-        dataSource.transaction { connection ->
+        InitTestDatabase.dataSource.transaction { connection ->
             sak = SakRepository(connection)
                 .finnEllerOpprett(PersonRepository(connection).finnEllerOpprett(ident), periode)
         }
     }
 
     @AfterEach
-    fun putes() {
-        dataSource.transaction { connection ->
+    fun tilbakestill() {
+        InitTestDatabase.dataSource.transaction { connection ->
             connection.execute("TRUNCATE TABLE SAK CASCADE")
         }
     }
 
     @Test
     fun `Finner ikke personopplysninger hvis ikke lagret`() {
-        dataSource.transaction { connection ->
+        InitTestDatabase.dataSource.transaction { connection ->
             val behandling = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
 
             val personopplysningRepository = PersonopplysningRepository(connection)
@@ -54,7 +52,7 @@ class PersonopplysningRepositoryTest {
 
     @Test
     fun `Lagrer og henter personopplysninger`() {
-        dataSource.transaction { connection ->
+        InitTestDatabase.dataSource.transaction { connection ->
             val behandling = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
 
             val personopplysningRepository = PersonopplysningRepository(connection)
@@ -66,7 +64,7 @@ class PersonopplysningRepositoryTest {
 
     @Test
     fun `Kopierer personopplysninger fra en behandling til en annen`() {
-        dataSource.transaction { connection ->
+        InitTestDatabase.dataSource.transaction { connection ->
             val behandling1 = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
             connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
             val behandling2 = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
@@ -84,7 +82,7 @@ class PersonopplysningRepositoryTest {
 
     @Test
     fun `Kopierer personopplysninger fra en behandling til en annen der fraBehandlingen har to versjoner av opplysningene`() {
-        dataSource.transaction { connection ->
+        InitTestDatabase.dataSource.transaction { connection ->
             val behandling1 = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
             connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
             val behandling2 = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
@@ -103,7 +101,7 @@ class PersonopplysningRepositoryTest {
 
     @Test
     fun `Lagrer nye opplysninger som ny rad og deaktiverer forrige versjon av opplysningene`() {
-        dataSource.transaction { connection ->
+        InitTestDatabase.dataSource.transaction { connection ->
             val behandling = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
             val personopplysningRepository = PersonopplysningRepository(connection)
 

@@ -2,8 +2,8 @@ package no.nav.aap.behandlingsflyt.flyt.vilkår
 
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
-import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
-import no.nav.aap.behandlingsflyt.dbstuff.Row
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.dbconnect.Row
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(VilkårsresultatRepository::class.java)

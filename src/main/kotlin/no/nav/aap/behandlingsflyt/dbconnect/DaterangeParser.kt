@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.dbstuff
+package no.nav.aap.behandlingsflyt.dbconnect
 
 import no.nav.aap.behandlingsflyt.Periode
 import java.time.LocalDate

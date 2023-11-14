@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.dbstuff
+package no.nav.aap.behandlingsflyt.dbconnect
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

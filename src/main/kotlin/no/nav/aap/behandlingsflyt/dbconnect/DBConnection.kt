@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.dbstuff
+package no.nav.aap.behandlingsflyt.dbconnect
 
 import java.sql.Connection
 import java.sql.Savepoint

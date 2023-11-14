@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.sak
 
 import no.nav.aap.behandlingsflyt.Periode
-import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
-import no.nav.aap.behandlingsflyt.dbstuff.Row
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.dbconnect.Row
 
 class SakRepository(private val connection: DBConnection) {
 

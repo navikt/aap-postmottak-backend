@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.behandling
 
-import no.nav.aap.behandlingsflyt.dbstuff.DBConnection
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 
 class BehandlingService(connection: DBConnection) {
 

@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.flate.AvklaringsbehovDTO
 import no.nav.aap.behandlingsflyt.behandling.flate.BehandlingReferanse
-import no.nav.aap.behandlingsflyt.dbstuff.transaction
+import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.BehandlingReferanseService
 import no.nav.aap.behandlingsflyt.flyt.steg.StegGruppe
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
