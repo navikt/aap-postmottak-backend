@@ -37,7 +37,7 @@ import no.nav.aap.behandlingsflyt.behandling.flate.avklaringsbehov.avklaringsbeh
 import no.nav.aap.behandlingsflyt.behandling.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.dbstuff.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.flate.bistandsgrunnlagApi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.medlemskap.flate.medlemskapsgrunnlagApi
+import no.nav.aap.behandlingsflyt.faktagrunnlag.medlemskap.medlemskapsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.meldeplikt.flate.meldepliktsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personinfo
