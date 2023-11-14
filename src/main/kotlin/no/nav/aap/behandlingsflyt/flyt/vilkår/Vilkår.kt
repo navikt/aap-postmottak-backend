@@ -4,8 +4,9 @@ import no.nav.aap.behandlingsflyt.Periode
 
 class Vilkår(
     val type: Vilkårtype,
-    private val vilkårsperioder: MutableSet<Vilkårsperiode> = mutableSetOf()
+    vilkårsperioder: Set<Vilkårsperiode> = emptySet()
 ) {
+    private val vilkårsperioder: MutableSet<Vilkårsperiode> = vilkårsperioder.toMutableSet()
 
     fun vilkårsperioder(): List<Vilkårsperiode> {
         return this.vilkårsperioder.toList()

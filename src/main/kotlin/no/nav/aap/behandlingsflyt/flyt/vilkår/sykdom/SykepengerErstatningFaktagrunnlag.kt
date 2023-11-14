@@ -8,5 +8,4 @@ class SykepengerErstatningFaktagrunnlag(
     val vurderingsdato: LocalDate,
     val sisteDagMedMuligYtelse: LocalDate,
     val vurdering: SykepengerVurdering
-) :
-    Faktagrunnlag
+) : Faktagrunnlag

@@ -13,5 +13,4 @@ class LazyFaktaGrunnlag(private val periodeId: Long, private val connection: DBC
             }
         }
     }
-
 }

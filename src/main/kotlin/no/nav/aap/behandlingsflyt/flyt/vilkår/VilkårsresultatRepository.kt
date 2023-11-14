@@ -95,9 +95,7 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
             setParams {
                 setLong(1, behandlingId.toLong())
             }
-            setRowMapper {
-                mapResultat(it)
-            }
+            setRowMapper(::mapResultat)
         }
     }
 
@@ -106,7 +104,7 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
         return Vilkårsresultat(id = id, vilkår = hentVilkår(id))
     }
 
-    private fun hentVilkår(id: Long): MutableList<Vilkår> {
+    private fun hentVilkår(id: Long): List<Vilkår> {
         val query = """
             SELECT * FROM VILKAR WHERE resultat_id = ?
         """.trimIndent()
@@ -115,10 +113,8 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
             setParams {
                 setLong(1, id)
             }
-            setRowMapper {
-                mapVilkår(it)
-            }
-        }.toMutableList()
+            setRowMapper(::mapVilkår)
+        }
     }
 
     private fun mapVilkår(row: Row): Vilkår {
@@ -129,7 +125,7 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
         )
     }
 
-    private fun hentPerioder(id: Long): MutableSet<Vilkårsperiode> {
+    private fun hentPerioder(id: Long): Set<Vilkårsperiode> {
         val query = """
             SELECT * FROM VILKAR_PERIODE WHERE vilkar_id = ?
         """.trimIndent()
@@ -138,10 +134,8 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
             setParams {
                 setLong(1, id)
             }
-            setRowMapper {
-                mapPerioder(it)
-            }
-        }.toMutableSet()
+            setRowMapper(::mapPerioder)
+        }.toSet()
     }
 
     private fun mapPerioder(row: Row): Vilkårsperiode {
@@ -162,4 +156,3 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
         lagre(tilBehandling.id, eksisterendeResultat)
     }
 }
-

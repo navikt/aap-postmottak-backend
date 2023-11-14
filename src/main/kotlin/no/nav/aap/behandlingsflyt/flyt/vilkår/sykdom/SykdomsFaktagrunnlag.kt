@@ -12,5 +12,4 @@ class SykdomsFaktagrunnlag(
     val yrkesskadevurdering: Yrkesskadevurdering?,
     val sykdomsvurdering: Sykdomsvurdering?,
     val studentvurdering: StudentVurdering?
-) :
-    Faktagrunnlag
+) : Faktagrunnlag

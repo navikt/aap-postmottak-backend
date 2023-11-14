@@ -10,5 +10,4 @@ class BistandFaktagrunnlag(
     val sisteDagMedMuligYtelse: LocalDate,
     val vurdering: BistandsVurdering?,
     val studentvurdering: StudentVurdering?,
-) :
-    Faktagrunnlag
+) : Faktagrunnlag
