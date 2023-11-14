@@ -1,7 +1,6 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.student
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.student.StudentVurdering
-import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
@@ -84,8 +83,8 @@ class StudentRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandling: Behandling, tilBehandling: Behandling) {
-        val hentHvisEksisterer = hentHvisEksisterer(fraBehandling.id)
+    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+        val hentHvisEksisterer = hentHvisEksisterer(fraBehandling)
         if (hentHvisEksisterer == null) {
             return
         }
@@ -97,8 +96,8 @@ class StudentRepository(private val connection: DBConnection) {
 
         connection.execute(query) {
             setParams {
-                setLong(1, tilBehandling.id.toLong())
-                setLong(2, fraBehandling.id.toLong())
+                setLong(1, tilBehandling.toLong())
+                setLong(2, fraBehandling.toLong())
             }
         }
     }

@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår
 
-import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
@@ -151,8 +150,8 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
         )
     }
 
-    fun kopier(fraBehandling: Behandling, tilBehandling: Behandling) {
-        val eksisterendeResultat = hent(fraBehandling.id)
-        lagre(tilBehandling.id, eksisterendeResultat)
+    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+        val eksisterendeResultat = hent(fraBehandling)
+        lagre(tilBehandling, eksisterendeResultat)
     }
 }

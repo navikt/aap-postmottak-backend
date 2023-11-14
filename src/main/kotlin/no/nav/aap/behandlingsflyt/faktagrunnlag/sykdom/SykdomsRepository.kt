@@ -3,7 +3,6 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Yrkesskadevurdering
-import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
@@ -156,8 +155,8 @@ class SykdomsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandling: Behandling, tilBehandling: Behandling) {
-        val eksisterendeGrunnlag = hentHvisEksisterer(fraBehandling.id)
+    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+        val eksisterendeGrunnlag = hentHvisEksisterer(fraBehandling)
         if (eksisterendeGrunnlag == null) {
             return
         }
@@ -167,9 +166,9 @@ class SykdomsRepository(private val connection: DBConnection) {
 
         connection.execute(query) {
             setParams {
-                setLong(1, tilBehandling.id.toLong())
-                setLong(2, fraBehandling.id.toLong())
-                setLong(3, fraBehandling.id.toLong())
+                setLong(1, tilBehandling.toLong())
+                setLong(2, fraBehandling.toLong())
+                setLong(3, fraBehandling.toLong())
             }
         }
     }
