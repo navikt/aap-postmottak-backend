@@ -1,16 +1,15 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger
+package no.nav.aap.behandlingsflyt.faktagrunnlag.bistand
 
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.BistandVurdering
 import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
-import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandRepository
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.SakRepository
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -47,7 +46,7 @@ class BistandRepositoryTest {
 
             val bistandRepository = BistandRepository(connection)
             val bistandGrunnlag = bistandRepository.hentHvisEksisterer(behandling.id)
-            assertThat(bistandGrunnlag).isNull()
+            Assertions.assertThat(bistandGrunnlag).isNull()
         }
     }
 
@@ -59,7 +58,7 @@ class BistandRepositoryTest {
             val bistandRepository = BistandRepository(connection)
             bistandRepository.lagre(behandling.id, BistandVurdering("begrunnelse", false))
             val bistandGrunnlag = bistandRepository.hentHvisEksisterer(behandling.id)
-            assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("begrunnelse", false))
+            Assertions.assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("begrunnelse", false))
         }
     }
 
@@ -77,7 +76,7 @@ class BistandRepositoryTest {
                 connection.queryList("SELECT BEGRUNNELSE FROM BISTAND_GRUNNLAG") {
                     setRowMapper { row -> row.getString("BEGRUNNELSE") }
                 }
-            assertThat(opplysninger)
+            Assertions.assertThat(opplysninger)
                 .hasSize(2)
                 .containsExactly("en begrunnelse", "annen begrunnelse")
         }
@@ -97,7 +96,7 @@ class BistandRepositoryTest {
                 tilBehandling = behandling2.id
             )
             val bistandGrunnlag = bistandRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("begrunnelse", false))
+            Assertions.assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("begrunnelse", false))
         }
     }
 
@@ -116,7 +115,7 @@ class BistandRepositoryTest {
                 tilBehandling = behandling2.id
             )
             val bistandGrunnlag = bistandRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("annen begrunnelse", false))
+            Assertions.assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("annen begrunnelse", false))
         }
     }
 
@@ -128,11 +127,11 @@ class BistandRepositoryTest {
 
             bistandRepository.lagre(behandling.id, BistandVurdering("en begrunnelse", false))
             val orginaltGrunnlag = bistandRepository.hentHvisEksisterer(behandling.id)
-            assertThat(orginaltGrunnlag?.vurdering).isEqualTo(BistandVurdering("en begrunnelse", false))
+            Assertions.assertThat(orginaltGrunnlag?.vurdering).isEqualTo(BistandVurdering("en begrunnelse", false))
 
             bistandRepository.lagre(behandling.id, BistandVurdering("annen begrunnelse", false))
             val oppdatertGrunnlag = bistandRepository.hentHvisEksisterer(behandling.id)
-            assertThat(oppdatertGrunnlag?.vurdering).isEqualTo(BistandVurdering("annen begrunnelse", false))
+            Assertions.assertThat(oppdatertGrunnlag?.vurdering).isEqualTo(BistandVurdering("annen begrunnelse", false))
 
             data class Opplysning(
                 val behandlingId: Long,
@@ -152,7 +151,7 @@ class BistandRepositoryTest {
                         )
                     }
                 }
-            assertThat(opplysninger)
+            Assertions.assertThat(opplysninger)
                 .hasSize(2)
                 .containsExactly(
                     Opplysning(behandling.id.toLong(), "en begrunnelse", erBehovForBistand = false, aktiv = false),
