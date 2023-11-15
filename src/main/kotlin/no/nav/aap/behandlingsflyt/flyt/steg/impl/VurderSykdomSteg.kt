@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
@@ -12,7 +12,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykdomsFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.Sykdomsvilkår
 
 class VurderSykdomSteg(
-    private val sykdomsRepository: SykdomsRepository,
+    private val sykdomRepository: SykdomRepository,
     private val studentRepository: StudentRepository,
     private val vilkårsresultatRepository: VilkårsresultatRepository,
     private val periodeTilVurderingService: PeriodeTilVurderingService
@@ -23,7 +23,7 @@ class VurderSykdomSteg(
             periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
 
         if (periodeTilVurdering.isNotEmpty()) {
-            val sykdomsGrunnlag = sykdomsRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
+            val sykdomsGrunnlag = sykdomRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
             val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
 
             //TODO: Skrive om til å være lik uttrykket på linje 46

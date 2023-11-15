@@ -14,7 +14,7 @@ object VurderSykepengeErstatningFlytSteg : FlytSteg {
     override fun konstruer(connection: DBConnection): BehandlingSteg {
         return VurderSykepengeErstatningSteg(
             VilkårsresultatRepository(connection),
-            SykepengerErstatningRepository,
+            SykepengerErstatningRepository(connection),
             SakService(connection),
             AvklaringsbehovRepository(connection)
         )

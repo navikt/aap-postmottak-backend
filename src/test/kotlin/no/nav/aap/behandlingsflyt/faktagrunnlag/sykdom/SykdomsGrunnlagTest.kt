@@ -11,7 +11,7 @@ class SykdomsGrunnlagTest {
 
     @Test
     fun `er konsistent hvis ikke yrkesskade og 50 prosent`() {
-        val sykdomsGrunnlag = SykdomsGrunnlag(
+        val sykdomGrunnlag = SykdomGrunnlag(
             id = 1L,
             yrkesskadevurdering = null,
             sykdomsvurdering = Sykdomsvurdering(
@@ -24,12 +24,12 @@ class SykdomsGrunnlagTest {
             )
         )
 
-        assertThat(sykdomsGrunnlag.erKonsistent()).isTrue
+        assertThat(sykdomGrunnlag.erKonsistent()).isTrue
     }
 
     @Test
     fun `er ikke konsistent hvis ikke yrkesskade og 30 prosent`() {
-        val sykdomsGrunnlag = SykdomsGrunnlag(
+        val sykdomGrunnlag = SykdomGrunnlag(
             id = 1L,
             yrkesskadevurdering = null,
             sykdomsvurdering = Sykdomsvurdering(
@@ -42,12 +42,12 @@ class SykdomsGrunnlagTest {
             )
         )
 
-        assertThat(sykdomsGrunnlag.erKonsistent()).isFalse
+        assertThat(sykdomGrunnlag.erKonsistent()).isFalse
     }
 
     @Test
     fun `er konsistent hvis yrkesskade med årsakssammenheng og 30 prosent`() {
-        val sykdomsGrunnlag = SykdomsGrunnlag(
+        val sykdomGrunnlag = SykdomGrunnlag(
             id = 1L,
             yrkesskadevurdering = Yrkesskadevurdering(
                 begrunnelse = "",
@@ -65,12 +65,12 @@ class SykdomsGrunnlagTest {
             )
         )
 
-        assertThat(sykdomsGrunnlag.erKonsistent()).isTrue
+        assertThat(sykdomGrunnlag.erKonsistent()).isTrue
     }
 
     @Test
     fun `er ikke konsistent hvis yrkesskade med årsakssammenheng og 50 prosent`() {
-        val sykdomsGrunnlag = SykdomsGrunnlag(
+        val sykdomGrunnlag = SykdomGrunnlag(
             id = 1L,
             yrkesskadevurdering = Yrkesskadevurdering(
                 begrunnelse = "",
@@ -88,12 +88,12 @@ class SykdomsGrunnlagTest {
             )
         )
 
-        assertThat(sykdomsGrunnlag.erKonsistent()).isFalse
+        assertThat(sykdomGrunnlag.erKonsistent()).isFalse
     }
 
     @Test
     fun `er ikke konsistent hvis yrkesskade uten årsakssammenheng og 30 prosent`() {
-        val sykdomsGrunnlag = SykdomsGrunnlag(
+        val sykdomGrunnlag = SykdomGrunnlag(
             id = 1L,
             yrkesskadevurdering = Yrkesskadevurdering(
                 begrunnelse = "",
@@ -111,12 +111,12 @@ class SykdomsGrunnlagTest {
             )
         )
 
-        assertThat(sykdomsGrunnlag.erKonsistent()).isFalse
+        assertThat(sykdomGrunnlag.erKonsistent()).isFalse
     }
 
     @Test
     fun `er konsistent hvis yrkesskade uten årsakssammenheng og 50 prosent`() {
-        val sykdomsGrunnlag = SykdomsGrunnlag(
+        val sykdomGrunnlag = SykdomGrunnlag(
             id = 1L,
             yrkesskadevurdering = Yrkesskadevurdering(
                 begrunnelse = "",
@@ -134,6 +134,6 @@ class SykdomsGrunnlagTest {
             )
         )
 
-        assertThat(sykdomsGrunnlag.erKonsistent()).isTrue
+        assertThat(sykdomGrunnlag.erKonsistent()).isTrue
     }
 }

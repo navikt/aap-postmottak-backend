@@ -170,6 +170,7 @@ CREATE TABLE SYKDOM_VURDERING_DOKUMENTER
     vurdering_id bigint      not null references SYKDOM_VURDERING,
     journalpost  varchar(25) not null
 );
+CREATE UNIQUE INDEX UIDX_SYKDOM_VURDERING_DOKUMENTER ON SYKDOM_VURDERING_DOKUMENTER (journalpost, vurdering_id);
 
 CREATE TABLE YRKESSKADE_VURDERING
 (
@@ -184,6 +185,7 @@ CREATE TABLE YRKESSKADE_VURDERING_DOKUMENTER
     vurdering_id bigint      not null references YRKESSKADE_VURDERING,
     journalpost  varchar(25) not null
 );
+CREATE UNIQUE INDEX UIDX_YRKESSKADE_VURDERING_DOKUMENTER ON YRKESSKADE_VURDERING_DOKUMENTER (journalpost, vurdering_id);
 
 CREATE TABLE SYKDOM_GRUNNLAG
 (
@@ -263,6 +265,7 @@ CREATE TABLE STUDENT_VURDERING_DOKUMENTER
     vurdering_id bigint      not null references STUDENT_VURDERING,
     journalpost  varchar(25) not null
 );
+CREATE UNIQUE INDEX UIDX_STUDENT_VURDERING_DOKUMENTER ON STUDENT_VURDERING_DOKUMENTER (journalpost, vurdering_id);
 
 CREATE TABLE STUDENT_GRUNNLAG
 (
@@ -274,3 +277,31 @@ CREATE TABLE STUDENT_GRUNNLAG
 );
 
 CREATE UNIQUE INDEX UIDX_STUDENT_GRUNNLAG_HISTORIKK ON STUDENT_GRUNNLAG (BEHANDLING_ID) WHERE (AKTIV = TRUE);
+
+-- sykepengeerstatning
+
+CREATE TABLE SYKEPENGE_VURDERING
+(
+    ID          SERIAL  NOT NULL PRIMARY KEY,
+    begrunnelse text    null,
+    oppfylt     boolean not null
+);
+
+CREATE TABLE SYKEPENGE_VURDERING_DOKUMENTER
+(
+    ID           SERIAL      NOT NULL PRIMARY KEY,
+    vurdering_id bigint      not null references SYKEPENGE_VURDERING,
+    journalpost  varchar(25) not null
+);
+CREATE UNIQUE INDEX UIDX_SYKEPENGE_VURDERING_DOKUMENTER ON SYKEPENGE_VURDERING_DOKUMENTER (journalpost, vurdering_id);
+
+CREATE TABLE sykepenge_erstatning_grunnlag
+(
+    ID            SERIAL                                 NOT NULL PRIMARY KEY,
+    behandling_id BIGINT                                 NOT NULL REFERENCES BEHANDLING (ID),
+    vurdering_id  BIGINT                                 null references SYKEPENGE_VURDERING,
+    aktiv         boolean      default true              NOT NULL,
+    opprettet_tid TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE UNIQUE INDEX UIDX_SYKEPENGE_VURDERING_GRUNNLAG_HISTORIKK ON sykepenge_erstatning_grunnlag (BEHANDLING_ID) WHERE (AKTIV = TRUE);

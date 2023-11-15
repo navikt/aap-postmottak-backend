@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.BehandlingReferanseService
-import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRepository
 
 fun NormalOpenAPIRoute.sykdomsgrunnlagApi(dataSource: HikariDataSource) {
@@ -22,7 +22,7 @@ fun NormalOpenAPIRoute.sykdomsgrunnlagApi(dataSource: HikariDataSource) {
 
                 val yrkesskadeGrunnlag = YrkesskadeRepository.hentHvisEksisterer(behandlingId = behandling.id)
                 val sykdomsGrunnlag = dataSource.transaction {
-                    SykdomsRepository(it).hentHvisEksisterer(behandlingId = behandling.id)
+                    SykdomRepository(it).hentHvisEksisterer(behandlingId = behandling.id)
                 }
 
                 respond(
@@ -51,7 +51,7 @@ fun NormalOpenAPIRoute.sykdomsgrunnlagApi(dataSource: HikariDataSource) {
 
                 val yrkesskadeGrunnlag = YrkesskadeRepository.hentHvisEksisterer(behandlingId = behandling.id)
                 val sykdomsGrunnlag = dataSource.transaction {
-                    SykdomsRepository(it).hentHvisEksisterer(behandlingId = behandling.id)
+                    SykdomRepository(it).hentHvisEksisterer(behandlingId = behandling.id)
                 }
 
                 respond(

@@ -8,12 +8,12 @@ import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
 
-class SykdomsRepository(private val connection: DBConnection) {
+class SykdomRepository(private val connection: DBConnection) {
 
     fun lagre(behandlingId: BehandlingId, yrkesskadevurdering: Yrkesskadevurdering?) {
 
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
-        val nyttGrunnlag = SykdomsGrunnlag(
+        val nyttGrunnlag = SykdomGrunnlag(
             null,
             yrkesskadevurdering = yrkesskadevurdering,
             sykdomsvurdering = eksisterendeGrunnlag?.sykdomsvurdering
@@ -39,7 +39,7 @@ class SykdomsRepository(private val connection: DBConnection) {
 
     fun lagre(behandlingId: BehandlingId, sykdomsvurdering: Sykdomsvurdering?) {
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
-        val nyttGrunnlag = SykdomsGrunnlag(
+        val nyttGrunnlag = SykdomGrunnlag(
             null,
             yrkesskadevurdering = eksisterendeGrunnlag?.yrkesskadevurdering,
             sykdomsvurdering = sykdomsvurdering
@@ -54,7 +54,7 @@ class SykdomsRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun lagre(behandlingId: BehandlingId, nyttGrunnlag: SykdomsGrunnlag) {
+    private fun lagre(behandlingId: BehandlingId, nyttGrunnlag: SykdomGrunnlag) {
         val sykdomsvurderingId = lagreSykdom(nyttGrunnlag.sykdomsvurdering)
         val yrkesskadeId = lagreYrkesskade(nyttGrunnlag.yrkesskadevurdering)
 
@@ -173,7 +173,7 @@ class SykdomsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentHvisEksisterer(behandlingId: BehandlingId): SykdomsGrunnlag? {
+    fun hentHvisEksisterer(behandlingId: BehandlingId): SykdomGrunnlag? {
         val query = """
             SELECT * FROM SYKDOM_GRUNNLAG WHERE behandling_id = ? and aktiv = true
         """.trimIndent()
@@ -185,8 +185,8 @@ class SykdomsRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun mapGrunnlag(row: Row): SykdomsGrunnlag {
-        return SykdomsGrunnlag(
+    private fun mapGrunnlag(row: Row): SykdomGrunnlag {
+        return SykdomGrunnlag(
             row.getLong("id"),
             mapYrkesskade(row.getLongOrNull("yrkesskade_id")),
             mapSykdom(row.getLongOrNull("sykdom_id"))
@@ -267,7 +267,7 @@ class SykdomsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hent(behandlingId: BehandlingId): SykdomsGrunnlag {
+    fun hent(behandlingId: BehandlingId): SykdomGrunnlag {
         return requireNotNull(hentHvisEksisterer(behandlingId))
     }
 }

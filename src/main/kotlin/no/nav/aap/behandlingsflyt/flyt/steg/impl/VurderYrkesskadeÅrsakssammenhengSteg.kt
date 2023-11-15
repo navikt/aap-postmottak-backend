@@ -3,8 +3,8 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsGrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomsRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomGrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
@@ -14,7 +14,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 
 class VurderYrkesskadeÅrsakssammenhengSteg(
     private val yrkesskadeService: YrkesskadeService,
-    private val sykdomsRepository: SykdomsRepository,
+    private val sykdomRepository: SykdomRepository,
     private val studentRepository: StudentRepository,
     private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
@@ -25,7 +25,7 @@ class VurderYrkesskadeÅrsakssammenhengSteg(
 
         if (periodeTilVurdering.isNotEmpty()) {
             val yrkesskadeGrunnlag = yrkesskadeService.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
-            val sykdomsGrunnlag = sykdomsRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
+            val sykdomsGrunnlag = sykdomRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
             val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
 
             if (erBehovForAvklaring(yrkesskadeGrunnlag, sykdomsGrunnlag, studentGrunnlag)) {
@@ -37,13 +37,13 @@ class VurderYrkesskadeÅrsakssammenhengSteg(
 
     private fun erBehovForAvklaring(
         yrkesskadeGrunnlag: YrkesskadeGrunnlag?,
-        sykdomsGrunnlag: SykdomsGrunnlag?,
+        sykdomGrunnlag: SykdomGrunnlag?,
         studentGrunnlag: StudentGrunnlag?
     ): Boolean {
         if (studentGrunnlag?.studentvurdering?.oppfyller11_14 == true) {
             return false
         }
         return yrkesskadeGrunnlag?.yrkesskader?.yrkesskader?.isNotEmpty() == true
-                && sykdomsGrunnlag?.yrkesskadevurdering == null
+                && sykdomGrunnlag?.yrkesskadevurdering == null
     }
 }

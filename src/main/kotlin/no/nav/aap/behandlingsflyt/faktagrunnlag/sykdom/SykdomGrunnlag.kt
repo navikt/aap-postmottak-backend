@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.Yrkesskadevurdering
 
-class SykdomsGrunnlag(
+class SykdomGrunnlag(
     private val id: Long?,
     val yrkesskadevurdering: Yrkesskadevurdering?,
     val sykdomsvurdering: Sykdomsvurdering?
@@ -23,7 +23,7 @@ class SykdomsGrunnlag(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as SykdomsGrunnlag
+        other as SykdomGrunnlag
 
         if (yrkesskadevurdering != other.yrkesskadevurdering) return false
         if (sykdomsvurdering != other.sykdomsvurdering) return false
