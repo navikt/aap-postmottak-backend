@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
 
-class StegOrkestrator(private val transaksjonsconnection: DBConnection, private val aktivtSteg: FlytSteg) {
+class StegOrkestrator(private val connection: DBConnection, private val aktivtSteg: FlytSteg) {
 
-    private val flytOperasjonRepository = FlytOperasjonRepository(transaksjonsconnection)
+    private val flytOperasjonRepository = FlytOperasjonRepository(connection)
 
     fun utfør(
         kontekst: FlytKontekst,
@@ -101,14 +101,14 @@ class StegOrkestrator(private val transaksjonsconnection: DBConnection, private 
     }
 
     private fun behandleStegBakover(flytSteg: FlytSteg, kontekst: FlytKontekst): Transisjon {
-        val steg = flytSteg.konstruer(transaksjonsconnection)
+        val steg = flytSteg.konstruer(connection)
         steg.vedTilbakeføring(kontekst)
 
         return Fortsett
     }
 
     private fun behandleSteg(flytSteg: FlytSteg, kontekst: FlytKontekst): Transisjon {
-        val steg = flytSteg.konstruer(transaksjonsconnection)
+        val steg = flytSteg.konstruer(connection)
         val stegResultat = steg.utfør(kontekst)
 
         return stegResultat.transisjon()

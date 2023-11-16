@@ -10,15 +10,33 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
+import no.nav.aap.behandlingsflyt.sak.SakService
 
-class VurderYrkesskadeÅrsakssammenhengSteg(
+class VurderYrkesskadeÅrsakssammenhengSteg private constructor(
     private val yrkesskadeService: YrkesskadeService,
     private val sykdomRepository: SykdomRepository,
     private val studentRepository: StudentRepository,
     private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): VurderYrkesskadeÅrsakssammenhengSteg {
+            return VurderYrkesskadeÅrsakssammenhengSteg(
+                YrkesskadeService.konstruer(connection),
+                SykdomRepository(connection),
+                StudentRepository(connection),
+                PeriodeTilVurderingService(SakService(connection))
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.AVKLAR_YRKESSKADE
+        }
+    }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val periodeTilVurdering =

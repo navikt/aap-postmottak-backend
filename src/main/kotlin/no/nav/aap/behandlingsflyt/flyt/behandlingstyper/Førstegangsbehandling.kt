@@ -16,7 +16,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderBistandsbehovFlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderStudentFlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykdomFlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderSykepengeErstatningFlytSteg
-import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderYrkesskadeÅrsakssammenhengFlytSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderYrkesskadeÅrsakssammenhengSteg
 
 object Førstegangsbehandling : BehandlingType {
     override fun flyt(): BehandlingFlyt {
@@ -25,7 +25,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = VurderAlderFlytSteg, informasjonskrav = listOf(PersonopplysningService))
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.VURDER_LOVVALG))
             .medSteg(steg = VurderStudentFlytSteg)
-            .medSteg(steg = VurderYrkesskadeÅrsakssammenhengFlytSteg, informasjonskrav = listOf(YrkesskadeService))
+            .medSteg(steg = VurderYrkesskadeÅrsakssammenhengSteg, informasjonskrav = listOf(YrkesskadeService))
             .medSteg(steg = VurderSykdomFlytSteg)
             .medSteg(steg = FritakMeldepliktFlytSteg)
             .medSteg(steg = VurderBistandsbehovFlytSteg)
