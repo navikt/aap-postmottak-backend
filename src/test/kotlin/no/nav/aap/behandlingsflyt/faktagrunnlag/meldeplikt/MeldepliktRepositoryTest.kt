@@ -201,7 +201,8 @@ class MeldepliktRepositoryTest {
                     """
                     SELECT g.BEHANDLING_ID, g.AKTIV, v.PERIODE, v.BEGRUNNELSE, v.HAR_FRITAK
                     FROM MELDEPLIKT_FRITAK_GRUNNLAG g
-                    INNER JOIN MELDEPLIKT_FRITAK_VURDERING v ON g.MELDEPLIKT_ID = v.MELDEPLIKT_ID
+                    INNER JOIN MELDEPLIKT_FRITAK f ON g.ID = f.GRUNNLAG_ID
+                    INNER JOIN MELDEPLIKT_FRITAK_VURDERING v ON f.VURDERING_ID = v.ID
                     """.trimIndent()
                 ) {
                     setRowMapper { row ->
@@ -274,7 +275,8 @@ class MeldepliktRepositoryTest {
                     """
                     SELECT g.BEHANDLING_ID, g.AKTIV, v.PERIODE, v.BEGRUNNELSE, v.HAR_FRITAK
                     FROM MELDEPLIKT_FRITAK_GRUNNLAG g
-                    INNER JOIN MELDEPLIKT_FRITAK_VURDERING v ON g.MELDEPLIKT_ID = v.MELDEPLIKT_ID
+                    INNER JOIN MELDEPLIKT_FRITAK f ON g.ID = f.GRUNNLAG_ID
+                    INNER JOIN MELDEPLIKT_FRITAK_VURDERING v ON f.VURDERING_ID = v.ID
                     """.trimIndent()
                 ) {
                     setRowMapper { row ->
