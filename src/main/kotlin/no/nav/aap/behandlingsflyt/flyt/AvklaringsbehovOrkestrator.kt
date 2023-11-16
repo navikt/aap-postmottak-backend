@@ -25,6 +25,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
 
     private val avklaringsbehovsLøsere = mutableMapOf<Definisjon, AvklaringsbehovsLøser<*>>()
     private val avklaringsbehovRepository = AvklaringsbehovRepository(connection)
+    private val behandlingRepository = BehandlingRepository(connection)
 
     private val log = LoggerFactory.getLogger(AvklaringsbehovOrkestrator::class.java)
 
@@ -58,7 +59,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         kontekst: FlytKontekst,
         avklaringsbehov: List<AvklaringsbehovLøsning>
     ) {
-        val behandling = BehandlingRepository(connection).hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val definisjoner = avklaringsbehov.map { løsning -> løsning.definisjon() }
         log.info("Forsøker løse avklaringsbehov[${definisjoner}] på behandling[${behandling.referanse}]")
 
