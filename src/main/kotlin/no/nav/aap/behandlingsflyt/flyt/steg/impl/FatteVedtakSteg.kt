@@ -2,13 +2,26 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
-class FatteVedtakSteg(
+class FatteVedtakSteg private constructor(
     private val avklaringsbehovRepository: AvklaringsbehovRepository
 ) : BehandlingSteg {
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return FatteVedtakSteg(AvklaringsbehovRepository(connection))
+        }
+
+        override fun type(): StegType {
+            return StegType.FATTE_VEDTAK
+        }
+    }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val avklaringsbehov = avklaringsbehovRepository.hent(kontekst.behandlingId)

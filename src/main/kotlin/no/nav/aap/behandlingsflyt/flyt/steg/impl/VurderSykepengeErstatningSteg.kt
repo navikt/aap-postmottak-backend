@@ -2,22 +2,40 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykepengerErstatningRepository
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykepengerErstatningFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykepengerErstatningVilkår
 import no.nav.aap.behandlingsflyt.sak.SakService
 
-class VurderSykepengeErstatningSteg(
+class VurderSykepengeErstatningSteg private constructor(
     private val vilkårsresultatRepository: VilkårsresultatRepository,
     private val sykepengerErstatningRepository: SykepengerErstatningRepository,
     private val sakService: SakService,
     private val avklaringsbehovRepository: AvklaringsbehovRepository
 ) : BehandlingSteg {
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return VurderSykepengeErstatningSteg(
+                VilkårsresultatRepository(connection),
+                SykepengerErstatningRepository(connection),
+                SakService(connection),
+                AvklaringsbehovRepository(connection)
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.VURDER_SYKEPENGEERSTATNING
+        }
+    }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)

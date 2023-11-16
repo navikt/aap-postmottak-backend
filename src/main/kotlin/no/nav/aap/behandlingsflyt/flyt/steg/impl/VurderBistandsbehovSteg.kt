@@ -2,25 +2,44 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Innvilgelsesårsak
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
+import no.nav.aap.behandlingsflyt.sak.SakService
 
-class VurderBistandsbehovSteg(
+class VurderBistandsbehovSteg private constructor(
     private val bistandRepository: BistandRepository,
     private val studentRepository: StudentRepository,
     private val vilkårsresultatRepository: VilkårsresultatRepository,
     private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return VurderBistandsbehovSteg(
+                BistandRepository(connection),
+                StudentRepository(connection),
+                VilkårsresultatRepository(connection),
+                PeriodeTilVurderingService(SakService(connection))
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.VURDER_BISTANDSBEHOV
+        }
+    }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val periodeTilVurdering =

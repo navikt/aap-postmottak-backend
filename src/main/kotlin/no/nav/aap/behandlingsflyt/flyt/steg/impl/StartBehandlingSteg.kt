@@ -1,17 +1,30 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.sak.SakService
 
-class StartBehandlingSteg(
+class StartBehandlingSteg private constructor(
     private val vilkårsresultatRepository: VilkårsresultatRepository,
     private val sakService: SakService
 ) : BehandlingSteg {
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return StartBehandlingSteg(VilkårsresultatRepository(connection), SakService(connection))
+        }
+
+        override fun type(): StegType {
+            return StegType.START_BEHANDLING
+        }
+    }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         if (kontekst.behandlingType == Førstegangsbehandling) {
@@ -23,7 +36,7 @@ class StartBehandlingSteg(
                 .forEach { vilkårstype ->
                     vilkårsresultat
                         .leggTilHvisIkkeEksisterer(vilkårstype)
-                            .leggTilIkkeVurdertPeriode(rettighetsperiode)
+                        .leggTilIkkeVurdertPeriode(rettighetsperiode)
                 }
 
             vilkårsresultatRepository.lagre(kontekst.behandlingId, vilkårsresultat)

@@ -5,11 +5,27 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Endring
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
-class FritakMeldepliktSteg(private val behandlingService: BehandlingService) : BehandlingSteg {
+class FritakMeldepliktSteg private constructor(
+    private val behandlingService: BehandlingService
+) : BehandlingSteg {
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return FritakMeldepliktSteg(BehandlingService(connection))
+        }
+
+        override fun type(): StegType {
+            return StegType.FRITAK_MELDEPLIKT
+        }
+    }
+
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val behandling = behandlingService.hent(kontekst.behandlingId)
 

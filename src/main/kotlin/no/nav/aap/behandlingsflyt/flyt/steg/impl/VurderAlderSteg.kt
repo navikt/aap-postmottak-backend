@@ -1,19 +1,37 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonopplysningRepository
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
+import no.nav.aap.behandlingsflyt.sak.SakService
 
-class VurderAlderSteg(
+class VurderAlderSteg private constructor(
     private val vilkårsresultatRepository: VilkårsresultatRepository,
     private val periodeTilVurderingService: PeriodeTilVurderingService,
     private val personopplysningRepository: PersonopplysningRepository
 ) : BehandlingSteg {
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return VurderAlderSteg(
+                VilkårsresultatRepository(connection),
+                PeriodeTilVurderingService(SakService(connection)),
+                PersonopplysningRepository(connection)
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.VURDER_ALDER
+        }
+    }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val periodeTilVurdering =
