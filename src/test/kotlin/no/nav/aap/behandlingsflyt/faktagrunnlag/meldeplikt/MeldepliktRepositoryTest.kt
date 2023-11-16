@@ -11,6 +11,7 @@ import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.SakRepository
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -36,7 +37,7 @@ class MeldepliktRepositoryTest {
     @AfterEach
     fun tilbakestill() {
         InitTestDatabase.dataSource.transaction { connection ->
-            connection.execute("TRUNCATE TABLE SAK CASCADE")
+            connection.execute("TRUNCATE TABLE SAK, MELDEPLIKT_FRITAK_VURDERING CASCADE")
         }
     }
 
@@ -47,7 +48,7 @@ class MeldepliktRepositoryTest {
 
             val meldepliktRepository = MeldepliktRepository(connection)
             val meldepliktGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling.id)
-            Assertions.assertThat(meldepliktGrunnlag).isNull()
+            assertThat(meldepliktGrunnlag).isNull()
         }
     }
 
@@ -72,7 +73,7 @@ class MeldepliktRepositoryTest {
                 )
             )
             val meldepliktGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling.id)
-            Assertions.assertThat(meldepliktGrunnlag?.vurderinger)
+            assertThat(meldepliktGrunnlag?.vurderinger)
                 .containsExactly(
                     Fritaksvurdering(
                         periode = Periode(13 august 2023, 25 august 2023),
@@ -111,7 +112,7 @@ class MeldepliktRepositoryTest {
                 connection.queryList("SELECT BEGRUNNELSE FROM MELDEPLIKT_FRITAK_VURDERING") {
                     setRowMapper { row -> row.getString("BEGRUNNELSE") }
                 }
-            Assertions.assertThat(opplysninger)
+            assertThat(opplysninger)
                 .hasSize(2)
                 .containsExactly("en begrunnelse", "annen begrunnelse")
         }
@@ -134,7 +135,7 @@ class MeldepliktRepositoryTest {
                 tilBehandling = behandling2.id
             )
             val meldepliktGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling2.id)
-            Assertions.assertThat(meldepliktGrunnlag?.vurderinger)
+            assertThat(meldepliktGrunnlag?.vurderinger)
                 .containsExactly(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "en begrunnelse", true))
         }
     }
@@ -160,7 +161,7 @@ class MeldepliktRepositoryTest {
                 tilBehandling = behandling2.id
             )
             val meldepliktGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling2.id)
-            Assertions.assertThat(meldepliktGrunnlag?.vurderinger)
+            assertThat(meldepliktGrunnlag?.vurderinger)
                 .containsExactly(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "annen begrunnelse", true))
         }
     }
@@ -176,7 +177,7 @@ class MeldepliktRepositoryTest {
                 listOf(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "en begrunnelse", true))
             )
             val orginaltGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling.id)
-            Assertions.assertThat(orginaltGrunnlag?.vurderinger)
+            assertThat(orginaltGrunnlag?.vurderinger)
                 .containsExactly(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "en begrunnelse", true))
 
             meldepliktRepository.lagre(
@@ -184,7 +185,7 @@ class MeldepliktRepositoryTest {
                 listOf(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "annen begrunnelse", true))
             )
             val oppdatertGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling.id)
-            Assertions.assertThat(oppdatertGrunnlag?.vurderinger)
+            assertThat(oppdatertGrunnlag?.vurderinger)
                 .containsExactly(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "annen begrunnelse", true))
 
             data class Opplysning(
@@ -200,7 +201,7 @@ class MeldepliktRepositoryTest {
                     """
                     SELECT g.BEHANDLING_ID, g.AKTIV, v.PERIODE, v.BEGRUNNELSE, v.HAR_FRITAK
                     FROM MELDEPLIKT_FRITAK_GRUNNLAG g
-                    INNER JOIN MELDEPLIKT_FRITAK_VURDERING v ON g.ID = v.GRUNNLAG_ID
+                    INNER JOIN MELDEPLIKT_FRITAK_VURDERING v ON g.MELDEPLIKT_ID = v.MELDEPLIKT_ID
                     """.trimIndent()
                 ) {
                     setRowMapper { row ->
@@ -213,7 +214,7 @@ class MeldepliktRepositoryTest {
                         )
                     }
                 }
-            Assertions.assertThat(opplysninger)
+            assertThat(opplysninger)
                 .hasSize(2)
                 .containsExactly(
                     Opplysning(
@@ -225,6 +226,86 @@ class MeldepliktRepositoryTest {
                     ),
                     Opplysning(
                         behandlingId = behandling.id.toLong(),
+                        aktiv = true,
+                        periode = Periode(13 august 2023, 25 august 2023),
+                        begrunnelse = "annen begrunnelse",
+                        harFritak = true
+                    ),
+                )
+        }
+    }
+
+    @Test
+    fun `Ved kopiering av fritaksvurderinger fra en avsluttet behandling til en ny skal kun referansen kopieres, ikke hele raden`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            val behandling1 = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
+            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            val behandling2 = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
+
+            val meldepliktRepository = MeldepliktRepository(connection)
+            meldepliktRepository.lagre(
+                behandling1.id,
+                listOf(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "en begrunnelse", true))
+            )
+            meldepliktRepository.lagre(
+                behandling1.id,
+                listOf(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "annen begrunnelse", true))
+            )
+            meldepliktRepository.kopier(
+                fraBehandling = behandling1.id,
+                tilBehandling = behandling2.id
+            )
+
+            val vurderinger = connection.queryList("SELECT ID FROM MELDEPLIKT_FRITAK_VURDERING"){
+                setRowMapper { row -> row.getLong("ID") }
+            }
+            assertThat(vurderinger).hasSize(2)
+
+            data class Opplysning(
+                val behandlingId: Long,
+                val aktiv: Boolean,
+                val periode: Periode,
+                val begrunnelse: String,
+                val harFritak: Boolean
+            )
+
+            val opplysninger =
+                connection.queryList(
+                    """
+                    SELECT g.BEHANDLING_ID, g.AKTIV, v.PERIODE, v.BEGRUNNELSE, v.HAR_FRITAK
+                    FROM MELDEPLIKT_FRITAK_GRUNNLAG g
+                    INNER JOIN MELDEPLIKT_FRITAK_VURDERING v ON g.MELDEPLIKT_ID = v.MELDEPLIKT_ID
+                    """.trimIndent()
+                ) {
+                    setRowMapper { row ->
+                        Opplysning(
+                            behandlingId = row.getLong("BEHANDLING_ID"),
+                            aktiv = row.getBoolean("AKTIV"),
+                            periode = row.getPeriode("PERIODE"),
+                            begrunnelse = row.getString("BEGRUNNELSE"),
+                            harFritak = row.getBoolean("HAR_FRITAK")
+                        )
+                    }
+                }
+            assertThat(opplysninger)
+                .hasSize(3)
+                .containsExactly(
+                    Opplysning(
+                        behandlingId = behandling1.id.toLong(),
+                        aktiv = false,
+                        periode = Periode(13 august 2023, 25 august 2023),
+                        begrunnelse = "en begrunnelse",
+                        harFritak = true
+                    ),
+                    Opplysning(
+                        behandlingId = behandling1.id.toLong(),
+                        aktiv = true,
+                        periode = Periode(13 august 2023, 25 august 2023),
+                        begrunnelse = "annen begrunnelse",
+                        harFritak = true
+                    ),
+                    Opplysning(
+                        behandlingId = behandling2.id.toLong(),
                         aktiv = true,
                         periode = Periode(13 august 2023, 25 august 2023),
                         begrunnelse = "annen begrunnelse",
