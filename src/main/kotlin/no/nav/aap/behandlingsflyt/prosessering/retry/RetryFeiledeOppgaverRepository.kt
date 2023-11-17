@@ -16,10 +16,7 @@ internal class RetryFeiledeOppgaverRepository(private val connection: DBConnecti
             SELECT id, 'KLAR' FROM OPPGAVE WHERE status = 'FEILET'
         """.trimIndent()
 
-        connection.execute(historikk) {
-            setParams {
-            }
-        }
+        connection.execute(historikk)
 
         val query = """
                 UPDATE OPPGAVE SET status = 'KLAR' WHERE status = 'FEILET'
@@ -53,7 +50,7 @@ internal class RetryFeiledeOppgaverRepository(private val connection: DBConnecti
     internal fun markerSomKlar(oppgave: FeilhåndteringOppgaveStatus) {
         val historikk = """
             INSERT INTO OPPGAVE_HISTORIKK (oppgave_id, status)
-            SELECT id, 'KLAR' FROM OPPGAVE WHERE status = ̈́'FEILET' and id = ?
+            SELECT id, 'KLAR' FROM OPPGAVE WHERE status = 'FEILET' and id = ?
         """.trimIndent()
 
         connection.execute(historikk) {
@@ -81,5 +78,3 @@ internal class RetryFeiledeOppgaverRepository(private val connection: DBConnecti
 
     inner class FeilhåndteringOppgaveStatus(val id: Long, val status: OppgaveStatus)
 }
-
-
