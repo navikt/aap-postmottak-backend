@@ -53,7 +53,7 @@ class SykdomsGrunnlagTest {
                 begrunnelse = "",
                 dokumenterBruktIVurdering = emptyList(),
                 erÅrsakssammenheng = true,
-                skadedato = LocalDate.now()
+                skadetidspunkt = LocalDate.now()
             ),
             sykdomsvurdering = Sykdomsvurdering(
                 begrunnelse = "",
@@ -76,7 +76,7 @@ class SykdomsGrunnlagTest {
                 begrunnelse = "",
                 dokumenterBruktIVurdering = emptyList(),
                 erÅrsakssammenheng = true,
-                skadedato = LocalDate.now()
+                skadetidspunkt = LocalDate.now()
             ),
             sykdomsvurdering = Sykdomsvurdering(
                 begrunnelse = "",
@@ -99,7 +99,7 @@ class SykdomsGrunnlagTest {
                 begrunnelse = "",
                 dokumenterBruktIVurdering = emptyList(),
                 erÅrsakssammenheng = false,
-                skadedato = LocalDate.now()
+                skadetidspunkt = LocalDate.now()
             ),
             sykdomsvurdering = Sykdomsvurdering(
                 begrunnelse = "",
@@ -122,7 +122,7 @@ class SykdomsGrunnlagTest {
                 begrunnelse = "",
                 dokumenterBruktIVurdering = emptyList(),
                 erÅrsakssammenheng = false,
-                skadedato = LocalDate.now()
+                skadetidspunkt = LocalDate.now()
             ),
             sykdomsvurdering = Sykdomsvurdering(
                 begrunnelse = "",

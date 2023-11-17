@@ -87,7 +87,7 @@ class SykdomRepository(private val connection: DBConnection) {
             setParams {
                 setString(1, vurdering.begrunnelse)
                 setBoolean(2, vurdering.erÅrsakssammenheng)
-                setLocalDate(3, vurdering.skadedato)
+                setLocalDate(3, vurdering.skadetidspunkt)
             }
         }
 
