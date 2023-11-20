@@ -7,29 +7,26 @@ import java.time.format.DateTimeFormatter
 object DaterangeParser {
 
     private val formater = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    private val regex = "([\\[(])(\\d{4}(?:-\\d{2}){2}),(\\d{4}(?:-\\d{2}){2})([])])".toRegex()
 
     fun toSQL(periode: Periode): String {
         return "[${formater.format(periode.fom)},${formater.format(periode.tom)}]"
     }
 
     fun fromSQL(daterange: String): Periode {
-        val match = regex.matchEntire(daterange)
+        val (lower, upper) = daterange.split(",")
 
-        requireNotNull(match) { "Daterange-string matcher ikke regex" }
-
-        val lowerEnd = match.groupValues[1]
-        val lowerDate = match.groupValues[2]
-        val upperDate = match.groupValues[3]
-        val upperEnd = match.groupValues[4]
+        val lowerEnd = lower.first()
+        val lowerDate = lower.drop(1)
+        val upperDate = upper.dropLast(1)
+        val upperEnd = upper.last()
 
         var fom = formater.parse(lowerDate, LocalDate::from)
-        if (lowerEnd == "(") {
+        if (lowerEnd == '(') {
             fom = fom.plusDays(1)
         }
 
         var tom = formater.parse(upperDate, LocalDate::from)
-        if (upperEnd == ")") {
+        if (upperEnd == ')') {
             tom = tom.minusDays(1)
         }
 
