@@ -19,7 +19,6 @@ class Query<T>(private val preparedStatement: PreparedStatement) {
         queryTimeout = sekunder
     }
 
-
     fun executeQuery(): Sequence<T> {
         val resultSet = preparedStatement.executeQuery()
         preparedStatement.queryTimeout = queryTimeout
