@@ -8,26 +8,17 @@ class SakRepository(private val connection: DBConnection) {
 
     private val personRepository = PersonRepository(connection)
 
-    fun hent(sakId: SakId): Sak {
-        return connection.queryFirst("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE id = ?") {
-            setParams {
-                setLong(1, sakId.toLong())
-            }
-            setRowMapper { row ->
-                mapSak(row)
-            }
-        }
-    }
+    fun finnEllerOpprett(person: Person, periode: Periode): Sak {
+        val relevantesaker = finnSakerFor(person, periode)
 
-    fun hent(saksnummer: Saksnummer): Sak {
-        return connection.queryFirst("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE saksnummer = ?") {
-            setParams {
-                setString(1, saksnummer.toString())
-            }
-            setRowMapper { row ->
-                mapSak(row)
-            }
+        if (relevantesaker.isEmpty()) {
+            return opprett(person, periode)
         }
+
+        if (relevantesaker.size != 1) {
+            throw IllegalStateException("Fant flere saker som er relevant: $relevantesaker")
+        }
+        return relevantesaker.first()
     }
 
     private fun opprett(person: Person, periode: Periode): Sak {
@@ -52,31 +43,6 @@ class SakRepository(private val connection: DBConnection) {
         return Sak(SakId(keys), saksnummer, person, periode)
     }
 
-    fun finnEllerOpprett(person: Person, periode: Periode): Sak {
-        val relevantesaker = connection.queryList(
-            "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
-                    "FROM SAK " +
-                    "WHERE person_id = ? AND rettighetsperiode && ?::daterange"
-        ) {
-            setParams {
-                setLong(1, person.id)
-                setPeriode(2, periode)
-            }
-            setRowMapper { row ->
-                mapSak(row)
-            }
-        }
-        if (relevantesaker.isEmpty()) {
-            return opprett(person, periode)
-        }
-
-        if (relevantesaker.size != 1) {
-            throw IllegalStateException("Fant flere saker som er relevant: $relevantesaker")
-        }
-        return relevantesaker.first()
-    }
-
-
     fun oppdaterSakStatus(sakId: SakId, status: Status) {
         val query = """UPDATE sak SET status = ? WHERE ID = ?"""
 
@@ -87,6 +53,17 @@ class SakRepository(private val connection: DBConnection) {
             }
             setResultValidator {
                 require(it == 1)
+            }
+        }
+    }
+
+    fun finnAlle(): List<Sak> {
+        return connection.queryList(
+            "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
+                    "FROM SAK"
+        ) {
+            setRowMapper { row ->
+                mapSak(row)
             }
         }
     }
@@ -106,11 +83,41 @@ class SakRepository(private val connection: DBConnection) {
         }
     }
 
-    fun finnAlle(): List<Sak> {
+    private fun finnSakerFor(person: Person, periode: Periode): List<Sak> {
         return connection.queryList(
             "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
-                    "FROM SAK"
+                    "FROM SAK " +
+                    "WHERE person_id = ? AND rettighetsperiode && ?::daterange"
         ) {
+            setParams {
+                setLong(1, person.id)
+                setPeriode(2, periode)
+            }
+            setRowMapper { row ->
+                mapSak(row)
+            }
+        }
+    }
+
+    fun hent(sakId: SakId): Sak {
+        return connection.queryFirst(
+            "SELECT id, saksnummer, person_id, rettighetsperiode, status " +
+                    "FROM SAK " +
+                    "WHERE id = ?") {
+            setParams {
+                setLong(1, sakId.toLong())
+            }
+            setRowMapper { row ->
+                mapSak(row)
+            }
+        }
+    }
+
+    fun hent(saksnummer: Saksnummer): Sak {
+        return connection.queryFirst("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE saksnummer = ?") {
+            setParams {
+                setString(1, saksnummer.toString())
+            }
             setRowMapper { row ->
                 mapSak(row)
             }
