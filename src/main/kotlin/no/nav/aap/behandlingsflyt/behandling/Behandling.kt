@@ -64,6 +64,10 @@ class Behandling(
 
     fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()
 
+    fun aktivtSteg(): StegType {
+        return aktivtStegTilstand().tilstand.steg()
+    }
+
     private fun aktivtStegTilstand(): StegTilstand {
         return stegHistorikk.stream()
             .filter { tilstand -> tilstand.aktiv }
@@ -73,17 +77,6 @@ class Behandling(
                     tilstand = Tilstand(StegType.START_BEHANDLING, StegStatus.START)
                 )
             )
-    }
-
-    fun aktivtSteg(): StegType {
-        return stegHistorikk.stream()
-            .filter { tilstand -> tilstand.aktiv }
-            .findAny()
-            .orElse(
-                StegTilstand(
-                    tilstand = Tilstand(StegType.START_BEHANDLING, StegStatus.START)
-                )
-            ).tilstand.steg()
     }
 
     fun årsaker(): List<Årsak> = årsaker.toList()
