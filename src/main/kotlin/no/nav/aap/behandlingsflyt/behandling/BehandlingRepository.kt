@@ -10,6 +10,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
 import no.nav.aap.behandlingsflyt.sak.SakId
+import java.time.LocalDateTime
 import java.util.*
 
 class BehandlingRepository(private val connection: DBConnection) {
@@ -79,6 +80,47 @@ class BehandlingRepository(private val connection: DBConnection) {
             stegHistorikk = hentStegHistorikk(behandlingId),
             versjon = it.getLong("versjon")
         )
+    }
+
+    fun oppdaterBehandlingStatus(behandlingId: BehandlingId, status: no.nav.aap.behandlingsflyt.behandling.Status) {
+        val query = """UPDATE behandling SET status = ? WHERE ID = ?"""
+
+        return connection.execute(query) {
+            setParams {
+                setEnumName(1, status)
+                setLong(2, behandlingId.toLong())
+            }
+            setResultValidator {
+                require(it == 1)
+            }
+        }
+    }
+
+    fun loggBesøktSteg(behandlingId: BehandlingId, tilstand: Tilstand) {
+        val updateQuery = """
+            UPDATE STEG_HISTORIKK set aktiv = false WHERE behandling_id = ? and aktiv = true
+        """.trimIndent()
+
+        connection.execute(updateQuery) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+            }
+        }
+
+        val query = """
+                INSERT INTO STEG_HISTORIKK (behandling_id, steg, status, aktiv, opprettet_tid) 
+                VALUES (?, ?, ?, ?, ?)
+                """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+                setEnumName(2, tilstand.steg())
+                setEnumName(3, tilstand.status())
+                setBoolean(4, true)
+                setLocalDateTime(5, LocalDateTime.now())
+            }
+        }
     }
 
     private fun hentStegHistorikk(behandlingId: BehandlingId): List<StegTilstand> {

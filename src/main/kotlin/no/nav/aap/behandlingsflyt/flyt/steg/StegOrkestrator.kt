@@ -1,19 +1,19 @@
 package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.StegTilstand
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
-import no.nav.aap.behandlingsflyt.flyt.internal.FlytOperasjonRepository
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
 
 class StegOrkestrator(private val connection: DBConnection, private val aktivtSteg: FlytSteg) {
 
-    private val flytOperasjonRepository = FlytOperasjonRepository(connection)
+    private val behandlingRepository = BehandlingRepository(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepository(connection)
 
     fun utfør(
@@ -94,10 +94,10 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
     ) {
         val førStatus = behandling.status()
         behandling.visit(nyStegTilstand)
-        flytOperasjonRepository.loggBesøktSteg(behandlingId = behandling.id, nyStegTilstand.tilstand)
+        behandlingRepository.loggBesøktSteg(behandlingId = behandling.id, nyStegTilstand.tilstand)
         val etterStatus = nyStegTilstand.tilstand.steg().status
         if (førStatus != etterStatus) {
-            flytOperasjonRepository.oppdaterBehandlingStatus(behandlingId = behandling.id, status = etterStatus)
+            behandlingRepository.oppdaterBehandlingStatus(behandlingId = behandling.id, status = etterStatus)
         }
     }
 
