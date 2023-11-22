@@ -14,21 +14,7 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
 
     fun leggTilAvklaringsbehov(behandlingId: BehandlingId, definisjon: Definisjon, funnetISteg: StegType) {
         val avklaringsbehovId = hentRelevantAvklaringsbehov(behandlingId, definisjon, funnetISteg)
-
-        val queryEndring = """
-            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
-            VALUES (?, ?, ?, ?, ?)
-            """.trimIndent()
-
-        connection.execute(queryEndring) {
-            setParams {
-                setLong(1, avklaringsbehovId)
-                setEnumName(2, no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status.OPPRETTET)
-                setString(3, "")
-                setString(4, "Kelvin")
-                setLocalDateTime(5, LocalDateTime.now())
-            }
-        }
+        opprettAvklaringsbehovEndring(avklaringsbehovId, Status.OPPRETTET, "", "Kelvin")
     }
 
     private fun hentRelevantAvklaringsbehov(
@@ -78,9 +64,7 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
     }
 
     fun løs(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, kreverToTrinn: Boolean?) {
-        val avklaringsbehovene = hent(behandlingId)
-
-        val avklaringsbehov = avklaringsbehovene.hentBehovForDefinisjon(definisjon)
+        val avklaringsbehov = hent(behandlingId).hentBehovForDefinisjon(definisjon)
 
         if (avklaringsbehov == null) {
             throw IllegalStateException("Fant ikke avklaringsbehov med $definisjon for behandling $behandlingId")
@@ -99,20 +83,7 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
             }
         }
 
-        val query = """
-            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
-            VALUES (?, ?, ?, ?, ?)
-            """.trimIndent()
-
-        connection.execute(query) {
-            setParams {
-                setLong(1, avklaringsbehov.id)
-                setEnumName(2, Status.AVSLUTTET)
-                setString(3, begrunnelse)
-                setString(4, "Saksbehandler") // TODO: Hent fra sikkerhetscontex
-                setLocalDateTime(5, LocalDateTime.now()) // TODO: Hent fra sikkerhetscontex
-            }
-        }
+        opprettAvklaringsbehovEndring(avklaringsbehov.id, Status.AVSLUTTET, begrunnelse, "Saksbehandler")
     }
 
     fun toTrinnsVurdering(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, godkjent: Boolean) {
@@ -127,23 +98,27 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
             throw IllegalStateException("Har ikke rett tilstand på avklaringsbehov")
         }
 
-        val query = """
-            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
-            VALUES (?, ?, ?, ?, ?)
-            """.trimIndent()
-
         val status = if (godkjent) {
             Status.TOTRINNS_VURDERT
         } else {
             Status.SENDT_TILBAKE_FRA_BESLUTTER
         }
 
+        opprettAvklaringsbehovEndring(avklaringsbehov.id, status, begrunnelse, "Saksbehandler")
+    }
+
+    private fun opprettAvklaringsbehovEndring(avklaringsbehovId: Long, status: Status, begrunnelse: String, opprettetAv: String) {
+        val query = """
+            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
+            VALUES (?, ?, ?, ?, ?)
+            """.trimIndent()
+
         connection.execute(query) {
             setParams {
-                setLong(1, avklaringsbehov.id)
+                setLong(1, avklaringsbehovId)
                 setEnumName(2, status)
                 setString(3, begrunnelse)
-                setString(4, "Saksbehandler") // TODO: Hent fra sikkerhetscontex
+                setString(4, opprettetAv)
                 setLocalDateTime(5, LocalDateTime.now())
             }
         }
