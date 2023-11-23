@@ -210,7 +210,7 @@ class PersonopplysningRepositoryTest {
                         behandlingId = behandling2.id.toLong(),
                         fødselsdato = 17 april 1992,
                         aktiv = true
-                    ),
+                    )
                 )
         }
     }

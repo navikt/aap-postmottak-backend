@@ -44,17 +44,28 @@ class BistandRepositoryTest {
     @Test
     fun `Lagrer ikke like bistand flere ganger`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val behandling = behandling(connection, sak(connection))
+            val sak = sak(connection)
+            val behandling = behandling(connection, sak)
 
             val bistandRepository = BistandRepository(connection)
             bistandRepository.lagre(behandling.id, BistandVurdering("en begrunnelse", false))
             bistandRepository.lagre(behandling.id, BistandVurdering("annen begrunnelse", false))
             bistandRepository.lagre(behandling.id, BistandVurdering("annen begrunnelse", false))
 
-            val opplysninger =
-                connection.queryList("SELECT BEGRUNNELSE FROM BISTAND_GRUNNLAG") {
-                    setRowMapper { row -> row.getString("BEGRUNNELSE") }
+            val opplysninger = connection.queryList(
+                """
+                    SELECT bi.BEGRUNNELSE
+                    FROM BEHANDLING b
+                    INNER JOIN BISTAND_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
+                    INNER JOIN BISTAND bi ON g.BISTAND_ID = bi.ID
+                    WHERE b.SAK_ID = ?
+                    """.trimIndent()
+            ) {
+                setParams {
+                    setLong(1, sak.id.toLong())
                 }
+                setRowMapper { row -> row.getString("BEGRUNNELSE") }
+            }
             assertThat(opplysninger)
                 .hasSize(2)
                 .containsExactly("en begrunnelse", "annen begrunnelse")
@@ -97,7 +108,8 @@ class BistandRepositoryTest {
     @Test
     fun `Lagrer nye bistandsopplysninger som ny rad og deaktiverer forrige versjon av opplysningene`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val behandling = behandling(connection, sak(connection))
+            val sak = sak(connection)
+            val behandling = behandling(connection, sak)
             val bistandRepository = BistandRepository(connection)
 
             bistandRepository.lagre(behandling.id, BistandVurdering("en begrunnelse", false))
@@ -109,29 +121,109 @@ class BistandRepositoryTest {
             assertThat(oppdatertGrunnlag?.vurdering).isEqualTo(BistandVurdering("annen begrunnelse", false))
 
             data class Opplysning(
+                val aktiv: Boolean,
                 val begrunnelse: String,
-                val erBehovForBistand: Boolean,
-                val aktiv: Boolean
+                val erBehovForBistand: Boolean
             )
 
             val opplysninger =
-                connection.queryList("SELECT BEGRUNNELSE, ER_BEHOV_FOR_BISTAND, AKTIV FROM BISTAND_GRUNNLAG WHERE BEHANDLING_ID = ?") {
+                connection.queryList(
+                    """
+                    SELECT g.AKTIV, bi.BEGRUNNELSE, bi.ER_BEHOV_FOR_BISTAND
+                    FROM BEHANDLING b
+                    INNER JOIN BISTAND_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
+                    INNER JOIN BISTAND bi ON g.BISTAND_ID = bi.ID
+                    WHERE b.SAK_ID = ?
+                    """.trimIndent()
+                ) {
                     setParams {
-                        setLong(1, behandling.id.toLong())
+                        setLong(1, sak.id.toLong())
                     }
                     setRowMapper { row ->
                         Opplysning(
+                            aktiv = row.getBoolean("AKTIV"),
                             begrunnelse = row.getString("BEGRUNNELSE"),
-                            erBehovForBistand = row.getBoolean("ER_BEHOV_FOR_BISTAND"),
-                            aktiv = row.getBoolean("AKTIV")
+                            erBehovForBistand = row.getBoolean("ER_BEHOV_FOR_BISTAND")
                         )
                     }
                 }
             assertThat(opplysninger)
                 .hasSize(2)
                 .containsExactly(
-                    Opplysning("en begrunnelse", erBehovForBistand = false, aktiv = false),
-                    Opplysning("annen begrunnelse", erBehovForBistand = false, aktiv = true)
+                    Opplysning(aktiv = false, begrunnelse = "en begrunnelse", erBehovForBistand = false),
+                    Opplysning(aktiv = true, begrunnelse = "annen begrunnelse", erBehovForBistand = false)
+                )
+        }
+    }
+
+    @Test
+    fun `Ved kopiering av bistandsopplysninger fra en avsluttet behandling til en ny skal kun referansen kopieres, ikke hele raden`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            val sak = sak(connection)
+            val behandling1 = behandling(connection, sak)
+            val bistandRepository = BistandRepository(connection)
+            bistandRepository.lagre(behandling1.id, BistandVurdering("en begrunnelse", false))
+            bistandRepository.lagre(behandling1.id, BistandVurdering("annen begrunnelse", false))
+            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            val behandling2 = behandling(connection, sak)
+
+            data class Opplysning(
+                val behandlingId: Long,
+                val aktiv: Boolean,
+                val begrunnelse: String,
+                val erBehovForBistand: Boolean
+            )
+
+            data class Grunnlag(val bistandId: Long, val opplysning: Opplysning)
+
+            val opplysninger =
+                connection.queryList(
+                    """
+                    SELECT b.ID AS BEHANDLING_ID, bi.ID AS BISTAND_ID, g.AKTIV, bi.BEGRUNNELSE, bi.ER_BEHOV_FOR_BISTAND
+                    FROM BEHANDLING b
+                    INNER JOIN BISTAND_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
+                    INNER JOIN BISTAND bi ON g.BISTAND_ID = bi.ID
+                    WHERE b.SAK_ID = ?
+                    """.trimIndent()
+                ) {
+                    setParams {
+                        setLong(1, sak.id.toLong())
+                    }
+                    setRowMapper { row ->
+                        Grunnlag(
+                            bistandId = row.getLong("BISTAND_ID"),
+                            opplysning = Opplysning(
+                                behandlingId = row.getLong("BEHANDLING_ID"),
+                                aktiv = row.getBoolean("AKTIV"),
+                                begrunnelse = row.getString("BEGRUNNELSE"),
+                                erBehovForBistand = row.getBoolean("ER_BEHOV_FOR_BISTAND")
+                            )
+                        )
+                    }
+                }
+            assertThat(opplysninger.map(Grunnlag::bistandId).distinct())
+                .hasSize(2)
+            assertThat(opplysninger.map(Grunnlag::opplysning))
+                .hasSize(3)
+                .containsExactly(
+                    Opplysning(
+                        behandlingId = behandling1.id.toLong(),
+                        aktiv = false,
+                        begrunnelse = "en begrunnelse",
+                        erBehovForBistand = false
+                    ),
+                    Opplysning(
+                        behandlingId = behandling1.id.toLong(),
+                        aktiv = true,
+                        begrunnelse = "annen begrunnelse",
+                        erBehovForBistand = false
+                    ),
+                    Opplysning(
+                        behandlingId = behandling2.id.toLong(),
+                        aktiv = true,
+                        begrunnelse = "annen begrunnelse",
+                        erBehovForBistand = false
+                    )
                 )
         }
     }

@@ -7,7 +7,14 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 class BistandRepository(private val connection: DBConnection) {
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): BistandGrunnlag? {
-        return connection.queryFirstOrNull("SELECT ID, BEGRUNNELSE, ER_BEHOV_FOR_BISTAND FROM BISTAND_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
+        return connection.queryFirstOrNull(
+            """
+            SELECT g.ID, b.BEGRUNNELSE, b.ER_BEHOV_FOR_BISTAND
+            FROM BISTAND_GRUNNLAG g
+            INNER JOIN BISTAND b ON g.BISTAND_ID = b.ID
+            WHERE AKTIV AND BEHANDLING_ID = ?
+            """.trimIndent()
+        ) {
             setParams {
                 setLong(1, behandlingId.toLong())
             }
@@ -33,11 +40,18 @@ class BistandRepository(private val connection: DBConnection) {
             deaktiverEksisterende(behandlingId)
         }
 
-        connection.execute("INSERT INTO BISTAND_GRUNNLAG (BEHANDLING_ID, BEGRUNNELSE, ER_BEHOV_FOR_BISTAND) VALUES (?, ?, ?)") {
+        val bistandId =
+            connection.executeReturnKey("INSERT INTO BISTAND (BEGRUNNELSE, ER_BEHOV_FOR_BISTAND) VALUES (?, ?)") {
+                setParams {
+                    setString(1, bistandVurdering.begrunnelse)
+                    setBoolean(2, bistandVurdering.erBehovForBistand)
+                }
+            }
+
+        connection.execute("INSERT INTO BISTAND_GRUNNLAG (BEHANDLING_ID, BISTAND_ID) VALUES (?, ?)") {
             setParams {
                 setLong(1, behandlingId.toLong())
-                setString(2, bistandVurdering.begrunnelse)
-                setBoolean(3, bistandVurdering.erBehovForBistand)
+                setLong(2, bistandId)
             }
         }
     }
@@ -55,7 +69,7 @@ class BistandRepository(private val connection: DBConnection) {
 
     fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         require(fraBehandling != tilBehandling)
-        connection.execute("INSERT INTO BISTAND_GRUNNLAG (BEHANDLING_ID, BEGRUNNELSE, ER_BEHOV_FOR_BISTAND) SELECT ?, BEGRUNNELSE, ER_BEHOV_FOR_BISTAND FROM BISTAND_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
+        connection.execute("INSERT INTO BISTAND_GRUNNLAG (BEHANDLING_ID, BISTAND_ID) SELECT ?, BISTAND_ID FROM BISTAND_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {
                 setLong(1, tilBehandling.toLong())
                 setLong(2, fraBehandling.toLong())

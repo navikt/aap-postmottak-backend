@@ -257,7 +257,7 @@ class MeldepliktRepositoryTest {
             val opplysninger =
                 connection.queryList(
                     """
-                    SELECT g.ID AS BEHANDLING_ID, f.ID AS MELDEPLIKT_ID, g.AKTIV, v.PERIODE, v.BEGRUNNELSE, v.HAR_FRITAK
+                    SELECT b.ID AS BEHANDLING_ID, f.ID AS MELDEPLIKT_ID, g.AKTIV, v.PERIODE, v.BEGRUNNELSE, v.HAR_FRITAK
                     FROM BEHANDLING b
                     INNER JOIN MELDEPLIKT_FRITAK_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
                     INNER JOIN MELDEPLIKT_FRITAK f ON g.MELDEPLIKT_ID = f.ID
@@ -306,7 +306,7 @@ class MeldepliktRepositoryTest {
                         periode = Periode(13 august 2023, 25 august 2023),
                         begrunnelse = "annen begrunnelse",
                         harFritak = true
-                    ),
+                    )
                 )
         }
     }
