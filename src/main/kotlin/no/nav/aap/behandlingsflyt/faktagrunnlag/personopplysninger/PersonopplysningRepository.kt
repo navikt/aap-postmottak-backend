@@ -61,6 +61,7 @@ class PersonopplysningRepository(private val connection: DBConnection) {
     }
 
     fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+        require(fraBehandling != tilBehandling)
         connection.execute("INSERT INTO PERSONOPPLYSNING_GRUNNLAG (BEHANDLING_ID, PERSONOPPLYSNING_ID) SELECT ?, PERSONOPPLYSNING_ID FROM PERSONOPPLYSNING_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {
                 setLong(1, tilBehandling.toLong())

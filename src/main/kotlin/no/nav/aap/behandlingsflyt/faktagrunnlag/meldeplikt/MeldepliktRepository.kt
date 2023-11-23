@@ -79,24 +79,11 @@ class MeldepliktRepository(private val connection: DBConnection) {
     }
 
     fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
-        val fraId =
-            connection.queryFirstOrNull("SELECT MELDEPLIKT_ID FROM MELDEPLIKT_FRITAK_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
-                setParams {
-                    setLong(1, fraBehandling.toLong())
-                }
-                setRowMapper { row ->
-                    row.getLong("MELDEPLIKT_ID")
-                }
-            }
-
-        if (fraId == null) {
-            return
-        }
-
-        connection.execute("INSERT INTO MELDEPLIKT_FRITAK_GRUNNLAG (BEHANDLING_ID, MELDEPLIKT_ID) VALUES (?, ?)") {
+        require(fraBehandling != tilBehandling)
+        connection.execute("INSERT INTO MELDEPLIKT_FRITAK_GRUNNLAG (BEHANDLING_ID, MELDEPLIKT_ID) SELECT ?, MELDEPLIKT_ID FROM MELDEPLIKT_FRITAK_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {
                 setLong(1, tilBehandling.toLong())
-                setLong(2, fraId)
+                setLong(2, fraBehandling.toLong())
             }
         }
     }

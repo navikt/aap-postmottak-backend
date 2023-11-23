@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.bistand
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.BistandVurdering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
@@ -13,6 +14,7 @@ import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.sakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -89,6 +91,16 @@ class BistandRepositoryTest {
 
             val bistandGrunnlag = bistandRepository.hentHvisEksisterer(behandling2.id)
             assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("begrunnelse", false))
+        }
+    }
+
+    @Test
+    fun `Kopiering av bistand fra en behandling uten opplysningene skal ikke føre til feil`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            val bistandRepository = BistandRepository(connection)
+            assertDoesNotThrow {
+                bistandRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
+            }
         }
     }
 

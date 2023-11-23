@@ -4,16 +4,19 @@ import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.august
 import no.nav.aap.behandlingsflyt.avklaringsbehov.meldeplikt.Fritaksvurdering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandRepository
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.sakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -129,6 +132,16 @@ class MeldepliktRepositoryTest {
             val meldepliktGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling2.id)
             assertThat(meldepliktGrunnlag?.vurderinger)
                 .containsExactly(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "en begrunnelse", true))
+        }
+    }
+
+    @Test
+    fun `Kopiering av fritaksvurderinger fra en behandling uten opplysningene skal ikke føre til feil`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            val bistandRepository = BistandRepository(connection)
+            assertDoesNotThrow {
+                bistandRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
+            }
         }
     }
 

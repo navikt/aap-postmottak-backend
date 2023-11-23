@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.april
 import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
@@ -14,6 +15,7 @@ import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.sakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -90,6 +92,16 @@ class PersonopplysningRepositoryTest {
 
             val personopplysningGrunnlag = personopplysningRepository.hentHvisEksisterer(behandling2.id)
             assertThat(personopplysningGrunnlag?.personopplysning).isEqualTo(Personopplysning(Fødselsdato(17 mars 1992)))
+        }
+    }
+
+    @Test
+    fun `Kopiering av personopplysninger fra en behandling uten opplysningene skal ikke føre til feil`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            val personopplysningRepository = PersonopplysningRepository(connection)
+            assertDoesNotThrow {
+                personopplysningRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
+            }
         }
     }
 
