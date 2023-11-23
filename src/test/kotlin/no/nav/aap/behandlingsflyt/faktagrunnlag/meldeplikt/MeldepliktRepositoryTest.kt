@@ -119,7 +119,11 @@ class MeldepliktRepositoryTest {
                 behandling1.id,
                 listOf(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "en begrunnelse", true))
             )
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             val meldepliktGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling2.id)
@@ -142,7 +146,11 @@ class MeldepliktRepositoryTest {
                 behandling1.id,
                 listOf(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "annen begrunnelse", true))
             )
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             val meldepliktGrunnlag = meldepliktRepository.hentHvisEksisterer(behandling2.id)
@@ -241,7 +249,11 @@ class MeldepliktRepositoryTest {
                 behandling1.id,
                 listOf(Fritaksvurdering(Periode(13 august 2023, 25 august 2023), "annen begrunnelse", true))
             )
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             data class Opplysning(

@@ -81,7 +81,11 @@ class PersonopplysningRepositoryTest {
             val behandling1 = behandling(connection, sak)
             val personopplysningRepository = PersonopplysningRepository(connection)
             personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 mars 1992)))
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             val personopplysningGrunnlag = personopplysningRepository.hentHvisEksisterer(behandling2.id)
@@ -97,7 +101,11 @@ class PersonopplysningRepositoryTest {
             val personopplysningRepository = PersonopplysningRepository(connection)
             personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(16 mars 1992)))
             personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 mars 1992)))
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
 
             val behandling2 = behandling(connection, sak)
 
@@ -161,7 +169,11 @@ class PersonopplysningRepositoryTest {
             val personopplysningRepository = PersonopplysningRepository(connection)
             personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 mars 1992)))
             personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 april 1992)))
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             data class Opplysning(val behandlingId: Long, val fødselsdato: LocalDate, val aktiv: Boolean)

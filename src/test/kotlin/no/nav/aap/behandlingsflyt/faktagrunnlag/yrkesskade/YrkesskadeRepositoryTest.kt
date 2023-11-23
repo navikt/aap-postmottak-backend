@@ -99,7 +99,11 @@ class YrkesskadeRepositoryTest {
                 behandling1.id,
                 Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
             )
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             val yrkesskadeGrunnlag = yrkesskadeRepository.hentHvisEksisterer(behandling2.id)
@@ -123,7 +127,11 @@ class YrkesskadeRepositoryTest {
                 behandling1.id,
                 Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
             )
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             val yrkesskadeGrunnlag = yrkesskadeRepository.hentHvisEksisterer(behandling2.id)
@@ -206,7 +214,11 @@ class YrkesskadeRepositoryTest {
                 behandling1.id,
                 Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
             )
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             data class Opplysning(val behandlingId: Long, val aktiv: Boolean, val ref: String, val periode: Periode)

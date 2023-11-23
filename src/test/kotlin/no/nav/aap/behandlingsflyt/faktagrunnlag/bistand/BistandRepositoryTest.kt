@@ -79,7 +79,11 @@ class BistandRepositoryTest {
             val behandling1 = behandling(connection, sak)
             val bistandRepository = BistandRepository(connection)
             bistandRepository.lagre(behandling1.id, BistandVurdering("begrunnelse", false))
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
 
             val behandling2 = behandling(connection, sak)
 
@@ -96,7 +100,11 @@ class BistandRepositoryTest {
             val bistandRepository = BistandRepository(connection)
             bistandRepository.lagre(behandling1.id, BistandVurdering("en begrunnelse", false))
             bistandRepository.lagre(behandling1.id, BistandVurdering("annen begrunnelse", false))
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
 
             val behandling2 = behandling(connection, sak)
 
@@ -164,7 +172,11 @@ class BistandRepositoryTest {
             val bistandRepository = BistandRepository(connection)
             bistandRepository.lagre(behandling1.id, BistandVurdering("en begrunnelse", false))
             bistandRepository.lagre(behandling1.id, BistandVurdering("annen begrunnelse", false))
-            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
+                setParams {
+                    setLong(1, behandling1.id.toLong())
+                }
+            }
             val behandling2 = behandling(connection, sak)
 
             data class Opplysning(
