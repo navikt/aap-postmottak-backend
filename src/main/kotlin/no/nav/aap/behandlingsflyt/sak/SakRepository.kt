@@ -17,6 +17,6 @@ interface SakRepository {
 
 }
 
-fun SakRepository(connection: DBConnection): SakRepository {
+fun sakRepository(connection: DBConnection): SakRepository {
     return SakRepositoryImpl(connection)
 }

@@ -12,6 +12,6 @@ interface BehandlingRepository {
     fun hent(referanse: UUID): Behandling
 }
 
-fun BehandlingRepository(connection: DBConnection): BehandlingRepository {
+fun behandlingRepository(connection: DBConnection): BehandlingRepository {
     return BehandlingRepositoryImpl(connection)
 }

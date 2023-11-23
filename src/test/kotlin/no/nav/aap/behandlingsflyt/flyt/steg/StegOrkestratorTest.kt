@@ -1,14 +1,14 @@
 package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.Periode
-import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.tilKontekst
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
-import no.nav.aap.behandlingsflyt.sak.SakRepository
+import no.nav.aap.behandlingsflyt.sak.sakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -25,8 +25,8 @@ class StegOrkestratorTest {
             val ident = Ident("123123123126")
             val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
             val person = PersonRepository(connection).finnEllerOpprett(ident)
-            val sak = SakRepository(connection).finnEllerOpprett(person, periode)
-            val behandling = BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
+            val sak = sakRepository(connection).finnEllerOpprett(person, periode)
+            val behandling = behandlingRepository(connection).opprettBehandling(sak.id, listOf())
             assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
             val kontekst = tilKontekst(behandling)

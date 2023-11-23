@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
-import no.nav.aap.behandlingsflyt.sak.SakRepository
+import no.nav.aap.behandlingsflyt.sak.sakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -12,7 +12,7 @@ import java.time.LocalDate
 class SakRepositoryTest {
 
     private val personRepository = PersonRepository(DBConnection(dataSource.connection))
-    private val sakRepository = SakRepository(DBConnection(dataSource.connection))
+    private val sakRepository = sakRepository(DBConnection(dataSource.connection))
 
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade`() {

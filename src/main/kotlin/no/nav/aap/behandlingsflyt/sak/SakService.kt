@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 
 class SakService(connection: DBConnection) {
 
-    private val sakRepository = SakRepository(connection)
+    private val sakRepository = sakRepository(connection)
 
     fun hent(sakId: SakId): Sak {
         return sakRepository.hent(sakId)

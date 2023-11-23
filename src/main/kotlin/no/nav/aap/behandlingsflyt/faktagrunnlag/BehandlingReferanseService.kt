@@ -2,9 +2,9 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag
 
 import no.nav.aap.behandlingsflyt.ElementNotFoundException
 import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
-import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.flate.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import java.util.*
 
 class BehandlingReferanseService(val connection: DBConnection) {
@@ -17,6 +17,6 @@ class BehandlingReferanseService(val connection: DBConnection) {
             throw ElementNotFoundException()
         }
 
-        return BehandlingRepository(connection).hent(eksternReferanse)
+        return behandlingRepository(connection).hent(eksternReferanse)
     }
 }

@@ -3,10 +3,10 @@ package no.nav.aap.behandlingsflyt.hendelse.mottak
 import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
-import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.EndringType
 import no.nav.aap.behandlingsflyt.behandling.Status
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepository
+import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.Årsak
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
@@ -20,8 +20,8 @@ import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
-import no.nav.aap.behandlingsflyt.sak.SakRepository
 import no.nav.aap.behandlingsflyt.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.sak.sakRepository
 import javax.sql.DataSource
 
 class HendelsesMottak(private val dataSource: DataSource) {
@@ -30,7 +30,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
         val sak: Sak = dataSource.transaction { connection ->
             val person = PersonRepository(connection).finnEllerOpprett(key)
 
-            val sakRepository = SakRepository(connection)
+            val sakRepository = sakRepository(connection)
             sakRepository.finnEllerOpprett(person, hendelse.periode())
 
             // Legg til kø for sak, men mocker ved å kalle videre bare
@@ -40,9 +40,9 @@ class HendelsesMottak(private val dataSource: DataSource) {
 
     fun håndtere(key: Saksnummer, hendelse: SakHendelse) {
         val sisteBehandling: Behandling = dataSource.transaction { connection ->
-            val sakRepository = SakRepository(connection)
+            val sakRepository = sakRepository(connection)
             val sak = sakRepository.hent(key)
-            val behandlingRepository = BehandlingRepository(connection)
+            val behandlingRepository = behandlingRepository(connection)
             val sisteBehandlingOpt = behandlingRepository.finnSisteBehandlingFor(sak.id)
 
             if (sisteBehandlingOpt != null && !sisteBehandlingOpt.status().erAvsluttet()) {
@@ -59,7 +59,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
     }
 
     fun håndtere(connection: DBConnection, key: BehandlingId, hendelse: LøsAvklaringsbehovBehandlingHendelse) {
-        val behandling = BehandlingRepository(connection).hent(key)
+        val behandling = behandlingRepository(connection).hent(key)
         val avklaringsbehovene = AvklaringsbehovRepository(connection).hent(behandling.id)
         ValiderBehandlingTilstand.validerTilstandBehandling(
             behandling = behandling,
@@ -76,7 +76,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
 
     fun håndtere(key: BehandlingId, hendelse: BehandlingSattPåVent) {
         dataSource.transaction { connection ->
-            val behandling = BehandlingRepository(connection).hent(key)
+            val behandling = behandlingRepository(connection).hent(key)
             val avklaringsbehovene = AvklaringsbehovRepository(connection).hent(behandling.id)
             ValiderBehandlingTilstand.validerTilstandBehandling(
                 behandling = behandling,
@@ -91,7 +91,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
 
     fun håndtere(key: BehandlingId, hendelse: BehandlingHendelse) {
         dataSource.transaction { connection ->
-            val behandling = BehandlingRepository(connection).hent(key)
+            val behandling = behandlingRepository(connection).hent(key)
             val avklaringsbehovene = AvklaringsbehovRepository(connection).hent(behandling.id)
             ValiderBehandlingTilstand.validerTilstandBehandling(
                 behandling = behandling,

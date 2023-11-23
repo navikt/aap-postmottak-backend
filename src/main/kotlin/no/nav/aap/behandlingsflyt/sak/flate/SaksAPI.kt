@@ -6,13 +6,13 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.ElementNotFoundException
-import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
-import no.nav.aap.behandlingsflyt.sak.SakRepository
 import no.nav.aap.behandlingsflyt.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.sak.sakRepository
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
@@ -26,7 +26,7 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                 if (person == null) {
                     throw ElementNotFoundException()
                 } else {
-                    saker = SakRepository(connection).finnSakerFor(person)
+                    saker = sakRepository(connection).finnSakerFor(person)
                         .map { sak ->
                             SaksinfoDTO(
                                 saksnummer = sak.saksnummer.toString(),
@@ -42,7 +42,7 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
             route("/alle").get<Unit, List<SaksinfoDTO>> {
                 var saker: List<SaksinfoDTO> = emptyList()
                 dataSource.transaction { connection ->
-                    saker = SakRepository(connection).finnAlle()
+                    saker = sakRepository(connection).finnAlle()
                         .map { sak ->
                             SaksinfoDTO(
                                 saksnummer = sak.saksnummer.toString(),
@@ -59,9 +59,9 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                 var behandlinger: List<BehandlinginfoDTO> = emptyList()
 
                 dataSource.transaction { connection ->
-                    sak = SakRepository(connection).hent(saksnummer = Saksnummer(saksnummer))
+                    sak = sakRepository(connection).hent(saksnummer = Saksnummer(saksnummer))
 
-                    behandlinger = BehandlingRepository(connection).hentAlleFor(sak!!.id).map { behandling ->
+                    behandlinger = behandlingRepository(connection).hentAlleFor(sak!!.id).map { behandling ->
                         BehandlinginfoDTO(
                             referanse = behandling.referanse,
                             type = behandling.type.identifikator(),

@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
@@ -11,7 +11,7 @@ import no.nav.aap.behandlingsflyt.mai
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
-import no.nav.aap.behandlingsflyt.sak.SakRepository
+import no.nav.aap.behandlingsflyt.sak.sakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -200,16 +200,16 @@ class YrkesskadeRepositoryTest {
     }
 
     private fun sak(connection: DBConnection): Sak {
-        return SakRepository(connection).finnEllerOpprett(
+        return sakRepository(connection).finnEllerOpprett(
             person = PersonRepository(connection).finnEllerOpprett(ident()),
             periode = periode
         )
     }
 
     private fun behandling(connection: DBConnection, sak: Sak): Behandling {
-        val behandling = BehandlingRepository(connection).finnSisteBehandlingFor(sak.id)
+        val behandling = behandlingRepository(connection).finnSisteBehandlingFor(sak.id)
         if (behandling == null || behandling.status().erAvsluttet()) {
-            return BehandlingRepository(connection).opprettBehandling(sak.id, listOf())
+            return behandlingRepository(connection).opprettBehandling(sak.id, listOf())
         }
         return behandling
     }

@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.prosessering.retry.RetryService
 import no.nav.aap.behandlingsflyt.sak.Ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
-import no.nav.aap.behandlingsflyt.sak.SakRepository
+import no.nav.aap.behandlingsflyt.sak.sakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
@@ -32,7 +32,7 @@ class OppgaveRepositoryTest {
         lateinit var sak2: Sak
         dataSource.transaction { connection ->
             val personRepository = PersonRepository(connection)
-            val sakRepository = SakRepository(connection)
+            val sakRepository = sakRepository(connection)
             val person = personRepository.finnEllerOpprett(Ident("12312312312312313"))
             val person1 = personRepository.finnEllerOpprett(Ident("12312312356756756"))
             sak = sakRepository.finnEllerOpprett(person, Periode(LocalDate.now().minusYears(3), LocalDate.now()))
