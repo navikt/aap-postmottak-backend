@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger
 
 import no.nav.aap.behandlingsflyt.Periode
+import no.nav.aap.behandlingsflyt.april
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
@@ -55,9 +56,10 @@ class PersonopplysningRepositoryTest {
             val opplysninger =
                 connection.queryList(
                     """
-                    SELECT FODSELSDATO
+                    SELECT p.FODSELSDATO
                     FROM BEHANDLING b
-                    INNER JOIN PERSONOPPLYSNING p ON b.ID = p.BEHANDLING_ID
+                    INNER JOIN PERSONOPPLYSNING_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
+                    INNER JOIN PERSONOPPLYSNING p ON g.PERSONOPPLYSNING_ID = p.ID
                     WHERE b.SAK_ID = ?
                     """.trimIndent()
                 ) {
@@ -124,9 +126,10 @@ class PersonopplysningRepositoryTest {
             val opplysninger =
                 connection.queryList(
                     """
-                    SELECT BEHANDLING_ID, FODSELSDATO, AKTIV
+                    SELECT b.ID, p.FODSELSDATO, g.AKTIV
                     FROM BEHANDLING b
-                    INNER JOIN PERSONOPPLYSNING p ON b.ID = p.BEHANDLING_ID
+                    INNER JOIN PERSONOPPLYSNING_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
+                    INNER JOIN PERSONOPPLYSNING p ON g.PERSONOPPLYSNING_ID = p.ID
                     WHERE b.SAK_ID = ?
                     """.trimIndent()
                 ) {
@@ -135,7 +138,7 @@ class PersonopplysningRepositoryTest {
                     }
                     setRowMapper { row ->
                         Opplysning(
-                            behandlingId = row.getLong("BEHANDLING_ID"),
+                            behandlingId = row.getLong("ID"),
                             fødselsdato = row.getLocalDate("FODSELSDATO"),
                             aktiv = row.getBoolean("AKTIV")
                         )
@@ -149,6 +152,63 @@ class PersonopplysningRepositoryTest {
                 )
         }
     }
+
+    @Test
+    fun `Ved kopiering av opplysninger fra en avsluttet behandling til en ny skal kun referansen kopieres, ikke hele raden`() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            val sak = sak(connection)
+            val behandling1 = behandling(connection, sak)
+            val personopplysningRepository = PersonopplysningRepository(connection)
+            personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 mars 1992)))
+            personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 april 1992)))
+            connection.execute("UPDATE BEHANDLING SET status = 'AVSLUTTET'")
+            val behandling2 = behandling(connection, sak)
+
+            data class Opplysning(val behandlingId: Long, val fødselsdato: LocalDate, val aktiv: Boolean)
+
+            val opplysninger =
+                connection.queryList(
+                    """
+                    SELECT b.ID, p.FODSELSDATO, g.AKTIV
+                    FROM BEHANDLING b
+                    INNER JOIN PERSONOPPLYSNING_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
+                    INNER JOIN PERSONOPPLYSNING p ON g.PERSONOPPLYSNING_ID = p.ID
+                    WHERE b.SAK_ID = ?
+                    """.trimIndent()
+                ) {
+                    setParams {
+                        setLong(1, sak.id.toLong())
+                    }
+                    setRowMapper { row ->
+                        Opplysning(
+                            behandlingId = row.getLong("ID"),
+                            fødselsdato = row.getLocalDate("FODSELSDATO"),
+                            aktiv = row.getBoolean("AKTIV")
+                        )
+                    }
+                }
+            assertThat(opplysninger)
+                .hasSize(3)
+                .containsExactly(
+                    Opplysning(
+                        behandlingId = behandling1.id.toLong(),
+                        fødselsdato = 17 mars 1992,
+                        aktiv = false
+                    ),
+                    Opplysning(
+                        behandlingId = behandling1.id.toLong(),
+                        fødselsdato = 17 april 1992,
+                        aktiv = true
+                    ),
+                    Opplysning(
+                        behandlingId = behandling2.id.toLong(),
+                        fødselsdato = 17 april 1992,
+                        aktiv = true
+                    ),
+                )
+        }
+    }
+
 
     private companion object {
         private val identTeller = AtomicInteger(0)

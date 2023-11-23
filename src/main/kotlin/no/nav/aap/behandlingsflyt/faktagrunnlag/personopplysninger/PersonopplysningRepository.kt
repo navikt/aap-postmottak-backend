@@ -6,7 +6,14 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 class PersonopplysningRepository(private val connection: DBConnection) {
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): PersonopplysningGrunnlag? {
-        return connection.queryFirstOrNull("SELECT ID, FODSELSDATO FROM PERSONOPPLYSNING WHERE AKTIV AND BEHANDLING_ID = ?") {
+        return connection.queryFirstOrNull(
+            """
+            SELECT p.FODSELSDATO
+            FROM PERSONOPPLYSNING_GRUNNLAG g
+            INNER JOIN PERSONOPPLYSNING p ON g.PERSONOPPLYSNING_ID = p.ID
+            WHERE g.AKTIV AND g.BEHANDLING_ID = ?
+            """.trimIndent()
+        ) {
             setParams {
                 setLong(1, behandlingId.toLong())
             }
@@ -28,16 +35,22 @@ class PersonopplysningRepository(private val connection: DBConnection) {
             deaktiverEksisterende(behandlingId)
         }
 
-        connection.execute("INSERT INTO PERSONOPPLYSNING (BEHANDLING_ID, FODSELSDATO) VALUES (?, ?)") {
+        val personopplysningId = connection.executeReturnKey("INSERT INTO PERSONOPPLYSNING (FODSELSDATO) VALUES (?)") {
+            setParams {
+                setLocalDate(1, personopplysning.fødselsdato.toLocalDate())
+            }
+        }
+
+        connection.execute("INSERT INTO PERSONOPPLYSNING_GRUNNLAG (BEHANDLING_ID, PERSONOPPLYSNING_ID) VALUES (?, ?)") {
             setParams {
                 setLong(1, behandlingId.toLong())
-                setLocalDate(2, personopplysning.fødselsdato.toLocalDate())
+                setLong(2, personopplysningId)
             }
         }
     }
 
     private fun deaktiverEksisterende(behandlingId: BehandlingId) {
-        connection.execute("UPDATE PERSONOPPLYSNING SET AKTIV = 'FALSE' WHERE AKTIV AND BEHANDLING_ID = ?") {
+        connection.execute("UPDATE PERSONOPPLYSNING_GRUNNLAG SET AKTIV = 'FALSE' WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {
                 setLong(1, behandlingId.toLong())
             }
@@ -48,7 +61,7 @@ class PersonopplysningRepository(private val connection: DBConnection) {
     }
 
     fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
-        connection.execute("INSERT INTO PERSONOPPLYSNING (BEHANDLING_ID, FODSELSDATO) SELECT ?, FODSELSDATO FROM PERSONOPPLYSNING WHERE AKTIV AND BEHANDLING_ID = ?") {
+        connection.execute("INSERT INTO PERSONOPPLYSNING_GRUNNLAG (BEHANDLING_ID, PERSONOPPLYSNING_ID) SELECT ?, PERSONOPPLYSNING_ID FROM PERSONOPPLYSNING_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {
                 setLong(1, tilBehandling.toLong())
                 setLong(2, fraBehandling.toLong())
