@@ -22,21 +22,6 @@ class VurderSykepengeErstatningSteg private constructor(
     private val avklaringsbehovRepository: AvklaringsbehovRepository
 ) : BehandlingSteg {
 
-    companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return VurderSykepengeErstatningSteg(
-                VilkårsresultatRepository(connection),
-                SykepengerErstatningRepository(connection),
-                SakService(connection),
-                AvklaringsbehovRepository(connection)
-            )
-        }
-
-        override fun type(): StegType {
-            return StegType.VURDER_SYKEPENGEERSTATNING
-        }
-    }
-
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
         val sykdomsvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
@@ -73,5 +58,20 @@ class VurderSykepengeErstatningSteg private constructor(
         }
 
         return StegResultat()
+    }
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return VurderSykepengeErstatningSteg(
+                VilkårsresultatRepository(connection),
+                SykepengerErstatningRepository(connection),
+                SakService(connection),
+                AvklaringsbehovRepository(connection)
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.VURDER_SYKEPENGEERSTATNING
+        }
     }
 }

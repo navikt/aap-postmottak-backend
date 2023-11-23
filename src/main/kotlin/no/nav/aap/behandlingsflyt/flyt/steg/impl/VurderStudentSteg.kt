@@ -12,6 +12,15 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 class VurderStudentSteg private constructor(
     private val studentRepository: StudentRepository
 ) : BehandlingSteg {
+    override fun utfør(kontekst: FlytKontekst): StegResultat {
+        val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
+
+        if (studentGrunnlag?.erKonsistent() != true) {
+            return StegResultat(listOf(Definisjon.AVKLAR_STUDENT))
+        }
+
+        return StegResultat()
+    }
 
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
@@ -21,15 +30,5 @@ class VurderStudentSteg private constructor(
         override fun type(): StegType {
             return StegType.AVKLAR_STUDENT
         }
-    }
-
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
-
-        if (studentGrunnlag?.erKonsistent() != true) {
-            return StegResultat(listOf(Definisjon.AVKLAR_STUDENT))
-        }
-
-        return StegResultat()
     }
 }

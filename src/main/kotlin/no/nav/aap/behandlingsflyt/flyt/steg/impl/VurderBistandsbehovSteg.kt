@@ -26,21 +26,6 @@ class VurderBistandsbehovSteg private constructor(
     private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
 
-    companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return VurderBistandsbehovSteg(
-                BistandRepository(connection),
-                StudentRepository(connection),
-                VilkårsresultatRepository(connection),
-                PeriodeTilVurderingService(SakService(connection))
-            )
-        }
-
-        override fun type(): StegType {
-            return StegType.VURDER_BISTANDSBEHOV
-        }
-    }
-
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val periodeTilVurdering =
             periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.BISTANDSVILKÅRET)
@@ -85,5 +70,20 @@ class VurderBistandsbehovSteg private constructor(
     private fun harInnvilgetForStudentUtenÅVæreStudent(vilkår: Vilkår, studentGrunnlag: StudentGrunnlag?): Boolean {
         return studentGrunnlag?.studentvurdering?.oppfyller11_14 == false &&
                 vilkår.vilkårsperioder().any { it.innvilgelsesårsak == Innvilgelsesårsak.STUDENT }
+    }
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return VurderBistandsbehovSteg(
+                BistandRepository(connection),
+                StudentRepository(connection),
+                VilkårsresultatRepository(connection),
+                PeriodeTilVurderingService(SakService(connection))
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.VURDER_BISTANDSBEHOV
+        }
     }
 }

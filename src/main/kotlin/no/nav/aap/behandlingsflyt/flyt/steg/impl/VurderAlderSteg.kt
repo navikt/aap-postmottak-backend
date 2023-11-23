@@ -19,20 +19,6 @@ class VurderAlderSteg private constructor(
     private val personopplysningRepository: PersonopplysningRepository
 ) : BehandlingSteg {
 
-    companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return VurderAlderSteg(
-                VilkårsresultatRepository(connection),
-                PeriodeTilVurderingService(SakService(connection)),
-                PersonopplysningRepository(connection)
-            )
-        }
-
-        override fun type(): StegType {
-            return StegType.VURDER_ALDER
-        }
-    }
-
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val periodeTilVurdering =
             periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.ALDERSVILKÅRET)
@@ -50,5 +36,19 @@ class VurderAlderSteg private constructor(
         }
 
         return StegResultat()
+    }
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return VurderAlderSteg(
+                VilkårsresultatRepository(connection),
+                PeriodeTilVurderingService(SakService(connection)),
+                PersonopplysningRepository(connection)
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.VURDER_ALDER
+        }
     }
 }

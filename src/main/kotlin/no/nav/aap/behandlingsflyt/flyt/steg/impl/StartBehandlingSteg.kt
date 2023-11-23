@@ -16,16 +16,6 @@ class StartBehandlingSteg private constructor(
     private val sakService: SakService
 ) : BehandlingSteg {
 
-    companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return StartBehandlingSteg(VilkårsresultatRepository(connection), SakService(connection))
-        }
-
-        override fun type(): StegType {
-            return StegType.START_BEHANDLING
-        }
-    }
-
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         if (kontekst.behandlingType == Førstegangsbehandling) {
             val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
@@ -43,5 +33,15 @@ class StartBehandlingSteg private constructor(
         }
 
         return StegResultat()
+    }
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return StartBehandlingSteg(VilkårsresultatRepository(connection), SakService(connection))
+        }
+
+        override fun type(): StegType {
+            return StegType.START_BEHANDLING
+        }
     }
 }

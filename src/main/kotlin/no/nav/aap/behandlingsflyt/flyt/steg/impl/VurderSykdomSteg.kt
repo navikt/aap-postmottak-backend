@@ -22,21 +22,6 @@ class VurderSykdomSteg private constructor(
     private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
 
-    companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return VurderSykdomSteg(
-                SykdomRepository(connection),
-                StudentRepository(connection),
-                VilkårsresultatRepository(connection),
-                PeriodeTilVurderingService(SakService(connection))
-            )
-        }
-
-        override fun type(): StegType {
-            return StegType.AVKLAR_SYKDOM
-        }
-    }
-
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val periodeTilVurdering =
             periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
@@ -68,5 +53,20 @@ class VurderSykdomSteg private constructor(
             }
         }
         return StegResultat()
+    }
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return VurderSykdomSteg(
+                SykdomRepository(connection),
+                StudentRepository(connection),
+                VilkårsresultatRepository(connection),
+                PeriodeTilVurderingService(SakService(connection))
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.AVKLAR_SYKDOM
+        }
     }
 }

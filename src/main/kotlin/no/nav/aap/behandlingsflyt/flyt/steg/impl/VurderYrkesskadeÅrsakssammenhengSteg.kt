@@ -23,21 +23,6 @@ class VurderYrkesskadeÅrsakssammenhengSteg private constructor(
     private val periodeTilVurderingService: PeriodeTilVurderingService
 ) : BehandlingSteg {
 
-    companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): VurderYrkesskadeÅrsakssammenhengSteg {
-            return VurderYrkesskadeÅrsakssammenhengSteg(
-                YrkesskadeService.konstruer(connection),
-                SykdomRepository(connection),
-                StudentRepository(connection),
-                PeriodeTilVurderingService(SakService(connection))
-            )
-        }
-
-        override fun type(): StegType {
-            return StegType.AVKLAR_YRKESSKADE
-        }
-    }
-
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val periodeTilVurdering =
             periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
@@ -64,5 +49,20 @@ class VurderYrkesskadeÅrsakssammenhengSteg private constructor(
         }
         return yrkesskadeGrunnlag?.yrkesskader?.yrkesskader?.isNotEmpty() == true
                 && sykdomGrunnlag?.yrkesskadevurdering == null
+    }
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): VurderYrkesskadeÅrsakssammenhengSteg {
+            return VurderYrkesskadeÅrsakssammenhengSteg(
+                YrkesskadeService.konstruer(connection),
+                SykdomRepository(connection),
+                StudentRepository(connection),
+                PeriodeTilVurderingService(SakService(connection))
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.AVKLAR_YRKESSKADE
+        }
     }
 }

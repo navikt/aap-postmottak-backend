@@ -13,16 +13,6 @@ class FatteVedtakSteg private constructor(
     private val avklaringsbehovRepository: AvklaringsbehovRepository
 ) : BehandlingSteg {
 
-    companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return FatteVedtakSteg(AvklaringsbehovRepository(connection))
-        }
-
-        override fun type(): StegType {
-            return StegType.FATTE_VEDTAK
-        }
-    }
-
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val avklaringsbehov = avklaringsbehovRepository.hent(kontekst.behandlingId)
 
@@ -34,5 +24,15 @@ class FatteVedtakSteg private constructor(
         }
 
         return StegResultat()
+    }
+
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            return FatteVedtakSteg(AvklaringsbehovRepository(connection))
+        }
+
+        override fun type(): StegType {
+            return StegType.FATTE_VEDTAK
+        }
     }
 }
