@@ -1,8 +1,9 @@
 package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
-class Avklaringsbehovene(avklaringsbehovene: List<Avklaringsbehov> = mutableListOf()) {
+class Avklaringsbehovene(behandlingId: BehandlingId, avklaringsbehovene: List<Avklaringsbehov> = mutableListOf()) {
 
     private val avklaringsbehovene: MutableList<Avklaringsbehov>
 

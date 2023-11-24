@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -9,7 +10,7 @@ class AvklaringsbehoveneTest {
 
     @Test
     fun `skal kunne legge til nytt avklaringsbehov`() {
-        val avklaringsbehovene = Avklaringsbehovene()
+        val avklaringsbehovene = Avklaringsbehovene(BehandlingId(5))
         avklaringsbehovene.leggTil(
             Avklaringsbehov(
                 definisjon = Definisjon.AVKLAR_SYKDOM,
@@ -24,7 +25,7 @@ class AvklaringsbehoveneTest {
 
     @Test
     fun `skal ikke legge til duplikate avklaringsbehov`() {
-        val avklaringsbehovene = Avklaringsbehovene()
+        val avklaringsbehovene = Avklaringsbehovene(BehandlingId(5))
         avklaringsbehovene.leggTil(
             Avklaringsbehov(
                 definisjon = Definisjon.AVKLAR_SYKDOM,
@@ -47,7 +48,7 @@ class AvklaringsbehoveneTest {
 
     @Test
     fun `skal løse avklaringsbehov`() {
-        val avklaringsbehovene = Avklaringsbehovene()
+        val avklaringsbehovene = Avklaringsbehovene(BehandlingId(5))
         val avklaringsbehov = Avklaringsbehov(
             definisjon = Definisjon.AVKLAR_SYKDOM,
             funnetISteg = StegType.AVKLAR_SYKDOM,
@@ -65,7 +66,7 @@ class AvklaringsbehoveneTest {
 
     @Test
     fun `forsøk på å løse et avklaringsbehov som ikke finnes skal gi exception`() {
-        val avklaringsbehovene = Avklaringsbehovene()
+        val avklaringsbehovene = Avklaringsbehovene(BehandlingId(5))
         val avklaringsbehov = Avklaringsbehov(
             definisjon = Definisjon.AVKLAR_SYKDOM,
             funnetISteg = StegType.AVKLAR_SYKDOM,
@@ -90,7 +91,7 @@ class AvklaringsbehoveneTest {
 
     @Test
     fun `skal returnere alle åpne avklaringsbehov`() {
-        val avklaringsbehovene = Avklaringsbehovene()
+        val avklaringsbehovene = Avklaringsbehovene(BehandlingId(5))
         avklaringsbehovene.leggTil(
             Avklaringsbehov(
                 definisjon = Definisjon.AVKLAR_SYKDOM,
@@ -117,7 +118,7 @@ class AvklaringsbehoveneTest {
 
     @Test
     fun `skal kunne legge til en liste med avklaringsbehov funnet i et gitt steg`() {
-        val avklaringsbehovene = Avklaringsbehovene()
+        val avklaringsbehovene = Avklaringsbehovene(BehandlingId(5))
         avklaringsbehovene.leggTil(listOf(Definisjon.AVKLAR_SYKDOM, Definisjon.FATTE_VEDTAK), StegType.AVKLAR_SYKDOM)
         assertThat(avklaringsbehovene.alle()).hasSize(2)
     }

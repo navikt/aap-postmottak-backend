@@ -129,14 +129,17 @@ class AvklaringsbehovRepository(private val connection: DBConnection) {
             SELECT * FROM AVKLARINGSBEHOV WHERE behandling_id = ?
             """.trimIndent()
 
-        return Avklaringsbehovene(connection.queryList(query) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-            }
-            setRowMapper {
-                mapAvklaringsbehov(it)
-            }
-        })
+        return Avklaringsbehovene(
+            behandlingId,
+            connection.queryList(query) {
+                setParams {
+                    setLong(1, behandlingId.toLong())
+                }
+                setRowMapper {
+                    mapAvklaringsbehov(it)
+                }
+            },
+        )
     }
 
     private fun mapAvklaringsbehov(row: Row): Avklaringsbehov {
