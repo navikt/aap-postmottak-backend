@@ -44,11 +44,9 @@ allprojects {
         withType<Test> {
             reports.html.required.set(false)
             useJUnitPlatform()
-            if (System.getenv("GITHUB_ACTIONS") != "true") {
                 maxParallelForks = Runtime.getRuntime().availableProcessors()
             }
         }
-    }
 
     kotlin.sourceSets["main"].kotlin.srcDirs("main")
     kotlin.sourceSets["test"].kotlin.srcDirs("test")
