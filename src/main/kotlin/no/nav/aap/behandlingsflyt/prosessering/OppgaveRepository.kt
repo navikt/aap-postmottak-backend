@@ -91,29 +91,18 @@ class OppgaveRepository(private val connection: DBConnection) {
             }
         }
 
-        @Language("PostgreSQL")
-        val pushNesteKjøring = """
-            UPDATE OPPGAVE SET neste_kjoring = ? WHERE id = ?
-        """.trimIndent()
-
-        connection.execute(pushNesteKjøring) {
-            setParams {
-                setLocalDateTime(1, LocalDateTime.now().plusMinutes(1))
-                setLong(2, plukketOppgave.id)
-            }
-        }
-
         return plukketOppgave
     }
 
-    private fun mapOppgave(row: Row) =
-        OppgaveInput(OppgaveType.parse(row.getString("type")))
+    private fun mapOppgave(row: Row): OppgaveInput {
+        return OppgaveInput(OppgaveType.parse(row.getString("type")))
             .medId(row.getLong("id"))
             .forBehandling(
                 row.getLongOrNull("sak_id")?.let(::SakId),
                 row.getLongOrNull("behandling_id")?.let(::BehandlingId)
             )
             .medAntallFeil(row.getLong("antall_feil"))
+    }
 
     internal fun markerKjørt(oppgaveInput: OppgaveInput) {
         connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'KLAR'") {
