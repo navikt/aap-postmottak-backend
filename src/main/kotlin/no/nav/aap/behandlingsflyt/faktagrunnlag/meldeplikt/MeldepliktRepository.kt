@@ -33,6 +33,13 @@ class MeldepliktRepository(private val connection: DBConnection) {
             .firstOrNull()
     }
 
+    private data class MeldepliktInternal(
+        val meldepliktId: Long,
+        val periode: Periode,
+        val begrunnelse: String,
+        val harFritak: Boolean
+    )
+
     private fun Iterable<MeldepliktInternal>.grupperOgMapTilGrunnlag(behandlingId: BehandlingId): List<MeldepliktGrunnlag> {
         return this
             .groupBy(MeldepliktInternal::meldepliktId) { meldeplikt ->
@@ -50,13 +57,6 @@ class MeldepliktRepository(private val connection: DBConnection) {
                 )
             }
     }
-
-    private data class MeldepliktInternal(
-        val meldepliktId: Long,
-        val periode: Periode,
-        val begrunnelse: String,
-        val harFritak: Boolean
-    )
 
     fun lagre(behandlingId: BehandlingId, vurderinger: List<Fritaksvurdering>) {
         val meldepliktGrunnlag = hentHvisEksisterer(behandlingId)

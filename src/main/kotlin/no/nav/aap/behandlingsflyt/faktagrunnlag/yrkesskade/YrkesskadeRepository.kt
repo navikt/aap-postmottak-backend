@@ -1,47 +1,57 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
+import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 
 class YrkesskadeRepository(private val connection: DBConnection) {
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): YrkesskadeGrunnlag? {
-        return connection.queryFirstOrNull("""
-            SELECT YRKESSKADE_ID
-            FROM YRKESSKADE_GRUNNLAG
-            WHERE AKTIV AND BEHANDLING_ID = ?
-            """.trimIndent()) {
+        return connection.queryList(
+            """
+            SELECT y.ID AS YRKESSKADE_ID, p.REFERANSE, p.PERIODE
+            FROM YRKESSKADE_GRUNNLAG g
+            INNER JOIN YRKESSKADE y ON g.YRKESSKADE_ID = y.ID
+            INNER JOIN YRKESSKADE_PERIODER p ON y.ID = p.YRKESSKADE_ID
+            WHERE g.AKTIV AND g.BEHANDLING_ID = ?
+            """.trimIndent()
+        ) {
             setParams {
                 setLong(1, behandlingId.toLong())
             }
             setRowMapper { row ->
-                val id = row.getLong("YRKESSKADE_ID")
-                YrkesskadeGrunnlag(
-                    id = id,
-                    behandlingId = behandlingId,
-                    yrkesskader = Yrkesskader(hentYrkesskader(id))
-                )
-            }
-        }
-    }
-
-    private fun hentYrkesskader(id: Long): List<Yrkesskade> {
-        return connection.queryList("""
-            SELECT p.REFERANSE AS REFERANSE, p.PERIODE AS PERIODE
-            FROM YRKESSKADE y
-            INNER JOIN YRKESSKADE_PERIODER p ON y.ID = p.YRKESSKADE_ID
-            WHERE y.ID = ?
-            """.trimIndent()) {
-            setParams {
-                setLong(1, id)
-            }
-            setRowMapper { row ->
-                Yrkesskade(
+                YrkesskadeInternal(
+                    id = row.getLong("YRKESSKADE_ID"),
                     ref = row.getString("REFERANSE"),
                     periode = row.getPeriode("PERIODE")
                 )
             }
         }
+            .grupperOgMapTilGrunnlag(behandlingId)
+            .firstOrNull()
+    }
+
+    private data class YrkesskadeInternal(
+        val id: Long,
+        val ref: String,
+        val periode: Periode
+    )
+
+    private fun Iterable<YrkesskadeInternal>.grupperOgMapTilGrunnlag(behandlingId: BehandlingId): List<YrkesskadeGrunnlag> {
+        return this
+            .groupBy(YrkesskadeInternal::id) { yrkesskade ->
+                Yrkesskade(
+                    ref = yrkesskade.ref,
+                    periode = yrkesskade.periode
+                )
+            }
+            .map { (yrkesskadeId, yrkesskader) ->
+                YrkesskadeGrunnlag(
+                    id = yrkesskadeId,
+                    behandlingId = behandlingId,
+                    yrkesskader = Yrkesskader(yrkesskader)
+                )
+            }
     }
 
     fun lagre(behandlingId: BehandlingId, yrkesskader: Yrkesskader?) {
