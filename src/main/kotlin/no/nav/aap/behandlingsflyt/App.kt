@@ -227,10 +227,6 @@ fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
     password = dbConfig.password
     maximumPoolSize = 10
     minimumIdle = 1
-    initializationFailTimeout = 5000
-    idleTimeout = 10001
-    connectionTimeout = 1000
-    maxLifetime = 30001
     driverClassName = "org.postgresql.Driver"
 })
 
