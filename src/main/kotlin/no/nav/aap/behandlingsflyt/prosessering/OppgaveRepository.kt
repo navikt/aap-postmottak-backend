@@ -130,6 +130,16 @@ class OppgaveRepository(private val connection: DBConnection) {
     }
 
     internal fun markerFeilet(oppgaveInput: OppgaveInput, exception: Throwable) {
+        // Da denne kjører i en ny transaksjon bør oppgaven låses slik at den ikke plukkes på nytt mens det logges
+        connection.queryFirst("SELECT id FROM OPPGAVE WHERE id = ? FOR UPDATE") {
+            setParams {
+                setLong(1, oppgaveInput.id)
+            }
+            setRowMapper {
+                it.getLong("id")
+            }
+        }
+
         if (oppgaveInput.skalMarkeresSomFeilet()) {
             connection.execute("UPDATE OPPGAVE SET status = ? WHERE id = ? AND status = 'KLAR'") {
                 setParams {
