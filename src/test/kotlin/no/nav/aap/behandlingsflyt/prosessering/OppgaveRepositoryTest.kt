@@ -10,17 +10,16 @@ import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.sakRepository
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Ignore
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-
 
 class OppgaveRepositoryTest {
     companion object {
         val dataSource = InitTestDatabase.dataSource
     }
 
-    @Ignore
+    @Disabled
     @Test
     fun `skal plukke første opprettede oppgave`() {
         lateinit var sak: Sak
