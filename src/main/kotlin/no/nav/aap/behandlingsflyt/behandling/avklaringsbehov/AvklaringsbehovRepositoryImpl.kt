@@ -84,28 +84,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         opprettAvklaringsbehovEndring(avklaringsbehov.id, Status.AVSLUTTET, begrunnelse, "Saksbehandler")
     }
 
-    override fun toTrinnsVurdering(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, godkjent: Boolean) {
-        val avklaringsbehovene = hent(behandlingId)
-
-        val avklaringsbehov = avklaringsbehovene.hentBehovForDefinisjon(definisjon)
-
-        if (avklaringsbehov == null) {
-            throw IllegalStateException("Fant ikke avklaringsbehov med $definisjon for behandling $behandlingId")
-        }
-        if (!(avklaringsbehov.erTotrinn() && avklaringsbehov.status() == Status.AVSLUTTET)) {
-            throw IllegalStateException("Har ikke rett tilstand på avklaringsbehov")
-        }
-
-        val status = if (godkjent) {
-            Status.TOTRINNS_VURDERT
-        } else {
-            Status.SENDT_TILBAKE_FRA_BESLUTTER
-        }
-
-        opprettAvklaringsbehovEndring(avklaringsbehov.id, status, begrunnelse, "Saksbehandler")
-    }
-
-    private fun opprettAvklaringsbehovEndring(avklaringsbehovId: Long, status: Status, begrunnelse: String, opprettetAv: String) {
+    override fun opprettAvklaringsbehovEndring(avklaringsbehovId: Long, status: Status, begrunnelse: String, opprettetAv: String) {
         val query = """
             INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
             VALUES (?, ?, ?, ?, ?)
