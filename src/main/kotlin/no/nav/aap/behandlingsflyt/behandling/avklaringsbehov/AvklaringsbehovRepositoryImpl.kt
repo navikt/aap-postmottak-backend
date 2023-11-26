@@ -31,7 +31,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
             SELECT id FROM AVKLARINGSBEHOV where behandling_id = ? AND definisjon = ?
         """.trimIndent()
 
-        val avklaringsbehovId = connection.queryFirstOrNull(selectQuery) {
+        return connection.queryFirstOrNull<Long>(selectQuery) {
             setParams {
                 setLong(1, behandlingId.toLong())
                 setString(2, definisjon.kode)
@@ -40,8 +40,6 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
                 it.getLong("id")
             }
         }
-
-        return avklaringsbehovId
     }
 
     private fun opprettAvklaringsbehov(
