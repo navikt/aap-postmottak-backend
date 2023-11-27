@@ -22,6 +22,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
@@ -90,9 +91,11 @@ class FlytOrkestratorTest {
         var behandling = hentBehandling(sak.id)
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
-        var avklaringsbehov = hentAvklaringsbehov(behandling.id)
-        assertThat(avklaringsbehov.alle()).isNotEmpty()
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        dataSource.transaction {
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
+            assertThat(avklaringsbehov.alle()).isNotEmpty()
+            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        }
 
         dataSource.transaction {
             hendelsesMottak.håndtere(
@@ -180,9 +183,11 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
-        avklaringsbehov = hentAvklaringsbehov(behandling.id)
-        assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        dataSource.transaction {
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
+            assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
+            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        }
 
         dataSource.transaction {
             hendelsesMottak.håndtere(
@@ -196,12 +201,15 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         // Saken står til To-trinnskontroll hos beslutter
-        avklaringsbehov = hentAvklaringsbehov(behandling.id)
-        assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FATTE_VEDTAK }
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        dataSource.transaction { connection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
+            assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FATTE_VEDTAK }
+            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        }
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction {
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
             hendelsesMottak.håndtere(
                 it,
                 behandling.id,
@@ -251,10 +259,8 @@ class FlytOrkestratorTest {
         }
     }
 
-    private fun hentAvklaringsbehov(behandlingId: BehandlingId): Avklaringsbehovene {
-        return dataSource.transaction { connection ->
-            AvklaringsbehovRepositoryImpl(connection).hent(behandlingId)
-        }
+    private fun hentAvklaringsbehov(behandlingId: BehandlingId, connection: DBConnection): Avklaringsbehovene {
+        return AvklaringsbehovRepositoryImpl(connection).hent(behandlingId)
     }
 
     private fun ventPåSvar() {
@@ -321,8 +327,10 @@ class FlytOrkestratorTest {
 
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
-        var avklaringsbehov = hentAvklaringsbehov(behandling.id)
-        assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
+        dataSource.transaction { connection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
+            assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
+        }
 
         hendelsesMottak.håndtere(
             behandling.id,
@@ -330,11 +338,13 @@ class FlytOrkestratorTest {
         )
 
         behandling = hentBehandling(sak.id)
-        avklaringsbehov = hentAvklaringsbehov(behandling.id)
-        assertThat(avklaringsbehov.alle())
-            .hasSize(2)
-            .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
-            .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
+        dataSource.transaction { connection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
+            assertThat(avklaringsbehov.alle())
+                .hasSize(2)
+                .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
+                .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
+        }
 
         hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
         ventPåSvar()
@@ -342,11 +352,13 @@ class FlytOrkestratorTest {
         behandling = hentBehandling(sak.id)
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
-        avklaringsbehov = hentAvklaringsbehov(behandling.id)
-        assertThat(avklaringsbehov.alle())
-            .hasSize(2)
-            .anySatisfy { !it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
-            .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
+        dataSource.transaction { connection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
+            assertThat(avklaringsbehov.alle())
+                .hasSize(2)
+                .anySatisfy { !it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
+                .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
+        }
 
     }
 }

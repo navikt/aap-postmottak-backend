@@ -33,6 +33,8 @@ class TestAvklaringsbehovRepository : AvklaringsbehovRepository, Avklaringsbehov
                 kreverToTrinn = null
             )
         )
+
+        behovPerBehandling[behandlingId] = avklaringsbehov
     }
 
     override fun løs(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, kreverToTrinn: Boolean?) {

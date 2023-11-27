@@ -28,7 +28,7 @@ class FlytOrkestrator(
 
     fun forberedBehandling(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        var avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
+        val avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
 
         ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf(), avklaringsbehovene.alle())
 
@@ -53,8 +53,6 @@ class FlytOrkestrator(
                 tilbakeføringsflyt.stegene().last()
             )
         }
-        //TODO: Må vi hente 2 ganger?
-        avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
         tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene.åpne())
     }
 

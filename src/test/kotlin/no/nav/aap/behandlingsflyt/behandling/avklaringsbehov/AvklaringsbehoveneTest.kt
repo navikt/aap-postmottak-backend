@@ -63,7 +63,7 @@ class AvklaringsbehoveneTest {
 
         avklaringsbehovene.løsAvklaringsbehov(Definisjon.AVKLAR_SYKDOM, begrunnelse = "Derfor", endretAv = "Meg")
 
-        assertThat(avklaringsbehov.erÅpent()).isFalse
+        assertThat(avklaringsbehovene.hentBehovForDefinisjon(Definisjon.AVKLAR_SYKDOM)!!.erÅpent()).isFalse()
     }
 
     @Test
