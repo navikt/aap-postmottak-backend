@@ -9,6 +9,5 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.FRITAK_MELDEPLIKT_K
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = FRITAK_MELDEPLIKT_KODE)
 class FritakMeldepliktLøsning(
-    @JsonProperty("vurdering", required = true) val vurdering: Fritaksvurdering
-) :
-    AvklaringsbehovLøsning
+    @JsonProperty("vurdering", required = true) val vurdering: Fritaksvurdering?
+) : AvklaringsbehovLøsning

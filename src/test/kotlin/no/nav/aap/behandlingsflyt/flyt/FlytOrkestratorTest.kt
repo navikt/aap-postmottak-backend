@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.flyt
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.AvklarBistandsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.BistandVurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.meldeplikt.FritakMeldepliktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.student.AvklarStudentLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.student.StudentVurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarSykdomLøsning
@@ -143,6 +144,19 @@ class FlytOrkestratorTest {
                             nedreGrense = NedreGrense.FEMTI,
                             nedsattArbeidsevneDato = LocalDate.now()
                         )
+                    )
+                )
+            )
+        }
+        ventPåSvar()
+
+        dataSource.transaction {
+            hendelsesMottak.håndtere(
+                it,
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = FritakMeldepliktLøsning(
+                        vurdering = null
                     )
                 )
             )

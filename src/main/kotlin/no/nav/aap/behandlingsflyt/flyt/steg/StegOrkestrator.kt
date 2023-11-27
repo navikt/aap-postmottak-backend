@@ -48,6 +48,7 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
     ) {
         val definisjoner = resultat.funnetAvklaringsbehov()
         //TODO: Skal dette gjøres utenfor stegene som her, eller i stegene?
+        // Dette er logikk som orkestratoren skal eie
         avklaringsbehovRepository.leggTilAvklaringsbehov(behandling.id, definisjoner, aktivtSteg.type())
     }
 

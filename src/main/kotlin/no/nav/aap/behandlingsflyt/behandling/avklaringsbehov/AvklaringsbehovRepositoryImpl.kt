@@ -6,9 +6,13 @@ import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import java.time.LocalDateTime
 
-class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : AvklaringsbehovRepository {
+class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : AvklaringsbehovRepository, AvklaringsbehovOperasjonerRepository {
 
-    override fun leggTilAvklaringsbehov(behandlingId: BehandlingId, definisjoner: List<Definisjon>, funnetISteg: StegType) {
+    override fun leggTilAvklaringsbehov(
+        behandlingId: BehandlingId,
+        definisjoner: List<Definisjon>,
+        funnetISteg: StegType
+    ) {
         definisjoner.forEach { definisjon -> leggTilAvklaringsbehov(behandlingId, definisjon, funnetISteg) }
     }
 
@@ -84,7 +88,12 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         opprettAvklaringsbehovEndring(avklaringsbehov.id, Status.AVSLUTTET, begrunnelse, "Saksbehandler")
     }
 
-    override fun opprettAvklaringsbehovEndring(avklaringsbehovId: Long, status: Status, begrunnelse: String, opprettetAv: String) {
+    override fun opprettAvklaringsbehovEndring(
+        avklaringsbehovId: Long,
+        status: Status,
+        begrunnelse: String,
+        opprettetAv: String
+    ) {
         val query = """
             INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
             VALUES (?, ?, ?, ?, ?)
@@ -102,21 +111,38 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
     }
 
     override fun hent(behandlingId: BehandlingId): Avklaringsbehovene {
+        return Avklaringsbehovene(
+            repository = this,
+            behandlingId = behandlingId
+        )
+    }
+
+    override fun hentBehovene(behandlingId: BehandlingId): List<Avklaringsbehov> {
         val query = """
             SELECT * FROM AVKLARINGSBEHOV WHERE behandling_id = ?
             """.trimIndent()
 
-        return Avklaringsbehovene(
-            behandlingId,
-            connection.queryList(query) {
-                setParams {
-                    setLong(1, behandlingId.toLong())
-                }
-                setRowMapper {
-                    mapAvklaringsbehov(it)
-                }
-            },
-        )
+        return connection.queryList(query) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+            }
+            setRowMapper {
+                mapAvklaringsbehov(it)
+            }
+        }
+    }
+
+    override fun kreverToTrinn(avklaringsbehovId: Long, kreverToTrinn: Boolean) {
+        val query = """
+            UPDATE AVKLARINGSBEHOV SET krever_to_trinn = ? WHERE id = ?
+            """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setLong(1, avklaringsbehovId)
+                setBoolean(2, kreverToTrinn)
+            }
+        }
     }
 
     private fun mapAvklaringsbehov(row: Row): Avklaringsbehov {

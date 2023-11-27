@@ -4,46 +4,79 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
+import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
 class FatteVedtakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<FatteVedtakLøsning> {
 
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
+    private val behandlingRepository = behandlingRepository(connection)
 
     override fun løs(kontekst: FlytKontekst, løsning: FatteVedtakLøsning): LøsningsResultat {
-        løsning.vurderinger.forEach { vurdering ->
-            run {
-                //TODO: Kan denne blokka uttrykket med en metode på Avkarlingsbehovene?
-                val avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val avklaringsbehovene = avklaringsbehovRepository.hent(behandlingId = kontekst.behandlingId)
 
-                val definisjon = Definisjon.forKode(vurdering.definisjon)
-                val avklaringsbehov = avklaringsbehovene.hentBehovForDefinisjon(definisjon)
+        lateinit var sammenstiltBegrunnelse: String
+        if (skalSendesTilbake(løsning.vurderinger)) {
+            val flyt = behandling.flyt()
+            val vurderingerSomErSendtTilbake = løsning.vurderinger
+                .filter { it.godkjent == false }
 
-                if (avklaringsbehov == null) {
-                    throw IllegalStateException("Fant ikke avklaringsbehov med $definisjon for behandling $kontekst.behandlingId")
+            val tidligsteStegMedRetur = vurderingerSomErSendtTilbake
+                .map { Definisjon.forKode(it.definisjon) }
+                .map { it.løsesISteg }
+                .minWith(flyt.compareable())
+
+            val vurderingerFørRetur = løsning.vurderinger
+                .filter { it.godkjent == true }
+                .filter { flyt.erStegFør(Definisjon.forKode(it.definisjon).løsesISteg, tidligsteStegMedRetur) }
+
+            val vurderingerSomMåReåpnes = løsning.vurderinger
+                .filter { vurdering ->
+                    vurderingerSomErSendtTilbake.none { it.definisjon == vurdering.definisjon } &&
+                            vurderingerFørRetur.none { it.definisjon == vurdering.definisjon }
                 }
-                if (!(avklaringsbehov.erTotrinn() && avklaringsbehov.erAvsluttet())) {
-                    throw IllegalStateException("Har ikke rett tilstand på avklaringsbehov")
-                }
 
-                val status = if (vurdering.godkjent!!) {
-                    Status.TOTRINNS_VURDERT
-                } else {
-                    Status.SENDT_TILBAKE_FRA_BESLUTTER
-                }
-
-                avklaringsbehovRepository.opprettAvklaringsbehovEndring(
-                    avklaringsbehov.id,
-                    status,
-                    vurdering.begrunnelse!!,
-                    "Saksbehandler"
+            vurderingerFørRetur.forEach { vurdering ->
+                avklaringsbehovene.vurderTotrinn(
+                    definisjon = Definisjon.forKode(vurdering.definisjon),
+                    begrunnelse = vurdering.begrunnelse!!,
+                    godkjent = vurdering.godkjent!!,
+                    vurdertAv = "saksbehandler" // TODO: Hente fra context
                 )
             }
+
+            vurderingerSomErSendtTilbake.forEach { vurdering ->
+                avklaringsbehovene.vurderTotrinn(
+                    definisjon = Definisjon.forKode(vurdering.definisjon),
+                    begrunnelse = vurdering.begrunnelse!!,
+                    godkjent = vurdering.godkjent!!,
+                    vurdertAv = "saksbehandler" // TODO: Hente fra context
+                )
+            }
+
+            vurderingerSomMåReåpnes.forEach { vurdering ->
+                avklaringsbehovene.reåpne(definisjon = Definisjon.forKode(vurdering.definisjon))
+            }
+
+        } else {
+            løsning.vurderinger.forEach { vurdering ->
+                avklaringsbehovene.vurderTotrinn(
+                    definisjon = Definisjon.forKode(vurdering.definisjon),
+                    begrunnelse = vurdering.begrunnelse!!,
+                    godkjent = vurdering.godkjent!!,
+                    vurdertAv = "saksbehandler" // TODO: Hente fra context
+                )
+            }
+            sammenstiltBegrunnelse = sammenstillBegrunnelse(løsning)
         }
 
-        return LøsningsResultat(sammenstillBegrunnelse(løsning))
+        return LøsningsResultat(sammenstiltBegrunnelse)
+    }
+
+    private fun skalSendesTilbake(vurderinger: List<TotrinnsVurdering>): Boolean {
+        return vurderinger.any { it.godkjent == false }
     }
 
     private fun sammenstillBegrunnelse(løsning: FatteVedtakLøsning): String {

@@ -3,13 +3,9 @@ package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 
-class Avklaringsbehovene(behandlingId: BehandlingId, avklaringsbehovene: List<Avklaringsbehov> = mutableListOf()) {
+class Avklaringsbehovene(private val repository: AvklaringsbehovOperasjonerRepository, private val behandlingId: BehandlingId) {
 
-    private val avklaringsbehovene: MutableList<Avklaringsbehov>
-
-    init {
-        this.avklaringsbehovene = avklaringsbehovene.toMutableList()
-    }
+    private val avklaringsbehovene: MutableList<Avklaringsbehov> = repository.hentBehovene(behandlingId).toMutableList()
 
     fun leggTil(funnetAvklaringsbehov: List<Definisjon>, steg: StegType) {
         funnetAvklaringsbehov.stream()
@@ -28,19 +24,44 @@ class Avklaringsbehovene(behandlingId: BehandlingId, avklaringsbehovene: List<Av
         val relevantBehov = avklaringsbehovene.firstOrNull { it.definisjon == avklaringsbehov.definisjon }
 
         if (relevantBehov != null) {
+            repository.opprettAvklaringsbehovEndring(
+                avklaringsbehovId = relevantBehov.id,
+                status = Status.OPPRETTET,
+                begrunnelse = "",
+                opprettetAv = "system"
+            )
             relevantBehov.reåpne()
         } else {
+            repository.leggTilAvklaringsbehov(
+                behandlingId = behandlingId,
+                definisjon = avklaringsbehov.definisjon,
+                funnetISteg = avklaringsbehov.funnetISteg
+            )
             avklaringsbehovene.add(avklaringsbehov)
         }
     }
 
     fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String) {
-        avklaringsbehovene.single { it.definisjon == definisjon }.løs(begrunnelse, endretAv = endretAv)
+        val avklaringsbehov = avklaringsbehovene.single { it.definisjon == definisjon }
+        avklaringsbehov.løs(begrunnelse, endretAv = endretAv)
+        repository.opprettAvklaringsbehovEndring(
+            avklaringsbehovId = avklaringsbehov.id,
+            status = Status.AVSLUTTET,
+            begrunnelse = begrunnelse,
+            opprettetAv = endretAv
+        )
     }
 
     fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String, kreverToTrinn: Boolean) {
-        avklaringsbehovene.single { it.definisjon == definisjon }
-            .løs(begrunnelse = begrunnelse, endretAv = endretAv, kreverToTrinn = kreverToTrinn)
+        val avklaringsbehov = avklaringsbehovene.single { it.definisjon == definisjon }
+        avklaringsbehov.løs(begrunnelse = begrunnelse, endretAv = endretAv, kreverToTrinn = kreverToTrinn)
+        repository.kreverToTrinn(avklaringsbehov.id, kreverToTrinn)
+        repository.opprettAvklaringsbehovEndring(
+            avklaringsbehovId = avklaringsbehov.id,
+            status = Status.AVSLUTTET,
+            begrunnelse = begrunnelse,
+            opprettetAv = endretAv
+        )
     }
 
     fun alle(): List<Avklaringsbehov> {
@@ -63,12 +84,27 @@ class Avklaringsbehovene(behandlingId: BehandlingId, avklaringsbehovene: List<Av
         return avklaringsbehovene.filter { it.definisjon in definisjoner }.toList()
     }
 
-    fun vurderTotrinn(definisjon: Definisjon, godkjent: Boolean, begrunnelse: String) {
-        avklaringsbehovene.single { it.definisjon == definisjon }.vurderTotrinn(begrunnelse, godkjent)
+    fun vurderTotrinn(definisjon: Definisjon, godkjent: Boolean, begrunnelse: String, vurdertAv: String) {
+        val avklaringsbehov = avklaringsbehovene.single { it.definisjon == definisjon }
+        avklaringsbehov.vurderTotrinn(begrunnelse, godkjent)
+        require(avklaringsbehov.erTotrinn())
+        val status = if (godkjent) {
+            Status.TOTRINNS_VURDERT
+        } else {
+            Status.SENDT_TILBAKE_FRA_BESLUTTER
+        }
+        repository.opprettAvklaringsbehovEndring(avklaringsbehovId = avklaringsbehov.id, status = status, begrunnelse = begrunnelse, opprettetAv = vurdertAv)
     }
 
     fun avbryt(definisjon: Definisjon) {
-        avklaringsbehovene.single { it.definisjon == definisjon }.avbryt()
+        val avklaringsbehov = avklaringsbehovene.single { it.definisjon == definisjon }
+        avklaringsbehov.avbryt()
+        repository.opprettAvklaringsbehovEndring(
+            avklaringsbehovId = avklaringsbehov.id,
+            status = Status.AVBRUTT,
+            begrunnelse = "",
+            opprettetAv = "system"
+        )
     }
 
     fun harHattAvklaringsbehov(): Boolean {
@@ -88,5 +124,16 @@ class Avklaringsbehovene(behandlingId: BehandlingId, avklaringsbehovene: List<Av
 
     fun skalTilbakeføresEtterTotrinnsVurdering(): Boolean {
         return tilbakeførtFraBeslutter().isNotEmpty()
+    }
+
+    fun reåpne(definisjon: Definisjon) {
+        val avklaringsbehov = avklaringsbehovene.single { it.definisjon == definisjon }
+        avklaringsbehov.reåpne()
+        repository.opprettAvklaringsbehovEndring(
+            avklaringsbehovId = avklaringsbehov.id,
+            status = Status.OPPRETTET,
+            begrunnelse = "",
+            opprettetAv = "system"
+        )
     }
 }
