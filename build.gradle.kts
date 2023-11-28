@@ -5,7 +5,6 @@ val ktorVersion = "2.3.6"
 plugins {
     kotlin("jvm") version "1.9.21"
     id("io.ktor.plugin") version "2.3.6"
-    id("org.cyclonedx.bom") version "1.7.4"
 }
 
 application {
@@ -45,9 +44,9 @@ allprojects {
         withType<Test> {
             reports.html.required.set(false)
             useJUnitPlatform()
-                maxParallelForks = Runtime.getRuntime().availableProcessors()
-            }
+            maxParallelForks = Runtime.getRuntime().availableProcessors()
         }
+    }
 
     kotlin.sourceSets["main"].kotlin.srcDirs("main")
     kotlin.sourceSets["test"].kotlin.srcDirs("test")
