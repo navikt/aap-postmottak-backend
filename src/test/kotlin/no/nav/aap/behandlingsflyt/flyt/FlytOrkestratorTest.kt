@@ -52,6 +52,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class FlytOrkestratorTest {
 
@@ -356,7 +357,13 @@ class FlytOrkestratorTest {
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FatteVedtakLøsning(avklaringsbehov.alle()
                         .filter { behov -> behov.erTotrinn() }
-                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, behov.definisjon != Definisjon.AVKLAR_SYKDOM, "begrunnelse") })
+                        .map { behov ->
+                            TotrinnsVurdering(
+                                behov.definisjon.kode,
+                                behov.definisjon != Definisjon.AVKLAR_SYKDOM,
+                                "begrunnelse"
+                            )
+                        })
                 )
             )
         }
@@ -471,7 +478,8 @@ class FlytOrkestratorTest {
 
     private fun ventPåSvar() {
         dataSource.transaction {
-            while (OppgaveRepository(it).harOppgaver() || motor.harOppgaverKjørende()) {
+            val maxTid = LocalDateTime.now().plusMinutes(1)
+            while ((OppgaveRepository(it).harOppgaver() || motor.harOppgaverKjørende()) && maxTid.isBefore(LocalDateTime.now())) {
                 Thread.sleep(50L)
             }
         }
