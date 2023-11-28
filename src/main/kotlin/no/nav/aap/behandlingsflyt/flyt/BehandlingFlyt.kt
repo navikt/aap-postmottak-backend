@@ -189,6 +189,11 @@ class BehandlingFlyt private constructor(
     fun erTom(): Boolean {
         return flyt.isEmpty()
     }
+
+    fun gjenståendeStegIAktivGruppe(): List<StegType> {
+        val aktivtStegType = requireNotNull(aktivtSteg).steg.type()
+        return stegene().filter { it.gruppe == aktivtStegType.gruppe && !erStegFørEllerLik(it, aktivtStegType) }
+    }
 }
 
 class StegComparator(private var flyt: List<BehandlingFlyt.Behandlingsflytsteg>) : Comparator<StegType> {

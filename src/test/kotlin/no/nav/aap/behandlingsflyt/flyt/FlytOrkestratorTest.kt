@@ -194,14 +194,15 @@ class FlytOrkestratorTest {
         }
         behandling = hentBehandling(sak.id)
 
-        dataSource.transaction {
-            val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
+        dataSource.transaction { connection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
             hendelsesMottak.håndtere(
-                it,
+                connection,
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = FatteVedtakLøsning(avklaringsbehov.alle().filter { it.erTotrinn() }
-                        .map { TotrinnsVurdering(it.definisjon.kode, true, "begrunnelse") })
+                    løsning = FatteVedtakLøsning(avklaringsbehov.alle()
+                        .filter { behov -> behov.erTotrinn() }
+                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, true, "begrunnelse") })
                 )
             )
         }

@@ -83,6 +83,10 @@ class Avklaringsbehov(
         return definisjon == Definisjon.FORESLÅ_VEDTAK
     }
 
+    fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
+        return historikk.any { it.status == Status.SENDT_TILBAKE_FRA_BESLUTTER }
+    }
+
     fun løsesISteg(): StegType {
         if (definisjon.løsesISteg == StegType.UDEFINERT) {
             return funnetISteg
@@ -93,5 +97,6 @@ class Avklaringsbehov(
     override fun toString(): String {
         return "Avklaringsbehov(definisjon=$definisjon, status=${status()})"
     }
+
 
 }

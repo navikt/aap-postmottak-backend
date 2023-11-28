@@ -186,4 +186,17 @@ class Avklaringsbehovene(
             opprettetAv = "system"
         )
     }
+
+    fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
+        return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraBeslutterTidligere() }
+    }
+
+    fun ingenEndring(avklaringsbehov: Avklaringsbehov) {
+        val sisteAvsluttet = avklaringsbehov.historikk.last { it.status == Status.AVSLUTTET }
+        løsAvklaringsbehov(
+            avklaringsbehov.definisjon,
+            sisteAvsluttet.begrunnelse,
+            "saksbehandler"
+        ) // TODO: Hente fra sikkerhetcontext
+    }
 }

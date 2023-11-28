@@ -43,9 +43,11 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
 
     fun løsAvklaringsbehovOgFortsettProsessering(
         kontekst: FlytKontekst,
-        avklaringsbehov: List<AvklaringsbehovLøsning>
+        avklaringsbehov: List<AvklaringsbehovLøsning>,
+        ingenEndringIGruppe: Boolean
     ) {
         løsAvklaringsbehov(kontekst, avklaringsbehov)
+        markerAvklaringsbehovISammeGruppeForLøst(kontekst, ingenEndringIGruppe)
 
         OppgaveRepository(connection).leggTil(
             OppgaveInput(oppgave = ProsesserBehandlingOppgave).forBehandling(
@@ -53,6 +55,26 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
                 kontekst.behandlingId
             )
         )
+    }
+
+    private fun markerAvklaringsbehovISammeGruppeForLøst(
+        kontekst: FlytKontekst,
+        ingenEndringIGruppe: Boolean
+    ) {
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
+
+        if (ingenEndringIGruppe && avklaringsbehovene.harVærtSendtTilbakeFraBeslutterTidligere()) {
+            val flyt = behandling.forberedtFlyt()
+            val gjenståendeStegIGruppe = flyt.gjenståendeStegIAktivGruppe()
+
+            val behovSomSkalSettesTilAvsluttet =
+                avklaringsbehovene.alle()
+                    .filter { behov -> gjenståendeStegIGruppe.any { stegType -> behov.løsesISteg() == stegType } }
+            log.info("Markerer påfølgende avklaringsbehov[${behovSomSkalSettesTilAvsluttet}] på behandling[${behandling.referanse}] som avsluttet")
+
+            behovSomSkalSettesTilAvsluttet.forEach { avklaringsbehovene.ingenEndring(it) }
+        }
     }
 
     fun løsAvklaringsbehov(
