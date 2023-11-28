@@ -192,10 +192,9 @@ class Avklaringsbehovene(
     }
 
     fun ingenEndring(avklaringsbehov: Avklaringsbehov) {
-        val sisteAvsluttet = avklaringsbehov.historikk.last { it.status == Status.AVSLUTTET }
         løsAvklaringsbehov(
             avklaringsbehov.definisjon,
-            sisteAvsluttet.begrunnelse,
+            "Ingen endring fra forrige vurdering",
             "saksbehandler"
         ) // TODO: Hente fra sikkerhetcontext
     }
