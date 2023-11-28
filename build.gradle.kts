@@ -5,6 +5,7 @@ val ktorVersion = "2.3.6"
 plugins {
     kotlin("jvm") version "1.9.21"
     id("io.ktor.plugin") version "2.3.6"
+    id("org.cyclonedx.bom") version "1.7.4"
 }
 
 application {

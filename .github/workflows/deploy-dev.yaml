@@ -32,6 +32,8 @@ jobs:
       - uses: gradle/gradle-build-action@v2.8.0
         with:
           arguments: test buildFatJar --continue --no-daemon --configuration-cache --stacktrace --info
+      - name: Generate and output SBOM
+        run: ./gradlew cyclonedxBom
 
       - uses: nais/docker-build-push@v0
         id: docker-push
@@ -43,6 +45,7 @@ jobs:
             tag: ${{ env.IMAGE }}
             cache_from: type=gha
             cache_to: type=gha,mode=max
+            byosbom: build/reports/bom.json
 
   deploy-dev:
     needs: build
