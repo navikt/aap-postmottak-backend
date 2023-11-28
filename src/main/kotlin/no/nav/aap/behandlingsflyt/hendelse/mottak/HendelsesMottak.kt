@@ -70,7 +70,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
         val avklaringsbehovKontroller = AvklaringsbehovOrkestrator(connection)
         avklaringsbehovKontroller.løsAvklaringsbehovOgFortsettProsessering(
             kontekst = kontekst,
-            avklaringsbehov = listOf(hendelse.behov()),
+            avklaringsbehov = hendelse.behov(),
             ingenEndringIGruppe = hendelse.ingenEndringIGruppe
         )
     }
@@ -104,7 +104,7 @@ class HendelsesMottak(private val dataSource: DataSource) {
                 val avklaringsbehovKontroller = AvklaringsbehovOrkestrator(connection)
                 avklaringsbehovKontroller.løsAvklaringsbehov(
                     kontekst = kontekst,
-                    avklaringsbehov = listOf(SattPåVentLøsning())
+                    avklaringsbehov = SattPåVentLøsning()
                 )
             }
             OppgaveRepository(connection).leggTil(

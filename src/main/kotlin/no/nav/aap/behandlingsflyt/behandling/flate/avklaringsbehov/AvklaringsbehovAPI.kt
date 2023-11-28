@@ -24,11 +24,12 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                     MDC.putCloseable("sakId", lås.sakSkrivelås.id.toString()).use {
                         MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
                             val behandling = behandlingRepository(connection).hent(lås.behandlingSkrivelås.id)
-                            val avklaringsbehovene = AvklaringsbehovRepositoryImpl(connection).hent(lås.behandlingSkrivelås.id)
+                            val avklaringsbehovene =
+                                AvklaringsbehovRepositoryImpl(connection).hent(lås.behandlingSkrivelås.id)
 
                             ValiderBehandlingTilstand.validerTilstandBehandling(
                                 behandling = behandling,
-                                avklaringsbehov = listOf(request.behov.definisjon()),
+                                avklaringsbehov = request.behov.definisjon(),
                                 eksisterenedeAvklaringsbehov = avklaringsbehovene.alle(),
                                 versjon = request.behandlingVersjon
                             )
@@ -36,7 +37,10 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                             HendelsesMottak(dataSource).håndtere(
                                 connection = connection,
                                 key = behandling.id,
-                                hendelse = LøsAvklaringsbehovBehandlingHendelse(request.behov, request.ingenEndringIGruppe)
+                                hendelse = LøsAvklaringsbehovBehandlingHendelse(
+                                    request.behov,
+                                    request.ingenEndringIGruppe
+                                )
                             )
                             taSkriveLåsRepository.verifiserSkrivelås(lås)
                         }

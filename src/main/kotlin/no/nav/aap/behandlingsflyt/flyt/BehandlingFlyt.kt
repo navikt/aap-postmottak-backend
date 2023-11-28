@@ -79,7 +79,7 @@ class BehandlingFlyt private constructor(
         return null
     }
 
-    fun validerPlassering(skulleVærtIStegType: StegType) {
+    internal fun validerPlassering(skulleVærtIStegType: StegType) {
         val aktivtStegType = requireNotNull(aktivtSteg).steg.type()
         require(skulleVærtIStegType == aktivtStegType)
     }
@@ -119,7 +119,7 @@ class BehandlingFlyt private constructor(
         return StegComparator(flyt)
     }
 
-    fun erStegFørEllerLik(stegA: StegType, stegB: StegType): Boolean {
+    internal fun erStegFørEllerLik(stegA: StegType, stegB: StegType): Boolean {
         val aIndex = flyt.indexOfFirst { it.steg.type() == stegA }
         val bIndex = flyt.indexOfFirst { it.steg.type() == stegB }
 
@@ -140,7 +140,14 @@ class BehandlingFlyt private constructor(
         }
     }
 
-    fun tilbakeflyt(avklaringsbehov: List<Avklaringsbehov>): BehandlingFlyt {
+    internal fun tilbakeflyt(avklaringsbehov: Avklaringsbehov?): BehandlingFlyt {
+        if (avklaringsbehov == null) {
+            return tilbakeflyt(listOf())
+        }
+        return tilbakeflyt(listOf(avklaringsbehov))
+    }
+
+    internal fun tilbakeflyt(avklaringsbehov: List<Avklaringsbehov>): BehandlingFlyt {
         val skalTilSteg = skalTilStegForBehov(avklaringsbehov)
 
         if (skalTilSteg == null) {
@@ -162,6 +169,13 @@ class BehandlingFlyt private constructor(
 
     internal fun skalTilStegForBehov(avklaringsbehov: List<Avklaringsbehov>): StegType? {
         return avklaringsbehov.map { it.løsesISteg() }.minWithOrNull(compareable())
+    }
+
+    internal fun skalTilStegForBehov(avklaringsbehov: Avklaringsbehov?): StegType? {
+        if (avklaringsbehov == null) {
+            return null
+        }
+        return skalTilStegForBehov(listOf(avklaringsbehov))
     }
 
     fun tilbakeflytEtterEndringer(oppdaterteGrunnlagstype: List<Grunnlagkonstruktør>): BehandlingFlyt {
@@ -193,6 +207,10 @@ class BehandlingFlyt private constructor(
     fun gjenståendeStegIAktivGruppe(): List<StegType> {
         val aktivtStegType = requireNotNull(aktivtSteg).steg.type()
         return stegene().filter { it.gruppe == aktivtStegType.gruppe && !erStegFørEllerLik(it, aktivtStegType) }
+    }
+
+    internal fun aktivtStegType(): StegType {
+        return requireNotNull(aktivtSteg).steg.type()
     }
 }
 

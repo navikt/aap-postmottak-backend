@@ -9,7 +9,6 @@ import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.sak.SakFlytRepository
 import org.slf4j.LoggerFactory
 
@@ -30,7 +29,10 @@ class FlytOrkestrator(
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
 
-        ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf(), avklaringsbehovene.alle())
+        ValiderBehandlingTilstand.validerTilstandBehandling(
+            behandling = behandling,
+            eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
+        )
 
         val behandlingFlyt = behandling.forberedtFlyt()
 
@@ -64,7 +66,10 @@ class FlytOrkestrator(
         val behandling = behandlingRepository(connection).hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
 
-        ValiderBehandlingTilstand.validerTilstandBehandling(behandling, listOf(), avklaringsbehovene.alle())
+        ValiderBehandlingTilstand.validerTilstandBehandling(
+            behandling = behandling,
+            eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
+        )
 
         val behandlingFlyt = behandling.flyt()
 
@@ -72,13 +77,6 @@ class FlytOrkestrator(
 
         while (true) {
             connection.markerSavepoint()
-
-            val avklaringsbehov = avklaringsbehovene.åpne()
-            validerPlassering(
-                behandlingFlyt,
-                avklaringsbehov.filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER },
-                gjeldendeSteg.type()
-            )
 
             faktagrunnlag.oppdaterFaktagrunnlagForKravliste(
                 behandlingFlyt.faktagrunnlagForGjeldendeSteg(),
@@ -89,9 +87,9 @@ class FlytOrkestrator(
 
             val result = StegOrkestrator(connection, gjeldendeSteg).utfør(kontekst, behandling)
 
+            val avklaringsbehov = avklaringsbehovene.åpne()
             if (result.erTilbakeføring()) {
-                val tilbakeføringsflyt =
-                    behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraBeslutter())
+                val tilbakeføringsflyt = behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraBeslutter())
                 log.info(
                     "Tilakeført fra '{}' til '{}'",
                     gjeldendeSteg.type(),
@@ -99,7 +97,10 @@ class FlytOrkestrator(
                 )
                 tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehov)
             }
-
+            validerPlassering(
+                behandlingFlyt,
+                avklaringsbehov.filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER }
+            )
             val neste = behandlingFlyt.neste()
 
             if (!result.kanFortsette() || neste == null) {
@@ -116,7 +117,7 @@ class FlytOrkestrator(
         }
     }
 
-    internal fun forberedLøsingAvBehov(definisjoner: List<Definisjon>, behandling: Behandling, kontekst: FlytKontekst) {
+    internal fun forberedLøsingAvBehov(definisjoner: Definisjon, behandling: Behandling, kontekst: FlytKontekst) {
         val flyt = behandling.forberedtFlyt()
 
         val avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
@@ -168,9 +169,9 @@ class FlytOrkestrator(
 
     private fun validerPlassering(
         behandlingFlyt: BehandlingFlyt,
-        åpneAvklaringsbehov: List<Avklaringsbehov>,
-        nesteSteg: StegType
+        åpneAvklaringsbehov: List<Avklaringsbehov>
     ) {
+        val nesteSteg = behandlingFlyt.aktivtStegType()
         val uhåndterteBehov = åpneAvklaringsbehov
             .filter { definisjon ->
                 behandlingFlyt.erStegFør(

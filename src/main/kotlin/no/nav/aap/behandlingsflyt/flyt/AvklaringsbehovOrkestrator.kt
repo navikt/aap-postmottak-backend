@@ -43,7 +43,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
 
     fun løsAvklaringsbehovOgFortsettProsessering(
         kontekst: FlytKontekst,
-        avklaringsbehov: List<AvklaringsbehovLøsning>,
+        avklaringsbehov: AvklaringsbehovLøsning,
         ingenEndringIGruppe: Boolean
     ) {
         løsAvklaringsbehov(kontekst, avklaringsbehov)
@@ -79,10 +79,10 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
 
     fun løsAvklaringsbehov(
         kontekst: FlytKontekst,
-        avklaringsbehov: List<AvklaringsbehovLøsning>
+        avklaringsbehov: AvklaringsbehovLøsning
     ) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        val definisjoner = avklaringsbehov.map { løsning -> løsning.definisjon() }
+        val definisjoner = avklaringsbehov.definisjon()
         log.info("Forsøker løse avklaringsbehov[${definisjoner}] på behandling[${behandling.referanse}]")
 
         val eksisterenedeAvklaringsbehov = avklaringsbehovRepository.hent(kontekst.behandlingId).alle()
@@ -93,7 +93,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         flytOrkestrator.forberedLøsingAvBehov(definisjoner, behandling, kontekst)
 
         // Bør ideelt kalle på
-        avklaringsbehov.forEach { løsAvklaringsbehov(kontekst, behandling, it) }
+        løsAvklaringsbehov(kontekst, behandling, avklaringsbehov)
     }
 
 

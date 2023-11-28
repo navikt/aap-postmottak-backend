@@ -44,6 +44,7 @@ enum class Definisjon(
     AVKLAR_BISTANDSBEHOV(
         kode = AVKLAR_BISTANDSBEHOV_KODE,
         løsesISteg = StegType.VURDER_BISTANDSBEHOV,
+        kreverToTrinn = true
     ),
     FRITAK_MELDEPLIKT(
         kode = FRITAK_MELDEPLIKT_KODE,
