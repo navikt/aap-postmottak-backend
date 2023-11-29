@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.ByteArrayOutputStream
 
 val ktorVersion = "2.3.6"
@@ -39,6 +40,9 @@ allprojects {
         }
         withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             kotlinOptions.jvmTarget = "$javaVersion"
+        }
+        withType<ShadowJar> {
+            mergeServiceFiles()
         }
 
         withType<Test> {
