@@ -231,12 +231,14 @@ fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
 })
 
 fun migrate(dataSource: DataSource) {
-    Flyway
+    val flyway = Flyway
         .configure()
         .cleanDisabled(false) // TODO: husk å skru av denne før prod
         .cleanOnValidationError(true) // TODO: husk å skru av denne før prod
         .dataSource(dataSource)
         .locations("flyway")
+        .validateMigrationNaming(true)
         .load()
-        .migrate()
+
+    flyway.migrate()
 }
