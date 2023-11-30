@@ -8,7 +8,7 @@ class GrunnlagetForBeregningen(
     inntekter: List<InntektPerÅr>
 ) {
     private val inntekter: SortedSet<InntektPerÅr> =
-        inntekter.toSortedSet(Comparator.comparing(InntektPerÅr::år).reversed())
+        inntekter.toSortedSet().reversed()
 
     init {
         require(this.inntekter.size == 3) { "Må oppgi tre inntekter" }
