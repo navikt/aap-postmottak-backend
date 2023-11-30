@@ -168,7 +168,6 @@ class SykdomRepository(private val connection: DBConnection) {
             setParams {
                 setLong(1, tilBehandling.toLong())
                 setLong(2, fraBehandling.toLong())
-                setLong(3, fraBehandling.toLong())
             }
         }
     }

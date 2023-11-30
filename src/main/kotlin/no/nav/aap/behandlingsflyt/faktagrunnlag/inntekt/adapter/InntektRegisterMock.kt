@@ -6,9 +6,10 @@ import java.time.Year
 object InntektRegisterMock {
     private val skader = HashMap<Ident, List<InntektPerÅr>>()
 
-    fun innhent(identer: List<Ident>, år: List<Year>): List<InntektPerÅr> {
+    fun innhent(identer: List<Ident>, år: Set<Year>): Set<InntektPerÅr> {
         return skader.filter { entry -> identer.contains(entry.key) }
             .flatMap { entry -> entry.value.filter { år.contains(it.år) } }
+            .toSortedSet()
     }
 
     fun konstruer(ident: Ident, inntekterPerÅr: List<InntektPerÅr>) {

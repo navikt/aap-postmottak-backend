@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.dbconnect
 
 import no.nav.aap.behandlingsflyt.Periode
+import java.math.BigDecimal
 import java.sql.Date
 import java.sql.PreparedStatement
 import java.sql.Timestamp
@@ -51,6 +52,14 @@ class Params(private val preparedStatement: PreparedStatement) {
             preparedStatement.setNull(index, Types.BOOLEAN)
         } else {
             preparedStatement.setBoolean(index, value)
+        }
+    }
+
+    fun setBigDecimal(index: Int, value: BigDecimal?) {
+        if (value == null) {
+            preparedStatement.setNull(index, Types.NUMERIC)
+        } else {
+            preparedStatement.setBigDecimal(index, value)
         }
     }
 }

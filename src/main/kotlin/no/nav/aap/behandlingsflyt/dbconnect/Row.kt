@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.dbconnect
 
 import no.nav.aap.behandlingsflyt.Periode
+import java.math.BigDecimal
 import java.sql.Date
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -113,5 +114,16 @@ class Row(private val resultSet: ResultSet) {
     fun getLocalDateTimeOrNull(columnLabel: String): LocalDateTime? {
         val timestamp: Timestamp? = resultSet.getTimestamp(columnLabel)
         return timestamp?.toLocalDateTime()
+    }
+
+    fun getBigDecimalOrNull(columnLabel: String): BigDecimal? {
+        val bigDecimal: BigDecimal? = resultSet.getBigDecimal(columnLabel)
+        return bigDecimal
+    }
+
+    fun getBigDecimal(columnLabel: String): BigDecimal {
+        val bigDecimal = getBigDecimalOrNull(columnLabel)
+        requireNotNull(bigDecimal)
+        return bigDecimal
     }
 }
