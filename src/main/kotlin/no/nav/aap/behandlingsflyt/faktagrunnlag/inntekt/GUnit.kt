@@ -12,4 +12,21 @@ class GUnit(verdi: BigDecimal) {
     fun verdi(): BigDecimal {
         return verdi
     }
+
+    override fun toString(): String {
+        return "GUnit(verdi=$verdi)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as GUnit
+
+        return verdi == other.verdi
+    }
+
+    override fun hashCode(): Int {
+        return verdi.hashCode()
+    }
 }
