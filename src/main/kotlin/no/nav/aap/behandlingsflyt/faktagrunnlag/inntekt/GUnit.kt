@@ -6,11 +6,26 @@ import java.math.RoundingMode
 /**
  * Faktor av antall G for representasjon av størrelsen på det maksnimalet grunnlaget
  */
-class GUnit(verdi: BigDecimal) {
+class GUnit(verdi: BigDecimal) : Comparable<GUnit> {
     private val verdi = verdi.setScale(10, RoundingMode.HALF_UP)
+
+    companion object {
+        fun gjennomsnittlig(gUnits: List<GUnit>): GUnit {
+            val gjennomsnitt = gUnits.summer()
+            return GUnit(gjennomsnitt.verdi.divide(BigDecimal(gUnits.size), RoundingMode.HALF_UP))
+        }
+
+        private fun Iterable<GUnit>.summer(): GUnit {
+            return GUnit(this.sumOf { gUnit -> gUnit.verdi })
+        }
+    }
 
     fun verdi(): BigDecimal {
         return verdi
+    }
+
+    override fun compareTo(other: GUnit): Int {
+        return this.verdi.compareTo(other.verdi)
     }
 
     override fun toString(): String {

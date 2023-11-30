@@ -3,15 +3,35 @@ package no.nav.aap.behandlingsflyt.beregning
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.GUnit
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter.InntektPerÅr
 import java.math.BigDecimal
+import java.util.*
 
 class GrunnlagetForBeregningen(
-    private val inntekter: List<InntektPerÅr>
+    inntekter: List<InntektPerÅr>
 ) {
+    private val inntekter: SortedSet<InntektPerÅr> =
+        inntekter.toSortedSet(Comparator.comparing(InntektPerÅr::år).reversed())
+
+    init {
+        require(inntekter.size == this.inntekter.size) { "Flere inntekter oppgitt for samme år" }
+    }
+
     fun beregnGrunnlaget(): GUnit {
-        if (inntekter.size == 1) {
-            val inntektForSisteÅr = inntekter.first()
-            return Grunnbeløp.finnGrunnlagsfaktor(inntektForSisteÅr.år, inntektForSisteÅr.beløp)
+        if (inntekter.isEmpty()) {
+            return GUnit(BigDecimal(0))
         }
-        return GUnit(BigDecimal(0))
+
+        val gUnits = inntekter.map { inntekt ->
+            Grunnbeløp.finnGrunnlagsfaktor(inntekt.år, inntekt.beløp)
+        }
+
+        val gUnitFørsteÅr = gUnits.first()
+
+        if (inntekter.size == 1) {
+            return gUnitFørsteÅr
+        }
+
+        val gUnitGjennomsnitt = GUnit.gjennomsnittlig(gUnits)
+
+        return maxOf(gUnitFørsteÅr, gUnitGjennomsnitt)
     }
 }
