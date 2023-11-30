@@ -1,11 +1,13 @@
 package no.nav.aap.behandlingsflyt.flyt.behandlingstyper
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingType
+import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.PersonopplysningService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.FastsettGrunnlagSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.FatteVedtakSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.ForeslåVedtakSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.FritakMeldepliktSteg
@@ -31,7 +33,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = VurderBistandsbehovSteg)
             .medSteg(steg = VurderSykepengeErstatningSteg)
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.VURDER_MEDLEMSKAP))
-            .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.FASTSETT_GRUNNLAG))
+            .medSteg(steg = FastsettGrunnlagSteg, informasjonskrav = listOf(InntektService))
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.FASTSETT_UTTAK))
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.BARNETILLEGG))
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.SAMORDNING))

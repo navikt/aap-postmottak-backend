@@ -276,7 +276,7 @@ class FlytOrkestratorTest {
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarYrkesskadeLøsning(
                         yrkesskadevurdering = Yrkesskadevurdering(
-                            begrunnelse = "Er syk nok",
+                            begrunnelse = "Er ikke årsakssammenheng mellom yrkesskaden og nedsettelsen i arbeidsevne",
                             dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
                             erÅrsakssammenheng = false,
                             skadetidspunkt = null
@@ -294,7 +294,7 @@ class FlytOrkestratorTest {
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarSykdomLøsning(
                         sykdomsvurdering = Sykdomsvurdering(
-                            begrunnelse = "Er syk nok",
+                            begrunnelse = "Arbeidsevnen er nedsatt med mer enn halvparten",
                             dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
