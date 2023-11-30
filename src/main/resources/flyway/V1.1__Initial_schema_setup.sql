@@ -378,7 +378,7 @@ CREATE TABLE INNTEKT_GRUNNLAG
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
     BEHANDLING_ID BIGINT                                 NOT NULL REFERENCES BEHANDLING (ID),
-    INNTEKT_ID    BIGINT                                 NULL REFERENCES INNTEKTER (ID),
+    INNTEKT_ID    BIGINT                                 NOT NULL REFERENCES INNTEKTER (ID),
     AKTIV         BOOLEAN      DEFAULT TRUE              NOT NULL,
     OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
