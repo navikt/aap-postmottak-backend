@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter.InntektPerÅr
 
 class YrkesskadeBeregning(
     private val grunnlag11_19: Grunnlag11_19,
+    //TODO: Skal antattÅrligInntekt begrenses til 6G i det hele tatt?...
     private val antattÅrligInntekt: InntektPerÅr,
     private val andelAvNedsettelsenSomSkyldesYrkesskaden: Prosent
 ) {
@@ -13,10 +14,13 @@ class YrkesskadeBeregning(
 
     fun beregnYrkesskaden(): GrunnlagYrkesskade {
         val andelForBeregning = andelAvNedsettelsenSomSkyldesYrkesskaden.justertFor(TERSKELVERDI_FOR_YRKESSKADE)
-        val grunnlagsandelSomSkyldesYrkesskade = grunnlag11_19.grunnlaget().multiplisert(andelForBeregning)
-        val yrkesskadeandel = antattÅrligInntekt.gUnit().multiplisert(andelForBeregning)
+        val grunnlagsandelSomSkyldesYrkesskade = grunnlag11_19.grunnlaget()
+        //TODO: ...og skal antattÅrligInntektGUnits begrenses til 6G...
+        val antattÅrligInntektGUnits = antattÅrligInntekt.gUnit()
 
-        val andelSomSkyldesYrkesskade = maxOf(grunnlagsandelSomSkyldesYrkesskade, yrkesskadeandel)
+        val maxOf = maxOf(grunnlagsandelSomSkyldesYrkesskade, antattÅrligInntektGUnits)
+        //TODO: ...eller skal andelSomSkyldesYrkesskade begrenses til 6G
+        val andelSomSkyldesYrkesskade = maxOf.multiplisert(andelForBeregning)
         val andelSomIkkeSkyldesYrkesskade = grunnlag11_19.grunnlaget().multiplisert(andelForBeregning.kompliment())
 
         val grunnlag = andelSomSkyldesYrkesskade.pluss(andelSomIkkeSkyldesYrkesskade)
