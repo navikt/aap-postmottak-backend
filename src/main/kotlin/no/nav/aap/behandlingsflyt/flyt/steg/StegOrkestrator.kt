@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingFlytRepository
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.StegTilstand
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
@@ -68,11 +69,6 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
         nesteStegStatus: StegStatus,
         behandling: Behandling
     ): Transisjon {
-        val relevanteAvklaringsbehov =
-            avklaringsbehovRepository.hent(kontekst.behandlingId).alle()
-                .filter { it.erÅpent() }
-                .filter { behov -> behov.skalLøsesISteg(aktivtSteg.type()) }
-
         log.debug(
             "Behandler steg({}) med status({})",
             aktivtSteg.type(),
@@ -80,7 +76,7 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
         )
         val transisjon = when (nesteStegStatus) {
             StegStatus.UTFØRER -> behandleSteg(aktivtSteg, kontekst)
-            StegStatus.AVKLARINGSPUNKT -> harAvklaringspunkt(aktivtSteg.type(), relevanteAvklaringsbehov)
+            StegStatus.AVKLARINGSPUNKT -> harAvklaringspunkt(aktivtSteg.type(), kontekst.behandlingId)
             StegStatus.AVSLUTTER -> Fortsett
             StegStatus.TILBAKEFØRT -> behandleStegBakover(aktivtSteg, kontekst)
             else -> Fortsett
@@ -121,10 +117,15 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
 
     private fun harAvklaringspunkt(
         steg: StegType,
-        avklaringsbehov: List<Avklaringsbehov>
+        behandlingId: BehandlingId
     ): Transisjon {
+        val relevanteAvklaringsbehov =
+            avklaringsbehovRepository.hent(behandlingId).alle()
+                .filter { it.erÅpent() }
+                .filter { behov -> behov.skalLøsesISteg(aktivtSteg.type()) }
 
-        if (avklaringsbehov.any { behov -> behov.skalStoppeHer(steg) }) {
+
+        if (relevanteAvklaringsbehov.any { behov -> behov.skalStoppeHer(steg) }) {
             return Stopp
         }
 
