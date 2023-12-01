@@ -55,7 +55,7 @@ class GrunnlagetForBeregningenTest {
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(GUnit(BigDecimal(0)))
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(BigDecimal(0))))
     }
 
     @Test
@@ -69,7 +69,7 @@ class GrunnlagetForBeregningenTest {
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(GUnit(BigDecimal(5)))
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(BigDecimal(5))))
     }
 
     @Test
@@ -83,7 +83,7 @@ class GrunnlagetForBeregningenTest {
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(GUnit(BigDecimal(5)))
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(BigDecimal(5))))
     }
 
     @Test
@@ -97,7 +97,7 @@ class GrunnlagetForBeregningenTest {
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(GUnit(BigDecimal(5)))
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(BigDecimal(5))))
     }
 
     @Test
@@ -111,7 +111,7 @@ class GrunnlagetForBeregningenTest {
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(GUnit(BigDecimal(6)))
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(BigDecimal(6))))
     }
 
     @Test
@@ -125,7 +125,7 @@ class GrunnlagetForBeregningenTest {
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(GUnit(BigDecimal(6)))
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(BigDecimal(6))))
     }
 
     @Test
@@ -139,6 +139,6 @@ class GrunnlagetForBeregningenTest {
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(GUnit(BigDecimal(4)))
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(BigDecimal(4))))
     }
 }

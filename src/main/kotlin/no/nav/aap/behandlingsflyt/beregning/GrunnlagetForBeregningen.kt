@@ -16,7 +16,7 @@ class GrunnlagetForBeregningen(
         require(this.inntekter.size == inntekter.size) { "Flere inntekter oppgitt for samme år" }
     }
 
-    fun beregnGrunnlaget(): GUnit {
+    fun beregnGrunnlaget(): Grunnlag11_19 {
         val gUnits = inntekter.map { inntekt ->
             Grunnbeløp.finnGUnit(inntekt.år, inntekt.beløp)
         }
@@ -27,6 +27,6 @@ class GrunnlagetForBeregningen(
 
         val gUnitGjennomsnitt = GUnit.gjennomsnittlig(gUnitsBegrensetTil6GUnits)
 
-        return maxOf(gUnitFørsteÅr, gUnitGjennomsnitt)
+        return Grunnlag11_19(maxOf(gUnitFørsteÅr, gUnitGjennomsnitt))
     }
 }

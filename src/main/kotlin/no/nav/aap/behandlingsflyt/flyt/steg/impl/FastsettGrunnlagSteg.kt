@@ -17,7 +17,7 @@ class FastsettGrunnlagSteg(private val beregningService: BeregningService) : Beh
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val beregnGrunnlag = beregningService.beregnGrunnlag(kontekst.behandlingId)
 
-        log.info("Beregnet grunnlag til ${beregnGrunnlag}")
+        log.info("Beregnet grunnlag til $beregnGrunnlag")
 
         return StegResultat()
     }

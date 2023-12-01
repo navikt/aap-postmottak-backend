@@ -17,7 +17,9 @@ class BeregningService(
 
         val inntekter = utledInput(behandlingId)
 
-        return GrunnlagetForBeregningen(inntekter.utledForOrdinær(inntektGrunnlag.inntekter)).beregnGrunnlaget()
+        val grunnlag11_19 =
+            GrunnlagetForBeregningen(inntekter.utledForOrdinær(inntektGrunnlag.inntekter)).beregnGrunnlaget()
+        return grunnlag11_19.grunnlaget()
     }
 
     private fun utledInput(behandlingId: BehandlingId): InntektsBehov {
