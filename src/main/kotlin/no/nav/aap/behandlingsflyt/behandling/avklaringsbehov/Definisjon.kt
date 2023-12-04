@@ -7,15 +7,15 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import java.time.Period
 import java.util.*
 import java.util.stream.Collectors
-import kotlin.reflect.KFunction1
 
 const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
+const val AVKLAR_STUDENT_KODE = "5001"
 const val AVKLAR_YRKESSKADE_KODE = "5002"
-const val AVKLAR_BISTANDSBEHOV_KODE = "5003"
-const val FRITAK_MELDEPLIKT_KODE = "5004"
-const val VURDER_SYKEPENGEERSTATNING_KODE = "5005"
-const val AVKLAR_STUDENT_KODE = "5006"
-const val AVKLAR_SYKDOM_KODE = "5001"
+const val AVKLAR_SYKDOM_KODE = "5003"
+const val FASTSETT_ARBEIDSEVNE_KODE = "5004"
+const val FRITAK_MELDEPLIKT_KODE = "5005"
+const val AVKLAR_BISTANDSBEHOV_KODE = "5006"
+const val VURDER_SYKEPENGEERSTATNING_KODE = "5007"
 const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
 
@@ -32,28 +32,35 @@ enum class Definisjon(
         type = BehovType.AUTOMATISK,
         defaultFrist = Period.ofWeeks(3),
     ),
+    AVKLAR_STUDENT(
+        kode = AVKLAR_STUDENT_KODE,
+        løsesISteg = StegType.AVKLAR_STUDENT,
+    ),
+    AVKLAR_YRKESSKADE(
+        kode = AVKLAR_YRKESSKADE_KODE,
+        løsesISteg = StegType.AVKLAR_YRKESSKADE,
+        kreverToTrinn = true
+    ),
     AVKLAR_SYKDOM(
         kode = AVKLAR_SYKDOM_KODE,
         løsesISteg = StegType.AVKLAR_SYKDOM,
         kreverToTrinn = true
     ),
-    AVKLAR_STUDENT(
-        kode = AVKLAR_STUDENT_KODE,
-        løsesISteg = StegType.AVKLAR_STUDENT,
-    ),
-    AVKLAR_BISTANDSBEHOV(
-        kode = AVKLAR_BISTANDSBEHOV_KODE,
-        løsesISteg = StegType.VURDER_BISTANDSBEHOV,
+    FASTSETT_ARBEIDSEVNE(
+        kode = FASTSETT_ARBEIDSEVNE_KODE,
+        type = BehovType.MANUELT_FRIVILLIG,
+        løsesISteg = StegType.FASTSETT_ARBEIDSEVNE,
         kreverToTrinn = true
     ),
     FRITAK_MELDEPLIKT(
         kode = FRITAK_MELDEPLIKT_KODE,
         type = BehovType.MANUELT_FRIVILLIG,
         løsesISteg = StegType.FRITAK_MELDEPLIKT,
+        kreverToTrinn = true
     ),
-    AVKLAR_YRKESSKADE(
-        kode = AVKLAR_YRKESSKADE_KODE,
-        løsesISteg = StegType.AVKLAR_YRKESSKADE,
+    AVKLAR_BISTANDSBEHOV(
+        kode = AVKLAR_BISTANDSBEHOV_KODE,
+        løsesISteg = StegType.VURDER_BISTANDSBEHOV,
         kreverToTrinn = true
     ),
     AVKLAR_SYKEPENGEERSTATNING(
@@ -86,12 +93,12 @@ enum class Definisjon(
             }
 
             for (value in entries) {
-                value.type.valideringsFunksjon.invoke(value)
+                value.type.valideringsFunksjon(value)
             }
         }
     }
 
-    enum class BehovType(val valideringsFunksjon: KFunction1<Definisjon, Unit>) {
+    enum class BehovType(val valideringsFunksjon: Definisjon.() -> Unit) {
         MANUELT_PÅKREVD(Definisjon::validerManuelt),
         MANUELT_FRIVILLIG(Definisjon::validerManuelt),
         AUTOMATISK(Definisjon::validerAutomatisk)

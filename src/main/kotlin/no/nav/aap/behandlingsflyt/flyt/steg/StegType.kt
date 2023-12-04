@@ -42,6 +42,10 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES
     ),
+    FASTSETT_ARBEIDSEVNE(
+        gruppe = StegGruppe.SYKDOM,
+        status = Status.UTREDES
+    ),
     FASTSETT_GRUNNLAG(gruppe = StegGruppe.GRUNNLAG, status = Status.UTREDES),
     FASTSETT_UTTAK(
         gruppe = StegGruppe.UTTAK,

@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.FastsettArbeidsevneSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.FastsettGrunnlagSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.FatteVedtakSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.ForeslåVedtakSteg
@@ -29,6 +30,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = VurderStudentSteg)
             .medSteg(steg = VurderYrkesskadeÅrsakssammenhengSteg, informasjonskrav = listOf(YrkesskadeService))
             .medSteg(steg = VurderSykdomSteg)
+            .medSteg(steg = FastsettArbeidsevneSteg)
             .medSteg(steg = FritakMeldepliktSteg)
             .medSteg(steg = VurderBistandsbehovSteg)
             .medSteg(steg = VurderSykepengeErstatningSteg)
