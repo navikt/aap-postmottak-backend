@@ -14,14 +14,14 @@ class YrkesskadeBeregning(
 
     fun beregnYrkesskaden(): GrunnlagYrkesskade {
         val andelForBeregning = andelAvNedsettelsenSomSkyldesYrkesskaden.justertFor(TERSKELVERDI_FOR_YRKESSKADE)
-        val grunnlagsandelSomSkyldesYrkesskade = grunnlag11_19.grunnlaget()
+        val grunnlagFra11_19 = grunnlag11_19.grunnlaget()
         //TODO: ...og skal antattÅrligInntektGUnits begrenses til 6G...
         val antattÅrligInntektGUnits = antattÅrligInntekt.gUnit()
 
-        val maxOf = maxOf(grunnlagsandelSomSkyldesYrkesskade, antattÅrligInntektGUnits)
+        val grunnlagForBeregningAvYrkesskadeandel = maxOf(grunnlagFra11_19, antattÅrligInntektGUnits)
         //TODO: ...eller skal andelSomSkyldesYrkesskade begrenses til 6G
-        val andelSomSkyldesYrkesskade = maxOf.multiplisert(andelForBeregning)
-        val andelSomIkkeSkyldesYrkesskade = grunnlag11_19.grunnlaget().multiplisert(andelForBeregning.kompliment())
+        val andelSomSkyldesYrkesskade = grunnlagForBeregningAvYrkesskadeandel.multiplisert(andelForBeregning)
+        val andelSomIkkeSkyldesYrkesskade = grunnlagFra11_19.multiplisert(andelForBeregning.kompliment())
 
         val grunnlag = andelSomSkyldesYrkesskade.pluss(andelSomIkkeSkyldesYrkesskade)
 
