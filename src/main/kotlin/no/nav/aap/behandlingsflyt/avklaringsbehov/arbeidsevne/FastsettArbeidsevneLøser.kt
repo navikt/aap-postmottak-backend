@@ -4,11 +4,18 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsningsResultat
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeidsevne.ArbeidsevneRepository
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
-class FastsettArbeidsevneLøser(private val connection: DBConnection) : AvklaringsbehovsLøser<FastsettArbeidsevneLøsning> {
+class FastsettArbeidsevneLøser(connection: DBConnection) :
+    AvklaringsbehovsLøser<FastsettArbeidsevneLøsning> {
+
+    private val arbeidsevneRepository = ArbeidsevneRepository(connection)
+
     override fun løs(kontekst: FlytKontekst, løsning: FastsettArbeidsevneLøsning): LøsningsResultat {
-        TODO("Not yet implemented")
+        arbeidsevneRepository.lagre(kontekst.behandlingId, løsning.arbeidsevne)
+
+        return LøsningsResultat(begrunnelse = løsning.arbeidsevne.begrunnelse)
     }
 
     override fun forBehov(): Definisjon {

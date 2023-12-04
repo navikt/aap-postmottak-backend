@@ -39,6 +39,14 @@ class Params(private val preparedStatement: PreparedStatement) {
         preparedStatement.setString(index, periode?.let(DaterangeParser::toSQL))
     }
 
+    fun setInt(index: Int, value: Int?) {
+        if (value == null) {
+            preparedStatement.setNull(index, Types.SMALLINT)
+        } else {
+            preparedStatement.setInt(index, value)
+        }
+    }
+
     fun setLong(index: Int, value: Long?) {
         if (value == null) {
             preparedStatement.setNull(index, Types.NUMERIC)

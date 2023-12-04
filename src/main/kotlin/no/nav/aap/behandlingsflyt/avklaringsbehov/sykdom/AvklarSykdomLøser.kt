@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 
-class AvklarSykdomLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarSykdomLøsning> {
+class AvklarSykdomLøser(connection: DBConnection) : AvklaringsbehovsLøser<AvklarSykdomLøsning> {
 
     private val behandlingRepository = behandlingRepository(connection)
     private val sykdomRepository = SykdomRepository(connection)

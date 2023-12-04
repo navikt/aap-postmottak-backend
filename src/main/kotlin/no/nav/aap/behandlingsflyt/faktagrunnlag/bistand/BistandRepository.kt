@@ -12,7 +12,7 @@ class BistandRepository(private val connection: DBConnection) {
             SELECT g.ID, b.BEGRUNNELSE, b.ER_BEHOV_FOR_BISTAND
             FROM BISTAND_GRUNNLAG g
             INNER JOIN BISTAND b ON g.BISTAND_ID = b.ID
-            WHERE AKTIV AND BEHANDLING_ID = ?
+            WHERE g.AKTIV AND g.BEHANDLING_ID = ?
             """.trimIndent()
         ) {
             setParams {

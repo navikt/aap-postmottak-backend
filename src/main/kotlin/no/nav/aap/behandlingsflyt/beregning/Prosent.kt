@@ -21,6 +21,10 @@ class Prosent private constructor(verdi: BigDecimal) : Comparable<Prosent> {
         val `100_PROSENT` = Prosent(100)
     }
 
+    fun prosentverdi(): Int {
+        return verdi.multiply(BigDecimal(100)).intValueExact()
+    }
+
     fun justertFor(terskelverdi: Prosent): Prosent {
         if (this > terskelverdi) {
             return `100_PROSENT`
