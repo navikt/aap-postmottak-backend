@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.flyt
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.arbeidsevne.FastsettArbeidsevneLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.AvklarBistandLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.meldeplikt.FritakFraMeldepliktLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.student.AvklarStudentLøser
@@ -33,6 +34,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         avklaringsbehovsLøsere[Definisjon.MANUELT_SATT_PÅ_VENT] = SattPåVentLøser(connection)
         avklaringsbehovsLøsere[Definisjon.AVKLAR_SYKDOM] = AvklarSykdomLøser(connection)
         avklaringsbehovsLøsere[Definisjon.FRITAK_MELDEPLIKT] = FritakFraMeldepliktLøser(connection)
+        avklaringsbehovsLøsere[Definisjon.FASTSETT_ARBEIDSEVNE] = FastsettArbeidsevneLøser(connection)
         avklaringsbehovsLøsere[Definisjon.AVKLAR_SYKEPENGEERSTATNING] = AvklarSykepengerErstatningLøser(connection)
         avklaringsbehovsLøsere[Definisjon.AVKLAR_BISTANDSBEHOV] = AvklarBistandLøser(connection)
         avklaringsbehovsLøsere[Definisjon.AVKLAR_YRKESSKADE] = AvklarYrkesskadeLøser(connection)
