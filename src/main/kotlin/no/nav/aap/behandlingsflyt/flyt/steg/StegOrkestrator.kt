@@ -38,14 +38,6 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
         }
     }
 
-    private fun leggTilAvklaringsbehov(
-        behandlingId: BehandlingId,
-        resultat: Transisjon
-    ) {
-        val definisjoner = resultat.funnetAvklaringsbehov()
-        avklaringsbehovRepository.leggTilAvklaringsbehov(behandlingId, definisjoner, aktivtSteg.type())
-    }
-
     fun utførTilbakefør(
         kontekst: FlytKontekst,
         behandling: Behandling
@@ -77,26 +69,6 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
         return transisjon
     }
 
-    private fun loggStegHistorikk(
-        behandling: Behandling,
-        nyStegTilstand: StegTilstand
-    ) {
-        val førStatus = behandling.status()
-        behandling.visit(nyStegTilstand)
-        behandlingRepository.loggBesøktSteg(behandlingId = behandling.id, nyStegTilstand.tilstand)
-        val etterStatus = nyStegTilstand.tilstand.steg().status
-        if (førStatus != etterStatus) {
-            behandlingRepository.oppdaterBehandlingStatus(behandlingId = behandling.id, status = etterStatus)
-        }
-    }
-
-    private fun behandleStegBakover(flytSteg: FlytSteg, kontekst: FlytKontekst): Transisjon {
-        val steg = flytSteg.konstruer(connection)
-        steg.vedTilbakeføring(kontekst)
-
-        return Fortsett
-    }
-
     private fun behandleSteg(flytSteg: FlytSteg, kontekst: FlytKontekst): Transisjon {
         val steg = flytSteg.konstruer(connection)
         val stegResultat = steg.utfør(kontekst)
@@ -111,8 +83,15 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
             leggTilAvklaringsbehov(kontekst.behandlingId, resultat)
         }
 
-
         return resultat
+    }
+
+    private fun leggTilAvklaringsbehov(
+        behandlingId: BehandlingId,
+        resultat: Transisjon
+    ) {
+        val definisjoner = resultat.funnetAvklaringsbehov()
+        avklaringsbehovRepository.leggTilAvklaringsbehov(behandlingId, definisjoner, aktivtSteg.type())
     }
 
     private fun harAvklaringspunkt(
@@ -130,5 +109,25 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
         }
 
         return Fortsett
+    }
+
+    private fun behandleStegBakover(flytSteg: FlytSteg, kontekst: FlytKontekst): Transisjon {
+        val steg = flytSteg.konstruer(connection)
+        steg.vedTilbakeføring(kontekst)
+
+        return Fortsett
+    }
+
+    private fun loggStegHistorikk(
+        behandling: Behandling,
+        nyStegTilstand: StegTilstand
+    ) {
+        val førStatus = behandling.status()
+        behandling.visit(nyStegTilstand)
+        behandlingRepository.loggBesøktSteg(behandlingId = behandling.id, nyStegTilstand.tilstand)
+        val etterStatus = nyStegTilstand.tilstand.steg().status
+        if (førStatus != etterStatus) {
+            behandlingRepository.oppdaterBehandlingStatus(behandlingId = behandling.id, status = etterStatus)
+        }
     }
 }
