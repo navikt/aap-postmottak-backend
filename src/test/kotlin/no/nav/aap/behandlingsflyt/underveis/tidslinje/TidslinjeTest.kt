@@ -53,7 +53,7 @@ class TidslinjeTest {
         val tidslinje = Tidslinje(listOf(firstSegment))
         val tidslinje1 = Tidslinje(listOf(secondSegment))
 
-        val mergetTidslinje = tidslinje.kombiner(tidslinje1)
+        val mergetTidslinje = tidslinje.kombiner(tidslinje1, PrioriterHøyreSide())
 
         assertThat(mergetTidslinje.segmenter()).containsExactly(secondSegment, firstSegment)
     }
@@ -66,16 +66,33 @@ class TidslinjeTest {
         val tidslinje = Tidslinje(listOf(firstSegment))
         val tidslinje1 = Tidslinje(listOf(secondSegment))
 
-        val mergetTidslinje = tidslinje.kombiner(tidslinje1).komprimer()
+        val mergetTidslinje: Tidslinje<Beløp> = tidslinje.kombiner(tidslinje1, PrioriterHøyreSide()).komprimer()
 
         assertThat(mergetTidslinje.segmenter()).containsExactly(secondSegment, expectedFirstSegment)
+    }
+
+    @Test
+    fun `skal slå sammen to tidslinjer med overlapp med custom sammenslåer`() {
+        val firstSegment = Segment(Periode(LocalDate.now().minusDays(2), LocalDate.now().plusDays(10)), Beløp(100))
+        val secondSegment = Segment(Periode(LocalDate.now().minusDays(10), LocalDate.now().minusDays(1)), Beløp(200))
+        val tidslinje = Tidslinje(listOf(firstSegment))
+        val tidslinje1 = Tidslinje(listOf(secondSegment))
+
+        val mergetTidslinje: Tidslinje<Beløp> = tidslinje.kombiner(tidslinje1, Summer()).komprimer()
+
+        assertThat(mergetTidslinje.segmenter()).containsExactly(
+            Segment(Periode(LocalDate.now().minusDays(10), LocalDate.now().minusDays(3)), Beløp(200)),
+            Segment(Periode(LocalDate.now().minusDays(2), LocalDate.now().minusDays(1)), Beløp(300)),
+            Segment(Periode(LocalDate.now(), LocalDate.now().plusDays(10)), Beløp(100))
+        )
     }
 
     @Test
     fun `skal kunne styre prioritet mellom tidslinjer`() {
         val firstSegment = Segment(Periode(LocalDate.now().minusDays(2), LocalDate.now().plusDays(10)), Beløp(100))
         val secondSegment = Segment(Periode(LocalDate.now().minusDays(10), LocalDate.now().minusDays(1)), Beløp(200))
-        val expectedSecondSegment = Segment(Periode(LocalDate.now().minusDays(10), LocalDate.now().minusDays(3)), Beløp(200))
+        val expectedSecondSegment =
+            Segment(Periode(LocalDate.now().minusDays(10), LocalDate.now().minusDays(3)), Beløp(200))
         val tidslinje = Tidslinje(listOf(firstSegment))
         val tidslinje1 = Tidslinje(listOf(secondSegment))
 
@@ -83,6 +100,4 @@ class TidslinjeTest {
 
         assertThat(mergetTidslinje.segmenter()).containsExactly(expectedSecondSegment, firstSegment)
     }
-
-
 }

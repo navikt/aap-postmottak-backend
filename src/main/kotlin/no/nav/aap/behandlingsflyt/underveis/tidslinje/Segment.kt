@@ -36,7 +36,7 @@ class Segment<T>(val periode: Periode, val verdi: T?) : Comparable<Segment<T>> {
     }
 
     /** Returnerer deler av this som ikke overlapper i #annen.  */
-    fun except(annen: Segment<T>): NavigableSet<Periode> {
+    fun except(annen: Segment<*>): NavigableSet<Periode> {
         if (!this.periode.overlapper(annen.periode)) {
             return TreeSet(listOf(periode))
         }
@@ -77,7 +77,7 @@ class Segment<T>(val periode: Periode, val verdi: T?) : Comparable<Segment<T>> {
         return result
     }
 
-    fun splittEtter(annen: Segment<T>): NavigableSet<Periode> {
+    fun splittEtter(annen: Segment<*>): NavigableSet<Periode> {
         if (periode == annen.periode) {
             return TreeSet(listOf(this.periode))
         }
@@ -89,6 +89,10 @@ class Segment<T>(val periode: Periode, val verdi: T?) : Comparable<Segment<T>> {
             resultat.add(overlapp)
         }
         return resultat
+    }
+
+    fun tilpassetPeriode(periode: Periode): Segment<T> {
+        return Segment(periode, verdi)
     }
 }
 

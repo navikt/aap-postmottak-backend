@@ -32,10 +32,42 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>>) {
      * Merge av to tidslinjer, prioriterer verdier fra den som merges over den som det kalles på
      * oppretter en tredje slik at orginale verdier bevares
      */
-    fun kombiner(tidslinje: Tidslinje<T>, sammenslåer: SegmentSammenslåer<T> = PrioriterHøyreSide()): Tidslinje<T> {
-        val nySammensetning: NavigableSet<Segment<T>> = TreeSet(segmenter)
+    fun <E, V> kombiner(
+        tidslinje: Tidslinje<E>,
+        sammenslåer: SegmentSammenslåer<T, E, V>
+    ): Tidslinje<V> {
+        val nySammensetning: NavigableSet<Segment<V>> = TreeSet()
+
+        for (segment in segmenter) {
+            nySammensetning.add(sammenslåer.sammenslå(segment.periode, segment, null))
+        }
         for (segment in tidslinje.segmenter) {
-            leggTilPeriode(segment, nySammensetning, sammenslåer)
+            if (nySammensetning.any { vp -> vp.periode.overlapper(segment.periode) }) {
+                // Overlapper og må justere innholdet i listen
+                val skalHåndteres = segmenter
+                    .filter { eksisterendeSegment -> eksisterendeSegment.periode.overlapper(segment.periode) }
+                    .toSet()
+
+                nySammensetning.removeIf { eksisterendeSegment -> eksisterendeSegment.periode.overlapper(segment.periode) }
+
+                skalHåndteres.forEach { eksisterendeSegment ->
+                    (eksisterendeSegment.splittEtter(segment) + segment.except(eksisterendeSegment)).forEach { periode ->
+                        val left = if (eksisterendeSegment.periode.overlapper(periode)) {
+                            eksisterendeSegment.tilpassetPeriode(periode)
+                        } else {
+                            null
+                        }
+                        val right = if (segment.periode.overlapper(periode)) {
+                            segment.tilpassetPeriode(periode)
+                        } else {
+                            null
+                        }
+                        nySammensetning.add(sammenslåer.sammenslå(periode, left, right))
+                    }
+                }
+            } else {
+                nySammensetning.add(sammenslåer.sammenslå(segment.periode, null, segment))
+            }
         }
 
         return Tidslinje(nySammensetning)
@@ -60,38 +92,4 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>>) {
         }
         return Tidslinje(compressedSegmenter)
     }
-
-    private fun leggTilPeriode(
-        segment: Segment<T>,
-        segments: NavigableSet<Segment<T>>,
-        sammenslåer: SegmentSammenslåer<T>
-    ) {
-        if (segments.any { vp -> vp.periode.overlapper(segment.periode) }) {
-            // Overlapper og må justere innholdet i listen
-            val skalHåndteres = segments
-                .filter { eksisterendeSegment -> eksisterendeSegment.periode.overlapper(segment.periode) }
-                .toSet()
-
-            segments.removeAll(skalHåndteres)
-
-            skalHåndteres.forEach { eksisterendeSegment ->
-                (eksisterendeSegment.splittEtter(segment) + segment.except(eksisterendeSegment)).forEach {
-                    val left = if (eksisterendeSegment.periode.overlapper(it)) {
-                        eksisterendeSegment
-                    } else {
-                        null
-                    }
-                    val right = if (segment.periode.overlapper(it)) {
-                        segment
-                    } else {
-                        null
-                    }
-                    segments.add(sammenslåer.sammenslå(it, left, right))
-                }
-            }
-        } else {
-            segments.add(segment)
-        }
-    }
-
 }
