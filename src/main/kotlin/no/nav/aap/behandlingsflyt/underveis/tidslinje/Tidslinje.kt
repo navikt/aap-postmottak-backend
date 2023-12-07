@@ -39,12 +39,15 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>>) {
         val nySammensetning: NavigableSet<Segment<V>> = TreeSet()
 
         for (segment in segmenter) {
-            nySammensetning.add(sammenslåer.sammenslå(segment.periode, segment, null))
+            val element = sammenslåer.sammenslå(segment.periode, segment, null)
+            if (element != null) {
+                nySammensetning.add(element)
+            }
         }
         for (segment in tidslinje.segmenter) {
             if (nySammensetning.any { vp -> vp.periode.overlapper(segment.periode) }) {
                 // Overlapper og må justere innholdet i listen
-                val skalHåndteres = segmenter
+                val skalHåndteres = nySammensetning
                     .filter { eksisterendeSegment -> eksisterendeSegment.periode.overlapper(segment.periode) }
                     .toSet()
 
@@ -53,7 +56,7 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>>) {
                 skalHåndteres.forEach { eksisterendeSegment ->
                     (eksisterendeSegment.splittEtter(segment) + segment.except(eksisterendeSegment)).forEach { periode ->
                         val left = if (eksisterendeSegment.periode.overlapper(periode)) {
-                            eksisterendeSegment.tilpassetPeriode(periode)
+                            segmenter.first { it.overlapper(eksisterendeSegment) }.tilpassetPeriode(periode)
                         } else {
                             null
                         }
@@ -62,11 +65,17 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>>) {
                         } else {
                             null
                         }
-                        nySammensetning.add(sammenslåer.sammenslå(periode, left, right))
+                        val element = sammenslåer.sammenslå(periode, left, right)
+                        if (element != null) {
+                            nySammensetning.add(element)
+                        }
                     }
                 }
             } else {
-                nySammensetning.add(sammenslåer.sammenslå(segment.periode, null, segment))
+                val element = sammenslåer.sammenslå(segment.periode, null, segment)
+                if (element != null) {
+                    nySammensetning.add(element)
+                }
             }
         }
 

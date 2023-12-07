@@ -4,5 +4,5 @@ import no.nav.aap.behandlingsflyt.Periode
 
 interface SegmentSammenslåer<Q, E, V> {
 
-    fun sammenslå(periode: Periode, venstreSegment: Segment<Q>?, høyreSegment: Segment<E>?): Segment<V>
+    fun sammenslå(periode: Periode, venstreSegment: Segment<Q>?, høyreSegment: Segment<E>?): Segment<V>?
 }

@@ -6,7 +6,7 @@ import java.util.*
 
 
 class Segment<T>(val periode: Periode, val verdi: T?) : Comparable<Segment<T>> {
-    fun overlapper(segment: Segment<T>): Boolean {
+    fun overlapper(segment: Segment<*>): Boolean {
         return periode.overlapper(segment.periode)
     }
 

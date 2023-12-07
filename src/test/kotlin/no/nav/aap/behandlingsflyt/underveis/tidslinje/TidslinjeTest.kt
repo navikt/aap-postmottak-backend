@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.underveis.tidslinje
 
 import no.nav.aap.behandlingsflyt.Periode
+import no.nav.aap.behandlingsflyt.beregning.Prosent
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.Beløp
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -100,4 +101,59 @@ class TidslinjeTest {
 
         assertThat(mergetTidslinje.segmenter()).containsExactly(expectedSecondSegment, firstSegment)
     }
+
+    @Test
+    fun `slå sammen ulike typer`() {
+        val fullPeriode = Periode(LocalDate.now().minusDays(10), LocalDate.now().plusDays(10))
+        val delPeriode1 = Periode(LocalDate.now().minusDays(10), LocalDate.now().minusDays(6))
+        val delPeriode2 = Periode(LocalDate.now().minusDays(5), LocalDate.now())
+        val delPeriode3 = Periode(LocalDate.now().plusDays(1), LocalDate.now().plusDays(10))
+
+        val beløp = Beløp(756)
+        val firstSegment = Segment(fullPeriode, beløp)
+
+        val tidslinje = Tidslinje(listOf(firstSegment))
+        val tidslinje1 = Tidslinje(
+            listOf(
+                Segment(delPeriode1, Prosent(10)),
+                Segment(delPeriode2, Prosent(50)),
+                Segment(delPeriode3, Prosent(78))
+            )
+        )
+
+        val mergetTidslinje = tidslinje.kombiner(tidslinje1, UtregningSammenslåer()).komprimer()
+
+        assertThat(mergetTidslinje.segmenter()).containsExactly(
+            Segment(delPeriode1, Utbetaling(beløp, Prosent(10))),
+            Segment(delPeriode2, Utbetaling(beløp, Prosent(50))),
+            Segment(delPeriode3, Utbetaling(beløp, Prosent(78)))
+        )
+    }
+}
+
+data class Utbetaling(val beløp: Beløp, val prosent: Prosent) {
+    fun beløp(): Beløp {
+        return Beløp(prosent.multiplisert(beløp.verdi()))
+    }
+
+    override fun toString(): String {
+        return "Utbetaling(beløp=$beløp, prosent=$prosent, utbetaling=${beløp()})"
+    }
+
+}
+
+class UtregningSammenslåer : SegmentSammenslåer<Beløp, Prosent, Utbetaling> {
+    override fun sammenslå(
+        periode: Periode,
+        venstreSegment: Segment<Beløp>?,
+        høyreSegment: Segment<Prosent>?
+    ): Segment<Utbetaling>? {
+//        if (venstreSegment?.verdi == null || høyreSegment?.verdi == null) {
+//            return null
+//        }
+        val beløp = venstreSegment?.verdi ?: Beløp(0)
+        val prosent = høyreSegment?.verdi ?: Prosent(0)
+        return Segment(periode, Utbetaling(beløp, prosent))
+    }
+
 }
