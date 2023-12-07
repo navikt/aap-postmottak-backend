@@ -26,23 +26,15 @@ jobs:
           java-version: 21
           distribution: 'temurin'
       - uses: gradle/gradle-build-action@v2.9.0
-        env:
-            # Eksluder test dependencies
-            DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS: compileClasspath|runtimeClasspath
         with:
-            dependency-graph: generate-and-submit
             arguments: test buildFatJar --continue --no-daemon --configuration-cache --stacktrace --info
 
       - uses: nais/docker-build-push@v0
         id: docker-push
         with:
             team: aap # required
-            salsa: true # optional, defaults to true
             project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }} # required, but is defined as an organization variable
             identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }} # required, but is defined as an organization secret
-            cache_from: type=gha
-            cache_to: type=gha,mode=max
-            byosbom: dependency-graph-reports/deploy_saksbehandling-build.json
     outputs:
         image: ${{ steps.docker-push.outputs.image }}
 
