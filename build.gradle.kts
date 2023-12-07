@@ -94,7 +94,7 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.12.0")
-    implementation("ch.qos.logback:logback-classic:1.4.11")
+    implementation("ch.qos.logback:logback-classic:1.4.14")
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
     implementation("com.zaxxer:HikariCP:5.1.0")
