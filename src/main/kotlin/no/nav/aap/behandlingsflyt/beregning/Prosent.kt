@@ -23,8 +23,13 @@ class Prosent private constructor(verdi: BigDecimal) : Comparable<Prosent> {
     companion object {
         val `0_PROSENT` = Prosent(0)
         val `30_PROSENT` = Prosent(30)
+        val `50_PROSENT` = Prosent(50)
         val `70_PROSENT` = Prosent(70)
         val `100_PROSENT` = Prosent(100)
+
+        fun dividert(teller: BigDecimal, nevner: Prosent, scale: Int = 10): BigDecimal {
+            return teller.divide(nevner.verdi, scale, RoundingMode.HALF_UP)
+        }
     }
 
     fun prosentverdi(): Int {

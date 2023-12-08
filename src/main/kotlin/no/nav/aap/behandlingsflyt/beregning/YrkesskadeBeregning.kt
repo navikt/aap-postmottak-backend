@@ -27,7 +27,7 @@ class YrkesskadeBeregning(
 
         return GrunnlagYrkesskade(
             grunnlaget = grunnlag,
-            grunnlag11_19 = grunnlag11_19
+            beregningsgrunnlag = grunnlag11_19
         )
     }
 }

@@ -38,6 +38,16 @@ class GUnit(verdi: BigDecimal) : Comparable<GUnit> {
         return GUnit(faktor.multiplisert(this.verdi))
     }
 
+    fun dividert(nevner: Prosent): GUnit {
+        return GUnit(
+            Prosent.dividert(
+                teller = this.verdi,
+                nevner = nevner,
+                scale = SCALE
+            )
+        )
+    }
+
     fun begrensTil6GUnits(): GUnit {
         val begrensetVerdi = minOf(verdi, BigDecimal(6))
         return GUnit(begrensetVerdi)
