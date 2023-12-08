@@ -24,39 +24,6 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
-            get<BehandlingReferanse, BehandlingFlytOgTilstandDto> { req ->
-                val dto = dataSource.transaction { connection ->
-                    val behandling = behandling(connection, req)
-                    BehandlingFlytOgTilstandDto(
-                        flyt = behandling.flyt().stegene().map { stegType ->
-                            FlytSteg(
-                                stegType = stegType,
-                                avklaringsbehov = avklaringsbehov(connection, behandling.id).alleInkludertFrivillige(
-                                    behandling.flyt()
-                                )
-                                    .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
-                                    .map { behov ->
-                                        AvklaringsbehovDTO(
-                                            definisjon = behov.definisjon,
-                                            status = behov.status(),
-                                            endringer = emptyList()
-                                        )
-                                    },
-                                vilkårDTO = hentUtRelevantVilkårForSteg(
-                                    vilkårResultat(connection, behandling.id),
-                                    stegType
-                                )
-                            )
-                        },
-                        aktivtSteg = behandling.aktivtSteg()
-                    )
-                }
-                respond(
-                    dto
-                )
-            }
-        }
-        route("/{referanse}/flyt-2") {
             get<BehandlingReferanse, BehandlingFlytOgTilstand2Dto> { req ->
                 val dto = dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
