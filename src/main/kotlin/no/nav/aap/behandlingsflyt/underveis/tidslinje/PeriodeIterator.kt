@@ -17,7 +17,7 @@ class PeriodeIterator<T, E>(
         temp.forEach { periode ->
             val overlappendePerioder = unikePerioder.filter { it.overlapper(periode) }
             if (overlappendePerioder.isNotEmpty()) {
-                unikePerioder.removeIf { it.overlapper(periode) }
+                unikePerioder.removeAll(overlappendePerioder.toSet())
                 for (p in overlappendePerioder) {
                     unikePerioder.addAll(periode.minus(p))
                     val overlapp = periode.overlapp(p)
