@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.underveis.tidslinje.Tidslinje
  * - Arbeid fra meldeplikt
  */
 class GraderingArbeidRegel : UnderveisRegel {
-    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>) {
+    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
         TODO("Not yet implemented")
     }
 }

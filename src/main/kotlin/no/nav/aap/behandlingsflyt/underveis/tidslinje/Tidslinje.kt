@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.Periode
 import java.time.LocalDate
 import java.util.*
 
-class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>>) {
+class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) {
 
     constructor(initSegmenter: List<Segment<T>>) : this(TreeSet(initSegmenter))
 
