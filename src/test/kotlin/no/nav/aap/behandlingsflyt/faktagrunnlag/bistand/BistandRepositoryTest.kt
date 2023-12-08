@@ -253,7 +253,7 @@ class BistandRepositoryTest {
     }
 
     private companion object {
-        private val identTeller = AtomicInteger(0)
+        private val identTeller = AtomicInteger(8124923)
         private val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         private fun ident(): Ident {
