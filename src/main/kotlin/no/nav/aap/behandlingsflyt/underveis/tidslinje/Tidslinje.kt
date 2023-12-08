@@ -35,7 +35,8 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>>) {
      */
     fun <E, V> kombiner(
         other: Tidslinje<E>,
-        sammenslåer: SegmentSammenslåer<T, E, V>
+        sammenslåer: SegmentSammenslåer<T, E, V>,
+        joinStyle: JoinStyle = JoinStyle.CROSS_JOIN
     ): Tidslinje<V> {
 
         val periodeIterator: PeriodeIterator<T, E> = PeriodeIterator(this.segmenter, other.segmenter)
@@ -52,17 +53,19 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>>) {
             val right = other.segmenter.firstOrNull { segment -> segment.periode.overlapper(periode) }
                 ?.tilpassetPeriode(periode)
 
-            val element = sammenslåer.sammenslå(periode, left, right)
-            if (element != null) {
-                nySammensetning.add(element)
+            if (joinStyle.accept(left != null, right != null)) {
+                val element = sammenslåer.sammenslå(periode, left, right)
+                if (element != null) {
+                    nySammensetning.add(element)
+                }
             }
         }
 
         return Tidslinje(nySammensetning)
     }
 
-    fun <V> kryss(other: Tidslinje<V>) : Tidslinje<T> {
-        return kombiner(other, InnerJoinVenstre())
+    fun <V> kryss(other: Tidslinje<V>): Tidslinje<T> {
+        return kombiner(other, KunVenstre(), JoinStyle.INNER_JOIN)
     }
 
     /**
