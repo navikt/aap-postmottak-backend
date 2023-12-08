@@ -61,7 +61,7 @@ class Prosent private constructor(verdi: BigDecimal) : Comparable<Prosent> {
     }
 
     override fun toString(): String {
-        return "Prosent(verdi=$verdi)"
+        return "Prosent(${verdi * BigDecimal(100)})"
     }
 
     override fun equals(other: Any?): Boolean {

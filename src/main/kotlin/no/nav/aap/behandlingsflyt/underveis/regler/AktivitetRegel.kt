@@ -12,6 +12,7 @@ import no.nav.aap.behandlingsflyt.underveis.tidslinje.Tidslinje
  */
 class AktivitetRegel : UnderveisRegel {
     override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
-        TODO("Not yet implemented")
+        // TODO
+        return resultat
     }
 }

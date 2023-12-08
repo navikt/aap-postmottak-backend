@@ -1,6 +1,8 @@
 package no.nav.aap.behandlingsflyt.underveis
 
-import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.underveis.regler.AktivitetRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.EtAnnetStedRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.GraderingArbeidRegel
@@ -9,7 +11,7 @@ import no.nav.aap.behandlingsflyt.underveis.regler.UnderveisInput
 import no.nav.aap.behandlingsflyt.underveis.regler.Vurdering
 import no.nav.aap.behandlingsflyt.underveis.tidslinje.Tidslinje
 
-class UnderveisService {
+class UnderveisService(private val vilkårsresultatRepository: VilkårsresultatRepository) {
 
     private val regelset = listOf(
         RettTilRegel(),
@@ -18,24 +20,30 @@ class UnderveisService {
         GraderingArbeidRegel()
     )
 
-    fun vurder(kontekst: FlytKontekst) {
-        val resultat = Tidslinje<Vurdering>(listOf())
+    fun vurder(kontekst: BehandlingId): Tidslinje<Vurdering> {
+        val input = genererInput(kontekst)
 
-        vurderRegler(kontekst, resultat)
-
+        return vurderRegler(input)
     }
 
-    internal fun vurderRegler(
-        kontekst: FlytKontekst,
-        resultat: Tidslinje<Vurdering>
-    ) {
+    internal fun vurderRegler(input: UnderveisInput): Tidslinje<Vurdering> {
+        var resultat: Tidslinje<Vurdering> = Tidslinje()
         regelset.forEach { regel ->
-            val input = genererInput(kontekst, resultat)
-            regel.vurder(input, resultat)
+            resultat = regel.vurder(input, resultat)
         }
+        return resultat
     }
 
-    fun genererInput(kontekst: FlytKontekst, resultat: Tidslinje<Vurdering>): UnderveisInput {
-        TODO("GEnerer ")
+    fun genererInput(behandlingId: BehandlingId): UnderveisInput {
+        val vilkårsresultat = vilkårsresultatRepository.hent(behandlingId)
+            .alle()
+            .filter { v ->
+                v.type in setOf(
+                    Vilkårtype.ALDERSVILKÅRET,
+                    Vilkårtype.SYKDOMSVILKÅRET,
+                    Vilkårtype.BISTANDSVILKÅRET
+                )
+            }
+        return UnderveisInput(vilkårsresultat)
     }
 }

@@ -14,6 +14,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.impl.ForeslåVedtakSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.FritakMeldepliktSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.GeneriskPlaceholderFlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.StartBehandlingSteg
+import no.nav.aap.behandlingsflyt.flyt.steg.impl.UnderveisSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderAlderSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderBistandsbehovSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.impl.VurderStudentSteg
@@ -36,7 +37,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = VurderSykepengeErstatningSteg)
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.VURDER_MEDLEMSKAP))
             .medSteg(steg = FastsettGrunnlagSteg, informasjonskrav = listOf(InntektService))
-            .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.FASTSETT_UTTAK))
+            .medSteg(steg = UnderveisSteg)
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.BARNETILLEGG))
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.SAMORDNING))
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.SIMULERING))
