@@ -31,7 +31,7 @@ class KunHøyre<T> : SegmentSammenslåer<T, T, T> {
 class InnerJoinVenstre<T, E> : SegmentSammenslåer<T, E, T> {
     override fun sammenslå(periode: Periode, venstreSegment: Segment<T>?, høyreSegment: Segment<E>?): Segment<T>? {
         val verdi = venstreSegment?.verdi
-        if (verdi == null) {
+        if (verdi == null || høyreSegment?.verdi == null) {
             return null
         }
         return Segment(periode, verdi)
