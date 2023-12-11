@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
-import no.nav.aap.behandlingsflyt.beregning.år.InntektsBehov
+import no.nav.aap.behandlingsflyt.beregning.år.Inntektsbehov
 import no.nav.aap.behandlingsflyt.beregning.år.Input
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
@@ -36,7 +36,7 @@ class InntektService private constructor(
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
 
         val nedsettelsesDato = sykdomGrunnlag.sykdomsvurdering.nedsattArbeidsevneDato
-        val behov = InntektsBehov(Input(nedsettelsesDato = nedsettelsesDato))
+        val behov = Inntektsbehov(Input(nedsettelsesDato = nedsettelsesDato))
         val inntektsBehov = behov.utledAlleRelevanteÅr()
         val sak = sakService.hent(kontekst.sakId)
 

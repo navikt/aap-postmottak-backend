@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.beregning
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
-import no.nav.aap.behandlingsflyt.beregning.år.InntektsBehov
+import no.nav.aap.behandlingsflyt.beregning.år.Inntektsbehov
 import no.nav.aap.behandlingsflyt.beregning.år.Input
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.GUnit
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektGrunnlagRepository
@@ -40,7 +40,7 @@ class BeregningService(
 
     private fun beregn(
         sykdomGrunnlag: SykdomGrunnlag,
-        inntekterPerÅr: List<InntektPerÅr>
+        inntekterPerÅr: Set<InntektPerÅr>
     ): Beregningsgrunnlag {
         val grunnlag11_19 =
             GrunnlagetForBeregningen(inntekterPerÅr).beregnGrunnlaget()
@@ -61,8 +61,8 @@ class BeregningService(
         return grunnlag11_19
     }
 
-    private fun utledInput(sykdomGrunnlag: SykdomGrunnlag): InntektsBehov {
-        return InntektsBehov(
+    private fun utledInput(sykdomGrunnlag: SykdomGrunnlag): Inntektsbehov {
+        return Inntektsbehov(
             Input(
                 nedsettelsesDato = sykdomGrunnlag.sykdomsvurdering?.nedsattArbeidsevneDato!!,
                 ytterligereNedsettelsesDato = sykdomGrunnlag.sykdomsvurdering.ytterligereNedsattArbeidsevneDato
