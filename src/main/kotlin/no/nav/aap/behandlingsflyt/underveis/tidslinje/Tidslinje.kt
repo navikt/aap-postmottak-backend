@@ -4,7 +4,8 @@ import no.nav.aap.behandlingsflyt.Periode
 import java.time.LocalDate
 import java.util.*
 
-class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) {
+
+class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterable<Segment<T>> {
 
     constructor(initSegmenter: List<Segment<T>>) : this(TreeSet(initSegmenter))
 
@@ -81,6 +82,15 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) {
         return Tidslinje(nySammensetning)
     }
 
+    fun disjoint(periode: Periode): Tidslinje<T> {
+        val intervalTimeline: Tidslinje<T> = Tidslinje(listOf(Segment(periode, null)))
+        return disjoint(intervalTimeline, StandardSammenslåere.kunVenstre())
+    }
+
+    fun <V, R> disjoint(other: Tidslinje<V>, combinator: SegmentSammenslåer<T, V, R>): Tidslinje<R> {
+        return kombiner(other, combinator, JoinStyle.DISJOINT)
+    }
+
     fun <V> kryss(other: Tidslinje<V>): Tidslinje<T> {
         return kombiner(other, StandardSammenslåere.kunVenstre(), JoinStyle.INNER_JOIN)
     }
@@ -116,7 +126,9 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) {
         return segmenter.firstOrNull { segment -> segment.inneholder(dato) }
     }
 
-
+    override fun iterator(): Iterator<Segment<T>> {
+        return segmenter.iterator()
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
