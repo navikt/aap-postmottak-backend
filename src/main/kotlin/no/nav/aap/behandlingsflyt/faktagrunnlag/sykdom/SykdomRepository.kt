@@ -31,7 +31,7 @@ class SykdomRepository(private val connection: DBConnection) {
     }
 
     private fun deaktiverGrunnlag(behandlingId: BehandlingId) {
-        connection.execute("UPDATE SYKDOM_GRUNNLAG set aktiv = false WHERE behandling_id = ? and aktiv = true") {
+        connection.execute("UPDATE SYKDOM_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND AKTIV = TRUE") {
             setParams {
                 setLong(1, behandlingId.toLong())
             }
@@ -61,7 +61,7 @@ class SykdomRepository(private val connection: DBConnection) {
         val yrkesskadeId = lagreYrkesskade(nyttGrunnlag.yrkesskadevurdering)
 
         val query = """
-            INSERT INTO SYKDOM_GRUNNLAG (behandling_id, yrkesskade_id, sykdom_id) VALUES (?, ?, ?)
+            INSERT INTO SYKDOM_GRUNNLAG (BEHANDLING_ID, YRKESSKADE_ID, SYKDOM_ID) VALUES (?, ?, ?)
         """.trimIndent()
 
         connection.execute(query) {
@@ -123,9 +123,9 @@ class SykdomRepository(private val connection: DBConnection) {
 
         val query = """
             INSERT INTO SYKDOM_VURDERING 
-            (begrunnelse, er_sykdom_skade_lyte_vesetling_del, er_nedsettelse_høyere_enn_nedre_grense, nedre_grense, nedsettelses_dato)
+            (BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE, NEDSATT_ARBEIDSEVNE_DATO, YTTERLIGERE_NEDSATT_ARBEIDSEVNE_DATO)
             VALUES
-            (?, ?, ?, ?, ?)
+            (?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         val id = connection.executeReturnKey(query) {
@@ -135,6 +135,7 @@ class SykdomRepository(private val connection: DBConnection) {
                 setBoolean(3, vurdering.erNedsettelseIArbeidsevneHøyereEnnNedreGrense)
                 setEnumName(4, vurdering.nedreGrense)
                 setLocalDate(5, vurdering.nedsattArbeidsevneDato)
+                setLocalDate(6, vurdering.ytterligereNedsattArbeidsevneDato)
             }
         }
 
@@ -147,7 +148,7 @@ class SykdomRepository(private val connection: DBConnection) {
 
     private fun lagreSykdomDokument(sykdomsId: Long, journalpostId: JournalpostId) {
         val query = """
-            INSERT INTO SYKDOM_VURDERING_DOKUMENTER (vurdering_id, journalpost) 
+            INSERT INTO SYKDOM_VURDERING_DOKUMENTER (VURDERING_ID, JOURNALPOST) 
             VALUES (?, ?)
         """.trimIndent()
 
@@ -165,7 +166,7 @@ class SykdomRepository(private val connection: DBConnection) {
             return
         }
         val query = """
-            INSERT INTO SYKDOM_GRUNNLAG (behandling_id, yrkesskade_id, sykdom_id) SELECT ?, yrkesskade_id, sykdom_id from SYKDOM_GRUNNLAG where behandling_id = ? and aktiv
+            INSERT INTO SYKDOM_GRUNNLAG (BEHANDLING_ID, YRKESSKADE_ID, SYKDOM_ID) SELECT ?, YRKESSKADE_ID, SYKDOM_ID FROM SYKDOM_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV
         """.trimIndent()
 
         connection.execute(query) {
@@ -178,7 +179,7 @@ class SykdomRepository(private val connection: DBConnection) {
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): SykdomGrunnlag? {
         val query = """
-            SELECT * FROM SYKDOM_GRUNNLAG WHERE behandling_id = ? and aktiv = true
+            SELECT * FROM SYKDOM_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV = TRUE
         """.trimIndent()
         return connection.queryFirstOrNull(query) {
             setParams {
@@ -190,9 +191,9 @@ class SykdomRepository(private val connection: DBConnection) {
 
     private fun mapGrunnlag(row: Row): SykdomGrunnlag {
         return SykdomGrunnlag(
-            row.getLong("id"),
-            mapYrkesskade(row.getLongOrNull("yrkesskade_id")),
-            mapSykdom(row.getLongOrNull("sykdom_id"))
+            row.getLong("ID"),
+            mapYrkesskade(row.getLongOrNull("YRKESSKADE_ID")),
+            mapSykdom(row.getLongOrNull("SYKDOM_ID"))
         )
     }
 
@@ -200,36 +201,36 @@ class SykdomRepository(private val connection: DBConnection) {
         if (sykdomId == null) {
             return null
         }
-        val query = """
-            SELECT * FROM SYKDOM_VURDERING WHERE id = ?
-        """.trimIndent()
-        return connection.queryFirstOrNull(query) {
+        return connection.queryFirstOrNull(
+            """
+            SELECT BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE, NEDSATT_ARBEIDSEVNE_DATO, YTTERLIGERE_NEDSATT_ARBEIDSEVNE_DATO
+            FROM SYKDOM_VURDERING WHERE id = ?
+            """.trimIndent()
+        ) {
             setParams {
                 setLong(1, sykdomId)
             }
             setRowMapper { row ->
                 Sykdomsvurdering(
-                    row.getString("begrunnelse"),
+                    row.getString("BEGRUNNELSE"),
                     hentSykdomsDokumenter(sykdomId),
-                    row.getBoolean("er_sykdom_skade_lyte_vesetling_del"),
-                    row.getBooleanOrNull("er_nedsettelse_høyere_enn_nedre_grense"),
-                    NedreGrense.valueOf(row.getString("nedre_grense")),
-                    row.getLocalDateOrNull("nedsettelses_dato")
+                    row.getBoolean("ER_SYKDOM_SKADE_LYTE_VESETLING_DEL"),
+                    row.getBooleanOrNull("ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE"),
+                    row.getEnumOrNull<NedreGrense>("NEDRE_GRENSE"),
+                    row.getLocalDateOrNull("NEDSATT_ARBEIDSEVNE_DATO"),
+                    row.getLocalDateOrNull("YTTERLIGERE_NEDSATT_ARBEIDSEVNE_DATO")
                 )
             }
         }
     }
 
     private fun hentSykdomsDokumenter(yrkesskadeId: Long): List<JournalpostId> {
-        val query = """
-            SELECT journalpost FROM SYKDOM_VURDERING_DOKUMENTER WHERE vurdering_id = ?
-        """.trimIndent()
-        return connection.queryList(query) {
+        return connection.queryList("SELECT JOURNALPOST FROM SYKDOM_VURDERING_DOKUMENTER WHERE VURDERING_ID = ?") {
             setParams {
                 setLong(1, yrkesskadeId)
             }
             setRowMapper { row ->
-                JournalpostId(row.getString("journalpost"))
+                JournalpostId(row.getString("JOURNALPOST"))
             }
         }
     }
@@ -239,7 +240,9 @@ class SykdomRepository(private val connection: DBConnection) {
             return null
         }
         val query = """
-            SELECT * FROM YRKESSKADE_VURDERING WHERE id = ?
+            SELECT BEGRUNNELSE, ARSAKSSAMMENHENG, SKADEDATO, ANDEL_AV_NEDSETTELSE, ANTATT_ARLIG_INNTEKT
+            FROM YRKESSKADE_VURDERING
+            WHERE ID = ?
         """.trimIndent()
         return connection.queryFirstOrNull(query) {
             setParams {
@@ -260,14 +263,14 @@ class SykdomRepository(private val connection: DBConnection) {
 
     private fun hentYrkesskadeDokumenter(yrkesskadeId: Long): List<JournalpostId> {
         val query = """
-            SELECT journalpost FROM YRKESSKADE_VURDERING_DOKUMENTER WHERE vurdering_id = ?
+            SELECT JOURNALPOST FROM YRKESSKADE_VURDERING_DOKUMENTER WHERE VURDERING_ID = ?
         """.trimIndent()
         return connection.queryList(query) {
             setParams {
                 setLong(1, yrkesskadeId)
             }
             setRowMapper { row ->
-                JournalpostId(row.getString("journalpost"))
+                JournalpostId(row.getString("JOURNALPOST"))
             }
         }
     }

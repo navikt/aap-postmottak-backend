@@ -119,7 +119,7 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
     private fun mapVilkår(row: Row): Vilkår {
         val id = row.getLong("id")
         return Vilkår(
-            type = Vilkårtype.valueOf(row.getString("type")),
+            type = row.getEnum("type"),
             vilkårsperioder = hentPerioder(id)
         )
     }
@@ -140,12 +140,12 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
     private fun mapPerioder(row: Row): Vilkårsperiode {
         return Vilkårsperiode(
             periode = row.getPeriode("periode"),
-            utfall = Utfall.valueOf(row.getString("utfall")),
+            utfall = row.getEnum("utfall"),
             manuellVurdering = row.getBoolean("manuell_vurdering"),
             faktagrunnlag = LazyFaktaGrunnlag(connection = connection, periodeId = row.getLong("id")),
             begrunnelse = row.getStringOrNull("begrunnelse"),
-            avslagsårsak = row.getStringOrNull("avslagsarsak")?.let { Avslagsårsak.valueOf(it) },
-            innvilgelsesårsak = row.getStringOrNull("innvilgelsesarsak")?.let { Innvilgelsesårsak.valueOf(it) },
+            avslagsårsak = row.getEnumOrNull<Avslagsårsak>("avslagsarsak"),
+            innvilgelsesårsak = row.getEnumOrNull<Innvilgelsesårsak>("innvilgelsesarsak"),
             versjon = row.getString("versjon")
         )
     }

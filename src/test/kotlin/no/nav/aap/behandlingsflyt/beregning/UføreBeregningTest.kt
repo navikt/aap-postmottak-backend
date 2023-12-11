@@ -43,4 +43,17 @@ class UføreBeregningTest {
 
         assertThat(grunnlagUføre.grunnlaget()).isEqualTo(GUnit(5))
     }
+
+    @Test
+    fun `Hvis bruker hadde lavere inntekt ved ytterligere nedsatt, justert for uføregrad, brukes inntekter fra nedsatt med halvparten`() {
+        val uføreBeregning = UføreBeregning(
+            grunnlag = Grunnlag11_19(GUnit(4)),
+            ytterligereNedsattGrunnlag = Grunnlag11_19(GUnit("3.5")),
+            uføregrad = Prosent.`30_PROSENT`
+        )
+
+        val grunnlagUføre = uføreBeregning.beregnUføre()
+
+        assertThat(grunnlagUføre.grunnlaget()).isEqualTo(GUnit(5))
+    }
 }

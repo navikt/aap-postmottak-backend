@@ -28,8 +28,7 @@ class FastsettGrunnlagSteg(private val beregningService: BeregningService) : Beh
             return FastsettGrunnlagSteg(
                 BeregningService(
                     InntektGrunnlagRepository(connection),
-                    SykdomRepository(connection),
-                    YrkesskadeRepository(connection)
+                    SykdomRepository(connection)
                 )
             )
         }

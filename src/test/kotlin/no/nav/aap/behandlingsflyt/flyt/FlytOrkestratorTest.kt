@@ -153,7 +153,8 @@ class FlytOrkestratorTest {
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                             nedreGrense = NedreGrense.FEMTI,
-                            nedsattArbeidsevneDato = LocalDate.now()
+                            nedsattArbeidsevneDato = LocalDate.now(),
+                            ytterligereNedsattArbeidsevneDato = null
                         )
                     )
                 )
@@ -309,7 +310,8 @@ class FlytOrkestratorTest {
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                             nedreGrense = NedreGrense.TRETTI,
-                            nedsattArbeidsevneDato = LocalDate.now()
+                            nedsattArbeidsevneDato = LocalDate.now(),
+                            ytterligereNedsattArbeidsevneDato = null
                         )
                     )
                 )
@@ -335,8 +337,8 @@ class FlytOrkestratorTest {
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
         dataSource.transaction {
-            val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
-            assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
+            val avklaringsbehovene = hentAvklaringsbehov(behandling.id, it)
+            assertThat(avklaringsbehovene.alle()).anySatisfy { avklaringsbehov -> avklaringsbehov.erÅpent() && avklaringsbehov.definisjon == Definisjon.FORESLÅ_VEDTAK }
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
@@ -475,7 +477,8 @@ class FlytOrkestratorTest {
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                             nedreGrense = NedreGrense.FEMTI,
-                            nedsattArbeidsevneDato = LocalDate.now()
+                            nedsattArbeidsevneDato = LocalDate.now(),
+                            ytterligereNedsattArbeidsevneDato = null
                         )
                     )
                 )
@@ -564,7 +567,8 @@ class FlytOrkestratorTest {
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                             nedreGrense = NedreGrense.FEMTI,
-                            nedsattArbeidsevneDato = LocalDate.now()
+                            nedsattArbeidsevneDato = LocalDate.now(),
+                            ytterligereNedsattArbeidsevneDato = null
                         )
                     ),
                     ingenEndringIGruppe = true

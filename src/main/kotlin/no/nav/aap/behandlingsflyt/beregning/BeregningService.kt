@@ -8,22 +8,18 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektGrunnlagRepositor
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeGrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRepository
 import java.time.Year
 
 class BeregningService(
     private val inntektGrunnlagRepository: InntektGrunnlagRepository,
-    private val sykdomRepository: SykdomRepository,
-    private val yrkesskadeRepository: YrkesskadeRepository
+    private val sykdomRepository: SykdomRepository
 ) {
 
     fun beregnGrunnlag(behandlingId: BehandlingId): GUnit {
         val inntektGrunnlag = inntektGrunnlagRepository.hent(behandlingId)
         val sykdomGrunnlag = sykdomRepository.hent(behandlingId)
-        val yrkesskade = yrkesskadeRepository.hentHvisEksisterer(behandlingId)
 
-        val inntekter = utledInput(sykdomGrunnlag, yrkesskade)
+        val inntekter = utledInput(sykdomGrunnlag)
 
         val beregningMedYrkesskade = beregn(sykdomGrunnlag, inntekter.utledForOrdinær(inntektGrunnlag.inntekter))
 
@@ -65,12 +61,11 @@ class BeregningService(
         return grunnlag11_19
     }
 
-    private fun utledInput(sykdomGrunnlag: SykdomGrunnlag, yrkesskade: YrkesskadeGrunnlag?): InntektsBehov {
+    private fun utledInput(sykdomGrunnlag: SykdomGrunnlag): InntektsBehov {
         return InntektsBehov(
             Input(
                 nedsettelsesDato = sykdomGrunnlag.sykdomsvurdering?.nedsattArbeidsevneDato!!,
-                //TODO: Få tak i riktig yrkesskade
-                ytterligereNedsettelsesDato = yrkesskade?.yrkesskader?.yrkesskader?.first()?.periode?.fom
+                ytterligereNedsettelsesDato = sykdomGrunnlag.sykdomsvurdering.ytterligereNedsattArbeidsevneDato
             )
         )
     }

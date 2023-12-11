@@ -151,7 +151,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         return Avklaringsbehov(
             id = id,
             definisjon = definisjon,
-            funnetISteg = StegType.valueOf(row.getString("funnet_i_steg")),
+            funnetISteg = row.getEnum("funnet_i_steg"),
             kreverToTrinn = row.getBooleanOrNull("krever_to_trinn"),
             historikk = hentEndringer(id).toMutableList()
         )
@@ -176,7 +176,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
 
     private fun mapEndringer(row: Row): Endring {
         return Endring(
-            status = Status.valueOf(row.getString("status")),
+            status = row.getEnum("status"),
             tidsstempel = row.getLocalDateTime("opprettet_tid"),
             begrunnelse = row.getString("begrunnelse"),
             endretAv = row.getString("opprettet_av")

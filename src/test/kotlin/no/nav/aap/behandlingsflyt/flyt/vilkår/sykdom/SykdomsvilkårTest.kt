@@ -19,11 +19,19 @@ class SykdomsvilkårTest {
 
         Sykdomsvilkår(vilkårsresultat).vurder(
             SykdomsFaktagrunnlag(
-                LocalDate.now(),
-                LocalDate.now().plusYears(3),
-                null,
-                Sykdomsvurdering("", listOf(), true, true, NedreGrense.FEMTI, LocalDate.now().minusYears(1)),
-                null
+                vurderingsdato = LocalDate.now(),
+                sisteDagMedMuligYtelse = LocalDate.now().plusYears(3),
+                yrkesskadevurdering = null,
+                sykdomsvurdering = Sykdomsvurdering(
+                    begrunnelse = "",
+                    dokumenterBruktIVurdering = listOf(),
+                    erSkadeSykdomEllerLyteVesentligdel = true,
+                    erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
+                    nedreGrense = NedreGrense.FEMTI,
+                    nedsattArbeidsevneDato = LocalDate.now().minusYears(1),
+                    ytterligereNedsattArbeidsevneDato = null
+                ),
+                studentvurdering = null
             )
         )
         val vilkår = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
@@ -32,11 +40,19 @@ class SykdomsvilkårTest {
 
         Sykdomsvilkår(vilkårsresultat).vurder(
             SykdomsFaktagrunnlag(
-                LocalDate.now(),
-                LocalDate.now().plusYears(3),
-                null,
-                Sykdomsvurdering("", listOf(), true, false, NedreGrense.FEMTI, LocalDate.now().minusYears(1)),
-                null
+                vurderingsdato = LocalDate.now(),
+                sisteDagMedMuligYtelse = LocalDate.now().plusYears(3),
+                yrkesskadevurdering = null,
+                sykdomsvurdering = Sykdomsvurdering(
+                    begrunnelse = "",
+                    dokumenterBruktIVurdering = listOf(),
+                    erSkadeSykdomEllerLyteVesentligdel = true,
+                    erNedsettelseIArbeidsevneHøyereEnnNedreGrense = false,
+                    nedreGrense = NedreGrense.FEMTI,
+                    nedsattArbeidsevneDato = LocalDate.now().minusYears(1),
+                    ytterligereNedsattArbeidsevneDato = null
+                ),
+                studentvurdering = null
             )
         )
 

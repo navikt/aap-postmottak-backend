@@ -130,6 +130,6 @@ class SakRepositoryImpl(private val connection: DBConnection) : SakRepository, S
         person = personRepository.hent(row.getLong("person_id")),
         rettighetsperiode = row.getPeriode("rettighetsperiode"),
         saksnummer = Saksnummer(row.getString("saksnummer")),
-        status = Status.valueOf(row.getString("status"))
+        status = row.getEnum("status")
     )
 }

@@ -157,18 +157,19 @@ CREATE INDEX IDX_OPPGAVE_HISTORIKK_STATUS ON OPPGAVE_HISTORIKK (oppgave_id, stat
 CREATE TABLE SYKDOM_VURDERING
 (
     ID                                     BIGSERIAL   NOT NULL PRIMARY KEY,
-    begrunnelse                            text        not null,
-    er_sykdom_skade_lyte_vesetling_del     boolean     not null,
-    er_nedsettelse_høyere_enn_nedre_grense boolean     null,
-    nedre_grense                           varchar(25) not null,
-    nedsettelses_dato                      date        null
+    BEGRUNNELSE                            TEXT        NOT NULL,
+    ER_SYKDOM_SKADE_LYTE_VESETLING_DEL     BOOLEAN     NOT NULL,
+    ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE BOOLEAN     NULL,
+    NEDRE_GRENSE                           VARCHAR(25) NOT NULL,
+    NEDSATT_ARBEIDSEVNE_DATO               DATE        NULL,
+    YTTERLIGERE_NEDSATT_ARBEIDSEVNE_DATO   DATE        NULL
 );
 
 CREATE TABLE SYKDOM_VURDERING_DOKUMENTER
 (
     ID           BIGSERIAL   NOT NULL PRIMARY KEY,
-    vurdering_id bigint      not null references SYKDOM_VURDERING,
-    journalpost  varchar(25) not null
+    VURDERING_ID BIGINT      NOT NULL REFERENCES SYKDOM_VURDERING (ID),
+    JOURNALPOST  VARCHAR(25) NOT NULL
 );
 CREATE UNIQUE INDEX UIDX_SYKDOM_VURDERING_DOKUMENTER ON SYKDOM_VURDERING_DOKUMENTER (journalpost, vurdering_id);
 
@@ -184,19 +185,19 @@ CREATE TABLE YRKESSKADE_VURDERING
 CREATE TABLE YRKESSKADE_VURDERING_DOKUMENTER
 (
     ID           BIGSERIAL   NOT NULL PRIMARY KEY,
-    vurdering_id bigint      not null references YRKESSKADE_VURDERING,
-    journalpost  varchar(25) not null
+    VURDERING_ID BIGINT      NOT NULL REFERENCES YRKESSKADE_VURDERING (ID),
+    JOURNALPOST  VARCHAR(25) NOT NULL
 );
-CREATE UNIQUE INDEX UIDX_YRKESSKADE_VURDERING_DOKUMENTER ON YRKESSKADE_VURDERING_DOKUMENTER (journalpost, vurdering_id);
+CREATE UNIQUE INDEX UIDX_YRKESSKADE_VURDERING_DOKUMENTER ON YRKESSKADE_VURDERING_DOKUMENTER (JOURNALPOST, VURDERING_ID);
 
 CREATE TABLE SYKDOM_GRUNNLAG
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
-    behandling_id BIGINT                                 NOT NULL REFERENCES BEHANDLING (ID),
-    yrkesskade_id BIGINT                                 null references YRKESSKADE_VURDERING,
-    sykdom_id     BIGINT                                 null references SYKDOM_VURDERING,
-    aktiv         boolean      default true              NOT NULL,
-    opprettet_tid TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+    BEHANDLING_ID BIGINT                                 NOT NULL REFERENCES BEHANDLING (ID),
+    YRKESSKADE_ID BIGINT                                 NULL REFERENCES YRKESSKADE_VURDERING (ID),
+    SYKDOM_ID     BIGINT                                 NULL REFERENCES SYKDOM_VURDERING (ID),
+    AKTIV         BOOLEAN      DEFAULT TRUE              NOT NULL,
+    OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE UNIQUE INDEX UIDX_SYKDOM_GRUNNLAG_HISTORIKK ON SYKDOM_GRUNNLAG (BEHANDLING_ID) WHERE (AKTIV = TRUE);

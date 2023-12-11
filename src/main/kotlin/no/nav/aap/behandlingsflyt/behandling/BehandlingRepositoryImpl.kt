@@ -5,8 +5,6 @@ import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Revurdering
-import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
-import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
 import no.nav.aap.behandlingsflyt.sak.SakId
 import java.time.LocalDateTime
@@ -65,20 +63,23 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    private fun mapBehandling(it: Row): Behandling {
-        val behandlingId = BehandlingId(it.getLong("id"))
+    private fun mapBehandling(row: Row): Behandling {
+        val behandlingId = BehandlingId(row.getLong("id"))
         return Behandling(
             id = behandlingId,
-            referanse = it.getUUID("referanse"),
-            sakId = SakId(it.getLong("sak_id")),
-            type = utledType(it.getString("type")),
-            status = Status.valueOf(it.getString("status")),
+            referanse = row.getUUID("referanse"),
+            sakId = SakId(row.getLong("sak_id")),
+            type = utledType(row.getString("type")),
+            status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
-            versjon = it.getLong("versjon")
+            versjon = row.getLong("versjon")
         )
     }
 
-    override fun oppdaterBehandlingStatus(behandlingId: BehandlingId, status: no.nav.aap.behandlingsflyt.behandling.Status) {
+    override fun oppdaterBehandlingStatus(
+        behandlingId: BehandlingId,
+        status: Status
+    ) {
         val query = """UPDATE behandling SET status = ? WHERE ID = ?"""
 
         return connection.execute(query) {
@@ -128,12 +129,12 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             setParams {
                 setLong(1, behandlingId.toLong())
             }
-            setRowMapper {
+            setRowMapper { row ->
                 StegTilstand(
-                    tidspunkt = it.getLocalDateTime("OPPRETTET_TID"),
+                    tidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
                     tilstand = Tilstand(
-                        type = StegType.valueOf(it.getString("steg")),
-                        status = StegStatus.valueOf(it.getString("status"))
+                        type = row.getEnum("steg"),
+                        status = row.getEnum("status")
                     )
                 )
             }
