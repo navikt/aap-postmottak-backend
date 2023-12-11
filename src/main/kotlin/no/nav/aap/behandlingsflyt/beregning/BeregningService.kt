@@ -8,21 +8,46 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektGrunnlagRepositor
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeGrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRepository
 import java.time.Year
 
 class BeregningService(
     private val inntektGrunnlagRepository: InntektGrunnlagRepository,
-    private val sykdomRepository: SykdomRepository
+    private val sykdomRepository: SykdomRepository,
+    private val yrkesskadeRepository: YrkesskadeRepository
 ) {
 
     fun beregnGrunnlag(behandlingId: BehandlingId): GUnit {
         val inntektGrunnlag = inntektGrunnlagRepository.hent(behandlingId)
         val sykdomGrunnlag = sykdomRepository.hent(behandlingId)
+        val yrkesskade = yrkesskadeRepository.hentHvisEksisterer(behandlingId)
 
-        val inntekter = utledInput(sykdomGrunnlag)
+        val inntekter = utledInput(sykdomGrunnlag, yrkesskade)
 
+        val beregningMedYrkesskade = beregn(sykdomGrunnlag, inntekter.utledForOrdinær(inntektGrunnlag.inntekter))
+
+        val inntekterYtterligereNedsatt = inntekter.utledForYtterligereNedsatt(inntektGrunnlag.inntekter)
+
+        if (inntekterYtterligereNedsatt != null) {
+            val beregningMedYrkesskadeVedYtterligereNedsatt = beregn(sykdomGrunnlag, inntekterYtterligereNedsatt)
+            val uføreberegning = UføreBeregning(
+                beregningMedYrkesskade,
+                beregningMedYrkesskadeVedYtterligereNedsatt,
+                Prosent.`0_PROSENT` //FIXME: Finn uføregrad
+            )
+            return uføreberegning.beregnUføre().grunnlaget()
+        }
+
+        return beregningMedYrkesskade.grunnlaget()
+    }
+
+    private fun beregn(
+        sykdomGrunnlag: SykdomGrunnlag,
+        inntekterPerÅr: List<InntektPerÅr>
+    ): Beregningsgrunnlag {
         val grunnlag11_19 =
-            GrunnlagetForBeregningen(inntekter.utledForOrdinær(inntektGrunnlag.inntekter)).beregnGrunnlaget()
+            GrunnlagetForBeregningen(inntekterPerÅr).beregnGrunnlaget()
 
         val skadetidspunkt = sykdomGrunnlag.yrkesskadevurdering?.skadetidspunkt
         val antattÅrligInntekt = sykdomGrunnlag.yrkesskadevurdering?.antattÅrligInntekt
@@ -34,13 +59,19 @@ class BeregningService(
                 antattÅrligInntekt = inntektPerÅr,
                 andelAvNedsettelsenSomSkyldesYrkesskaden = andelAvNedsettelsenSomSkyldesYrkesskaden
             ).beregnYrkesskaden()
-            return yrkesskaden.grunnlaget()
+            return yrkesskaden
         }
 
-        return grunnlag11_19.grunnlaget()
+        return grunnlag11_19
     }
 
-    private fun utledInput(sykdomGrunnlag: SykdomGrunnlag): InntektsBehov {
-        return InntektsBehov(Input(sykdomGrunnlag.sykdomsvurdering?.nedsattArbeidsevneDato!!))
+    private fun utledInput(sykdomGrunnlag: SykdomGrunnlag, yrkesskade: YrkesskadeGrunnlag?): InntektsBehov {
+        return InntektsBehov(
+            Input(
+                nedsettelsesDato = sykdomGrunnlag.sykdomsvurdering?.nedsattArbeidsevneDato!!,
+                //TODO: Få tak i riktig yrkesskade
+                ytterligereNedsettelsesDato = yrkesskade?.yrkesskader?.yrkesskader?.first()?.periode?.fom
+            )
+        )
     }
 }

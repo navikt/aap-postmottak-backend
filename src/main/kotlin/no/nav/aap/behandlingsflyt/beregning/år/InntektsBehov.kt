@@ -22,4 +22,13 @@ class InntektsBehov(private val input: Input) {
         val relevanteÅr = treÅrForutFor(input.nedsettelsesDato)
         return inntekter.filter { relevanteÅr.contains(it.år) }
     }
+
+    fun utledForYtterligereNedsatt(inntekter: Set<InntektPerÅr>): List<InntektPerÅr>? {
+        val ytterligereNedsettelsesDato = input.ytterligereNedsettelsesDato
+        if(ytterligereNedsettelsesDato == null){
+            return null
+        }
+        val relevanteÅr = treÅrForutFor(ytterligereNedsettelsesDato)
+        return inntekter.filter { inntektPerÅr -> inntektPerÅr.år in relevanteÅr }
+    }
 }
