@@ -47,6 +47,6 @@ class UnderveisService(private val vilkårsresultatRepository: VilkårsresultatR
             }
         val førsteSøknadstidspunkt = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET).førsteDatoTilVurdering()
 
-        return UnderveisInput(førsteSøknadstidspunkt, relevanteVilkår)
+        return UnderveisInput(førsteSøknadstidspunkt, relevanteVilkår, listOf())
     }
 }

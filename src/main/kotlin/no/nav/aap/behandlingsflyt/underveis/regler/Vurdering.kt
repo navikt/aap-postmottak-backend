@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 class Vurdering {
     private val vurderinger: HashMap<Vilkårtype, Utfall> = HashMap()
     private var gradering: Gradering? = null
+    private var grenseverdi: Prosent? = null
 
     fun leggTilVurdering(vilkårtype: Vilkårtype, utfall: Utfall) {
         vurderinger[vilkårtype] = utfall
@@ -14,6 +15,10 @@ class Vurdering {
 
     fun leggTilGradering(gradering: Gradering) {
         this.gradering = gradering
+    }
+
+    fun leggTilGrenseverdi(grenseverdi: Prosent) {
+        this.grenseverdi = grenseverdi
     }
 
     fun vurderinger(): Map<Vilkårtype, Utfall> {

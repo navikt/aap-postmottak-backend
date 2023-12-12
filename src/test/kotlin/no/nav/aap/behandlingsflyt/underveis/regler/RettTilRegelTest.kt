@@ -26,7 +26,11 @@ class RettTilRegelTest {
         val bistandVilkåret =
             Vilkår(Vilkårtype.BISTANDSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
 
-        val input = UnderveisInput(førsteFastsatteDag = søknadsdato, listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret))
+        val input = UnderveisInput(
+            førsteFastsatteDag = søknadsdato,
+            listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
+            listOf()
+        )
         val grunnleggendeRettTidslinje = regel.vurder(input = input, Tidslinje())
 
         val segmenter = grunnleggendeRettTidslinje.segmenter()
@@ -61,7 +65,11 @@ class RettTilRegelTest {
         val bistandVilkåret =
             Vilkår(Vilkårtype.BISTANDSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
 
-        val input = UnderveisInput(førsteFastsatteDag = søknadsdato, listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret))
+        val input = UnderveisInput(
+            førsteFastsatteDag = søknadsdato,
+            listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
+            listOf()
+        )
         val grunnleggendeRettTidslinje = regel.vurder(input = input, Tidslinje())
 
         val segmenter = grunnleggendeRettTidslinje.segmenter()
