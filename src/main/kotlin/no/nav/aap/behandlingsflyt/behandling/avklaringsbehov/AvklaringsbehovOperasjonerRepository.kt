@@ -14,6 +14,5 @@ interface AvklaringsbehovOperasjonerRepository {
     @Deprecated("Vi ønsker å endre domeneobjektet, og la det lagre seg selv. Bruk `endre(avklaringsbehov)` i stedet.", replaceWith=ReplaceWith("endre"), DeprecationLevel.WARNING)
     fun endreAvklaringsbehov(avklaringsbehovId: Long, status: Status, begrunnelse: String, opprettetAv: String)
     fun endre(avklaringsbehov: Avklaringsbehov)
-    fun løs(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, kreverToTrinn: Boolean?)
     fun kreverToTrinn(avklaringsbehovId: Long, kreverToTrinn: Boolean)
 }

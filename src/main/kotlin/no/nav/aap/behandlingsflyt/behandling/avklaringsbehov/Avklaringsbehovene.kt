@@ -28,6 +28,7 @@ class Avklaringsbehovene(
     fun leggTil(avklaringsbehov: Avklaringsbehov) {
         val relevantBehov = alle().firstOrNull { it.definisjon == avklaringsbehov.definisjon }
 
+        //TODO: Flytte denne sjekken et hakk opp?
         if (relevantBehov != null) {
             repository.endreAvklaringsbehov(
                 avklaringsbehovId = relevantBehov.id,

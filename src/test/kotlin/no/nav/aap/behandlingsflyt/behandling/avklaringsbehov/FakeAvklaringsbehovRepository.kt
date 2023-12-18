@@ -37,10 +37,6 @@ class FakeAvklaringsbehovRepository : AvklaringsbehovRepository, Avklaringsbehov
         behovPerBehandling[behandlingId] = avklaringsbehov
     }
 
-    override fun løs(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, kreverToTrinn: Boolean?) {
-
-    }
-
     override fun hent(behandlingId: BehandlingId): Avklaringsbehovene {
         return Avklaringsbehovene(this, behandlingId)
     }

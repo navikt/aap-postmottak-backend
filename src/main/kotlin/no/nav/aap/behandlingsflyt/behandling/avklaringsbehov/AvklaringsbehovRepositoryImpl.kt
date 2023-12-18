@@ -65,20 +65,6 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         }
     }
 
-    override fun løs(behandlingId: BehandlingId, definisjon: Definisjon, begrunnelse: String, kreverToTrinn: Boolean?) {
-        val avklaringsbehov = hent(behandlingId).hentBehovForDefinisjon(definisjon)
-
-        if (avklaringsbehov == null) {
-            throw IllegalStateException("Fant ikke avklaringsbehov med $definisjon for behandling $behandlingId")
-        }
-
-        if (kreverToTrinn != null) {
-            kreverToTrinn(avklaringsbehov.id, kreverToTrinn)
-        }
-
-        endreAvklaringsbehov(avklaringsbehov.id, Status.AVSLUTTET, begrunnelse, "Saksbehandler")
-    }
-
     override fun endreAvklaringsbehov(
         avklaringsbehovId: Long,
         status: Status,
