@@ -101,6 +101,24 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         }
     }
 
+    override fun endre(avklaringsbehov: Avklaringsbehov) {
+        val query = """
+            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
+            VALUES (?, ?, ?, ?, ?)
+            """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setLong(1, avklaringsbehov.id)
+                setEnumName(2, avklaringsbehov.status())
+                setString(3, avklaringsbehov.begrunnelse())
+                setString(4, avklaringsbehov.endretAv())
+                setLocalDateTime(5, LocalDateTime.now())
+            }
+        }
+
+    }
+
     override fun hent(behandlingId: BehandlingId): Avklaringsbehovene {
         return Avklaringsbehovene(
             repository = this,

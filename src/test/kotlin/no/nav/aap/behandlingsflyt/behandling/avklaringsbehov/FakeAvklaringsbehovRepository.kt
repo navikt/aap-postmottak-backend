@@ -61,4 +61,8 @@ class FakeAvklaringsbehovRepository : AvklaringsbehovRepository, Avklaringsbehov
     ) {
 
     }
+
+    override fun endre(avklaringsbehov: Avklaringsbehov) {
+
+    }
 }

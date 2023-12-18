@@ -75,6 +75,9 @@ class Avklaringsbehov(
         return historikk.last().status
     }
 
+    fun begrunnelse(): String = historikk.last().begrunnelse
+    fun endretAv(): String = historikk.last().endretAv
+
     fun skalLøsesISteg(type: StegType): Boolean {
         return definisjon.skalLøsesISteg(type, funnetISteg)
     }
@@ -97,6 +100,5 @@ class Avklaringsbehov(
     override fun toString(): String {
         return "Avklaringsbehov(definisjon=$definisjon, status=${status()})"
     }
-
 
 }
