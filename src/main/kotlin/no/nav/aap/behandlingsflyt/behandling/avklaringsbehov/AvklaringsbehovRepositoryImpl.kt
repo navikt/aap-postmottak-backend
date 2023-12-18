@@ -112,7 +112,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         )
     }
 
-    override fun hentBehovene(behandlingId: BehandlingId): List<Avklaringsbehov> {
+    override fun hentAvklaringsbehovene(behandlingId: BehandlingId): List<Avklaringsbehov> {
         val query = """
             SELECT * FROM AVKLARINGSBEHOV WHERE behandling_id = ?
             """.trimIndent()

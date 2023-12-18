@@ -41,7 +41,7 @@ class FakeAvklaringsbehovRepository : AvklaringsbehovRepository, Avklaringsbehov
         return Avklaringsbehovene(this, behandlingId)
     }
 
-    override fun hentBehovene(behandlingId: BehandlingId): List<Avklaringsbehov> {
+    override fun hentAvklaringsbehovene(behandlingId: BehandlingId): List<Avklaringsbehov> {
         return behovPerBehandling.getOrDefault(behandlingId, listOf())
     }
 
