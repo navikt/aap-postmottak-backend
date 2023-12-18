@@ -186,13 +186,10 @@ class FlytOrkestrator(
 
     fun settBehandlingPåVent(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        behandling.settPåVent()
         //TODO: Vi må huske å lagre behandling etter at vi har endret status
-        //TODO: settPåVent oppretter også avklaringsbehov som under - duplikat?
-        avklaringsbehovRepository.leggTilAvklaringsbehov(
-            behandling.id,
-            Definisjon.MANUELT_SATT_PÅ_VENT,
-            behandling.aktivtSteg()
-        )
+        behandling.settPåVent()
+
+        val avklaringsbehovene = avklaringsbehovRepository.hent(kontekst.behandlingId)
+        avklaringsbehovene.leggTil(listOf(Definisjon.MANUELT_SATT_PÅ_VENT), behandling.aktivtSteg())
     }
 }

@@ -9,6 +9,7 @@ import java.time.LocalDateTime
 class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : AvklaringsbehovRepository, AvklaringsbehovOperasjonerRepository {
 
     override fun leggTilAvklaringsbehov(behandlingId: BehandlingId, definisjon: Definisjon, funnetISteg: StegType) {
+        //TODO: Kan vi utelukke denne sjekken? LeggTil burde alltid opprette - finnes den fra før må den evt. endres.
         var avklaringsbehovId = hentRelevantAvklaringsbehov(behandlingId, definisjon)
 
         if (avklaringsbehovId == null) {
@@ -38,6 +39,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         }
     }
 
+    //TODO: Hvorfor setter vi ikke toTrinn som true/false når vi oppretter et Avklaringsbehov? Hvorfor er dette nullable?
     private fun opprettAvklaringsbehov(
         behandlingId: BehandlingId,
         definisjon: Definisjon,

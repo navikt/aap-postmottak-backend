@@ -44,6 +44,8 @@ class Avklaringsbehovene(
                 definisjon = definisjon,
                 funnetISteg = stegType
             )
+            //TODO: Må legge til avklaringsbehov til listen
+            //avklaringsbehovene.add(avklaringsbehov)
         }
     }
 
