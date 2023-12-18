@@ -117,12 +117,4 @@ class AvklaringsbehoveneTest {
 
         assertThat(avklaringsbehovene.åpne()).hasSize(1)
     }
-
-    @Test
-    fun `skal kunne legge til en liste med avklaringsbehov funnet i et gitt steg`() {
-        val avklaringsbehovene = Avklaringsbehovene(avklaringsbehovRepository, BehandlingId(5))
-        avklaringsbehovene.leggTil(listOf(Definisjon.AVKLAR_SYKDOM, Definisjon.FATTE_VEDTAK), StegType.AVKLAR_SYKDOM)
-        assertThat(avklaringsbehovene.alle()).hasSize(2)
-    }
-
 }

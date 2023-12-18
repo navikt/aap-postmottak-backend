@@ -12,19 +12,6 @@ class Avklaringsbehovene(
 
     private var avklaringsbehovene: MutableList<Avklaringsbehov> = repository.hentBehovene(behandlingId).toMutableList()
 
-    fun leggTil(funnetAvklaringsbehov: List<Definisjon>, steg: StegType) {
-        funnetAvklaringsbehov.stream()
-            .map { definisjon ->
-                Avklaringsbehov(
-                    id = Long.MAX_VALUE,
-                    definisjon = definisjon,
-                    funnetISteg = steg,
-                    kreverToTrinn = null
-                )
-            }
-            .forEach { this.leggTil(it) }
-    }
-
     fun leggTil(avklaringsbehov: Avklaringsbehov) {
         val relevantBehov = alle().firstOrNull { it.definisjon == avklaringsbehov.definisjon }
 
