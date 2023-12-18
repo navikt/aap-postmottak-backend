@@ -13,12 +13,22 @@ class UføreBeregning(
     fun beregnUføre(): GrunnlagUføre {
         val oppjustertGrunnlagVedUføre = ytterligereNedsattGrunnlag.grunnlaget().dividert(uføregrad.kompliment())
 
-        val høyesteGrunnlag = maxOf(grunnlag.grunnlaget(), oppjustertGrunnlagVedUføre)
+        if (grunnlag.grunnlaget() >= oppjustertGrunnlagVedUføre) {
+            return GrunnlagUføre(
+                grunnlaget = grunnlag.grunnlaget(),
+                gjeldende = GrunnlagUføre.Type.STANDARD,
+                grunnlag = grunnlag,
+                grunnlagYtterligereNedsatt = ytterligereNedsattGrunnlag
+            )
 
-        return GrunnlagUføre(
-            grunnlaget = høyesteGrunnlag,
-            grunnlag = grunnlag,
-            grunnlagYtterligereNedsatt = ytterligereNedsattGrunnlag
-        )
+        } else {
+            return GrunnlagUføre(
+                grunnlaget = oppjustertGrunnlagVedUføre,
+                gjeldende = GrunnlagUføre.Type.YTTERLIGERE_NEDSATT,
+                grunnlag = grunnlag,
+                grunnlagYtterligereNedsatt = ytterligereNedsattGrunnlag
+            )
+
+        }
     }
 }

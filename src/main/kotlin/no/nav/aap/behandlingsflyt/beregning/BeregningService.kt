@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.beregning
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.beregning.år.Inntektsbehov
 import no.nav.aap.behandlingsflyt.beregning.år.Input
+import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.BeregningsgrunnlagRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.GUnit
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektGrunnlagRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter.InntektPerÅr
@@ -14,7 +15,8 @@ import java.time.Year
 class BeregningService(
     private val inntektGrunnlagRepository: InntektGrunnlagRepository,
     private val sykdomRepository: SykdomRepository,
-    private val uføreRepository: UføreRepository
+    private val uføreRepository: UføreRepository,
+    private val beregningsgrunnlagRepository: BeregningsgrunnlagRepository
 ) {
 
     fun beregnGrunnlag(behandlingId: BehandlingId): GUnit {
@@ -40,8 +42,12 @@ class BeregningService(
                 // Skal saksbahandler velge den som er knyttet til ytterligere nedsatt-tidspunktet?
                 uføregrad = uføregrad
             )
-            return uføreberegning.beregnUføre().grunnlaget()
+            val grunnlagUføre = uføreberegning.beregnUføre()
+            beregningsgrunnlagRepository.lagre(behandlingId, grunnlagUføre)
+            return grunnlagUføre.grunnlaget()
         }
+
+        beregningsgrunnlagRepository.lagre(behandlingId, beregningMedYrkesskade)
 
         return beregningMedYrkesskade.grunnlaget()
     }
