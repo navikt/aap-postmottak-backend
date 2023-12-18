@@ -8,7 +8,7 @@ import kotlin.test.assertFailsWith
 
 class AvklaringsbehoveneTest {
 
-    private val avklaringsbehovRepository = TestAvklaringsbehovRepository()
+    private val avklaringsbehovRepository = FakeAvklaringsbehovRepository()
 
     @Test
     fun `skal kunne legge til nytt avklaringsbehov`() {

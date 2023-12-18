@@ -79,8 +79,8 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
 
             connection.execute(query) {
                 setParams {
-                    setLong(1, avklaringsbehov.id)
-                    setBoolean(2, kreverToTrinn)
+                    setLong(2, avklaringsbehov.id)
+                    setBoolean(1, kreverToTrinn)
                 }
             }
         }
@@ -139,8 +139,8 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
 
         connection.execute(query) {
             setParams {
-                setLong(1, avklaringsbehovId)
-                setBoolean(2, kreverToTrinn)
+                setBoolean(1, kreverToTrinn)
+                setLong(2, avklaringsbehovId)
             }
         }
     }
