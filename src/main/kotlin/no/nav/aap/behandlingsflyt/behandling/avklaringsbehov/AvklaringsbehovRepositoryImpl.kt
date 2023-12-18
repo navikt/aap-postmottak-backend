@@ -57,6 +57,28 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         }
     }
 
+    override fun kreverToTrinn(avklaringsbehovId: Long, kreverToTrinn: Boolean) {
+        val query = """
+            UPDATE AVKLARINGSBEHOV SET krever_to_trinn = ? WHERE id = ?
+            """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setBoolean(1, kreverToTrinn)
+                setLong(2, avklaringsbehovId)
+            }
+        }
+    }
+
+    override fun endre(avklaringsbehov: Avklaringsbehov) {
+        endreAvklaringsbehov(
+            avklaringsbehov.id,
+            avklaringsbehov.status(),
+            avklaringsbehov.begrunnelse(),
+            avklaringsbehov.endretAv()
+        )
+    }
+
     override fun endreAvklaringsbehov(
         avklaringsbehovId: Long,
         status: Status,
@@ -79,24 +101,6 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         }
     }
 
-    override fun endre(avklaringsbehov: Avklaringsbehov) {
-        val query = """
-            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
-            VALUES (?, ?, ?, ?, ?)
-            """.trimIndent()
-
-        connection.execute(query) {
-            setParams {
-                setLong(1, avklaringsbehov.id)
-                setEnumName(2, avklaringsbehov.status())
-                setString(3, avklaringsbehov.begrunnelse())
-                setString(4, avklaringsbehov.endretAv())
-                setLocalDateTime(5, LocalDateTime.now())
-            }
-        }
-
-    }
-
     override fun hent(behandlingId: BehandlingId): Avklaringsbehovene {
         return Avklaringsbehovene(
             repository = this,
@@ -115,19 +119,6 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
             }
             setRowMapper {
                 mapAvklaringsbehov(it)
-            }
-        }
-    }
-
-    override fun kreverToTrinn(avklaringsbehovId: Long, kreverToTrinn: Boolean) {
-        val query = """
-            UPDATE AVKLARINGSBEHOV SET krever_to_trinn = ? WHERE id = ?
-            """.trimIndent()
-
-        connection.execute(query) {
-            setParams {
-                setBoolean(1, kreverToTrinn)
-                setLong(2, avklaringsbehovId)
             }
         }
     }
