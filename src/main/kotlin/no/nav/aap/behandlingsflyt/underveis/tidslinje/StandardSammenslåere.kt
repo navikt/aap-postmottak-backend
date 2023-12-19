@@ -33,7 +33,7 @@ object StandardSammenslåere {
         }
     }
 
-    fun <T, E> kunVenstre(): SegmentSammenslåer<T, E, T> {
+    fun <T> kunVenstre(): SegmentSammenslåer<T, Any?, T> {
         return SegmentSammenslåer { periode, venstreSegment, _ ->
             val verdi = venstreSegment?.verdi
             if (verdi == null) {
@@ -44,7 +44,7 @@ object StandardSammenslåere {
         }
     }
 
-    fun <T> kunHøyre(): SegmentSammenslåer<T, T, T> {
+    fun <T> kunHøyre(): SegmentSammenslåer<Any?, T, T> {
         return SegmentSammenslåer { periode, _, høyreSegment ->
             val verdi = høyreSegment?.verdi
             if (verdi == null) {

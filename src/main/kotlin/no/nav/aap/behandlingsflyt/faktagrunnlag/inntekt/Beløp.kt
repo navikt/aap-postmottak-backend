@@ -17,8 +17,8 @@ class Beløp(verdi: BigDecimal) {
         return Beløp(this.verdi.add(beløp.verdi))
     }
 
-    fun ganger(antall: Int): Beløp {
-        return Beløp(this.verdi.multiply(BigDecimal(antall)))
+    fun multiplisert(faktor: Int): Beløp {
+        return Beløp(this.verdi.multiply(BigDecimal(faktor)))
     }
 
     fun divitert(nevner: Beløp, scale: Int = 10): BigDecimal {
@@ -41,5 +41,4 @@ class Beløp(verdi: BigDecimal) {
     override fun toString(): String {
         return "Beløp(verdi=$verdi)"
     }
-
 }

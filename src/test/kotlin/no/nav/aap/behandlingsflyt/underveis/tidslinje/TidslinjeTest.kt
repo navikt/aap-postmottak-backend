@@ -222,7 +222,7 @@ class BarneTileggUtbetaling : SegmentSammenslåer<Int, Beløp, Beløp> {
     ): Segment<Beløp> {
         val prosent = venstreSegment?.verdi ?: 0
         val beløp = høyreSegment?.verdi ?: Beløp(0)
-        return Segment(periode, beløp.ganger(prosent))
+        return Segment(periode, beløp.multiplisert(prosent))
     }
 }
 

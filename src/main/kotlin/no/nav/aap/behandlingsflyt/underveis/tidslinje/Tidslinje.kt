@@ -86,7 +86,7 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
     }
 
     fun disjoint(periode: Periode): Tidslinje<T> {
-        val intervalTimeline: Tidslinje<T> = Tidslinje(listOf(Segment(periode, null)))
+        val intervalTimeline: Tidslinje<Any?> = Tidslinje(listOf(Segment(periode, null)))
         return disjoint(intervalTimeline, StandardSammenslåere.kunVenstre())
     }
 
@@ -98,7 +98,7 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
         return kombiner(Tidslinje(periode, null), StandardSammenslåere.kunVenstre(), JoinStyle.INNER_JOIN)
     }
 
-    fun <V> kryss(other: Tidslinje<V>): Tidslinje<T> {
+    fun kryss(other: Tidslinje<Any?>): Tidslinje<T> {
         return kombiner(other, StandardSammenslåere.kunVenstre(), JoinStyle.INNER_JOIN)
     }
 
@@ -173,14 +173,22 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
         return Tidslinje(segmenter)
     }
 
-    fun <R> splittOppOgMapOmEtter(period: Period, mapper: Function<NavigableSet<Segment<T>>, NavigableSet<Segment<R>>>): Tidslinje<R> {
+    fun <R> splittOppOgMapOmEtter(
+        period: Period,
+        mapper: Function<NavigableSet<Segment<T>>, NavigableSet<Segment<R>>>
+    ): Tidslinje<R> {
         return splittOppOgMapOmEtter(minDato(), maxDato(), period, mapper)
     }
 
     /**
      * Knekker opp segmenterene i henhold til period fom startDato tom sluttDato
      */
-    fun <R> splittOppOgMapOmEtter(startDato: LocalDate, sluttDato: LocalDate, period: Period, mapper: Function<NavigableSet<Segment<T>>, NavigableSet<Segment<R>>>): Tidslinje<R> {
+    fun <R> splittOppOgMapOmEtter(
+        startDato: LocalDate,
+        sluttDato: LocalDate,
+        period: Period,
+        mapper: Function<NavigableSet<Segment<T>>, NavigableSet<Segment<R>>>
+    ): Tidslinje<R> {
         require(!(LocalDate.MIN == startDato || LocalDate.MAX == sluttDato || sluttDato.isBefore(startDato))) {
             String.format(
                 "kan ikke periodisere tidslinjen mellom angitte datoer: [%s, %s]",
