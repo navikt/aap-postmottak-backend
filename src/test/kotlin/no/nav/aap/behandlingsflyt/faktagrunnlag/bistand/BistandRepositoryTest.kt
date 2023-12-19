@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
-import no.nav.aap.behandlingsflyt.sak.Ident
+import no.nav.aap.behandlingsflyt.ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.sakRepository
@@ -16,7 +16,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDate
-import java.util.concurrent.atomic.AtomicInteger
 
 class BistandRepositoryTest {
 
@@ -253,12 +252,7 @@ class BistandRepositoryTest {
     }
 
     private companion object {
-        private val identTeller = AtomicInteger(8124923)
         private val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
-
-        private fun ident(): Ident {
-            return Ident(identTeller.getAndAdd(1).toString())
-        }
     }
 
     private fun sak(connection: DBConnection): Sak {
