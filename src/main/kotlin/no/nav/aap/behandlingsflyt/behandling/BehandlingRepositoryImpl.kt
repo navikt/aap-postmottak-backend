@@ -5,7 +5,6 @@ import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Revurdering
-import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
 import no.nav.aap.behandlingsflyt.sak.SakId
 import java.time.LocalDateTime
 import java.util.*
@@ -93,7 +92,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    override fun loggBesøktSteg(behandlingId: BehandlingId, tilstand: Tilstand) {
+    override fun loggBesøktSteg(behandlingId: BehandlingId, tilstand: StegTilstand) {
         val updateQuery = """
             UPDATE STEG_HISTORIKK set aktiv = false WHERE behandling_id = ? and aktiv = true
         """.trimIndent()
@@ -132,10 +131,8 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             setRowMapper { row ->
                 StegTilstand(
                     tidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
-                    tilstand = Tilstand(
-                        type = row.getEnum("steg"),
-                        status = row.getEnum("status")
-                    )
+                    stegType = row.getEnum("steg"),
+                    stegStatus = row.getEnum("status")
                 )
             }
         }

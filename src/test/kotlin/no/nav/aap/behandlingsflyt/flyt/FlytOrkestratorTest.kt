@@ -35,7 +35,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.adapter.YrkesskadeReg
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
@@ -681,12 +680,8 @@ class FlytOrkestratorTest {
         assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
 
         val stegHistorikk = behandling.stegHistorikk()
-        assertThat(stegHistorikk.map { it.tilstand }).contains(
-            Tilstand(
-                StegType.AVKLAR_STUDENT,
-                StegStatus.AVKLARINGSPUNKT
-            )
-        )
+        assertThat(stegHistorikk.map { it.steg() }).contains(StegType.AVKLAR_STUDENT)
+        assertThat(stegHistorikk.map { it.status() }).contains(StegStatus.AVKLARINGSPUNKT)
 
         //Henter vurder alder-vilkår
         //Assert utfall

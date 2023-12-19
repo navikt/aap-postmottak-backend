@@ -68,7 +68,7 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
             else -> Fortsett
         }
 
-        val nyStegTilstand = StegTilstand(tilstand = Tilstand(aktivtSteg.type(), nesteStegStatus))
+        val nyStegTilstand = StegTilstand(stegType = aktivtSteg.type(), stegStatus = nesteStegStatus)
         loggStegHistorikk(behandling, nyStegTilstand)
 
         return transisjon
@@ -119,8 +119,8 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
     ) {
         val førStatus = behandling.status()
         behandling.visit(nyStegTilstand)
-        behandlingRepository.loggBesøktSteg(behandlingId = behandling.id, nyStegTilstand.tilstand)
-        val etterStatus = nyStegTilstand.tilstand.steg().status
+        behandlingRepository.loggBesøktSteg(behandlingId = behandling.id, nyStegTilstand)
+        val etterStatus = nyStegTilstand.steg().status
         if (førStatus != etterStatus) {
             behandlingRepository.oppdaterBehandlingStatus(behandlingId = behandling.id, status = etterStatus)
         }

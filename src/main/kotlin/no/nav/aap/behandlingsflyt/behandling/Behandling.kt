@@ -3,7 +3,6 @@ package no.nav.aap.behandlingsflyt.behandling
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
-import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
 import no.nav.aap.behandlingsflyt.sak.SakId
 import java.time.LocalDateTime
 import java.util.*
@@ -50,7 +49,7 @@ class Behandling(
     }
 
     private fun oppdaterStatus(stegTilstand: StegTilstand) {
-        val stegStatus = stegTilstand.tilstand.steg().status
+        val stegStatus = stegTilstand.steg().status
         if (status != stegStatus) {
             status = stegStatus
         }
@@ -65,7 +64,7 @@ class Behandling(
     fun stegHistorikk(): List<StegTilstand> = stegHistorikk.toList()
 
     fun aktivtSteg(): StegType {
-        return aktivtStegTilstand().tilstand.steg()
+        return aktivtStegTilstand().steg()
     }
 
     private fun aktivtStegTilstand(): StegTilstand {
@@ -74,7 +73,8 @@ class Behandling(
             .findAny()
             .orElse(
                 StegTilstand(
-                    tilstand = Tilstand(StegType.START_BEHANDLING, StegStatus.START)
+                    stegType = StegType.START_BEHANDLING,
+                    stegStatus = StegStatus.START
                 )
             )
     }

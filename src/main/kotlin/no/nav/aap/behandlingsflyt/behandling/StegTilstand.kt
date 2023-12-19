@@ -1,11 +1,21 @@
 package no.nav.aap.behandlingsflyt.behandling
 
-import no.nav.aap.behandlingsflyt.flyt.steg.Tilstand
+import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
+import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import java.time.LocalDateTime
 
-class StegTilstand(val tidspunkt: LocalDateTime = LocalDateTime.now(),
-                   val tilstand: Tilstand,
+class StegTilstand(private val tidspunkt: LocalDateTime = LocalDateTime.now(),
+                   private val stegStatus: StegStatus,
+                   private val stegType: StegType,
                    var aktiv: Boolean = true) : Comparable<StegTilstand> {
+
+    fun status(): StegStatus {
+        return stegStatus
+    }
+
+    fun steg(): StegType {
+        return stegType
+    }
 
     fun deaktiver() {
         this.aktiv = false
@@ -16,7 +26,7 @@ class StegTilstand(val tidspunkt: LocalDateTime = LocalDateTime.now(),
     }
 
     override fun toString(): String {
-        return "StegTilstand(tidspunkt=$tidspunkt, tilstand=$tilstand, aktiv=$aktiv)"
+        return "StegTilstand(tidspunkt=$tidspunkt, stegStatus=$stegStatus, stegType=$stegType, aktiv=$aktiv)"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -25,14 +35,17 @@ class StegTilstand(val tidspunkt: LocalDateTime = LocalDateTime.now(),
 
         other as StegTilstand
 
-        if (tilstand != other.tilstand) return false
-        return aktiv == other.aktiv
+        if (stegStatus != other.stegStatus) return false
+        if (stegType != other.stegType) return false
+        if (aktiv != other.aktiv) return false
+
+        return true
     }
 
     override fun hashCode(): Int {
-        var result = tilstand.hashCode()
+        var result = stegStatus.hashCode()
+        result = 31 * result + stegType.hashCode()
         result = 31 * result + aktiv.hashCode()
         return result
     }
-
 }

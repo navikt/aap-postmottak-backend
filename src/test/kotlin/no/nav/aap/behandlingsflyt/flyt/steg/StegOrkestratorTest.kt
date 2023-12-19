@@ -36,9 +36,9 @@ class StegOrkestratorTest {
             assertThat(resultat).isNotNull
 
             assertThat(behandling.stegHistorikk()).hasSize(3)
-            assertThat(behandling.stegHistorikk()[0].tilstand.status()).isEqualTo(StegStatus.START)
-            assertThat(behandling.stegHistorikk()[1].tilstand.status()).isEqualTo(StegStatus.UTFØRER)
-            assertThat(behandling.stegHistorikk()[2].tilstand.status()).isEqualTo(StegStatus.AVKLARINGSPUNKT)
+            assertThat(behandling.stegHistorikk()[0].status()).isEqualTo(StegStatus.START)
+            assertThat(behandling.stegHistorikk()[1].status()).isEqualTo(StegStatus.UTFØRER)
+            assertThat(behandling.stegHistorikk()[2].status()).isEqualTo(StegStatus.AVKLARINGSPUNKT)
         }
     }
 }

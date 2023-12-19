@@ -62,7 +62,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: HikariDataSource) {
                                         )
                                     })
                         },
-                        aktivtSteg = behandling.stegHistorikk().last().tilstand.steg(),
+                        aktivtSteg = behandling.stegHistorikk().last().steg(),
                         versjon = behandling.versjon
                     )
                 }
