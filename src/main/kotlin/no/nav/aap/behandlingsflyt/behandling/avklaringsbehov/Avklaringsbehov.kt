@@ -26,14 +26,14 @@ class Avklaringsbehov(
         return Status.TOTRINNS_VURDERT == historikk.last().status
     }
 
-    fun vurderTotrinn(begrunnelse: String, godkjent: Boolean) {
+    fun vurderTotrinn(begrunnelse: String, godkjent: Boolean, vurdertAv: String) {
         require(definisjon.kreverToTrinn)
         val status = if (godkjent) {
             Status.TOTRINNS_VURDERT
         } else {
             Status.SENDT_TILBAKE_FRA_BESLUTTER
         }
-        historikk += Endring(status = status, begrunnelse = begrunnelse, endretAv = "system")
+        historikk += Endring(status = status, begrunnelse = begrunnelse, endretAv = vurdertAv)
     }
 
     fun reåpne() {

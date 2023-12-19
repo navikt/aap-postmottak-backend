@@ -11,11 +11,12 @@ class Avklaringsbehovene(
 ) {
     private var avklaringsbehovene: MutableList<Avklaringsbehov> = repository.hent(behandlingId).toMutableList()
 
-    fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String, kreverToTrinn: Boolean) {
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.løs(begrunnelse = begrunnelse, endretAv = endretAv, kreverToTrinn = kreverToTrinn)
-        repository.kreverToTrinn(avklaringsbehov.id, kreverToTrinn)
-        repository.endre(avklaringsbehov)
+    fun ingenEndring(avklaringsbehov: Avklaringsbehov) {
+        løsAvklaringsbehov(
+            avklaringsbehov.definisjon,
+            "Ingen endring fra forrige vurdering",
+            "saksbehandler"
+        ) // TODO: Hente fra sikkerhetcontext
     }
 
     fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String) {
@@ -30,6 +31,13 @@ class Avklaringsbehovene(
         repository.endre(avklaringsbehov)
     }
 
+    fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String, kreverToTrinn: Boolean) {
+        val avklaringsbehov = alle().single { it.definisjon == definisjon }
+        avklaringsbehov.løs(begrunnelse = begrunnelse, endretAv = endretAv, kreverToTrinn = kreverToTrinn)
+        repository.kreverToTrinn(avklaringsbehov.id, kreverToTrinn)
+        repository.endre(avklaringsbehov)
+    }
+
     fun leggTil(definisjoner: List<Definisjon>, stegType: StegType) {
         definisjoner.forEach { definisjon ->
             repository.opprett(
@@ -40,6 +48,24 @@ class Avklaringsbehovene(
             //TODO: Må legge til avklaringsbehov til listen
             //avklaringsbehovene.add(avklaringsbehov)
         }
+    }
+
+    fun vurderTotrinn(definisjon: Definisjon, godkjent: Boolean, begrunnelse: String, vurdertAv: String) {
+        val avklaringsbehov = alle().single { it.definisjon == definisjon }
+        avklaringsbehov.vurderTotrinn(begrunnelse, godkjent, vurdertAv)
+        repository.endre(avklaringsbehov)
+    }
+
+    fun avbryt(definisjon: Definisjon) {
+        val avklaringsbehov = alle().single { it.definisjon == definisjon }
+        avklaringsbehov.avbryt()
+        repository.endre(avklaringsbehov)
+    }
+
+    fun reåpne(definisjon: Definisjon) {
+        val avklaringsbehov = avklaringsbehovene.single { it.definisjon == definisjon }
+        avklaringsbehov.reåpne()
+        repository.endre(avklaringsbehov)
     }
 
     fun alle(): List<Avklaringsbehov> {
@@ -76,6 +102,10 @@ class Avklaringsbehovene(
         return alle().filter { it.erÅpent() }.toList()
     }
 
+    fun skalTilbakeføresEtterTotrinnsVurdering(): Boolean {
+        return tilbakeførtFraBeslutter().isNotEmpty()
+    }
+
     fun tilbakeførtFraBeslutter(): List<Avklaringsbehov> {
         return alle().filter { it.status() == Status.SENDT_TILBAKE_FRA_BESLUTTER }.toList()
     }
@@ -86,18 +116,6 @@ class Avklaringsbehovene(
 
     fun hentBehovForDefinisjon(definisjoner: List<Definisjon>): List<Avklaringsbehov> {
         return alle().filter { it.definisjon in definisjoner }.toList()
-    }
-
-    fun vurderTotrinn(definisjon: Definisjon, godkjent: Boolean, begrunnelse: String, vurdertAv: String) {
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.vurderTotrinn(begrunnelse, godkjent)
-        repository.endre(avklaringsbehov)
-    }
-
-    fun avbryt(definisjon: Definisjon) {
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.avbryt()
-        repository.endre(avklaringsbehov)
     }
 
     fun harHattAvklaringsbehov(): Boolean {
@@ -116,25 +134,7 @@ class Avklaringsbehovene(
             .none { it.status() == Status.AVSLUTTET }
     }
 
-    fun skalTilbakeføresEtterTotrinnsVurdering(): Boolean {
-        return tilbakeførtFraBeslutter().isNotEmpty()
-    }
-
-    fun reåpne(definisjon: Definisjon) {
-        val avklaringsbehov = avklaringsbehovene.single { it.definisjon == definisjon }
-        avklaringsbehov.reåpne()
-        repository.endre(avklaringsbehov)
-    }
-
     fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
         return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraBeslutterTidligere() }
-    }
-
-    fun ingenEndring(avklaringsbehov: Avklaringsbehov) {
-        løsAvklaringsbehov(
-            avklaringsbehov.definisjon,
-            "Ingen endring fra forrige vurdering",
-            "saksbehandler"
-        ) // TODO: Hente fra sikkerhetcontext
     }
 }
