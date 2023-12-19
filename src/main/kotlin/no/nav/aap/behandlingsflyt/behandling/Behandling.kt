@@ -79,8 +79,6 @@ class Behandling(
             )
     }
 
-    fun årsaker(): List<Årsak> = årsaker.toList()
-
     override fun compareTo(other: Behandling): Int {
         return this.opprettetTidspunkt.compareTo(other.opprettetTidspunkt)
     }
