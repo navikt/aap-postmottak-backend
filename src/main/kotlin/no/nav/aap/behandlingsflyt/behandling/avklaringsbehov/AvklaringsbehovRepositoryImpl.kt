@@ -15,6 +15,19 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         )
     }
 
+    override fun kreverToTrinn(avklaringsbehovId: Long, kreverToTrinn: Boolean) {
+        val query = """
+            UPDATE AVKLARINGSBEHOV SET krever_to_trinn = ? WHERE id = ?
+            """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setBoolean(1, kreverToTrinn)
+                setLong(2, avklaringsbehovId)
+            }
+        }
+    }
+
     override fun opprett(behandlingId: BehandlingId, definisjon: Definisjon, funnetISteg: StegType) {
         //TODO: Kan vi utelukke denne sjekken? LeggTil burde alltid opprette - finnes den fra før må den evt. endres.
         var avklaringsbehovId = hentRelevantAvklaringsbehov(behandlingId, definisjon)
@@ -62,19 +75,6 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
                 setLong(1, behandlingId.toLong())
                 setString(2, definisjon.kode)
                 setEnumName(3, funnetISteg)
-            }
-        }
-    }
-
-    override fun kreverToTrinn(avklaringsbehovId: Long, kreverToTrinn: Boolean) {
-        val query = """
-            UPDATE AVKLARINGSBEHOV SET krever_to_trinn = ? WHERE id = ?
-            """.trimIndent()
-
-        connection.execute(query) {
-            setParams {
-                setBoolean(1, kreverToTrinn)
-                setLong(2, avklaringsbehovId)
             }
         }
     }
