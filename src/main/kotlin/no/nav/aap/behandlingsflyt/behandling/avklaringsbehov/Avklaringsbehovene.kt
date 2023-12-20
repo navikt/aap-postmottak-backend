@@ -19,23 +19,24 @@ class Avklaringsbehovene(
         ) // TODO: Hente fra sikkerhetcontext
     }
 
-    fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String) {
+    fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String, kreverToTrinn: Boolean? = null) {
+        val avklaringsbehov = alle().single { it.definisjon == definisjon }
+        if (kreverToTrinn == null) {
+            avklaringsbehov.løs(begrunnelse, endretAv = endretAv)
+        } else {
+            avklaringsbehov.løs(begrunnelse = begrunnelse, endretAv = endretAv, kreverToTrinn = kreverToTrinn)
+            repository.kreverToTrinn(avklaringsbehov.id, kreverToTrinn)
+        }
+        repository.endre(avklaringsbehov)
+    }
+
+    fun leggTilFrivilligHvisMangler(definisjon: Definisjon) {
         if (definisjon.erFrivillig()) {
             if (hentBehovForDefinisjon(definisjon) == null) {
                 // Legger til frivillig behov
                 leggTil(listOf(definisjon), definisjon.løsesISteg)
             }
         }
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.løs(begrunnelse, endretAv = endretAv)
-        repository.endre(avklaringsbehov)
-    }
-
-    fun løsAvklaringsbehov(definisjon: Definisjon, begrunnelse: String, endretAv: String, kreverToTrinn: Boolean) {
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.løs(begrunnelse = begrunnelse, endretAv = endretAv, kreverToTrinn = kreverToTrinn)
-        repository.kreverToTrinn(avklaringsbehov.id, kreverToTrinn)
-        repository.endre(avklaringsbehov)
     }
 
     fun leggTil(definisjoner: List<Definisjon>, stegType: StegType) {

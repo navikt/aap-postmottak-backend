@@ -110,19 +110,14 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
             avklaringsbehovsLøsere.getValue(it.definisjon()) as AvklaringsbehovsLøser<AvklaringsbehovLøsning>
         val løsningsResultat = avklaringsbehovsLøser.løs(kontekst = kontekst, løsning = it)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
-        if (løsningsResultat.kreverToTrinn == null) {
-            avklaringsbehovene.løsAvklaringsbehov(
-                it.definisjon(),
-                løsningsResultat.begrunnelse,
-                "Saksbehandler" // TODO: Hente fra context
-            )
-        } else {
-            avklaringsbehovene.løsAvklaringsbehov(
-                it.definisjon(),
-                løsningsResultat.begrunnelse,
-                "Saksbehandler", // TODO: Hente fra context
-                løsningsResultat.kreverToTrinn
-            )
-        }
+
+        avklaringsbehovene.leggTilFrivilligHvisMangler(it.definisjon())
+
+        avklaringsbehovene.løsAvklaringsbehov(
+            it.definisjon(),
+            løsningsResultat.begrunnelse,
+            "Saksbehandler", // TODO: Hente fra context
+            løsningsResultat.kreverToTrinn
+        )
     }
 }

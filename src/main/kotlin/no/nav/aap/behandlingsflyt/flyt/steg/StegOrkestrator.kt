@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
 
-class StegOrkestrator(private val connection: DBConnection, private val aktivtSteg: FlytSteg) {
+class StegOrkestrator(connection: DBConnection, private val aktivtSteg: FlytSteg) {
 
     private val behandlingRepository = BehandlingFlytRepository(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
