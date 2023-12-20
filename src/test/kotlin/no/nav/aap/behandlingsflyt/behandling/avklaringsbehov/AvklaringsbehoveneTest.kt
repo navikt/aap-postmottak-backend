@@ -3,7 +3,6 @@ package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFailsWith
 
@@ -27,7 +26,6 @@ class AvklaringsbehoveneTest {
         assertThat(avklaringsbehovene.alle()).hasSize(1)
     }
 
-    @Disabled
     @Test
     fun `skal ikke legge til duplikate avklaringsbehov`() {
         val avklaringsbehovene = Avklaringsbehovene(avklaringsbehovRepository, BehandlingId(5))

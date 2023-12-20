@@ -2,8 +2,13 @@ package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
+import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import kotlin.math.log
+
+private val log = LoggerFactory.getLogger(Avklaringsbehovene::class.java)
 
 class Avklaringsbehovene(
     private val repository: AvklaringsbehovOperasjonerRepository,
@@ -39,15 +44,30 @@ class Avklaringsbehovene(
         }
     }
 
+    /**
+     * Legger til nye avklaringsbehov.
+     *
+     * NB! Dersom avklaringsbehovet finnes fra før og er åpent så ignorerer vi det nye behovet, mens dersom det er avsluttet så reåpner vi det.
+     */
     fun leggTil(definisjoner: List<Definisjon>, stegType: StegType) {
         definisjoner.forEach { definisjon ->
-            repository.opprett(
-                behandlingId = behandlingId,
-                definisjon = definisjon,
-                funnetISteg = stegType
-            )
-            //TODO: Må legge til avklaringsbehov til listen
-            //avklaringsbehovene.add(avklaringsbehov)
+            val avklaringsbehov = hentBehovForDefinisjon(definisjon)
+            if (avklaringsbehov != null) {
+                if (avklaringsbehov.erAvsluttet()) {
+                    avklaringsbehov.reåpne()
+                    repository.endre(avklaringsbehov)
+                } else {
+                    log.warn("Forsøkte å legge til et avklaringsbehov som allerede eksisterte")
+                }
+            } else {
+                repository.opprett(
+                    behandlingId = behandlingId,
+                    definisjon = definisjon,
+                    funnetISteg = stegType
+                )
+                //TODO: Må legge til avklaringsbehov til listen
+                //avklaringsbehovene.add(avklaringsbehov)
+            }
         }
     }
 
