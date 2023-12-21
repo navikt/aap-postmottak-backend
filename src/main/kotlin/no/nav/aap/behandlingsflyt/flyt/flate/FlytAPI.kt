@@ -9,6 +9,7 @@ import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.flate.AvklaringsbehovDTO
 import no.nav.aap.behandlingsflyt.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
@@ -41,10 +42,12 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                 steg = steg.map { stegType ->
                                     FlytSteg(
                                         stegType = stegType,
-                                        avklaringsbehov = avklaringsbehov(
-                                            connection,
-                                            behandling.id
-                                        ).alleInkludertFrivillige(behandling.flyt())
+                                        avklaringsbehov = FrivilligeAvklaringsbehov(
+                                            avklaringsbehov(
+                                                connection,
+                                                behandling.id
+                                            ),
+                                            behandling.flyt()).alle()
                                             .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
                                             .map { behov ->
                                                 AvklaringsbehovDTO(

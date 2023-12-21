@@ -9,6 +9,7 @@ import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.BehandlingReferanseService
@@ -30,10 +31,13 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: HikariDataSource) {
                         status = behandling.status(),
                         opprettet = behandling.opprettetTidspunkt,
 
-                        avklaringsbehov = avklaringsbehov(
-                            connection,
-                            behandling.id
-                        ).alleInkludertFrivillige(behandling.flyt()).map { avklaringsbehov ->
+                        avklaringsbehov = FrivilligeAvklaringsbehov(
+                            avklaringsbehov(
+                                connection,
+                                behandling.id
+                            ),
+                            behandling.flyt()
+                        ).alle().map { avklaringsbehov ->
                             AvklaringsbehovDTO(
                                 definisjon = avklaringsbehov.definisjon,
                                 status = avklaringsbehov.status(),

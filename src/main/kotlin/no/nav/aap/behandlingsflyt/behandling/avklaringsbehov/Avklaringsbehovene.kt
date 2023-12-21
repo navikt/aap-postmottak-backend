@@ -1,19 +1,15 @@
 package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
-import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
-import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import kotlin.math.log
 
 private val log = LoggerFactory.getLogger(Avklaringsbehovene::class.java)
 
 class Avklaringsbehovene(
     private val repository: AvklaringsbehovOperasjonerRepository,
     private val behandlingId: BehandlingId
-) {
+) : AvklaringsbehoveneDecorator {
     private var avklaringsbehovene: MutableList<Avklaringsbehov> = repository.hent(behandlingId).toMutableList()
 
     fun ingenEndring(avklaringsbehov: Avklaringsbehov) {
@@ -89,34 +85,9 @@ class Avklaringsbehovene(
         repository.endre(avklaringsbehov)
     }
 
-    fun alle(): List<Avklaringsbehov> {
+    override fun alle(): List<Avklaringsbehov> {
         avklaringsbehovene = repository.hent(behandlingId).toMutableList()
         return avklaringsbehovene.toList()
-    }
-
-    fun alleInkludertFrivillige(flyt: BehandlingFlyt): List<Avklaringsbehov> {
-        val eksisterendeBehov = alle()
-        val list = flyt.frivilligeAvklaringsbehovRelevantForFlyten()
-            .filter { definisjon -> eksisterendeBehov.none { behov -> behov.definisjon == definisjon } }
-            .map { definisjon ->
-                Avklaringsbehov(
-                    id = Long.MAX_VALUE,
-                    definisjon = definisjon,
-                    historikk = mutableListOf(
-                        Endring(
-                            status = Status.OPPRETTET,
-                            tidsstempel = LocalDateTime.now(),
-                            begrunnelse = "",
-                            endretAv = "system"
-                        )
-                    ),
-                    funnetISteg = definisjon.løsesISteg,
-                    kreverToTrinn = null
-                )
-            }.toMutableList()
-        list.addAll(eksisterendeBehov)
-
-        return list.toList()
     }
 
     fun åpne(): List<Avklaringsbehov> {
