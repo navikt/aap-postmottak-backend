@@ -1,14 +1,21 @@
 package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.Periode
+import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
+import java.time.LocalDateTime
 
-class DokumentMottattPersonHendelse(private val periode: Periode) : PersonHendelse {
+class DokumentMottattPersonHendelse(
+    val journalpost: JournalpostId,
+    val mottattTidspunkt: LocalDateTime,
+    val strukturertDokument: StrukturertDokument<*>
+) : PersonHendelse {
 
     override fun periode(): Periode {
-        return periode
+        return strukturertDokument.periode()
     }
 
     override fun tilSakshendelse(): SakHendelse {
-        return DokumentMottattSakHendelse()
+        return DokumentMottattSakHendelse(journalpost, mottattTidspunkt, strukturertDokument)
     }
 }

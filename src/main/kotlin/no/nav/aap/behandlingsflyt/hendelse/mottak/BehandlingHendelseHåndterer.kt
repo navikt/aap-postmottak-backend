@@ -1,0 +1,67 @@
+package no.nav.aap.behandlingsflyt.hendelse.mottak
+
+import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøsning
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.behandlingsflyt.behandling.Status
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.flyt.AvklaringsbehovOrkestrator
+import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
+import no.nav.aap.behandlingsflyt.flyt.ValiderBehandlingTilstand
+import no.nav.aap.behandlingsflyt.flyt.tilKontekst
+import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
+import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
+import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
+
+class BehandlingHendelseHåndterer(connection: DBConnection) {
+
+    private val behandlingRepository = behandlingRepository(connection)
+    private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
+    private val avklaringsbehovOrkestrator = AvklaringsbehovOrkestrator(connection)
+    private val oppgaveRepository = OppgaveRepository(connection)
+    private val kontroller = FlytOrkestrator(connection)
+
+    fun håndtere(key: BehandlingId, hendelse: BehandlingHendelse) {
+        when (hendelse) {
+            is BehandlingSattPåVent -> {
+                val behandling = behandlingRepository.hent(key)
+                val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
+                ValiderBehandlingTilstand.validerTilstandBehandling(
+                    behandling = behandling,
+                    eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
+                )
+
+                val kontekst = tilKontekst(behandling)
+
+                kontroller.settBehandlingPåVent(kontekst)
+            }
+
+            else -> {
+                val behandling = behandlingRepository.hent(key)
+                val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
+                ValiderBehandlingTilstand.validerTilstandBehandling(
+                    behandling = behandling,
+                    eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
+                )
+
+                val kontekst = tilKontekst(behandling)
+                if (behandling.status() == Status.PÅ_VENT) {
+                    val avklaringsbehovKontroller = avklaringsbehovOrkestrator
+                    avklaringsbehovKontroller.løsAvklaringsbehov(
+                        kontekst = kontekst,
+                        avklaringsbehovene = avklaringsbehovene,
+                        avklaringsbehov = SattPåVentLøsning()
+                    )
+                }
+                oppgaveRepository.leggTil(
+                    OppgaveInput(oppgave = ProsesserBehandlingOppgave).forBehandling(
+                        kontekst.sakId,
+                        kontekst.behandlingId
+                    )
+                )
+            }
+        }
+
+    }
+}

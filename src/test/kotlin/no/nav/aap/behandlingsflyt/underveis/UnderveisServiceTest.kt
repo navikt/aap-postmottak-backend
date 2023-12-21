@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.underveis
 import no.nav.aap.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.MockConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.PliktkortRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
@@ -16,7 +17,8 @@ import java.time.LocalDate
 class UnderveisServiceTest {
 
     private val connection = DBConnection(MockConnection())
-    private val underveisService = UnderveisService(VilkårsresultatRepository(connection))
+    private val underveisService =
+        UnderveisService(VilkårsresultatRepository(connection), PliktkortRepository(connection))
 
     @Test
     fun `skal vurdere alle reglene`() {
@@ -32,7 +34,8 @@ class UnderveisServiceTest {
         val input = UnderveisInput(
             førsteFastsatteDag = søknadsdato,
             relevanteVilkår = relevanteVilkår,
-            opptrappingPerioder = listOf(Periode(søknadsdato.plusYears(2), søknadsdato.plusYears(3)))
+            opptrappingPerioder = listOf(Periode(søknadsdato.plusYears(2), søknadsdato.plusYears(3))),
+            pliktkort = listOf()
         )
 
         val vurderingTidslinje = underveisService.vurderRegler(input)

@@ -1,10 +1,12 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
 import no.nav.aap.behandlingsflyt.beregning.Prosent
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.Pliktkort
 import no.nav.aap.behandlingsflyt.underveis.tidslinje.Segment
 import no.nav.aap.behandlingsflyt.underveis.tidslinje.StandardSammenslåere
 import no.nav.aap.behandlingsflyt.underveis.tidslinje.Tidslinje
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Period
 import java.util.*
 
@@ -20,15 +22,13 @@ private const val HØYESTE_GRADERING_OPPTRAPPING = 80
  */
 class GraderingArbeidRegel : UnderveisRegel {
     override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
-        // TODO: Legge inn noe reelt
+        val pliktkortTidslinje = konstruerTidslinje(input.pliktkort)
+
+        // Regner kun ut gradering for perioden det er sendt noe inn for
         val arbeidsTidslinje =
-            Tidslinje(resultat.splittOppEtter(Period.ofDays(1))
-                .segmenter()
-                .map { it.periode }
-                .map { Segment(it, TimerArbeid(BigDecimal.ZERO)) })
-                .splittOppOgMapOmEtter(Period.ofDays(ANTALL_DAGER_I_MELDEPERIODE)) { arbeidsSegmenter ->
-                    regnUtGradering(arbeidsSegmenter)
-                }.komprimer()
+            pliktkortTidslinje.splittOppOgMapOmEtter(Period.ofDays(ANTALL_DAGER_I_MELDEPERIODE)) { arbeidsSegmenter ->
+                regnUtGradering(arbeidsSegmenter)
+            }.komprimer()
 
         val opptrappingTidslinje =
             Tidslinje(input.opptrappingPerioder.map { Segment(it, Prosent(HØYESTE_GRADERING_OPPTRAPPING)) })
@@ -51,10 +51,23 @@ class GraderingArbeidRegel : UnderveisRegel {
         })
     }
 
+    private fun konstruerTidslinje(pliktkortene: List<Pliktkort>): Tidslinje<TimerArbeid> {
+        var tidslinje = Tidslinje<TimerArbeid>(listOf())
+        for (pliktkort in pliktkortene) {
+            tidslinje = tidslinje.kombiner(Tidslinje(pliktkort.timerArbeidPerPeriode.map {
+                Segment(
+                    it.periode,
+                    it.arbeidPerDag() // Smører timene meldt over alle dagene de er meldt for
+                )
+            }), StandardSammenslåere.prioriterHøyreSide())
+        }
+        return tidslinje.splittOppEtter(Period.ofDays(1))
+    }
+
     private fun regnUtGradering(arbeidsSegmenter: NavigableSet<Segment<TimerArbeid>>): NavigableSet<Segment<Gradering>> {
         val antallTimerArbeid = arbeidsSegmenter.sumOf { it.verdi?.antallTimer ?: BigDecimal.ZERO }
         val gradering =
-            Prosent(antallTimerArbeid.divide(BigDecimal(ANTALL_TIMER_I_ARBEIDSUKE).multiply(BigDecimal.TWO)).toInt())
+            Prosent(antallTimerArbeid.divide(BigDecimal(ANTALL_TIMER_I_ARBEIDSUKE).multiply(BigDecimal.TWO), 3, RoundingMode.HALF_UP).toInt())
         return TreeSet(arbeidsSegmenter.map { segment ->
             Segment(
                 segment.periode, Gradering(

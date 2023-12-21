@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.underveis
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.PliktkortRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.underveis.regler.AktivitetRegel
@@ -11,7 +12,7 @@ import no.nav.aap.behandlingsflyt.underveis.regler.UnderveisInput
 import no.nav.aap.behandlingsflyt.underveis.regler.Vurdering
 import no.nav.aap.behandlingsflyt.underveis.tidslinje.Tidslinje
 
-class UnderveisService(private val vilkårsresultatRepository: VilkårsresultatRepository) {
+class UnderveisService(private val vilkårsresultatRepository: VilkårsresultatRepository, private val pliktkortRepository: PliktkortRepository) {
 
     private val regelset = listOf(
         RettTilRegel(),
@@ -47,6 +48,8 @@ class UnderveisService(private val vilkårsresultatRepository: VilkårsresultatR
             }
         val førsteSøknadstidspunkt = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET).førsteDatoTilVurdering()
 
-        return UnderveisInput(førsteSøknadstidspunkt, relevanteVilkår, listOf())
+        val pliktkort = pliktkortRepository.hentHvisEksisterer(behandlingId)?.pliktkort() ?: listOf()
+
+        return UnderveisInput(førsteSøknadstidspunkt, relevanteVilkår, listOf(), pliktkort)
     }
 }

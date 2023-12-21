@@ -8,7 +8,10 @@ import no.nav.aap.behandlingsflyt.mottak.MottaDokumentService
 import no.nav.aap.behandlingsflyt.mottak.MottattDokumentRepository
 import no.nav.aap.behandlingsflyt.mottak.pliktkort.MottakAvPliktkortRepository
 
-class PliktkortService private constructor(private val mottaDokumentService: MottaDokumentService) : Grunnlag {
+class PliktkortService private constructor(
+    private val mottaDokumentService: MottaDokumentService,
+    private val pliktkortRepository: PliktkortRepository
+) : Grunnlag {
 
     companion object : Grunnlagkonstruktør {
         override fun konstruer(connection: DBConnection): PliktkortService {
@@ -16,7 +19,8 @@ class PliktkortService private constructor(private val mottaDokumentService: Mot
                 MottaDokumentService(
                     MottattDokumentRepository(connection),
                     MottakAvPliktkortRepository(connection)
-                )
+                ),
+                PliktkortRepository(connection)
             )
         }
     }
@@ -26,6 +30,26 @@ class PliktkortService private constructor(private val mottaDokumentService: Mot
         if (pliktkortSomIkkeErBehandlet.isEmpty()) {
             return false
         }
-        return false // TODO fiks
+
+        val eksisterendeGrunnlag = pliktkortRepository.hentHvisEksisterer(kontekst.behandlingId)
+        val eksisterendePliktkort = eksisterendeGrunnlag?.pliktkortene ?: emptySet()
+        val allePlussNye = HashSet<Pliktkort>(eksisterendePliktkort)
+
+        for (ubehandletPliktkort in pliktkortSomIkkeErBehandlet) {
+            val nyttPliktkort = Pliktkort(
+                journalpostId = ubehandletPliktkort.journalpostId,
+                timerArbeidPerPeriode = ubehandletPliktkort.timerArbeidPerPeriode
+            )
+            mottaDokumentService.knyttTilBehandling(
+                sakId = kontekst.sakId,
+                behandlingId = kontekst.behandlingId,
+                journalpostId = ubehandletPliktkort.journalpostId
+            )
+            allePlussNye.add(nyttPliktkort)
+        }
+
+        pliktkortRepository.lagre(behandlingId = kontekst.behandlingId, pliktkortene = allePlussNye)
+
+        return true // Antar her at alle nye kort gir en endring vi må ta hensyn til
     }
 }

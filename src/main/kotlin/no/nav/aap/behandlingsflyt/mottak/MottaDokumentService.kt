@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.mottak
 
+import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.mottak.pliktkort.MottakAvPliktkortRepository
 import no.nav.aap.behandlingsflyt.mottak.pliktkort.UbehandletPliktkort
@@ -11,30 +12,48 @@ class MottaDokumentService(
     private val pliktkortRepository: MottakAvPliktkortRepository
 ) {
 
-    fun håndter(
+    fun håndterMottattPliktkort(
         sakId: SakId,
         journalpostId: JournalpostId,
         mottattTidspunkt: LocalDateTime,
         pliktKort: UbehandletPliktkort
     ) {
         // Lagre data knyttet til sak
+        håndterMottattDokument(journalpostId, sakId, mottattTidspunkt, DokumentType.PLIKTKORT)
+
+        pliktkortRepository.lagre(pliktkort = pliktKort)
+    }
+
+    fun håndterMottattDokument(
+        journalpostId: JournalpostId,
+        sakId: SakId,
+        mottattTidspunkt: LocalDateTime,
+        dokumentType: DokumentType
+    ) {
         mottattDokumentRepository.lagre(
             MottattDokument(
                 journalpostId = journalpostId,
                 sakId = sakId,
                 mottattTidspunkt = mottattTidspunkt,
-                type = DokumentType.PLIKTKORT,
+                type = dokumentType,
+                status = Status.MOTTATT,
                 behandlingId = null
             )
         )
-
-        pliktkortRepository.lagre(pliktkort = pliktKort)
     }
 
     fun pliktkortSomIkkeErBehandlet(sakId: SakId): Set<UbehandletPliktkort> {
         val ubehandledePliktkort =
             mottattDokumentRepository.hentUbehandledeDokumenterAvType(sakId, DokumentType.PLIKTKORT)
 
-        return pliktkortRepository.hent(ubehandledePliktkort).toSet()
+        val toSet = pliktkortRepository.hent(ubehandledePliktkort).toSet()
+        if (ubehandledePliktkort.size != toSet.size) {
+            throw IllegalStateException("Finner ikke data fra ubehandlede pliktkort")
+        }
+        return toSet
+    }
+
+    fun knyttTilBehandling(sakId: SakId, behandlingId: BehandlingId, journalpostId: JournalpostId) {
+        mottattDokumentRepository.oppdaterStatus(journalpostId, behandlingId, sakId, Status.BEHANDLET)
     }
 }

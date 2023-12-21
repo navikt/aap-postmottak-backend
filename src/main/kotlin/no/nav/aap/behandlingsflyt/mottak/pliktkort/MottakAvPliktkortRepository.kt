@@ -2,6 +2,8 @@ package no.nav.aap.behandlingsflyt.mottak.pliktkort
 
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.ArbeidIPeriode
+import no.nav.aap.behandlingsflyt.underveis.regler.TimerArbeid
 
 class MottakAvPliktkortRepository(private val connection: DBConnection) {
 
@@ -18,15 +20,14 @@ class MottakAvPliktkortRepository(private val connection: DBConnection) {
 
         pliktkort.timerArbeidPerPeriode.forEach { kort ->
             val kortQuery = """
-                INSERT INTO SAK_PLIKTKORT_PERIODE (pliktkort_id, fom, tom, timer_arbeid) VALUES (?, ?, ?, ?)
+                INSERT INTO SAK_PLIKTKORT_PERIODE (pliktkort_id, periode, timer_arbeid) VALUES (?, ?::daterange, ?)
             """.trimIndent()
 
             connection.execute(kortQuery) {
                 setParams {
                     setLong(1, pliktkortId)
-                    setLocalDate(2, kort.periode.fom)
-                    setLocalDate(3, kort.periode.tom)
-                    setBigDecimal(4, kort.timerArbeid.antallTimer)
+                    setPeriode(2, kort.periode)
+                    setBigDecimal(3, kort.timerArbeid.antallTimer)
                 }
             }
         }
@@ -38,8 +39,25 @@ class MottakAvPliktkortRepository(private val connection: DBConnection) {
         """.trimIndent()
         return connection.queryList(query) {
             setParams {
-                setString(1, journalpostIder.joinToString(", "))
+                setString(1, journalpostIder.joinToString(", ") { it.identifikator })
+            }
+            setRowMapper {
+                UbehandletPliktkort(JournalpostId(it.getString("journalpost")), hentTimerArbeid(it.getLong("id")))
             }
         }
+    }
+
+    private fun hentTimerArbeid(long: Long): Set<ArbeidIPeriode> {
+        val query = """
+            SELECT * FROM SAK_PLIKTKORT_PERIODE WHERE pliktkort_id = ?
+        """.trimIndent()
+        return connection.queryList(query) {
+            setParams {
+                setLong(1, long)
+            }
+            setRowMapper {
+                ArbeidIPeriode(it.getPeriode("periode"), TimerArbeid(it.getBigDecimal("timer_arbeid")))
+            }
+        }.toSet()
     }
 }

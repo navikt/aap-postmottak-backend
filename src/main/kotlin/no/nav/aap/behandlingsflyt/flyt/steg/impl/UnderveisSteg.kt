@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.PliktkortRepository
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
@@ -25,7 +26,8 @@ class UnderveisSteg(private val underveisService: UnderveisService) : Behandling
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return UnderveisSteg(
                 UnderveisService(
-                    VilkårsresultatRepository(connection)
+                    VilkårsresultatRepository(connection),
+                    PliktkortRepository(connection)
                 )
             )
         }

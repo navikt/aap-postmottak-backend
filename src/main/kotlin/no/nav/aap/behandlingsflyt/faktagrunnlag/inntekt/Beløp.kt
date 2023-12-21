@@ -35,7 +35,7 @@ class Beløp(verdi: BigDecimal) {
     }
 
     override fun hashCode(): Int {
-        return verdi.hashCode() ?: 0
+        return verdi.hashCode()
     }
 
     override fun toString(): String {

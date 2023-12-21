@@ -20,11 +20,13 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepo
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.beregning.Prosent
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.ArbeidIPeriode
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.Beløp
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter.InntektRegisterMock
@@ -38,10 +40,14 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
+import no.nav.aap.behandlingsflyt.hendelse.mottak.AvklaringsbehovHendelseHåndterer
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.hendelse.mottak.LøsAvklaringsbehovBehandlingHendelse
+import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
+import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
+import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
 import no.nav.aap.behandlingsflyt.prosessering.Motor
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.behandlingsflyt.sak.Ident
@@ -50,6 +56,7 @@ import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.SakId
 import no.nav.aap.behandlingsflyt.sak.sakRepository
+import no.nav.aap.behandlingsflyt.underveis.regler.TimerArbeid
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -89,7 +96,13 @@ class FlytOrkestratorTest {
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
 
         // Sender inn en søknad
-        hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
+        hendelsesMottak.håndtere(
+            ident, DokumentMottattPersonHendelse(
+                journalpost = JournalpostId("20"),
+                mottattTidspunkt = LocalDateTime.now(),
+                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+            )
+        )
         ventPåSvar()
 
         val sak = hentSak(ident, periode)
@@ -103,8 +116,7 @@ class FlytOrkestratorTest {
         }
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarStudentLøsning(
@@ -121,8 +133,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarYrkesskadeLøsning(
@@ -141,8 +152,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarSykdomLøsning(
@@ -162,8 +172,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarBistandsbehovLøsning(
@@ -178,15 +187,39 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
-        dataSource.transaction {
-            val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
+        dataSource.transaction { dbConnection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, dbConnection)
+            assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
+            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        }
+
+        hendelsesMottak.håndtere(
+            ident, DokumentMottattPersonHendelse(
+                journalpost = JournalpostId("21"),
+                mottattTidspunkt = LocalDateTime.now(),
+                strukturertDokument = StrukturertDokument(
+                    Pliktkort(
+                        timerArbeidPerPeriode = setOf(
+                            ArbeidIPeriode(
+                                Periode(LocalDate.now(), LocalDate.now().plusDays(14)), TimerArbeid(
+                                    BigDecimal(20)
+                                )
+                            )
+                        )
+                    ), Brevkode.PLIKTKORT
+                )
+            )
+        )
+        ventPåSvar()
+        // Saken er tilbake til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
+        dataSource.transaction { dbConnection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, dbConnection)
             assertThat(avklaringsbehov.alle()).anySatisfy { it.erÅpent() && it.definisjon == Definisjon.FORESLÅ_VEDTAK }
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = ForeslåVedtakLøsning("Begrunnelse")
@@ -205,8 +238,7 @@ class FlytOrkestratorTest {
 
         dataSource.transaction { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
-            hendelsesMottak.håndtere(
-                connection,
+            AvklaringsbehovHendelseHåndterer(connection).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FatteVedtakLøsning(avklaringsbehov.alle()
@@ -246,7 +278,13 @@ class FlytOrkestratorTest {
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
 
         // Sender inn en søknad
-        hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
+        hendelsesMottak.håndtere(
+            ident, DokumentMottattPersonHendelse(
+                journalpost = JournalpostId("10"),
+                mottattTidspunkt = LocalDateTime.now(),
+                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+            )
+        )
         ventPåSvar()
 
         val sak = hentSak(ident, periode)
@@ -260,8 +298,7 @@ class FlytOrkestratorTest {
         }
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarStudentLøsning(
@@ -278,8 +315,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarYrkesskadeLøsning(
@@ -298,8 +334,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarSykdomLøsning(
@@ -319,8 +354,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarBistandsbehovLøsning(
@@ -342,8 +376,7 @@ class FlytOrkestratorTest {
         }
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = ForeslåVedtakLøsning("Begrunnelse")
@@ -362,8 +395,7 @@ class FlytOrkestratorTest {
 
         dataSource.transaction { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
-            hendelsesMottak.håndtere(
-                connection,
+            AvklaringsbehovHendelseHåndterer(connection).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FatteVedtakLøsning(avklaringsbehov.alle()
@@ -413,7 +445,13 @@ class FlytOrkestratorTest {
         )
 
         // Sender inn en søknad
-        hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
+        hendelsesMottak.håndtere(
+            ident, DokumentMottattPersonHendelse(
+                journalpost = JournalpostId("11"),
+                mottattTidspunkt = LocalDateTime.now(),
+                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+            )
+        )
         ventPåSvar()
 
         val sak = hentSak(ident, periode)
@@ -427,8 +465,7 @@ class FlytOrkestratorTest {
         }
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarStudentLøsning(
@@ -445,8 +482,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarYrkesskadeLøsning(
@@ -465,8 +501,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarSykdomLøsning(
@@ -486,8 +521,7 @@ class FlytOrkestratorTest {
         ventPåSvar()
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarBistandsbehovLøsning(
@@ -509,8 +543,7 @@ class FlytOrkestratorTest {
         }
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = ForeslåVedtakLøsning("Begrunnelse")
@@ -529,8 +562,7 @@ class FlytOrkestratorTest {
 
         dataSource.transaction { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
-            hendelsesMottak.håndtere(
-                connection,
+            AvklaringsbehovHendelseHåndterer(connection).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FatteVedtakLøsning(avklaringsbehov.alle()
@@ -555,8 +587,7 @@ class FlytOrkestratorTest {
         }
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarSykdomLøsning(
@@ -584,8 +615,7 @@ class FlytOrkestratorTest {
         }
 
         dataSource.transaction {
-            hendelsesMottak.håndtere(
-                it,
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = ForeslåVedtakLøsning("Begrunnelse")
@@ -604,8 +634,7 @@ class FlytOrkestratorTest {
 
         dataSource.transaction { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
-            hendelsesMottak.håndtere(
-                connection,
+            AvklaringsbehovHendelseHåndterer(connection).håndtere(
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FatteVedtakLøsning(avklaringsbehov.alle()
@@ -672,7 +701,14 @@ class FlytOrkestratorTest {
 
         PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(17))))
 
-        hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
+        hendelsesMottak.håndtere(
+            ident,
+            DokumentMottattPersonHendelse(
+                journalpost = JournalpostId("1"),
+                mottattTidspunkt = LocalDateTime.now(),
+                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+            )
+        )
         ventPåSvar()
 
         val sak = hentSak(ident, periode)
@@ -708,7 +744,13 @@ class FlytOrkestratorTest {
 
         PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(20))))
 
-        hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
+        hendelsesMottak.håndtere(
+            ident, DokumentMottattPersonHendelse(
+                journalpost = JournalpostId("2"),
+                mottattTidspunkt = LocalDateTime.now(),
+                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+            )
+        )
         ventPåSvar()
 
         val sak = hentSak(ident, periode)
@@ -735,7 +777,13 @@ class FlytOrkestratorTest {
                 .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
         }
 
-        hendelsesMottak.håndtere(ident, DokumentMottattPersonHendelse(periode = periode))
+        hendelsesMottak.håndtere(
+            ident, DokumentMottattPersonHendelse(
+                journalpost = JournalpostId("3"),
+                mottattTidspunkt = LocalDateTime.now(),
+                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+            )
+        )
         ventPåSvar()
 
         behandling = hentBehandling(sak.id)

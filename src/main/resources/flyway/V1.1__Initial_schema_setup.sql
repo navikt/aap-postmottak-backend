@@ -478,7 +478,6 @@ CREATE TABLE BEREGNINGSGRUNNLAG
 CREATE UNIQUE INDEX UIDX_BEREGNINGSGRUNNLAG_BEHANDLING_ID ON BEREGNINGSGRUNNLAG (BEHANDLING_ID) WHERE (AKTIV = TRUE);
 
 -- Mottatt dokument
--- sak_id, journalpost_id, mottatt_tidspunkt, type, status
 CREATE TABLE MOTTATT_DOKUMENT
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
@@ -504,11 +503,48 @@ CREATE TABLE SAK_PLIKTKORT
 );
 CREATE INDEX IDX_SAK_PLIKTKORT ON SAK_PLIKTKORT (JOURNALPOST);
 
+CREATE TABLE SAK_PLIKTKORT_PERIODE
+(
+    ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
+    pliktkort_id  BIGINT                                 NOT NULL REFERENCES SAK_PLIKTKORT (ID),
+    PERIODE       daterange                              NOT NULL,
+    timer_arbeid  NUMERIC(5, 1)                          NOT NULL,
+    OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+alter table SAK_PLIKTKORT_PERIODE
+    add constraint SAK_PLIKTKORT_PERIODE_IKKE_OVERLAPP_PERIODE EXCLUDE USING GIST (
+        pliktkort_id WITH =,
+        PERIODE WITH &&
+        );
+
 CREATE TABLE PLIKTKORTENE
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
     OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+CREATE TABLE PLIKTKORT
+(
+    ID              BIGSERIAL                              NOT NULL PRIMARY KEY,
+    pliktkortene_id BIGINT                                 NOT NULL REFERENCES PLIKTKORTENE (ID),
+    JOURNALPOST     VARCHAR(25)                            NOT NULL,
+    OPPRETTET_TID   TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+CREATE INDEX IDX_PLIKTKORT ON PLIKTKORT (JOURNALPOST);
+
+CREATE TABLE PLIKTKORT_PERIODE
+(
+    ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
+    pliktkort_id  BIGINT                                 NOT NULL REFERENCES PLIKTKORT (ID),
+    PERIODE       daterange                              NOT NULL,
+    timer_arbeid  NUMERIC(5, 1)                          NOT NULL,
+    OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+alter table PLIKTKORT_PERIODE
+    add constraint PLIKTKORT_PERIODE_IKKE_OVERLAPP_PERIODE EXCLUDE USING GIST (
+        pliktkort_id WITH =,
+        PERIODE WITH &&
+        );
+
 CREATE TABLE PLIKKORT_GRUNNLAG
 (
     ID              BIGSERIAL                              NOT NULL PRIMARY KEY,

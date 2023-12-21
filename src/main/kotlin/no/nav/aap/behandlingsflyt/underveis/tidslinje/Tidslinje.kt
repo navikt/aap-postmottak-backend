@@ -140,10 +140,16 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
     }
 
     fun splittOppEtter(period: Period): Tidslinje<T> {
+        if (segmenter.isEmpty()) {
+            return this
+        }
         return splittOppEtter(minDato(), maxDato(), period)
     }
 
     fun splittOppEtter(startDato: LocalDate, period: Period): Tidslinje<T> {
+        if (segmenter.isEmpty()) {
+            return this
+        }
         return splittOppEtter(startDato, maxDato(), period)
     }
 
@@ -177,6 +183,9 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
         period: Period,
         mapper: Function<NavigableSet<Segment<T>>, NavigableSet<Segment<R>>>
     ): Tidslinje<R> {
+        if (segmenter.isEmpty()) {
+            return Tidslinje<R>()
+        }
         return splittOppOgMapOmEtter(minDato(), maxDato(), period, mapper)
     }
 

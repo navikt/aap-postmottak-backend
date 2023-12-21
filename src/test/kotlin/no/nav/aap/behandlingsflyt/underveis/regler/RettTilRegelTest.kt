@@ -29,6 +29,7 @@ class RettTilRegelTest {
         val input = UnderveisInput(
             førsteFastsatteDag = søknadsdato,
             listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
+            listOf(),
             listOf()
         )
         val grunnleggendeRettTidslinje = regel.vurder(input = input, Tidslinje())
@@ -68,6 +69,7 @@ class RettTilRegelTest {
         val input = UnderveisInput(
             førsteFastsatteDag = søknadsdato,
             listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
+            listOf(),
             listOf()
         )
         val grunnleggendeRettTidslinje = regel.vurder(input = input, Tidslinje())

@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt
 import no.nav.aap.behandlingsflyt.underveis.tidslinje.max
 import no.nav.aap.behandlingsflyt.underveis.tidslinje.min
 import java.time.LocalDate
+import java.time.Period
 import java.util.*
 
 class Periode(val fom: LocalDate, val tom: LocalDate) : Comparable<Periode> {
@@ -19,6 +20,10 @@ class Periode(val fom: LocalDate, val tom: LocalDate) : Comparable<Periode> {
 
     fun overlapper(periode: Periode): Boolean {
         return !this.tom.isBefore(periode.fom) && !this.fom.isAfter(periode.tom)
+    }
+
+    fun antallDager(): Int {
+        return Period.between(fom, tom.plusDays(1)).days
     }
 
     override fun compareTo(other: Periode): Int {

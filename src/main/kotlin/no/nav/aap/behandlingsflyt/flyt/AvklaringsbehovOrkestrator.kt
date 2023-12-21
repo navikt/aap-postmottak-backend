@@ -27,6 +27,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
     private val avklaringsbehovsLøsere = mutableMapOf<Definisjon, AvklaringsbehovsLøser<*>>()
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
     private val behandlingRepository = behandlingRepository(connection)
+    private val oppgaveRepository = OppgaveRepository(connection)
 
     private val log = LoggerFactory.getLogger(AvklaringsbehovOrkestrator::class.java)
 
@@ -56,7 +57,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
             avklaringsbehovene
         )
 
-        OppgaveRepository(connection).leggTil(
+        oppgaveRepository.leggTil(
             OppgaveInput(oppgave = ProsesserBehandlingOppgave).forBehandling(
                 kontekst.sakId,
                 kontekst.behandlingId

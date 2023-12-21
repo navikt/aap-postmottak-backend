@@ -34,6 +34,8 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.sykdom.AvklarYrkesskadeLøsnin
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.behandling.flate.avklaringsbehov.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.behandling.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
@@ -50,6 +52,8 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.adapter.YrkesskadeReg
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
 import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
+import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
+import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
 import no.nav.aap.behandlingsflyt.prosessering.Motor
 import no.nav.aap.behandlingsflyt.prosessering.retry.RetryService
 import no.nav.aap.behandlingsflyt.sak.Ident
@@ -58,6 +62,7 @@ import org.flywaydb.core.Flyway
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.sql.DataSource
 
 private val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
@@ -191,22 +196,22 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
 
             val ident = Ident(dto.ident)
             PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(dto.fødselsdato)))
+            val periode = Periode(
+                LocalDate.now().minusYears(3),
+                LocalDate.now().plusYears(3)
+            )
             if (dto.yrkesskade) {
                 YrkesskadeRegisterMock.konstruer(
                     ident,
-                    Periode(
-                        LocalDate.now().minusYears(3),
-                        LocalDate.now().plusYears(3)
-                    )
+                    periode
                 )
             }
 
             HendelsesMottak(dataSource).håndtere(
                 ident, DokumentMottattPersonHendelse(
-                    Periode(
-                        LocalDate.now(),
-                        LocalDate.now().plusYears(3)
-                    )
+                    journalpost = JournalpostId("" + System.currentTimeMillis()),
+                    mottattTidspunkt = LocalDateTime.now(),
+                    strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
                 )
             )
             respond(dto)

@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepo
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.flyt.ValiderBehandlingTilstand
-import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
+import no.nav.aap.behandlingsflyt.hendelse.mottak.AvklaringsbehovHendelseHåndterer
 import no.nav.aap.behandlingsflyt.hendelse.mottak.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.prosessering.TaSkriveLåsRepository
 import org.slf4j.MDC
@@ -34,8 +34,7 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                                 versjon = request.behandlingVersjon
                             )
 
-                            HendelsesMottak(dataSource).håndtere(
-                                connection = connection,
+                            AvklaringsbehovHendelseHåndterer(connection).håndtere(
                                 key = behandling.id,
                                 hendelse = LøsAvklaringsbehovBehandlingHendelse(
                                     request.behov,

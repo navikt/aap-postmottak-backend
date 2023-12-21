@@ -1,6 +1,14 @@
 package no.nav.aap.behandlingsflyt.hendelse.mottak
 
-class DokumentMottattSakHendelse() : SakHendelse {
+import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
+import java.time.LocalDateTime
+
+class DokumentMottattSakHendelse(
+    val journalpost: JournalpostId,
+    val mottattTidspunkt: LocalDateTime,
+    val strukturertDokument: StrukturertDokument<*>
+) : SakHendelse {
 
     override fun tilBehandlingHendelse(): BehandlingHendelse {
         return DokumentMottattBehandlingHendelse()

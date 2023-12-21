@@ -44,7 +44,7 @@ class PliktkortRepository(private val connection: DBConnection) {
                 setLong(1, pliktkorteneId)
             }
             setRowMapper {
-                Pliktkort(JournalpostId(it.getString("journalpost_id")), hentTimerPerPeriode(it.getLong("id")))
+                Pliktkort(JournalpostId(it.getString("journalpost")), hentTimerPerPeriode(it.getLong("id")))
             }
         }.toSet()
 
@@ -79,23 +79,68 @@ class PliktkortRepository(private val connection: DBConnection) {
                 setLong(1, id)
             }
             setRowMapper {
-                ArbeidIPeriode(it.getPeriode("periode"), TimerArbeid(it.getBigDecimal("antall_timer")))
+                ArbeidIPeriode(it.getPeriode("periode"), TimerArbeid(it.getBigDecimal("timer_arbeid")))
             }
         }.toSet()
     }
 
     fun lagre(behandlingId: BehandlingId, pliktkortene: Set<Pliktkort>) {
-        val eksisterendeKort = hentHvisEksisterer(behandlingId)?.pliktkortene ?: emptySet()
+        val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
+        val eksisterendeKort = eksisterendeGrunnlag?.pliktkortene ?: emptySet()
 
         if (eksisterendeKort != pliktkortene) {
-            deaktiverGrunnlag(behandlingId)
+            if (eksisterendeGrunnlag != null) {
+                deaktiverGrunnlag(behandlingId)
+            }
 
             lagreNyttGrunnlag(behandlingId, pliktkortene)
         }
     }
 
     private fun lagreNyttGrunnlag(behandlingId: BehandlingId, pliktkortene: Set<Pliktkort>) {
-        TODO("Not yet implemented")
+        val pliktkorteneQuery = """
+            INSERT INTO PLIKTKORTENE DEFAULT VALUES
+            """.trimIndent()
+        val pliktkorteneId = connection.executeReturnKey(pliktkorteneQuery) {
+            setParams {
+            }
+        }
+
+        pliktkortene.forEach { pliktkort ->
+            val query = """
+            INSERT INTO PLIKTKORT (journalpost, pliktkortene_id) VALUES (?, ?)
+            """.trimIndent()
+            val pliktkortId = connection.executeReturnKey(query) {
+                setParams {
+                    setString(1, pliktkort.journalpostId.identifikator)
+                    setLong(2, pliktkorteneId)
+                }
+            }
+
+            pliktkort.timerArbeidPerPeriode.forEach { periode ->
+                val kortQuery = """
+                INSERT INTO PLIKTKORT_PERIODE (pliktkort_id, periode, timer_arbeid) VALUES (?, ?::daterange, ?)
+            """.trimIndent()
+
+                connection.execute(kortQuery) {
+                    setParams {
+                        setLong(1, pliktkortId)
+                        setPeriode(2, periode.periode)
+                        setBigDecimal(3, periode.timerArbeid.antallTimer)
+                    }
+                }
+            }
+        }
+
+        val grunnlagQuery = """
+            INSERT INTO PLIKKORT_GRUNNLAG (behandling_id, PLIKTKORTENE_ID) VALUES (?, ?)
+        """.trimIndent()
+        connection.execute(grunnlagQuery) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+                setLong(2, pliktkorteneId)
+            }
+        }
     }
 
     private fun deaktiverGrunnlag(behandlingId: BehandlingId) {
