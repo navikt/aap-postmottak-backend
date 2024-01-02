@@ -217,6 +217,21 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
             respond(dto)
         }
     }
+    route("/test/pliktkort") {
+        post<Unit, PliktkortTestDTO, PliktkortTestDTO> { _, dto ->
+
+            val ident = Ident(dto.ident)
+
+            HendelsesMottak(dataSource).håndtere(
+                ident, DokumentMottattPersonHendelse(
+                    journalpost = JournalpostId("" + System.currentTimeMillis()),
+                    mottattTidspunkt = LocalDateTime.now(),
+                    strukturertDokument = StrukturertDokument(dto.pliktkort, Brevkode.PLIKTKORT)
+                )
+            )
+            respond(dto)
+        }
+    }
 }
 
 class DbConfig(
