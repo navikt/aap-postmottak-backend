@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeidsevne
 
 import no.nav.aap.behandlingsflyt.Periode
-import no.nav.aap.behandlingsflyt.avklaringsbehov.arbeidsevne.Arbeidsevne
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne.Arbeidsevne
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository

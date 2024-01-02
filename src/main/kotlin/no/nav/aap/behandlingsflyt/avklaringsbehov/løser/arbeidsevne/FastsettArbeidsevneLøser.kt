@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.avklaringsbehov.arbeidsevne
+package no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.LøsningsResultat

@@ -24,7 +24,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import no.nav.aap.behandlingsflyt.avklaringsbehov.arbeidsevne.FastsettArbeidsevneLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne.FastsettArbeidsevneLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.AvklarBistandsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.meldeplikt.FritakMeldepliktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.student.AvklarStudentLøsning

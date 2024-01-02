@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov.løser
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.arbeidsevne.FastsettArbeidsevneLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne.FastsettArbeidsevneLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.AvklarBistandLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.meldeplikt.FritakFraMeldepliktLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.student.AvklarStudentLøser

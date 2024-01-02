@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.avklaringsbehov.arbeidsevne
+package no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
