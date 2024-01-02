@@ -7,8 +7,8 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.student.AvklarStudentL�
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykdomLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykepengerErstatningLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarYrkesskadeLøser
-import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøser
-import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøser
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon

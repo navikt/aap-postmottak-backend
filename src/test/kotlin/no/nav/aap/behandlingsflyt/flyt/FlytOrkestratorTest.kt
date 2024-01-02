@@ -10,9 +10,9 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarYrkesskade
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.Yrkesskadevurdering
-import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.FatteVedtakLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.ForeslåVedtakLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.vedtak.TotrinnsVurdering
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.Status
