@@ -1,8 +1,5 @@
-package no.nav.aap.behandlingsflyt.flyt
+package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovsLøser
-import no.nav.aap.behandlingsflyt.avklaringsbehov.SattPåVentLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.arbeidsevne.FastsettArbeidsevneLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.bistand.AvklarBistandLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.meldeplikt.FritakFraMeldepliktLøser
@@ -17,6 +14,9 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
+import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
+import no.nav.aap.behandlingsflyt.flyt.ValiderBehandlingTilstand
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
