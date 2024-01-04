@@ -41,3 +41,4 @@ out/
 build/
 .gradle
 /property 'buildDir'/version.properties
+/app/property 'buildDir'/version.properties
