@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.verdityper
+package no.nav.aap.verdityper
 
 import java.math.BigDecimal
 import java.math.RoundingMode

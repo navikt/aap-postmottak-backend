@@ -1,9 +1,9 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.meldeplikt
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.meldeplikt.Fritaksvurdering
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.verdityper.Periode
 
 class MeldepliktRepository(private val connection: DBConnection) {
 

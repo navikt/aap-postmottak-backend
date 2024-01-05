@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår.alder
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
-import no.nav.aap.behandlingsflyt.flyt.vilkår.Faktagrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Faktagrunnlag
+import no.nav.aap.verdityper.Periode
 
 class Aldersgrunnlag(val periode: Periode, private val fødselsdato: Fødselsdato) : Faktagrunnlag {
 

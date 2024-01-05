@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom
 
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
-import no.nav.aap.behandlingsflyt.verdityper.Beløp
-import no.nav.aap.behandlingsflyt.verdityper.Prosent
+import no.nav.aap.verdityper.Beløp
+import no.nav.aap.verdityper.Prosent
 import java.time.LocalDate
 
 data class Sykdomsvurdering(

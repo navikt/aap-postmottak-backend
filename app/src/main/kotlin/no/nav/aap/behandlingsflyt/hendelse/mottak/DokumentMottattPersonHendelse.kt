@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.hendelse.mottak
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
+import no.nav.aap.verdityper.Periode
 import java.time.LocalDateTime
 
 class DokumentMottattPersonHendelse(

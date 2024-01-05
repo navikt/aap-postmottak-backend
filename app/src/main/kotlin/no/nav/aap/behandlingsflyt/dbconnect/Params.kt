@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.dbconnect
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
+import no.nav.aap.verdityper.Periode
 import java.math.BigDecimal
 import java.sql.Date
 import java.sql.PreparedStatement

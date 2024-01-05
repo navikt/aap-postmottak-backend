@@ -1,15 +1,15 @@
 package no.nav.aap.behandlingsflyt.beregning
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.april
 import no.nav.aap.behandlingsflyt.desember
-import no.nav.aap.behandlingsflyt.verdityper.Beløp
 import no.nav.aap.behandlingsflyt.januar
 import no.nav.aap.behandlingsflyt.mai
 import no.nav.aap.behandlingsflyt.tidslinje.JoinStyle
 import no.nav.aap.behandlingsflyt.tidslinje.Segment
 import no.nav.aap.behandlingsflyt.tidslinje.StandardSammenslåere
 import no.nav.aap.behandlingsflyt.tidslinje.Tidslinje
+import no.nav.aap.verdityper.Beløp
+import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

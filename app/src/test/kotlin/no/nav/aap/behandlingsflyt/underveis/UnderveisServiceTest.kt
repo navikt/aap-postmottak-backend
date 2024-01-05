@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.underveis
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.MockConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.PliktkortRepository
@@ -10,6 +9,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.underveis.regler.UnderveisInput
+import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

@@ -6,8 +6,8 @@ import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
-import no.nav.aap.behandlingsflyt.verdityper.Beløp
-import no.nav.aap.behandlingsflyt.verdityper.Prosent
+import no.nav.aap.verdityper.Beløp
+import no.nav.aap.verdityper.Prosent
 
 class SykdomRepository(private val connection: DBConnection) {
 

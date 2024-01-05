@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.tidslinje.Segment
 import no.nav.aap.behandlingsflyt.tidslinje.SegmentSammenslåer
+import no.nav.aap.verdityper.Periode
 
 class SlåSammenVurderingerSammenslåer : SegmentSammenslåer<Vurdering, EnkelVurdering, Vurdering> {
     override fun sammenslå(

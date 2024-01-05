@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.flate
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.Yrkesskadevurdering
-import no.nav.aap.behandlingsflyt.verdityper.Periode
+import no.nav.aap.verdityper.Periode
 
 data class SykdomGrunnlagDto(
     val opplysninger: InnhentetSykdomsOpplysninger,

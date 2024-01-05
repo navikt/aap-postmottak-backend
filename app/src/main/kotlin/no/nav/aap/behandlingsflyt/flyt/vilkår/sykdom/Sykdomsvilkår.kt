@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Avslagsårsak
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Innvilgelsesårsak
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
@@ -10,6 +9,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsvurderer
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VurderingsResultat
+import no.nav.aap.verdityper.Periode
 
 class Sykdomsvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<SykdomsFaktagrunnlag> {
     private val vilkår: Vilkår

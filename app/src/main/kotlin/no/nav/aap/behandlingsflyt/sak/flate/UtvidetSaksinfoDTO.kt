@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.sak.flate
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.sak.Status
+import no.nav.aap.verdityper.Periode
 
 data class UtvidetSaksinfoDTO(
     val saksnummer: String,

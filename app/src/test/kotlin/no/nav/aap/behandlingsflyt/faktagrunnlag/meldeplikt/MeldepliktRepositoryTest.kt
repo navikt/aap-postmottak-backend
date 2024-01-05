@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.meldeplikt
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.august
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.meldeplikt.Fritaksvurdering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
@@ -14,6 +13,7 @@ import no.nav.aap.behandlingsflyt.ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.sakRepository
+import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow

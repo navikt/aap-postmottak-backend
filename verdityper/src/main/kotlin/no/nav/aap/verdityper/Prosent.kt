@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.verdityper
+package no.nav.aap.verdityper
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import java.math.BigDecimal

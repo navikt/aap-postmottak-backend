@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.tidslinje
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
+import no.nav.aap.verdityper.Periode
 
 fun interface SegmentSammenslåer<Q, E, V> {
 

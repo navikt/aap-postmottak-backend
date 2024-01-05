@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.verdityper
+package no.nav.aap.verdityper
 
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test

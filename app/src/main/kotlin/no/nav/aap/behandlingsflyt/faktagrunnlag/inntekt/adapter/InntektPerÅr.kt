@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter
 
 import no.nav.aap.behandlingsflyt.beregning.Grunnbeløp
-import no.nav.aap.behandlingsflyt.verdityper.Beløp
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.GUnit
+import no.nav.aap.verdityper.Beløp
 import java.time.Year
 
 class InntektPerÅr(val år: Year, val beløp: Beløp) : Comparable<InntektPerÅr> {

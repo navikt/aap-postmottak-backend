@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandRepository
@@ -18,6 +17,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
 import no.nav.aap.behandlingsflyt.sak.SakService
+import no.nav.aap.verdityper.Periode
 
 class VurderBistandsbehovSteg private constructor(
     private val bistandRepository: BistandRepository,

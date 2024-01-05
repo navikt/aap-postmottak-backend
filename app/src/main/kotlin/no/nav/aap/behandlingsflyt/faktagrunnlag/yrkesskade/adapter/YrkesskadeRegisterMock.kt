@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.adapter
 
 import no.nav.aap.behandlingsflyt.sak.Ident
-import no.nav.aap.behandlingsflyt.verdityper.Periode
+import no.nav.aap.verdityper.Periode
 
 object YrkesskadeRegisterMock {
 

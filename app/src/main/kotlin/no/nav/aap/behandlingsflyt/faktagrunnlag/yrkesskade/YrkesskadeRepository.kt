@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
-import no.nav.aap.behandlingsflyt.verdityper.Periode
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.verdityper.Periode
 
 class YrkesskadeRepository(private val connection: DBConnection) {
 

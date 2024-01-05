@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.verdityper
+package no.nav.aap.verdityper
 
 import java.time.LocalDate
 import java.time.Period
@@ -99,4 +99,18 @@ class Periode(val fom: LocalDate, val tom: LocalDate) : Comparable<Periode> {
     fun inneholder(dato: LocalDate): Boolean {
         return overlapp(Periode(dato, dato)) != null
     }
+}
+
+fun min(dato: LocalDate, dato1: LocalDate): LocalDate {
+    if (dato.isBefore(dato1)) {
+        return dato
+    }
+    return dato1
+}
+
+fun max(dato: LocalDate, dato1: LocalDate): LocalDate {
+    if (dato.isAfter(dato1)) {
+        return dato
+    }
+    return dato1
 }

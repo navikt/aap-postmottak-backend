@@ -54,9 +54,9 @@ import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.behandlingsflyt.sak.SakId
 import no.nav.aap.behandlingsflyt.sak.sakRepository
 import no.nav.aap.behandlingsflyt.underveis.regler.TimerArbeid
-import no.nav.aap.behandlingsflyt.verdityper.Beløp
-import no.nav.aap.behandlingsflyt.verdityper.Periode
-import no.nav.aap.behandlingsflyt.verdityper.Prosent
+import no.nav.aap.verdityper.Beløp
+import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.Prosent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
