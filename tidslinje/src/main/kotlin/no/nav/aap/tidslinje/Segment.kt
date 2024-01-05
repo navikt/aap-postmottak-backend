@@ -10,28 +10,12 @@ class Segment<T>(val periode: Periode, val verdi: T?) : Comparable<Segment<T>> {
     }
 
     internal fun forlengetKopi(periode: Periode): Segment<T> {
-        val fom = firstOf(this.periode.fom, periode.fom)
-        val tom = lastOf(this.periode.tom, periode.tom)
-
-        return Segment(Periode(fom, tom), verdi)
-    }
-
-    private fun lastOf(tom: LocalDate, tom1: LocalDate): LocalDate {
-        if (tom < tom1) {
-            return tom1
-        }
-        return tom
-    }
-
-    private fun firstOf(fom: LocalDate, fom1: LocalDate): LocalDate {
-        if (fom < fom1) {
-            return fom
-        }
-        return fom1
+        val utvidetPeriode = this.periode.utvid(periode)
+        return Segment(utvidetPeriode, verdi)
     }
 
     fun inntil(other: Segment<T>): Boolean {
-        return periode.tom == other.periode.fom.minusDays(1) || other.periode.tom == periode.fom.minusDays(1)
+        return this.periode.inntil(other.periode)
     }
 
     override fun compareTo(other: Segment<T>): Int {

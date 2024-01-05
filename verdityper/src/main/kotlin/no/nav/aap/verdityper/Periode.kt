@@ -7,17 +7,15 @@ import java.util.*
 class Periode(val fom: LocalDate, val tom: LocalDate) : Comparable<Periode> {
 
     init {
-        valider()
+        require(fom <= tom) { "tom($tom) er før fom($fom)" }
     }
 
-    private fun valider() {
-        if (tom.isBefore(fom) && !tom.isEqual(fom)) {
-            throw IllegalArgumentException("tom($tom) er før fom($fom)")
-        }
+    fun overlapper(other: Periode): Boolean {
+        return this.fom <= other.tom && other.fom <= this.tom
     }
 
-    fun overlapper(periode: Periode): Boolean {
-        return !this.tom.isBefore(periode.fom) && !this.fom.isAfter(periode.tom)
+    fun inneholder(dato: LocalDate): Boolean {
+        return dato in fom..tom
     }
 
     fun antallDager(): Int {
@@ -58,59 +56,35 @@ class Periode(val fom: LocalDate, val tom: LocalDate) : Comparable<Periode> {
         return "$fom/$tom"
     }
 
-    fun overlapp(periode: Periode): Periode? {
-        return if (!this.overlapper(periode)) {
+    fun overlapp(other: Periode): Periode? {
+        return if (!this.overlapper(other)) {
             null
-        } else if (this == periode) {
+        } else if (this == other) {
             this
         } else {
-            Periode(max(fom, periode.fom), min(tom, periode.tom))
+            Periode(maxOf(fom, other.fom), minOf(tom, other.tom))
         }
     }
 
-    fun minus(annen: Periode): NavigableSet<Periode> {
-        if (!this.overlapper(annen)) {
+    fun minus(other: Periode): NavigableSet<Periode> {
+        if (!this.overlapper(other)) {
             return TreeSet(listOf(this))
         }
         val resultat: NavigableSet<Periode> = TreeSet()
-        if (fom.isBefore(annen.fom)) {
-            resultat.add(Periode(fom, min(tom, annen.fom.minusDays(1))))
+        if (fom < other.fom) {
+            resultat.add(Periode(fom, minOf(tom, other.fom.minusDays(1))))
         }
-        if (tom.isAfter(annen.tom)) {
-            resultat.add(Periode(max(fom, annen.tom.plusDays(1)), tom))
+        if (tom > other.tom) {
+            resultat.add(Periode(maxOf(fom, other.tom.plusDays(1)), tom))
         }
         return resultat
     }
 
-    private fun min(dato: LocalDate, dato1: LocalDate): LocalDate {
-        if (dato.isBefore(dato1)) {
-            return dato
-        }
-        return dato1
+    fun utvid(other: Periode): Periode {
+        return Periode(minOf(this.fom, other.fom), maxOf(this.tom, other.tom))
     }
 
-    private fun max(dato: LocalDate, dato1: LocalDate): LocalDate {
-        if (dato.isAfter(dato1)) {
-            return dato
-        }
-        return dato1
+    fun inntil(other: Periode): Boolean {
+        return this.tom == other.fom.minusDays(1) || other.tom == this.fom.minusDays(1)
     }
-
-    fun inneholder(dato: LocalDate): Boolean {
-        return overlapp(Periode(dato, dato)) != null
-    }
-}
-
-fun min(dato: LocalDate, dato1: LocalDate): LocalDate {
-    if (dato.isBefore(dato1)) {
-        return dato
-    }
-    return dato1
-}
-
-fun max(dato: LocalDate, dato1: LocalDate): LocalDate {
-    if (dato.isAfter(dato1)) {
-        return dato
-    }
-    return dato1
 }

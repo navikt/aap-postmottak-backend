@@ -1,6 +1,6 @@
 package no.nav.aap.verdityper
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -27,17 +27,17 @@ class PeriodeTest {
             Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(7))
         val periode2 = Periode(LocalDate.now().minusDays(8), LocalDate.now())
 
-        Assertions.assertThat(periode.overlapper(periode2)).isTrue()
+        assertThat(periode.overlapper(periode2)).isTrue()
 
         val periode1 = Periode(LocalDate.now(), LocalDate.now())
         val periode3 = Periode(LocalDate.now(), LocalDate.now())
 
-        Assertions.assertThat(periode1.overlapper(periode3)).isTrue()
+        assertThat(periode1.overlapper(periode3)).isTrue()
 
         val periode4 = Periode(LocalDate.now().minusDays(8), LocalDate.now())
         val periode5 = Periode(LocalDate.now(), LocalDate.now().plusDays(8))
 
-        Assertions.assertThat(periode4.overlapper(periode5)).isTrue()
+        assertThat(periode4.overlapper(periode5)).isTrue()
     }
 
     @Test
@@ -46,6 +46,41 @@ class PeriodeTest {
             Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(7))
         val periode2 = Periode(LocalDate.now().minusDays(6), LocalDate.now())
 
-        Assertions.assertThat(periode.overlapper(periode2)).isFalse()
+        assertThat(periode.overlapper(periode2)).isFalse()
+    }
+
+    @Test
+    fun `teste inneholder`() {
+        val periode = Periode(LocalDate.now().minusDays(4), LocalDate.now().minusDays(2))
+
+        assertThat(periode.inneholder(LocalDate.now().minusDays(5))).isFalse()
+        assertThat(periode.inneholder(LocalDate.now().minusDays(4))).isTrue()
+        assertThat(periode.inneholder(LocalDate.now().minusDays(3))).isTrue()
+        assertThat(periode.inneholder(LocalDate.now().minusDays(2))).isTrue()
+        assertThat(periode.inneholder(LocalDate.now().minusDays(1))).isFalse()
+    }
+
+    @Test
+    fun `teste utvid`() {
+        val periode = Periode(LocalDate.now().minusDays(4), LocalDate.now().minusDays(2))
+        val periode2 = Periode(LocalDate.now().minusDays(5), LocalDate.now().minusDays(4))
+        val periode3 = Periode(LocalDate.now().minusDays(2), LocalDate.now().minusDays(1))
+
+        assertThat(periode.utvid(periode2)).isEqualTo(Periode(LocalDate.now().minusDays(5), LocalDate.now().minusDays(2)))
+        assertThat(periode.utvid(periode3)).isEqualTo(Periode(LocalDate.now().minusDays(4), LocalDate.now().minusDays(1)))
+    }
+
+    @Test
+    fun `teste inntil`() {
+        val periode = Periode(LocalDate.now().minusDays(4), LocalDate.now().minusDays(2))
+        val periode2 = Periode(LocalDate.now().minusDays(6), LocalDate.now().minusDays(5))
+        val periode3 = Periode(LocalDate.now().minusDays(5), LocalDate.now().minusDays(4))
+        val periode4 = Periode(LocalDate.now().minusDays(1), LocalDate.now().minusDays(0))
+        val periode5 = Periode(LocalDate.now().minusDays(2), LocalDate.now().minusDays(1))
+
+        assertThat(periode.inntil(periode2)).isTrue()
+        assertThat(periode.inntil(periode3)).isFalse()
+        assertThat(periode.inntil(periode4)).isTrue()
+        assertThat(periode.inntil(periode5)).isFalse()
     }
 }
