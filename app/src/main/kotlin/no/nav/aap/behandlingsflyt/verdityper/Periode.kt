@@ -1,7 +1,5 @@
 package no.nav.aap.behandlingsflyt.verdityper
 
-import no.nav.aap.behandlingsflyt.tidslinje.max
-import no.nav.aap.behandlingsflyt.tidslinje.min
 import java.time.LocalDate
 import java.time.Period
 import java.util.*
@@ -82,6 +80,20 @@ class Periode(val fom: LocalDate, val tom: LocalDate) : Comparable<Periode> {
             resultat.add(Periode(max(fom, annen.tom.plusDays(1)), tom))
         }
         return resultat
+    }
+
+    internal fun min(dato: LocalDate, dato1: LocalDate): LocalDate {
+        if (dato.isBefore(dato1)) {
+            return dato
+        }
+        return dato1
+    }
+
+    internal fun max(dato: LocalDate, dato1: LocalDate): LocalDate {
+        if (dato.isAfter(dato1)) {
+            return dato
+        }
+        return dato1
     }
 
     fun inneholder(dato: LocalDate): Boolean {

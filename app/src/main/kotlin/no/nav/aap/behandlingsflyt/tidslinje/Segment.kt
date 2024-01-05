@@ -76,17 +76,3 @@ class Segment<T>(val periode: Periode, val verdi: T?) : Comparable<Segment<T>> {
         return periode.tom
     }
 }
-
-internal fun min(dato: LocalDate, dato1: LocalDate): LocalDate {
-    if (dato.isBefore(dato1)) {
-        return dato
-    }
-    return dato1
-}
-
-internal fun max(dato: LocalDate, dato1: LocalDate): LocalDate {
-    if (dato.isAfter(dato1)) {
-        return dato
-    }
-    return dato1
-}
