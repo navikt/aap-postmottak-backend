@@ -82,14 +82,14 @@ class Periode(val fom: LocalDate, val tom: LocalDate) : Comparable<Periode> {
         return resultat
     }
 
-    internal fun min(dato: LocalDate, dato1: LocalDate): LocalDate {
+    private fun min(dato: LocalDate, dato1: LocalDate): LocalDate {
         if (dato.isBefore(dato1)) {
             return dato
         }
         return dato1
     }
 
-    internal fun max(dato: LocalDate, dato1: LocalDate): LocalDate {
+    private fun max(dato: LocalDate, dato1: LocalDate): LocalDate {
         if (dato.isAfter(dato1)) {
             return dato
         }
