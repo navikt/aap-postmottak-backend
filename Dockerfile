@@ -1,6 +1,6 @@
 FROM eclipse-temurin:21-jre-alpine
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
-COPY /build/libs/behandlingflyt-all.jar app.jar
+COPY /app/build/libs/app-all.jar app.jar
 CMD ["java", "-XX:ActiveProcessorCount=2", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
 
 # use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
