@@ -1,7 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val ktorVersion = "2.3.7"
-
 plugins {
     kotlin("jvm") version "1.9.21"
     id("io.ktor.plugin") version "2.3.7" apply false
@@ -14,12 +12,14 @@ java {
     }
 }
 
-subprojects {
+allprojects {
     repositories {
         mavenCentral()
         maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
+}
 
+subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
     tasks {
