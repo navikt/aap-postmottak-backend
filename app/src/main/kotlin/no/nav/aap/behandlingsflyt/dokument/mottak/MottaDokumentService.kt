@@ -1,9 +1,9 @@
-package no.nav.aap.behandlingsflyt.mottak
+package no.nav.aap.behandlingsflyt.dokument.mottak
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
-import no.nav.aap.behandlingsflyt.mottak.pliktkort.MottakAvPliktkortRepository
-import no.nav.aap.behandlingsflyt.mottak.pliktkort.UbehandletPliktkort
+import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.MottakAvPliktkortRepository
+import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.UbehandletPliktkort
 import no.nav.aap.behandlingsflyt.sak.SakId
 import java.time.LocalDateTime
 

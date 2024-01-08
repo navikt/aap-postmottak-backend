@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.mottak
+package no.nav.aap.behandlingsflyt.dokument.mottak
 
 import no.nav.aap.behandlingsflyt.behandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId

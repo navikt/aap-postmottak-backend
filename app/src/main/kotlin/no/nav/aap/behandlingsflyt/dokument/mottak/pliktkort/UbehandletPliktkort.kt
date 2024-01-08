@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.mottak.pliktkort
+package no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort
 
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.ArbeidIPeriode

@@ -1,12 +1,12 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.dokument.mottak.MottaDokumentService
+import no.nav.aap.behandlingsflyt.dokument.mottak.MottattDokumentRepository
+import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.MottakAvPliktkortRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlagkonstruktør
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
-import no.nav.aap.behandlingsflyt.mottak.MottaDokumentService
-import no.nav.aap.behandlingsflyt.mottak.MottattDokumentRepository
-import no.nav.aap.behandlingsflyt.mottak.pliktkort.MottakAvPliktkortRepository
 
 class PliktkortService private constructor(
     private val mottaDokumentService: MottaDokumentService,

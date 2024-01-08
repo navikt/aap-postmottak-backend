@@ -6,12 +6,12 @@ import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.behandling.Årsak
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.dokument.mottak.DokumentType
+import no.nav.aap.behandlingsflyt.dokument.mottak.MottaDokumentService
+import no.nav.aap.behandlingsflyt.dokument.mottak.MottattDokumentRepository
+import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.MottakAvPliktkortRepository
+import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.UbehandletPliktkort
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
-import no.nav.aap.behandlingsflyt.mottak.DokumentType
-import no.nav.aap.behandlingsflyt.mottak.MottaDokumentService
-import no.nav.aap.behandlingsflyt.mottak.MottattDokumentRepository
-import no.nav.aap.behandlingsflyt.mottak.pliktkort.MottakAvPliktkortRepository
-import no.nav.aap.behandlingsflyt.mottak.pliktkort.UbehandletPliktkort
 import no.nav.aap.behandlingsflyt.prosessering.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.sak.sakRepository
