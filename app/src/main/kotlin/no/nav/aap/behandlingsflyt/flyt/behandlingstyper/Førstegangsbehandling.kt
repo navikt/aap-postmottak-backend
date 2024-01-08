@@ -43,8 +43,8 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = UnderveisSteg, informasjonskrav = listOf(PliktkortService))
             .medSteg(steg = BarnetilleggSteg)
             .medSteg(steg = SamordningSteg)
-            .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.SIMULERING))
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.BEREGN_TILKJENT_YTELSE))
+            .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.SIMULERING))
             .medSteg(steg = ForeslåVedtakSteg) // en-trinn
             .sluttÅOppdatereFaktagrunnlag()
             .medSteg(steg = FatteVedtakSteg) // to-trinn
