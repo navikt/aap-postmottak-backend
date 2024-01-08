@@ -13,6 +13,8 @@ class BarnetilleggSteg() : BehandlingSteg {
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
 
+
+
         return StegResultat()
     }
 
