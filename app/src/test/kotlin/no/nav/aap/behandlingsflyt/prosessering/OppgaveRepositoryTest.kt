@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.prosessering
 
-import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
+import no.nav.aap.behandlingsflyt.database.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.prosessering.retry.OPPGAVE_TYPE
 import no.nav.aap.behandlingsflyt.prosessering.retry.RetryService

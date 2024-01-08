@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.beregning.Grunnlag11_19
 import no.nav.aap.behandlingsflyt.beregning.GrunnlagUføre
 import no.nav.aap.behandlingsflyt.beregning.GrunnlagYrkesskade
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.dbconnect.InitTestDatabase
+import no.nav.aap.behandlingsflyt.database.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.GUnit
 import no.nav.aap.behandlingsflyt.ident

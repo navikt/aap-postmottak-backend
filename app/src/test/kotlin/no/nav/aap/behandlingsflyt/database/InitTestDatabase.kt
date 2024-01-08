@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.dbconnect
+package no.nav.aap.behandlingsflyt.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

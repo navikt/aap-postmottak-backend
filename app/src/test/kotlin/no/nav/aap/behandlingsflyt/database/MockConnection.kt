@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.dbconnect
+package no.nav.aap.behandlingsflyt.database
 
 import java.sql.Blob
 import java.sql.CallableStatement
