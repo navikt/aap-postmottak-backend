@@ -6,8 +6,8 @@ import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import javax.sql.DataSource
 
-internal object InitTestDatabase {
-    internal val dataSource: DataSource
+object InitTestDatabase {
+    val dataSource: DataSource
 
     init {
         var password = "postgres"

@@ -4,5 +4,6 @@ include(
     "app",
     "verdityper",
     "tidslinje",
-    "dbconnect"
+    "dbconnect",
+    "dbtest"
 )
