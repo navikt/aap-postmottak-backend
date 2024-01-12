@@ -1,10 +1,6 @@
 package no.nav.aap.behandlingsflyt.hendelse.mottak
 
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.behandlingsflyt.behandling.EndringType
-import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.behandling.Årsak
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dokument.mottak.DokumentType
 import no.nav.aap.behandlingsflyt.dokument.mottak.MottaDokumentService
@@ -13,16 +9,16 @@ import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.MottakAvPliktkortRep
 import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.UbehandletPliktkort
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
 import no.nav.aap.behandlingsflyt.prosessering.TaSkriveLåsRepository
+import no.nav.aap.behandlingsflyt.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sak.Saksnummer
-import no.nav.aap.behandlingsflyt.sak.sakRepository
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(SakHendelsesHåndterer::class.java)
 
 class SakHendelsesHåndterer(connection: DBConnection) {
 
-    private val sakRepository = sakRepository(connection)
-    private val behandlingRepository = behandlingRepository(connection)
+    private val sakOgBehandlingService = SakOgBehandlingService(connection)
     private val låsRepository = TaSkriveLåsRepository(connection)
     private val mottaDokumentService = MottaDokumentService(
         mottattDokumentRepository = MottattDokumentRepository(connection),
@@ -36,14 +32,14 @@ class SakHendelsesHåndterer(connection: DBConnection) {
             }
 
             else -> {
-                finnEnRelevantBehandling(key)
+                sakOgBehandlingService.finnEnRelevantBehandling(key)
             }
         }
     }
 
     fun håndtere(key: Saksnummer, hendelse: DokumentMottattSakHendelse): BehandlingId {
         val sakSkrivelås = låsRepository.låsSak(key)
-        val relevantBehandling = finnEnRelevantBehandling(key)
+        val relevantBehandling = sakOgBehandlingService.finnEnRelevantBehandling(key)
         val behandlingSkrivelås = låsRepository.låsBehandling(relevantBehandling)
 
         log.info("Mottatt dokument av typen {} på sak {}", hendelse.strukturertDokument.brevkode, key)
@@ -80,20 +76,4 @@ class SakHendelsesHåndterer(connection: DBConnection) {
         return relevantBehandling
     }
 
-    private fun finnEnRelevantBehandling(key: Saksnummer): BehandlingId {
-        val sak = sakRepository.hent(key)
-
-        val sisteBehandlingOpt = behandlingRepository.finnSisteBehandlingFor(sak.id)
-
-        val sisteBehandling = if (sisteBehandlingOpt != null && !sisteBehandlingOpt.status().erAvsluttet()) {
-            sisteBehandlingOpt
-        } else {
-            // Har ikke behandling så oppretter en
-            behandlingRepository.opprettBehandling(
-                sak.id,
-                listOf(Årsak(EndringType.MOTTATT_SØKNAD))
-            ) // TODO: Reeltsett oppdatere denne
-        }
-        return sisteBehandling.id
-    }
 }
