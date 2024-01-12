@@ -2,9 +2,6 @@ package no.nav.aap.behandlingsflyt.behandling
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
-import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
-import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
-import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Revurdering
 import no.nav.aap.verdityper.flyt.Status
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
@@ -13,15 +10,7 @@ import java.util.*
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    override fun opprettBehandling(sakId: SakId, årsaker: List<Årsak>): Behandling {
-        val sisteBehandlingFor = finnSisteBehandlingFor(sakId)
-        val erSisteBehandlingAvsluttet = sisteBehandlingFor?.status()?.erAvsluttet() ?: true
-
-        if (!erSisteBehandlingAvsluttet) {
-            throw IllegalStateException("Siste behandling er ikke avsluttet")
-        }
-
-        val behandlingType = utledBehandlingType(sisteBehandlingFor != null)
+    override fun opprettBehandling(sakId: SakId, årsaker: List<Årsak>, behandlingType: BehandlingType): Behandling {
         val referanse = UUID.randomUUID() //TODO: Hva gjør vi her med refaranse?
 
         val query = """
@@ -44,9 +33,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             årsaker = årsaker,
             versjon = 0
         )
-        if (sisteBehandlingFor != null) {
-            GrunnlagKopierer(connection).overfør(sisteBehandlingFor.id, behandling.id)
-        }
 
         return behandling
     }
@@ -138,13 +124,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
                 )
             }
         }
-    }
-
-    private fun utledBehandlingType(present: Boolean): BehandlingType {
-        if (present) {
-            return Revurdering
-        }
-        return Førstegangsbehandling
     }
 
     override fun hentAlleFor(sakId: SakId): List<Behandling> {

@@ -32,7 +32,7 @@ class SakHendelsesHåndterer(connection: DBConnection) {
             }
 
             else -> {
-                sakOgBehandlingService.finnEnRelevantBehandling(key)
+                sakOgBehandlingService.finnEnRelevantBehandling(key).id
             }
         }
     }
@@ -40,7 +40,7 @@ class SakHendelsesHåndterer(connection: DBConnection) {
     fun håndtere(key: Saksnummer, hendelse: DokumentMottattSakHendelse): BehandlingId {
         val sakSkrivelås = låsRepository.låsSak(key)
         val relevantBehandling = sakOgBehandlingService.finnEnRelevantBehandling(key)
-        val behandlingSkrivelås = låsRepository.låsBehandling(relevantBehandling)
+        val behandlingSkrivelås = låsRepository.låsBehandling(relevantBehandling.id)
 
         log.info("Mottatt dokument av typen {} på sak {}", hendelse.strukturertDokument.brevkode, key)
 
@@ -73,7 +73,7 @@ class SakHendelsesHåndterer(connection: DBConnection) {
         }
         låsRepository.verifiserSkrivelås(sakSkrivelås)
         låsRepository.verifiserSkrivelås(behandlingSkrivelås)
-        return relevantBehandling
+        return relevantBehandling.id
     }
 
 }

@@ -4,17 +4,17 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
-import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.behandlingsflyt.ident
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
+import no.nav.aap.behandlingsflyt.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sak.sakRepository
 import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -60,11 +60,6 @@ class AvklaringsbehovRepositoryTest {
     }
 
     private fun behandling(connection: DBConnection, sak: Sak): Behandling {
-        val behandling = behandlingRepository(connection).finnSisteBehandlingFor(sak.id)
-        if (behandling == null || behandling.status().erAvsluttet()) {
-            return behandlingRepository(connection).opprettBehandling(sak.id, listOf())
-        }
-        return behandling
+        return SakOgBehandlingService(connection).finnEnRelevantBehandling(sak.saksnummer)
     }
-
 }
