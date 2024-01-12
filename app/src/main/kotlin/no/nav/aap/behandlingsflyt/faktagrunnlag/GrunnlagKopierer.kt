@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag
 
-import no.nav.aap.behandlingsflyt.behandling.Behandling
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.PliktkortRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeidsevne.ArbeidsevneRepository
@@ -13,6 +12,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykepengerErstatningRepos
 import no.nav.aap.behandlingsflyt.faktagrunnlag.uføre.UføreRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.YrkesskadeRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class GrunnlagKopierer(connection: DBConnection) {
 
@@ -28,17 +28,17 @@ class GrunnlagKopierer(connection: DBConnection) {
     private val uføreRepository = UføreRepository(connection)
     private val pliktkortRepository = PliktkortRepository(connection)
 
-    fun overfør(fraBehandling: Behandling, tilBehandling: Behandling) {
-        vilkårsresultatRepository.kopier(fraBehandling.id, tilBehandling.id)
-        personopplysningRepository.kopier(fraBehandling.id, tilBehandling.id)
-        yrkesskadeRepository.kopier(fraBehandling.id, tilBehandling.id)
-        sykdomRepository.kopier(fraBehandling.id, tilBehandling.id)
-        studentRepository.kopier(fraBehandling.id, tilBehandling.id)
-        bistandRepository.kopier(fraBehandling.id, tilBehandling.id)
-        meldepliktRepository.kopier(fraBehandling.id, tilBehandling.id)
-        sykepengerErstatningRepository.kopier(fraBehandling.id, tilBehandling.id)
-        arbeidsevneRepository.kopier(fraBehandling.id, tilBehandling.id)
-        uføreRepository.kopier(fraBehandling.id, tilBehandling.id)
-        pliktkortRepository.kopier(fraBehandling.id, tilBehandling.id)
+    fun overfør(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+        vilkårsresultatRepository.kopier(fraBehandlingId, tilBehandlingId)
+        personopplysningRepository.kopier(fraBehandlingId, tilBehandlingId)
+        yrkesskadeRepository.kopier(fraBehandlingId, tilBehandlingId)
+        sykdomRepository.kopier(fraBehandlingId, tilBehandlingId)
+        studentRepository.kopier(fraBehandlingId, tilBehandlingId)
+        bistandRepository.kopier(fraBehandlingId, tilBehandlingId)
+        meldepliktRepository.kopier(fraBehandlingId, tilBehandlingId)
+        sykepengerErstatningRepository.kopier(fraBehandlingId, tilBehandlingId)
+        arbeidsevneRepository.kopier(fraBehandlingId, tilBehandlingId)
+        uføreRepository.kopier(fraBehandlingId, tilBehandlingId)
+        pliktkortRepository.kopier(fraBehandlingId, tilBehandlingId)
     }
 }

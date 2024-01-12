@@ -45,7 +45,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             versjon = 0
         )
         if (sisteBehandlingFor != null) {
-            GrunnlagKopierer(connection).overfør(sisteBehandlingFor, behandling)
+            GrunnlagKopierer(connection).overfør(sisteBehandlingFor.id, behandling.id)
         }
 
         return behandling
