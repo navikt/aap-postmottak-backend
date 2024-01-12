@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.sak
 
 import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.sakogbehandling.SakId
 
 class Sak(
     val id: SakId,

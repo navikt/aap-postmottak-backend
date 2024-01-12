@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.underveis
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.PliktkortRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype

@@ -1,9 +1,9 @@
 package no.nav.aap.behandlingsflyt.dokument.mottak
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.sak.SakId
+import no.nav.aap.verdityper.sakogbehandling.SakId
 
 class MottattDokumentRepository(private val connection: DBConnection) {
     fun lagre(mottattDokument: MottattDokument) {

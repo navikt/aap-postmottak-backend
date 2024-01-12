@@ -1,9 +1,9 @@
 package no.nav.aap.behandlingsflyt.prosessering
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.utledType
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.sak.SakId
+import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.behandlingsflyt.sak.Saksnummer
 import java.util.*
 

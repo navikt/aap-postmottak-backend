@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.dokument.mottak
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
-import no.nav.aap.behandlingsflyt.sak.SakId
+import no.nav.aap.verdityper.sakogbehandling.SakId
 import java.time.LocalDateTime
 
 data class MottattDokument(

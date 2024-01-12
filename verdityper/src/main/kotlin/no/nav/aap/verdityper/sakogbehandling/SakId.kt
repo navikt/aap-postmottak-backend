@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.sak
+package no.nav.aap.verdityper.sakogbehandling
 
 /**
  * Representerer databaseId for en sak - er ikke ment å dele utenfor domenet.

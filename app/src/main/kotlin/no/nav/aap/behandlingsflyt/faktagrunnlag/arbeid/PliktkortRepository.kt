@@ -1,12 +1,12 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.behandlingsflyt.dokument.mottak.DokumentType
 import no.nav.aap.behandlingsflyt.dokument.mottak.MottattDokumentRepository
-import no.nav.aap.behandlingsflyt.sak.SakId
+import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.behandlingsflyt.underveis.regler.TimerArbeid
 
 class PliktkortRepository(private val connection: DBConnection) {

@@ -1,7 +1,8 @@
 package no.nav.aap.behandlingsflyt.behandling
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.sak.SakId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.SakId
 import java.util.*
 
 interface BehandlingRepository {

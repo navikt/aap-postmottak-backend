@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class YrkesskadeGrunnlag(val id: Long, val behandlingId: BehandlingId, val yrkesskader: Yrkesskader){
     override fun equals(other: Any?): Boolean {

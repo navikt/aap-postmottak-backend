@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.beregning
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.beregning.Beregningsgrunnlag
 import no.nav.aap.behandlingsflyt.beregning.Grunnlag11_19
 import no.nav.aap.behandlingsflyt.beregning.GrunnlagUføre
