@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.beregning
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.GUnit
+import no.nav.aap.verdityper.GUnit
 
 class Grunnlag11_19(
     private val grunnlaget: GUnit

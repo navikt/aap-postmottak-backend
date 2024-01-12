@@ -53,7 +53,7 @@ import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.behandlingsflyt.sak.sakRepository
-import no.nav.aap.behandlingsflyt.underveis.regler.TimerArbeid
+import no.nav.aap.verdityper.TimerArbeid
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.Prosent

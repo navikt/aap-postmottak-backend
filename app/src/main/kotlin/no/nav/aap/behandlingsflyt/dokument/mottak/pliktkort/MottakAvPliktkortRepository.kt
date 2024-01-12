@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.ArbeidIPeriode
-import no.nav.aap.behandlingsflyt.underveis.regler.TimerArbeid
+import no.nav.aap.verdityper.TimerArbeid
 
 class MottakAvPliktkortRepository(private val connection: DBConnection) {
 

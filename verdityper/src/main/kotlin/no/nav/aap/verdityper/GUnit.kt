@@ -1,6 +1,5 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt
+package no.nav.aap.verdityper
 
-import no.nav.aap.verdityper.Prosent
 import java.math.BigDecimal
 import java.math.RoundingMode
 

@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.beregning
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.GUnit
+import no.nav.aap.verdityper.GUnit
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektPerÅr
 import java.util.*
 

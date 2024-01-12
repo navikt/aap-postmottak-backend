@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.underveis.regler
+package no.nav.aap.verdityper
 
 import java.math.BigDecimal
 

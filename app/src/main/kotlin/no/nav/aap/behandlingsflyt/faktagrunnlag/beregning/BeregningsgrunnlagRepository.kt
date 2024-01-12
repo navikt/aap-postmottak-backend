@@ -7,7 +7,7 @@ import no.nav.aap.behandlingsflyt.beregning.GrunnlagUføre
 import no.nav.aap.behandlingsflyt.beregning.GrunnlagYrkesskade
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.BeregningsgrunnlagRepository.Beregningsdata.Companion.toBeregningsgrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.GUnit
+import no.nav.aap.verdityper.GUnit
 
 class BeregningsgrunnlagRepository(private val connection: DBConnection) {
 
