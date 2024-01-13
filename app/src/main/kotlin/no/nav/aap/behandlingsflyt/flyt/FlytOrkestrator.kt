@@ -35,7 +35,8 @@ class FlytOrkestrator(
             eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
         )
 
-        val behandlingFlyt = behandling.forberedtFlyt()
+        val behandlingFlyt = behandling.type.flyt()
+        behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
         if (starterOppBehandling(behandling)) {
             sakRepository.oppdaterSakStatus(kontekst.sakId, UTREDES)
@@ -72,7 +73,7 @@ class FlytOrkestrator(
             eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
         )
 
-        val behandlingFlyt = behandling.flyt()
+        val behandlingFlyt = behandling.type.flyt()
 
         var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
@@ -119,7 +120,8 @@ class FlytOrkestrator(
     }
 
     internal fun forberedLøsingAvBehov(definisjoner: Definisjon, behandling: Behandling, kontekst: FlytKontekst) {
-        val flyt = behandling.forberedtFlyt()
+        val flyt = behandling.type.flyt()
+        flyt.forberedFlyt(behandling.aktivtSteg())
 
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
         val behovForLøsninger = avklaringsbehovene.hentBehovForDefinisjon(definisjoner)

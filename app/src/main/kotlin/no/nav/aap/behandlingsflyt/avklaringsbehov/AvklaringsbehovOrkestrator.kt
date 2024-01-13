@@ -73,7 +73,8 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         if (ingenEndringIGruppe && avklaringsbehovene.harVærtSendtTilbakeFraBeslutterTidligere()) {
-            val flyt = behandling.forberedtFlyt()
+            val flyt = behandling.type.flyt()
+            flyt.forberedFlyt(behandling.aktivtSteg())
             val gjenståendeStegIGruppe = flyt.gjenståendeStegIAktivGruppe()
 
             val behovSomSkalSettesTilAvsluttet =

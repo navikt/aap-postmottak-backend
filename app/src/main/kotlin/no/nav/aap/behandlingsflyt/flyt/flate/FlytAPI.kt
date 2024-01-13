@@ -29,7 +29,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                 val dto = dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
                     val stegGrupper: Map<StegGruppe, List<StegType>> =
-                        behandling.flyt().stegene().groupBy { steg -> steg.gruppe }
+                        behandling.type.flyt().stegene().groupBy { steg -> steg.gruppe }
 
                     val aktivtSteg = behandling.aktivtSteg()
                     var erFullført = true
@@ -38,7 +38,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                             connection,
                             behandling.id
                         ),
-                        behandling.flyt()
+                        behandling.type.flyt()
                     )
                     BehandlingFlytOgTilstandDto(
                         flyt = stegGrupper.map { (gruppe, steg) ->

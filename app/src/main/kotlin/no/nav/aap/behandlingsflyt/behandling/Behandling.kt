@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.behandling
 
-import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
 import no.nav.aap.verdityper.flyt.Status
 import no.nav.aap.verdityper.flyt.StegType
@@ -20,15 +19,6 @@ class Behandling(
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
     val versjon: Long
 ) : Comparable<Behandling> {
-
-    private val flyt: BehandlingFlyt = type.flyt()
-
-    fun flyt(): BehandlingFlyt = flyt
-
-    fun forberedtFlyt(): BehandlingFlyt {
-        flyt.forberedFlyt(aktivtSteg())
-        return flyt
-    }
 
     fun visit(stegTilstand: StegTilstand) {
         if (!stegTilstand.aktiv) {

@@ -19,7 +19,7 @@ class FatteVedtakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<F
 
         lateinit var sammenstiltBegrunnelse: String
         if (skalSendesTilbake(løsning.vurderinger)) {
-            val flyt = behandling.flyt()
+            val flyt = behandling.type.flyt()
             val vurderingerSomErSendtTilbake = løsning.vurderinger
                 .filter { it.godkjent == false }
 
