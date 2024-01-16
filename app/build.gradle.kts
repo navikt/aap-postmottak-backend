@@ -67,12 +67,12 @@ dependencies {
     implementation(project(":verdityper"))
     implementation(project(":tidslinje"))
     implementation(project(":dbconnect"))
-    testImplementation(project(":dbtest"))
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.flywaydb:flyway-core:10.4.1")
     implementation("org.flywaydb:flyway-database-postgresql:10.4.1")
     runtimeOnly("org.postgresql:postgresql:42.7.1")
 
+    testImplementation(project(":dbtest"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
     testImplementation("org.assertj:assertj-core:3.25.1")

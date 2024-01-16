@@ -5,6 +5,5 @@ include(
     "verdityper",
     "tidslinje",
     "dbconnect",
-    "dbtest",
-    "dbtestident"
+    "dbtest"
 )

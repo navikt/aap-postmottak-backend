@@ -18,11 +18,8 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøsn
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.verdityper.flyt.Status
 import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.behandling.dokumenter.Brevkode
-import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
@@ -35,7 +32,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.adapter.Perso
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.adapter.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
-import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
@@ -45,18 +41,23 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
+import no.nav.aap.behandlingsflyt.ident
 import no.nav.aap.behandlingsflyt.prosessering.Motor
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import no.nav.aap.behandlingsflyt.sak.Person
 import no.nav.aap.behandlingsflyt.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sak.Sak
-import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.behandlingsflyt.sak.sakRepository
-import no.nav.aap.verdityper.TimerArbeid
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.Prosent
+import no.nav.aap.verdityper.TimerArbeid
+import no.nav.aap.verdityper.dokument.JournalpostId
+import no.nav.aap.verdityper.flyt.Status
+import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.SakId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -88,7 +89,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade`() {
-        val ident = Ident("123123123123")
+        val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
@@ -270,7 +271,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade - yrkesskade har årsakssammenheng`() {
-        val ident = Ident("123123123321")
+        val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
@@ -427,7 +428,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `to-trinn og ingen endring i gruppe etter sendt tilbake fra beslutter`() {
-        val ident = Ident("123123123199")
+        val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
@@ -695,7 +696,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `Ikke oppfylt på grunn av alder på søknadstidspunkt`() {
-        val ident = Ident("123123123125")
+        val ident = ident()
         hentPerson(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
@@ -739,7 +740,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `Blir satt på vent for etterspørring av informasjon`() {
-        val ident = Ident("123123123127")
+        val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(20))))
