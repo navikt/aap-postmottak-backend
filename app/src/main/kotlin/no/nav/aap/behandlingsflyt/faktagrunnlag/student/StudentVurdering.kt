@@ -1,5 +1,5 @@
 
-package no.nav.aap.behandlingsflyt.avklaringsbehov.løser.student
+package no.nav.aap.behandlingsflyt.faktagrunnlag.student
 
 import no.nav.aap.verdityper.dokument.JournalpostId
 import java.time.LocalDate
