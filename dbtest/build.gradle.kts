@@ -4,8 +4,5 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:10.4.1")
     runtimeOnly("org.postgresql:postgresql:42.7.1")
 
-    implementation(project(":verdityper"))
-    implementation(project(":dbconnect"))
-
     implementation("org.testcontainers:postgresql:1.19.3")
 }
