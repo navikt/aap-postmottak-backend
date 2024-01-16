@@ -34,8 +34,11 @@ object InitTestDatabase {
 
         Flyway
             .configure()
+            .cleanDisabled(false)
+            .cleanOnValidationError(true)
             .dataSource(dataSource)
             .locations("flyway")
+            .validateMigrationNaming(true)
             .load()
             .migrate()
     }
