@@ -14,7 +14,6 @@ import no.nav.aap.behandlingsflyt.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sak.sakRepository
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.flyt.StegType
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -34,7 +33,7 @@ class AvklaringsbehovRepositoryTest {
 
             val avklaringsbehov = repository.hentAvklaringsbehovene(behandling.id)
             assertThat(avklaringsbehov.alle()).hasSize(1)
-            assertThat(avklaringsbehov.alle().get(0).erAvsluttet()).isFalse()
+            assertThat(avklaringsbehov.alle()[0].erAvsluttet()).isFalse()
 
             avklaringsbehovene.løsAvklaringsbehov(
                 definisjon = Definisjon.AVKLAR_SYKDOM,
@@ -43,8 +42,8 @@ class AvklaringsbehovRepositoryTest {
                 kreverToTrinn = true
             )
 
-            val avklaringsbehovEtterLøst = repository.hentAvklaringsbehovene(BehandlingId(1))
-            assertThat(avklaringsbehovEtterLøst.alle().get(0).erAvsluttet()).isTrue()
+            val avklaringsbehovEtterLøst = repository.hentAvklaringsbehovene(behandling.id)
+            assertThat(avklaringsbehovEtterLøst.alle()[0].erAvsluttet()).isTrue()
         }
     }
 
