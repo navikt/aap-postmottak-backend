@@ -20,11 +20,29 @@ class RettTilRegelTest {
         val søknadsdato = LocalDate.now().minusDays(29)
         val periode = Periode(søknadsdato, søknadsdato.plusYears(3))
         val aldersVilkåret =
-            Vilkår(Vilkårtype.ALDERSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
+            Vilkår(Vilkårtype.ALDERSVILKÅRET, setOf(Vilkårsperiode(
+                periode,
+                Utfall.OPPFYLT,
+                false,
+                null,
+                faktagrunnlag = null
+            )))
         val sykdomsVilkåret =
-            Vilkår(Vilkårtype.SYKDOMSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
+            Vilkår(Vilkårtype.SYKDOMSVILKÅRET, setOf(Vilkårsperiode(
+                periode,
+                Utfall.OPPFYLT,
+                false,
+                null,
+                faktagrunnlag = null
+            )))
         val bistandVilkåret =
-            Vilkår(Vilkårtype.BISTANDSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
+            Vilkår(Vilkårtype.BISTANDSVILKÅRET, setOf(Vilkårsperiode(
+                periode,
+                Utfall.OPPFYLT,
+                false,
+                null,
+                faktagrunnlag = null
+            )))
 
         val input = UnderveisInput(
             førsteFastsatteDag = søknadsdato,
@@ -51,20 +69,32 @@ class RettTilRegelTest {
                         Utfall.OPPFYLT,
                         false,
                         null,
-                        null
+                        faktagrunnlag = null
                     ),
                     Vilkårsperiode(
                         Periode(
                             søknadsdato.plusYears(3).minusMonths(4).plusDays(1),
                             søknadsdato.plusYears(3)
-                        ), Utfall.IKKE_OPPFYLT, false, null, null, avslagsårsak = Avslagsårsak.BRUKER_OVER_67
+                        ), Utfall.IKKE_OPPFYLT, false, null, avslagsårsak = Avslagsårsak.BRUKER_OVER_67, faktagrunnlag = null
                     )
                 )
             )
         val sykdomsVilkåret =
-            Vilkår(Vilkårtype.SYKDOMSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
+            Vilkår(Vilkårtype.SYKDOMSVILKÅRET, setOf(Vilkårsperiode(
+                periode,
+                Utfall.OPPFYLT,
+                false,
+                null,
+                faktagrunnlag = null
+            )))
         val bistandVilkåret =
-            Vilkår(Vilkårtype.BISTANDSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
+            Vilkår(Vilkårtype.BISTANDSVILKÅRET, setOf(Vilkårsperiode(
+                periode,
+                Utfall.OPPFYLT,
+                false,
+                null,
+                faktagrunnlag = null
+            )))
 
         val input = UnderveisInput(
             førsteFastsatteDag = søknadsdato,

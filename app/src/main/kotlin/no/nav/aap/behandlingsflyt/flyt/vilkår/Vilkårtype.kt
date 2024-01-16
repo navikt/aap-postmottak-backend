@@ -34,7 +34,7 @@ enum class Vilkårtype(
         hjemmel = "§ 11-6"
     ),
     GRUNNLAGET(
-        kode = "AAP-20",
+        kode = "AAP-19",
         spesielleInnvilgelsesÅrsaker = listOf(),
         avslagsårsaker = listOf(
             Avslagsårsak.MANGLENDE_DOKUMENTASJON

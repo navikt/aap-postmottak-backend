@@ -4,7 +4,6 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.beregning.år.Inntektsbehov
 import no.nav.aap.behandlingsflyt.beregning.år.Input
 import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.BeregningsgrunnlagRepository
-import no.nav.aap.verdityper.GUnit
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektGrunnlagRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomGrunnlag
@@ -19,7 +18,7 @@ class BeregningService(
     private val beregningsgrunnlagRepository: BeregningsgrunnlagRepository
 ) {
 
-    fun beregnGrunnlag(behandlingId: BehandlingId): GUnit {
+    fun beregnGrunnlag(behandlingId: BehandlingId): Beregningsgrunnlag {
         val inntektGrunnlag = inntektGrunnlagRepository.hent(behandlingId)
         val sykdomGrunnlag = sykdomRepository.hent(behandlingId)
         val uføre = uføreRepository.hentHvisEksisterer(behandlingId)
@@ -44,12 +43,12 @@ class BeregningService(
             )
             val grunnlagUføre = uføreberegning.beregnUføre()
             beregningsgrunnlagRepository.lagre(behandlingId, grunnlagUføre)
-            return grunnlagUføre.grunnlaget()
+            return grunnlagUføre
         }
 
         beregningsgrunnlagRepository.lagre(behandlingId, beregningMedYrkesskade)
 
-        return beregningMedYrkesskade.grunnlaget()
+        return beregningMedYrkesskade
     }
 
     private fun beregn(

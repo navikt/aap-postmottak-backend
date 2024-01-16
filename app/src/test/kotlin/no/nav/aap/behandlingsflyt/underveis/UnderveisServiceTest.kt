@@ -25,11 +25,41 @@ class UnderveisServiceTest {
         val søknadsdato = LocalDate.now().minusDays(29)
         val periode = Periode(søknadsdato, søknadsdato.plusYears(3))
         val aldersVilkåret =
-            Vilkår(Vilkårtype.ALDERSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
+            Vilkår(
+                Vilkårtype.ALDERSVILKÅRET, setOf(
+                    Vilkårsperiode(
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
+            )
         val sykdomsVilkåret =
-            Vilkår(Vilkårtype.SYKDOMSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
+            Vilkår(
+                Vilkårtype.SYKDOMSVILKÅRET, setOf(
+                    Vilkårsperiode(
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
+            )
         val bistandVilkåret =
-            Vilkår(Vilkårtype.BISTANDSVILKÅRET, setOf(Vilkårsperiode(periode, Utfall.OPPFYLT, false, null, null)))
+            Vilkår(
+                Vilkårtype.BISTANDSVILKÅRET, setOf(
+                    Vilkårsperiode(
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
+            )
         val relevanteVilkår = listOf(aldersVilkåret, bistandVilkåret, sykdomsVilkåret)
         val input = UnderveisInput(
             førsteFastsatteDag = søknadsdato,

@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.beregning
 
 import no.nav.aap.verdityper.GUnit
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Faktagrunnlag
 
 class GrunnlagYrkesskade(
     private val grunnlaget: GUnit,
@@ -9,6 +10,10 @@ class GrunnlagYrkesskade(
 
     override fun grunnlaget(): GUnit {
         return grunnlaget
+    }
+
+    override fun faktagrunnlag(): Faktagrunnlag {
+        return object : Faktagrunnlag {}
     }
 
     fun underliggende(): Grunnlag11_19 {

@@ -11,15 +11,45 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
+import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
+import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
+import no.nav.aap.behandlingsflyt.sak.SakService
 import org.slf4j.LoggerFactory
 
-class FastsettGrunnlagSteg(private val beregningService: BeregningService) : BehandlingSteg {
+class FastsettGrunnlagSteg(
+    private val beregningService: BeregningService,
+    private val vilkårsresultatRepository: VilkårsresultatRepository,
+    private val periodeTilVurderingService: PeriodeTilVurderingService
+) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(FastsettGrunnlagSteg::class.java)
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val beregnGrunnlag = beregningService.beregnGrunnlag(kontekst.behandlingId)
+        val beregningsgrunnlag = beregningService.beregnGrunnlag(kontekst.behandlingId)
 
-        log.info("Beregnet grunnlag til $beregnGrunnlag")
+        val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
+        val periodeTilVurdering = periodeTilVurderingService.utled(kontekst, Vilkårtype.GRUNNLAGET)
+
+        val vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.GRUNNLAGET)
+
+        periodeTilVurdering.forEach { periode ->
+            vilkår.leggTilVurdering(
+                Vilkårsperiode(
+                    periode = periode,
+                    utfall = Utfall.OPPFYLT,
+                    manuellVurdering = false,
+                    begrunnelse = null,
+                    innvilgelsesårsak = null,
+                    avslagsårsak = null,
+                    faktagrunnlag = beregningsgrunnlag.faktagrunnlag()
+                )
+            )
+        }
+
+        vilkårsresultatRepository.lagre(kontekst.behandlingId, vilkårsresultat)
+
+        log.info("Beregnet grunnlag til ${beregningsgrunnlag.grunnlaget()}")
 
         return StegResultat()
     }
@@ -32,7 +62,9 @@ class FastsettGrunnlagSteg(private val beregningService: BeregningService) : Beh
                     SykdomRepository(connection),
                     UføreRepository(connection),
                     BeregningsgrunnlagRepository(connection)
-                )
+                ),
+                VilkårsresultatRepository(connection),
+                PeriodeTilVurderingService(SakService(connection))
             )
         }
 

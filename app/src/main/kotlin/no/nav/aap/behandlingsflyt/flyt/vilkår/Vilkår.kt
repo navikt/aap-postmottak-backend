@@ -37,8 +37,8 @@ class Vilkår(
                 periode = rettighetsperiode,
                 utfall = Utfall.IKKE_VURDERT,
                 manuellVurdering = false,
-                faktagrunnlag = null,
-                begrunnelse = null
+                begrunnelse = null,
+                faktagrunnlag = null
             )
         )
     }

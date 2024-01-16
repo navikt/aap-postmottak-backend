@@ -10,26 +10,8 @@ class Vilkårsperiode(
     val innvilgelsesårsak: Innvilgelsesårsak? = null,
     val avslagsårsak: Avslagsårsak? = null,
     internal val faktagrunnlag: Faktagrunnlag?,
-    internal val versjon: String
+    internal val versjon: String = ApplikasjonsVersjon.versjon
 ) {
-    constructor(
-        periode: Periode,
-        utfall: Utfall,
-        manuellVurdering: Boolean,
-        faktagrunnlag: Faktagrunnlag?,
-        begrunnelse: String?,
-        avslagsårsak: Avslagsårsak? = null,
-        innvilgelsesårsak: Innvilgelsesårsak? = null,
-    ) : this(
-        periode,
-        utfall,
-        manuellVurdering,
-        begrunnelse,
-        innvilgelsesårsak,
-        avslagsårsak,
-        faktagrunnlag,
-        ApplikasjonsVersjon.versjon
-    )
 
     internal constructor(periode: Periode, vilkårsvurdering: Vilkårsvurdering) : this(
         periode,
