@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.hendelse.mottak
 
-import no.nav.aap.behandlingsflyt.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dokument.mottak.DokumentType
 import no.nav.aap.behandlingsflyt.dokument.mottak.MottaDokumentService
@@ -9,8 +9,8 @@ import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.MottakAvPliktkortRep
 import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.UbehandletPliktkort
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
 import no.nav.aap.behandlingsflyt.prosessering.TaSkriveLåsRepository
-import no.nav.aap.behandlingsflyt.sak.SakOgBehandlingService
-import no.nav.aap.behandlingsflyt.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory
 

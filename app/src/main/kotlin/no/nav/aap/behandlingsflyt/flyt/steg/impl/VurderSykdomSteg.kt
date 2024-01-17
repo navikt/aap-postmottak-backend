@@ -13,7 +13,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.SykdomsFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.sykdom.Sykdomsvilkår
-import no.nav.aap.behandlingsflyt.sak.SakService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 
 class VurderSykdomSteg private constructor(
     private val sykdomRepository: SykdomRepository,

@@ -14,7 +14,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
-import no.nav.aap.behandlingsflyt.sak.SakService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 
 class VurderYrkesskadeÅrsakssammenhengSteg private constructor(
     private val yrkesskadeService: YrkesskadeService,

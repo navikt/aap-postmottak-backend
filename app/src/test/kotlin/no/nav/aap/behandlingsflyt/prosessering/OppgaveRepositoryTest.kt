@@ -5,9 +5,9 @@ import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.prosessering.retry.OPPGAVE_TYPE
 import no.nav.aap.behandlingsflyt.prosessering.retry.RetryService
 import no.nav.aap.verdityper.sakogbehandling.Ident
-import no.nav.aap.behandlingsflyt.sak.PersonRepository
-import no.nav.aap.behandlingsflyt.sak.Sak
-import no.nav.aap.behandlingsflyt.sak.sakRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
 import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled

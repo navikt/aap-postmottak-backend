@@ -3,8 +3,8 @@ package no.nav.aap.behandlingsflyt
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.verdityper.sakogbehandling.Ident
-import no.nav.aap.behandlingsflyt.sak.PersonRepository
-import no.nav.aap.behandlingsflyt.sak.sakRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
 import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

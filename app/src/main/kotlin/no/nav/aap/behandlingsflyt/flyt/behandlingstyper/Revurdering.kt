@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.behandlingstyper
 
-import no.nav.aap.behandlingsflyt.behandling.BehandlingType
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingType
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 
 object Revurdering : BehandlingType {

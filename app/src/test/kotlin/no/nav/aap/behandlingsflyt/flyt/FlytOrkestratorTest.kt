@@ -17,9 +17,9 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.Yrkesskadevurder
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
-import no.nav.aap.behandlingsflyt.behandling.Behandling
-import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
-import no.nav.aap.behandlingsflyt.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
@@ -45,10 +45,10 @@ import no.nav.aap.behandlingsflyt.ident
 import no.nav.aap.behandlingsflyt.prosessering.Motor
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.verdityper.sakogbehandling.Ident
-import no.nav.aap.behandlingsflyt.sak.Person
-import no.nav.aap.behandlingsflyt.sak.PersonRepository
-import no.nav.aap.behandlingsflyt.sak.Sak
-import no.nav.aap.behandlingsflyt.sak.sakRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.Prosent

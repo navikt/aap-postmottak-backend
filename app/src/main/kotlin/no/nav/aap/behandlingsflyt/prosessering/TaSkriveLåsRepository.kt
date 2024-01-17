@@ -1,10 +1,10 @@
 package no.nav.aap.behandlingsflyt.prosessering
 
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.behandlingsflyt.behandling.utledType
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.utledType
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.verdityper.sakogbehandling.SakId
-import no.nav.aap.behandlingsflyt.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import java.util.*
 
 class TaSkriveLåsRepository(private val connection: DBConnection) {

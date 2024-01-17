@@ -35,9 +35,9 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykepenger
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarYrkesskadeLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøsning
-import no.nav.aap.behandlingsflyt.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.dokument.JournalpostId
-import no.nav.aap.behandlingsflyt.behandling.flate.behandlingApi
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.flate.bistandsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.medlemskap.medlemskapsgrunnlagApi
@@ -57,7 +57,7 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
 import no.nav.aap.behandlingsflyt.prosessering.Motor
 import no.nav.aap.behandlingsflyt.prosessering.retry.RetryService
 import no.nav.aap.verdityper.sakogbehandling.Ident
-import no.nav.aap.behandlingsflyt.sak.flate.saksApi
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.aap.verdityper.Periode
 import org.flywaydb.core.Flyway

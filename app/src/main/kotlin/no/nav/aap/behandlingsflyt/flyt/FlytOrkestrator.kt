@@ -1,16 +1,16 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.behandling.Behandling
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
-import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
-import no.nav.aap.behandlingsflyt.sak.SakFlytRepository
-import no.nav.aap.behandlingsflyt.sak.Status.*
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakFlytRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Status.*
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FlytOrkestrator::class.java)

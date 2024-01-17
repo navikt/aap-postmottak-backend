@@ -15,7 +15,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.Utfall
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsperiode
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
-import no.nav.aap.behandlingsflyt.sak.SakService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import org.slf4j.LoggerFactory
 
 class FastsettGrunnlagSteg(

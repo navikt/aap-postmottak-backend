@@ -12,7 +12,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakL�
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.SattPåVentLøser
-import no.nav.aap.behandlingsflyt.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator

@@ -16,7 +16,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.bistand.Bistandsvilkåret
-import no.nav.aap.behandlingsflyt.sak.SakService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.Periode
 
 class VurderBistandsbehovSteg private constructor(

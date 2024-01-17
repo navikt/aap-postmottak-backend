@@ -11,7 +11,7 @@ import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersgrunnlag
 import no.nav.aap.behandlingsflyt.flyt.vilkår.alder.Aldersvilkåret
-import no.nav.aap.behandlingsflyt.sak.SakService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 
 class VurderAlderSteg private constructor(
     private val vilkårsresultatRepository: VilkårsresultatRepository,
