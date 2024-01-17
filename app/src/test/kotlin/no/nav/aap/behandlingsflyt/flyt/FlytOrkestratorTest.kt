@@ -41,7 +41,7 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
-import no.nav.aap.behandlingsflyt.ident
+import no.nav.aap.behandlingsflyt.dbtestdata.ident
 import no.nav.aap.behandlingsflyt.prosessering.Motor
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.verdityper.sakogbehandling.Ident

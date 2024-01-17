@@ -1,10 +1,10 @@
-package no.nav.aap.behandlingsflyt
+package no.nav.aap.behandlingsflyt.dbtestdata
 
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
-internal fun ident(): Ident {
+fun ident(): Ident {
     return Ident(hentNesteIdent().toString())
 }
 
