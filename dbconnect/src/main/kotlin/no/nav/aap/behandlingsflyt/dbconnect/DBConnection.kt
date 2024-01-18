@@ -5,7 +5,7 @@ import java.sql.Connection
 import java.sql.Savepoint
 import java.sql.Statement
 
-class DBConnection(private val connection: Connection) {
+class DBConnection internal constructor(private val connection: Connection) {
     private var savepoint: Savepoint? = null
 
     fun execute(

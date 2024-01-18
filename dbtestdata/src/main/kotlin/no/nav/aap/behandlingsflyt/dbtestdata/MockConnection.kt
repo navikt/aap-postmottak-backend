@@ -24,9 +24,7 @@ class MockConnection : Connection {
         TODO("Not yet implemented")
     }
 
-    override fun close() {
-        TODO("Not yet implemented")
-    }
+    override fun close() {}
 
     override fun createStatement(): Statement {
         TODO("Not yet implemented")
@@ -90,25 +88,17 @@ class MockConnection : Connection {
         TODO("Not yet implemented")
     }
 
-    override fun setAutoCommit(autoCommit: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun setAutoCommit(autoCommit: Boolean) {}
 
     override fun getAutoCommit(): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun commit() {
-        TODO("Not yet implemented")
-    }
+    override fun commit() {}
 
-    override fun rollback() {
-        TODO("Not yet implemented")
-    }
+    override fun rollback() {}
 
-    override fun rollback(savepoint: Savepoint?) {
-        TODO("Not yet implemented")
-    }
+    override fun rollback(savepoint: Savepoint?) {}
 
     override fun isClosed(): Boolean {
         TODO("Not yet implemented")
