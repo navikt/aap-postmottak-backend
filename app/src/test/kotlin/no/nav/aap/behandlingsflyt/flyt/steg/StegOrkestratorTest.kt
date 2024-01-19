@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.tilKontekst
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.TypeBehandling
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
@@ -28,7 +29,7 @@ class StegOrkestratorTest {
             val person = PersonRepository(connection).finnEllerOpprett(ident)
             val sak = sakRepository(connection).finnEllerOpprett(person, periode)
             val behandling = SakOgBehandlingService(connection).finnEnRelevantBehandling(sak.saksnummer)
-            assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
+            assertThat(behandling.typeBehandling()).isEqualTo(TypeBehandling.Førstegangsbehandling)
 
             val kontekst = tilKontekst(behandling)
 

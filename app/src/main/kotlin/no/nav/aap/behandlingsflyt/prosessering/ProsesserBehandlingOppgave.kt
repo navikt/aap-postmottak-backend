@@ -15,7 +15,7 @@ object ProsesserBehandlingOppgave : Oppgave() {
         val kontekst = FlytKontekst(
             sakId = input.sakId(),
             behandlingId = input.behandlingId(),
-            behandlingType = skrivelås.behandlingSkrivelås.behandlingType
+            behandlingType = skrivelås.behandlingSkrivelås.typeBehandling
         )
         kontroller.forberedBehandling(kontekst)
         kontroller.prosesserBehandling(kontekst)

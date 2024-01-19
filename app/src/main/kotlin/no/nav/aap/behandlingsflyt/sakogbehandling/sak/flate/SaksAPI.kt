@@ -64,7 +64,7 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                     behandlinger = behandlingRepository(connection).hentAlleFor(sak!!.id).map { behandling ->
                         BehandlinginfoDTO(
                             referanse = behandling.referanse,
-                            type = behandling.type.identifikator(),
+                            type = behandling.typeBehandling().identifikator(),
                             status = behandling.status(),
                             opprettet = behandling.opprettetTidspunkt
                         )

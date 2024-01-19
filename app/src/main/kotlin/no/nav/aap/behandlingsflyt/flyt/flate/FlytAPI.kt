@@ -10,6 +10,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.behandlingsflyt.flyt.utledType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkår
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
@@ -27,8 +28,10 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             get<BehandlingReferanse, BehandlingFlytOgTilstandDto> { req ->
                 val dto = dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
+                    val flyt = utledType(behandling.typeBehandling().identifikator()).flyt()
+
                     val stegGrupper: Map<StegGruppe, List<StegType>> =
-                        behandling.type.flyt().stegene().groupBy { steg -> steg.gruppe }
+                        flyt.stegene().groupBy { steg -> steg.gruppe }
 
                     val aktivtSteg = behandling.aktivtSteg()
                     var erFullført = true
@@ -37,7 +40,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                             connection,
                             behandling.id
                         ),
-                        behandling.type.flyt()
+                        flyt
                     )
                     BehandlingFlytOgTilstandDto(
                         flyt = stegGrupper.map { (gruppe, steg) ->

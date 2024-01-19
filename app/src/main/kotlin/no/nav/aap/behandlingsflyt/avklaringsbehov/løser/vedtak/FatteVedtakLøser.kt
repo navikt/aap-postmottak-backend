@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
+import no.nav.aap.behandlingsflyt.flyt.utledType
 
 class FatteVedtakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<FatteVedtakLøsning> {
 
@@ -19,7 +20,7 @@ class FatteVedtakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<F
 
         lateinit var sammenstiltBegrunnelse: String
         if (skalSendesTilbake(løsning.vurderinger)) {
-            val flyt = behandling.type.flyt()
+            val flyt = utledType(behandling.typeBehandling().identifikator()).flyt()
             val vurderingerSomErSendtTilbake = løsning.vurderinger
                 .filter { it.godkjent == false }
 

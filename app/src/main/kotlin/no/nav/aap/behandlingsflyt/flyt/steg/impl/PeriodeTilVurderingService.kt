@@ -1,15 +1,15 @@
 package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
-import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.TypeBehandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.Periode
 
 class PeriodeTilVurderingService(private val sakService: SakService) {
 
     fun utled(kontekst: FlytKontekst, vilkår: Vilkårtype): Set<Periode> {
-        if (kontekst.behandlingType == Førstegangsbehandling) {
+        if (kontekst.behandlingType == TypeBehandling.Førstegangsbehandling) {
             // ved førstegangsbehandling skal hele perioden alltid vurderes for alle vilkår?
             val sak = sakService.hent(kontekst.sakId)
 

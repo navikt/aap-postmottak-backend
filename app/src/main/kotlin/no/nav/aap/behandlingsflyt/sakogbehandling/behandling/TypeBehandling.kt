@@ -1,10 +1,19 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
-enum class TypeBehandling(identifikator: String) {
+enum class TypeBehandling(private var identifikator: String) {
 
     Førstegangsbehandling("ae0034"),
     Revurdering("ae0028"),
     Tilbakekreving(""),
     Klage(""),
-    Anke("")
+    Anke("");
+
+    fun identifikator(): String = identifikator
+
+    companion object {
+        fun from(identifikator: String): TypeBehandling {
+            return entries.first { it.identifikator.equals(identifikator) }
+        }
+    }
 }
+

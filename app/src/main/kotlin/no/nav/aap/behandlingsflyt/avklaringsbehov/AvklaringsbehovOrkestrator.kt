@@ -1,5 +1,8 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.SattPåVentLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne.FastsettArbeidsevneLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.bistand.AvklarBistandLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.meldeplikt.FritakFraMeldepliktLøser
@@ -9,17 +12,15 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykepenger
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarYrkesskadeLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøser
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.SattPåVentLøser
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.ValiderBehandlingTilstand
+import no.nav.aap.behandlingsflyt.flyt.utledType
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveInput
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import org.slf4j.LoggerFactory
 
 class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
@@ -73,7 +74,9 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         if (ingenEndringIGruppe && avklaringsbehovene.harVærtSendtTilbakeFraBeslutterTidligere()) {
-            val flyt = behandling.type.flyt()
+            val typeBehandling = behandling.typeBehandling()
+            val flyt = utledType(typeBehandling.identifikator()).flyt()
+
             flyt.forberedFlyt(behandling.aktivtSteg())
             val gjenståendeStegIGruppe = flyt.gjenståendeStegIAktivGruppe()
 

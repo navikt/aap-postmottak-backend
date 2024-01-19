@@ -1,6 +1,5 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
+package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Anke
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Klage

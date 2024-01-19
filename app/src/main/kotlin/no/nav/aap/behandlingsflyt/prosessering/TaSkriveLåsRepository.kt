@@ -1,10 +1,10 @@
 package no.nav.aap.behandlingsflyt.prosessering
 
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.utledType
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.verdityper.sakogbehandling.SakId
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.TypeBehandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.SakId
 import java.util.*
 
 class TaSkriveLåsRepository(private val connection: DBConnection) {
@@ -23,7 +23,7 @@ class TaSkriveLåsRepository(private val connection: DBConnection) {
                 setLong(1, behandlingId.toLong())
             }
             setRowMapper {
-                BehandlingSkrivelås(behandlingId, it.getLong("versjon"), utledType(it.getString("type")))
+                BehandlingSkrivelås(behandlingId, it.getLong("versjon"), TypeBehandling.from(it.getString("type")))
             }
         }
     }
@@ -39,7 +39,7 @@ class TaSkriveLåsRepository(private val connection: DBConnection) {
                 Skrivelås(låsSak(SakId(it.getLong("sak_id"))), BehandlingSkrivelås(
                     BehandlingId(it.getLong("id")),
                     it.getLong("versjon"),
-                    utledType(it.getString("type"))
+                    TypeBehandling.from(it.getString("type"))
                 ))
             }
         }

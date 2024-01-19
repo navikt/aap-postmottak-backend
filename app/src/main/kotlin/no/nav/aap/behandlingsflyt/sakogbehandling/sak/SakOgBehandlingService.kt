@@ -8,6 +8,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Revurdering
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.TypeBehandling
 
 class SakOgBehandlingService(connection: DBConnection) {
 
@@ -24,14 +25,14 @@ class SakOgBehandlingService(connection: DBConnection) {
             return behandlingRepository.opprettBehandling(
                 sak.id,
                 listOf(Årsak(EndringType.MOTTATT_SØKNAD)),
-                Førstegangsbehandling)
+                TypeBehandling.Førstegangsbehandling)
 
         } else {
             if (sisteBehandlingForSak.status().erAvsluttet()) {
                 val nyBehandling = behandlingRepository.opprettBehandling(
                     sak.id,
                     listOf(Årsak(EndringType.MOTTATT_SØKNAD)),
-                    Revurdering
+                    TypeBehandling.Revurdering
                 )
                 grunnlagKopierer.overfør(sisteBehandlingForSak.id, nyBehandling.id)
 

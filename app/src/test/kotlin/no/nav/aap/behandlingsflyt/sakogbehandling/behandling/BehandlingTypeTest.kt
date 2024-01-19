@@ -1,14 +1,13 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
-import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Revurdering
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class BehandlingTypeTest {
     @Test
     fun name() {
-        val utledType = utledType(Revurdering.identifikator())
+        val utledType = TypeBehandling.from(TypeBehandling.Revurdering.identifikator())
 
-        assertThat(utledType).isEqualTo(Revurdering)
+        assertThat(utledType).isEqualTo(TypeBehandling.Revurdering)
     }
 }

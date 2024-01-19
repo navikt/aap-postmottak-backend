@@ -10,7 +10,7 @@ import java.util.*
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    override fun opprettBehandling(sakId: SakId, årsaker: List<Årsak>, behandlingType: BehandlingType): Behandling {
+    override fun opprettBehandling(sakId: SakId, årsaker: List<Årsak>, typeBehandling: TypeBehandling): Behandling {
         val referanse = UUID.randomUUID() //TODO: Hva gjør vi her med refaranse?
 
         val query = """
@@ -22,14 +22,14 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
                 setLong(1, sakId.toLong())
                 setUUID(2, referanse)
                 setEnumName(3, Status.OPPRETTET)
-                setString(4, behandlingType.identifikator())
+                setString(4, typeBehandling.identifikator())
             }
         }
 
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
             sakId = sakId,
-            type = behandlingType,
+            typeBehandling = typeBehandling,
             årsaker = årsaker,
             versjon = 0
         )
@@ -56,7 +56,8 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             id = behandlingId,
             referanse = row.getUUID("referanse"),
             sakId = SakId(row.getLong("sak_id")),
-            type = utledType(row.getString("type")),
+            //type = utledType(row.getString("type")),
+            typeBehandling = TypeBehandling.from(row.getString("type")),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             versjon = row.getLong("versjon")

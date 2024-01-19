@@ -35,7 +35,7 @@ class FlytOrkestrator(
             eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
         )
 
-        val behandlingFlyt = behandling.type.flyt()
+        val behandlingFlyt = utledFlytFra(behandling)
         behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
         if (starterOppBehandling(behandling)) {
@@ -73,7 +73,7 @@ class FlytOrkestrator(
             eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
         )
 
-        val behandlingFlyt = behandling.type.flyt()
+        val behandlingFlyt = utledFlytFra(behandling)
 
         var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
@@ -120,7 +120,7 @@ class FlytOrkestrator(
     }
 
     internal fun forberedLøsingAvBehov(definisjoner: Definisjon, behandling: Behandling, kontekst: FlytKontekst) {
-        val flyt = behandling.type.flyt()
+        val flyt = utledFlytFra(behandling)
         flyt.forberedFlyt(behandling.aktivtSteg())
 
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
@@ -195,4 +195,8 @@ class FlytOrkestrator(
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
         avklaringsbehovene.leggTil(listOf(Definisjon.MANUELT_SATT_PÅ_VENT), behandling.aktivtSteg())
     }
+
+    private fun utledFlytFra(behandling: Behandling) =
+        utledType(behandling.typeBehandling().identifikator()).flyt()
+
 }

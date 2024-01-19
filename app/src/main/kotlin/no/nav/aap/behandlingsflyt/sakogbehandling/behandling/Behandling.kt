@@ -12,13 +12,16 @@ class Behandling(
     val id: BehandlingId,
     val referanse: UUID = UUID.randomUUID(),
     val sakId: SakId,
-    val type: BehandlingType,
+    //private val type: BehandlingType,
+    private val typeBehandling: TypeBehandling,
     private var status: Status = Status.OPPRETTET,
     private var årsaker: List<Årsak> = mutableListOf(),
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
     val versjon: Long
 ) : Comparable<Behandling> {
+
+    fun typeBehandling(): TypeBehandling = typeBehandling
 
     fun visit(stegTilstand: StegTilstand) {
         if (!stegTilstand.aktiv) {

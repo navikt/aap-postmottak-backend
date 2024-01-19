@@ -2,14 +2,14 @@ package no.nav.aap.behandlingsflyt.flyt.steg.impl
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
-import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.TypeBehandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
+import no.nav.aap.verdityper.flyt.StegType
 
 class StartBehandlingSteg private constructor(
     private val vilkårsresultatRepository: VilkårsresultatRepository,
@@ -17,7 +17,7 @@ class StartBehandlingSteg private constructor(
 ) : BehandlingSteg {
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
-        if (kontekst.behandlingType == Førstegangsbehandling) {
+        if (kontekst.behandlingType == TypeBehandling.Førstegangsbehandling) {
             val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
             val rettighetsperiode = sakService.hent(kontekst.sakId).rettighetsperiode
             Vilkårtype

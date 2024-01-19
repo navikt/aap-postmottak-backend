@@ -42,6 +42,7 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
 import no.nav.aap.behandlingsflyt.prosessering.Motor
 import no.nav.aap.behandlingsflyt.prosessering.OppgaveRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.TypeBehandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
@@ -108,7 +109,7 @@ class FlytOrkestratorTest {
 
         val sak = hentSak(ident, periode)
         var behandling = hentBehandling(sak.id)
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
+        assertThat(behandling.typeBehandling()).isEqualTo(TypeBehandling.Førstegangsbehandling)
 
         dataSource.transaction {
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
@@ -290,7 +291,7 @@ class FlytOrkestratorTest {
 
         val sak = hentSak(ident, periode)
         var behandling = hentBehandling(sak.id)
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
+        assertThat(behandling.typeBehandling()).isEqualTo(TypeBehandling.Førstegangsbehandling)
 
         dataSource.transaction {
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
@@ -457,7 +458,7 @@ class FlytOrkestratorTest {
 
         val sak = hentSak(ident, periode)
         var behandling = hentBehandling(sak.id)
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
+        assertThat(behandling.typeBehandling()).isEqualTo(TypeBehandling.Førstegangsbehandling)
 
         dataSource.transaction {
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, it)
@@ -714,7 +715,7 @@ class FlytOrkestratorTest {
 
         val sak = hentSak(ident, periode)
         val behandling = requireNotNull(hentBehandling(sak.id))
-        assertThat(behandling.type).isEqualTo(Førstegangsbehandling)
+        assertThat(behandling.typeBehandling()).isEqualTo(TypeBehandling.Førstegangsbehandling)
 
         val stegHistorikk = behandling.stegHistorikk()
         assertThat(stegHistorikk.map { it.steg() }).contains(StegType.AVKLAR_STUDENT)
