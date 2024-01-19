@@ -8,17 +8,12 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.barn.adapter.BarnRelasjonerMock
 import no.nav.aap.behandlingsflyt.flyt.FlytKontekst
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 
-class BarnService private constructor(private val connection: DBConnection) : Grunnlag {
+class BarnService private constructor(connection: DBConnection) : Grunnlag {
 
-    companion object : Grunnlagkonstruktør {
-        override fun konstruer(connection: DBConnection): BarnService {
-            return BarnService(connection)
-        }
-    }
+    private val barnRepository = BarnRepository(connection)
+    private val sakService = SakService(connection)
 
     override fun oppdater(kontekst: FlytKontekst): Boolean {
-        val personopplysningRepository = BarnRepository(connection)
-        val sakService = SakService(connection)
         val sak = sakService.hent(kontekst.sakId)
         val behandlingId = kontekst.behandlingId
 
@@ -30,10 +25,10 @@ class BarnService private constructor(private val connection: DBConnection) : Gr
             listOf()
         }
 
-        val gamleData = personopplysningRepository.hentHvisEksisterer(behandlingId)
+        val gamleData = barnRepository.hentHvisEksisterer(behandlingId)
 
-        personopplysningRepository.lagre(behandlingId, barn)
-        val nyeData = personopplysningRepository.hentHvisEksisterer(behandlingId)
+        barnRepository.lagre(behandlingId, barn)
+        val nyeData = barnRepository.hentHvisEksisterer(behandlingId)
 
         return nyeData == gamleData
     }
@@ -41,5 +36,11 @@ class BarnService private constructor(private val connection: DBConnection) : Gr
     private fun vurderBehandlingsgrunnlag(behandlingId: BehandlingId): Boolean {
         // TODO: Avgjøre om man har hjemmel til å innhente (dvs er det innvilget)
         return true
+    }
+
+    companion object : Grunnlagkonstruktør {
+        override fun konstruer(connection: DBConnection): BarnService {
+            return BarnService(connection)
+        }
     }
 }
