@@ -1,10 +1,10 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
-import no.nav.aap.verdityper.flyt.Status
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
+import no.nav.aap.verdityper.sakogbehandling.Status
 import java.time.LocalDateTime
 import java.util.*
 

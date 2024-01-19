@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate
 
-import no.nav.aap.verdityper.flyt.Status
+import no.nav.aap.verdityper.sakogbehandling.Status
 import java.time.LocalDateTime
 import java.util.*
 

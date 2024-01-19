@@ -1,5 +1,7 @@
 package no.nav.aap.verdityper.flyt
 
+import no.nav.aap.verdityper.sakogbehandling.Status
+
 enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg: Boolean = false) {
     START_BEHANDLING(
         gruppe = StegGruppe.START_BEHANDLING,
