@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate
+package no.nav.aap.behandlingsflyt.flyt.flate
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Status

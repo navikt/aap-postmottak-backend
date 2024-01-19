@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate
+package no.nav.aap.behandlingsflyt.flyt.flate
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
@@ -12,10 +12,10 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
-import no.nav.aap.behandlingsflyt.flyt.flate.VilkårDTO
-import no.nav.aap.behandlingsflyt.flyt.flate.VilkårsperiodeDTO
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
 
 fun NormalOpenAPIRoute.behandlingApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
