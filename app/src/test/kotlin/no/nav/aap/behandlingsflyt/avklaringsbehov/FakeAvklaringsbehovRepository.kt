@@ -1,12 +1,7 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.avklaringsbehov
+package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovOperasjonerRepository
-import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepository
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class FakeAvklaringsbehovRepository : AvklaringsbehovRepository, AvklaringsbehovOperasjonerRepository {
 

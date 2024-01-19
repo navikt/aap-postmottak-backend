@@ -1,12 +1,10 @@
-package no.nav.aap.behandlingsflyt
+package no.nav.aap.behandlingsflyt.sakogbehandling.sak
 
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.Ident
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -29,9 +27,9 @@ internal class SakRepositoryTest {
             )
 
             val alleSaker = sakRepository.finnAlle()
-            assertThat(alleSaker).isNotEmpty
+            Assertions.assertThat(alleSaker).isNotEmpty
 
-            assertThat(alleSaker).contains(sak)
+            Assertions.assertThat(alleSaker).contains(sak)
         }
     }
 }

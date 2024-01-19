@@ -1,6 +1,5 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.avklaringsbehov
+package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 
