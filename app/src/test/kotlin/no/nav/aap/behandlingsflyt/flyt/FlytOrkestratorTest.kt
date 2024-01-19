@@ -29,7 +29,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.adapter.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
-import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
+import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.flyt.vilkår.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.vilkår.Vilkårtype

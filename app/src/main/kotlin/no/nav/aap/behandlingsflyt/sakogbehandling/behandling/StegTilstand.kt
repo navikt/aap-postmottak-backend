@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
-import no.nav.aap.behandlingsflyt.flyt.steg.StegStatus
+import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.flyt.StegType
 import java.time.LocalDateTime
 
