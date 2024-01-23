@@ -14,7 +14,7 @@ class SakOgBehandlingService(connection: DBConnection) {
     private val sakRepository = sakRepository(connection)
     private val behandlingRepository = behandlingRepository(connection)
 
-    fun finnEnRelevantBehandling(key: Saksnummer): Behandling {
+    fun finnEllerOpprettBehandling(key: Saksnummer): Behandling {
         val sak = sakRepository.hent(key)
 
         val sisteBehandlingForSak = behandlingRepository.finnSisteBehandlingFor(sak.id)

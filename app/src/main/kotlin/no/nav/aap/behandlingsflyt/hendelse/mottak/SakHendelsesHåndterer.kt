@@ -29,7 +29,7 @@ class SakHendelsesHåndterer(connection: DBConnection) {
 
     fun håndtere(key: Saksnummer, hendelse: SakHendelse): BehandlingId? {
         val sakSkrivelås = låsRepository.låsSak(key)
-        val relevantBehandling = sakOgBehandlingService.finnEnRelevantBehandling(key)
+        val relevantBehandling = sakOgBehandlingService.finnEllerOpprettBehandling(key)
 
         if (hendelse is DokumentMottattSakHendelse) {
             håndtere(key, hendelse, sakSkrivelås, relevantBehandling)
