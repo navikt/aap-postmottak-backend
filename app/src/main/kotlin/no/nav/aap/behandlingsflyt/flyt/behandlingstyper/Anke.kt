@@ -8,8 +8,4 @@ object Anke : BehandlingType {
         TODO("Not yet implemented")
     }
 
-    override fun identifikator(): String {
-        TODO("Not yet implemented")
-    }
-
 }

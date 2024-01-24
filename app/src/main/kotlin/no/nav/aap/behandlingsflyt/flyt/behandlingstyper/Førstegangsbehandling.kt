@@ -52,8 +52,4 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.IVERKSETT_VEDTAK))
             .build()
     }
-
-    override fun identifikator(): String {
-        return "ae0034"
-    }
 }

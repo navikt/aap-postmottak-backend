@@ -75,7 +75,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
 
         if (ingenEndringIGruppe && avklaringsbehovene.harVærtSendtTilbakeFraBeslutterTidligere()) {
             val typeBehandling = behandling.typeBehandling()
-            val flyt = utledType(typeBehandling.identifikator()).flyt()
+            val flyt = utledType(typeBehandling).flyt()
 
             flyt.forberedFlyt(behandling.aktivtSteg())
             val gjenståendeStegIGruppe = flyt.gjenståendeStegIAktivGruppe()

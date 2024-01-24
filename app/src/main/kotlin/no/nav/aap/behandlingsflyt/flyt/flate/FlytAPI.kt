@@ -28,7 +28,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             get<BehandlingReferanse, BehandlingFlytOgTilstandDto> { req ->
                 val dto = dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
-                    val flyt = utledType(behandling.typeBehandling().identifikator()).flyt()
+                    val flyt = utledType(behandling.typeBehandling()).flyt()
 
                     val stegGrupper: Map<StegGruppe, List<StegType>> =
                         flyt.stegene().groupBy { steg -> steg.gruppe }

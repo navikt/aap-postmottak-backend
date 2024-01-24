@@ -24,7 +24,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: HikariDataSource) {
             get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
                 val dto = dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
-                    val flyt = utledType(behandling.typeBehandling().identifikator()).flyt()
+                    val flyt = utledType(behandling.typeBehandling()).flyt()
                     DetaljertBehandlingDTO(
                         referanse = behandling.referanse,
                         type = behandling.typeBehandling().identifikator(),

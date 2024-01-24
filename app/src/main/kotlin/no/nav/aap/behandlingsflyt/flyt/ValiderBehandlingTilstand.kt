@@ -33,7 +33,7 @@ object ValiderBehandlingTilstand {
                     .contains(avklaringsbehov) && !avklaringsbehov.erFrivillig()) {
                 throw IllegalArgumentException("Forsøker løse avklaringsbehov $avklaringsbehov ikke knyttet til behandlingen, har $eksisterenedeAvklaringsbehov")
             }
-            val flyt = utledType(behandling.typeBehandling().identifikator()).flyt()
+            val flyt = utledType(behandling.typeBehandling()).flyt()
             if (!flyt.erStegFørEllerLik(avklaringsbehov.løsesISteg, behandling.aktivtSteg())) {
                 throw IllegalArgumentException("Forsøker løse avklaringsbehov $avklaringsbehov knyttet til et steg som ikke finnes i behandlingen av type ${behandling.typeBehandling().identifikator()}")
             }

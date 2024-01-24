@@ -198,6 +198,6 @@ class FlytOrkestrator(
     }
 
     private fun utledFlytFra(behandling: Behandling) =
-        utledType(behandling.typeBehandling().identifikator()).flyt()
+        utledType(behandling.typeBehandling()).flyt()
 
 }

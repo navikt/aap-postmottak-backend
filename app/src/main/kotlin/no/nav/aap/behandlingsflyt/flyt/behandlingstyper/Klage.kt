@@ -7,9 +7,4 @@ object Klage : BehandlingType {
     override fun flyt(): BehandlingFlyt {
         TODO("Not yet implemented")
     }
-
-    override fun identifikator(): String {
-        TODO("Not yet implemented")
-    }
-
 }

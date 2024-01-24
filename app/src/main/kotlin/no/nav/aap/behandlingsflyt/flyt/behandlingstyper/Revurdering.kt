@@ -8,7 +8,4 @@ object Revurdering : BehandlingType {
         return Førstegangsbehandling.flyt() // Returnerer bare samme fly atm
     }
 
-    override fun identifikator(): String {
-        return "ae0028"
-    }
 }

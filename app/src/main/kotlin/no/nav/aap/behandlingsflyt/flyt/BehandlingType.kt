@@ -5,28 +5,20 @@ import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Klage
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Revurdering
 import no.nav.aap.behandlingsflyt.flyt.behandlingstyper.Tilbakekreving
+import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 
 interface BehandlingType {
     fun flyt(): BehandlingFlyt
-    fun identifikator(): String
 }
 
-fun utledType(identifikator: String): BehandlingType {
-    if (Førstegangsbehandling.identifikator() == identifikator) {
-        return Førstegangsbehandling
+fun utledType(identifikator: TypeBehandling): BehandlingType {
+    return when (identifikator) {
+        TypeBehandling.Førstegangsbehandling -> Førstegangsbehandling
+        TypeBehandling.Revurdering -> Revurdering
+        TypeBehandling.Tilbakekreving -> Tilbakekreving
+        TypeBehandling.Klage -> Klage
+        TypeBehandling.Anke -> Anke
     }
-    if (Revurdering.identifikator() == identifikator) {
-        return Revurdering
-    }
-    if (Tilbakekreving.identifikator() == identifikator) {
-        return Tilbakekreving
-    }
-    if (Klage.identifikator() == identifikator) {
-        return Klage
-    }
-    if (Anke.identifikator() == identifikator) {
-        return Anke
-    }
-    throw IllegalArgumentException("Ukjent identifikator $identifikator")
+
 }
 
