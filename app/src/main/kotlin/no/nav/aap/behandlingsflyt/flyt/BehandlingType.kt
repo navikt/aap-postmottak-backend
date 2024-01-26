@@ -19,6 +19,4 @@ fun utledType(identifikator: TypeBehandling): BehandlingType {
         TypeBehandling.Klage -> Klage
         TypeBehandling.Anke -> Anke
     }
-
 }
-
