@@ -97,8 +97,11 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         val definisjoner = avklaringsbehov.definisjon()
         log.info("Forsøker løse avklaringsbehov[${definisjoner}] på behandling[${behandling.referanse}]")
 
-        val eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
-        ValiderBehandlingTilstand.validerTilstandBehandling(behandling, definisjoner, eksisterenedeAvklaringsbehov)
+        avklaringsbehovene.validateTilstand(
+            behandling = behandling,
+            avklaringsbehov = definisjoner,
+            versjon = request.behandlingVersjon
+        )
 
         // løses det behov som fremtvinger tilbakehopp?
         val flytOrkestrator = FlytOrkestrator(connection)

@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class AvklaringsbehovHendelseHåndterer(connection: DBConnection) {
 
@@ -12,16 +12,12 @@ class AvklaringsbehovHendelseHåndterer(connection: DBConnection) {
 
     fun håndtere(key: BehandlingId, hendelse: LøsAvklaringsbehovBehandlingHendelse) {
         val behandling = behandlingRepository.hent(key)
-        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
-        ValiderBehandlingTilstand.validerTilstandBehandling(
-            behandling = behandling,
-            eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
-        )
 
-        val kontekst = behandling.flytKontekst()
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
+        avklaringsbehovene.validateTilstand(behandling = behandling, versjon = request.behandlingVersjon)
 
         avklaringsbehovOrkestrator.løsAvklaringsbehovOgFortsettProsessering(
-            kontekst = kontekst,
+            kontekst = behandling.flytKontekst(),
             avklaringsbehov = hendelse.behov(),
             ingenEndringIGruppe = hendelse.ingenEndringIGruppe
         )

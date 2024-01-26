@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.flyt.utledType
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.verdityper.sakogbehandling.Status
 
-object ValiderBehandlingTilstand {
+internal object ValiderBehandlingTilstand {
 
     fun validerTilstandBehandling(
         behandling: Behandling,

@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
@@ -128,5 +129,13 @@ class Avklaringsbehovene(
 
     fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
         return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraBeslutterTidligere() }
+    }
+
+    fun validateTilstand(behandling: Behandling, avklaringsbehov: Definisjon? = null, versjon: Long) {
+        ValiderBehandlingTilstand.validerTilstandBehandling(
+            behandling = behandling,
+            avklaringsbehov = avklaringsbehov,
+            eksisterenedeAvklaringsbehov = avklaringsbehovene,
+            versjon)
     }
 }

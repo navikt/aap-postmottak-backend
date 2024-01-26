@@ -1,17 +1,16 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
-import no.nav.aap.behandlingsflyt.avklaringsbehov.ValiderBehandlingTilstand
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakFlytRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Status.*
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Status.UTREDES
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import org.slf4j.LoggerFactory
 
@@ -32,10 +31,7 @@ class FlytOrkestrator(
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
-        ValiderBehandlingTilstand.validerTilstandBehandling(
-            behandling = behandling,
-            eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
-        )
+        avklaringsbehovene.validateTilstand(behandling = behandling, versjon = request.behandlingVersjon)
 
         val behandlingFlyt = utledFlytFra(behandling)
         behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
@@ -70,10 +66,7 @@ class FlytOrkestrator(
         val behandling = behandlingRepository(connection).hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
-        ValiderBehandlingTilstand.validerTilstandBehandling(
-            behandling = behandling,
-            eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
-        )
+        avklaringsbehovene.validateTilstand(behandling = behandling, versjon = request.behandlingVersjon)
 
         val behandlingFlyt = utledFlytFra(behandling)
 

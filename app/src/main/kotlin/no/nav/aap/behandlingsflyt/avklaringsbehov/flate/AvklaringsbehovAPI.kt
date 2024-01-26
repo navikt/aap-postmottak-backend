@@ -8,7 +8,6 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovHendelseHåndte
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
-import no.nav.aap.behandlingsflyt.avklaringsbehov.ValiderBehandlingTilstand
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import org.slf4j.MDC
@@ -27,10 +26,9 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                             val avklaringsbehovene =
                                 AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(lås.behandlingSkrivelås.id)
 
-                            ValiderBehandlingTilstand.validerTilstandBehandling(
+                            avklaringsbehovene.validateTilstand(
                                 behandling = behandling,
                                 avklaringsbehov = request.behov.definisjon(),
-                                eksisterenedeAvklaringsbehov = avklaringsbehovene.alle(),
                                 versjon = request.behandlingVersjon
                             )
 

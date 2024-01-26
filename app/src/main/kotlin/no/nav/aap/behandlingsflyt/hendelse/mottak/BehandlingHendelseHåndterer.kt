@@ -5,7 +5,6 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
-import no.nav.aap.behandlingsflyt.avklaringsbehov.ValiderBehandlingTilstand
 import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.motor.OppgaveInput
@@ -26,23 +25,15 @@ class BehandlingHendelseHåndterer(connection: DBConnection) {
             is BehandlingSattPåVent -> {
                 val behandling = behandlingRepository.hent(key)
                 val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
-                ValiderBehandlingTilstand.validerTilstandBehandling(
-                    behandling = behandling,
-                    eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
-                )
+                avklaringsbehovene.validateTilstand(behandling = behandling, versjon = request.behandlingVersjon)
 
-                val kontekst = behandling.flytKontekst()
-
-                kontroller.settBehandlingPåVent(kontekst)
+                kontroller.settBehandlingPåVent(behandling.flytKontekst())
             }
 
             else -> {
                 val behandling = behandlingRepository.hent(key)
                 val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
-                ValiderBehandlingTilstand.validerTilstandBehandling(
-                    behandling = behandling,
-                    eksisterenedeAvklaringsbehov = avklaringsbehovene.alle()
-                )
+                avklaringsbehovene.validateTilstand(behandling = behandling, versjon = request.behandlingVersjon)
 
                 val kontekst = behandling.flytKontekst()
                 if (behandling.status() == Status.PÅ_VENT) {
