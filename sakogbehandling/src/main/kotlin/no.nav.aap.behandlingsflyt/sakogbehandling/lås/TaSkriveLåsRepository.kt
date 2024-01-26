@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.lås
+package no.nav.aap.behandlingsflyt.sakogbehandling.lås
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
