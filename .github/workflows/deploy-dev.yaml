@@ -8,9 +8,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-        packages: write
-        id-token: write
         contents: read
+        id-token: write
+        packages: write
     services:
         postgres:
             image: postgres:16
@@ -41,12 +41,14 @@ jobs:
   deploy-dev:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+        contents: read
+        id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v1
+      - uses: nais/deploy/actions/deploy@v2
         env:
           PRINT_PAYLOAD: true
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: .nais/app.yml
           VAR: image=${{ needs.build.outputs.image }}
