@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.underveis
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtestdata.MockDataSource
 import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.PliktkortRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.underveis.UnderveisRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Utfall
 import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkår
 import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkårsperiode
@@ -23,7 +24,7 @@ class UnderveisServiceTest {
     fun `skal vurdere alle reglene`() {
         dataSource.transaction { connection ->
             val underveisService =
-                UnderveisService(VilkårsresultatRepository(connection), PliktkortRepository(connection))
+                UnderveisService(VilkårsresultatRepository(connection), PliktkortRepository(connection), UnderveisRepository(connection))
             val søknadsdato = LocalDate.now().minusDays(29)
             val periode = Periode(søknadsdato, søknadsdato.plusYears(3))
             val aldersVilkåret =

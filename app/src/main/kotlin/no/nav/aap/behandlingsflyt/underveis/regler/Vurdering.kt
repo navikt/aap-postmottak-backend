@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.underveis.UnderveisAvslagsårsak
 import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Utfall
 import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkårtype
 import no.nav.aap.verdityper.Prosent
@@ -45,6 +46,29 @@ class Vurdering(
         return vurderinger.isNotEmpty() && vurderinger.none { it.value == Utfall.IKKE_OPPFYLT }
     }
 
+    fun grenseverdi(): Prosent {
+        return requireNotNull(grenseverdi)
+    }
+
+    fun gradering(): Gradering? {
+        return gradering
+    }
+
+    fun utfall(): Utfall {
+        return if (harRett()) {
+            Utfall.OPPFYLT
+        } else {
+            Utfall.IKKE_OPPFYLT
+        }
+    }
+
+    fun avslagsårsak(): UnderveisAvslagsårsak? {
+        if (harRett()) {
+            return null
+        }
+        // TODO: Håndtere varianter
+        return UnderveisAvslagsårsak.IKKE_GRUNNLEGGENDE_RETT
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

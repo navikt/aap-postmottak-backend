@@ -1,9 +1,10 @@
 package no.nav.aap.behandlingsflyt.underveis
 
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.PliktkortRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkårtype
+import no.nav.aap.behandlingsflyt.faktagrunnlag.underveis.UnderveisRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.underveis.Underveisperiode
 import no.nav.aap.behandlingsflyt.underveis.regler.AktivitetRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.EtAnnetStedRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.GraderingArbeidRegel
@@ -11,8 +12,13 @@ import no.nav.aap.behandlingsflyt.underveis.regler.RettTilRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.UnderveisInput
 import no.nav.aap.behandlingsflyt.underveis.regler.Vurdering
 import no.nav.aap.tidslinje.Tidslinje
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
-class UnderveisService(private val vilkårsresultatRepository: VilkårsresultatRepository, private val pliktkortRepository: PliktkortRepository) {
+class UnderveisService(
+    private val vilkårsresultatRepository: VilkårsresultatRepository,
+    private val pliktkortRepository: PliktkortRepository,
+    private val underveisRepository: UnderveisRepository
+) {
 
     private val regelset = listOf(
         RettTilRegel(),
@@ -21,10 +27,24 @@ class UnderveisService(private val vilkårsresultatRepository: VilkårsresultatR
         GraderingArbeidRegel()
     )
 
-    fun vurder(kontekst: BehandlingId): Tidslinje<Vurdering> {
-        val input = genererInput(kontekst)
+    fun vurder(behandlingId: BehandlingId): Tidslinje<Vurdering> {
+        val input = genererInput(behandlingId)
 
-        return vurderRegler(input)
+        val vurderRegler = vurderRegler(input)
+        underveisRepository.lagre(
+            behandlingId,
+            vurderRegler.segmenter()
+                .filter { it.verdi != null }
+                .map {
+                    Underveisperiode(
+                        it.periode,
+                        it.verdi!!.utfall(),
+                        it.verdi!!.avslagsårsak(),
+                        it.verdi!!.grenseverdi(),
+                        it.verdi!!.gradering()
+                    )
+                })
+        return vurderRegler
     }
 
     internal fun vurderRegler(input: UnderveisInput): Tidslinje<Vurdering> {
