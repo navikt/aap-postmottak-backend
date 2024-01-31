@@ -37,6 +37,10 @@ class GUnit(verdi: BigDecimal) : Comparable<GUnit> {
         return GUnit(faktor.multiplisert(this.verdi))
     }
 
+    fun multiplisert(faktor: Beløp): Beløp {
+        return faktor.multiplisert(this.verdi)
+    }
+
     fun dividert(nevner: Prosent): GUnit {
         return GUnit(
             Prosent.dividert(

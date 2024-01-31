@@ -9,10 +9,6 @@ class Prosent private constructor(verdi: BigDecimal) : Comparable<Prosent> {
 
     constructor(intVerdi: Int) : this(BigDecimal(intVerdi).divide(BigDecimal(100), 2, RoundingMode.HALF_UP))
 
-    fun getProsent(): Int {
-        return prosentverdi()
-    }
-
     init {
         require(this.verdi >= BigDecimal(0)) { "Prosent kan ikke være negativ" }
         require(this.verdi <= BigDecimal(1)) { "Prosent kan ikke være større enn 100" }
@@ -50,8 +46,12 @@ class Prosent private constructor(verdi: BigDecimal) : Comparable<Prosent> {
         return Prosent(this.verdi - subtrahend.verdi)
     }
 
-    fun multiplisert(faktor: BigDecimal): BigDecimal {
+    internal fun multiplisert(faktor: BigDecimal): BigDecimal {
         return this.verdi.multiply(faktor)
+    }
+
+    fun multiplisert(faktor: Beløp): Beløp {
+        return faktor.multiplisert(this.verdi)
     }
 
     override fun compareTo(other: Prosent): Int {

@@ -196,7 +196,7 @@ class TidslinjeTest {
 
 data class Utbetaling(val beløp: Beløp, val prosent: Prosent) {
     fun beløp(): Beløp {
-        return Beløp(prosent.multiplisert(beløp.verdi()))
+        return prosent.multiplisert(beløp)
     }
 
     override fun toString(): String {
@@ -206,7 +206,7 @@ data class Utbetaling(val beløp: Beløp, val prosent: Prosent) {
 
 data class UtbetalingMedBarneTilegg(val beløp: Beløp, val barnetilegg: Beløp, val prosent: Prosent) {
     fun beløp(): Beløp {
-        return Beløp(prosent.multiplisert(beløp.pluss(barnetilegg).verdi()))
+        return prosent.multiplisert(beløp.pluss(barnetilegg))
     }
 
     override fun toString(): String {

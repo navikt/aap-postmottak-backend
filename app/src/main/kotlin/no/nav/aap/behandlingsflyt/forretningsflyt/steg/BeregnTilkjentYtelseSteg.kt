@@ -44,7 +44,7 @@ class BeregnTilkjentYtelseSteg(
         val grunnlagsfaktor = beregningsgrunnlag.grunnlaget()
 
         val maksDagsatsHeleUttaket =
-            gsnittTidslinjeForUttaket.mapValue { verdi -> verdi?.multiplisert(grunnlagsfaktor.verdi()) }
+            gsnittTidslinjeForUttaket.mapValue { verdi -> verdi?.multiplisert(grunnlagsfaktor) }
                 .kombiner(underveisTidslinje, { periode, venstreSegment, høyreSegment ->
                     val dagsats = venstreSegment?.verdi ?: Beløp(0)
                     val gradering = høyreSegment?.verdi?.gradering?.prosent ?: Prosent.`0_PROSENT`
@@ -73,7 +73,7 @@ class BeregnTilkjentYtelseSteg(
 class Tilkjent(val dagsats: Beløp, val gradering: Prosent) {
 
     fun tilUtbetaling(): Beløp {
-        return dagsats.multiplisert(gradering.getProsent())
+        return dagsats.multiplisert(gradering)
     }
 
     override fun toString(): String {
