@@ -1,11 +1,11 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid
 
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
-import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.TimerArbeid
+import no.nav.aap.verdityper.dokument.JournalpostId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.SakId
 
 class PliktkortRepository(private val connection: DBConnection) {
 
@@ -99,10 +99,7 @@ class PliktkortRepository(private val connection: DBConnection) {
         val pliktkorteneQuery = """
             INSERT INTO PLIKTKORTENE DEFAULT VALUES
             """.trimIndent()
-        val pliktkorteneId = connection.executeReturnKey(pliktkorteneQuery) {
-            setParams {
-            }
-        }
+        val pliktkorteneId = connection.executeReturnKey(pliktkorteneQuery)
 
         pliktkortene.forEach { pliktkort ->
             val query = """
@@ -115,17 +112,15 @@ class PliktkortRepository(private val connection: DBConnection) {
                 }
             }
 
-            pliktkort.timerArbeidPerPeriode.forEach { periode ->
-                val kortQuery = """
+            val kortQuery = """
                 INSERT INTO PLIKTKORT_PERIODE (pliktkort_id, periode, timer_arbeid) VALUES (?, ?::daterange, ?)
             """.trimIndent()
 
-                connection.execute(kortQuery) {
-                    setParams {
-                        setLong(1, pliktkortId)
-                        setPeriode(2, periode.periode)
-                        setBigDecimal(3, periode.timerArbeid.antallTimer)
-                    }
+            connection.executeBatch(kortQuery, pliktkort.timerArbeidPerPeriode) {
+                setParams { periode ->
+                    setLong(1, pliktkortId)
+                    setPeriode(2, periode.periode)
+                    setBigDecimal(3, periode.timerArbeid.antallTimer)
                 }
             }
         }

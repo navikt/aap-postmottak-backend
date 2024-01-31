@@ -15,10 +15,23 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Execute.() -> Unit = {}
     ) {
-        val prepareStatement = this.connection.prepareStatement(query)
-        prepareStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-        return prepareStatement.use { preparedStatement ->
+        return this.connection.prepareStatement(query).use { preparedStatement ->
+            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
             val executeStatement = Execute(preparedStatement)
+            executeStatement.block()
+            executeStatement.execute()
+        }
+    }
+
+    fun <T> executeBatch(
+        @Language("PostgreSQL")
+        query: String,
+        elements: Iterable<T>,
+        block: ExecuteBatch<T>.() -> Unit = {}
+    ) {
+        return this.connection.prepareStatement(query).use { preparedStatement ->
+            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
+            val executeStatement = ExecuteBatch(preparedStatement, elements)
             executeStatement.block()
             executeStatement.execute()
         }
@@ -29,9 +42,8 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Execute.() -> Unit = {}
     ): Long {
-        val prepareStatement = this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
-        prepareStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-        return prepareStatement.use { preparedStatement ->
+        return this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS).use { preparedStatement ->
+            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
             val executeStatement = Execute(preparedStatement)
             executeStatement.block()
             return@use executeStatement.executeReturnKey()
@@ -43,9 +55,8 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Execute.() -> Unit = {}
     ): List<Long> {
-        val prepareStatement = this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
-        prepareStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-        return prepareStatement.use { preparedStatement ->
+        return this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS).use { preparedStatement ->
+            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
             val executeStatement = Execute(preparedStatement)
             executeStatement.block()
             return@use executeStatement.executeReturnKeys()
@@ -57,9 +68,8 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Query<T?>.() -> Unit
     ): T? {
-        val prepareStatement = this.connection.prepareStatement(query)
-        prepareStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-        return prepareStatement.use { preparedStatement ->
+        return this.connection.prepareStatement(query).use { preparedStatement ->
+            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
             val queryStatement = Query<T?>(preparedStatement)
             queryStatement.block()
             val result = queryStatement.executeQuery()
@@ -72,9 +82,8 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Query<T>.() -> Unit
     ): T {
-        val prepareStatement = this.connection.prepareStatement(query)
-        prepareStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-        return prepareStatement.use { preparedStatement ->
+        return this.connection.prepareStatement(query).use { preparedStatement ->
+            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
             val queryStatement = Query<T>(preparedStatement)
             queryStatement.block()
             val result = queryStatement.executeQuery()
@@ -87,9 +96,8 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Query<T>.() -> Unit
     ): List<T> {
-        val prepareStatement = this.connection.prepareStatement(query)
-        prepareStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-        return prepareStatement.use { preparedStatement ->
+        return this.connection.prepareStatement(query).use { preparedStatement ->
+            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
             val queryStatement = Query<T>(preparedStatement)
             queryStatement.block()
             val result = queryStatement.executeQuery()

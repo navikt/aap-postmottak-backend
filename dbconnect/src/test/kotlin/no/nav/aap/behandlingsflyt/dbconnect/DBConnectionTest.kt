@@ -86,7 +86,7 @@ internal class DBConnectionTest {
     }
 
     @Test
-    fun `Henter tomt resultat fra DB`() {
+    fun `Henter tom liste fra DB`() {
         val result = InitTestDatabase.dataSource.transaction { connection ->
             connection.queryList("SELECT test FROM test") {
                 setRowMapper { row -> row.getString("test") }
@@ -94,5 +94,22 @@ internal class DBConnectionTest {
         }
 
         assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `Skriver og henter batch mot DB`() {
+        val elements = listOf("a", "b", "c")
+        val result = InitTestDatabase.dataSource.transaction { connection ->
+            connection.executeBatch("INSERT INTO test (test) VALUES (?)", elements) {
+                setParams { element ->
+                    setString(1, element)
+                }
+            }
+            connection.queryList("SELECT test FROM test") {
+                setRowMapper { row -> row.getString("test") }
+            }
+        }
+
+        assertThat(result).containsExactly("a", "b", "c")
     }
 }

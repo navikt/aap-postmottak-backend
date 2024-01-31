@@ -45,24 +45,20 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
                 setEnumName(2, vilkår.type)
             }
         }
-        vilkår.vilkårsperioder().forEach { periode -> lagre(vilkårId, periode) }
-    }
-
-    private fun lagre(vilkårId: Long, vilkårsperiode: Vilkårsperiode) {
-        val query = """
-                INSERT INTO VILKAR_PERIODE (vilkar_id, periode, utfall, manuell_vurdering, begrunnelse, innvilgelsesarsak, avslagsarsak, faktagrunnlag, versjon) VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent()
-        connection.execute(query) {
-            setParams {
+        val queryPeriode = """
+                    INSERT INTO VILKAR_PERIODE (vilkar_id, periode, utfall, manuell_vurdering, begrunnelse, innvilgelsesarsak, avslagsarsak, faktagrunnlag, versjon) VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?)
+                """.trimIndent()
+        connection.executeBatch(queryPeriode, vilkår.vilkårsperioder()) {
+            setParams { periode ->
                 setLong(1, vilkårId)
-                setPeriode(2, vilkårsperiode.periode)
-                setEnumName(3, vilkårsperiode.utfall)
-                setBoolean(4, vilkårsperiode.manuellVurdering)
-                setString(5, vilkårsperiode.begrunnelse)
-                setEnumName(6, vilkårsperiode.innvilgelsesårsak)
-                setEnumName(7, vilkårsperiode.avslagsårsak)
-                setString(8, vilkårsperiode.faktagrunnlagSomString())
-                setString(9, vilkårsperiode.versjon)
+                setPeriode(2, periode.periode)
+                setEnumName(3, periode.utfall)
+                setBoolean(4, periode.manuellVurdering)
+                setString(5, periode.begrunnelse)
+                setEnumName(6, periode.innvilgelsesårsak)
+                setEnumName(7, periode.avslagsårsak)
+                setString(8, periode.faktagrunnlagSomString())
+                setString(9, periode.versjon)
             }
         }
     }

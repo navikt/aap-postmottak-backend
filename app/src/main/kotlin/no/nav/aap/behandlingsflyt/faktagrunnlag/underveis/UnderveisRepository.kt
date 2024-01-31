@@ -89,20 +89,18 @@ class UnderveisRepository(private val connection: DBConnection) {
             }
         }
 
-        underveisperioder.forEach { periode ->
-            val query = """
+        val query = """
             INSERT INTO UNDERVEIS_PERIODE (perioder_id, periode, utfall, avslagsarsak, grenseverdi, timer_arbeid, gradering) VALUES (?, ?::daterange, ?, ?, ?, ?, ?)
             """.trimIndent()
-            connection.execute(query) {
-                setParams {
-                    setLong(1, perioderId)
-                    setPeriode(2, periode.periode)
-                    setEnumName(3, periode.utfall)
-                    setEnumName(4, periode.avslagsårsak)
-                    setInt(5, periode.grenseverdi.prosentverdi())
-                    setBigDecimal(6, periode.gradering?.totaltAntallTimer?.antallTimer)
-                    setInt(7, periode.gradering?.prosent?.prosentverdi())
-                }
+        connection.executeBatch(query, underveisperioder) {
+            setParams { periode ->
+                setLong(1, perioderId)
+                setPeriode(2, periode.periode)
+                setEnumName(3, periode.utfall)
+                setEnumName(4, periode.avslagsårsak)
+                setInt(5, periode.grenseverdi.prosentverdi())
+                setBigDecimal(6, periode.gradering?.totaltAntallTimer?.antallTimer)
+                setInt(7, periode.gradering?.prosent?.prosentverdi())
             }
         }
 
