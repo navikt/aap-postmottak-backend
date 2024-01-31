@@ -45,7 +45,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personopplysn
 import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.adapter.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.student.flate.studentgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.flate.sykdomsgrunnlagApi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vedtak.flate.fatteVedtakGrunnlagApi
+import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.fatteVedtakGrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.adapter.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi

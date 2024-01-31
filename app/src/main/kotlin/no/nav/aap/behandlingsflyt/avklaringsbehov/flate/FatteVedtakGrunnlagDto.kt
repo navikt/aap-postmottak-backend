@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.vedtak.flate
+package no.nav.aap.behandlingsflyt.avklaringsbehov.flate
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
 
