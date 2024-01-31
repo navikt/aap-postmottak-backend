@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -76,6 +77,7 @@ class Motor(
                     MDC.put("oppgavetype", oppgaveInput.type())
                     MDC.put("sakId", oppgaveInput.sakIdOrNull().toString())
                     MDC.put("behandlingId", oppgaveInput.behandlingIdOrNull().toString())
+                    MDC.put("callId", UUID.randomUUID().toString())
 
                     log.info("Starter på oppgave")
 
