@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.dokument.mottak
+package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid
 
 enum class DokumentType {
     SØKNAD,

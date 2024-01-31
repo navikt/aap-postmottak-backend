@@ -1,7 +1,5 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid
 
-import no.nav.aap.behandlingsflyt.dokument.mottak.DokumentRekkefølge
-
 data class PliktkortGrunnlag(
     internal val pliktkortene: Set<Pliktkort>,
     private val rekkefølge: Set<DokumentRekkefølge>

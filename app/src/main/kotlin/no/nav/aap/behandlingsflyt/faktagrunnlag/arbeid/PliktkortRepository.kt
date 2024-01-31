@@ -4,8 +4,6 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
-import no.nav.aap.behandlingsflyt.dokument.mottak.DokumentType
-import no.nav.aap.behandlingsflyt.dokument.mottak.MottattDokumentRepository
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.TimerArbeid
 

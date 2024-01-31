@@ -1,9 +1,8 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.dokument.mottak.MottaDokumentService
-import no.nav.aap.behandlingsflyt.dokument.mottak.MottattDokumentRepository
-import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.MottakAvPliktkortRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter.MottaDokumentService
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter.MottakAvPliktkortRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlagkonstruktør
 import no.nav.aap.verdityper.flyt.FlytKontekst

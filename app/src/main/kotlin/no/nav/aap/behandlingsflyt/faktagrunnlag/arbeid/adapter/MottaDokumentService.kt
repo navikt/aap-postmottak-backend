@@ -1,9 +1,11 @@
-package no.nav.aap.behandlingsflyt.dokument.mottak
+package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.DokumentType
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.MottattDokument
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.MottattDokumentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.Status
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.dokument.JournalpostId
-import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.MottakAvPliktkortRepository
-import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.UbehandletPliktkort
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import java.time.LocalDateTime
 

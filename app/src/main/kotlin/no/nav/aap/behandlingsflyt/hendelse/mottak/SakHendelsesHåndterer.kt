@@ -1,11 +1,11 @@
 package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.dokument.mottak.DokumentType
-import no.nav.aap.behandlingsflyt.dokument.mottak.MottaDokumentService
-import no.nav.aap.behandlingsflyt.dokument.mottak.MottattDokumentRepository
-import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.MottakAvPliktkortRepository
-import no.nav.aap.behandlingsflyt.dokument.mottak.pliktkort.UbehandletPliktkort
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.DokumentType
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter.MottaDokumentService
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.MottattDokumentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter.MottakAvPliktkortRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter.UbehandletPliktkort
 import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.SakSkrivelås
