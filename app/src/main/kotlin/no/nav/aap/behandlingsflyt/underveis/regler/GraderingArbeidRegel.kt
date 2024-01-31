@@ -38,21 +38,21 @@ class GraderingArbeidRegel : UnderveisRegel {
         val grenseverdiGradering = resultat.mapValue { Prosent(HØYESTE_GRADERING_NORMAL) }
             .kombiner(opptrappingTidslinje, StandardSammenslåere.prioriterHøyreSide())
 
-        return resultat.kombiner(grenseverdiGradering, { periode, venstreSegment, høyreSegment ->
+        return resultat.kombiner(grenseverdiGradering) { periode, venstreSegment, høyreSegment ->
             var vurdering = venstreSegment?.verdi
             val høyreSegmentVerdi = høyreSegment?.verdi
             if (høyreSegmentVerdi != null) {
                 vurdering = vurdering?.leggTilGrenseverdi(høyreSegmentVerdi)
             }
             Segment(periode, vurdering)
-        }).kombiner(arbeidsTidslinje, { periode, venstreSegment, høyreSegment ->
+        }.kombiner(arbeidsTidslinje) { periode, venstreSegment, høyreSegment ->
             var vurdering: Vurdering? = venstreSegment?.verdi
             val høyreSegmentVerdi = høyreSegment?.verdi
             if (høyreSegmentVerdi != null) {
                 vurdering = vurdering?.leggTilGradering(høyreSegmentVerdi)
             }
             Segment(periode, vurdering)
-        })
+        }
     }
 
     private fun konstruerTidslinje(pliktkortene: List<Pliktkort>): Tidslinje<TimerArbeid> {

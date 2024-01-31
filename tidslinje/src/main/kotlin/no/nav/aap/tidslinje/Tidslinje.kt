@@ -44,8 +44,19 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
      */
     fun <E, V> kombiner(
         other: Tidslinje<E>,
-        sammenslåer: SegmentSammenslåer<T, E, V>,
-        joinStyle: JoinStyle = JoinStyle.CROSS_JOIN
+        sammenslåer: SegmentSammenslåer<T, E, V>
+    ): Tidslinje<V> {
+        return kombiner(other, JoinStyle.CROSS_JOIN, sammenslåer)
+    }
+
+    /**
+     * Merge av to tidslinjer, prioriterer verdier fra den som merges over den som det kalles på
+     * oppretter en tredje slik at orginale verdier bevares
+     */
+    fun <E, V> kombiner(
+        other: Tidslinje<E>,
+        joinStyle: JoinStyle,
+        sammenslåer: SegmentSammenslåer<T, E, V>
     ): Tidslinje<V> {
         if (this.segmenter.isEmpty()) {
             val nyeSegmenter = other.segmenter.map { segment ->
@@ -91,15 +102,15 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
     }
 
     fun <V, R> disjoint(other: Tidslinje<V>, combinator: SegmentSammenslåer<T, V, R>): Tidslinje<R> {
-        return kombiner(other, combinator, JoinStyle.DISJOINT)
+        return kombiner(other, JoinStyle.DISJOINT, combinator)
     }
 
     fun kryss(periode: Periode): Tidslinje<T> {
-        return kombiner(Tidslinje(periode, null), StandardSammenslåere.kunVenstre(), JoinStyle.INNER_JOIN)
+        return kombiner(Tidslinje(periode, null), JoinStyle.INNER_JOIN, StandardSammenslåere.kunVenstre())
     }
 
     fun kryss(other: Tidslinje<Any?>): Tidslinje<T> {
-        return kombiner(other, StandardSammenslåere.kunVenstre(), JoinStyle.INNER_JOIN)
+        return kombiner(other, JoinStyle.INNER_JOIN, StandardSammenslåere.kunVenstre())
     }
 
     /**
