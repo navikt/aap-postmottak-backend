@@ -3,6 +3,7 @@ rootProject.name = "behandlingflyt"
 include(
     "app",
     "sakogbehandling",
+    "faktagrunnlag",
     "verdityper",
     "tidslinje",
     "dbflyway",
