@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.beregning
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.behandlingsflyt.beregning.år.Inntektsbehov
 import no.nav.aap.behandlingsflyt.beregning.år.Input
+import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.Beregningsgrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.BeregningsgrunnlagRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektGrunnlagRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektPerÅr

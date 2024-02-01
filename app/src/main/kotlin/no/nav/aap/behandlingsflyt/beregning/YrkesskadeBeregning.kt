@@ -1,5 +1,7 @@
 package no.nav.aap.behandlingsflyt.beregning
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.Grunnlag11_19
+import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.GrunnlagYrkesskade
 import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektPerÅr
 import no.nav.aap.verdityper.Prosent
 

@@ -1,15 +1,11 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.beregning
 
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.behandlingsflyt.beregning.Beregningsgrunnlag
-import no.nav.aap.behandlingsflyt.beregning.Grunnlag11_19
-import no.nav.aap.behandlingsflyt.beregning.GrunnlagUføre
-import no.nav.aap.behandlingsflyt.beregning.GrunnlagYrkesskade
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.BeregningsgrunnlagRepository.Beregningsdata.Companion.toBeregningsgrunnlag
 import no.nav.aap.verdityper.GUnit
 
-class BeregningsgrunnlagRepository(private val connection: DBConnection) {
+class   BeregningsgrunnlagRepository(private val connection: DBConnection) {
 
     private class Beregningsdata(
         val beregningsgrunnlagId: Long,

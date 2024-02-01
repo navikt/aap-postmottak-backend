@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.beregning
+package no.nav.aap.behandlingsflyt.faktagrunnlag.beregning
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Faktagrunnlag
 import no.nav.aap.verdityper.GUnit
