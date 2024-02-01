@@ -18,6 +18,15 @@ private val log = LoggerFactory.getLogger(FlytOrkestrator::class.java)
 
 /**
  * Har ansvar for å drive flyten til en gitt behandling. Typen behandling styrer hvilke steg som skal utføres.
+ *
+ * ## Forbered Behandling
+ * Har ansvar for å sette behandlingen i en oppdatert tilstand i form av å innhente opplysninger for stegene man allerede
+ * prosessert og vurdere om man er nødt til å behandle steget på nytt hvis det er oppdaterte opplysninger.
+ *
+ * ## Prosesser Behandling
+ * Har ansvar for å drive prosessen fremover, stoppe opp ved behov for besluttningsstøtte av et menneske og sørge for at
+ * at stegene traverseres i den definerte rekkefølgen i flyten. Flytene defineres i typen behandlingen.
+ *
  */
 class FlytOrkestrator(
     private val connection: DBConnection
