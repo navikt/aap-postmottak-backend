@@ -68,6 +68,4 @@ class Tilkjent(val dagsats: Beløp, val gradering: Prosent) {
     override fun toString(): String {
         return "Tilkjent(dagsats=$dagsats, gradering=$gradering, totalt=${tilUtbetaling()})"
     }
-
-
 }
