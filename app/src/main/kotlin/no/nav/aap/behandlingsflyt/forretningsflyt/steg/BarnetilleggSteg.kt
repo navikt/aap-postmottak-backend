@@ -18,7 +18,6 @@ class BarnetilleggSteg(private val barnetilleggService: BarnetilleggService) : B
     override fun utfør(kontekst: FlytKontekst): StegResultat {
 
         val barnetillegg = barnetilleggService.beregn(kontekst.behandlingId)
-        // TODO: Disjoint for perioden med rett
 
         log.info("Barnetillegg {}", barnetillegg)
 
