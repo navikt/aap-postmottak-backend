@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.behandlingstyper
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.PliktkortService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.BarnService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektService
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.PersonopplysningService
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder

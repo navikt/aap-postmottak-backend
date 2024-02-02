@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger
+package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger
 
 class PersonopplysningGrunnlag(private val id: Long, val personopplysning: Personopplysning) {
     override fun equals(other: Any?): Boolean {

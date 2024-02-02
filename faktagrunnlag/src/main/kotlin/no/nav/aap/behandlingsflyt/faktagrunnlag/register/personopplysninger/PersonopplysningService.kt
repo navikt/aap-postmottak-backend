@@ -1,9 +1,9 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger
+package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlagkonstruktør
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.adapter.PersonRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.flyt.FlytKontekst
 

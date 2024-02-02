@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.vilkår.alder
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.Fødselsdato
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Utfall
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Vilkårsresultat
 import no.nav.aap.verdityper.Periode

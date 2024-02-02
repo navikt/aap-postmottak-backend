@@ -6,9 +6,9 @@ import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbtestdata.april
 import no.nav.aap.behandlingsflyt.dbtestdata.ident
 import no.nav.aap.behandlingsflyt.dbtestdata.mars
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.Fødselsdato
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.Personopplysning
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.PersonopplysningRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak

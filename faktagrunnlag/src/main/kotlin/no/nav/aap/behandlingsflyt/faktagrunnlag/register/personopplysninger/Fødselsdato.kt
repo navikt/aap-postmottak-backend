@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger
+package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

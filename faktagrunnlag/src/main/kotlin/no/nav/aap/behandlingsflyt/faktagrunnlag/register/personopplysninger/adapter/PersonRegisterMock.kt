@@ -1,6 +1,6 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.adapter
+package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.Personopplysning
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
 object PersonRegisterMock {

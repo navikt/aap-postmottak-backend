@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger
+package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId

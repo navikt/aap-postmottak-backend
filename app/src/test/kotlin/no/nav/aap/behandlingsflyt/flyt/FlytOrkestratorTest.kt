@@ -20,10 +20,10 @@ import no.nav.aap.behandlingsflyt.dbtestdata.ident
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.ArbeidIPeriode
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.InntektRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandVurdering
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.Fødselsdato
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.Personopplysning
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.adapter.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.sykdom.Sykdomsvurdering

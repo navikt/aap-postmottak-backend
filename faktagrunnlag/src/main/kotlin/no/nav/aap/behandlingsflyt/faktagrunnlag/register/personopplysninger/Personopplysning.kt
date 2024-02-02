@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger
+package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger
 
 class Personopplysning(val fødselsdato: Fødselsdato) {
     override fun equals(other: Any?): Boolean {
