@@ -10,7 +10,7 @@ CREATE TABLE INNTEKT
 (
     ID         BIGSERIAL      NOT NULL PRIMARY KEY,
     INNTEKT_ID BIGINT         NOT NULL REFERENCES INNTEKTER (ID),
-    AR         smallint       NOT NULL,
+    AR         SMALLINT       NOT NULL,
     BELOP      NUMERIC(19, 2) NOT NULL
 );
 

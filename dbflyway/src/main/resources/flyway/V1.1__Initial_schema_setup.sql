@@ -202,35 +202,6 @@ CREATE TABLE SYKDOM_GRUNNLAG
 
 CREATE UNIQUE INDEX UIDX_SYKDOM_GRUNNLAG_HISTORIKK ON SYKDOM_GRUNNLAG (BEHANDLING_ID) WHERE (AKTIV = TRUE);
 
--- student
-
-CREATE TABLE STUDENT_VURDERING
-(
-    ID           BIGSERIAL NOT NULL PRIMARY KEY,
-    begrunnelse  text      null,
-    oppfylt      boolean   not null,
-    avbrutt_dato date      null
-);
-
-CREATE TABLE STUDENT_VURDERING_DOKUMENTER
-(
-    ID           BIGSERIAL   NOT NULL PRIMARY KEY,
-    vurdering_id bigint      not null references STUDENT_VURDERING,
-    journalpost  varchar(25) not null
-);
-CREATE UNIQUE INDEX UIDX_STUDENT_VURDERING_DOKUMENTER ON STUDENT_VURDERING_DOKUMENTER (journalpost, vurdering_id);
-
-CREATE TABLE STUDENT_GRUNNLAG
-(
-    ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
-    behandling_id BIGINT                                 NOT NULL REFERENCES BEHANDLING (ID),
-    student_id    BIGINT                                 null references STUDENT_VURDERING (ID),
-    aktiv         boolean      default true              NOT NULL,
-    opprettet_tid TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
-CREATE UNIQUE INDEX UIDX_STUDENT_GRUNNLAG_HISTORIKK ON STUDENT_GRUNNLAG (BEHANDLING_ID) WHERE (AKTIV = TRUE);
-
 -- sykepengeerstatning
 
 CREATE TABLE SYKEPENGE_VURDERING

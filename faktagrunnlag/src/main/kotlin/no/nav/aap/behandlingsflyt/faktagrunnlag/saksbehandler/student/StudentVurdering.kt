@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student
+package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student
 
 import no.nav.aap.verdityper.dokument.JournalpostId
 import java.time.LocalDate

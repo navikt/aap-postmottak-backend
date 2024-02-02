@@ -1,4 +1,4 @@
--- Mottatt dokument
+-- MOTTATT DOKUMENT
 CREATE TABLE MOTTATT_DOKUMENT
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
@@ -6,8 +6,8 @@ CREATE TABLE MOTTATT_DOKUMENT
     BEHANDLING_ID BIGINT                                 NULL REFERENCES BEHANDLING (ID),
     JOURNALPOST   VARCHAR(25)                            NOT NULL,
     MOTTATT_TID   TIMESTAMP(3)                           NOT NULL,
-    TYPE          varchar(50)                            NOT NULL,
-    STATUS        varchar(50)                            NOT NULL,
+    TYPE          VARCHAR(50)                            NOT NULL,
+    STATUS        VARCHAR(50)                            NOT NULL,
     OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 CREATE INDEX IDX_MOTTATT_DOKUMENT_1 ON MOTTATT_DOKUMENT (SAK_ID, TYPE, STATUS);
@@ -15,7 +15,7 @@ CREATE INDEX IDX_MOTTATT_DOKUMENT_2 ON MOTTATT_DOKUMENT (SAK_ID, BEHANDLING_ID);
 CREATE INDEX IDX_MOTTATT_DOKUMENT_3 ON MOTTATT_DOKUMENT (SAK_ID, MOTTATT_TID);
 CREATE INDEX IDX_MOTTATT_DOKUMENT_4 ON MOTTATT_DOKUMENT (SAK_ID, TYPE);
 
--- Pliktkort
+-- PLIKTKORT
 CREATE TABLE SAK_PLIKTKORT
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
@@ -27,14 +27,14 @@ CREATE INDEX IDX_SAK_PLIKTKORT ON SAK_PLIKTKORT (JOURNALPOST);
 CREATE TABLE SAK_PLIKTKORT_PERIODE
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
-    pliktkort_id  BIGINT                                 NOT NULL REFERENCES SAK_PLIKTKORT (ID),
-    PERIODE       daterange                              NOT NULL,
-    timer_arbeid  NUMERIC(5, 1)                          NOT NULL,
+    PLIKTKORT_ID  BIGINT                                 NOT NULL REFERENCES SAK_PLIKTKORT (ID),
+    PERIODE       DATERANGE                              NOT NULL,
+    TIMER_ARBEID  NUMERIC(5, 1)                          NOT NULL,
     OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
-alter table SAK_PLIKTKORT_PERIODE
-    add constraint SAK_PLIKTKORT_PERIODE_IKKE_OVERLAPP_PERIODE EXCLUDE USING GIST (
-        pliktkort_id WITH =,
+ALTER TABLE SAK_PLIKTKORT_PERIODE
+    ADD CONSTRAINT SAK_PLIKTKORT_PERIODE_IKKE_OVERLAPP_PERIODE EXCLUDE USING GIST (
+        PLIKTKORT_ID WITH =,
         PERIODE WITH &&
         );
 
@@ -46,7 +46,7 @@ CREATE TABLE PLIKTKORTENE
 CREATE TABLE PLIKTKORT
 (
     ID              BIGSERIAL                              NOT NULL PRIMARY KEY,
-    pliktkortene_id BIGINT                                 NOT NULL REFERENCES PLIKTKORTENE (ID),
+    PLIKTKORTENE_ID BIGINT                                 NOT NULL REFERENCES PLIKTKORTENE (ID),
     JOURNALPOST     VARCHAR(25)                            NOT NULL,
     OPPRETTET_TID   TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -55,14 +55,14 @@ CREATE INDEX IDX_PLIKTKORT ON PLIKTKORT (JOURNALPOST);
 CREATE TABLE PLIKTKORT_PERIODE
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
-    pliktkort_id  BIGINT                                 NOT NULL REFERENCES PLIKTKORT (ID),
-    PERIODE       daterange                              NOT NULL,
-    timer_arbeid  NUMERIC(5, 1)                          NOT NULL,
+    PLIKTKORT_ID  BIGINT                                 NOT NULL REFERENCES PLIKTKORT (ID),
+    PERIODE       DATERANGE                              NOT NULL,
+    TIMER_ARBEID  NUMERIC(5, 1)                          NOT NULL,
     OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
-alter table PLIKTKORT_PERIODE
-    add constraint PLIKTKORT_PERIODE_IKKE_OVERLAPP_PERIODE EXCLUDE USING GIST (
-        pliktkort_id WITH =,
+ALTER TABLE PLIKTKORT_PERIODE
+    ADD CONSTRAINT PLIKTKORT_PERIODE_IKKE_OVERLAPP_PERIODE EXCLUDE USING GIST (
+        PLIKTKORT_ID WITH =,
         PERIODE WITH &&
         );
 

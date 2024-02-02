@@ -1,8 +1,8 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student
+package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student
 
 class StudentGrunnlag(
     val id: Long? = null,
-    val studentvurdering: no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentVurdering?,
+    val studentvurdering: StudentVurdering?,
 ) {
     fun erKonsistent(): Boolean {
         // TODO: Kommenter inn når lagring er på plass
@@ -16,7 +16,7 @@ class StudentGrunnlag(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag
+        other as StudentGrunnlag
 
         return studentvurdering == other.studentvurdering
     }

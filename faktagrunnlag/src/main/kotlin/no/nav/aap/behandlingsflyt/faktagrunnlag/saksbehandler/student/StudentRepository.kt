@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student
+package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
@@ -9,7 +9,7 @@ class StudentRepository(private val connection: DBConnection) {
 
     fun lagre(behandlingId: BehandlingId, studentvurdering: StudentVurdering?) {
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
-        val nyttGrunnlag = no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag(
+        val nyttGrunnlag = StudentGrunnlag(
             null,
             studentvurdering = eksisterendeGrunnlag?.studentvurdering,
         )
@@ -101,7 +101,7 @@ class StudentRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentHvisEksisterer(behandlingId: BehandlingId): no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag? {
+    fun hentHvisEksisterer(behandlingId: BehandlingId): StudentGrunnlag? {
         val query = """
             SELECT * FROM STUDENT_GRUNNLAG WHERE behandling_id = ? AND aktiv = true
         """.trimIndent()
@@ -116,8 +116,8 @@ class StudentRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun mapGrunnlag(row: Row): no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag {
-        return no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag(
+    private fun mapGrunnlag(row: Row): StudentGrunnlag {
+        return StudentGrunnlag(
             row.getLong("id"),
             mapStudentVurdering(row.getLongOrNull("student_id"))
         )
@@ -161,7 +161,7 @@ class StudentRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hent(behandlingId: BehandlingId): no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag {
+    fun hent(behandlingId: BehandlingId): StudentGrunnlag {
         return requireNotNull(hentHvisEksisterer(behandlingId))
     }
 }

@@ -3,7 +3,8 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentGrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Innvilgelsesårsak
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Vilkår
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.VilkårsresultatRepository
@@ -60,13 +61,13 @@ class VurderBistandsbehovSteg private constructor(
     private fun harBehovForAvklaring(
         vilkår: Vilkår,
         periodeTilVurdering: Set<Periode>,
-        studentGrunnlag: no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag?
+        studentGrunnlag: StudentGrunnlag?
     ): Boolean {
         return (vilkår.harPerioderSomIkkeErVurdert(periodeTilVurdering)
                 || harInnvilgetForStudentUtenÅVæreStudent(vilkår, studentGrunnlag))
     }
 
-    private fun harInnvilgetForStudentUtenÅVæreStudent(vilkår: Vilkår, studentGrunnlag: no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag?): Boolean {
+    private fun harInnvilgetForStudentUtenÅVæreStudent(vilkår: Vilkår, studentGrunnlag: StudentGrunnlag?): Boolean {
         return studentGrunnlag?.studentvurdering?.oppfyller11_14 == false &&
                 vilkår.vilkårsperioder().any { it.innvilgelsesårsak == Innvilgelsesårsak.STUDENT }
     }

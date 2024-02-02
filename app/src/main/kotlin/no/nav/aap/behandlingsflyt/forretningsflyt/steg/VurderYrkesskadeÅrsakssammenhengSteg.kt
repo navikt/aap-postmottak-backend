@@ -2,7 +2,8 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentGrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.sykdom.SykdomGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Vilkårtype
@@ -41,7 +42,7 @@ class VurderYrkesskadeÅrsakssammenhengSteg private constructor(
     private fun erBehovForAvklaring(
         yrkesskadeGrunnlag: YrkesskadeGrunnlag?,
         sykdomGrunnlag: SykdomGrunnlag?,
-        studentGrunnlag: no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag?
+        studentGrunnlag: StudentGrunnlag?
     ): Boolean {
         if (studentGrunnlag?.studentvurdering?.oppfyller11_14 == true) {
             return false
