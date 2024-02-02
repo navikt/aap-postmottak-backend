@@ -17,21 +17,20 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbtestdata.ident
-import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.ArbeidIPeriode
-import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandVurdering
-import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektPerÅr
-import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.adapter.InntektRegisterMock
-import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Fødselsdato
-import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.Personopplysning
-import no.nav.aap.behandlingsflyt.faktagrunnlag.personopplysninger.adapter.PersonRegisterMock
-import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentVurdering
-import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.NedreGrense
-import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.Sykdomsvurdering
-import no.nav.aap.behandlingsflyt.faktagrunnlag.underveis.UnderveisRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.VilkårsresultatRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkårtype
-import no.nav.aap.behandlingsflyt.faktagrunnlag.yrkesskade.adapter.YrkesskadeRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.ArbeidIPeriode
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.bistand.BistandVurdering
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.inntekt.adapter.InntektRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.Fødselsdato
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.Personopplysning
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.personopplysninger.adapter.PersonRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentVurdering
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.sykdom.NedreGrense
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.sykdom.Sykdomsvurdering
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.underveis.UnderveisRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Vilkårsresultat
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.VilkårsresultatRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Vilkårtype
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.yrkesskade.adapter.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
@@ -99,7 +98,7 @@ class FlytOrkestratorTest {
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
         InntektRegisterMock.konstruer(
             ident = ident, inntekterPerÅr = listOf(
-                InntektPerÅr(
+                no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.inntekt.InntektPerÅr(
                     Year.now().minusYears(3),
                     Beløp(
                         BigDecimal(1000000)
@@ -460,7 +459,7 @@ class FlytOrkestratorTest {
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
         InntektRegisterMock.konstruer(
             ident = ident, inntekterPerÅr = listOf(
-                InntektPerÅr(
+                no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.inntekt.InntektPerÅr(
                     Year.now().minusYears(3),
                     Beløp(
                         BigDecimal(1000000)

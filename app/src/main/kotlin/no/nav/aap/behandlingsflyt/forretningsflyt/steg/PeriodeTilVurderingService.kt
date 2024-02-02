@@ -1,10 +1,10 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
-import no.nav.aap.verdityper.flyt.FlytKontekst
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkårtype
-import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 
 class PeriodeTilVurderingService(private val sakService: SakService) {
 

@@ -1,17 +1,17 @@
 package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.DokumentType
-import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter.MottaDokumentService
-import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.MottattDokumentRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter.MottakAvPliktkortRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.arbeid.adapter.UbehandletPliktkort
 import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.DokumentType
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.MottattDokumentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.adapter.MottaDokumentService
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.adapter.MottakAvPliktkortRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.adapter.UbehandletPliktkort
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
-import no.nav.aap.behandlingsflyt.sakogbehandling.lås.SakSkrivelås
-import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.sakogbehandling.lås.SakSkrivelås
+import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId

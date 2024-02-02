@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.flyt.flate
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Avslagsårsak
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Innvilgelsesårsak
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Utfall
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Avslagsårsak
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Innvilgelsesårsak
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Utfall
 import no.nav.aap.verdityper.Periode
 
 data class VilkårsperiodeDTO(

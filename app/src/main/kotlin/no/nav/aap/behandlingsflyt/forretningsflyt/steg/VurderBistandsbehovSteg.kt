@@ -2,22 +2,21 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.faktagrunnlag.bistand.BistandRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentGrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.student.StudentRepository
-import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.bistand.BistandRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Innvilgelsesårsak
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Vilkår
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.VilkårsresultatRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.verdityper.flyt.StegType
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Innvilgelsesårsak
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkår
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.VilkårsresultatRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.vilkårsresultat.Vilkårtype
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.vilkår.bistand.Bistandsvilkåret
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.StegType
 
 class VurderBistandsbehovSteg private constructor(
     private val bistandRepository: BistandRepository,
@@ -61,13 +60,13 @@ class VurderBistandsbehovSteg private constructor(
     private fun harBehovForAvklaring(
         vilkår: Vilkår,
         periodeTilVurdering: Set<Periode>,
-        studentGrunnlag: StudentGrunnlag?
+        studentGrunnlag: no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag?
     ): Boolean {
         return (vilkår.harPerioderSomIkkeErVurdert(periodeTilVurdering)
                 || harInnvilgetForStudentUtenÅVæreStudent(vilkår, studentGrunnlag))
     }
 
-    private fun harInnvilgetForStudentUtenÅVæreStudent(vilkår: Vilkår, studentGrunnlag: StudentGrunnlag?): Boolean {
+    private fun harInnvilgetForStudentUtenÅVæreStudent(vilkår: Vilkår, studentGrunnlag: no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.student.StudentGrunnlag?): Boolean {
         return studentGrunnlag?.studentvurdering?.oppfyller11_14 == false &&
                 vilkår.vilkårsperioder().any { it.innvilgelsesårsak == Innvilgelsesårsak.STUDENT }
     }

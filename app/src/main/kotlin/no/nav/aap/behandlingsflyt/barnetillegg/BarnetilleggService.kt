@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.barnetillegg
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.barn.BarnRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.barn.BarnRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakRepository
 import no.nav.aap.tidslinje.Segment

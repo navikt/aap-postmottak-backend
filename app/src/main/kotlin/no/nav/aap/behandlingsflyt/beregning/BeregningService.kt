@@ -1,14 +1,13 @@
 package no.nav.aap.behandlingsflyt.beregning
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.Beregningsgrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.BeregningsgrunnlagRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.GrunnlagetForBeregningen
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.inntekt.InntektGrunnlagRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.sykdom.SykdomGrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.sykdom.SykdomRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.uføre.UføreRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.Beregningsgrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.BeregningsgrunnlagRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.beregning.GrunnlagetForBeregningen
-import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektGrunnlagRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.inntekt.InntektPerÅr
-import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomGrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.sykdom.SykdomRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.uføre.UføreRepository
 import java.time.Year
 
 class BeregningService(
@@ -53,7 +52,7 @@ class BeregningService(
 
     private fun beregn(
         sykdomGrunnlag: SykdomGrunnlag,
-        inntekterPerÅr: Set<InntektPerÅr>
+        inntekterPerÅr: Set<no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.inntekt.InntektPerÅr>
     ): Beregningsgrunnlag {
         val grunnlag11_19 =
             GrunnlagetForBeregningen(inntekterPerÅr).beregnGrunnlaget()
@@ -62,7 +61,10 @@ class BeregningService(
         val antattÅrligInntekt = sykdomGrunnlag.yrkesskadevurdering?.antattÅrligInntekt
         val andelAvNedsettelsenSomSkyldesYrkesskaden = sykdomGrunnlag.yrkesskadevurdering?.andelAvNedsettelse
         if (skadetidspunkt != null && antattÅrligInntekt != null && andelAvNedsettelsenSomSkyldesYrkesskaden != null) {
-            val inntektPerÅr = InntektPerÅr(Year.from(skadetidspunkt), antattÅrligInntekt)
+            val inntektPerÅr = no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.inntekt.InntektPerÅr(
+                Year.from(skadetidspunkt),
+                antattÅrligInntekt
+            )
             val yrkesskaden = YrkesskadeBeregning(
                 grunnlag11_19 = grunnlag11_19,
                 antattÅrligInntekt = inntektPerÅr,

@@ -4,6 +4,9 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbtestdata.ident
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.BeregningsgrunnlagRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.GrunnlagUføre
+import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.GrunnlagYrkesskade
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
@@ -23,9 +26,11 @@ class BeregningsgrunnlagRepositoryTest {
             val sak = sak(connection)
             val behandling = behandling(connection, sak)
 
-            val grunnlag11_19Standard = Grunnlag11_19(GUnit(1))
+            val grunnlag11_19Standard =
+                no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.Grunnlag11_19(GUnit(1))
             val grunnlagYrkesskadeStandard = GrunnlagYrkesskade(GUnit(2), grunnlag11_19Standard)
-            val grunnlag11_19Ytterligere = Grunnlag11_19(GUnit(3))
+            val grunnlag11_19Ytterligere =
+                no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.Grunnlag11_19(GUnit(3))
             val grunnlagYrkesskadeYtterligere = GrunnlagYrkesskade(GUnit(4), grunnlag11_19Ytterligere)
             val grunnlagUføre = GrunnlagUføre(
                 GUnit(4),
@@ -50,8 +55,10 @@ class BeregningsgrunnlagRepositoryTest {
             val sak = sak(connection)
             val behandling = behandling(connection, sak)
 
-            val grunnlag11_19Standard = Grunnlag11_19(GUnit(1))
-            val grunnlag11_19Ytterligere = Grunnlag11_19(GUnit(3))
+            val grunnlag11_19Standard =
+                no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.Grunnlag11_19(GUnit(1))
+            val grunnlag11_19Ytterligere =
+                no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.Grunnlag11_19(GUnit(3))
             val grunnlagUføre =
                 GrunnlagUføre(GUnit(4), GrunnlagUføre.Type.STANDARD, grunnlag11_19Standard, grunnlag11_19Ytterligere)
 
@@ -71,7 +78,8 @@ class BeregningsgrunnlagRepositoryTest {
             val sak = sak(connection)
             val behandling = behandling(connection, sak)
 
-            val grunnlag11_19Standard = Grunnlag11_19(GUnit(1))
+            val grunnlag11_19Standard =
+                no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.beregning.Grunnlag11_19(GUnit(1))
 
             val beregningsgrunnlagRepository = BeregningsgrunnlagRepository(connection)
 

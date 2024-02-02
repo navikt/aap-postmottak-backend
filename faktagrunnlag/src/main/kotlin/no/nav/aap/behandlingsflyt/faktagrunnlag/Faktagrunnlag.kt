@@ -5,7 +5,10 @@ import no.nav.aap.verdityper.flyt.FlytKontekst
 
 class Faktagrunnlag(private val connection: DBConnection) {
 
-    fun oppdaterFaktagrunnlagForKravliste(kravliste: List<Grunnlagkonstruktør>, kontekst: FlytKontekst): List<Grunnlagkonstruktør> {
+    fun oppdaterFaktagrunnlagForKravliste(
+        kravliste: List<Grunnlagkonstruktør>,
+        kontekst: FlytKontekst
+    ): List<Grunnlagkonstruktør> {
         // Hva gir dette leddet?
         return kravliste.filterNot { grunnlagstype -> grunnlagstype.konstruer(connection).oppdater(kontekst) }
     }
