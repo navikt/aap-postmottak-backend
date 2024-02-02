@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.uføre
+package no.nav.aap.behandlingsflyt.faktagrunnlag.register.uføre
 
 import no.nav.aap.verdityper.Prosent
 

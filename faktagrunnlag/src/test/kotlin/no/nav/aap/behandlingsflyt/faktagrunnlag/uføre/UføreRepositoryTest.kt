@@ -4,8 +4,8 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbtestdata.ident
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.uføre.Uføre
-import no.nav.aap.behandlingsflyt.faktagrunnlag.usorterte.uføre.UføreRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.uføre.Uføre
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.uføre.UføreRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
