@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandRep
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt.Fritaksvurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt.MeldepliktRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository

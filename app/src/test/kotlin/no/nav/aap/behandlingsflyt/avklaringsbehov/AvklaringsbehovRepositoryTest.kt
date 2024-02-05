@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbtestdata.ident
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository

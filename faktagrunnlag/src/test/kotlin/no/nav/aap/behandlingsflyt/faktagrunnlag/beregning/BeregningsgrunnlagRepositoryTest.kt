@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.Grunnlag1
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.GrunnlagUføre
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.GrunnlagYrkesskade
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository

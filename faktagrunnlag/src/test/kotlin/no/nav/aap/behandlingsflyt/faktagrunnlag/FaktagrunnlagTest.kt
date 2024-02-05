@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Pers
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PersonRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterMock
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
 import no.nav.aap.verdityper.Periode

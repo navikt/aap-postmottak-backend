@@ -7,7 +7,7 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository

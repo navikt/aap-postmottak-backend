@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.sak
 
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.assertj.core.api.Assertions

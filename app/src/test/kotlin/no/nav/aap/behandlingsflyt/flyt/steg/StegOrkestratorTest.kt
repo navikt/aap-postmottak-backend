@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
 import no.nav.aap.verdityper.Periode
