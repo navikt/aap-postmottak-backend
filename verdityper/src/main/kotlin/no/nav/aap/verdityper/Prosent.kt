@@ -18,6 +18,7 @@ class Prosent private constructor(verdi: BigDecimal) : Comparable<Prosent> {
         val `0_PROSENT` = Prosent(0)
         val `30_PROSENT` = Prosent(30)
         val `50_PROSENT` = Prosent(50)
+        val `66_PROSENT` = Prosent(66)
         val `70_PROSENT` = Prosent(70)
         val `100_PROSENT` = Prosent(100)
 

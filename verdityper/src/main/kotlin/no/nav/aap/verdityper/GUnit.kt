@@ -51,6 +51,10 @@ class GUnit(verdi: BigDecimal) : Comparable<GUnit> {
         )
     }
 
+    fun dividert(nevner: Int):GUnit{
+        return GUnit(this.verdi.divide(BigDecimal(nevner), SCALE, RoundingMode.HALF_UP))
+    }
+
     fun begrensTil6GUnits(): GUnit {
         val begrensetVerdi = minOf(verdi, BigDecimal(6))
         return GUnit(begrensetVerdi)
