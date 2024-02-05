@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
 
 private const val ANTALL_ÅRLIGE_ARBEIDSDAGER = 260
 
-class BeregnTilkjentYtelseSteg(
+class BeregnTilkjentYtelseSteg private constructor(
     private val underveisRepository: UnderveisRepository,
     private val beregningsgrunnlagRepository: BeregningsgrunnlagRepository
 ) : BehandlingSteg {
@@ -38,7 +38,8 @@ class BeregnTilkjentYtelseSteg(
                 JoinStyle.INNER_JOIN
             ) { periode, venstre, høyre ->
                 val dagsats =
-                    høyre?.verdi?.multiplisert(grunnlagsfaktor)?.divitert(Beløp(ANTALL_ÅRLIGE_ARBEIDSDAGER))?.let { Beløp(it) } ?: Beløp(0)
+                    høyre?.verdi?.multiplisert(grunnlagsfaktor)?.divitert(Beløp(ANTALL_ÅRLIGE_ARBEIDSDAGER))
+                        ?.let { Beløp(it) } ?: Beløp(0)
 
                 val gradering = venstre?.verdi?.utbetalingsgrad() ?: Prosent.`0_PROSENT`
                 Segment(periode, Tilkjent(dagsats, gradering))
