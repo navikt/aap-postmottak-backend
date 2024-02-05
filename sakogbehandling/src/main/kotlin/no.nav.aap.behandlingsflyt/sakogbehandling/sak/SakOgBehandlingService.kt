@@ -2,9 +2,10 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.sak
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
-import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Årsak
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 
 class SakOgBehandlingService(connection: DBConnection) {
 
@@ -47,5 +48,10 @@ class SakOgBehandlingService(connection: DBConnection) {
                 )
             }
         }
+    }
+
+    fun hentSakFor(behandlingId: BehandlingId): Sak {
+        val behandling = behandlingRepository.hent(behandlingId)
+        return  sakRepository.hent(behandling.sakId)
     }
 }

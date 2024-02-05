@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.barnetillegg
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.BarnRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakRepository
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.Tidslinje
@@ -10,19 +11,14 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 //TODO: Må se på om faktagrunnlag.barn skal deles i to, en for registeropplysninger og en for delvurdering fra saksbehandler
 class BarnetilleggService(
     private val barnRepository: BarnRepository,
-    private val behandlingRepository: BehandlingRepository,
-    private val sakRepository: SakRepository
+    private val sakOgBehandlingService: SakOgBehandlingService
 ) {
-
     fun beregn(behandlingId: BehandlingId): Tidslinje<RettTilBarnetillegg> {
-
-        val relevanteBarn = barnRepository.hentHvisEksisterer(behandlingId)?.barn ?: emptyList()
-        val behandling = behandlingRepository.hent(behandlingId)
-        val sak = sakRepository.hent(behandling.sakId)
-
+        val sak = sakOgBehandlingService.hentSakFor(behandlingId)
         var resultat: Tidslinje<RettTilBarnetillegg> =
             Tidslinje(listOf(Segment(sak.rettighetsperiode, RettTilBarnetillegg())))
 
+        val relevanteBarn = barnRepository.hentHvisEksisterer(behandlingId)?.barn ?: emptyList()
         for (barn in relevanteBarn) {
             resultat = resultat.kombiner(
                 Tidslinje(listOf(Segment(barn.periodeMedRettTil(), barn)))

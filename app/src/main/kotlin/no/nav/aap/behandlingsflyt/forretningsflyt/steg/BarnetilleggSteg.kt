@@ -6,8 +6,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.BarnRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
@@ -29,8 +28,7 @@ class BarnetilleggSteg(private val barnetilleggService: BarnetilleggService) : B
             return BarnetilleggSteg(
                 BarnetilleggService(
                     BarnRepository(connection),
-                    behandlingRepository(connection),
-                    sakRepository(connection)
+                    SakOgBehandlingService(connection)
                 )
             )
         }
