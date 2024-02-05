@@ -56,7 +56,7 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
 import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsOppgaver
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlConfig
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PersonService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlGatewayImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.motor.Motor
@@ -131,7 +131,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
 
-    PersonService.init(
+    PdlGatewayImpl.init(
         AzureConfig(
             tokenEndpoint = URI(System.getenv("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT")).toURL(),
             clientId = System.getenv("AZURE_APP_CLIENT_ID"),

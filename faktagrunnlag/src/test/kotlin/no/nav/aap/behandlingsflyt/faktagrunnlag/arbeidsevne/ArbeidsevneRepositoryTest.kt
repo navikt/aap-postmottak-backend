@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.arbeidsevne
 
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
@@ -7,13 +8,14 @@ import no.nav.aap.behandlingsflyt.dbtestdata.ident
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.arbeidsevne.Arbeidsevne
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.arbeidsevne.ArbeidsevneRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonOgSakService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlGateway
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -24,7 +26,8 @@ class ArbeidsevneRepositoryTest {
     @Test
     fun `Finner ikke arbeidsevne hvis ikke lagret`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val behandling = behandling(connection, sak(connection))
+            val sak = runBlocking { sak(connection) }
+            val behandling = behandling(connection, sak)
 
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
             val arbeidsevneGrunnlag = arbeidsevneRepository.hentHvisEksisterer(behandling.id)
@@ -35,7 +38,8 @@ class ArbeidsevneRepositoryTest {
     @Test
     fun `Lagrer og henter arbeidsevne`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val behandling = behandling(connection, sak(connection))
+            val sak = runBlocking { sak(connection) }
+            val behandling = behandling(connection, sak)
 
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
             arbeidsevneRepository.lagre(behandling.id, Arbeidsevne("begrunnelse", Prosent(100)))
@@ -47,7 +51,7 @@ class ArbeidsevneRepositoryTest {
     @Test
     fun `Lagrer ikke like arbeidsevner flere ganger`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
+            val sak = runBlocking { sak(connection) }
             val behandling = behandling(connection, sak)
 
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
@@ -78,7 +82,7 @@ class ArbeidsevneRepositoryTest {
     @Test
     fun `Kopierer arbeidsevne fra en behandling til en annen`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
+            val sak = runBlocking { sak(connection) }
             val behandling1 = behandling(connection, sak)
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
             arbeidsevneRepository.lagre(behandling1.id, Arbeidsevne("begrunnelse", Prosent(100)))
@@ -109,7 +113,7 @@ class ArbeidsevneRepositoryTest {
     @Test
     fun `Kopierer arbeidsevne fra en behandling til en annen der fraBehandlingen har to versjoner av opplysningene`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
+            val sak = runBlocking { sak(connection) }
             val behandling1 = behandling(connection, sak)
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
             arbeidsevneRepository.lagre(behandling1.id, Arbeidsevne("en begrunnelse", Prosent(100)))
@@ -131,7 +135,7 @@ class ArbeidsevneRepositoryTest {
     @Test
     fun `Lagrer nye arbeidsevneopplysninger som ny rad og deaktiverer forrige versjon av opplysningene`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
+            val sak = runBlocking { sak(connection) }
             val behandling = behandling(connection, sak)
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
 
@@ -182,7 +186,8 @@ class ArbeidsevneRepositoryTest {
     @Test
     fun `Ved kopiering av arbeidsevneopplysninger fra en avsluttet behandling til en ny skal kun referansen kopieres, ikke hele raden`() {
         InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
+
+            val sak = runBlocking { sak(connection) }
             val behandling1 = behandling(connection, sak)
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
             arbeidsevneRepository.lagre(behandling1.id, Arbeidsevne("en begrunnelse", Prosent(100)))
@@ -260,14 +265,18 @@ class ArbeidsevneRepositoryTest {
         private val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
     }
 
-    private fun sak(connection: DBConnection): Sak {
-        return SakRepositoryImpl(connection).finnEllerOpprett(
-            person = PersonRepository(connection).finnEllerOpprett(listOf(ident())),
-            periode = periode
-        )
+    private suspend fun sak(connection: DBConnection): Sak {
+        return PersonOgSakService(connection, FakePdlGateway).finnEllerOpprett(ident(), periode)
     }
 
     private fun behandling(connection: DBConnection, sak: Sak): Behandling {
         return SakOgBehandlingService(connection).finnEllerOpprettBehandling(sak.saksnummer).behandling
     }
+}
+
+object FakePdlGateway : PdlGateway {
+    override suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
+        return listOf(ident())
+    }
+
 }
