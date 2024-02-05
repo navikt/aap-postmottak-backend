@@ -1,3 +1,6 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
+}
 rootProject.name = "behandlingflyt"
 
 include(
@@ -10,5 +13,6 @@ include(
     "dbconnect",
     "dbtest",
     "dbtestdata",
-    "motor"
+    "motor",
+    "httpklient"
 )

@@ -2,6 +2,7 @@ package no.nav.aap.verdityper.sakogbehandling
 
 import kotlin.math.min
 
+// TODO: Skal vi sette aktiv / historisk på ident?
 class Ident(val identifikator: String) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
