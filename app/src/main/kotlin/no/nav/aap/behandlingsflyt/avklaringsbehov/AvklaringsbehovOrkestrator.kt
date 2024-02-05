@@ -16,7 +16,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.utledType
 import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.motor.OppgaveInput
 import no.nav.aap.motor.OppgaveRepository
 import no.nav.aap.verdityper.flyt.FlytKontekst
@@ -26,7 +26,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
 
     private val avklaringsbehovsLøsere = mutableMapOf<Definisjon, AvklaringsbehovsLøser<*>>()
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
-    private val behandlingRepository = behandlingRepository(connection)
+    private val behandlingRepository = BehandlingRepositoryImpl(connection)
     private val oppgaveRepository = OppgaveRepository(connection)
 
     private val log = LoggerFactory.getLogger(AvklaringsbehovOrkestrator::class.java)

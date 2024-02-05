@@ -1,16 +1,17 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.sak
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Årsak
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 
 class SakOgBehandlingService(connection: DBConnection) {
 
-    private val sakRepository = sakRepository(connection)
-    private val behandlingRepository = behandlingRepository(connection)
+    private val sakRepository = SakRepositoryImpl(connection)
+    private val behandlingRepository = BehandlingRepositoryImpl(connection)
 
     fun finnEllerOpprettBehandling(key: Saksnummer): BeriketBehandling {
         val sak = sakRepository.hent(key)
@@ -52,6 +53,6 @@ class SakOgBehandlingService(connection: DBConnection) {
 
     fun hentSakFor(behandlingId: BehandlingId): Sak {
         val behandling = behandlingRepository.hent(behandlingId)
-        return  sakRepository.hent(behandling.sakId)
+        return sakRepository.hent(behandling.sakId)
     }
 }

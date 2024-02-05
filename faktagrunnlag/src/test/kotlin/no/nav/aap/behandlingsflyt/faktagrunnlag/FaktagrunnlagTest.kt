@@ -11,7 +11,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.YrkesskadeSe
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.Ident
@@ -28,7 +28,7 @@ class FaktagrunnlagTest {
     private fun klargjør(connection: DBConnection): Pair<Ident, FlytKontekst> {
         val ident = ident()
         val person = PersonRepository(connection).finnEllerOpprett(listOf(ident))
-        val sak = sakRepository(connection).finnEllerOpprett(person, periode)
+        val sak = SakRepositoryImpl(connection).finnEllerOpprett(person, periode)
         val behandling = SakOgBehandlingService(connection).finnEllerOpprettBehandling(sak.saksnummer).behandling
 
         PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(18))))

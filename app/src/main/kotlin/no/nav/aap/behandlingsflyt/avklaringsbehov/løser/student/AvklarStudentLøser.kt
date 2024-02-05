@@ -6,12 +6,12 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekst
 
 class AvklarStudentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarStudentLøsning> {
 
-    private val behandlingRepository = behandlingRepository(connection)
+    private val behandlingRepository = BehandlingRepositoryImpl(connection)
     private val studentRepository = StudentRepository(connection)
 
     override fun løs(kontekst: FlytKontekst, løsning: AvklarStudentLøsning): LøsningsResultat {

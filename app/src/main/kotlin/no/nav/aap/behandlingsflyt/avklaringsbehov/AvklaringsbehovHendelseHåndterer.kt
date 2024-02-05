@@ -1,12 +1,12 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class AvklaringsbehovHendelseHåndterer(connection: DBConnection) {
 
-    private val behandlingRepository = behandlingRepository(connection)
+    private val behandlingRepository = BehandlingRepositoryImpl(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
     private val avklaringsbehovOrkestrator = AvklaringsbehovOrkestrator(connection)
 

@@ -8,8 +8,8 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovHendelseHåndte
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
 import org.slf4j.MDC
 import javax.sql.DataSource
 
@@ -22,7 +22,7 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                     val lås = taSkriveLåsRepository.lås(request.referanse)
                     MDC.putCloseable("sakId", lås.sakSkrivelås.id.toString()).use {
                         MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
-                            val behandling = behandlingRepository(connection).hent(lås.behandlingSkrivelås.id)
+                            val behandling = BehandlingRepositoryImpl(connection).hent(lås.behandlingSkrivelås.id)
                             val avklaringsbehovene =
                                 AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(lås.behandlingSkrivelås.id)
 

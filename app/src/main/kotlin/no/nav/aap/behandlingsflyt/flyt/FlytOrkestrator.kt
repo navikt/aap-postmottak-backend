@@ -8,9 +8,9 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakFlytRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Status.UTREDES
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import org.slf4j.LoggerFactory
 
@@ -32,9 +32,9 @@ class FlytOrkestrator(
     private val connection: DBConnection
 ) {
     private val faktagrunnlag = Faktagrunnlag(connection)
-    private val sakRepository = SakFlytRepository(connection)
+    private val sakRepository = SakRepositoryImpl(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
-    private val behandlingRepository = behandlingRepository(connection)
+    private val behandlingRepository = BehandlingRepositoryImpl(connection)
 
     fun forberedBehandling(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)

@@ -41,13 +41,13 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
 import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
 import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsOppgaver
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.behandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PersonService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.OppgaveRepository
 import no.nav.aap.verdityper.Beløp
@@ -693,7 +693,7 @@ class FlytOrkestratorTest {
 
     private fun hentSak(ident: Ident, periode: Periode): Sak {
         return dataSource.transaction { connection ->
-            sakRepository(connection).finnEllerOpprett(
+            SakRepositoryImpl(connection).finnEllerOpprett(
                 PersonRepository(connection).finnEllerOpprett(listOf(ident)),
                 periode
             )
@@ -708,7 +708,7 @@ class FlytOrkestratorTest {
 
     private fun hentBehandling(sakId: SakId): Behandling {
         return dataSource.transaction { connection ->
-            val finnSisteBehandlingFor = behandlingRepository(connection).finnSisteBehandlingFor(sakId)
+            val finnSisteBehandlingFor = BehandlingRepositoryImpl(connection).finnSisteBehandlingFor(sakId)
             requireNotNull(finnSisteBehandlingFor)
         }
     }

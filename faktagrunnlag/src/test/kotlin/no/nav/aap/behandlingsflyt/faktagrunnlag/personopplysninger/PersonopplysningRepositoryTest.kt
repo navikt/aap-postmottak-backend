@@ -13,7 +13,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.sakRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
@@ -250,7 +250,7 @@ class PersonopplysningRepositoryTest {
     }
 
     private fun sak(connection: DBConnection): Sak {
-        return sakRepository(connection).finnEllerOpprett(
+        return SakRepositoryImpl(connection).finnEllerOpprett(
             person = PersonRepository(connection).finnEllerOpprett(listOf(ident())),
             periode = periode
         )

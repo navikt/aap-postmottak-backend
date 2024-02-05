@@ -1,7 +1,5 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.sak
 
-import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.SakId
 
@@ -17,8 +15,4 @@ interface SakRepository {
 
     fun hent(saksnummer: Saksnummer): Sak
 
-}
-
-fun sakRepository(connection: DBConnection): SakRepository {
-    return SakRepositoryImpl(connection)
 }
