@@ -4,26 +4,11 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.aap.HttpClientFactory
-import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.ktor.client.AzureAdTokenProvider
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-class PdlConfig(
-    scope: String,
-    url: String,
-) : GraphQLConfig(
-    scope = scope,
-    url = url,
-    additionalHeaders = listOf(
-        "Nav-Consumer-Id" to "sakogbehandling",
-        "TEMA" to "AAP",
-    )
-)
 
 object PersonService {
     private lateinit var azureConfig: AzureConfig
@@ -39,15 +24,8 @@ object PersonService {
         graphQLClient = PdlClient(azureConfig, pdlConfig)
     }
 
-    // todo: caching av identer? slå opp i db før graphql?
-    suspend fun hentPerson(ident: Ident, connection: DBConnection): Person {
-        val identliste = hentAlleIdenterForPerson(ident)
-        val personRepository = PersonRepository(connection)
-        return personRepository.finnEllerOpprett(identliste)
-    }
-
     // TODO: returner execption, option, result eller emptylist
-    private suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
+    suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
         val request = PdlRequest(IDENT_QUERY, IdentVariables(ident.identifikator))
         val response: Result<PdlResponse> = graphQLClient.query(request)
 
@@ -68,6 +46,18 @@ object PersonService {
         return response.fold(::onSuccess, ::onFailure)
     }
 }
+
+class PdlConfig(
+    scope: String,
+    url: String,
+) : GraphQLConfig(
+    scope = scope,
+    url = url,
+    additionalHeaders = listOf(
+        "Nav-Consumer-Id" to "sakogbehandling",
+        "TEMA" to "AAP",
+    )
+)
 
 open class GraphQLConfig(
     val scope: String,
