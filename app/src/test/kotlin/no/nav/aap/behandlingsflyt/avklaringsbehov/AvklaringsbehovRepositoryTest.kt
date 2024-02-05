@@ -51,7 +51,7 @@ class AvklaringsbehovRepositoryTest {
     }
 
     private suspend fun sak(connection: DBConnection): Sak {
-        return PersonOgSakService(connection, fakePdlGateway).finnEllerOpprett(ident(), periode)
+        return PersonOgSakService(connection, FakePdlGateway).finnEllerOpprett(ident(), periode)
     }
 
     private fun behandling(connection: DBConnection, sak: Sak): Behandling {
@@ -59,9 +59,8 @@ class AvklaringsbehovRepositoryTest {
     }
 }
 
-object fakePdlGateway : PdlGateway {
+object FakePdlGateway : PdlGateway {
     override suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
-        return listOf(ident())
+        return listOf(ident)
     }
-
 }
