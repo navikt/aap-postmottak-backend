@@ -7,14 +7,21 @@ import no.nav.aap.HttpClientFactory
 import no.nav.aap.ktor.client.AzureAdTokenProvider
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.verdityper.sakogbehandling.Ident
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.*
 
-data class PdlConfig(
-    val scope: String,
-    val url: String
-)
+internal class PdlConfig(
+    scope: String,
+    url: String
+) : GraphQLConfig(scope, url, listOf(
+    "Nav-Consumer-Id" to "sakogbehandling",
+    "TEMA" to "AAP",
+))
 
-class PersonService(config: AzureConfig, pdlConfig: PdlConfig) {
+private val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
+
+internal class PersonService(config: AzureConfig, pdlConfig: PdlConfig) {
     private val graphQLClient = GraphQLClient(config, pdlConfig)
 
     suspend fun hentPerson(ident: Ident): Person {
@@ -22,8 +29,8 @@ class PersonService(config: AzureConfig, pdlConfig: PdlConfig) {
         return Person(1L, UUID.randomUUID(), identliste)
     }
 
-    private suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
-        val response = graphQLClient.query<GraphQLRequest<IdentVariables>, PdlData>(
+    private suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> { // TODO: returner execption, option, result eller emptylist
+        val response: Result<GraphQLResponse<PdlData>> = graphQLClient.query<GraphQLRequest<IdentVariables>, PdlData>(
             GraphQLRequest(
                 IDENT_QUERY,
                 IdentVariables(ident.identifikator)
@@ -32,14 +39,14 @@ class PersonService(config: AzureConfig, pdlConfig: PdlConfig) {
 
         fun onSuccess(resp: GraphQLResponse<PdlData>): List<Ident> {
             return resp.data?.hentIdenter?.identer?.filter {
-                it.gruppe == PdlGruppe.FOLKEREGISTERIDENT // TODO: Skal vi bare slippe gjennom folkeregisteridenter?
+                it.gruppe == PdlGruppe.FOLKEREGISTERIDENT
             }?.map {
                 Ident(identifikator = it.ident)
             } ?: emptyList()
         }
 
         fun onFailure(ex: Throwable): List<Ident> {
-            // TODO: Logg ex eller deleger feil videre?
+            SECURE_LOGGER.error("Feil ved henting av identer for person", ex)
             return emptyList()
         }
 
@@ -47,24 +54,36 @@ class PersonService(config: AzureConfig, pdlConfig: PdlConfig) {
     }
 }
 
-class GraphQLClient(config: AzureConfig, val pdlConfig: PdlConfig) {
+open class GraphQLConfig(
+    internal val scope: String,
+    internal val url: String,
+    internal val additionalHeaders: List<Pair<String, String>> = emptyList()
+)
+
+internal class GraphQLClient(config: AzureConfig, val graphQLConfig: GraphQLConfig) {
     val httpClient = HttpClientFactory.createClient()
-    val tokenProvider = AzureAdTokenProvider(config, pdlConfig.scope)
+    val tokenProvider = AzureAdTokenProvider(config, graphQLConfig.scope)
 
     suspend inline fun <reified Q : Any, R> query(query: Q): Result<GraphQLResponse<R>> {
-        // TODO: Skal feil boble opp eller håndteres her?
         return runCatching {
-            httpClient.post(pdlConfig.url) {
+            httpClient.post(graphQLConfig.url) {
                 accept(ContentType.Application.Json)
                 contentType(ContentType.Application.Json)
                 bearerAuth(tokenProvider.getClientCredentialToken())
-                header("TEMA", "AAP")
+                additionalHeaders(graphQLConfig.additionalHeaders)
                 setBody(query)
             }
         }.map {
             it.body<GraphQLResponse<R>>()
         }
     }
+
+    fun HttpMessageBuilder.additionalHeaders(additionalHeaders: List<Pair<String, String>>) {
+        additionalHeaders.map { (key, value) ->
+            header(key, value)
+        }
+    }
+
 }
 
 private const val ident = "\$ident"
@@ -112,7 +131,9 @@ data class PdlIdent(
 )
 
 enum class PdlGruppe {
-    AKTORID, NPID, FOLKEREGISTERIDENT
+    FOLKEREGISTERIDENT,
+    AKTORID,
+    NPID,
 }
 
 data class GraphQLError(
