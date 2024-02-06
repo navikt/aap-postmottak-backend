@@ -21,20 +21,17 @@ class BehandlingHendelseHåndterer(connection: DBConnection) {
     private val kontroller = FlytOrkestrator(connection)
 
     fun håndtere(key: BehandlingId, hendelse: BehandlingHendelse) {
+
+        val behandling = behandlingRepository.hent(key)
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+
         when (hendelse) {
             is BehandlingSattPåVent -> {
-                val behandling = behandlingRepository.hent(key)
-                val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
-                avklaringsbehovene.validateTilstand(behandling = behandling)
-
                 kontroller.settBehandlingPåVent(behandling.flytKontekst())
             }
 
             else -> {
-                val behandling = behandlingRepository.hent(key)
-                val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
-                avklaringsbehovene.validateTilstand(behandling = behandling)
-
                 val kontekst = behandling.flytKontekst()
                 if (behandling.status() == Status.PÅ_VENT) {
                     val avklaringsbehovKontroller = avklaringsbehovOrkestrator
