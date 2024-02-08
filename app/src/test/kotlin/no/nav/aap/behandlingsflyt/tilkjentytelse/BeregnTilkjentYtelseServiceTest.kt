@@ -21,14 +21,14 @@ class BeregnTilkjentYtelseServiceTest {
 
 
     @Test
-    fun `årlig ytelse beregnes til 66 prosent av grunnlaget og dagsatsen er lik årlig ytelse delt på 260`() {
+    fun `årlig ytelse beregnes til 66 prosent av grunnlaget og dagsatsen er lik årlig ytelse delt på 260, og sjekker split av periode ved endring i Grunnbeløp`() {
         val beregningsgrunnlag = Grunnlag11_19(
             GUnit(BigDecimal(4))
         )
         val underveisgrunnlag = UnderveisGrunnlag(
             id=1L, listOf(
                 Underveisperiode(
-                    periode = Periode(LocalDate.of(2024,2,8), LocalDate.of(2024,2,8)),
+                    periode = Periode(LocalDate.of(2023,4,30), LocalDate.of(2023,5,1)),
                     utfall = Utfall.OPPFYLT,
                     avslagsårsak = null,
                     grenseverdi = Prosent.`100_PROSENT`,
@@ -41,7 +41,14 @@ class BeregnTilkjentYtelseServiceTest {
 
         assertThat(beregnTilkjentYtelseService.segmenter()).containsExactly(
             Segment(
-                periode = Periode(LocalDate.of(2024,2,8), LocalDate.of(2024,2,8)),
+                periode = Periode(LocalDate.of(2023,4,30), LocalDate.of(2023,4,30)),
+                verdi = Tilkjent(
+                    dagsats = Beløp("1131.92"), //4*0.66*111477/260
+                    gradering = Prosent.`0_PROSENT`
+                )
+            ),
+            Segment(
+                periode = Periode(LocalDate.of(2023,5,1), LocalDate.of(2023,5,1)),
                 verdi = Tilkjent(
                     dagsats = Beløp("1204.45"), //4*0.66*118620/260
                     gradering = Prosent.`0_PROSENT`
@@ -86,6 +93,8 @@ class BeregnTilkjentYtelseServiceTest {
             )
         )
     }
+
+
 
 
 }
