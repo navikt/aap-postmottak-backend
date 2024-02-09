@@ -41,7 +41,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PersonRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.FakePersonopplysningGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.flate.bistandsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.medlemskap.medlemskapsgrunnlagApi
@@ -231,7 +231,7 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
         post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
 
             val ident = Ident(dto.ident)
-            PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(dto.fødselsdato)))
+            FakePersonopplysningGateway.konstruer(ident, Personopplysning(Fødselsdato(dto.fødselsdato)))
             val periode = Periode(
                 LocalDate.now().minusYears(3),
                 LocalDate.now().plusYears(3)

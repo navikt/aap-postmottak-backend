@@ -27,7 +27,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.InntektRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PersonRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.FakePersonopplysningGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterMock
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentVurdering
@@ -101,7 +101,7 @@ class FlytOrkestratorTest {
         val periode = Periode(fom, fom.plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(fom.minusYears(18))))
+        FakePersonopplysningGateway.konstruer(ident, Personopplysning(Fødselsdato(fom.minusYears(18))))
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
         InntektRegisterMock.konstruer(
             ident = ident, inntekterPerÅr = listOf(
@@ -311,7 +311,7 @@ class FlytOrkestratorTest {
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(18))))
+        FakePersonopplysningGateway.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(18))))
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
 
         // Sender inn en søknad
@@ -474,7 +474,7 @@ class FlytOrkestratorTest {
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(18))))
+        FakePersonopplysningGateway.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(18))))
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
         InntektRegisterMock.konstruer(
             ident = ident, inntekterPerÅr = listOf(
@@ -754,7 +754,7 @@ class FlytOrkestratorTest {
         hentPerson(ident)
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
-        PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(17))))
+        FakePersonopplysningGateway.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(17))))
 
         hendelsesMottak.håndtere(
             ident,
@@ -797,7 +797,7 @@ class FlytOrkestratorTest {
         val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
-        PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(20))))
+        FakePersonopplysningGateway.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(20))))
 
         hendelsesMottak.håndtere(
             ident, DokumentMottattPersonHendelse(

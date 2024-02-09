@@ -8,7 +8,7 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 
 class PersonOgSakService(
     private val connection: DBConnection,
-    private val pdlGateway: PdlGateway
+    private val pdlGateway: IdentGateway
 ) {
 
     suspend fun finnEllerOpprett(ident: Ident, periode: Periode) : Sak {

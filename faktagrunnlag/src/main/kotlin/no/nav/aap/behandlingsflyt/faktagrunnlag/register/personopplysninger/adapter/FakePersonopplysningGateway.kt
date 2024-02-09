@@ -1,15 +1,16 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningGateway
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
-object PersonRegisterMock {
+object FakePersonopplysningGateway : PersonopplysningGateway {
 
     private var personer = HashMap<Ident, Personopplysning>()
 
     private val LOCK = Object()
 
-    fun innhent(identer: List<Ident>): Set<Personopplysning> {
+    override fun innhent(identer: List<Ident>): Set<Personopplysning> {
         synchronized(LOCK) {
             return personer
                 .filterKeys { ident -> ident in identer }

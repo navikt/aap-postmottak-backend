@@ -4,14 +4,14 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.aap.HttpClientFactory
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PdlGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.IdentGateway
 import no.nav.aap.ktor.client.AzureAdTokenProvider
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-object PdlGatewayImpl : PdlGateway {
+object PdlGatewayImpl : IdentGateway {
     private lateinit var azureConfig: AzureConfig
     private lateinit var pdlConfig: PdlConfig
     private lateinit var graphQLClient: PdlClient

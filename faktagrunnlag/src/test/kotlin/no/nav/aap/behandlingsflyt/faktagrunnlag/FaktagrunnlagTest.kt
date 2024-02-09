@@ -7,10 +7,10 @@ import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbtestdata.ident
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PersonRegisterMock
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.FakePersonopplysningGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterMock
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PdlGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.IdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonOgSakService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.verdityper.Periode
@@ -68,7 +68,7 @@ class FaktagrunnlagTest {
         val sak = PersonOgSakService(connection, FakePdlGateway).finnEllerOpprett(ident, periode)
         val behandling = SakOgBehandlingService(connection).finnEllerOpprettBehandling(sak.saksnummer).behandling
 
-        PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(18))))
+        FakePersonopplysningGateway.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(18))))
 
         return ident to behandling.flytKontekst()
     }
@@ -78,7 +78,7 @@ class FaktagrunnlagTest {
     }
 }
 
-object FakePdlGateway : PdlGateway {
+object FakePdlGateway : IdentGateway {
     override suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
         return listOf(ident)
     }
