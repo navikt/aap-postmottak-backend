@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.ada
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
 object FakePersonopplysningGateway : PersonopplysningGateway {
@@ -10,10 +11,10 @@ object FakePersonopplysningGateway : PersonopplysningGateway {
 
     private val LOCK = Object()
 
-    override suspend fun innhent(identer: List<Ident>): Personopplysning? {
+    override suspend fun innhent(person: Person): Personopplysning? {
         synchronized(LOCK) {
             return personer
-                .filterKeys { ident -> ident in identer }
+                .filterKeys { key -> key.equals(person.aktivIdent()) }
                 .map { it.value }
                 .first()
         }

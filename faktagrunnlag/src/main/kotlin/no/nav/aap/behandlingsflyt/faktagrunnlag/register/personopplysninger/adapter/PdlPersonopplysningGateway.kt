@@ -3,13 +3,13 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.ada
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import no.nav.aap.pdl.IdentVariables
 import no.nav.aap.pdl.PdlClient
 import no.nav.aap.pdl.PdlConfig
 import no.nav.aap.pdl.PdlRequest
 import no.nav.aap.pdl.PdlResponse
-import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -28,12 +28,8 @@ object PdlPersonopplysningGateway : PersonopplysningGateway {
     }
 
     // TODO: returner execption, option, result eller emptylist
-    override suspend fun innhent(identer: List<Ident>): Personopplysning? {
-        val ident = identer
-            .find { it.aktivIdent }?.identifikator
-            ?:throw IllegalArgumentException()
-
-        val request = PdlRequest(PERSON_QUERY, IdentVariables(ident))
+    override suspend fun innhent(person: Person): Personopplysning? {
+        val request = PdlRequest(PERSON_QUERY, IdentVariables(person.aktivIdent().identifikator))
         val response: Result<PdlResponse<PdlData>> = graphQL.query(request)
 
         fun onSuccess(resp: PdlResponse<PdlData>): Personopplysning? {

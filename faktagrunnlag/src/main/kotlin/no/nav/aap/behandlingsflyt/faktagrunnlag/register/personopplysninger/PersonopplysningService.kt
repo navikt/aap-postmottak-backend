@@ -30,7 +30,7 @@ class PersonopplysningService private constructor(
 
         //TODO: hvor bør håndtere denne?
         runBlocking {
-            val personopplysninger = personopplysningGateway.innhent(sak.person.identer())
+            val personopplysninger = personopplysningGateway.innhent(sak.person)
 
             val behandlingId = kontekst.behandlingId
             val gamleData = personopplysningRepository.hentHvisEksisterer(behandlingId)

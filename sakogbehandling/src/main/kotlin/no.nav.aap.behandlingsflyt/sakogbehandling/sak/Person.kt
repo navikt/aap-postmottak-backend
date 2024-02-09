@@ -10,6 +10,10 @@ class Person(val id: Long, val identifikator: UUID, private var identer: List<Id
         return identer.any { it == ident }
     }
 
+    fun aktivIdent(): Ident {
+        return identer().first { it.aktivIdent}
+    }
+
     fun identer(): List<Ident> {
         return identer.toList()
     }
