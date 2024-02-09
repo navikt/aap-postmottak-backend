@@ -4,7 +4,6 @@ include(
     "app",
     "sakogbehandling",
     "faktagrunnlag",
-    "pdlclient",
     "verdityper",
     "tidslinje",
     "dbflyway",

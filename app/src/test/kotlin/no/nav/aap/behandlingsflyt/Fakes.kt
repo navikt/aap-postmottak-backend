@@ -9,22 +9,27 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.ktor.client.AzureConfig
-import no.nav.aap.pdlclient.PdlConfig
-import no.nav.aap.pdlclient.PdlData
-import no.nav.aap.pdlclient.PdlGruppe
-import no.nav.aap.pdlclient.PdlIdent
-import no.nav.aap.pdlclient.PdlIdenter
-import no.nav.aap.pdlclient.PdlRequest
-import no.nav.aap.pdlclient.PdlResponse
-import java.net.URI
+import no.nav.aap.ktor.client.auth.azure.AzureConfig
+import no.nav.aap.pdl.PdlConfig
+import no.nav.aap.pdl.PdlData
+import no.nav.aap.pdl.PdlGruppe
+import no.nav.aap.pdl.PdlIdent
+import no.nav.aap.pdl.PdlIdenter
+import no.nav.aap.pdl.PdlRequest
+import no.nav.aap.pdl.PdlResponse
 
 class Fakes : AutoCloseable {
     private val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake).apply { start() }
     val pdlConf = PdlConfig("", "http://localhost:${pdl.port()}")
 
     private val azure = embeddedServer(Netty, port = 0, module = Application::azureFake).apply { start() }
-    val azureConf = AzureConfig(URI("http://localhost:${azure.port()}/token").toURL(), "", "")
+    val azureConf = AzureConfig(
+        tokenEndpoint = "http://localhost:${azure.port()}/token",
+        clientId = "",
+        clientSecret = "",
+        jwksUri = "",
+        issuer = ""
+    )
 
     override fun close() {
         pdl.stop(0L, 0L)

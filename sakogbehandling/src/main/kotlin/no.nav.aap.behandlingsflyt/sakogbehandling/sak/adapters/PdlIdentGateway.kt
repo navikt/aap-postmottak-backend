@@ -1,13 +1,13 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.IdentGateway
-import no.nav.aap.ktor.client.AzureConfig
-import no.nav.aap.pdlclient.IdentVariables
-import no.nav.aap.pdlclient.PdlClient
-import no.nav.aap.pdlclient.PdlConfig
-import no.nav.aap.pdlclient.PdlGruppe
-import no.nav.aap.pdlclient.PdlRequest
-import no.nav.aap.pdlclient.PdlResponse
+import no.nav.aap.ktor.client.auth.azure.AzureConfig
+import no.nav.aap.pdl.IdentVariables
+import no.nav.aap.pdl.PdlClient
+import no.nav.aap.pdl.PdlConfig
+import no.nav.aap.pdl.PdlGruppe
+import no.nav.aap.pdl.PdlRequest
+import no.nav.aap.pdl.PdlResponse
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 object PdlGatewayImpl : IdentGateway {
     private lateinit var azureConfig: AzureConfig
     private lateinit var pdlConfig: PdlConfig
-    private lateinit var graphQLClient: PdlClient
+    private lateinit var graphQL: PdlClient
 
     fun init(
         azure: AzureConfig,
@@ -23,13 +23,13 @@ object PdlGatewayImpl : IdentGateway {
     ) {
         azureConfig = azure
         pdlConfig = pdl
-        graphQLClient = PdlClient(azureConfig, pdlConfig)
+        graphQL = PdlClient(azureConfig, pdlConfig)
     }
 
     // TODO: returner execption, option, result eller emptylist
     override suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
         val request = PdlRequest(IDENT_QUERY, IdentVariables(ident.identifikator))
-        val response: Result<PdlResponse> = graphQLClient.query(request)
+        val response: Result<PdlResponse> = graphQL.query(request)
 
         fun onSuccess(resp: PdlResponse): List<Ident> {
             return resp.data

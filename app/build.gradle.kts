@@ -65,7 +65,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
     implementation(project(":motor"))
-    implementation(project(":pdlclient"))
+    implementation(project(":httpklient"))
     implementation(project(":sakogbehandling"))
     implementation(project(":faktagrunnlag"))
     implementation(project(":verdityper"))

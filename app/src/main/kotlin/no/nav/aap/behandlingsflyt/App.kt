@@ -58,10 +58,10 @@ import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsOppgaver
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlGatewayImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
-import no.nav.aap.ktor.client.AzureConfig
+import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
-import no.nav.aap.pdlclient.PdlConfig
+import no.nav.aap.pdl.PdlConfig
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
@@ -133,11 +133,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     Migrering.migrate(dataSource)
 
     PdlGatewayImpl.init(
-        AzureConfig(
-            tokenEndpoint = URI(System.getenv("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT")).toURL(),
-            clientId = System.getenv("AZURE_APP_CLIENT_ID"),
-            clientSecret = System.getenv("AZURE_APP_CLIENT_SECRET"),
-        ),
+        AzureConfig(),
         PdlConfig(
             scope = System.getenv("PDL_SCOPE"),
             url = System.getenv("PDL_BASE_URL"),
