@@ -22,6 +22,7 @@ class BeregnTilkjentYtelseService(
     private companion object {
         private const val ANTALL_ÅRLIGE_ARBEIDSDAGER = 260
     }
+
     fun beregnTilkjentYtelse(): Tidslinje<Tilkjent>{
         val underveisTidslinje = Tidslinje(underveisgrunnlag.perioder.map { Segment(it.periode, it) })
 

@@ -13,6 +13,10 @@ class Fødselsdato(private val dato: LocalDate) {
         return dato.until(gittDato, ChronoUnit.YEARS).toInt()
     }
 
+    fun `25årsDagen`(): LocalDate {
+        return dato.plusYears(25)
+    }
+
     fun toLocalDate(): LocalDate {
         return dato
     }
