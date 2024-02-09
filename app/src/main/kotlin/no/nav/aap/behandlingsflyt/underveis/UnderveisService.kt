@@ -5,6 +5,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.Underveis
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.PliktkortRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.underveis.regler.AktivitetRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.EtAnnetStedRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.GraderingArbeidRegel
@@ -15,6 +16,7 @@ import no.nav.aap.tidslinje.Tidslinje
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class UnderveisService(
+    private val behandlingService: SakOgBehandlingService,
     private val vilkårsresultatRepository: VilkårsresultatRepository,
     private val pliktkortRepository: PliktkortRepository,
     private val underveisRepository: UnderveisRepository
@@ -56,6 +58,7 @@ class UnderveisService(
     }
 
     fun genererInput(behandlingId: BehandlingId): UnderveisInput {
+        val sak = behandlingService.hentSakFor(behandlingId)
         val vilkårsresultat = vilkårsresultatRepository.hent(behandlingId)
         val relevanteVilkår = vilkårsresultat
             .alle()
@@ -66,10 +69,11 @@ class UnderveisService(
                     Vilkårtype.BISTANDSVILKÅRET
                 )
             }
-        val førsteSøknadstidspunkt = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET).førsteDatoTilVurdering()
 
-        val pliktkort = pliktkortRepository.hentHvisEksisterer(behandlingId)?.pliktkort() ?: listOf()
+        val pliktkortGrunnlag = pliktkortRepository.hentHvisEksisterer(behandlingId)
+        val pliktkort = pliktkortGrunnlag?.pliktkort() ?: listOf()
+        val innsendingsTidspunkt = pliktkortGrunnlag?.innsendingsdatoPerMelding() ?: mapOf()
 
-        return UnderveisInput(førsteSøknadstidspunkt, relevanteVilkår, listOf(), pliktkort)
+        return UnderveisInput(sak.rettighetsperiode, relevanteVilkår, listOf(), pliktkort, innsendingsTidspunkt)
     }
 }

@@ -1,7 +1,6 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.Gradering
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.Pliktkort
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.StandardSammenslåere
 import no.nav.aap.tidslinje.Tidslinje
@@ -24,7 +23,7 @@ private const val HØYESTE_GRADERING_OPPTRAPPING = 80
  */
 class GraderingArbeidRegel : UnderveisRegel {
     override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
-        val pliktkortTidslinje = konstruerTidslinje(input.pliktkort)
+        val pliktkortTidslinje = konstruerTidslinje(input)
 
         // Regner kun ut gradering for perioden det er sendt noe inn for
         val arbeidsTidslinje =
@@ -56,9 +55,9 @@ class GraderingArbeidRegel : UnderveisRegel {
         }
     }
 
-    private fun konstruerTidslinje(pliktkortene: List<Pliktkort>): Tidslinje<TimerArbeid> {
-        var tidslinje = Tidslinje<TimerArbeid>(listOf())
-        for (pliktkort in pliktkortene) {
+    private fun konstruerTidslinje(input: UnderveisInput): Tidslinje<TimerArbeid> {
+        var tidslinje = Tidslinje<TimerArbeid>(listOf(Segment(input.rettighetsperiode, null)))
+        for (pliktkort in input.pliktkort) {
             tidslinje = tidslinje.kombiner(Tidslinje(pliktkort.timerArbeidPerPeriode.map {
                 Segment(
                     it.periode,

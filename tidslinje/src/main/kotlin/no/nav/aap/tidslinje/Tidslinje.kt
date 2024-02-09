@@ -30,8 +30,8 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
         }
     }
 
-    fun segmenter(): SortedSet<Segment<T>> {
-        return segmenter.toSortedSet()
+    fun segmenter(): NavigableSet<Segment<T>> {
+        return TreeSet(segmenter)
     }
 
     fun perioder(): NavigableSet<Periode> {

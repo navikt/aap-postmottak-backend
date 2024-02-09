@@ -44,9 +44,9 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlGatewayImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlGatewayImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.OppgaveRepository
@@ -97,10 +97,11 @@ class FlytOrkestratorTest {
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade`() {
         val ident = ident()
-        val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
+        val fom = LocalDate.now().minusMonths(3)
+        val periode = Periode(fom, fom.plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(LocalDate.now().minusYears(18))))
+        PersonRegisterMock.konstruer(ident, Personopplysning(Fødselsdato(fom.minusYears(18))))
         YrkesskadeRegisterMock.konstruer(ident = ident, periode = periode)
         InntektRegisterMock.konstruer(
             ident = ident, inntekterPerÅr = listOf(
@@ -117,7 +118,7 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("20"),
-                mottattTidspunkt = LocalDateTime.now(),
+                mottattTidspunkt = LocalDateTime.now().minusMonths(3),
                 strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
             )
         )
@@ -218,7 +219,7 @@ class FlytOrkestratorTest {
         hendelsesMottak.håndtere(
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("21"),
-                mottattTidspunkt = LocalDateTime.now(),
+                mottattTidspunkt = fom.plusDays(18).atStartOfDay(),
                 strukturertDokument = StrukturertDokument(
                     Pliktkort(
                         timerArbeidPerPeriode = setOf(

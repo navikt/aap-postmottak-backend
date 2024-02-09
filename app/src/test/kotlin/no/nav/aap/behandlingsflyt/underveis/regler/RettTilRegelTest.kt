@@ -23,47 +23,51 @@ class RettTilRegelTest {
             Vilkår(
                 Vilkårtype.ALDERSVILKÅRET, setOf(
                     Vilkårsperiode(
-                periode,
-                Utfall.OPPFYLT,
-                false,
-                null,
-                faktagrunnlag = null
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
             )
-                ))
         val sykdomsVilkåret =
             Vilkår(
                 Vilkårtype.SYKDOMSVILKÅRET, setOf(
                     Vilkårsperiode(
-                periode,
-                Utfall.OPPFYLT,
-                false,
-                null,
-                faktagrunnlag = null
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
             )
-                ))
         val bistandVilkåret =
             Vilkår(
                 Vilkårtype.BISTANDSVILKÅRET, setOf(
                     Vilkårsperiode(
-                periode,
-                Utfall.OPPFYLT,
-                false,
-                null,
-                faktagrunnlag = null
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
             )
-                ))
 
         val input = UnderveisInput(
-            førsteFastsatteDag = søknadsdato,
-            listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
-            listOf(),
-            listOf()
+            rettighetsperiode = periode,
+            relevanteVilkår = listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
+            opptrappingPerioder = listOf(),
+            pliktkort = listOf(),
+            innsendingsTidspunkt = mapOf()
         )
         val grunnleggendeRettTidslinje = regel.vurder(input = input, Tidslinje())
 
         val segmenter = grunnleggendeRettTidslinje.segmenter()
         assertThat(segmenter).hasSize(1)
-        assertThat(segmenter.first().verdi!!.harRett()).isTrue()
+        assertThat(segmenter.first().verdi!!.ingenVilkårErAvslått()).isTrue()
     }
 
     @Test
@@ -84,7 +88,12 @@ class RettTilRegelTest {
                         Periode(
                             søknadsdato.plusYears(3).minusMonths(4).plusDays(1),
                             søknadsdato.plusYears(3)
-                        ), Utfall.IKKE_OPPFYLT, false, null, avslagsårsak = Avslagsårsak.BRUKER_OVER_67, faktagrunnlag = null
+                        ),
+                        Utfall.IKKE_OPPFYLT,
+                        false,
+                        null,
+                        avslagsårsak = Avslagsårsak.BRUKER_OVER_67,
+                        faktagrunnlag = null
                     )
                 )
             )
@@ -92,36 +101,39 @@ class RettTilRegelTest {
             Vilkår(
                 Vilkårtype.SYKDOMSVILKÅRET, setOf(
                     Vilkårsperiode(
-                periode,
-                Utfall.OPPFYLT,
-                false,
-                null,
-                faktagrunnlag = null
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
             )
-                ))
         val bistandVilkåret =
             Vilkår(
                 Vilkårtype.BISTANDSVILKÅRET, setOf(
                     Vilkårsperiode(
-                periode,
-                Utfall.OPPFYLT,
-                false,
-                null,
-                faktagrunnlag = null
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
             )
-                ))
 
         val input = UnderveisInput(
-            førsteFastsatteDag = søknadsdato,
-            listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
-            listOf(),
-            listOf()
+            rettighetsperiode = periode,
+            relevanteVilkår = listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
+            opptrappingPerioder = listOf(),
+            pliktkort = listOf(),
+            innsendingsTidspunkt = mapOf()
         )
         val grunnleggendeRettTidslinje = regel.vurder(input = input, Tidslinje())
 
         val segmenter = grunnleggendeRettTidslinje.segmenter()
         assertThat(segmenter).hasSize(2)
-        assertThat(segmenter.first().verdi!!.harRett()).isTrue()
-        assertThat(segmenter.last().verdi!!.harRett()).isFalse()
+        assertThat(segmenter.first().verdi!!.ingenVilkårErAvslått()).isTrue()
+        assertThat(segmenter.last().verdi!!.ingenVilkårErAvslått()).isFalse()
     }
 }

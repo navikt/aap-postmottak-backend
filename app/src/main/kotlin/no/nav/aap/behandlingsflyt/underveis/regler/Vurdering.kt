@@ -9,6 +9,7 @@ import java.util.*
 
 class Vurdering(
     private val vurderinger: EnumMap<Vilkårtype, Utfall> = EnumMap(Vilkårtype::class.java),
+    private val meldepliktVurdering: MeldepliktVurdering? = null,
     private val gradering: Gradering? = null,
     private val grenseverdi: Prosent? = null
 ) {
@@ -18,6 +19,7 @@ class Vurdering(
         kopi[vilkårtype] = utfall
         return Vurdering(
             vurderinger = kopi,
+            meldepliktVurdering = meldepliktVurdering,
             gradering = gradering,
             grenseverdi = grenseverdi
         )
@@ -26,14 +28,25 @@ class Vurdering(
     fun leggTilGradering(gradering: Gradering): Vurdering {
         return Vurdering(
             vurderinger = this.vurderinger,
+            meldepliktVurdering = meldepliktVurdering,
             gradering = gradering,
             grenseverdi = this.grenseverdi
+        )
+    }
+
+    fun leggTilMeldepliktVurdering(meldepliktVurdering: MeldepliktVurdering): Vurdering {
+        return Vurdering(
+            vurderinger = vurderinger,
+            meldepliktVurdering = meldepliktVurdering,
+            gradering = gradering,
+            grenseverdi = grenseverdi
         )
     }
 
     fun leggTilGrenseverdi(grenseverdi: Prosent): Vurdering {
         return Vurdering(
             vurderinger = this.vurderinger,
+            meldepliktVurdering = meldepliktVurdering,
             gradering = this.gradering,
             grenseverdi = grenseverdi
         )
@@ -44,10 +57,14 @@ class Vurdering(
     }
 
     fun harRett(): Boolean {
-        return ingenVilkårErAvslått() && arbeiderMindreEnnGrenseverdi()
+        return ingenVilkårErAvslått() && arbeiderMindreEnnGrenseverdi() && harOverholdtMeldeplikten()
     }
 
-    private fun ingenVilkårErAvslått(): Boolean {
+    private fun harOverholdtMeldeplikten(): Boolean {
+        return meldepliktVurdering?.utfall == Utfall.OPPFYLT
+    }
+
+    internal fun ingenVilkårErAvslått(): Boolean {
         return vurderinger.isNotEmpty() && vurderinger.none { it.value == Utfall.IKKE_OPPFYLT }
     }
 
@@ -80,8 +97,18 @@ class Vurdering(
             return UnderveisAvslagsårsak.IKKE_GRUNNLEGGENDE_RETT
         } else if (!arbeiderMindreEnnGrenseverdi()) {
             return UnderveisAvslagsårsak.ARBEIDER_MER_ENN_GRENSEVERDI
+        } else if (!harOverholdtMeldeplikten()) {
+            return requireNotNull(meldepliktVurdering?.avslagsårsak)
         }
         throw IllegalStateException("Ukjent avslagsårsak")
+    }
+
+    internal fun meldeplikUtfall(): Utfall {
+        return meldepliktVurdering?.utfall ?: Utfall.IKKE_VURDERT
+    }
+
+    internal fun meldeplikAvslagsårsak(): UnderveisAvslagsårsak? {
+        return meldepliktVurdering?.avslagsårsak
     }
 
     override fun equals(other: Any?): Boolean {
@@ -92,6 +119,7 @@ class Vurdering(
 
         if (vurderinger != other.vurderinger) return false
         if (gradering != other.gradering) return false
+        if (meldepliktVurdering != other.meldepliktVurdering) return false
 
         return true
     }
@@ -99,11 +127,16 @@ class Vurdering(
     override fun hashCode(): Int {
         var result = vurderinger.hashCode()
         result = 31 * result + (gradering?.hashCode() ?: 0)
+        result = 31 * result + (meldepliktVurdering?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "Vurdering(harRett=${harRett()}, gradering=${gradering?.gradering ?: Prosent(0)})"
+        return "Vurdering(harRett=${harRett()}, meldeplikt=${meldepliktVurdering?.utfall ?: Utfall.IKKE_VURDERT}(${meldepliktVurdering?.avslagsårsak ?: "-"}), gradering=${
+            gradering?.gradering ?: Prosent(
+                0
+            )
+        })"
     }
 
 }
