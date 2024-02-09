@@ -5,7 +5,6 @@ import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import no.nav.aap.pdl.IdentVariables
 import no.nav.aap.pdl.PdlClient
 import no.nav.aap.pdl.PdlConfig
-import no.nav.aap.pdl.PdlGruppe
 import no.nav.aap.pdl.PdlRequest
 import no.nav.aap.pdl.PdlResponse
 import no.nav.aap.verdityper.sakogbehandling.Ident
@@ -29,9 +28,9 @@ object PdlGatewayImpl : IdentGateway {
     // TODO: returner execption, option, result eller emptylist
     override suspend fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
         val request = PdlRequest(IDENT_QUERY, IdentVariables(ident.identifikator))
-        val response: Result<PdlResponse> = graphQL.query(request)
+        val response: Result<PdlResponse<PdlData>> = graphQL.query(request)
 
-        fun onSuccess(resp: PdlResponse): List<Ident> {
+        fun onSuccess(resp: PdlResponse<PdlData>): List<Ident> {
             return resp.data
                 ?.hentIdenter
                 ?.identer
@@ -64,5 +63,25 @@ private val IDENT_QUERY = """
         }
     }
 """.trimIndent()
+
+data class PdlData(
+    val hentIdenter: PdlIdenter?,
+)
+
+data class PdlIdenter(
+    val identer: List<PdlIdent>
+)
+
+data class PdlIdent(
+    val ident: String,
+    val historisk: Boolean,
+    val gruppe: PdlGruppe
+)
+
+enum class PdlGruppe {
+    FOLKEREGISTERIDENT,
+    AKTORID,
+    NPID,
+}
 
 private val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")

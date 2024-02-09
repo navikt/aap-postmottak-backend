@@ -36,31 +36,11 @@ data class IdentVariables(
     val ident: String
 )
 
-data class PdlResponse(
-    val data: PdlData?,
+data class PdlResponse<T>(
+    val data: T?,
     val errors: List<GraphQLError>?,
     val extensions: GraphQLExtensions?
 )
-
-data class PdlData(
-    val hentIdenter: PdlIdenter?,
-)
-
-data class PdlIdenter(
-    val identer: List<PdlIdent>
-)
-
-data class PdlIdent(
-    val ident: String,
-    val historisk: Boolean,
-    val gruppe: PdlGruppe
-)
-
-enum class PdlGruppe {
-    FOLKEREGISTERIDENT,
-    AKTORID,
-    NPID,
-}
 
 data class GraphQLError(
     val message: String,

@@ -9,12 +9,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlData
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlGruppe
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdent
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdenter
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import no.nav.aap.pdl.PdlConfig
-import no.nav.aap.pdl.PdlData
-import no.nav.aap.pdl.PdlGruppe
-import no.nav.aap.pdl.PdlIdent
-import no.nav.aap.pdl.PdlIdenter
 import no.nav.aap.pdl.PdlRequest
 import no.nav.aap.pdl.PdlResponse
 
