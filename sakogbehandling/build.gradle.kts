@@ -5,6 +5,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
     api("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibVersion")
 
+    implementation(project(":pdlclient"))
     implementation(project(":verdityper"))
     implementation(project(":dbconnect"))
     implementation(project(":dbflyway"))

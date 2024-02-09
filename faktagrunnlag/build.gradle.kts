@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":tidslinje"))
     implementation(project(":dbflyway"))
     implementation(project(":dbconnect"))
+    implementation(project(":pdlclient"))
 
     implementation("dev.forst:ktor-openapi-generator:0.6.1")
     implementation("com.zaxxer:HikariCP:5.1.0")
