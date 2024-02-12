@@ -5,15 +5,16 @@ import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.motor.Oppgave
 import no.nav.aap.motor.OppgaveInput
+import no.nav.aap.motor.OppgaveUtfører
 import no.nav.aap.verdityper.flyt.FlytKontekst
 
-object ProsesserBehandlingOppgave : Oppgave() {
+class ProsesserBehandlingOppgaveUtfører(
+    private val låsRepository: TaSkriveLåsRepository,
+    private val kontroller: FlytOrkestrator
+) : OppgaveUtfører {
 
-    override fun utfør(connection: DBConnection, input: OppgaveInput) {
-        val låsRepository = TaSkriveLåsRepository(connection)
+    override fun utfør(input: OppgaveInput) {
         val skrivelås = låsRepository.lås(input.sakId(), input.behandlingId())
-
-        val kontroller = FlytOrkestrator(connection)
 
         val kontekst = FlytKontekst(
             sakId = input.sakId(),
@@ -26,7 +27,13 @@ object ProsesserBehandlingOppgave : Oppgave() {
         låsRepository.verifiserSkrivelås(skrivelås)
     }
 
-    override fun type(): String {
-        return "flyt.prosesserBehandling"
+    companion object : Oppgave {
+        override fun konstruer(connection: DBConnection): OppgaveUtfører {
+            return ProsesserBehandlingOppgaveUtfører(TaSkriveLåsRepository(connection), FlytOrkestrator(connection))
+        }
+
+        override fun type(): String {
+            return "flyt.prosesserBehandling"
+        }
     }
 }

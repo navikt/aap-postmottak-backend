@@ -86,7 +86,7 @@ class Motor(
 
                     log.info("Starter på oppgave")
 
-                    oppgaveInput.oppgave.utfør(nyConnection, oppgaveInput)
+                    oppgaveInput.oppgave.konstruer(nyConnection).utfør(oppgaveInput)
 
                     log.info("Fullført oppgave")
                 }
@@ -105,5 +105,3 @@ class Motor(
 
     }
 }
-
-internal class WrappedOppgaveException(val oppgaveInput: OppgaveInput, val exception: Throwable) : RuntimeException()

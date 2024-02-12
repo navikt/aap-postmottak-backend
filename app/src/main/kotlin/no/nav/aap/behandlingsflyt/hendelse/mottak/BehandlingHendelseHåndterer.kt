@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
-import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgave
+import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgaveUtfører
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.motor.OppgaveInput
 import no.nav.aap.motor.OppgaveRepository
@@ -42,7 +42,7 @@ class BehandlingHendelseHåndterer(connection: DBConnection) {
                     )
                 }
                 oppgaveRepository.leggTil(
-                    OppgaveInput(oppgave = ProsesserBehandlingOppgave).forBehandling(
+                    OppgaveInput(oppgave = ProsesserBehandlingOppgaveUtfører).forBehandling(
                         kontekst.sakId,
                         kontekst.behandlingId
                     )
