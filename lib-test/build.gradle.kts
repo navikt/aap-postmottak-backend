@@ -1,0 +1,22 @@
+val ktorVersion = "2.3.8"
+
+dependencies {
+    implementation(project(":sakogbehandling"))
+    implementation(project(":faktagrunnlag"))
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-cors:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+
+    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
+
+    implementation(project(":httpklient"))
+
+    api(project(":dbtestdata"))
+    api(project(":dbtest"))
+}

@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt
+package no.nav.aap.behandlingsflyt.test
 
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*

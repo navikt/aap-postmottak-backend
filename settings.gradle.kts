@@ -11,5 +11,6 @@ include(
     "dbtest",
     "dbtestdata",
     "motor",
-    "httpklient"
+    "httpklient",
+    "lib-test"
 )
