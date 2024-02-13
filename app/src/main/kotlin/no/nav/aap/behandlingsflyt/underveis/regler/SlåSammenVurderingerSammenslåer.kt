@@ -18,9 +18,9 @@ class SlåSammenVurderingerSammenslåer : SegmentSammenslåer<Vurdering, EnkelVu
             nyVurdering = nyVurdering.leggTilVurdering(høyreSegmentVerdi.vilkår, høyreSegmentVerdi.utfall)
             Segment(periode, nyVurdering)
         } else {
-            var vurdering = venstreSegmentVerdi
+            var vurdering = venstreSegmentVerdi ?: Vurdering()
             if (høyreSegmentVerdi != null) {
-                vurdering = vurdering?.leggTilVurdering(høyreSegmentVerdi.vilkår, høyreSegmentVerdi.utfall)
+                vurdering = vurdering.leggTilVurdering(høyreSegmentVerdi.vilkår, høyreSegmentVerdi.utfall)
             }
             Segment(periode, vurdering)
         }

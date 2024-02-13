@@ -10,7 +10,7 @@ import java.util.function.Function
 class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterable<Segment<T>> {
 
     constructor(initSegmenter: List<Segment<T>>) : this(TreeSet(initSegmenter))
-    constructor(periode: Periode, verdi: T?) : this(TreeSet(listOf(Segment(periode, verdi))))
+    constructor(periode: Periode, verdi: T) : this(TreeSet(listOf(Segment(periode, verdi))))
 
     private val segmenter: NavigableSet<Segment<T>> = TreeSet()
 
@@ -137,7 +137,7 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
         return Tidslinje(compressedSegmenter)
     }
 
-    fun <R> mapValue(mapper: Function<T?, R>): Tidslinje<R> {
+    fun <R> mapValue(mapper: Function<T, R>): Tidslinje<R> {
         val newSegments: NavigableSet<Segment<R>> = TreeSet()
         segmenter.forEach { s ->
             newSegments.add(

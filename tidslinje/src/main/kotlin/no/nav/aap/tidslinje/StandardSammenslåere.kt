@@ -16,7 +16,11 @@ object StandardSammenslåere {
     fun <T> prioriterHøyreSide(): SegmentSammenslåer<T, T, T> {
         return SegmentSammenslåer { periode, venstreSegment, høyreSegment ->
             if (høyreSegment == null) {
-                Segment(periode, venstreSegment?.verdi)
+                if (venstreSegment?.verdi != null) {
+                    Segment(periode, venstreSegment.verdi)
+                } else {
+                    null
+                }
             } else {
                 Segment(periode, høyreSegment.verdi)
             }
@@ -26,7 +30,11 @@ object StandardSammenslåere {
     fun <T> prioriterVenstreSide(): SegmentSammenslåer<T, T, T> {
         return SegmentSammenslåer { periode, venstreSegment, høyreSegment ->
             if (venstreSegment == null) {
-                Segment(periode, høyreSegment?.verdi)
+                if (høyreSegment?.verdi != null) {
+                    Segment(periode, høyreSegment.verdi)
+                } else {
+                    null
+                }
             } else {
                 Segment(periode, venstreSegment.verdi)
             }

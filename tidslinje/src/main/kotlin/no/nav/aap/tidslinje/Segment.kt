@@ -4,7 +4,7 @@ import no.nav.aap.verdityper.Periode
 import java.time.LocalDate
 
 
-class Segment<T>(val periode: Periode, val verdi: T?) : Comparable<Segment<T>> {
+class Segment<T>(val periode: Periode, val verdi: T) : Comparable<Segment<T>> {
     fun overlapper(segment: Segment<*>): Boolean {
         return periode.overlapper(segment.periode)
     }

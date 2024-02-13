@@ -46,17 +46,17 @@ class GraderingArbeidRegel : UnderveisRegel {
             }
             Segment(periode, vurdering)
         }.kombiner(arbeidsTidslinje) { periode, venstreSegment, høyreSegment ->
-            var vurdering: Vurdering? = venstreSegment?.verdi
+            var vurdering: Vurdering = venstreSegment?.verdi ?: Vurdering()
             val høyreSegmentVerdi = høyreSegment?.verdi
-            if (høyreSegmentVerdi != null && vurdering != null) {
-                vurdering = vurdering!!.leggTilGradering(høyreSegmentVerdi)
+            if (høyreSegmentVerdi != null) {
+                vurdering = vurdering.leggTilGradering(høyreSegmentVerdi)
             }
             Segment(periode, vurdering)
         }
     }
 
     private fun konstruerTidslinje(input: UnderveisInput): Tidslinje<TimerArbeid> {
-        var tidslinje = Tidslinje<TimerArbeid>(listOf(Segment(input.rettighetsperiode, null)))
+        var tidslinje = Tidslinje(listOf(Segment(input.rettighetsperiode, TimerArbeid(BigDecimal.ZERO))))
         for (pliktkort in input.pliktkort) {
             tidslinje = tidslinje.kombiner(Tidslinje(pliktkort.timerArbeidPerPeriode.map {
                 Segment(
@@ -69,7 +69,7 @@ class GraderingArbeidRegel : UnderveisRegel {
     }
 
     private fun regnUtGradering(arbeidsSegmenter: NavigableSet<Segment<TimerArbeid>>): NavigableSet<Segment<Gradering>> {
-        val antallTimerArbeid = arbeidsSegmenter.sumOf { it.verdi?.antallTimer ?: BigDecimal.ZERO }
+        val antallTimerArbeid = arbeidsSegmenter.sumOf { it.verdi.antallTimer }
         val ethundre = BigDecimal.valueOf(100)
         val andelArbeid =
             Prosent(

@@ -93,12 +93,12 @@ object Grunnbeløp {
                     .reversed()
                     .zipWithNext { gjeldende, neste ->
                         val periode = Periode(gjeldende.dato.withDayOfYear(1), neste.dato.withDayOfYear(1).minusDays(1))
-                        Segment(periode, gjeldende.gjennomsnittBeløp)
+                        Segment(periode, gjeldende.gjennomsnittBeløp!!)
                     }
                     .plus(
                         Segment(
                             Periode(grunnbeløp.first().dato.withDayOfYear(1), LocalDate.MAX),
-                            grunnbeløp.first().gjennomsnittBeløp
+                            grunnbeløp.first().gjennomsnittBeløp!!
                         )
                     )
                     .let(::Tidslinje)
