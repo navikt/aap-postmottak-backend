@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.tilkjentytelse
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.MINSTE_ÅRLIG_YTELSE_TIDSLINJE
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.tidslinje.JoinStyle
 import no.nav.aap.tidslinje.Segment

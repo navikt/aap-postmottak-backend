@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år
+package no.nav.aap.behandlingsflyt.tilkjentytelse
 
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.Tidslinje

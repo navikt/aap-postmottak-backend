@@ -1,0 +1,21 @@
+package no.nav.aap.behandlingsflyt.tilkjentytelse
+
+import no.nav.aap.tidslinje.Segment
+import no.nav.aap.verdityper.GUnit
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import java.time.LocalDate
+
+class MinsteÅrligYtelseTest {
+    @Test
+    fun `tidslinja er kontinuerlig`() {
+        val perioder = MINSTE_ÅRLIG_YTELSE_TIDSLINJE.map(Segment<GUnit>::periode)
+
+        assertThat(perioder.first().fom).isEqualTo(LocalDate.MIN)
+        assertThat(perioder.last().tom).isEqualTo(LocalDate.MAX)
+
+        assertThat(perioder.zipWithNext()).allMatch { (current, next) ->
+            current.tom.plusDays(1) == next.fom
+        }
+    }
+}
