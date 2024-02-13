@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.tilkjentytelse
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.Beregningsgrunnlag
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.MinsteÅrligYtelse
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.MINSTE_ÅRLIG_YTELSE_TIDSLINJE
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.UnderveisGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.Grunnbeløp
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
@@ -45,10 +45,9 @@ class BeregnTilkjentYtelseService(
         val grunnlagsfaktor = beregningsgrunnlag.grunnlaget()
 
         val utgangspunktForÅrligYtelse = grunnlagsfaktor.multiplisert(Prosent.`66_PROSENT`)
-        val minsteÅrligYtelseTidslinje = MinsteÅrligYtelse.tilTidslinje()
 
         val minsteÅrligYtelseMedAlderTidslinje = minsteÅrligYtelseAlderStrategiTidslinje.kombiner(
-            minsteÅrligYtelseTidslinje,
+            MINSTE_ÅRLIG_YTELSE_TIDSLINJE,
             AldersjusteringAvMinsteÅrligYtelse
         )
 

@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.tilkjentytelse
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.MinsteÅrligYtelse
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.MINSTE_ÅRLIG_YTELSE_TIDSLINJE
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.tidslinje.JoinStyle
 import no.nav.aap.tidslinje.Segment
@@ -52,7 +52,7 @@ class MinsteÅrligYtelseAlderTidslinjeTest {
         val fødelsdato = Fødselsdato(LocalDate.of(1996, 2, 29))
         val minsteÅrligYtelseAlderTidslinje = MinsteÅrligYtelseAlderTidslinje(fødelsdato).tilTidslinje()
 
-        val minsteÅrligYtelseTidslinje = MinsteÅrligYtelse.tilTidslinje()
+        val minsteÅrligYtelseTidslinje = MINSTE_ÅRLIG_YTELSE_TIDSLINJE
 
         val tidslinje = minsteÅrligYtelseAlderTidslinje.kombiner(
             minsteÅrligYtelseTidslinje,
@@ -66,11 +66,11 @@ class MinsteÅrligYtelseAlderTidslinjeTest {
                 verdi = GUnit(2).multiplisert(2).dividert(3)
             ),
             Segment(
-                periode = Periode(LocalDate.of(2021, 2, 28), LocalDate.of(2024,6,30)),
+                periode = Periode(LocalDate.of(2021, 2, 28), LocalDate.of(2024, 6, 30)),
                 verdi = GUnit(2)
             ),
             Segment(
-                periode = Periode(LocalDate.of(2024,7,1), LocalDate.MAX),
+                periode = Periode(LocalDate.of(2024, 7, 1), LocalDate.MAX),
                 verdi = GUnit("2.041")
             )
         )
