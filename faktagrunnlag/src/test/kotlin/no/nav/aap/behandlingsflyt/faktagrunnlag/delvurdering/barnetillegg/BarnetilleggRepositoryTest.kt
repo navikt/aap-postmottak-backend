@@ -26,7 +26,7 @@ class BarnetilleggRepositoryTest{
             val barnetilleggRepository = BarnetilleggRepository(connection)
             val barnetilleggPeriode = BarnetilleggPeriode(
                 Periode(LocalDate.of(2024,1,1), LocalDate.of(2024,1,1)),
-                listOf(Ident("12345678910")).toSet()
+                setOf(Ident("12345678910"))
             )
 
             barnetilleggRepository.lagre(behandling.id,listOf(barnetilleggPeriode))

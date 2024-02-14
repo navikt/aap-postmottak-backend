@@ -110,7 +110,7 @@ class BarnetilleggRepository(private val connection: DBConnection) {
             SELECT IDENT FROM BARN WHERE BARNETILLEGG_PERIODE_ID = ?
         """.trimIndent()
 
-        val identer = connection.queryList(query = query) {
+        val identer = connection.querySet(query = query) {
             setParams {
                 setLong(1, periodeRow.getLong("ID"))
             }
@@ -119,7 +119,7 @@ class BarnetilleggRepository(private val connection: DBConnection) {
 
         return BarnetilleggPeriode(
             periodeRow.getPeriode("periode"),
-            identer.toSet()
+            identer
         )
     }
 }

@@ -105,6 +105,20 @@ class DBConnection internal constructor(private val connection: Connection) {
         }
     }
 
+    fun <T : Any> querySet(
+        @Language("PostgreSQL")
+        query: String,
+        block: Query<T>.() -> Unit
+    ): Set<T> {
+        return this.connection.prepareStatement(query).use { preparedStatement ->
+            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
+            val queryStatement = Query<T>(preparedStatement)
+            queryStatement.block()
+            val result = queryStatement.executeQuery()
+            return@use result.toSet()
+        }
+    }
+
     fun markerSavepoint() {
         savepoint = this.connection.setSavepoint()
     }
