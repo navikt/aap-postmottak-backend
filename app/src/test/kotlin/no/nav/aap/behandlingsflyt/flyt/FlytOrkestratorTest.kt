@@ -736,7 +736,7 @@ class FlytOrkestratorTest {
     private fun ventPåSvar() {
         dataSource.transaction {
             val maxTid = LocalDateTime.now().plusMinutes(1)
-            while ((OppgaveRepository(it).harOppgaver() || motor.harOppgaverKjørende()) && maxTid.isAfter(LocalDateTime.now())) {
+            while ((OppgaveRepository(it).harOppgaver()) && maxTid.isAfter(LocalDateTime.now())) {
                 Thread.sleep(50L)
             }
         }

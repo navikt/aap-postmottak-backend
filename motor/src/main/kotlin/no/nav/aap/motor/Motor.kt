@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.util.*
 import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
@@ -24,54 +23,55 @@ class Motor(
 
     private val log = LoggerFactory.getLogger(Motor::class.java)
 
-    private val executor = Executors.newScheduledThreadPool(antallKammer) as ScheduledThreadPoolExecutor
+    // Benytter virtuals threads istedenfor plattform tråder
+    private val executor =
+        Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("forbrenningskammer-", 1L).factory())
 
     private var stopped = false
 
     fun start() {
         log.info("Starter prosessering av oppgaver")
-        IntRange(1, antallKammer).forEach {
-            executor.schedule(
-                Forbrenningskammer(dataSource),
-                15L * it,
-                TimeUnit.MILLISECONDS
-            ) // Legger inn en liten spread så det ikke pumpes på tabellen likt
+        IntRange(1, antallKammer).forEach { i ->
+            executor.execute(Forbrenningskammer(dataSource)) // Legger inn en liten spread så det ikke pumpes på tabellen likt
+            if (i != antallKammer) {
+                Thread.sleep(100)
+            }
         }
     }
 
     fun stop() {
+        log.info("Avslutter prosessering av oppgaver")
         stopped = true
         executor.awaitTermination(10L, TimeUnit.SECONDS)
-    }
-
-    fun harOppgaverKjørende(): Boolean {
-        return executor.activeCount != 0
     }
 
     inner class Forbrenningskammer(private val dataSource: DataSource) : Runnable {
         private val log = LoggerFactory.getLogger(Forbrenningskammer::class.java)
 
-        private var running = true
+        private var plukker = true
         override fun run() {
-            try {
-                while (running) {
-                    dataSource.transaction { connection ->
-                        val repository = OppgaveRepository(connection)
-                        val plukketOppgave = repository.plukkOppgave()
-                        if (plukketOppgave != null) {
-                            utførOppgave(plukketOppgave, connection)
-                        }
+            while (!stopped) {
+                log.debug("Starter plukking av oppgaver")
+                try {
+                    while (plukker) {
+                        dataSource.transaction { connection ->
+                            val repository = OppgaveRepository(connection)
+                            val plukketOppgave = repository.plukkOppgave()
+                            if (plukketOppgave != null) {
+                                utførOppgave(plukketOppgave, connection)
+                            }
 
-                        if (running && plukketOppgave == null) {
-                            running = false
+                            if (plukker && plukketOppgave == null) {
+                                plukker = false
+                            }
                         }
                     }
+                } catch (excetion: Throwable) {
+                    log.warn("Feil under plukking av oppgaver", excetion)
                 }
-            } catch (excetion: Throwable) {
-                log.warn("Feil under plukking av oppgaver", excetion)
-            }
-            if (!stopped) {
-                executor.schedule(Forbrenningskammer(dataSource), 500L, TimeUnit.MILLISECONDS)
+                log.debug("Ingen flere oppgaver å plukke, hviler litt")
+                Thread.sleep(500)
+                plukker = true
             }
         }
 
