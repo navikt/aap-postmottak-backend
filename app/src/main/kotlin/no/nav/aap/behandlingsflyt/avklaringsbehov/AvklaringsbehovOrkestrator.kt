@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.SattPåVentLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne.FastsettArbeidsevneLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.bistand.AvklarBistandLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.meldeplikt.FritakFraMeldepliktLøser
@@ -20,6 +21,8 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositor
 import no.nav.aap.motor.OppgaveInput
 import no.nav.aap.motor.OppgaveRepository
 import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.Status
 import org.slf4j.LoggerFactory
 
 class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
@@ -129,6 +132,39 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
             løsningsResultat.begrunnelse,
             "Saksbehandler", // TODO: Hente fra context
             løsningsResultat.kreverToTrinn
+        )
+    }
+
+    fun settBehandlingPåVent(behandlingId: BehandlingId) {
+        val behandling = behandlingRepository.hent(behandlingId)
+
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+
+        //TODO: Vi må huske å lagre behandling etter at vi har endret status
+        behandling.settPåVent()
+
+        avklaringsbehovene.leggTil(listOf(Definisjon.MANUELT_SATT_PÅ_VENT), behandling.aktivtSteg())
+    }
+
+    fun settBehandlingPåVentPgaMottattDokument(behandlingId: BehandlingId) {
+        val behandling = behandlingRepository.hent(behandlingId)
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+
+        val kontekst = behandling.flytKontekst()
+        if (behandling.status() == Status.PÅ_VENT) {
+            this.løsAvklaringsbehov(
+                kontekst = kontekst,
+                avklaringsbehovene = avklaringsbehovene,
+                avklaringsbehov = SattPåVentLøsning()
+            )
+        }
+        oppgaveRepository.leggTil(
+            OppgaveInput(oppgave = ProsesserBehandlingOppgaveUtfører).forBehandling(
+                kontekst.sakId,
+                kontekst.behandlingId
+            )
         )
     }
 }
