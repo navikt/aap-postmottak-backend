@@ -34,8 +34,7 @@ class BehandlingHendelseHåndterer(connection: DBConnection) {
             else -> {
                 val kontekst = behandling.flytKontekst()
                 if (behandling.status() == Status.PÅ_VENT) {
-                    val avklaringsbehovKontroller = avklaringsbehovOrkestrator
-                    avklaringsbehovKontroller.løsAvklaringsbehov(
+                    avklaringsbehovOrkestrator.løsAvklaringsbehov(
                         kontekst = kontekst,
                         avklaringsbehovene = avklaringsbehovene,
                         avklaringsbehov = SattPåVentLøsning()
