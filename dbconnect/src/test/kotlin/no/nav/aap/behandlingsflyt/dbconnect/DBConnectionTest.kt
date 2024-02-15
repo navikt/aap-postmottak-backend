@@ -52,6 +52,18 @@ internal class DBConnectionTest {
     }
 
     @Test
+    fun `Henter null-verdi fra DB`() {
+        val result = InitTestDatabase.dataSource.transaction { connection ->
+            connection.execute("INSERT INTO test (test) VALUES (null)")
+            connection.queryFirstOrNull("SELECT test FROM test") {
+                setRowMapper { row -> row.getStringOrNull("test") }
+            }
+        }
+
+        assertThat(result).isNull()
+    }
+
+    @Test
     fun `Skriver og henter key og verdier fra DB`() {
         val (result, key) = InitTestDatabase.dataSource.transaction { connection ->
             connection.execute("INSERT INTO test (test) VALUES ('a')")

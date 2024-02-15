@@ -66,15 +66,9 @@ class DBConnection internal constructor(private val connection: Connection) {
     fun <T> queryFirstOrNull(
         @Language("PostgreSQL")
         query: String,
-        block: Query<T?>.() -> Unit
+        block: Query<T>.() -> Unit
     ): T? {
-        return this.connection.prepareStatement(query).use { preparedStatement ->
-            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-            val queryStatement = Query<T?>(preparedStatement)
-            queryStatement.block()
-            val result = queryStatement.executeQuery()
-            return@use result.firstOrNull()
-        }
+        return querySeq(query, block, Sequence<T>::firstOrNull)
     }
 
     fun <T : Any> queryFirst(
@@ -82,13 +76,7 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Query<T>.() -> Unit
     ): T {
-        return this.connection.prepareStatement(query).use { preparedStatement ->
-            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-            val queryStatement = Query<T>(preparedStatement)
-            queryStatement.block()
-            val result = queryStatement.executeQuery()
-            return@use result.first()
-        }
+        return querySeq(query, block, Sequence<T>::first)
     }
 
     fun <T : Any> queryList(
@@ -96,13 +84,7 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Query<T>.() -> Unit
     ): List<T> {
-        return this.connection.prepareStatement(query).use { preparedStatement ->
-            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-            val queryStatement = Query<T>(preparedStatement)
-            queryStatement.block()
-            val result = queryStatement.executeQuery()
-            return@use result.toList()
-        }
+        return querySeq(query, block, Sequence<T>::toList)
     }
 
     fun <T : Any> querySet(
@@ -110,12 +92,21 @@ class DBConnection internal constructor(private val connection: Connection) {
         query: String,
         block: Query<T>.() -> Unit
     ): Set<T> {
+        return querySeq(query, block, Sequence<T>::toSet)
+    }
+
+    private fun <T, U> querySeq(
+        @Language("PostgreSQL")
+        query: String,
+        block: Query<T>.() -> Unit,
+        extractor: Sequence<T>.() -> U
+    ): U {
         return this.connection.prepareStatement(query).use { preparedStatement ->
             preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
             val queryStatement = Query<T>(preparedStatement)
             queryStatement.block()
             val result = queryStatement.executeQuery()
-            return@use result.toSet()
+            return@use result.extractor()
         }
     }
 
