@@ -60,12 +60,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
                 avklaringsbehov = SattPåVentLøsning()
             )
         }
-        oppgaveRepository.leggTil(
-            OppgaveInput(oppgave = ProsesserBehandlingOppgaveUtfører).forBehandling(
-                kontekst.sakId,
-                kontekst.behandlingId
-            )
-        )
+        fortsettProsessering(kontekst)
     }
 
     fun løsAvklaringsbehovOgFortsettProsessering(
@@ -81,6 +76,10 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
             avklaringsbehovene
         )
 
+        fortsettProsessering(kontekst)
+    }
+
+    private fun fortsettProsessering(kontekst: FlytKontekst) {
         oppgaveRepository.leggTil(
             OppgaveInput(oppgave = ProsesserBehandlingOppgaveUtfører).forBehandling(
                 kontekst.sakId,
