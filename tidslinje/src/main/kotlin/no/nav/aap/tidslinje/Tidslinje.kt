@@ -7,12 +7,12 @@ import java.util.*
 import java.util.function.Function
 
 
-class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterable<Segment<T>> {
+class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) : Iterable<Segment<T>> {
 
-    constructor(initSegmenter: List<Segment<T>>) : this(TreeSet(initSegmenter))
-    constructor(periode: Periode, verdi: T) : this(TreeSet(listOf(Segment(periode, verdi))))
+    constructor(initSegmenter: List<X>) : this(TreeSet(initSegmenter))
+    constructor(verdi: X) : this(TreeSet(listOf(verdi)))
 
-    private val segmenter: NavigableSet<Segment<T>> = TreeSet()
+    private val segmenter: NavigableSet<X> = TreeSet()
 
     init {
         segmenter.addAll(initSegmenter)
@@ -30,7 +30,7 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
         }
     }
 
-    fun segmenter(): NavigableSet<Segment<T>> {
+    fun segmenter(): NavigableSet<X> {
         return TreeSet(segmenter)
     }
 
@@ -42,32 +42,20 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
      * Merge av to tidslinjer, prioriterer verdier fra den som merges over den som det kalles på
      * oppretter en tredje slik at orginale verdier bevares
      */
-    fun <E, V> kombiner(
-        other: Tidslinje<E>,
-        sammenslåer: SegmentSammenslåer<T, E, V>
-    ): Tidslinje<V> {
-        return kombiner(other, JoinStyle.CROSS_JOIN, sammenslåer)
-    }
-
-    /**
-     * Merge av to tidslinjer, prioriterer verdier fra den som merges over den som det kalles på
-     * oppretter en tredje slik at orginale verdier bevares
-     */
-    fun <E, V> kombiner(
-        other: Tidslinje<E>,
-        joinStyle: JoinStyle,
-        sammenslåer: SegmentSammenslåer<T, E, V>
-    ): Tidslinje<V> {
+    fun <E, V, VENSTRE : Segment<T>?, HØYRE : Segment<E>, RETUR : Segment<V>> kombiner(
+        other: Tidslinje<E, HØYRE>,
+        joinStyle: JoinStyle<T?, E?, V, RETUR>
+    ): Tidslinje<V, RETUR> {
         if (this.segmenter.isEmpty()) {
-            val nyeSegmenter = other.segmenter.map { segment ->
-                sammenslåer.sammenslå(segment.periode, null, segment)
-            }.filterNotNull()
+            val nyeSegmenter = other.segmenter.mapNotNull { segment ->
+                joinStyle.kombiner(segment.periode, null, segment.verdi)
+            }
             return Tidslinje(nyeSegmenter.toCollection(TreeSet()))
         }
         if (other.segmenter.isEmpty()) {
-            val nyeSegmenter = this.segmenter.map { segment ->
-                sammenslåer.sammenslå(segment.periode, segment, null)
-            }.filterNotNull()
+            val nyeSegmenter = this.segmenter.mapNotNull { segment ->
+                joinStyle.kombiner(segment.periode, segment.verdi, null)
+            }
             return Tidslinje(nyeSegmenter.toCollection(TreeSet()))
         }
 
@@ -76,33 +64,35 @@ class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterab
             other.perioder()
         )
 
-        val nySammensetning: NavigableSet<Segment<V>> = TreeSet()
+        val nySammensetning: NavigableSet<RETUR> = TreeSet()
         while (periodeIterator.hasNext()) {
             val periode = periodeIterator.next()
 
-            val left = this.segmenter.firstOrNull { segment -> segment.periode.overlapper(periode) }
-                ?.tilpassetPeriode(periode)
-            val right = other.segmenter.firstOrNull { segment -> segment.periode.overlapper(periode) }
-                ?.tilpassetPeriode(periode)
+            val left = this.segmenter.firstOrNull { segment -> segment.periode.overlapper(periode) }?.verdi
+            val right = other.segmenter.firstOrNull { segment -> segment.periode.overlapper(periode) }?.verdi
 
-            if (joinStyle.accept(left != null, right != null)) {
-                val element = sammenslåer.sammenslå(periode, left, right)
-                if (element != null) {
-                    nySammensetning.add(element)
-                }
+            val ll = joinStyle.kombiner(periode, left, right)
+            if (ll != null) {
+                nySammensetning.add(ll)
             }
         }
 
         return Tidslinje(nySammensetning)
     }
 
-    fun disjoint(periode: Periode): Tidslinje<T> {
-        val intervalTimeline: Tidslinje<Any?> = Tidslinje(listOf(Segment(periode, null)))
-        return disjoint(intervalTimeline, StandardSammenslåere.kunVenstre())
+    fun disjoint(periode: Periode): Tidslinje<T, Segment<T>> {
+        val intervalTimeline: Tidslinje<Any?, Segment<Any?>> = Tidslinje(listOf(Segment(periode, null)))
+        return kombiner<Any?, T, Segment<T>, Segment<Any?>, Segment<T>>(
+            intervalTimeline,
+            StandardSammenslåere.kunVenstre<T, Any?>()
+        )
     }
 
-    fun <V, R> disjoint(other: Tidslinje<V>, combinator: SegmentSammenslåer<T, V, R>): Tidslinje<R> {
-        return kombiner(other, JoinStyle.DISJOINT, combinator)
+    fun <E, V, VENSTRE : Segment<T>?, HØYRE : Segment<E>, RETUR : Segment<V>> disjoint(
+        other: Tidslinje<E, HØYRE>,
+        combinator: SegmentSammenslåer<T, E, V, RETUR>
+    ): Tidslinje<V, RETUR> {
+        return kombiner(other, combinator)
     }
 
     fun kryss(periode: Periode): Tidslinje<T> {
