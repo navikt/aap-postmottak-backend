@@ -12,7 +12,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 fun main() {
     val postgres = postgreSQLContainer()
 
-    // Setter opp virtuell sandkase lokalt
+    // Setter opp virtuell sandkasse lokalt
     setupFakes()
 
     // Starter server
