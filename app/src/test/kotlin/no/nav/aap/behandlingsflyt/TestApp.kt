@@ -10,8 +10,6 @@ import org.testcontainers.containers.PostgreSQLContainer
 fun main() {
     val postgres = postgreSQLContainer()
 
-
-
     // Starter server
     embeddedServer(Netty, port = 8080) {
         server(

@@ -17,6 +17,8 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.callid.*
+import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
@@ -64,6 +66,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 import javax.sql.DataSource
 
 private val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
@@ -95,6 +98,13 @@ internal fun Application.server(dbConfig: DbConfig) {
                 FatteVedtakLøsning::class.java
             )
         }
+    }
+    install(CallId) {
+        retrieveFromHeader(HttpHeaders.XCorrelationId)
+        generate { UUID.randomUUID().toString() }
+    }
+    install(CallLogging) {
+        callIdMdc("callId")
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->

@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -35,6 +36,7 @@ class Motor(
 
     private var stopped = false
     private val workers = HashMap<Int, Future<*>>()
+    private var lastWatchdogLog = LocalDateTime.now()
 
     fun start() {
         log.info("Starter prosessering av oppgaver")
@@ -145,7 +147,10 @@ class Motor(
                         workers[it.first] = executor.submit(it.second)
                     }
                 } else if (!stopped) {
-                    logger.debug("Alle workers OK")
+                    if (lastWatchdogLog.plusMinutes(30).isBefore(LocalDateTime.now())) {
+                        logger.info("Alle workers OK")
+                        lastWatchdogLog = LocalDateTime.now()
+                    }
                 }
             } catch (exception: Throwable) {
                 logger.warn("Ukjent feil under watchdog aktivtet", exception)
