@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 class Fødselsdato(private val dato: LocalDate) {
@@ -19,6 +20,10 @@ class Fødselsdato(private val dato: LocalDate) {
 
     fun toLocalDate(): LocalDate {
         return dato
+    }
+
+    fun toFormatedString(): String {
+        return dato.format(DateTimeFormatter.ISO_LOCAL_DATE)
     }
 
     override fun equals(other: Any?): Boolean {

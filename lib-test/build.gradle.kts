@@ -3,6 +3,10 @@ val ktorVersion = "2.3.8"
 dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":faktagrunnlag"))
+    implementation(project(":verdityper"))
+    implementation(project(":dbconnect"))
+    implementation(project(":dbtestdata"))
+    implementation(project(":httpklient"))
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
@@ -15,7 +19,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
 
-    implementation(project(":httpklient"))
 
     api(project(":dbtestdata"))
     api(project(":dbtest"))

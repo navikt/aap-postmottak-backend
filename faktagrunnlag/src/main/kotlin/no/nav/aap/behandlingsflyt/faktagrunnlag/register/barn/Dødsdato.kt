@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class Dødsdato(private val dato: LocalDate) {
 
@@ -12,4 +13,7 @@ class Dødsdato(private val dato: LocalDate) {
 
     fun toLocalDate() = dato
 
+    fun toFormatedString(): String {
+        return dato.format(DateTimeFormatter.ISO_LOCAL_DATE)
+    }
 }

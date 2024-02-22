@@ -12,9 +12,12 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.BARN_RELASJON_QUERY
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.PERSON_BOLK_QUERY
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
+import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.pdl.HentPersonBolkResult
+import no.nav.aap.pdl.PDLDødsfall
 import no.nav.aap.pdl.PdlFoedsel
 import no.nav.aap.pdl.PdlGruppe
 import no.nav.aap.pdl.PdlIdent
@@ -27,8 +30,8 @@ import no.nav.aap.pdl.PdlPersoninfoDataResponse
 import no.nav.aap.pdl.PdlRelasjon
 import no.nav.aap.pdl.PdlRelasjonDataResponse
 import no.nav.aap.pdl.PdlRequest
+import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import no.nav.aap.pdl.PdlPerson as BarnPdlPerson
 import no.nav.aap.pdl.PdlRelasjonData as BarnPdlData
 
@@ -48,6 +51,9 @@ class Fakes : AutoCloseable {
         // Pdl
         System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
         System.setProperty("integrasjon.pdl.scope", "pdl")
+
+        // Legg til alle testpersoner
+        listOf(PERSON_MED_BARN_65ÅR).forEach { leggTil(it) }
     }
 
     override fun close() {
@@ -55,9 +61,11 @@ class Fakes : AutoCloseable {
         azure.stop(0L, 0L)
     }
 
-    fun withFødselsdatoFor(ident: String, fødselsdato: LocalDate) {
-        fakedFødselsdatoResponsees[ident] = fødselsdato.format(DateTimeFormatter.ISO_LOCAL_DATE)
+    fun leggTil(person: TestPerson) {
+        person.barn.forEach { leggTil(it) }
+        fakePersoner[person.aktivIdent()] = person
     }
+
 }
 
 fun NettyApplicationEngine.port(): Int =
@@ -65,9 +73,18 @@ fun NettyApplicationEngine.port(): Int =
         .first { it.type == ConnectorType.HTTP }
         .port
 
-private val fakedFødselsdatoResponsees = mutableMapOf(
-    "12345678910" to "1990-01-01"
-)
+val BARNLØS_PERSON_30ÅR =
+    TestPerson(setOf(Ident("12345678910", true)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)))
+val BARNLØS_PERSON_18ÅR =
+    TestPerson(setOf(Ident("42346734567", true)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(18).minusDays(10)))
+val PERSON_MED_BARN_65ÅR =
+    TestPerson(
+        setOf(Ident("86322434234", true)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(65)), barn = listOf(
+            BARNLØS_PERSON_18ÅR, BARNLØS_PERSON_30ÅR
+        )
+    )
+
+private val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
 
 fun Application.pdlFake() {
     install(ContentNegotiation) {
@@ -80,64 +97,110 @@ fun Application.pdlFake() {
             when (req.query) {
                 IDENT_QUERY -> call.respond(identer(req))
                 PERSON_QUERY -> call.respond(personopplysninger(req))
-                BARN_RELASJON_QUERY -> call.respond(barnRelasjoner())
-                PERSON_BOLK_QUERY -> call.respond(barn())
+                BARN_RELASJON_QUERY -> call.respond(barnRelasjoner(req))
+                PERSON_BOLK_QUERY -> call.respond(barn(req))
                 else -> call.respond(HttpStatusCode.BadRequest)
             }
         }
     }
 }
 
-private fun barn() = PdlRelasjonDataResponse(
-    errors = null,
-    extensions = null,
-    data = BarnPdlData(
-        hentPersonBolk = listOf(
-            HentPersonBolkResult(
-                ident = "10123456789",
-                person = BarnPdlPerson(
-                    foedsel = listOf(PdlFoedsel("2020-01-01"))
+private fun barn(req: PdlRequest): PdlRelasjonDataResponse {
+    val forespurtIdenter = req.variables.identer ?: emptyList()
+
+    forespurtIdenter.map { mapIdentBolk(it) }
+
+    return PdlRelasjonDataResponse(
+        errors = null,
+        extensions = null,
+        data = BarnPdlData(
+            hentPersonBolk = listOf(
+                HentPersonBolkResult(
+                    ident = "10123456789",
+                    person = BarnPdlPerson(
+                        foedsel = listOf(PdlFoedsel("2020-01-01"))
+                    )
                 )
             )
         )
     )
-)
+}
 
-private fun barnRelasjoner() = PdlRelasjonDataResponse(
-    errors = null,
-    extensions = null,
-    data = BarnPdlData(
-        hentPerson = BarnPdlPerson(
-            forelderBarnRelasjon = listOf(
-                PdlRelasjon(relatertPersonsIdent = "10123456789")
+private fun mapIdentBolk(it: String): HentPersonBolkResult? {
+    val person = fakePersoner[it]
+    if (person == null) {
+        return null
+    }
+    return HentPersonBolkResult(
+        ident = person.aktivIdent(),
+        person = BarnPdlPerson(
+            foedsel = listOf(PdlFoedsel(person.fødselsdato.toFormatedString())),
+            doedsfall = mapDødsfall(person)
+        )
+    )
+}
+
+fun mapDødsfall(person: TestPerson): Set<PDLDødsfall>? {
+    if (person.dødsdato == null) {
+        return null
+    }
+    return setOf(PDLDødsfall(person.dødsdato.toFormatedString()))
+}
+
+private fun barnRelasjoner(req: PdlRequest): PdlRelasjonDataResponse {
+    val forespurtIdent = req.variables.ident ?: ""
+    return PdlRelasjonDataResponse(
+        errors = null,
+        extensions = null,
+        data = BarnPdlData(
+            hentPerson = BarnPdlPerson(
+                forelderBarnRelasjon = fakePersoner[forespurtIdent]?.barn?.map { PdlRelasjon(it.aktivIdent()) }
+                    ?.toList().orEmpty()
             )
         )
     )
-)
+}
 
-private fun identer(req: PdlRequest) = PdlIdenterDataResponse(
-    errors = null,
-    extensions = null,
-    data = PdlIdenterData(
-        hentIdenter = PdlIdenter(
-            identer = listOf(
-                PdlIdent(req.variables.ident ?: "", false, PdlGruppe.FOLKEREGISTERIDENT),
-                PdlIdent("12345678911", false, PdlGruppe.NPID),
-                PdlIdent("1234567890123", false, PdlGruppe.AKTORID)
+private fun identer(req: PdlRequest): PdlIdenterDataResponse {
+    val forespurtIdent = req.variables.ident ?: ""
+    val person = fakePersoner[forespurtIdent]
+
+    return PdlIdenterDataResponse(
+        errors = null,
+        extensions = null,
+        data = PdlIdenterData(
+            hentIdenter = PdlIdenter(
+                identer = mapIdent(person)
             )
-        )
-    ),
-)
+        ),
+    )
+}
 
-private fun personopplysninger(req: PdlRequest) = PdlPersoninfoDataResponse(
-    errors = null,
-    extensions = null,
-    data = PdlPersoninfoData(
-        hentPerson = PdlPersoninfo(
-            foedselsdato = fakedFødselsdatoResponsees[req.variables.ident] ?: "1990-01-01"
-        )
-    ),
-)
+fun mapIdent(person: TestPerson?): List<PdlIdent> {
+    if (person == null) {
+        return emptyList()
+    }
+    return listOf(PdlIdent(person.aktivIdent(), false, PdlGruppe.FOLKEREGISTERIDENT))
+}
+
+private fun personopplysninger(req: PdlRequest): PdlPersoninfoDataResponse {
+    val forespurtIdent = req.variables.ident ?: ""
+    val person = fakePersoner[forespurtIdent]
+    return PdlPersoninfoDataResponse(
+        errors = null,
+        extensions = null,
+        data = PdlPersoninfoData(
+            hentPerson = mapPerson(person)
+        ),
+    )
+}
+
+fun mapPerson(person: TestPerson?): PdlPersoninfo? {
+    if (person == null) {
+        return null
+    }
+    return PdlPersoninfo(person.fødselsdato.toFormatedString())
+}
 
 fun Application.azureFake() {
     install(ContentNegotiation) {
