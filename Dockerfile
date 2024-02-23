@@ -14,4 +14,4 @@ WORKDIR /app
 
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 # TLS Config works around an issue in OpenJDK... See: https://github.com/kubernetes-client/java/issues/854
-ENTRYPOINT [ "java", "-javaagent:/app/javaagent.jar", "-Djdk.tls.client.protocols=TLSv1.2", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar" ]
+ENTRYPOINT [ "java", "-javaagent:javaagent.jar", "-Djdk.tls.client.protocols=TLSv1.2", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar" ]
