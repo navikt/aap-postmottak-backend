@@ -7,9 +7,9 @@ ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/release
 
 # Final image
 FROM gcr.io/distroless/java21:nonroot
-COPY --from=javaagent --chown=nonroot:nonroot /instrumentations/java/javaagent.jar javaagent.jar
+COPY --from=javaagent /instrumentations/java/javaagent.jar javaagent.jar
 COPY --from=busybox /bin/printenv /bin/printenv
-COPY --chown=nonroot:nonroot /app/build/libs/app-all.jar app.jar
+COPY/app/build/libs/app-all.jar app.jar
 
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 # TLS Config works around an issue in OpenJDK... See: https://github.com/kubernetes-client/java/issues/854
