@@ -1,8 +1,17 @@
-FROM eclipse-temurin:21-jre-alpine
-ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
-COPY /app/build/libs/app-all.jar app.jar
-CMD ["java", "-XX:ActiveProcessorCount=2", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+FROM busybox:1.36.1-uclibc as busybox
+# Download opentelemetry-javaagent
+# https://opentelemetry.io/docs/instrumentation/java/automatic/agent-config/
+FROM scratch as javaagent
+ARG JAVA_OTEL_VERSION=v1.32.0
+ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/$JAVA_OTEL_VERSION/opentelemetry-javaagent.jar /instrumentations/java/javaagent.jar
 
-# use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
-# use G1GC when using more than 4G RAM and/or more than 2 CPUs
-# use -XX:ActiveProcessorCount=2 if less than 1G RAM.
+# Final image
+FROM gcr.io/distroless/java21:nonroot
+COPY --from=javaagent --chown=nonroot:nonroot /instrumentations/java/javaagent.jar /app/javaagent.jar
+COPY --from=busybox /bin/printenv /bin/printenv
+COPY --chown=nonroot:nonroot /app/build/libs/app-all.jar /app/app.jar
+WORKDIR /app
+
+ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
+# TLS Config works around an issue in OpenJDK... See: https://github.com/kubernetes-client/java/issues/854
+ENTRYPOINT [ "java", "-javaagent:/app/javaagent.jar", "-Djdk.tls.client.protocols=TLSv1.2", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar" ]
