@@ -4,8 +4,6 @@ dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":faktagrunnlag"))
     implementation(project(":verdityper"))
-    implementation(project(":dbconnect"))
-    implementation(project(":dbtestdata"))
     implementation(project(":httpklient"))
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")

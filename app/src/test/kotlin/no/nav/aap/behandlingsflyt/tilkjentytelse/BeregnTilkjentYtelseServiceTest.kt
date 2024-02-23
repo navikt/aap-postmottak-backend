@@ -21,8 +21,6 @@ import java.time.LocalDate
 
 class BeregnTilkjentYtelseServiceTest {
 
-
-
     @Test
     fun `årlig ytelse beregnes til 66 prosent av grunnlaget og dagsatsen er lik årlig ytelse delt på 260, og sjekker split av periode ved endring i Grunnbeløp`() {
         val fødselsdato = Fødselsdato(LocalDate.of(1985, 1, 2))

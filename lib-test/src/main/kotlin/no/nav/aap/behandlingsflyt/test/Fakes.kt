@@ -76,7 +76,10 @@ fun NettyApplicationEngine.port(): Int =
 val BARNLØS_PERSON_30ÅR =
     TestPerson(setOf(Ident("12345678910", true)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)))
 val BARNLØS_PERSON_18ÅR =
-    TestPerson(setOf(Ident("42346734567", true)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(18).minusDays(10)))
+    TestPerson(
+        setOf(Ident("42346734567", true)),
+        fødselsdato = Fødselsdato(LocalDate.now().minusYears(18).minusDays(10))
+    )
 val PERSON_MED_BARN_65ÅR =
     TestPerson(
         setOf(Ident("86322434234", true)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(65)), barn = listOf(
@@ -108,20 +111,13 @@ fun Application.pdlFake() {
 private fun barn(req: PdlRequest): PdlRelasjonDataResponse {
     val forespurtIdenter = req.variables.identer ?: emptyList()
 
-    forespurtIdenter.map { mapIdentBolk(it) }
+    val barnIdenter = forespurtIdenter.mapNotNull { mapIdentBolk(it) }.toList()
 
     return PdlRelasjonDataResponse(
         errors = null,
         extensions = null,
         data = BarnPdlData(
-            hentPersonBolk = listOf(
-                HentPersonBolkResult(
-                    ident = "10123456789",
-                    person = BarnPdlPerson(
-                        foedsel = listOf(PdlFoedsel("2020-01-01"))
-                    )
-                )
-            )
+            hentPersonBolk = barnIdenter
         )
     )
 }
@@ -148,22 +144,22 @@ fun mapDødsfall(person: TestPerson): Set<PDLDødsfall>? {
 }
 
 private fun barnRelasjoner(req: PdlRequest): PdlRelasjonDataResponse {
-    val forespurtIdent = req.variables.ident ?: ""
+    val testPerson = hentEllerGenererTestPerson(req)
     return PdlRelasjonDataResponse(
         errors = null,
         extensions = null,
         data = BarnPdlData(
             hentPerson = BarnPdlPerson(
-                forelderBarnRelasjon = fakePersoner[forespurtIdent]?.barn?.map { PdlRelasjon(it.aktivIdent()) }
-                    ?.toList().orEmpty()
+                forelderBarnRelasjon = testPerson.barn
+                    .map { PdlRelasjon(it.aktivIdent()) }
+                    .toList()
             )
         )
     )
 }
 
 private fun identer(req: PdlRequest): PdlIdenterDataResponse {
-    val forespurtIdent = req.variables.ident ?: ""
-    val person = fakePersoner[forespurtIdent]
+    val person = hentEllerGenererTestPerson(req)
 
     return PdlIdenterDataResponse(
         errors = null,
@@ -176,6 +172,16 @@ private fun identer(req: PdlRequest): PdlIdenterDataResponse {
     )
 }
 
+private fun hentEllerGenererTestPerson(req: PdlRequest): TestPerson {
+    val forespurtIdent = req.variables.ident ?: ""
+    val person = fakePersoner[forespurtIdent]
+    if (person != null) {
+        return person
+    }
+
+    return TestPerson(setOf(Ident(forespurtIdent)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)))
+}
+
 fun mapIdent(person: TestPerson?): List<PdlIdent> {
     if (person == null) {
         return emptyList()
@@ -184,13 +190,12 @@ fun mapIdent(person: TestPerson?): List<PdlIdent> {
 }
 
 private fun personopplysninger(req: PdlRequest): PdlPersoninfoDataResponse {
-    val forespurtIdent = req.variables.ident ?: ""
-    val person = fakePersoner[forespurtIdent]
+    val testPerson = hentEllerGenererTestPerson(req)
     return PdlPersoninfoDataResponse(
         errors = null,
         extensions = null,
         data = PdlPersoninfoData(
-            hentPerson = mapPerson(person)
+            hentPerson = mapPerson(testPerson)
         ),
     )
 }

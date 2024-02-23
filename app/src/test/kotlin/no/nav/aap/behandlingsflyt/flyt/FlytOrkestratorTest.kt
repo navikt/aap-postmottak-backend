@@ -15,6 +15,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurderin
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
+import no.nav.aap.behandlingsflyt.dbtestdata.ident
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.UnderveisRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
@@ -45,7 +46,6 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.behandlingsflyt.test.Fakes
-import no.nav.aap.behandlingsflyt.test.ident
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.OppgaveRepository
@@ -94,7 +94,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade`() {
-        val ident = ident(fakes)
+        val ident = ident()
         val fom = LocalDate.now().minusMonths(3)
         val periode = Periode(fom, fom.plusYears(3))
 
@@ -303,7 +303,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `skal avklare yrkesskade hvis det finnes spor av yrkesskade - yrkesskade har årsakssammenheng`() {
-        val ident = ident(fakes)
+        val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
@@ -466,7 +466,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `to-trinn og ingen endring i gruppe etter sendt tilbake fra beslutter`() {
-        val ident = ident(fakes)
+        val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
@@ -814,7 +814,7 @@ class FlytOrkestratorTest {
 
     @Test
     fun `Blir satt på vent for etterspørring av informasjon`() {
-        val ident = ident(fakes)
+        val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         hendelsesMottak.håndtere(
