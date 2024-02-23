@@ -21,9 +21,6 @@ spec:
     requests:
       cpu: 500m
       memory: 512Mi
-  observability:
-    tracing:
-      enabled: true
   gcp:
     sqlInstances:
       - type: POSTGRES_15
