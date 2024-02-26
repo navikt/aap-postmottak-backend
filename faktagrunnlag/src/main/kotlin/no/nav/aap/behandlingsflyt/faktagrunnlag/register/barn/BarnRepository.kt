@@ -7,7 +7,7 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 
 class BarnRepository(private val connection: DBConnection) {
 
-    fun hentHvisEksisterer(behandlingId: BehandlingId): BarnGrunnlag {
+    fun hent(behandlingId: BehandlingId): BarnGrunnlag {
         val barn = connection.queryList(
             """
                 SELECT p.IDENT, p.FODSELSDATO, p.OPPRETTET_TID, p.DODSDATO

@@ -5,8 +5,8 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 class RettTilBarnetillegg(barn:Set<Ident> = emptySet()) {
     private val barn = barn.toMutableSet()
 
-    fun leggTilBarn(ident: Ident): RettTilBarnetillegg {
-        barn.add(ident)
+    fun leggTilBarn(ident: Set<Ident>): RettTilBarnetillegg {
+        barn.addAll(ident)
         return this
     }
 

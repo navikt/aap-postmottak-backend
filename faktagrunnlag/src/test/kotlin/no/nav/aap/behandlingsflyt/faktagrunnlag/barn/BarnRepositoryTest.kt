@@ -27,7 +27,7 @@ class BarnRepositoryTest {
             val behandling = behandling(connection, sak)
 
             val barnRepository = BarnRepository(connection)
-            val barn = barnRepository.hentHvisEksisterer(behandling.id)
+            val barn = barnRepository.hent(behandling.id)
             assertThat(barn.barn).isEmpty()
         }
     }
@@ -48,7 +48,7 @@ class BarnRepositoryTest {
             )
 
             barnRepository.lagre(behandling.id, barnListe)
-            val barn = barnRepository.hentHvisEksisterer(behandling.id)
+            val barn = barnRepository.hent(behandling.id)
             assertThat(barn.barn).size().isEqualTo(1)
         }
     }
