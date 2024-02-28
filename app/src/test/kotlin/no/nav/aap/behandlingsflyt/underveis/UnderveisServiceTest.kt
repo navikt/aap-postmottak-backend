@@ -15,11 +15,13 @@ import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.Period
 import javax.sql.DataSource
 
 class UnderveisServiceTest {
 
     private val dataSource: DataSource = MockDataSource()
+    private val kvote = Kvote(Period.ofYears(3))
 
     @Test
     fun `skal vurdere alle reglene`() {
@@ -75,7 +77,8 @@ class UnderveisServiceTest {
                 relevanteVilkår = relevanteVilkår,
                 opptrappingPerioder = listOf(Periode(søknadsdato.plusYears(2), søknadsdato.plusYears(3))),
                 pliktkort = listOf(),
-                innsendingsTidspunkt = mapOf()
+                innsendingsTidspunkt = mapOf(),
+                kvote = kvote
             )
 
             val vurderingTidslinje = underveisService.vurderRegler(input)

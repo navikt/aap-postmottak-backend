@@ -5,15 +5,18 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Ut
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkår
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsperiode
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
+import no.nav.aap.behandlingsflyt.underveis.Kvote
 import no.nav.aap.tidslinje.Tidslinje
 import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.Period
 
 class RettTilRegelTest {
 
     private val regel = RettTilRegel()
+    private val kvote = Kvote(Period.ofYears(3))
 
     @Test
     fun `skal lage tidslinje med alle relevante vilkår`() {
@@ -61,13 +64,14 @@ class RettTilRegelTest {
             relevanteVilkår = listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
             opptrappingPerioder = listOf(),
             pliktkort = listOf(),
-            innsendingsTidspunkt = mapOf()
+            innsendingsTidspunkt = mapOf(),
+            kvote = kvote
         )
         val grunnleggendeRettTidslinje = regel.vurder(input = input, Tidslinje())
 
         val segmenter = grunnleggendeRettTidslinje.segmenter()
         assertThat(segmenter).hasSize(1)
-        assertThat(segmenter.first().verdi!!.ingenVilkårErAvslått()).isTrue()
+        assertThat(segmenter.first().verdi.ingenVilkårErAvslått()).isTrue()
     }
 
     @Test
@@ -127,13 +131,14 @@ class RettTilRegelTest {
             relevanteVilkår = listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
             opptrappingPerioder = listOf(),
             pliktkort = listOf(),
-            innsendingsTidspunkt = mapOf()
+            innsendingsTidspunkt = mapOf(),
+            kvote = kvote
         )
         val grunnleggendeRettTidslinje = regel.vurder(input = input, Tidslinje())
 
         val segmenter = grunnleggendeRettTidslinje.segmenter()
         assertThat(segmenter).hasSize(2)
-        assertThat(segmenter.first().verdi!!.ingenVilkårErAvslått()).isTrue()
-        assertThat(segmenter.last().verdi!!.ingenVilkårErAvslått()).isFalse()
+        assertThat(segmenter.first().verdi.ingenVilkårErAvslått()).isTrue()
+        assertThat(segmenter.last().verdi.ingenVilkårErAvslått()).isFalse()
     }
 }
