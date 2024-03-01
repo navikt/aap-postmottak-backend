@@ -66,6 +66,16 @@ class BarnRepository(private val connection: DBConnection) {
 
     fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         require(fraBehandling != tilBehandling)
+        val query = """
+            INSERT INTO BARNOPPLYSNING_GRUNNLAG (behandling_id, BGB_ID) SELECT ?, BGB_ID from BARNOPPLYSNING_GRUNNLAG where behandling_id = ? and aktiv
+        """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setLong(1, fraBehandling.toLong())
+                setLong(2, tilBehandling.toLong())
+            }
+        }
     }
 
     private fun deaktiverEksisterende(behandlingId: BehandlingId) {
