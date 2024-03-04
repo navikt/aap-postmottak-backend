@@ -38,6 +38,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykdomLøs
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykepengerErstatningLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.beregning.FastsettBeregningstidspunktLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
@@ -95,7 +96,8 @@ internal fun Application.server(dbConfig: DbConfig) {
                 FritakMeldepliktLøsning::class.java,
                 FastsettArbeidsevneLøsning::class.java,
                 ForeslåVedtakLøsning::class.java,
-                FatteVedtakLøsning::class.java
+                FatteVedtakLøsning::class.java,
+                FastsettBeregningstidspunktLøsning::class.java
             )
         }
     }
