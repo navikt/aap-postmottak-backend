@@ -6,17 +6,21 @@ import com.papsign.ktor.openapigen.annotations.Response
 import io.ktor.util.reflect.*
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne.FastsettArbeidsevneLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.beregning.FastsettBeregningstidspunktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.bistand.AvklarBistandsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.meldeplikt.FritakMeldepliktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.student.AvklarStudentLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykdomLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykepengerErstatningLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøsning
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.arbeidsevne.Arbeidsevne
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt.Fritaksvurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykepengerVurdering
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.SykdomsvurderingDto
 import java.util.*
 
 @Response(statusCode = 202)
@@ -25,7 +29,9 @@ data class LøsAvklaringsbehovPåBehandling(
     @JsonProperty(value = "referanse", required = true) val referanse: UUID,
     @JsonProperty(value = "behandlingVersjon", required = true, defaultValue = "0") val behandlingVersjon: Long,
     @JsonProperty(value = "avklarStudentLøsning") val studentvurdering: StudentVurdering?,
+    @JsonProperty(value = "SykdomsvurderingDto") val sykdomsvurderingDto: SykdomsvurderingDto?,
     @JsonProperty(value = "avklarSykepengerErstatningLøsning") val sykepengerVurdering: SykepengerVurdering?,
+    @JsonProperty(value = "fastsettBeregningstidspunktLøsning") val fastsettBeregningstidspunktLøsning: BeregningVurdering?,
     @JsonProperty(value = "avklarBistandsbehovLøsning") val bistandVurdering: BistandVurdering?,
     @JsonProperty(value = "fritakMeldepliktLøsning") val fritaksvurdering: Fritaksvurdering?,
     @JsonProperty(value = "fastsettArbeidsevneLøsning") val arbeidsevne: Arbeidsevne?,
@@ -38,6 +44,7 @@ data class LøsAvklaringsbehovPåBehandling(
         require(
             listOfNotNull(
                 studentvurdering,
+                sykdomsvurderingDto,
                 sykepengerVurdering,
                 bistandVurdering,
                 fritaksvurdering,
@@ -53,6 +60,7 @@ data class LøsAvklaringsbehovPåBehandling(
             studentvurdering,
             sykepengerVurdering,
             bistandVurdering,
+            sykdomsvurderingDto,
             fritaksvurdering,
             arbeidsevne,
             foreslåVedtakLøsning,
@@ -65,6 +73,8 @@ data class LøsAvklaringsbehovPåBehandling(
             is BistandVurdering -> return AvklarBistandsbehovLøsning(behov)
             is Fritaksvurdering -> return FritakMeldepliktLøsning(behov)
             is Arbeidsevne -> return FastsettArbeidsevneLøsning(behov)
+            is SykdomsvurderingDto -> return AvklarSykdomLøsning(behov)
+            is BeregningVurdering -> return FastsettBeregningstidspunktLøsning(behov)
             is AvklaringsbehovLøsning -> behov
             else -> throw IllegalArgumentException("Ukjent løsning")
         }
