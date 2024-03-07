@@ -104,7 +104,7 @@ class FlytOrkestrator(
                     gjeldendeSteg.type(),
                     tilbakeføringsflyt.stegene().last()
                 )
-                tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene)
+                tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene, false)
             }
             validerPlassering(
                 behandlingFlyt,
@@ -146,7 +146,8 @@ class FlytOrkestrator(
         kontekst: FlytKontekst,
         behandling: Behandling,
         behandlingFlyt: BehandlingFlyt,
-        avklaringsbehovene: Avklaringsbehovene
+        avklaringsbehovene: Avklaringsbehovene,
+        erIkkeFerdig: Boolean = true
     ) {
         if (behandlingFlyt.erTom()) {
             return
@@ -156,7 +157,7 @@ class FlytOrkestrator(
             val neste = behandlingFlyt.neste()
 
             if (neste == null) {
-                loggStopp(behandling, avklaringsbehovene)
+                loggStopp(behandling, avklaringsbehovene, erIkkeFerdig)
                 return
             }
             StegOrkestrator(connection, neste).utførTilbakefør(
@@ -168,14 +169,17 @@ class FlytOrkestrator(
 
     private fun loggStopp(
         behandling: Behandling,
-        avklaringsbehovene: Avklaringsbehovene
+        avklaringsbehovene: Avklaringsbehovene,
+        harHeltStoppet: Boolean = true
     ) {
         log.info(
             "Stopper opp ved {} med {}",
             behandling.aktivtSteg(),
             avklaringsbehovene.åpne()
         )
-        behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
+        if (harHeltStoppet) {
+            behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
+        }
     }
 
     private fun validerPlassering(
