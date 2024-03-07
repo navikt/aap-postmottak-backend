@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov.løser.bistand
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarBistandsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection

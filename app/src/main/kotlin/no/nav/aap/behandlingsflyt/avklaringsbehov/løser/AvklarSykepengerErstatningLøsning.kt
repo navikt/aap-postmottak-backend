@@ -1,10 +1,9 @@
-package no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom
+package no.nav.aap.behandlingsflyt.avklaringsbehov.løser
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeName
 import no.nav.aap.behandlingsflyt.avklaringsbehov.VURDER_SYKEPENGEERSTATNING_KODE
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovLøsning
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykepengerVurdering
 
 @JsonIgnoreProperties(ignoreUnknown = true)

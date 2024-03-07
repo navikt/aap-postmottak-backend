@@ -13,8 +13,8 @@ import java.util.*
 object DefaultJsonMapper {
 
     private val mapper = ObjectMapper()
-        .registerModule(JavaTimeModule())
         .registerModule(KotlinModule.Builder().build())
+        .registerModule(JavaTimeModule())
         .setTimeZone(TimeZone.getTimeZone("Europe/Oslo"))
         .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

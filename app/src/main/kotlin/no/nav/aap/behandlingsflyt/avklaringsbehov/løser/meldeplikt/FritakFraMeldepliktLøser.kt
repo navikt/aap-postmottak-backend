@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov.løser.meldeplikt
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FritakMeldepliktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt.MeldepliktRepository

@@ -28,15 +28,15 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.fatteVedtakGrunnlagApi
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.arbeidsevne.FastsettArbeidsevneLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.beregning.FastsettBeregningstidspunktLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.bistand.AvklarBistandsbehovLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.meldeplikt.FritakMeldepliktLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.student.AvklarStudentLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykdomLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.sykdom.AvklarSykepengerErstatningLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.FatteVedtakLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarBistandsbehovLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarStudentLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarSykdomLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarSykepengerErstatningLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FastsettArbeidsevneLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FastsettBeregningstidspunktLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FatteVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FritakMeldepliktLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
@@ -80,24 +80,32 @@ fun main() {
 
 internal fun Application.server(dbConfig: DbConfig) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    DefaultJsonMapper.objectMapper()
+        .registerSubtypes(
+            // TODO: Dette bør skje via reflection elns så dette ikke blir manuelt vedlikehold
+            AvklarStudentLøsning::class.java,
+            AvklarSykdomLøsning::class.java,
+            AvklarSykepengerErstatningLøsning::class.java,
+            AvklarBistandsbehovLøsning::class.java,
+            FritakMeldepliktLøsning::class.java,
+            FastsettArbeidsevneLøsning::class.java,
+            ForeslåVedtakLøsning::class.java,
+            FatteVedtakLøsning::class.java,
+            FastsettBeregningstidspunktLøsning::class.java
+        )
 
     install(MicrometerMetrics) { registry = prometheus }
-    install(ContentNegotiation) {
-        jackson {
-            DefaultJsonMapper.objectMapper()
-                .registerSubtypes(
-                    // TODO: Dette bør skje via reflection elns så dette ikke blir manuelt vedlikehold
-                    AvklarStudentLøsning::class.java,
-                    AvklarSykdomLøsning::class.java,
-                    AvklarSykepengerErstatningLøsning::class.java,
-                    AvklarBistandsbehovLøsning::class.java,
-                    FritakMeldepliktLøsning::class.java,
-                    FastsettArbeidsevneLøsning::class.java,
-                    ForeslåVedtakLøsning::class.java,
-                    FatteVedtakLøsning::class.java,
-                    FastsettBeregningstidspunktLøsning::class.java
-                )
+    install(OpenAPIGen) {
+        // this servers OpenAPI definition on /openapi.json
+        serveOpenApiJson = true
+        // this servers Swagger UI on /swagger-ui/index.html
+        serveSwaggerUi = true
+        info {
+            title = "AAP - Saksbehandling"
         }
+    }
+    install(ContentNegotiation) {
+        register(ContentType.Application.Json, JacksonConverter(objectMapper = DefaultJsonMapper.objectMapper(), true))
     }
     install(CallId) {
         retrieveFromHeader(HttpHeaders.XCorrelationId)
@@ -117,15 +125,7 @@ internal fun Application.server(dbConfig: DbConfig) {
             }
         }
     }
-    install(OpenAPIGen) {
-        // this servers OpenAPI definition on /openapi.json
-        serveOpenApiJson = true
-        // this servers Swagger UI on /swagger-ui/index.html
-        serveSwaggerUi = true
-        info {
-            title = "AAP - Saksbehandling"
-        }
-    }
+
     install(CORS) {
         anyHost() // FIXME: Dette blir litt vel aggresivt, men greit for nå? :pray:
         allowHeader(HttpHeaders.ContentType)
