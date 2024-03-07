@@ -28,15 +28,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.fatteVedtakGrunnlagApi
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarBistandsbehovLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarStudentLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarSykdomLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklarSykepengerErstatningLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FastsettArbeidsevneLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FastsettBeregningstidspunktLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FatteVedtakLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.ForeslåVedtakLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.FritakMeldepliktLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
@@ -81,18 +73,7 @@ fun main() {
 internal fun Application.server(dbConfig: DbConfig) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     DefaultJsonMapper.objectMapper()
-        .registerSubtypes(
-            // TODO: Dette bør skje via reflection elns så dette ikke blir manuelt vedlikehold
-            AvklarStudentLøsning::class.java,
-            AvklarSykdomLøsning::class.java,
-            AvklarSykepengerErstatningLøsning::class.java,
-            AvklarBistandsbehovLøsning::class.java,
-            FritakMeldepliktLøsning::class.java,
-            FastsettArbeidsevneLøsning::class.java,
-            ForeslåVedtakLøsning::class.java,
-            FatteVedtakLøsning::class.java,
-            FastsettBeregningstidspunktLøsning::class.java
-        )
+        .registerSubtypes(utledSubtypes())
 
     install(MicrometerMetrics) { registry = prometheus }
     install(OpenAPIGen) {
@@ -155,6 +136,10 @@ internal fun Application.server(dbConfig: DbConfig) {
         }
     }
     module(dataSource)
+}
+
+fun utledSubtypes(): List<Class<*>> {
+    return AvklaringsbehovLøsning::class.sealedSubclasses.map { it.java }.toList()
 }
 
 fun Application.module(dataSource: DataSource) {
