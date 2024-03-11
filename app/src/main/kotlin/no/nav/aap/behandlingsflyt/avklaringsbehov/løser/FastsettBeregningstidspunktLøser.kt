@@ -17,11 +17,11 @@ class FastsettBeregningstidspunktLøser(connection: DBConnection) : Avklaringsbe
 
         beregningVurderingRepository.lagre(
             behandlingId = behandling.id,
-            vurdering = løsning.vurdering
+            vurdering = løsning.beregningVurdering
         )
 
         return LøsningsResultat(
-            begrunnelse = løsning.vurdering.begrunnelse
+            begrunnelse = løsning.beregningVurdering.begrunnelse
         )
     }
 

@@ -1,4 +1,3 @@
-
 package no.nav.aap.behandlingsflyt.avklaringsbehov.løsning
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -10,6 +9,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentVur
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = AVKLAR_STUDENT_KODE)
 class AvklarStudentLøsning(
-    @JsonProperty("studentvurdering", required = true) val studentvurdering: StudentVurdering
+    @JsonProperty("studentvurdering", required = true) val studentvurdering: StudentVurdering,
+    @JsonProperty("behovstype", required = true, defaultValue = AVKLAR_STUDENT_KODE) val behovstype: String = AVKLAR_STUDENT_KODE
 ) :
     AvklaringsbehovLøsning

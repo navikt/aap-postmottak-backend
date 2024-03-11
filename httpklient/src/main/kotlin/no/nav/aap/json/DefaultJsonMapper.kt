@@ -21,7 +21,7 @@ object DefaultJsonMapper {
         .disable(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
         .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
 
     fun toJson(value: Any): String {
         try {

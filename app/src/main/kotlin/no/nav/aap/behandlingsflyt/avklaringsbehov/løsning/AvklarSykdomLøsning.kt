@@ -9,5 +9,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.Sykdo
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = AVKLAR_SYKDOM_KODE)
 class AvklarSykdomLøsning(
-    @JsonProperty("sykdomsvurdering", required = true) val sykdomsvurdering: SykdomsvurderingDto
+    @JsonProperty("sykdomsvurdering", required = true) val sykdomsvurdering: SykdomsvurderingDto,
+    @JsonProperty("behovstype", required = true, defaultValue = AVKLAR_SYKDOM_KODE) val behovstype: String = AVKLAR_SYKDOM_KODE
 ) : AvklaringsbehovLøsning

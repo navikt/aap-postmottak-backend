@@ -192,7 +192,7 @@ class FlytOrkestratorTest {
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FastsettBeregningstidspunktLøsning(
-                        vurdering = BeregningVurdering(
+                        beregningVurdering = BeregningVurdering(
                             begrunnelse = "Trenger hjelp fra nav",
                             nedsattArbeidsevneDato = LocalDate.now().minusMonths(6),
                             ytterligereNedsattArbeidsevneDato = null,
@@ -392,7 +392,7 @@ class FlytOrkestratorTest {
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FastsettBeregningstidspunktLøsning(
-                        vurdering = BeregningVurdering(
+                        beregningVurdering = BeregningVurdering(
                             begrunnelse = "Trenger hjelp fra nav",
                             nedsattArbeidsevneDato = LocalDate.now().minusMonths(6),
                             ytterligereNedsattArbeidsevneDato = null,
@@ -563,7 +563,7 @@ class FlytOrkestratorTest {
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FastsettBeregningstidspunktLøsning(
-                        vurdering = BeregningVurdering(
+                        beregningVurdering = BeregningVurdering(
                             begrunnelse = "Trenger hjelp fra nav",
                             nedsattArbeidsevneDato = LocalDate.now().minusMonths(6),
                             ytterligereNedsattArbeidsevneDato = null,
@@ -659,7 +659,7 @@ class FlytOrkestratorTest {
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FastsettBeregningstidspunktLøsning(
-                        vurdering = BeregningVurdering(
+                        beregningVurdering = BeregningVurdering(
                             begrunnelse = "Trenger hjelp fra nav",
                             nedsattArbeidsevneDato = LocalDate.now().minusMonths(6),
                             ytterligereNedsattArbeidsevneDato = null,

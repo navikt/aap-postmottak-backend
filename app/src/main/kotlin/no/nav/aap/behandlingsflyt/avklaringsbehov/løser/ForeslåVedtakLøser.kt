@@ -9,7 +9,7 @@ class ForeslåVedtakLøser(val connection: DBConnection) : AvklaringsbehovsLøse
 
     override fun løs(kontekst: FlytKontekst, løsning: ForeslåVedtakLøsning): LøsningsResultat {
         // DO NOTHING 4 Now
-        return LøsningsResultat(løsning.begrunnelse)
+        return LøsningsResultat(løsning.foreslåvedtakVurdering)
     }
 
     override fun forBehov(): Definisjon {

@@ -9,5 +9,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.arbeidsevne.Arbeid
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = FASTSETT_ARBEIDSEVNE_KODE)
 class FastsettArbeidsevneLøsning(
-    @JsonProperty("arbeidsevne", required = true) val arbeidsevne: Arbeidsevne
+    @JsonProperty("arbeidsevneVurdering", required = true) val arbeidsevne: Arbeidsevne,
+    @JsonProperty("behovstype", required = true, defaultValue = FASTSETT_ARBEIDSEVNE_KODE) val behovstype: String = FASTSETT_ARBEIDSEVNE_KODE
 ) : AvklaringsbehovLøsning

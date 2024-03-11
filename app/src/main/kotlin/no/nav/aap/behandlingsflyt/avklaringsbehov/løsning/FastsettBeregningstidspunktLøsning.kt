@@ -9,5 +9,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.Beregnin
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = FASTSETT_BEREGNINGSTIDSPUNKT_KODE)
 class FastsettBeregningstidspunktLøsning(
-    @JsonProperty("vurdering", required = true) val vurdering: BeregningVurdering
+    @JsonProperty("beregningVurdering", required = true) val beregningVurdering: BeregningVurdering,
+    @JsonProperty("behovstype", required = true, defaultValue = FASTSETT_BEREGNINGSTIDSPUNKT_KODE) val behovstype: String = FASTSETT_BEREGNINGSTIDSPUNKT_KODE
 ) : AvklaringsbehovLøsning
