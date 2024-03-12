@@ -36,7 +36,8 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: HikariDataSource) {
                                 connection,
                                 behandling.id
                             ),
-                            flyt
+                            flyt,
+                            behandling.aktivtSteg()
                         ).alle().map { avklaringsbehov ->
                             AvklaringsbehovDTO(
                                 definisjon = avklaringsbehov.definisjon,

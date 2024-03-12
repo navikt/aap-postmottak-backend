@@ -1,10 +1,10 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlagkonstruktør
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
 import no.nav.aap.verdityper.flyt.StegType
 import java.util.*
 
@@ -133,11 +133,16 @@ class BehandlingFlyt private constructor(
         return flyt.map { it.steg.type() }
     }
 
-    fun frivilligeAvklaringsbehovRelevantForFlyten(): List<Definisjon> {
+    fun frivilligeAvklaringsbehovRelevantForFlyten(aktivtSteg: StegType): List<Definisjon> {
         val stegene = stegene()
         return Definisjon.entries
-            .filter { def -> stegene.contains(def.løsesISteg) && def.erFrivillig()
-        }
+            .filter { def ->
+                stegene.contains(def.løsesISteg) && def.erFrivillig() && indexOf(def.løsesISteg) >= indexOf(aktivtSteg)
+            }
+    }
+
+    private fun indexOf(steg: StegType): Int {
+        return flyt.indexOfFirst { it.steg.type() == steg }
     }
 
     internal fun tilbakeflyt(avklaringsbehov: Avklaringsbehov?): BehandlingFlyt {

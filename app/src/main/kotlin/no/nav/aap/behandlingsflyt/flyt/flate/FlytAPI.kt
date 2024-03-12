@@ -40,7 +40,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                             connection,
                             behandling.id
                         ),
-                        flyt
+                        flyt, aktivtSteg
                     )
                     BehandlingFlytOgTilstandDto(
                         flyt = stegGrupper.map { (gruppe, steg) ->
