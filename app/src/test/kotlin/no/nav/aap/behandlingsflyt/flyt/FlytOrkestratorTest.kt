@@ -7,7 +7,6 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarBistandsbehovLøsning
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarStudentLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarSykdomLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.FastsettBeregningstidspunktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.FatteVedtakLøsning
@@ -27,7 +26,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fød
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandVurdering
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.SykdomsvurderingDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.YrkesskadevurderingDto
@@ -129,23 +127,24 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = AvklarStudentLøsning(
-                        studentvurdering = StudentVurdering(
-                            begrunnelse = "Er student",
-                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                            oppfyller11_14 = false,
-                            avbruttStudieDato = null
-                        )
-                    ),
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
+        // Fjerner student
+//        dataSource.transaction {
+//            AvklaringsbehovHendelseHåndterer(it).håndtere(
+//                behandling.id,
+//                LøsAvklaringsbehovBehandlingHendelse(
+//                    løsning = AvklarStudentLøsning(
+//                        studentvurdering = StudentVurdering(
+//                            begrunnelse = "Er student",
+//                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+//                            oppfyller11_14 = false,
+//                            avbruttStudieDato = null
+//                        )
+//                    ),
+//                    behandlingVersjon = behandling.versjon
+//                )
+//            )
+//        }
+//        ventPåSvar()
 
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(it).håndtere(
@@ -329,23 +328,23 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = AvklarStudentLøsning(
-                        studentvurdering = StudentVurdering(
-                            begrunnelse = "Er student",
-                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                            oppfyller11_14 = false,
-                            avbruttStudieDato = null
-                        )
-                    ),
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
+//        dataSource.transaction {
+//            AvklaringsbehovHendelseHåndterer(it).håndtere(
+//                behandling.id,
+//                LøsAvklaringsbehovBehandlingHendelse(
+//                    løsning = AvklarStudentLøsning(
+//                        studentvurdering = StudentVurdering(
+//                            begrunnelse = "Er student",
+//                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+//                            oppfyller11_14 = false,
+//                            avbruttStudieDato = null
+//                        )
+//                    ),
+//                    behandlingVersjon = behandling.versjon
+//                )
+//            )
+//        }
+//        ventPåSvar()
 
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(it).håndtere(
@@ -500,23 +499,23 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = AvklarStudentLøsning(
-                        studentvurdering = StudentVurdering(
-                            begrunnelse = "Er student",
-                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                            oppfyller11_14 = false,
-                            avbruttStudieDato = null
-                        )
-                    ),
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
+//        dataSource.transaction {
+//            AvklaringsbehovHendelseHåndterer(it).håndtere(
+//                behandling.id,
+//                LøsAvklaringsbehovBehandlingHendelse(
+//                    løsning = AvklarStudentLøsning(
+//                        studentvurdering = StudentVurdering(
+//                            begrunnelse = "Er student",
+//                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+//                            oppfyller11_14 = false,
+//                            avbruttStudieDato = null
+//                        )
+//                    ),
+//                    behandlingVersjon = behandling.versjon
+//                )
+//            )
+//        }
+//        ventPåSvar()
 
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(it).håndtere(
@@ -791,7 +790,7 @@ class FlytOrkestratorTest {
         assertThat(behandling.typeBehandling()).isEqualTo(TypeBehandling.Førstegangsbehandling)
 
         val stegHistorikk = behandling.stegHistorikk()
-        assertThat(stegHistorikk.map { it.steg() }).contains(StegType.AVKLAR_STUDENT)
+        assertThat(stegHistorikk.map { it.steg() }).contains(StegType.AVKLAR_SYKDOM)
         assertThat(stegHistorikk.map { it.status() }).contains(StegStatus.AVKLARINGSPUNKT)
 
         //Henter vurder alder-vilkår

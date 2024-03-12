@@ -15,7 +15,7 @@ class VurderStudentSteg private constructor(
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
 
-        if (studentGrunnlag?.erKonsistent() != true) {
+        if (studentGrunnlag?.erKonsistent() == true) { // TODO: Skal ikke innom før vi har lagret opplysning
             return StegResultat(listOf(Definisjon.AVKLAR_STUDENT))
         }
 
