@@ -129,6 +129,23 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
+        dataSource.transaction {
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarStudentLøsning(
+                        studentvurdering = StudentVurdering(
+                            begrunnelse = "Er student",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            oppfyller11_14 = false,
+                            avbruttStudieDato = null
+                        )
+                    ),
+                    behandlingVersjon = behandling.versjon
+                )
+            )
+        }
+        ventPåSvar()
 
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(it).håndtere(
@@ -163,23 +180,6 @@ class FlytOrkestratorTest {
                             begrunnelse = "Trenger hjelp fra nav",
                             erBehovForBistand = true
                         ),
-                    ),
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = AvklarStudentLøsning(
-                        studentvurdering = StudentVurdering(
-                            begrunnelse = "Er student",
-                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                            oppfyller11_14 = false,
-                            avbruttStudieDato = null
-                        )
                     ),
                     behandlingVersjon = behandling.versjon
                 )
@@ -329,6 +329,23 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
+        dataSource.transaction {
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarStudentLøsning(
+                        studentvurdering = StudentVurdering(
+                            begrunnelse = "Er student",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            oppfyller11_14 = false,
+                            avbruttStudieDato = null
+                        )
+                    ),
+                    behandlingVersjon = behandling.versjon
+                )
+            )
+        }
+        ventPåSvar()
 
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(it).håndtere(
@@ -363,24 +380,6 @@ class FlytOrkestratorTest {
                             begrunnelse = "Trenger hjelp fra nav",
                             erBehovForBistand = true
                         ),
-                    ),
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
-
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = AvklarStudentLøsning(
-                        studentvurdering = StudentVurdering(
-                            begrunnelse = "Er student",
-                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                            oppfyller11_14 = false,
-                            avbruttStudieDato = null
-                        )
                     ),
                     behandlingVersjon = behandling.versjon
                 )
@@ -501,6 +500,23 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
+        dataSource.transaction {
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarStudentLøsning(
+                        studentvurdering = StudentVurdering(
+                            begrunnelse = "Er student",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            oppfyller11_14 = false,
+                            avbruttStudieDato = null
+                        )
+                    ),
+                    behandlingVersjon = behandling.versjon
+                )
+            )
+        }
+        ventPåSvar()
 
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(it).håndtere(
@@ -535,23 +551,6 @@ class FlytOrkestratorTest {
                             begrunnelse = "Trenger hjelp fra nav",
                             erBehovForBistand = true
                         ),
-                    ),
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = AvklarStudentLøsning(
-                        studentvurdering = StudentVurdering(
-                            begrunnelse = "Er student",
-                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-                            oppfyller11_14 = false,
-                            avbruttStudieDato = null
-                        )
                     ),
                     behandlingVersjon = behandling.versjon
                 )
@@ -792,7 +791,7 @@ class FlytOrkestratorTest {
         assertThat(behandling.typeBehandling()).isEqualTo(TypeBehandling.Førstegangsbehandling)
 
         val stegHistorikk = behandling.stegHistorikk()
-        //assertThat(stegHistorikk.map { it.steg() }).contains(StegType.AVKLAR_STUDENT)
+        assertThat(stegHistorikk.map { it.steg() }).contains(StegType.AVKLAR_STUDENT)
         assertThat(stegHistorikk.map { it.status() }).contains(StegStatus.AVKLARINGSPUNKT)
 
         //Henter vurder alder-vilkår
