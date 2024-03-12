@@ -176,7 +176,7 @@ class FlytOrkestratorTest {
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarBistandsbehovLøsning(
-                        bistandVurdering = BistandVurdering(
+                        bistandsVurdering = BistandVurdering(
                             begrunnelse = "Trenger hjelp fra nav",
                             erBehovForBistand = true
                         ),
@@ -376,7 +376,7 @@ class FlytOrkestratorTest {
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarBistandsbehovLøsning(
-                        bistandVurdering = BistandVurdering(
+                        bistandsVurdering = BistandVurdering(
                             begrunnelse = "Trenger hjelp fra nav",
                             erBehovForBistand = true
                         ),
@@ -547,7 +547,7 @@ class FlytOrkestratorTest {
                 behandling.id,
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = AvklarBistandsbehovLøsning(
-                        bistandVurdering = BistandVurdering(
+                        bistandsVurdering = BistandVurdering(
                             begrunnelse = "Trenger hjelp fra nav",
                             erBehovForBistand = true
                         ),

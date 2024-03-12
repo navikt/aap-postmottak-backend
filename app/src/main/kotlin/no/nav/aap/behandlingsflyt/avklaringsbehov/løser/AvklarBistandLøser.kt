@@ -17,11 +17,11 @@ class AvklarBistandLøser(val connection: DBConnection) : AvklaringsbehovsLøser
 
         bistandRepository.lagre(
             behandlingId = behandling.id,
-            bistandVurdering = løsning.bistandVurdering
+            bistandVurdering = løsning.bistandsVurdering
         )
 
         return LøsningsResultat(
-            begrunnelse = løsning.bistandVurdering.begrunnelse
+            begrunnelse = løsning.bistandsVurdering.begrunnelse
         )
     }
 
