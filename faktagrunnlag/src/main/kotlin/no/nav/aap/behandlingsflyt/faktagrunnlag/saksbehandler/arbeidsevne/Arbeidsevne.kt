@@ -4,5 +4,5 @@ import no.nav.aap.verdityper.Prosent
 
 data class Arbeidsevne(
     val begrunnelse: String,
-    val andelNedsattArbeidsevne: Prosent
+    val arbeidsevne: Prosent
 )

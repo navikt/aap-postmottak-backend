@@ -24,7 +24,7 @@ class ArbeidsevneRepository(private val connection: DBConnection) {
                     behandlingId = behandlingId,
                     vurdering = Arbeidsevne(
                         begrunnelse = row.getString("BEGRUNNELSE"),
-                        andelNedsattArbeidsevne = Prosent(row.getInt("ANDEL_AV_NEDSETTELSE"))
+                        arbeidsevne = Prosent(row.getInt("ANDEL_AV_NEDSETTELSE"))
                     )
                 )
             }
@@ -44,7 +44,7 @@ class ArbeidsevneRepository(private val connection: DBConnection) {
             connection.executeReturnKey("INSERT INTO ARBEIDSEVNE (BEGRUNNELSE, ANDEL_AV_NEDSETTELSE) VALUES (?, ?)") {
                 setParams {
                     setString(1, arbeidsevne.begrunnelse)
-                    setInt(2, arbeidsevne.andelNedsattArbeidsevne.prosentverdi())
+                    setInt(2, arbeidsevne.arbeidsevne.prosentverdi())
                 }
             }
 
