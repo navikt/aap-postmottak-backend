@@ -137,12 +137,8 @@ class BehandlingFlyt private constructor(
         val stegene = stegene()
         return Definisjon.entries
             .filter { def ->
-                stegene.contains(def.løsesISteg) && def.erFrivillig() && indexOf(def.løsesISteg) >= indexOf(aktivtSteg)
+                stegene.contains(def.løsesISteg) && def.erFrivillig() && stegene.indexOf(aktivtSteg) <= stegene.indexOf(def.løsesISteg)
             }
-    }
-
-    private fun indexOf(steg: StegType): Int {
-        return flyt.indexOfFirst { it.steg.type() == steg }
     }
 
     internal fun tilbakeflyt(avklaringsbehov: Avklaringsbehov?): BehandlingFlyt {
