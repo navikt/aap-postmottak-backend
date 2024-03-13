@@ -1,14 +1,15 @@
 -- MOTTATT DOKUMENT
 CREATE TABLE MOTTATT_DOKUMENT
 (
-    ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
-    SAK_ID        BIGINT                                 NOT NULL REFERENCES SAK (ID),
-    BEHANDLING_ID BIGINT                                 NULL REFERENCES BEHANDLING (ID),
-    JOURNALPOST   VARCHAR(25)                            NOT NULL,
-    MOTTATT_TID   TIMESTAMP(3)                           NOT NULL,
-    TYPE          VARCHAR(50)                            NOT NULL,
-    STATUS        VARCHAR(50)                            NOT NULL,
-    OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+    ID                   BIGSERIAL                              NOT NULL PRIMARY KEY,
+    SAK_ID               BIGINT                                 NOT NULL REFERENCES SAK (ID),
+    BEHANDLING_ID        BIGINT                                 NULL REFERENCES BEHANDLING (ID),
+    JOURNALPOST          VARCHAR(25)                            NOT NULL,
+    MOTTATT_TID          TIMESTAMP(3)                           NOT NULL,
+    TYPE                 VARCHAR(50)                            NOT NULL,
+    STATUS               VARCHAR(50)                            NOT NULL,
+    OPPRETTET_TID        TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    strukturert_dokument TEXT                                   NULL
 );
 CREATE INDEX IDX_MOTTATT_DOKUMENT_1 ON MOTTATT_DOKUMENT (SAK_ID, TYPE, STATUS);
 CREATE INDEX IDX_MOTTATT_DOKUMENT_2 ON MOTTATT_DOKUMENT (SAK_ID, BEHANDLING_ID);

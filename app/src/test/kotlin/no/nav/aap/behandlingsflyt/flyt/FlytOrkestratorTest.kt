@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarBistandsbehovLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarStudentLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarSykdomLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.FastsettBeregningstidspunktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.FatteVedtakLøsning
@@ -19,22 +20,23 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.Underveis
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.ArbeidIPeriode
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.pliktkort.Pliktkort
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.FakeInntektRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandVurdering
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.SykdomsvurderingDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.YrkesskadevurderingDto
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
-import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
-import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
-import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
 import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsOppgaver
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -112,7 +114,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("20"),
                 mottattTidspunkt = LocalDateTime.now().minusMonths(3),
-                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
             )
         )
         ventPåSvar()
@@ -127,24 +129,6 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
-        // Fjerner student
-//        dataSource.transaction {
-//            AvklaringsbehovHendelseHåndterer(it).håndtere(
-//                behandling.id,
-//                LøsAvklaringsbehovBehandlingHendelse(
-//                    løsning = AvklarStudentLøsning(
-//                        studentvurdering = StudentVurdering(
-//                            begrunnelse = "Er student",
-//                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-//                            oppfyller11_14 = false,
-//                            avbruttStudieDato = null
-//                        )
-//                    ),
-//                    behandlingVersjon = behandling.versjon
-//                )
-//            )
-//        }
-//        ventPåSvar()
 
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(it).håndtere(
@@ -313,7 +297,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("10"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
             )
         )
         ventPåSvar()
@@ -484,7 +468,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("11"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, true), Brevkode.SØKNAD)
             )
         )
         ventPåSvar()
@@ -499,23 +483,23 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
-//        dataSource.transaction {
-//            AvklaringsbehovHendelseHåndterer(it).håndtere(
-//                behandling.id,
-//                LøsAvklaringsbehovBehandlingHendelse(
-//                    løsning = AvklarStudentLøsning(
-//                        studentvurdering = StudentVurdering(
-//                            begrunnelse = "Er student",
-//                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
-//                            oppfyller11_14 = false,
-//                            avbruttStudieDato = null
-//                        )
-//                    ),
-//                    behandlingVersjon = behandling.versjon
-//                )
-//            )
-//        }
-//        ventPåSvar()
+        dataSource.transaction {
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarStudentLøsning(
+                        studentvurdering = StudentVurdering(
+                            begrunnelse = "Er student",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            oppfyller11_14 = false,
+                            avbruttStudieDato = null
+                        )
+                    ),
+                    behandlingVersjon = behandling.versjon
+                )
+            )
+        }
+        ventPåSvar()
 
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(it).håndtere(
@@ -780,7 +764,7 @@ class FlytOrkestratorTest {
             DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("1"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
             )
         )
         ventPåSvar()
@@ -820,7 +804,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("2"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
             )
         )
         ventPåSvar()
@@ -853,7 +837,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("3"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
             )
         )
         ventPåSvar()

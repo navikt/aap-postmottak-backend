@@ -1,7 +1,7 @@
-package no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort
+package no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.pliktkort
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.PeriodisertData
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.ArbeidIPeriode
-import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.PeriodisertData
 import no.nav.aap.verdityper.Periode
 
 class Pliktkort(val timerArbeidPerPeriode: Set<ArbeidIPeriode>) : PeriodisertData {

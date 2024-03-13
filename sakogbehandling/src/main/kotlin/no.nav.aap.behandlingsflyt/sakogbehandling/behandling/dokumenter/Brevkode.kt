@@ -4,4 +4,7 @@ enum class Brevkode {
     SØKNAD,
     PLIKTKORT,
     UKJENT
+
 }
+
+

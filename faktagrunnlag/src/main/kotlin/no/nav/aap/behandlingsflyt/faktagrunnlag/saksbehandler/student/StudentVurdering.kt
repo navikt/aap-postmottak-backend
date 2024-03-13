@@ -4,6 +4,7 @@ import no.nav.aap.verdityper.dokument.JournalpostId
 import java.time.LocalDate
 
 data class StudentVurdering(
+    val id: Long? = null,
     val begrunnelse: String,
     val dokumenterBruktIVurdering: List<JournalpostId>,
     val oppfyller11_14: Boolean?,

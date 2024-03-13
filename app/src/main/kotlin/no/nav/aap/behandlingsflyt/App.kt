@@ -31,6 +31,8 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.fatteVedtakGrunnlagApi
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.flate.bistandsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.medlemskap.medlemskapsgrunnlagApi
@@ -41,8 +43,6 @@ import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
 import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
-import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.StrukturertDokument
-import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.søknad.Søknad
 import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsOppgaver
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
@@ -219,7 +219,7 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
                 ident, DokumentMottattPersonHendelse(
                     journalpost = JournalpostId("" + System.currentTimeMillis()),
                     mottattTidspunkt = LocalDateTime.now(),
-                    strukturertDokument = StrukturertDokument(Søknad(periode), Brevkode.SØKNAD)
+                    strukturertDokument = StrukturertDokument(Søknad(periode, dto.student), Brevkode.SØKNAD)
                 )
             )
             respond(dto)

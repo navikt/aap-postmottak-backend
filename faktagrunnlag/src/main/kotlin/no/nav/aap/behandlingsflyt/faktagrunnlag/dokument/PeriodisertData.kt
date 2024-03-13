@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.hendelse.mottak.dokument
+package no.nav.aap.behandlingsflyt.faktagrunnlag.dokument
 
 import no.nav.aap.verdityper.Periode
 

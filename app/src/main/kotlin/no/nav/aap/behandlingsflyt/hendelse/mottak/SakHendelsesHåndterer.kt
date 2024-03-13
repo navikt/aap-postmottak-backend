@@ -2,14 +2,9 @@ package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.DokumentType
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.MottattDokumentRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.adapter.MottaDokumentService
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.adapter.MottakAvPliktkortRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.adapter.UbehandletPliktkort
-import no.nav.aap.behandlingsflyt.hendelse.mottak.dokument.pliktkort.Pliktkort
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottaDokumentService
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottattDokumentRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.SakSkrivelås
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
@@ -25,8 +20,7 @@ class SakHendelsesHåndterer(connection: DBConnection) {
     private val låsRepository = TaSkriveLåsRepository(connection)
     private val grunnlagKopierer = GrunnlagKopierer(connection)
     private val mottaDokumentService = MottaDokumentService(
-        mottattDokumentRepository = MottattDokumentRepository(connection),
-        pliktkortRepository = MottakAvPliktkortRepository(connection)
+        mottattDokumentRepository = MottattDokumentRepository(connection)
     )
 
     fun håndtere(key: Saksnummer, hendelse: SakHendelse): BehandlingId? {
@@ -55,33 +49,15 @@ class SakHendelsesHåndterer(connection: DBConnection) {
 
         log.info("Mottatt dokument av typen {} på sak {}", hendelse.strukturertDokument.brevkode, key)
 
-        when (hendelse.strukturertDokument.brevkode) {
-            Brevkode.PLIKTKORT -> {
-                val pliktkort = UbehandletPliktkort(
-                    hendelse.journalpost,
-                    (hendelse.strukturertDokument.data as Pliktkort).timerArbeidPerPeriode
-                )
-                mottaDokumentService.håndterMottattPliktkort(
-                    sakId = sakSkrivelås.id,
-                    journalpostId = hendelse.journalpost,
-                    mottattTidspunkt = hendelse.mottattTidspunkt,
-                    pliktKort = pliktkort
-                )
-            }
-
-            Brevkode.SØKNAD -> {
-                mottaDokumentService.håndterMottattDokument(
-                    journalpostId = hendelse.journalpost,
-                    sakId = sakSkrivelås.id,
-                    mottattTidspunkt = hendelse.mottattTidspunkt,
-                    dokumentType = DokumentType.SØKNAD
-                )
-            }
-
-            else -> {
-                throw IllegalArgumentException("Ukjent brevkode[${hendelse.strukturertDokument.brevkode}], vet ikke hvordan denne skal håndteres")
-            }
-        }
+        mottaDokumentService.håndterMottattDokument(
+            journalpostId = hendelse.journalpost,
+            sakId = sakSkrivelås.id,
+            mottattTidspunkt = hendelse.mottattTidspunkt,
+            brevkode = hendelse.strukturertDokument.brevkode,
+            strukturertDokument = hendelse.strukturertDokument
+        )
         låsRepository.verifiserSkrivelås(behandlingSkrivelås)
     }
+
 }
+

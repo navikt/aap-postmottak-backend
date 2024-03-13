@@ -7,11 +7,47 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class StudentRepository(private val connection: DBConnection) {
 
-    fun lagre(behandlingId: BehandlingId, studentvurdering: StudentVurdering?) {
+    fun lagre(behandlingId: BehandlingId, oppgittStudent: OppgittStudent?) {
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
         val nyttGrunnlag = StudentGrunnlag(
             null,
             studentvurdering = eksisterendeGrunnlag?.studentvurdering,
+            oppgittStudent = oppgittStudent
+        )
+
+        if (eksisterendeGrunnlag != nyttGrunnlag) {
+            eksisterendeGrunnlag?.let {
+                deaktiverGrunnlag(behandlingId)
+            }
+
+            val oppgittStudentId = lagreOppgittStudent(oppgittStudent)
+            lagreGrunnlag(behandlingId, eksisterendeGrunnlag?.studentvurdering?.id, oppgittStudentId)
+        }
+    }
+
+    private fun lagreOppgittStudent(oppgittStudent: OppgittStudent?): Long? {
+        if (oppgittStudent == null) {
+            return null
+        }
+        val query = """
+                INSERT INTO OPPGITT_STUDENT (har_avbrutt, avbrutt_dato)
+                VALUES (?, ?)
+            """.trimIndent()
+
+        return connection.executeReturnKey(query) {
+            setParams {
+                setBoolean(1, oppgittStudent.harAvbruttStudie)
+                setLocalDate(2, oppgittStudent.avbruttDato) // TODO: Få inn strukturert
+            }
+        }
+    }
+
+    fun lagre(behandlingId: BehandlingId, studentvurdering: StudentVurdering?) {
+        val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
+        val nyttGrunnlag = StudentGrunnlag(
+            null,
+            studentvurdering = studentvurdering,
+            oppgittStudent = eksisterendeGrunnlag?.oppgittStudent
         )
 
         if (eksisterendeGrunnlag != nyttGrunnlag) {
@@ -20,7 +56,7 @@ class StudentRepository(private val connection: DBConnection) {
             }
 
             val vurderingId = lagreVurdering(studentvurdering)
-            lagreGrunnlag(behandlingId, vurderingId)
+            lagreGrunnlag(behandlingId, vurderingId, eksisterendeGrunnlag?.oppgittStudent?.id)
         }
     }
 
@@ -33,15 +69,16 @@ class StudentRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun lagreGrunnlag(behandlingId: BehandlingId, vurderingId: Long?) {
+    private fun lagreGrunnlag(behandlingId: BehandlingId, vurderingId: Long?, oppgittStudentId: Long?) {
         val query = """
-            INSERT INTO STUDENT_GRUNNLAG (behandling_id, student_id) VALUES (?, ?)
+            INSERT INTO STUDENT_GRUNNLAG (behandling_id, student_id, oppgitt_student_id) VALUES (?, ?, ?)
         """.trimIndent()
 
         connection.execute(query) {
             setParams {
                 setLong(1, behandlingId.toLong())
                 setLong(2, vurderingId)
+                setLong(3, oppgittStudentId)
             }
         }
     }
@@ -89,8 +126,8 @@ class StudentRepository(private val connection: DBConnection) {
         }
 
         val query = """
-            INSERT INTO STUDENT_GRUNNLAG (behandling_id, student_id) 
-            SELECT ?, student_id from STUDENT_GRUNNLAG where behandling_id = ? and aktiv
+            INSERT INTO STUDENT_GRUNNLAG (behandling_id, student_id, oppgitt_student_id) 
+            SELECT ?, student_id, oppgitt_student_id from STUDENT_GRUNNLAG where behandling_id = ? and aktiv
         """.trimIndent()
 
         connection.execute(query) {
@@ -119,8 +156,32 @@ class StudentRepository(private val connection: DBConnection) {
     private fun mapGrunnlag(row: Row): StudentGrunnlag {
         return StudentGrunnlag(
             row.getLong("id"),
-            mapStudentVurdering(row.getLongOrNull("student_id"))
+            mapStudentVurdering(row.getLongOrNull("student_id")),
+            mapOppgittStudent(row.getLongOrNull("oppgitt_student_id"))
         )
+    }
+
+    private fun mapOppgittStudent(id: Long?): OppgittStudent? {
+        if (id == null) {
+            return null
+        }
+        val query = """
+            SELECT * FROM OPPGITT_STUDENT WHERE id = ?
+        """.trimIndent()
+        //HAR_AVBRUTT, avbrutt_dato
+
+        return connection.queryFirstOrNull(query) {
+            setParams {
+                setLong(1, id)
+            }
+            setRowMapper {
+                OppgittStudent(
+                    it.getLong("id"),
+                    it.getBoolean("HAR_AVBRUTT"),
+                    it.getLocalDateOrNull("avbrutt_dato")
+                )
+            }
+        }
     }
 
     private fun mapStudentVurdering(studentId: Long?): StudentVurdering? {
@@ -137,6 +198,7 @@ class StudentRepository(private val connection: DBConnection) {
             }
             setRowMapper {
                 StudentVurdering(
+                    it.getLong("id"),
                     it.getString("begrunnelse"),
                     hentDokumenterTilVurdering(studentId),
                     it.getBooleanOrNull("oppfylt"),
@@ -164,4 +226,5 @@ class StudentRepository(private val connection: DBConnection) {
     fun hent(behandlingId: BehandlingId): StudentGrunnlag {
         return requireNotNull(hentHvisEksisterer(behandlingId))
     }
+
 }

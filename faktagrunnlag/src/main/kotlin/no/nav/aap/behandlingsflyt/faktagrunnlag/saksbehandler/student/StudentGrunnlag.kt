@@ -3,12 +3,12 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student
 class StudentGrunnlag(
     val id: Long? = null,
     val studentvurdering: StudentVurdering?,
+    val oppgittStudent: OppgittStudent?
 ) {
     fun erKonsistent(): Boolean {
-        // TODO: Kommenter inn når lagring er på plass
-//        if (oppgittStudent == null) {
-//            return true
-//        }
+        if (oppgittStudent == null || !oppgittStudent.harAvbruttStudie) {
+            return true
+        }
         return studentvurdering != null
     }
 
