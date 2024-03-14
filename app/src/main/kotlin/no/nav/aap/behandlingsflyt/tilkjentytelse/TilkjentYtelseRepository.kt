@@ -8,7 +8,7 @@ import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class TilkjentYtelseRepository(private val connection: DBConnection) {
-    fun hentHvisEksiterer(behandlingId: BehandlingId): Tidslinje<Tilkjent>? {
+    fun hentHvisEksiterer(behandlingId: BehandlingId): Tidslinje<Tilkjent, Segment<Tilkjent>>? {
         val tilkjent = connection.queryList(
             """
             SELECT * FROM TILKJENT_PERIODE WHERE TILKJENT_YTELSE_ID IN (SELECT ID FROM TILKJENT_YTELSE WHERE BEHANDLING_ID=? AND AKTIV=TRUE)
@@ -39,7 +39,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         return Tidslinje(tilkjent)
     }
 
-    fun lagre(behandlingId: BehandlingId, tilkjent: Tidslinje<Tilkjent>) {
+    fun lagre(behandlingId: BehandlingId, tilkjent: Tidslinje<Tilkjent, Segment<Tilkjent>>) {
         val eksisterendeTilkjent = hentHvisEksiterer(behandlingId)
         if(eksisterendeTilkjent == tilkjent) {
             return

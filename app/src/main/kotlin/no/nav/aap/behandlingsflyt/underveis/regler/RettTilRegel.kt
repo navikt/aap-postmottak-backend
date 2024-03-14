@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
+import no.nav.aap.tidslinje.JoinStyle
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.Tidslinje
 
@@ -12,7 +13,10 @@ import no.nav.aap.tidslinje.Tidslinje
  *
  */
 class RettTilRegel : UnderveisRegel {
-    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
+    override fun vurder(
+        input: UnderveisInput,
+        resultat: Tidslinje<Vurdering, Segment<Vurdering>>
+    ): Tidslinje<Vurdering, Segment<Vurdering>> {
         require(input.relevanteVilkår.any { it.type == Vilkårtype.ALDERSVILKÅRET })
         require(input.relevanteVilkår.any { it.type == Vilkårtype.BISTANDSVILKÅRET })
         require(input.relevanteVilkår.any { it.type == Vilkårtype.SYKDOMSVILKÅRET })
@@ -22,7 +26,9 @@ class RettTilRegel : UnderveisRegel {
             val segmenter = vilkår.vilkårsperioder()
                 .map { Segment(it.periode, EnkelVurdering(vilkår.type, it.utfall)) }
 
-            retur = retur.kombiner(Tidslinje(segmenter), SlåSammenVurderingerSammenslåer())
+            retur = retur.kombiner(Tidslinje(segmenter), JoinStyle.CROSS_JOIN { periode, venstre, høyre ->
+                SlåSammenVurderingerSammenslåer().sammenslå(periode, venstre, høyre)
+            })
         }
         return retur
     }

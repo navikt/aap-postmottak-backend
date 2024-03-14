@@ -2,8 +2,8 @@ package no.nav.aap.tidslinje
 
 import no.nav.aap.verdityper.Periode
 
-interface JoinStyle<in VENSTRE, in HØYRE, RETUR, out SRETUR : Segment<RETUR>?> {
-    fun kombiner(periode: Periode, venstre: VENSTRE, høyre: HØYRE): SRETUR?
+interface JoinStyle<in VENSTRE, in HØYRE:Any?, RETUR, out SRETUR : Segment<RETUR>?> {
+    fun kombiner(periode: Periode, venstre: VENSTRE?, høyre: HØYRE?): SRETUR?
 
     /**
      * Ene eller andre har verdi.
@@ -11,7 +11,7 @@ interface JoinStyle<in VENSTRE, in HØYRE, RETUR, out SRETUR : Segment<RETUR>?> 
     class CROSS_JOIN<VENSTRE, HØYRE, RETUR, SRETUR : Segment<RETUR>>(
         private val kombinerer: (Periode, VENSTRE?, HØYRE?) -> SRETUR?
     ) : JoinStyle<VENSTRE, HØYRE, RETUR, SRETUR> {
-        override fun kombiner(periode: Periode, venstre: VENSTRE, høyre: HØYRE): SRETUR? {
+        override fun kombiner(periode: Periode, venstre: VENSTRE?, høyre: HØYRE?): SRETUR? {
             if (venstre == null && høyre == null) return null
             return this.kombinerer(periode, venstre, høyre)
         }
@@ -23,7 +23,7 @@ interface JoinStyle<in VENSTRE, in HØYRE, RETUR, out SRETUR : Segment<RETUR>?> 
     class DISJOINT<VENSTRE, HØYRE, RETUR, SRETUR : Segment<RETUR>>(
         private val kombinerer: (Periode, VENSTRE & Any) -> SRETUR
     ) : JoinStyle<VENSTRE, HØYRE, RETUR, SRETUR> {
-        override fun kombiner(periode: Periode, venstre: VENSTRE, høyre: HØYRE): SRETUR? {
+        override fun kombiner(periode: Periode, venstre: VENSTRE?, høyre: HØYRE?): SRETUR? {
             if (venstre == null || høyre != null) return null
             return this.kombinerer(periode, venstre)
         }
@@ -35,7 +35,7 @@ interface JoinStyle<in VENSTRE, in HØYRE, RETUR, out SRETUR : Segment<RETUR>?> 
     class INNER_JOIN<VENSTRE, HØYRE, RETUR, SRETUR : Segment<RETUR>>(
         private val kombinerer: (Periode, VENSTRE & Any, HØYRE & Any) -> SRETUR?
     ) : JoinStyle<VENSTRE, HØYRE, RETUR, SRETUR> {
-        override fun kombiner(periode: Periode, venstre: VENSTRE, høyre: HØYRE): SRETUR? {
+        override fun kombiner(periode: Periode, venstre: VENSTRE?, høyre: HØYRE?): SRETUR? {
             if (venstre == null || høyre == null) return null
             return this.kombinerer(periode, venstre, høyre)
         }
@@ -46,9 +46,9 @@ interface JoinStyle<in VENSTRE, in HØYRE, RETUR, out SRETUR : Segment<RETUR>?> 
      * nulls for RHS.
      */
     class LEFT_JOIN<VENSTRE, HØYRE, RETUR, SRETUR : Segment<RETUR>>(
-        private val kombinerer: (Periode, VENSTRE & Any, HØYRE) -> SRETUR?
+        private val kombinerer: (Periode, VENSTRE & Any, HØYRE?) -> SRETUR?
     ) : JoinStyle<VENSTRE, HØYRE, RETUR, SRETUR> {
-        override fun kombiner(periode: Periode, venstre: VENSTRE, høyre: HØYRE): SRETUR? {
+        override fun kombiner(periode: Periode, venstre: VENSTRE?, høyre: HØYRE?): SRETUR? {
             if (venstre == null) return null
             return this.kombinerer(periode, venstre, høyre)
         }
@@ -59,9 +59,9 @@ interface JoinStyle<in VENSTRE, in HØYRE, RETUR, out SRETUR : Segment<RETUR>?> 
      * LHS.
      */
     class RIGHT_JOIN<VENSTRE, HØYRE, RETUR, SRETUR : Segment<RETUR>>(
-        private val kombinerer: (Periode, VENSTRE, HØYRE & Any) -> SRETUR
+        private val kombinerer: (Periode, VENSTRE?, HØYRE & Any) -> SRETUR
     ) : JoinStyle<VENSTRE, HØYRE, RETUR, SRETUR> {
-        override fun kombiner(periode: Periode, venstre: VENSTRE, høyre: HØYRE): SRETUR? {
+        override fun kombiner(periode: Periode, venstre: VENSTRE?, høyre: HØYRE?): SRETUR? {
             if (høyre == null) return null
             return this.kombinerer(periode, venstre, høyre)
         }

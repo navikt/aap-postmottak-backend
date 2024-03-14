@@ -10,7 +10,7 @@ class BarnVurderingGrunnlag(
     val behandlingId: BehandlingId,
     val vurdering: BarnVurdering
 ) {
-    fun Tidslinjer(): Tidslinje<Set<Ident>> {
+    fun Tidslinjer(): Tidslinje<Set<Ident>, Segment<Set<Ident>>> {
         return Tidslinje(vurdering.barn.map { barnVurderingPeriode ->
             Segment(
                 verdi = barnVurderingPeriode.barn,

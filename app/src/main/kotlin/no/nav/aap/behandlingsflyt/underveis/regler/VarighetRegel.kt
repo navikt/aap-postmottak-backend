@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
+import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.Tidslinje
 
 /**
@@ -15,7 +16,7 @@ import no.nav.aap.tidslinje.Tidslinje
  *
  */
 class VarighetRegel : UnderveisRegel {
-    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
+    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering, Segment<Vurdering>>): Tidslinje<Vurdering, Segment<Vurdering>> {
         // TODO
         return resultat
     }

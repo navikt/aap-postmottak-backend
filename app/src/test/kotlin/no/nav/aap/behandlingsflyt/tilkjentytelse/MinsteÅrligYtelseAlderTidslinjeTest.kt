@@ -1,13 +1,11 @@
 package no.nav.aap.behandlingsflyt.tilkjentytelse
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
-import no.nav.aap.tidslinje.JoinStyle
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.verdityper.GUnit
 import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-
 import java.time.LocalDate
 
 class MinsteÅrligYtelseAlderTidslinjeTest {
@@ -55,7 +53,7 @@ class MinsteÅrligYtelseAlderTidslinjeTest {
 
         val tidslinje = minsteÅrligYtelseAlderTidslinje.kombiner(
             minsteÅrligYtelseTidslinje,
-            JoinStyle.INNER_JOIN, BeregnTilkjentYtelseService.Companion.AldersjusteringAvMinsteÅrligYtelse
+            BeregnTilkjentYtelseService.Companion.AldersjusteringAvMinsteÅrligYtelse
         )
 
 

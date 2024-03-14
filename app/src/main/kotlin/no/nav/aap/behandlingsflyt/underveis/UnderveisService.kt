@@ -14,6 +14,7 @@ import no.nav.aap.behandlingsflyt.underveis.regler.SamordningRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.UnderveisInput
 import no.nav.aap.behandlingsflyt.underveis.regler.VarighetRegel
 import no.nav.aap.behandlingsflyt.underveis.regler.Vurdering
+import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.Tidslinje
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
@@ -35,7 +36,7 @@ class UnderveisService(
         VarighetRegel()
     )
 
-    fun vurder(behandlingId: BehandlingId): Tidslinje<Vurdering> {
+    fun vurder(behandlingId: BehandlingId): Tidslinje<Vurdering, Segment<Vurdering>> {
         val input = genererInput(behandlingId)
 
         val vurderRegler = vurderRegler(input)
@@ -54,12 +55,10 @@ class UnderveisService(
         return vurderRegler
     }
 
-    internal fun vurderRegler(input: UnderveisInput): Tidslinje<Vurdering> {
-        var resultat: Tidslinje<Vurdering> = Tidslinje()
-        regelset.forEach { regel ->
-            resultat = regel.vurder(input, resultat)
+    internal fun vurderRegler(input: UnderveisInput): Tidslinje<Vurdering, Segment<Vurdering>> {
+        return regelset.fold(Tidslinje()) { resultat, regel ->
+            regel.vurder(input, resultat)
         }
-        return resultat
     }
 
     private fun genererInput(behandlingId: BehandlingId): UnderveisInput {

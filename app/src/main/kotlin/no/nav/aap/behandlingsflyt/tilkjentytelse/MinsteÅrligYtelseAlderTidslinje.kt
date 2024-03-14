@@ -24,7 +24,7 @@ internal interface AlderStrategi {
 }
 
 internal class MinsteÅrligYtelseAlderTidslinje(val fødselsdato: Fødselsdato) {
-    fun tilTidslinje(): Tidslinje<AlderStrategi> {
+    fun tilTidslinje(): Tidslinje<AlderStrategi, Segment<AlderStrategi>> {
         return Tidslinje(
             listOf(
                 Segment(

@@ -5,7 +5,6 @@ import no.nav.aap.behandlingsflyt.dbtestdata.desember
 import no.nav.aap.behandlingsflyt.dbtestdata.januar
 import no.nav.aap.behandlingsflyt.dbtestdata.mai
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.Grunnbeløp
-import no.nav.aap.tidslinje.JoinStyle
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.StandardSammenslåere
 import no.nav.aap.tidslinje.Tidslinje
@@ -21,18 +20,16 @@ class GrunnbeløpTest {
         val tidslinje = Grunnbeløp.tilTidslinje()
         val tidslinjeGjennomsnitt = Grunnbeløp.tilTidslinjeGjennomsnitt()
 
-        val periodeForTidslinje: Tidslinje<Any?> = Tidslinje(Periode(30 april 2010, 1 mai 2010), null)
+        val periodeForTidslinje = Tidslinje(Segment(Periode(30 april 2010, 1 mai 2010), 1))
         val utregnetTidslinje = periodeForTidslinje.kombiner(
             other = tidslinje,
-            joinStyle = JoinStyle.LEFT_JOIN,
-            sammenslåer = StandardSammenslåere.kunHøyre()
+            joinStyle = StandardSammenslåere.kunHøyre()
         )
 
-        val periodeForGjennomsnitt: Tidslinje<Any?> = Tidslinje(Periode(31 desember 2009, 1 januar 2010), null)
+        val periodeForGjennomsnitt = Tidslinje(Segment(Periode(31 desember 2009, 1 januar 2010), 1))
         val utregnetTidslinjeGjennomsnitt = periodeForGjennomsnitt.kombiner(
             other = tidslinjeGjennomsnitt,
-            joinStyle = JoinStyle.LEFT_JOIN,
-            sammenslåer = StandardSammenslåere.kunHøyre()
+            joinStyle = StandardSammenslåere.kunHøyre()
         )
 
         assertThat(utregnetTidslinje)

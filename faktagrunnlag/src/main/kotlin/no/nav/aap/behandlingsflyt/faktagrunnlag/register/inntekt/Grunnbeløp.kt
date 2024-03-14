@@ -67,7 +67,7 @@ object Grunnbeløp {
                 return GUnit(beløp.divitert(tilTidslinjeGjennomsnitt().segment(år.atDay(1))!!.verdi, GUnit.SCALE))
             }
 
-            fun tilTidslinje(): Tidslinje<Beløp> {
+            fun tilTidslinje(): Tidslinje<Beløp, Segment<Beløp>> {
                 val grunnbeløp = grunnbeløp
                     .map { element -> element.dato to element.beløp }
                     .reversed()
@@ -83,7 +83,7 @@ object Grunnbeløp {
                     .let(::Tidslinje)
             }
 
-            fun tilTidslinjeGjennomsnitt(): Tidslinje<Beløp> {
+            fun tilTidslinjeGjennomsnitt(): Tidslinje<Beløp, Segment<Beløp>> {
                 val gjennomsnittligeGrunnbeløp = grunnbeløp
                     .mapNotNull { element -> element.gjennomsnittBeløp?.let { beløp -> element.dato to beløp } }
                     .reversed()
@@ -105,11 +105,11 @@ object Grunnbeløp {
         return Element.finnGUnit(år, beløp)
     }
 
-    fun tilTidslinje(): Tidslinje<Beløp> {
+    fun tilTidslinje(): Tidslinje<Beløp, Segment<Beløp>> {
         return Element.tilTidslinje()
     }
 
-    fun tilTidslinjeGjennomsnitt(): Tidslinje<Beløp> {
+    fun tilTidslinjeGjennomsnitt(): Tidslinje<Beløp, Segment<Beløp>> {
         return Element.tilTidslinjeGjennomsnitt()
     }
 }

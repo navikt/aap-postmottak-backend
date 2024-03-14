@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.barnetillegg.Barnet
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.barnetillegg.BarnetilleggRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.barn.BarnVurderingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
+import no.nav.aap.tidslinje.JoinStyle
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.Tidslinje
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -14,9 +15,9 @@ class BarnetilleggService(
     private val barnetilleggRepository: BarnetilleggRepository,
     private val sakOgBehandlingService: SakOgBehandlingService
 ) {
-    fun beregn(behandlingId: BehandlingId): Tidslinje<RettTilBarnetillegg> {
+    fun beregn(behandlingId: BehandlingId): Tidslinje<RettTilBarnetillegg, Segment<RettTilBarnetillegg>> {
         val sak = sakOgBehandlingService.hentSakFor(behandlingId)
-        var resultat: Tidslinje<RettTilBarnetillegg> =
+        var resultat: Tidslinje<RettTilBarnetillegg, Segment<RettTilBarnetillegg>> =
             Tidslinje(listOf(Segment(sak.rettighetsperiode, RettTilBarnetillegg())))
 
 
@@ -25,16 +26,16 @@ class BarnetilleggService(
 
 
         resultat = resultat.kombiner(
-            relevanteBarn
-        ) { periode, venstreSegment, høyreSegment ->
-            val høyreVerdi = høyreSegment?.verdi
-            val nyVenstreVerdi = venstreSegment?.verdi ?: RettTilBarnetillegg()
-            if (høyreVerdi != null) {
-                nyVenstreVerdi.leggTilBarn(høyreVerdi)
-            }
+            relevanteBarn,
+            JoinStyle.CROSS_JOIN { periode, venstreSegment, høyreSegment ->
+                val høyreVerdi = høyreSegment
+                val nyVenstreVerdi = venstreSegment ?: RettTilBarnetillegg()
+                if (høyreVerdi != null) {
+                    nyVenstreVerdi.leggTilBarn(høyreVerdi)
+                }
 
-            Segment(periode, nyVenstreVerdi)
-        }
+                Segment(periode, nyVenstreVerdi)
+            })
 
 
 

@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.Gradering
+import no.nav.aap.tidslinje.JoinStyle
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.StandardSammenslåere
 import no.nav.aap.tidslinje.Tidslinje
@@ -22,7 +23,7 @@ private const val HØYESTE_GRADERING_OPPTRAPPING = 80
  * - Arbeid fra meldeplikt
  */
 class GraderingArbeidRegel : UnderveisRegel {
-    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
+    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering, Segment<Vurdering>>): Tidslinje<Vurdering, Segment<Vurdering>> {
         val pliktkortTidslinje = konstruerTidslinje(input)
 
         // Regner kun ut gradering for perioden det er sendt noe inn for
@@ -38,24 +39,24 @@ class GraderingArbeidRegel : UnderveisRegel {
         val grenseverdiGradering = resultat.mapValue { Prosent(HØYESTE_GRADERING_NORMAL) }
             .kombiner(opptrappingTidslinje, StandardSammenslåere.prioriterHøyreSide())
 
-        return resultat.kombiner(grenseverdiGradering) { periode, venstreSegment, høyreSegment ->
-            var vurdering = venstreSegment?.verdi
-            val høyreSegmentVerdi = høyreSegment?.verdi
+        return resultat.kombiner(grenseverdiGradering, JoinStyle.CROSS_JOIN{ periode, venstreSegment, høyreSegment ->
+            var vurdering = venstreSegment
+            val høyreSegmentVerdi = høyreSegment
             if (høyreSegmentVerdi != null) {
                 vurdering = vurdering?.leggTilGrenseverdi(høyreSegmentVerdi)
             }
             Segment(periode, vurdering)
-        }.kombiner(arbeidsTidslinje) { periode, venstreSegment, høyreSegment ->
-            var vurdering: Vurdering = venstreSegment?.verdi ?: Vurdering()
-            val høyreSegmentVerdi = høyreSegment?.verdi
+        }).kombiner(arbeidsTidslinje,JoinStyle.CROSS_JOIN { periode, venstreSegment, høyreSegment ->
+            var vurdering: Vurdering = venstreSegment ?: Vurdering()
+            val høyreSegmentVerdi = høyreSegment
             if (høyreSegmentVerdi != null) {
                 vurdering = vurdering.leggTilGradering(høyreSegmentVerdi)
             }
             Segment(periode, vurdering)
-        }
+        })
     }
 
-    private fun konstruerTidslinje(input: UnderveisInput): Tidslinje<TimerArbeid> {
+    private fun konstruerTidslinje(input: UnderveisInput): Tidslinje<TimerArbeid,Segment<TimerArbeid>> {
         var tidslinje = Tidslinje(listOf(Segment(input.rettighetsperiode, TimerArbeid(BigDecimal.ZERO))))
         for (pliktkort in input.pliktkort) {
             tidslinje = tidslinje.kombiner(Tidslinje(pliktkort.timerArbeidPerPeriode.map {

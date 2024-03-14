@@ -56,4 +56,10 @@ object StandardSammenslåere {
             }
         }
     }
+
+    fun <T> kunHøyreRightJoin(): JoinStyle.RIGHT_JOIN<Any?, T, T, Segment<T>> {
+        return JoinStyle.RIGHT_JOIN { periode, _, høyreSegment ->
+            Segment(periode, høyreSegment)
+        }
+    }
 }

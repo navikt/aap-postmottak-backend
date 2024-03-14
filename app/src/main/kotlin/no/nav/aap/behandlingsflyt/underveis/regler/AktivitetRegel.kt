@@ -20,7 +20,7 @@ import java.util.*
  *   - etc
  */
 class AktivitetRegel : UnderveisRegel {
-    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
+    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering, Segment<Vurdering>>): Tidslinje<Vurdering, Segment<Vurdering>> {
 
         val nyttresultat = håndterMeldeplikt(resultat, input)
 
@@ -28,9 +28,9 @@ class AktivitetRegel : UnderveisRegel {
     }
 
     private fun håndterMeldeplikt(
-        resultat: Tidslinje<Vurdering>,
+        resultat: Tidslinje<Vurdering, Segment<Vurdering>>,
         input: UnderveisInput
-    ): Tidslinje<Vurdering> {
+    ): Tidslinje<Vurdering, Segment<Vurdering>> {
         val meldeperiodeTidslinje = utledMeldetidslinje(input)
         var nyttresultat = Tidslinje(resultat.segmenter())
 
@@ -42,31 +42,30 @@ class AktivitetRegel : UnderveisRegel {
             }.minOfOrNull { Segment(Periode(it.key, meldeperiode.tom()), it.value) }))
             val tidslinje = Tidslinje(listOf(meldeperiode)).kombiner(
                 dokumentTidslinje,
-                JoinStyle.CROSS_JOIN
-            ) { periode, venstreSegment, høyreSegment ->
-                val verdi = requireNotNull(venstreSegment!!.verdi)
-                if (høyreSegment?.verdi != null) {
-                    Segment(periode, MeldepliktVurdering(verdi.meldeperiode, Utfall.OPPFYLT))
-                } else {
-                    Segment(periode, verdi)
-                }
-            }
+                JoinStyle.CROSS_JOIN { periode, venstreSegment, høyreSegment ->
+                    val verdi = requireNotNull(venstreSegment)
+                    if (høyreSegment != null) {
+                        Segment(periode, MeldepliktVurdering(verdi.meldeperiode, Utfall.OPPFYLT))
+                    } else {
+                        Segment(periode, verdi)
+                    }
+                })
 
-            nyttresultat = nyttresultat.kombiner(tidslinje) { periode, venstreSegment, høyreSegment ->
-                var verdi = venstreSegment?.verdi ?: Vurdering()
-                if (høyreSegment?.verdi != null) {
-                    verdi = verdi.leggTilMeldepliktVurdering(requireNotNull(høyreSegment.verdi))
+            nyttresultat = nyttresultat.kombiner(tidslinje,JoinStyle.CROSS_JOIN { periode, venstreSegment, høyreSegment ->
+                var verdi = venstreSegment ?: Vurdering()
+                if (høyreSegment != null) {
+                    verdi = verdi.leggTilMeldepliktVurdering(høyreSegment)
                 }
                 Segment(periode, verdi)
-            }
+            })
         }
 
         return nyttresultat
     }
 
-    private fun utledMeldetidslinje(input: UnderveisInput): Tidslinje<MeldepliktVurdering> {
+    private fun utledMeldetidslinje(input: UnderveisInput): Tidslinje<MeldepliktVurdering, Segment<MeldepliktVurdering>> {
         val rettighetsperiode = input.rettighetsperiode
-        val dummy = Tidslinje(rettighetsperiode, true)
+        val dummy = Tidslinje(Segment(rettighetsperiode, true))
         return Tidslinje(
             listOf(
                 Segment(
@@ -91,7 +90,10 @@ class AktivitetRegel : UnderveisRegel {
                         Segment(
                             it.first().periode,
                             MeldepliktVurdering(
-                                meldeperiode = Periode(it.first().periode.fom.plusDays(1), it.first().periode.fom.plusDays(14)),
+                                meldeperiode = Periode(
+                                    it.first().periode.fom.plusDays(1),
+                                    it.first().periode.fom.plusDays(14)
+                                ),
                                 utfall = Utfall.IKKE_OPPFYLT,
                                 avslagsårsak = utledÅrsak(it.first().periode.tom)
                             )

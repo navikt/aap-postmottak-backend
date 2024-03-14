@@ -1,17 +1,16 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
 import no.nav.aap.tidslinje.Segment
-import no.nav.aap.tidslinje.SegmentSammenslåer
 import no.nav.aap.verdityper.Periode
 
-class SlåSammenVurderingerSammenslåer : SegmentSammenslåer<Vurdering, EnkelVurdering, Vurdering> {
-    override fun sammenslå(
+internal class SlåSammenVurderingerSammenslåer  {
+     internal fun  sammenslå(
         periode: Periode,
-        venstreSegment: Segment<Vurdering>?,
-        høyreSegment: Segment<EnkelVurdering>?
+        venstreSegment: Vurdering?,
+        høyreSegment: EnkelVurdering?
     ): Segment<Vurdering> {
-        val høyreSegmentVerdi = høyreSegment?.verdi
-        val venstreSegmentVerdi = venstreSegment?.verdi
+        val høyreSegmentVerdi = høyreSegment
+        val venstreSegmentVerdi = venstreSegment
 
         return if (venstreSegmentVerdi == null && høyreSegmentVerdi != null) {
             var nyVurdering = Vurdering()
