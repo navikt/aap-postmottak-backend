@@ -37,7 +37,7 @@ class GraderingArbeidRegel : UnderveisRegel {
             Tidslinje(input.opptrappingPerioder.map { Segment(it, Prosent(HØYESTE_GRADERING_OPPTRAPPING)) })
 
         val grenseverdiGradering = resultat.mapValue { Prosent(HØYESTE_GRADERING_NORMAL) }
-            .kombiner(opptrappingTidslinje, StandardSammenslåere.prioriterHøyreSide())
+            .kombiner(opptrappingTidslinje, StandardSammenslåere.prioriterHøyreSideCrossJoin())
 
         return resultat.kombiner(grenseverdiGradering, JoinStyle.CROSS_JOIN{ periode, venstreSegment, høyreSegment ->
             var vurdering = venstreSegment

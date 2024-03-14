@@ -100,7 +100,7 @@ class AktivitetRegel : UnderveisRegel {
                         )
                     )
                 )
-            }, StandardSammenslåere.prioriterHøyreSide()
+            }, StandardSammenslåere.prioriterHøyreSideCrossJoin()
         )
     }
 

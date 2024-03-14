@@ -95,7 +95,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
     }
 
     fun kryss(periode: Periode): Tidslinje<T, Segment<T>> {
-        return kombiner(Tidslinje(Segment(periode, null)), StandardSammenslåere.kunVenstre())
+        return kombiner(Tidslinje(Segment(periode, Unit)), StandardSammenslåere.kunVenstre())
     }
 
     fun kryss(other: Tidslinje<Any?, Segment<Any?>>): Tidslinje<T, Segment<T>> {

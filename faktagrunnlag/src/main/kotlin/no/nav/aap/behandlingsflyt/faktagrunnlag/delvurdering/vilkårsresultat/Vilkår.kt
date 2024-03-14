@@ -26,7 +26,7 @@ class Vilkår(
                         Vilkårsvurdering(vilkårsperiode)
                     )
                 )
-            ), StandardSammenslåere.prioriterHøyreSide()
+            ), StandardSammenslåere.prioriterHøyreSideCrossJoin()
         )
     }
 
