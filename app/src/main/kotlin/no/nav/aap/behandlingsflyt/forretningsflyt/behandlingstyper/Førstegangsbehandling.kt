@@ -22,6 +22,8 @@ import no.nav.aap.behandlingsflyt.forretningsflyt.steg.StartBehandlingSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.UnderveisSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderAlderSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderBistandsbehovSteg
+import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderLovvalgSteg
+import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderMedlemskapSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderStudentSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderSykdomSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderSykepengeErstatningSteg
@@ -32,14 +34,14 @@ object Førstegangsbehandling : BehandlingType {
         return BehandlingFlytBuilder()
             .medSteg(steg = StartBehandlingSteg, informasjonskrav = listOf(SøknadService))
             .medSteg(steg = VurderAlderSteg, informasjonskrav = listOf(PersonopplysningService))
-            .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.VURDER_LOVVALG))
+            .medSteg(steg = VurderLovvalgSteg)
             .medSteg(steg = VurderStudentSteg)
             .medSteg(steg = VurderSykdomSteg, informasjonskrav = listOf(YrkesskadeService))
             .medSteg(steg = FritakMeldepliktSteg)
             .medSteg(steg = FastsettArbeidsevneSteg)
             .medSteg(steg = VurderBistandsbehovSteg)
             .medSteg(steg = VurderSykepengeErstatningSteg)
-            .medSteg(steg = GeneriskPlaceholderFlytSteg(StegType.VURDER_MEDLEMSKAP))
+            .medSteg(steg = VurderMedlemskapSteg)
             .medSteg(steg = FastsettBeregningstidspunktSteg)
             .medSteg(steg = FastsettGrunnlagSteg, informasjonskrav = listOf(InntektService))
             .medSteg(steg = UnderveisSteg, informasjonskrav = listOf(PliktkortService))

@@ -14,8 +14,7 @@ class Vilkår(
 
     fun vilkårsperioder(): List<Vilkårsperiode> {
         return vilkårTidslinje.segmenter()
-            .filter { it.verdi != null }
-            .map { segment -> Vilkårsperiode(segment.periode, segment.verdi!!) }
+            .map { segment -> Vilkårsperiode(segment.periode, segment.verdi) }
     }
 
     fun leggTilVurdering(vilkårsperiode: Vilkårsperiode) {
@@ -46,8 +45,7 @@ class Vilkår(
     fun harPerioderSomIkkeErVurdert(periodeTilVurdering: Set<Periode>): Boolean {
         return vilkårTidslinje.kryss(Tidslinje(periodeTilVurdering.map { Segment(it, Unit) }))
             .segmenter()
-            .filter { it.verdi != null }
-            .any { periode -> periode.verdi!!.erIkkeVurdert() }
+            .any { periode -> periode.verdi.erIkkeVurdert() }
     }
 
     override fun toString(): String {
