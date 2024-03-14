@@ -76,6 +76,35 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                 respond(dto)
             }
         }
+        route("/{referanse}/resultat") {
+            get<BehandlingReferanse, BehandlingResultatDto> { req ->
+                val dto = dataSource.transaction { connection ->
+                    val behandling = behandling(connection, req)
+
+                    val vilkårResultat = vilkårResultat(connection, behandling.id)
+
+                    BehandlingResultatDto(alleVilkår(vilkårResultat))
+                }
+                respond(dto)
+            }
+        }
+    }
+}
+
+fun alleVilkår(vilkårResultat: Vilkårsresultat): List<VilkårDTO> {
+    return vilkårResultat.alle().map { vilkår ->
+        VilkårDTO(
+            vilkår.type,
+            perioder = vilkår.vilkårsperioder().map { vp ->
+                VilkårsperiodeDTO(
+                    vp.periode,
+                    vp.utfall,
+                    vp.manuellVurdering,
+                    vp.begrunnelse,
+                    vp.avslagsårsak,
+                    vp.innvilgelsesårsak
+                )
+            })
     }
 }
 
