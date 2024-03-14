@@ -23,7 +23,7 @@ private const val HØYESTE_GRADERING_OPPTRAPPING = 80
  * - Arbeid fra meldeplikt
  */
 class GraderingArbeidRegel : UnderveisRegel {
-    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering, Segment<Vurdering>>): Tidslinje<Vurdering, Segment<Vurdering>> {
+    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
         val pliktkortTidslinje = konstruerTidslinje(input)
 
         // Regner kun ut gradering for perioden det er sendt noe inn for
@@ -56,7 +56,7 @@ class GraderingArbeidRegel : UnderveisRegel {
         })
     }
 
-    private fun konstruerTidslinje(input: UnderveisInput): Tidslinje<TimerArbeid,Segment<TimerArbeid>> {
+    private fun konstruerTidslinje(input: UnderveisInput): Tidslinje<TimerArbeid> {
         var tidslinje = Tidslinje(listOf(Segment(input.rettighetsperiode, TimerArbeid(BigDecimal.ZERO))))
         for (pliktkort in input.pliktkort) {
             tidslinje = tidslinje.kombiner(Tidslinje(pliktkort.timerArbeidPerPeriode.map {

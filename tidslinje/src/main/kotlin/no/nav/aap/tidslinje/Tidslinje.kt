@@ -6,12 +6,12 @@ import java.time.Period
 import java.util.*
 
 
-class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) : Iterable<Segment<T>> {
+class Tidslinje<T>(initSegmenter: NavigableSet<Segment<T>> = TreeSet()) : Iterable<Segment<T>> {
 
-    constructor(initSegmenter: List<X>) : this(TreeSet(initSegmenter))
-    constructor(verdi: X) : this(TreeSet(listOf(verdi)))
+    constructor(initSegmenter: List<Segment<T>>) : this(TreeSet(initSegmenter))
+    constructor(verdi: Segment<T>) : this(TreeSet(listOf(verdi)))
 
-    private val segmenter: NavigableSet<X> = TreeSet()
+    private val segmenter: NavigableSet<Segment<T>> = TreeSet()
 
     init {
         segmenter.addAll(initSegmenter)
@@ -29,7 +29,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
         }
     }
 
-    fun segmenter(): NavigableSet<X> {
+    fun segmenter(): NavigableSet<Segment<T>> {
         return TreeSet(segmenter)
     }
 
@@ -41,14 +41,13 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
      * Merge av to tidslinjer, prioriterer verdier fra den som merges over den som det kalles på
      * oppretter en tredje slik at orginale verdier bevares
      */
-    fun <E, V, HØYRE : Segment<E>, RETUR : Segment<V>> kombiner(
-        other: Tidslinje<E, HØYRE>,
-        joinStyle: JoinStyle<T, E, V, RETUR>
-    ): Tidslinje<V, RETUR> {
+    fun <E, V> kombiner(
+        other: Tidslinje<E>,
+        joinStyle: JoinStyle<T, E, V>
+    ): Tidslinje<V> {
         if (this.segmenter.isEmpty()) {
-            val joinStyle1: JoinStyle<T, E, V, RETUR> = joinStyle
             val nyeSegmenter = other.segmenter.mapNotNull { segment ->
-                joinStyle1.kombiner(segment.periode, null, segment.verdi)
+                joinStyle.kombiner(segment.periode, null, segment.verdi)
             }
             return Tidslinje(nyeSegmenter.toCollection(TreeSet()))
         }
@@ -64,7 +63,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
             other.perioder()
         )
 
-        val nySammensetning: NavigableSet<RETUR> = TreeSet()
+        val nySammensetning: NavigableSet<Segment<V>> = TreeSet()
         while (periodeIterator.hasNext()) {
             val periode = periodeIterator.next()
 
@@ -80,25 +79,25 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
         return Tidslinje(nySammensetning)
     }
 
-    fun disjoint(periode: Periode): Tidslinje<T, Segment<T>> {
-        return kombiner<Any?, T, Segment<Any?>, Segment<T>>(
-            Tidslinje(listOf(Segment(periode, null))),
+    fun disjoint(periode: Periode): Tidslinje<T> {
+        return kombiner(
+            Tidslinje(listOf(Segment(periode, Unit))),
             StandardSammenslåere.kunVenstre()
         )
     }
 
-    fun <E, V, HØYRE : Segment<E>, RETUR : Segment<V>> disjoint(
-        other: Tidslinje<E, HØYRE>,
-        combinator: (Periode, T & Any) -> RETUR
-    ): Tidslinje<V, RETUR> {
+    fun <E, V> disjoint(
+        other: Tidslinje<E>,
+        combinator: (Periode, T & Any) -> Segment<V>
+    ): Tidslinje<V> {
         return kombiner(other, JoinStyle.DISJOINT(combinator))
     }
 
-    fun kryss(periode: Periode): Tidslinje<T, Segment<T>> {
+    fun kryss(periode: Periode): Tidslinje<T> {
         return kombiner(Tidslinje(Segment(periode, Unit)), StandardSammenslåere.kunVenstre())
     }
 
-    fun kryss(other: Tidslinje<Any?, Segment<Any?>>): Tidslinje<T, Segment<T>> {
+    fun kryss(other: Tidslinje<Any?>): Tidslinje<T> {
         return kombiner(other, StandardSammenslåere.kunVenstre())
     }
 
@@ -106,7 +105,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
      * Komprimerer tidslinjen
      * - Slår sammen segmetner hvor verdien er identisk (benytter equals for sjekk)
      */
-    fun komprimer(): Tidslinje<T, Segment<T>> {
+    fun komprimer(): Tidslinje<T> {
         val compressedSegmenter: NavigableSet<Segment<T>> = TreeSet()
         segmenter.forEach { segment ->
             if (compressedSegmenter.isEmpty()) {
@@ -126,7 +125,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
         return Tidslinje(compressedSegmenter)
     }
 
-    fun <R> mapValue(mapper: (T) -> R): Tidslinje<R, Segment<R>> {
+    fun <R> mapValue(mapper: (T) -> R): Tidslinje<R> {
         val newSegments: NavigableSet<Segment<R>> = TreeSet()
         segmenter.forEach { s ->
             newSegments.add(
@@ -139,16 +138,16 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
         return Tidslinje(newSegments)
     }
 
-    fun splittOppEtter(period: Period): Tidslinje<T, Segment<T>> {
+    fun splittOppEtter(period: Period): Tidslinje<T> {
         if (segmenter.isEmpty()) {
-            return Tidslinje()
+            return this
         }
         return splittOppEtter(minDato(), maxDato(), period)
     }
 
-    fun splittOppEtter(startDato: LocalDate, period: Period): Tidslinje<T, Segment<T>> {
+    fun splittOppEtter(startDato: LocalDate, period: Period): Tidslinje<T> {
         if (segmenter.isEmpty()) {
-            return Tidslinje()
+            return this
         }
         return splittOppEtter(startDato, maxDato(), period)
     }
@@ -156,7 +155,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
     /**
      * Knekker opp segmenterene i henhold til period fom startDato tom sluttDato
      */
-    fun splittOppEtter(startDato: LocalDate, sluttDato: LocalDate, period: Period): Tidslinje<T, Segment<T>> {
+    fun splittOppEtter(startDato: LocalDate, sluttDato: LocalDate, period: Period): Tidslinje<T> {
         require(!(LocalDate.MIN == startDato || LocalDate.MAX == sluttDato || sluttDato.isBefore(startDato))) {
             String.format(
                 "kan ikke periodisere tidslinjen mellom angitte datoer: [%s, %s]",
@@ -182,7 +181,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
     fun <R> splittOppOgMapOmEtter(
         period: Period,
         mapper: (NavigableSet<Segment<T>>) -> NavigableSet<Segment<R>>
-    ): Tidslinje<R, Segment<R>> {
+    ): Tidslinje<R> {
         if (segmenter.isEmpty()) {
             return Tidslinje()
         }
@@ -197,7 +196,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
         sluttDato: LocalDate,
         period: Period,
         mapper: (NavigableSet<Segment<T>>) -> NavigableSet<Segment<R>>
-    ): Tidslinje<R, Segment<R>> {
+    ): Tidslinje<R> {
         require(!(LocalDate.MIN == startDato || LocalDate.MAX == sluttDato || sluttDato.isBefore(startDato))) {
             String.format(
                 "kan ikke periodisere tidslinjen mellom angitte datoer: [%s, %s]",
@@ -253,7 +252,7 @@ class Tidslinje<T, X : Segment<T>>(initSegmenter: NavigableSet<X> = TreeSet()) :
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Tidslinje<*, Segment<*>>
+        other as Tidslinje<*>
 
         // Benytter hashset for å slippe rør med compareTo osv..
         return HashSet(segmenter) == HashSet(other.segmenter)

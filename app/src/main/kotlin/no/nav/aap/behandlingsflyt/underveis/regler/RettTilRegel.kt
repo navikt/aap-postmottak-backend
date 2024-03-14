@@ -15,8 +15,8 @@ import no.nav.aap.tidslinje.Tidslinje
 class RettTilRegel : UnderveisRegel {
     override fun vurder(
         input: UnderveisInput,
-        resultat: Tidslinje<Vurdering, Segment<Vurdering>>
-    ): Tidslinje<Vurdering, Segment<Vurdering>> {
+        resultat: Tidslinje<Vurdering>
+    ): Tidslinje<Vurdering> {
         require(input.relevanteVilkår.any { it.type == Vilkårtype.ALDERSVILKÅRET })
         require(input.relevanteVilkår.any { it.type == Vilkårtype.BISTANDSVILKÅRET })
         require(input.relevanteVilkår.any { it.type == Vilkårtype.SYKDOMSVILKÅRET })

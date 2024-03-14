@@ -20,7 +20,7 @@ import java.util.*
  *   - etc
  */
 class AktivitetRegel : UnderveisRegel {
-    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering, Segment<Vurdering>>): Tidslinje<Vurdering, Segment<Vurdering>> {
+    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
 
         val nyttresultat = håndterMeldeplikt(resultat, input)
 
@@ -28,9 +28,9 @@ class AktivitetRegel : UnderveisRegel {
     }
 
     private fun håndterMeldeplikt(
-        resultat: Tidslinje<Vurdering, Segment<Vurdering>>,
+        resultat: Tidslinje<Vurdering>,
         input: UnderveisInput
-    ): Tidslinje<Vurdering, Segment<Vurdering>> {
+    ): Tidslinje<Vurdering> {
         val meldeperiodeTidslinje = utledMeldetidslinje(input)
         var nyttresultat = Tidslinje(resultat.segmenter())
 
@@ -63,7 +63,7 @@ class AktivitetRegel : UnderveisRegel {
         return nyttresultat
     }
 
-    private fun utledMeldetidslinje(input: UnderveisInput): Tidslinje<MeldepliktVurdering, Segment<MeldepliktVurdering>> {
+    private fun utledMeldetidslinje(input: UnderveisInput): Tidslinje<MeldepliktVurdering> {
         val rettighetsperiode = input.rettighetsperiode
         val dummy = Tidslinje(Segment(rettighetsperiode, true))
         return Tidslinje(

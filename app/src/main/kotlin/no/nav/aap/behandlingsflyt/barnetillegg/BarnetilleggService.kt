@@ -15,9 +15,9 @@ class BarnetilleggService(
     private val barnetilleggRepository: BarnetilleggRepository,
     private val sakOgBehandlingService: SakOgBehandlingService
 ) {
-    fun beregn(behandlingId: BehandlingId): Tidslinje<RettTilBarnetillegg, Segment<RettTilBarnetillegg>> {
+    fun beregn(behandlingId: BehandlingId): Tidslinje<RettTilBarnetillegg> {
         val sak = sakOgBehandlingService.hentSakFor(behandlingId)
-        var resultat: Tidslinje<RettTilBarnetillegg, Segment<RettTilBarnetillegg>> =
+        var resultat: Tidslinje<RettTilBarnetillegg> =
             Tidslinje(listOf(Segment(sak.rettighetsperiode, RettTilBarnetillegg())))
 
 

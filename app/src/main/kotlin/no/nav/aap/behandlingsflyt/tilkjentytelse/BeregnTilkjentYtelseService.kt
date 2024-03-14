@@ -24,7 +24,7 @@ class BeregnTilkjentYtelseService(
     private val barnetilleggGrunnlag: BarnetilleggGrunnlag
 ) {
 
-    private fun tilTidslinje(barnetilleggGrunnlag: BarnetilleggGrunnlag): Tidslinje<RettTilBarnetillegg, Segment<RettTilBarnetillegg>> {
+    private fun tilTidslinje(barnetilleggGrunnlag: BarnetilleggGrunnlag): Tidslinje<RettTilBarnetillegg> {
         return Tidslinje(
             barnetilleggGrunnlag.perioder.map {
                 Segment(
@@ -41,7 +41,7 @@ class BeregnTilkjentYtelseService(
         private const val ANTALL_ÅRLIGE_ARBEIDSDAGER = 260
 
         internal object AldersjusteringAvMinsteÅrligYtelse :
-            JoinStyle<AlderStrategi, GUnit, GUnit, Segment<GUnit>> by JoinStyle.CROSS_JOIN(
+            JoinStyle<AlderStrategi, GUnit, GUnit> by JoinStyle.CROSS_JOIN(
                 { periode: Periode, venstreSegment, høyreSegment ->
                     val minsteÅrligYtelse = requireNotNull(høyreSegment)
                     val aldersfunksjon = requireNotNull(venstreSegment)
@@ -49,7 +49,7 @@ class BeregnTilkjentYtelseService(
                 })
     }
 
-    fun beregnTilkjentYtelse(): Tidslinje<Tilkjent, Segment<Tilkjent>> {
+    fun beregnTilkjentYtelse(): Tidslinje<Tilkjent> {
         val minsteÅrligYtelseAlderStrategiTidslinje = MinsteÅrligYtelseAlderTidslinje(fødselsdato).tilTidslinje()
         val underveisTidslinje = Tidslinje(underveisgrunnlag.perioder.map { Segment(it.periode, it) })
         val grunnlagsfaktor = beregningsgrunnlag.grunnlaget()

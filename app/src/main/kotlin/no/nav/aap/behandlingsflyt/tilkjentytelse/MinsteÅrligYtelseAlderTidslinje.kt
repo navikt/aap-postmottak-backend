@@ -11,20 +11,20 @@ internal interface AlderStrategi {
     fun aldersjustering(minsteÅrligYtelseVerdi: GUnit): GUnit
 
     object Under25 : AlderStrategi {
-        override fun aldersjustering(misteÅrligYtelseVerdi: GUnit): GUnit {
-            return misteÅrligYtelseVerdi.toTredjedeler()
+        override fun aldersjustering(minsteÅrligYtelseVerdi: GUnit): GUnit {
+            return minsteÅrligYtelseVerdi.toTredjedeler()
         }
     }
 
     object Over25 : AlderStrategi {
-        override fun aldersjustering(misteÅrligYtelseVerdi: GUnit): GUnit {
-            return misteÅrligYtelseVerdi
+        override fun aldersjustering(minsteÅrligYtelseVerdi: GUnit): GUnit {
+            return minsteÅrligYtelseVerdi
         }
     }
 }
 
 internal class MinsteÅrligYtelseAlderTidslinje(val fødselsdato: Fødselsdato) {
-    fun tilTidslinje(): Tidslinje<AlderStrategi, Segment<AlderStrategi>> {
+    fun tilTidslinje(): Tidslinje<AlderStrategi> {
         return Tidslinje(
             listOf(
                 Segment(

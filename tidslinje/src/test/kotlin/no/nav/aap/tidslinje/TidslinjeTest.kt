@@ -85,7 +85,7 @@ class TidslinjeTest {
         val tidslinje = Tidslinje(listOf(firstSegment))
         val tidslinje1 = Tidslinje(listOf(secondSegment))
 
-        val mergetTidslinje: Tidslinje<Beløp, Segment<Beløp>> =
+        val mergetTidslinje: Tidslinje<Beløp> =
             tidslinje.kombiner(tidslinje1, StandardSammenslåere.summerer()).komprimer()
 
         assertThat(mergetTidslinje.segmenter()).containsExactly(
@@ -160,7 +160,7 @@ class TidslinjeTest {
             )
         )
 
-        val mergetTidslinje: Tidslinje<Beløp, Segment<Beløp>> =
+        val mergetTidslinje: Tidslinje<Beløp> =
             tidslinje.kombiner(tidslinje1, StandardSammenslåere.prioriterHøyreSideCrossJoin()).komprimer()
 
         assertThat(mergetTidslinje.segmenter()).containsExactly(
@@ -226,7 +226,7 @@ data class UtbetalingMedBarneTilegg(val beløp: Beløp, val barnetilegg: Beløp,
 }
 
 class BarneTileggUtbetaling :
-    JoinStyle<Int, Beløp, Beløp, Segment<Beløp>> by JoinStyle.CROSS_JOIN(
+    JoinStyle<Int, Beløp, Beløp> by JoinStyle.CROSS_JOIN(
         { periode: Periode, venstreSegment, høyreSegment ->
             val prosent = venstreSegment ?: 0
             val beløp = høyreSegment ?: Beløp(0)
@@ -234,7 +234,7 @@ class BarneTileggUtbetaling :
         })
 
 class KombinertUtbetaling :
-    JoinStyle<Utbetaling, Beløp, UtbetalingMedBarneTilegg, Segment<UtbetalingMedBarneTilegg>> by JoinStyle.CROSS_JOIN(
+    JoinStyle<Utbetaling, Beløp, UtbetalingMedBarneTilegg> by JoinStyle.CROSS_JOIN(
         { periode: Periode, venstreSegment, høyreSegment ->
             if (venstreSegment == null) {
                 return@CROSS_JOIN null
@@ -244,7 +244,7 @@ class KombinertUtbetaling :
         })
 
 class UtregningSammenslåer :
-    JoinStyle<Beløp, Prosent, Utbetaling, Segment<Utbetaling>> by JoinStyle.CROSS_JOIN(
+    JoinStyle<Beløp, Prosent, Utbetaling> by JoinStyle.CROSS_JOIN(
         { periode: Periode, venstreSegment, høyreSegment ->
             val beløp = venstreSegment ?: Beløp(0)
             val prosent = høyreSegment ?: Prosent(0)

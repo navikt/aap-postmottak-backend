@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
-import no.nav.aap.tidslinje.Segment
 import no.nav.aap.tidslinje.Tidslinje
 
 /**
@@ -12,7 +11,7 @@ import no.nav.aap.tidslinje.Tidslinje
  *
  */
 class SamordningRegel : UnderveisRegel {
-    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering, Segment<Vurdering>>): Tidslinje<Vurdering, Segment<Vurdering>> {
+    override fun vurder(input: UnderveisInput, resultat: Tidslinje<Vurdering>): Tidslinje<Vurdering> {
         // TODO
         return resultat
     }
