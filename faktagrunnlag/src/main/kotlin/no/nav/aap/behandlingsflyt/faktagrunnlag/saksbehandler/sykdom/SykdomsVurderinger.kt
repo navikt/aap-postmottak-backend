@@ -11,7 +11,8 @@ data class Sykdomsvurdering(
     val dokumenterBruktIVurdering: List<JournalpostId>,
     val erSkadeSykdomEllerLyteVesentligdel: Boolean,
     val erNedsettelseIArbeidsevneHøyereEnnNedreGrense: Boolean?,
-    val nedreGrense: NedreGrense?
+    val nedreGrense: NedreGrense?,
+    val nedsattArbeidsevneDato: LocalDate?
 ) {
     fun toDto(yrkesskadevurdering: Yrkesskadevurdering?): SykdomsvurderingDto? {
         return SykdomsvurderingDto(
@@ -20,6 +21,7 @@ data class Sykdomsvurdering(
             erSkadeSykdomEllerLyteVesentligdel,
             erNedsettelseIArbeidsevneHøyereEnnNedreGrense,
             nedreGrense,
+            nedsattArbeidsevneDato,
             mapYrkesskade(yrkesskadevurdering)
         )
     }
@@ -28,11 +30,7 @@ data class Sykdomsvurdering(
         if (yrkesskadevurdering == null) {
             return null
         }
-        return YrkesskadevurderingDto(
-            yrkesskadevurdering.erÅrsakssammenheng,
-            yrkesskadevurdering.skadetidspunkt,
-            yrkesskadevurdering.andelAvNedsettelse?.prosentverdi()
-        )
+        return YrkesskadevurderingDto(yrkesskadevurdering.erÅrsakssammenheng)
     }
 }
 

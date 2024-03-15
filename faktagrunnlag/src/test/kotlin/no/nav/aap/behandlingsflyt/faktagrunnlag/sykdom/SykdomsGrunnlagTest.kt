@@ -22,6 +22,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
+                nedsattArbeidsevneDato = LocalDate.now(),
             )
         )
 
@@ -39,6 +40,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
+                nedsattArbeidsevneDato = LocalDate.now(),
             )
         )
 
@@ -61,6 +63,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
+                nedsattArbeidsevneDato = LocalDate.now(),
             )
         )
 
@@ -83,6 +86,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
+                nedsattArbeidsevneDato = LocalDate.now(),
             )
         )
 
@@ -105,6 +109,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
+                nedsattArbeidsevneDato = LocalDate.now(),
             )
         )
 
@@ -127,6 +132,7 @@ class SykdomsGrunnlagTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
+                nedsattArbeidsevneDato = LocalDate.now(),
             )
         )
 

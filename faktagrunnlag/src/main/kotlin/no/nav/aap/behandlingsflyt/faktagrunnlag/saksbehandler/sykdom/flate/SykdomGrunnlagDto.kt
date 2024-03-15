@@ -4,7 +4,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Yrkesskadevurdering
 import no.nav.aap.verdityper.Periode
-import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.dokument.JournalpostId
 import java.time.LocalDate
 
@@ -27,6 +26,7 @@ data class SykdomsvurderingDto(
     val erSkadeSykdomEllerLyteVesentligdel: Boolean,
     val erNedsettelseIArbeidsevneHøyereEnnNedreGrense: Boolean?,
     val nedreGrense: NedreGrense?,
+    val nedsattArbeidsevneDato: LocalDate?,
     val yrkesskadevurdering: YrkesskadevurderingDto?
 ) {
     fun toYrkesskadevurdering(): Yrkesskadevurdering? {
@@ -36,8 +36,8 @@ data class SykdomsvurderingDto(
         return Yrkesskadevurdering(
             begrunnelse = begrunnelse,
             erÅrsakssammenheng = yrkesskadevurdering.erÅrsakssammenheng,
-            skadetidspunkt = yrkesskadevurdering.skadetidspunkt,
-            andelAvNedsettelse = yrkesskadevurdering.andelAvNedsettelse?.let(::Prosent),
+            skadetidspunkt = null,
+            andelAvNedsettelse = null,
         )
     }
 
@@ -47,13 +47,12 @@ data class SykdomsvurderingDto(
             dokumenterBruktIVurdering = dokumenterBruktIVurdering,
             erSkadeSykdomEllerLyteVesentligdel = erSkadeSykdomEllerLyteVesentligdel,
             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = erNedsettelseIArbeidsevneHøyereEnnNedreGrense,
-            nedreGrense = nedreGrense
+            nedreGrense = nedreGrense,
+            nedsattArbeidsevneDato = nedsattArbeidsevneDato
         )
     }
 }
 
 data class YrkesskadevurderingDto(
-    val erÅrsakssammenheng: Boolean,
-    val skadetidspunkt: LocalDate?,
-    val andelAvNedsettelse: Int?
+    val erÅrsakssammenheng: Boolean
 )

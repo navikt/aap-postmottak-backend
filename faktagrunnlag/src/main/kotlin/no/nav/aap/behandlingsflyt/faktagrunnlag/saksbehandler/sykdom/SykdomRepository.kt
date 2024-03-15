@@ -82,9 +82,9 @@ class SykdomRepository(private val connection: DBConnection) {
 
         val query = """
             INSERT INTO SYKDOM_VURDERING 
-            (BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE)
+            (BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE, NEDSATT_ARBEIDSEVNE_DATO)
             VALUES
-            (?, ?, ?, ?)
+            (?, ?, ?, ?, ?)
         """.trimIndent()
 
         val id = connection.executeReturnKey(query) {
@@ -93,6 +93,7 @@ class SykdomRepository(private val connection: DBConnection) {
                 setBoolean(2, vurdering.erSkadeSykdomEllerLyteVesentligdel)
                 setBoolean(3, vurdering.erNedsettelseIArbeidsevneHøyereEnnNedreGrense)
                 setEnumName(4, vurdering.nedreGrense)
+                setLocalDate(5, vurdering.nedsattArbeidsevneDato)
             }
         }
 
@@ -160,7 +161,7 @@ class SykdomRepository(private val connection: DBConnection) {
         }
         return connection.queryFirstOrNull(
             """
-            SELECT BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE
+            SELECT BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE, NEDSATT_ARBEIDSEVNE_DATO
             FROM SYKDOM_VURDERING WHERE id = ?
             """.trimIndent()
         ) {
@@ -173,7 +174,8 @@ class SykdomRepository(private val connection: DBConnection) {
                     hentSykdomsDokumenter(sykdomId),
                     row.getBoolean("ER_SYKDOM_SKADE_LYTE_VESETLING_DEL"),
                     row.getBooleanOrNull("ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE"),
-                    row.getEnumOrNull("NEDRE_GRENSE")
+                    row.getEnumOrNull("NEDRE_GRENSE"),
+                    row.getLocalDate("NEDSATT_ARBEIDSEVNE_DATO")
                 )
             }
         }

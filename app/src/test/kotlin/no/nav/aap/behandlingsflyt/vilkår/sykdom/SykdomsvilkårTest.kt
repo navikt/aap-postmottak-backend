@@ -27,7 +27,8 @@ class SykdomsvilkårTest {
                     dokumenterBruktIVurdering = listOf(),
                     erSkadeSykdomEllerLyteVesentligdel = true,
                     erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
-                    nedreGrense = NedreGrense.FEMTI
+                    nedreGrense = NedreGrense.FEMTI,
+                    nedsattArbeidsevneDato = LocalDate.now()
                 ),
                 studentvurdering = null
             )
@@ -46,7 +47,8 @@ class SykdomsvilkårTest {
                     dokumenterBruktIVurdering = listOf(),
                     erSkadeSykdomEllerLyteVesentligdel = true,
                     erNedsettelseIArbeidsevneHøyereEnnNedreGrense = false,
-                    nedreGrense = NedreGrense.FEMTI
+                    nedreGrense = NedreGrense.FEMTI,
+                    nedsattArbeidsevneDato = LocalDate.now()
                 ),
                 studentvurdering = null
             )

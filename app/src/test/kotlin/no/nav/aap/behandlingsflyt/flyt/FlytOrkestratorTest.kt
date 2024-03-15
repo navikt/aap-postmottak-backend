@@ -51,7 +51,6 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.OppgaveRepository
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.Periode
-import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.TimerArbeid
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.flyt.StegStatus
@@ -141,10 +140,9 @@ class FlytOrkestratorTest {
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                             nedreGrense = NedreGrense.FEMTI,
+                            nedsattArbeidsevneDato = LocalDate.now(),
                             yrkesskadevurdering = YrkesskadevurderingDto(
-                                erÅrsakssammenheng = false,
-                                skadetidspunkt = null,
-                                andelAvNedsettelse = null
+                                erÅrsakssammenheng = false
                             )
                         )
                     ),
@@ -341,10 +339,9 @@ class FlytOrkestratorTest {
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                             nedreGrense = NedreGrense.TRETTI,
+                            nedsattArbeidsevneDato = LocalDate.now(),
                             yrkesskadevurdering = YrkesskadevurderingDto(
-                                erÅrsakssammenheng = true,
-                                skadetidspunkt = LocalDate.now().minusYears(1),
-                                andelAvNedsettelse = Prosent.`30_PROSENT`.prosentverdi()
+                                erÅrsakssammenheng = true
                             )
                         )
                     ),
@@ -512,10 +509,9 @@ class FlytOrkestratorTest {
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                             nedreGrense = NedreGrense.FEMTI,
+                            nedsattArbeidsevneDato = LocalDate.now(),
                             yrkesskadevurdering = YrkesskadevurderingDto(
-                                erÅrsakssammenheng = false,
-                                skadetidspunkt = null,
-                                andelAvNedsettelse = null
+                                erÅrsakssammenheng = false
                             )
                         )
                     ),
@@ -623,10 +619,9 @@ class FlytOrkestratorTest {
                             erSkadeSykdomEllerLyteVesentligdel = true,
                             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                             nedreGrense = NedreGrense.FEMTI,
+                            nedsattArbeidsevneDato = LocalDate.now(),
                             yrkesskadevurdering = YrkesskadevurderingDto(
-                                erÅrsakssammenheng = false,
-                                skadetidspunkt = null,
-                                andelAvNedsettelse = null
+                                erÅrsakssammenheng = false
                             )
                         )
                     ),
