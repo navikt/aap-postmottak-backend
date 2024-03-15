@@ -41,10 +41,10 @@ class BeregnTilkjentYtelseService(
         private const val ANTALL_ÅRLIGE_ARBEIDSDAGER = 260
 
         internal object AldersjusteringAvMinsteÅrligYtelse :
-            JoinStyle<AlderStrategi, GUnit, GUnit> by JoinStyle.CROSS_JOIN(
-                { periode: Periode, venstreSegment, høyreSegment ->
-                    val minsteÅrligYtelse = requireNotNull(høyreSegment).verdi
-                    val aldersfunksjon = requireNotNull(venstreSegment).verdi
+            JoinStyle<AlderStrategi, GUnit, GUnit> by JoinStyle.INNER_JOIN(
+                { periode: Periode, venstre, høyre ->
+                    val minsteÅrligYtelse = høyre.verdi
+                    val aldersfunksjon = venstre.verdi
                     Segment(periode, aldersfunksjon.aldersjustering(minsteÅrligYtelse))
                 })
     }
