@@ -105,7 +105,7 @@ class TidslinjeTest {
         val tidslinje1 = Tidslinje(listOf(secondSegment))
 
         val mergetTidslinje =
-            tidslinje.kombiner(tidslinje1, StandardSammenslåere.prioriterVenstreSide())
+            tidslinje.kombiner(tidslinje1, StandardSammenslåere.prioriterVenstreSideCrossJoin())
                 .komprimer()
 
         assertThat(mergetTidslinje.segmenter()).containsExactly(expectedSecondSegment, firstSegment)
@@ -228,8 +228,8 @@ data class UtbetalingMedBarneTilegg(val beløp: Beløp, val barnetilegg: Beløp,
 class BarneTileggUtbetaling :
     JoinStyle<Int, Beløp, Beløp> by JoinStyle.CROSS_JOIN(
         { periode: Periode, venstreSegment, høyreSegment ->
-            val prosent = venstreSegment ?: 0
-            val beløp = høyreSegment ?: Beløp(0)
+            val prosent = venstreSegment?.verdi ?: 0
+            val beløp = høyreSegment?.verdi ?: Beløp(0)
             Segment(periode, beløp.multiplisert(prosent))
         })
 
@@ -239,15 +239,15 @@ class KombinertUtbetaling :
             if (venstreSegment == null) {
                 return@CROSS_JOIN null
             }
-            val beløp = høyreSegment ?: Beløp(0)
-            Segment(periode, UtbetalingMedBarneTilegg(venstreSegment.beløp, beløp, venstreSegment.prosent))
+            val beløp = høyreSegment?.verdi ?: Beløp(0)
+            Segment(periode, UtbetalingMedBarneTilegg(venstreSegment.verdi.beløp, beløp, venstreSegment.verdi.prosent))
         })
 
 class UtregningSammenslåer :
     JoinStyle<Beløp, Prosent, Utbetaling> by JoinStyle.CROSS_JOIN(
         { periode: Periode, venstreSegment, høyreSegment ->
-            val beløp = venstreSegment ?: Beløp(0)
-            val prosent = høyreSegment ?: Prosent(0)
+            val beløp = venstreSegment?.verdi ?: Beløp(0)
+            val prosent = høyreSegment?.verdi ?: Prosent(0)
             Segment(periode, Utbetaling(beløp, prosent))
         }
     )

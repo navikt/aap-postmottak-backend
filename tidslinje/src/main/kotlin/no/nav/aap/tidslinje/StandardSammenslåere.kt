@@ -4,10 +4,10 @@ import no.nav.aap.verdityper.Beløp
 import java.math.BigDecimal
 
 object StandardSammenslåere {
-    fun summerer(): JoinStyle.CROSS_JOIN<Beløp?, Beløp?, Beløp> {
+    fun summerer(): JoinStyle.CROSS_JOIN<Beløp, Beløp, Beløp> {
         return JoinStyle.CROSS_JOIN { periode, venstreSegment, høyreSegment ->
-            val høyreVerdi = høyreSegment ?: Beløp(BigDecimal.ZERO)
-            val venstreVerdi = venstreSegment ?: Beløp(BigDecimal.ZERO)
+            val høyreVerdi = høyreSegment?.verdi ?: Beløp(BigDecimal.ZERO)
+            val venstreVerdi = venstreSegment?.verdi ?: Beløp(BigDecimal.ZERO)
 
             Segment(periode, høyreVerdi.pluss(venstreVerdi))
         }
@@ -15,51 +15,42 @@ object StandardSammenslåere {
 
     fun <T : Any> prioriterHøyreSide(): JoinStyle.INNER_JOIN<T, T, T> {
         return JoinStyle.INNER_JOIN { periode, _, høyreSegment ->
-            Segment(periode, høyreSegment)
+            Segment(periode, høyreSegment.verdi)
         }
     }
 
     fun <T> prioriterHøyreSideCrossJoin(): JoinStyle.CROSS_JOIN<T, T, T> {
         return JoinStyle.CROSS_JOIN { periode, venstre, høyre ->
-            if (høyre != null) return@CROSS_JOIN Segment(periode, høyre)
+            if (høyre != null) return@CROSS_JOIN Segment(periode, høyre.verdi)
             if (venstre == null) return@CROSS_JOIN null
-            Segment(periode, venstre)
+            Segment(periode, venstre.verdi)
         }
     }
 
-    fun <T> prioriterVenstreSide(): JoinStyle.CROSS_JOIN<T, T, T> {
+    fun <T> prioriterVenstreSideCrossJoin(): JoinStyle.CROSS_JOIN<T, T, T> {
         return JoinStyle.CROSS_JOIN { periode, venstreSegment, høyreSegment ->
-            if (venstreSegment == null) {
-                if (høyreSegment != null) {
-                    Segment(periode, høyreSegment)
-                } else {
-                    null
-                }
-            } else {
-                Segment(periode, venstreSegment)
-            }
+            if (venstreSegment != null) return@CROSS_JOIN Segment(periode, venstreSegment.verdi)
+            if (høyreSegment == null) return@CROSS_JOIN null
+            Segment(periode, høyreSegment.verdi)
         }
     }
 
-    fun <T, E> kunVenstre(): JoinStyle.INNER_JOIN<T, E, T> {
+    fun <T> kunVenstre(): JoinStyle.INNER_JOIN<T, Any?, T> {
         return JoinStyle.INNER_JOIN { periode, venstreSegment, _ ->
-            Segment(periode, venstreSegment)
+            Segment(periode, venstreSegment.verdi)
         }
     }
 
-    fun <T> kunHøyre(): JoinStyle.LEFT_JOIN<Any?, T, T> {
+    fun <T> kunHøyreLeftJoin(): JoinStyle.LEFT_JOIN<Any?, T, T> {
         return JoinStyle.LEFT_JOIN { periode, _, høyreSegment ->
-            if (høyreSegment == null) {
-                null
-            } else {
-                Segment(periode, høyreSegment)
-            }
+            if (høyreSegment == null) return@LEFT_JOIN null
+            Segment(periode, høyreSegment.verdi)
         }
     }
 
     fun <T> kunHøyreRightJoin(): JoinStyle.RIGHT_JOIN<Any?, T, T> {
         return JoinStyle.RIGHT_JOIN { periode, _, høyreSegment ->
-            Segment(periode, høyreSegment)
+            Segment(periode, høyreSegment.verdi)
         }
     }
 }

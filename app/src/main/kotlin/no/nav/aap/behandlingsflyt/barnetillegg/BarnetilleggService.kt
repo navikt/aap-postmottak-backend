@@ -28,8 +28,8 @@ class BarnetilleggService(
         resultat = resultat.kombiner(
             relevanteBarn,
             JoinStyle.CROSS_JOIN { periode, venstreSegment, høyreSegment ->
-                val høyreVerdi = høyreSegment
-                val nyVenstreVerdi = venstreSegment ?: RettTilBarnetillegg()
+                val høyreVerdi = høyreSegment?.verdi
+                val nyVenstreVerdi = venstreSegment?.verdi ?: RettTilBarnetillegg()
                 if (høyreVerdi != null) {
                     nyVenstreVerdi.leggTilBarn(høyreVerdi)
                 }

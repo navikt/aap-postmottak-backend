@@ -40,17 +40,15 @@ class GraderingArbeidRegel : UnderveisRegel {
             .kombiner(opptrappingTidslinje, StandardSammenslåere.prioriterHøyreSideCrossJoin())
 
         return resultat.kombiner(grenseverdiGradering, JoinStyle.CROSS_JOIN{ periode, venstreSegment, høyreSegment ->
-            var vurdering = venstreSegment
-            val høyreSegmentVerdi = høyreSegment
-            if (høyreSegmentVerdi != null) {
-                vurdering = vurdering?.leggTilGrenseverdi(høyreSegmentVerdi)
+            var vurdering = venstreSegment?.verdi
+            if (høyreSegment != null) {
+                vurdering = vurdering?.leggTilGrenseverdi(høyreSegment.verdi)
             }
             Segment(periode, vurdering)
         }).kombiner(arbeidsTidslinje,JoinStyle.CROSS_JOIN { periode, venstreSegment, høyreSegment ->
-            var vurdering: Vurdering = venstreSegment ?: Vurdering()
-            val høyreSegmentVerdi = høyreSegment
-            if (høyreSegmentVerdi != null) {
-                vurdering = vurdering.leggTilGradering(høyreSegmentVerdi)
+            var vurdering: Vurdering = venstreSegment?.verdi ?: Vurdering()
+            if (høyreSegment != null) {
+                vurdering = vurdering.leggTilGradering(høyreSegment.verdi)
             }
             Segment(periode, vurdering)
         })

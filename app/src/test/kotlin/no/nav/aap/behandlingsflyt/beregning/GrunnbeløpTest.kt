@@ -20,16 +20,16 @@ class GrunnbeløpTest {
         val tidslinje = Grunnbeløp.tilTidslinje()
         val tidslinjeGjennomsnitt = Grunnbeløp.tilTidslinjeGjennomsnitt()
 
-        val periodeForTidslinje = Tidslinje(Segment(Periode(30 april 2010, 1 mai 2010), Unit))
+        val periodeForTidslinje: Tidslinje<Any?> = Tidslinje(Segment(Periode(30 april 2010, 1 mai 2010), Unit))
         val utregnetTidslinje = periodeForTidslinje.kombiner(
             other = tidslinje,
-            joinStyle = StandardSammenslåere.kunHøyre()
+            joinStyle = StandardSammenslåere.kunHøyreLeftJoin()
         )
 
-        val periodeForGjennomsnitt = Tidslinje(Segment(Periode(31 desember 2009, 1 januar 2010), Unit))
+        val periodeForGjennomsnitt: Tidslinje<Any?> = Tidslinje(Segment(Periode(31 desember 2009, 1 januar 2010), Unit))
         val utregnetTidslinjeGjennomsnitt = periodeForGjennomsnitt.kombiner(
             other = tidslinjeGjennomsnitt,
-            joinStyle = StandardSammenslåere.kunHøyre()
+            joinStyle = StandardSammenslåere.kunHøyreLeftJoin()
         )
 
         assertThat(utregnetTidslinje)

@@ -43,8 +43,8 @@ class BeregnTilkjentYtelseService(
         internal object AldersjusteringAvMinsteÅrligYtelse :
             JoinStyle<AlderStrategi, GUnit, GUnit> by JoinStyle.CROSS_JOIN(
                 { periode: Periode, venstreSegment, høyreSegment ->
-                    val minsteÅrligYtelse = requireNotNull(høyreSegment)
-                    val aldersfunksjon = requireNotNull(venstreSegment)
+                    val minsteÅrligYtelse = requireNotNull(høyreSegment).verdi
+                    val aldersfunksjon = requireNotNull(venstreSegment).verdi
                     Segment(periode, aldersfunksjon.aldersjustering(minsteÅrligYtelse))
                 })
     }
@@ -68,8 +68,8 @@ class BeregnTilkjentYtelseService(
         val gradertÅrligYtelseTidslinje = underveisTidslinje.kombiner(
             årligYtelseTidslinje,
             JoinStyle.INNER_JOIN { periode, venstre, høyre ->
-                val dagsats = høyre.dividert(ANTALL_ÅRLIGE_ARBEIDSDAGER)
-                val utbetalingsgrad = venstre.utbetalingsgrad()
+                val dagsats = høyre.verdi.dividert(ANTALL_ÅRLIGE_ARBEIDSDAGER)
+                val utbetalingsgrad = venstre.verdi.utbetalingsgrad()
                 Segment(periode, TilkjentGUnit(dagsats, utbetalingsgrad))
             })
 
@@ -77,16 +77,16 @@ class BeregnTilkjentYtelseService(
         val gradertÅrligTilkjentYtelseBeløp = gradertÅrligYtelseTidslinje.kombiner(
             Grunnbeløp.tilTidslinje(),
             JoinStyle.INNER_JOIN { periode, venstre, høyre ->
-                val dagsats = høyre.multiplisert(venstre.dagsats)
+                val dagsats = høyre.verdi.multiplisert(venstre.verdi.dagsats)
 
-                val utbetalingsgrad = venstre.gradering
+                val utbetalingsgrad = venstre.verdi.gradering
                 Segment(
                     periode, TilkjentFørBarn(
                         dagsats = dagsats,
                         gradering = utbetalingsgrad,
                         grunnlag = dagsats,
-                        grunnlagsfaktor = venstre.dagsats,
-                        grunnbeløp = høyre
+                        grunnlagsfaktor = venstre.verdi.dagsats,
+                        grunnbeløp = høyre.verdi
                     )
                 )
             })
@@ -96,9 +96,9 @@ class BeregnTilkjentYtelseService(
             JoinStyle.INNER_JOIN { periode, venstre, høyre ->
                 Segment(
                     periode, Barnetillegg(
-                        barnetillegg = venstre.multiplisert(høyre.barn().size),
-                        antallBarn = høyre.barn().size,
-                        barnetilleggsats = venstre
+                        barnetillegg = venstre.verdi.multiplisert(høyre.verdi.barn().size),
+                        antallBarn = høyre.verdi.barn().size,
+                        barnetilleggsats = venstre.verdi
                     )
                 )
             })
@@ -106,18 +106,18 @@ class BeregnTilkjentYtelseService(
         return gradertÅrligTilkjentYtelseBeløp.kombiner(
             barnetilleggTidslinje,
             JoinStyle.LEFT_JOIN { periode, venstre, høyre ->
-                val dagsats = venstre.dagsats
-                val gradering = venstre.gradering
+                val dagsats = venstre.verdi.dagsats
+                val gradering = venstre.verdi.gradering
                 Segment(
                     periode, Tilkjent(
                         dagsats = dagsats,
                         gradering = gradering,
-                        barnetillegg = høyre?.barnetillegg ?: Beløp(0),
-                        grunnlagsfaktor = venstre.grunnlagsfaktor,
-                        grunnlag = venstre.grunnlag,
-                        grunnbeløp = venstre.grunnbeløp,
-                        antallBarn = høyre?.antallBarn ?: 0,
-                        barnetilleggsats = høyre?.barnetilleggsats ?: Beløp(0)
+                        barnetillegg = høyre?.verdi?.barnetillegg ?: Beløp(0),
+                        grunnlagsfaktor = venstre.verdi.grunnlagsfaktor,
+                        grunnlag = venstre.verdi.grunnlag,
+                        grunnbeløp = venstre.verdi.grunnbeløp,
+                        antallBarn = høyre?.verdi?.antallBarn ?: 0,
+                        barnetilleggsats = høyre?.verdi?.barnetilleggsats ?: Beløp(0)
                     )
                 )
             })
