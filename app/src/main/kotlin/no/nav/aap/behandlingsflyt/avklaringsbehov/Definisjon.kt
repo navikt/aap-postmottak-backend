@@ -22,7 +22,7 @@ const val FATTE_VEDTAK_KODE = "5099"
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
     @JsonProperty("kode") val kode: String,
-    private val type: BehovType = BehovType.MANUELT_PÅKREVD,
+    private val type: BehovType,
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
     val kreverToTrinn: Boolean = false
@@ -34,10 +34,12 @@ enum class Definisjon(
     ),
     AVKLAR_STUDENT(
         kode = AVKLAR_STUDENT_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_STUDENT,
     ),
     AVKLAR_SYKDOM(
         kode = AVKLAR_SYKDOM_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_SYKDOM,
         kreverToTrinn = true
     ),
@@ -61,20 +63,24 @@ enum class Definisjon(
     ),
     AVKLAR_BISTANDSBEHOV(
         kode = AVKLAR_BISTANDSBEHOV_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.VURDER_BISTANDSBEHOV,
         kreverToTrinn = true
     ),
     AVKLAR_SYKEPENGEERSTATNING(
         kode = VURDER_SYKEPENGEERSTATNING_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.VURDER_SYKEPENGEERSTATNING,
         kreverToTrinn = true
     ),
     FORESLÅ_VEDTAK(
         kode = FORESLÅ_VEDTAK_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.FORESLÅ_VEDTAK,
     ),
     FATTE_VEDTAK(
         kode = FATTE_VEDTAK_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.FATTE_VEDTAK,
     );
 
