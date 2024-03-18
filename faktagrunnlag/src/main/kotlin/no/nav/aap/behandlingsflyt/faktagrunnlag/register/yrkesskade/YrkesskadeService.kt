@@ -3,7 +3,8 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlagkonstruktør
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -11,12 +12,14 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 class YrkesskadeService private constructor(
     private val sakService: SakService,
     private val yrkesskadeRepository: YrkesskadeRepository,
+    private val personopplysningRepository: PersonopplysningRepository,
     private val yrkesskadeRegisterGateway: YrkesskadeRegisterGateway
 ) : Grunnlag {
 
     override fun oppdater(kontekst: FlytKontekst): Boolean {
         val sak = sakService.hent(kontekst.sakId)
-        val yrkesskadePeriode = yrkesskadeRegisterGateway.innhent(sak.person.identer(), sak.rettighetsperiode)
+        val fødselsdato = requireNotNull(personopplysningRepository.hentHvisEksisterer(kontekst.behandlingId)?.personopplysning?.fødselsdato)
+        val yrkesskadePeriode = yrkesskadeRegisterGateway.innhent(sak.person, fødselsdato)
 
         val behandlingId = kontekst.behandlingId
         val gamleData = yrkesskadeRepository.hentHvisEksisterer(behandlingId)
@@ -24,7 +27,7 @@ class YrkesskadeService private constructor(
         if (yrkesskadePeriode.isNotEmpty()) {
             yrkesskadeRepository.lagre(
                 behandlingId,
-                Yrkesskader(yrkesskadePeriode.map { periode -> Yrkesskade("ASDF", periode) })
+                Yrkesskader(yrkesskadePeriode.map { skade -> Yrkesskade(skade.ref, skade.skadedato) })
             )
         } else if (yrkesskadeRepository.hentHvisEksisterer(behandlingId) != null) {
             yrkesskadeRepository.lagre(behandlingId, null)
@@ -43,7 +46,8 @@ class YrkesskadeService private constructor(
             return YrkesskadeService(
                 SakService(connection),
                 YrkesskadeRepository(connection),
-                FakeYrkesskadeRegisterGateway
+                PersonopplysningRepository(connection),
+                YrkesskadeRegisterGateway
             )
         }
     }

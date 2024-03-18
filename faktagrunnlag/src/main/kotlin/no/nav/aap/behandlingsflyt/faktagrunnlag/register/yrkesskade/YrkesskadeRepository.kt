@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import java.time.LocalDate
 
 class YrkesskadeRepository(private val connection: DBConnection) {
 
@@ -23,7 +24,7 @@ class YrkesskadeRepository(private val connection: DBConnection) {
                 YrkesskadeInternal(
                     id = row.getLong("YRKESSKADE_ID"),
                     ref = row.getString("REFERANSE"),
-                    periode = row.getPeriode("PERIODE")
+                    skadedato = row.getLocalDate("SKADEDATO")
                 )
             }
         }
@@ -34,7 +35,7 @@ class YrkesskadeRepository(private val connection: DBConnection) {
     private data class YrkesskadeInternal(
         val id: Long,
         val ref: String,
-        val periode: Periode
+        val skadedato: LocalDate
     )
 
     private fun Iterable<YrkesskadeInternal>.grupperOgMapTilGrunnlag(behandlingId: BehandlingId): List<YrkesskadeGrunnlag> {
@@ -42,7 +43,7 @@ class YrkesskadeRepository(private val connection: DBConnection) {
             .groupBy(YrkesskadeInternal::id) { yrkesskade ->
                 Yrkesskade(
                     ref = yrkesskade.ref,
-                    periode = yrkesskade.periode
+                    skadedato = yrkesskade.skadedato
                 )
             }
             .map { (yrkesskadeId, yrkesskader) ->
@@ -77,11 +78,11 @@ class YrkesskadeRepository(private val connection: DBConnection) {
         }
 
         yrkesskader.yrkesskader.forEach { yrkesskade ->
-            connection.execute("INSERT INTO YRKESSKADE_PERIODER (YRKESSKADE_ID, REFERANSE, PERIODE) VALUES (?, ?, ?::daterange)") {
+            connection.execute("INSERT INTO YRKESSKADE_PERIODER (YRKESSKADE_ID, REFERANSE, PERIODE) VALUES (?, ?, ?)") {
                 setParams {
                     setLong(1, yrkesskadeId)
                     setString(2, yrkesskade.ref)
-                    setPeriode(3, yrkesskade.periode)
+                    setLocalDate(3, yrkesskade.skadedato)
                 }
             }
         }

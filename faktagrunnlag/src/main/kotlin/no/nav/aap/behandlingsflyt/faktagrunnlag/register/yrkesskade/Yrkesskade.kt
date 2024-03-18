@@ -1,8 +1,9 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade
 
 import no.nav.aap.verdityper.Periode
+import java.time.LocalDate
 
-class Yrkesskade(val ref: String, val periode: Periode) {
+class Yrkesskade(val ref: String, val skadedato: LocalDate) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -10,14 +11,14 @@ class Yrkesskade(val ref: String, val periode: Periode) {
         other as Yrkesskade
 
         if (ref != other.ref) return false
-        if (periode != other.periode) return false
+        if (skadedato != other.skadedato) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = ref.hashCode()
-        result = 31 * result + periode.hashCode()
+        result = 31 * result + skadedato.hashCode()
         return result
     }
 }
