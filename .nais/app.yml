@@ -58,7 +58,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: aap-saksbehandling
+        - application: saksbehandling
     outbound:
       external:
         - host: pdl-api.dev-fss-pub.nais.io
