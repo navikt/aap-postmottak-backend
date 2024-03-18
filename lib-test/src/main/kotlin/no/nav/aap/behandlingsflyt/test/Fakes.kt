@@ -14,6 +14,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.BARN_RELAS
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.PERSON_BOLK_QUERY
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.Yrkesskader
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.pdl.HentPersonBolkResult
@@ -31,6 +32,8 @@ import no.nav.aap.pdl.PdlRelasjon
 import no.nav.aap.pdl.PdlRelasjonDataResponse
 import no.nav.aap.pdl.PdlRequest
 import no.nav.aap.verdityper.sakogbehandling.Ident
+import no.nav.aap.yrkesskade.YrkesskadeModell
+import no.nav.aap.yrkesskade.YrkesskadeRequest
 import java.time.LocalDate
 import no.nav.aap.pdl.PdlPerson as BarnPdlPerson
 import no.nav.aap.pdl.PdlRelasjonData as BarnPdlData
@@ -39,7 +42,7 @@ class Fakes : AutoCloseable {
     private var azure: NettyApplicationEngine =
         embeddedServer(Netty, port = 0, module = Application::azureFake).apply { start() }
     private val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake).apply { start() }
-
+    private val yrkesskade = embeddedServer(Netty, port = 0, module = Application::YrkesskadeFake).apply { start() }
     init {
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
@@ -51,6 +54,11 @@ class Fakes : AutoCloseable {
         // Pdl
         System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
         System.setProperty("integrasjon.pdl.scope", "pdl")
+
+        // Yrkesskade
+        System.setProperty("integrasjon.yrkesskade.url", "http://localhost:${yrkesskade.port()}")
+        System.setProperty("integrasjon.yrkesskade.scope", "pdl")
+
 
         // Legg til alle testpersoner
         listOf(PERSON_MED_BARN_65ÅR).forEach { leggTil(it) }
@@ -104,6 +112,42 @@ fun Application.pdlFake() {
                 PERSON_BOLK_QUERY -> call.respond(barn(req))
                 else -> call.respond(HttpStatusCode.BadRequest)
             }
+        }
+    }
+}
+
+fun Application.YrkesskadeFake(){
+    install(ContentNegotiation) {
+        jackson()
+    }
+    routing {
+        post("/api/v1/saker/") {
+            val req = call.receive<YrkesskadeRequest>()
+
+
+            call.respond(
+                no.nav.aap.yrkesskade.Yrkesskader(
+                    skader = listOf(
+                        /*YrkesskadeModell(
+                            kommunenr = "1234",
+                            saksblokk = "A",
+                            saksnr = 1234,
+                            sakstype = "Yrkesskade",
+                            mottattdato = LocalDate.now(),
+                            resultat = "Godkjent",
+                            resultattekst = "Godkjent",
+                            vedtaksdato = LocalDate.now(),
+                            skadeart = "Arbeidsulykke",
+                            diagnose = "Kuttskade",
+                            skadedato = LocalDate.now(),
+                            kildetabell = "Yrkesskade",
+                            kildesystem = "Yrkesskade",
+                            saksreferanse = "1234"
+                        )*/
+                    )
+                )
+            )
+
         }
     }
 }

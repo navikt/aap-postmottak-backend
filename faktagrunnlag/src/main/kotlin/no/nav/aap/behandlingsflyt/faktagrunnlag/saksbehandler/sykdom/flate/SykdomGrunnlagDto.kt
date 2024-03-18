@@ -18,7 +18,7 @@ data class InnhentetSykdomsOpplysninger(
     val innhentedeYrkesskader: List<RegistrertYrkesskade>,
 )
 
-data class RegistrertYrkesskade(val ref: String, val periode: Periode, val kilde: String)
+data class RegistrertYrkesskade(val ref: String, val skadedato: LocalDate, val kilde: String)
 
 data class SykdomsvurderingDto(
     val begrunnelse: String,

@@ -44,11 +44,11 @@ class YrkesskadeRepositoryTest {
             val yrkesskadeRepository = YrkesskadeRepository(connection)
             yrkesskadeRepository.lagre(
                 behandling.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
             val yrkesskadeGrunnlag = yrkesskadeRepository.hentHvisEksisterer(behandling.id)
             assertThat(yrkesskadeGrunnlag?.yrkesskader).isEqualTo(
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
         }
     }
@@ -62,36 +62,36 @@ class YrkesskadeRepositoryTest {
             val yrkesskadeRepository = YrkesskadeRepository(connection)
             yrkesskadeRepository.lagre(
                 behandling.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
             yrkesskadeRepository.lagre(
                 behandling.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 mai 2019)))
             )
             yrkesskadeRepository.lagre(
                 behandling.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 mai 2019)))
             )
 
             val opplysninger =
                 connection.queryList(
                     """
-                    SELECT b.ID, g.AKTIV, p.REFERANSE, p.PERIODE
+                    SELECT b.ID, g.AKTIV, p.REFERANSE, p.SKADEDATO
                     FROM BEHANDLING b
                     INNER JOIN YRKESSKADE_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
                     INNER JOIN YRKESSKADE y ON g.YRKESSKADE_ID = y.ID
-                    INNER JOIN YRKESSKADE_PERIODER p ON y.ID = p.YRKESSKADE_ID
+                    INNER JOIN YRKESSKADE_DATO p ON y.ID = p.YRKESSKADE_ID
                     WHERE b.SAK_ID = ?
                     """.trimIndent()
                 ) {
                     setParams {
                         setLong(1, sak.id.toLong())
                     }
-                    setRowMapper { row -> row.getPeriode("PERIODE") }
+                    setRowMapper { row -> row.getLocalDate("SKADEDATO") }
                 }
             assertThat(opplysninger)
                 .hasSize(2)
-                .containsExactly(Periode(4 juni 2019, 28 juni 2020), Periode(4 mai 2019, 28 mai 2020))
+                .containsExactly(4 juni 2019, 4 mai 2019)
         }
     }
 
@@ -103,7 +103,7 @@ class YrkesskadeRepositoryTest {
             val yrkesskadeRepository = YrkesskadeRepository(connection)
             yrkesskadeRepository.lagre(
                 behandling1.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
             connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
                 setParams {
@@ -115,7 +115,7 @@ class YrkesskadeRepositoryTest {
 
             val yrkesskadeGrunnlag = yrkesskadeRepository.hentHvisEksisterer(behandling2.id)
             assertThat(yrkesskadeGrunnlag?.yrkesskader).isEqualTo(
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
         }
     }
@@ -138,11 +138,11 @@ class YrkesskadeRepositoryTest {
             val yrkesskadeRepository = YrkesskadeRepository(connection)
             yrkesskadeRepository.lagre(
                 behandling1.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
             yrkesskadeRepository.lagre(
                 behandling1.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 mai 2019)))
             )
             connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
                 setParams {
@@ -154,7 +154,7 @@ class YrkesskadeRepositoryTest {
 
             val yrkesskadeGrunnlag = yrkesskadeRepository.hentHvisEksisterer(behandling2.id)
             assertThat(yrkesskadeGrunnlag?.yrkesskader).isEqualTo(
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 mai 2019)))
             )
         }
     }
@@ -168,32 +168,32 @@ class YrkesskadeRepositoryTest {
 
             yrkesskadeRepository.lagre(
                 behandling.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
             val orginaltGrunnlag = yrkesskadeRepository.hentHvisEksisterer(behandling.id)
             assertThat(orginaltGrunnlag?.yrkesskader).isEqualTo(
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
 
             yrkesskadeRepository.lagre(
                 behandling.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 mai 2019)))
             )
             val oppdatertGrunnlag = yrkesskadeRepository.hentHvisEksisterer(behandling.id)
             assertThat(oppdatertGrunnlag?.yrkesskader).isEqualTo(
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 mai 2019)))
             )
 
-            data class Opplysning(val behandlingId: Long, val aktiv: Boolean, val ref: String, val periode: Periode)
+            data class Opplysning(val behandlingId: Long, val aktiv: Boolean, val ref: String, val skadedato: LocalDate)
 
             val opplysninger =
                 connection.queryList(
                     """
-                    SELECT b.ID, g.AKTIV, p.REFERANSE, p.PERIODE
+                    SELECT b.ID, g.AKTIV, p.REFERANSE, p.SKADEDATO
                     FROM BEHANDLING b
                     INNER JOIN YRKESSKADE_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
                     INNER JOIN YRKESSKADE y ON g.YRKESSKADE_ID = y.ID
-                    INNER JOIN YRKESSKADE_PERIODER p ON y.ID = p.YRKESSKADE_ID
+                    INNER JOIN YRKESSKADE_DATO p ON y.ID = p.YRKESSKADE_ID
                     WHERE b.SAK_ID = ?
                     """.trimIndent()
                 ) {
@@ -205,15 +205,15 @@ class YrkesskadeRepositoryTest {
                             behandlingId = row.getLong("ID"),
                             aktiv = row.getBoolean("AKTIV"),
                             ref = row.getString("REFERANSE"),
-                            periode = row.getPeriode("PERIODE")
+                            skadedato = row.getLocalDate("SKADEDATO")
                         )
                     }
                 }
             assertThat(opplysninger)
                 .hasSize(2)
                 .containsExactly(
-                    Opplysning(behandling.id.toLong(), false, "ref", Periode(4 juni 2019, 28 juni 2020)),
-                    Opplysning(behandling.id.toLong(), true, "ref", Periode(4 mai 2019, 28 mai 2020))
+                    Opplysning(behandling.id.toLong(), false, "ref", 4 juni 2019),
+                    Opplysning(behandling.id.toLong(), true, "ref", 4 mai 2019)
                 )
         }
     }
@@ -226,11 +226,11 @@ class YrkesskadeRepositoryTest {
             val yrkesskadeRepository = YrkesskadeRepository(connection)
             yrkesskadeRepository.lagre(
                 behandling1.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 juni 2019, 28 juni 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 juni 2019)))
             )
             yrkesskadeRepository.lagre(
                 behandling1.id,
-                Yrkesskader(listOf(Yrkesskade(ref = "ref", periode = Periode(4 mai 2019, 28 mai 2020))))
+                Yrkesskader(listOf(Yrkesskade(ref = "ref", skadedato = 4 mai 2019)))
             )
             connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
                 setParams {
@@ -240,17 +240,17 @@ class YrkesskadeRepositoryTest {
             val behandling2 = behandling(connection, sak)
             yrkesskadeRepository.kopier(behandling1.id, behandling2.id)
 
-            data class Opplysning(val behandlingId: Long, val aktiv: Boolean, val ref: String, val periode: Periode)
+            data class Opplysning(val behandlingId: Long, val aktiv: Boolean, val ref: String, val skadedato: LocalDate)
             data class Grunnlag(val yrkesskadeId: Long, val opplysning: Opplysning)
 
             val opplysninger =
                 connection.queryList(
                     """
-                    SELECT b.ID AS BEHANDLING_ID, y.ID AS YRKESSKADE_ID, g.AKTIV, p.REFERANSE, p.PERIODE
+                    SELECT b.ID AS BEHANDLING_ID, y.ID AS YRKESSKADE_ID, g.AKTIV, p.REFERANSE, p.SKADEDATO
                     FROM BEHANDLING b
                     INNER JOIN YRKESSKADE_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
                     INNER JOIN YRKESSKADE y ON g.YRKESSKADE_ID = y.ID
-                    INNER JOIN YRKESSKADE_PERIODER p ON y.ID = p.YRKESSKADE_ID
+                    INNER JOIN YRKESSKADE_DATO p ON y.ID = p.YRKESSKADE_ID
                     WHERE b.SAK_ID = ?
                     """.trimIndent()
                 ) {
@@ -264,7 +264,7 @@ class YrkesskadeRepositoryTest {
                                 behandlingId = row.getLong("BEHANDLING_ID"),
                                 aktiv = row.getBoolean("AKTIV"),
                                 ref = row.getString("REFERANSE"),
-                                periode = row.getPeriode("PERIODE")
+                                skadedato = row.getLocalDate("SKADEDATO")
                             )
                         )
                     }
@@ -278,19 +278,19 @@ class YrkesskadeRepositoryTest {
                         behandlingId = behandling1.id.toLong(),
                         aktiv = false,
                         ref = "ref",
-                        periode = Periode(4 juni 2019, 28 juni 2020)
+                        skadedato = 4 juni 2019
                     ),
                     Opplysning(
                         behandlingId = behandling1.id.toLong(),
                         aktiv = true,
                         ref = "ref",
-                        periode = Periode(4 mai 2019, 28 mai 2020)
+                        skadedato = 4 mai 2019
                     ),
                     Opplysning(
                         behandlingId = behandling2.id.toLong(),
                         aktiv = true,
                         ref = "ref",
-                        periode = Periode(4 mai 2019, 28 mai 2020)
+                        skadedato = 4 mai 2019
                     )
                 )
         }

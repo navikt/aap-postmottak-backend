@@ -33,7 +33,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.flate.bistandsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.medlemskap.medlemskapsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt.flate.meldepliktsgrunnlagApi
@@ -208,12 +208,6 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
                 LocalDate.now().minusYears(3),
                 LocalDate.now().plusYears(3)
             )
-            if (dto.yrkesskade) {
-                FakeYrkesskadeRegisterGateway.konstruer(
-                    ident,
-                    periode
-                )
-            }
 
             HendelsesMottak(dataSource).håndtere(
                 ident, DokumentMottattPersonHendelse(

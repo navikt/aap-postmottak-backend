@@ -1,7 +1,6 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDate
 
@@ -10,10 +9,10 @@ class YrkesskadeRepository(private val connection: DBConnection) {
     fun hentHvisEksisterer(behandlingId: BehandlingId): YrkesskadeGrunnlag? {
         return connection.queryList(
             """
-            SELECT y.ID AS YRKESSKADE_ID, p.REFERANSE, p.PERIODE
+            SELECT y.ID AS YRKESSKADE_ID, p.REFERANSE, p.SKADEDATO
             FROM YRKESSKADE_GRUNNLAG g
             INNER JOIN YRKESSKADE y ON g.YRKESSKADE_ID = y.ID
-            INNER JOIN YRKESSKADE_PERIODER p ON y.ID = p.YRKESSKADE_ID
+            INNER JOIN YRKESSKADE_DATO p ON y.ID = p.YRKESSKADE_ID
             WHERE g.AKTIV AND g.BEHANDLING_ID = ?
             """.trimIndent()
         ) {
@@ -78,7 +77,7 @@ class YrkesskadeRepository(private val connection: DBConnection) {
         }
 
         yrkesskader.yrkesskader.forEach { yrkesskade ->
-            connection.execute("INSERT INTO YRKESSKADE_PERIODER (YRKESSKADE_ID, REFERANSE, PERIODE) VALUES (?, ?, ?)") {
+            connection.execute("INSERT INTO YRKESSKADE_DATO (YRKESSKADE_ID, REFERANSE, SKADEDATO) VALUES (?, ?, ?)") {
                 setParams {
                     setLong(1, yrkesskadeId)
                     setString(2, yrkesskade.ref)

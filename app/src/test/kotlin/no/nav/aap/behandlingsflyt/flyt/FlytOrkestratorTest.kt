@@ -27,7 +27,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søkna
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.FakeInntektRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentVurdering
@@ -97,8 +96,6 @@ class FlytOrkestratorTest {
         val fom = LocalDate.now().minusMonths(3)
         val periode = Periode(fom, fom.plusYears(3))
 
-        // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        FakeYrkesskadeRegisterGateway.konstruer(ident = ident, periode = periode)
         FakeInntektRegisterGateway.konstruer(
             ident = ident, inntekterPerÅr = listOf(
                 InntektPerÅr(
@@ -287,8 +284,7 @@ class FlytOrkestratorTest {
         val ident = ident()
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
-        // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        FakeYrkesskadeRegisterGateway.konstruer(ident = ident, periode = periode)
+        //TODO: legg til yrkesskade
 
         // Sender inn en søknad
         hendelsesMottak.håndtere(
@@ -450,7 +446,7 @@ class FlytOrkestratorTest {
         val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
-        FakeYrkesskadeRegisterGateway.konstruer(ident = ident, periode = periode)
+        // TODO: Legg til yrkesskade
         FakeInntektRegisterGateway.konstruer(
             ident = ident, inntekterPerÅr = listOf(
                 InntektPerÅr(

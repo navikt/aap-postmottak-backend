@@ -29,7 +29,7 @@ fun NormalOpenAPIRoute.sykdomsgrunnlagApi(dataSource: HikariDataSource) {
                 val innhentedeYrkesskader = yrkesskadeGrunnlag?.yrkesskader?.yrkesskader?.map { yrkesskade ->
                     RegistrertYrkesskade(
                         ref = yrkesskade.ref,
-                        periode = yrkesskade.periode,
+                        skadedato = yrkesskade.skadedato,
                         kilde = "Yrkesskaderegisteret"
                     )
                 } ?: emptyList()

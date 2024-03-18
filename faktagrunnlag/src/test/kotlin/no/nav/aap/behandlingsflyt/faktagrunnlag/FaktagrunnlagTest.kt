@@ -4,8 +4,10 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.dbtestdata.ident
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Personopplysning
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.YrkesskadeService
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.FakeYrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.IdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonOgSakService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
@@ -56,7 +58,6 @@ class FaktagrunnlagTest {
             val (ident, kontekst) = klargjør(connection)
             val faktagrunnlag = Faktagrunnlag(connection)
 
-            FakeYrkesskadeRegisterGateway.konstruer(ident = ident, periode = periode)
 
             val erOppdatert = faktagrunnlag.oppdaterFaktagrunnlagForKravliste(listOf(YrkesskadeService), kontekst)
 
@@ -82,6 +83,8 @@ class FaktagrunnlagTest {
         val ident = ident()
         val sak = PersonOgSakService(connection, FakePdlGateway).finnEllerOpprett(ident, periode)
         val behandling = SakOgBehandlingService(connection).finnEllerOpprettBehandling(sak.saksnummer).behandling
+        val personopplysningRepository = PersonopplysningRepository(connection)
+        personopplysningRepository.lagre(behandling.id, Personopplysning(Fødselsdato(LocalDate.now().minusYears(20))))
 
         return ident to behandling.flytKontekst()
     }
