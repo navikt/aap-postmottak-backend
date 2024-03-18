@@ -63,7 +63,7 @@ spec:
       external:
         - host: pdl-api.dev-fss-pub.nais.io
   env:
-    - name: PDL_BASE_URL
+    - name: INTEGRASJON_PDL_URL
       value: https://pdl-api.dev-fss-pub.nais.io/graphql
-    - name: PDL_SCOPE
+    - name: INTEGRASJON_PDL_SCOPE
       value: api://dev-fss.pdl.pdl-api/.default
