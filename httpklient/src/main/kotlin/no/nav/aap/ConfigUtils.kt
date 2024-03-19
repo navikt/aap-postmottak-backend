@@ -5,7 +5,7 @@ fun requiredConfigForKey(key: String): String {
     if (property != null) {
         return property
     }
-    property = System.getProperty(key.lowercase().replace("_", "."))
+    property = System.getProperty(key.uppercase().replace(".", "_"))
     if (property != null) {
         return property
     }
