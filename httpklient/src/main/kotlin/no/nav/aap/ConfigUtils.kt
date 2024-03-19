@@ -1,16 +1,7 @@
 package no.nav.aap
 
 fun requiredConfigForKey(key: String): String {
-    var property = System.getProperty(key)
-    if (property != null) {
-        return property
-    }
-    val oppdatertKey = key.uppercase().replace(".", "_")
-    property = System.getProperty(oppdatertKey)
-    if (property != null) {
-        return property
-    }
-    property = System.getenv(oppdatertKey)
+    val property = configForKey(key)
     if (property != null) {
         return property
     }
@@ -22,9 +13,10 @@ fun configForKey(key: String): String? {
     if (property != null) {
         return property
     }
-    property = System.getProperty(key.lowercase().replace("_", "."))
+    val oppdatertKey = key.uppercase().replace(".", "_")
+    property = System.getProperty(oppdatertKey)
     if (property != null) {
         return property
     }
-    return System.getenv(key)
+    return System.getenv(oppdatertKey)
 }
