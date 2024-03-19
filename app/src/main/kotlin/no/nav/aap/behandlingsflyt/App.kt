@@ -227,8 +227,6 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
                 )
             }
 
-
-
             HendelsesMottak(dataSource).håndtere(
                 ident, DokumentMottattPersonHendelse(
                     journalpost = JournalpostId("" + System.currentTimeMillis()),
