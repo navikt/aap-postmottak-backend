@@ -3,7 +3,6 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Yrkesskadevurdering
-import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.dokument.JournalpostId
 import java.time.LocalDate
 
@@ -23,7 +22,8 @@ data class RegistrertYrkesskade(val ref: String, val skadedato: LocalDate, val k
 data class SykdomsvurderingDto(
     val begrunnelse: String,
     val dokumenterBruktIVurdering: List<JournalpostId>,
-    val erSkadeSykdomEllerLyteVesentligdel: Boolean,
+    val erArbeidsevnenNedsatt: Boolean,
+    val erSkadeSykdomEllerLyteVesentligdel: Boolean?,
     val erNedsettelseIArbeidsevneHøyereEnnNedreGrense: Boolean?,
     val nedreGrense: NedreGrense?,
     val nedsattArbeidsevneDato: LocalDate?,
@@ -45,6 +45,7 @@ data class SykdomsvurderingDto(
         return Sykdomsvurdering(
             begrunnelse = begrunnelse,
             dokumenterBruktIVurdering = dokumenterBruktIVurdering,
+            erArbeidsevnenNedsatt = erArbeidsevnenNedsatt,
             erSkadeSykdomEllerLyteVesentligdel = erSkadeSykdomEllerLyteVesentligdel,
             erNedsettelseIArbeidsevneHøyereEnnNedreGrense = erNedsettelseIArbeidsevneHøyereEnnNedreGrense,
             nedreGrense = nedreGrense,

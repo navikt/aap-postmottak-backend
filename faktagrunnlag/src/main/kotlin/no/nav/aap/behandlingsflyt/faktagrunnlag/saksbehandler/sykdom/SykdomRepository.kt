@@ -82,18 +82,19 @@ class SykdomRepository(private val connection: DBConnection) {
 
         val query = """
             INSERT INTO SYKDOM_VURDERING 
-            (BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE, NEDSATT_ARBEIDSEVNE_DATO)
+            (BEGRUNNELSE, ER_ARBEIDSEVNE_NEDSATT, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE, NEDSATT_ARBEIDSEVNE_DATO)
             VALUES
-            (?, ?, ?, ?, ?)
+            (?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         val id = connection.executeReturnKey(query) {
             setParams {
                 setString(1, vurdering.begrunnelse)
-                setBoolean(2, vurdering.erSkadeSykdomEllerLyteVesentligdel)
-                setBoolean(3, vurdering.erNedsettelseIArbeidsevneHøyereEnnNedreGrense)
-                setEnumName(4, vurdering.nedreGrense)
-                setLocalDate(5, vurdering.nedsattArbeidsevneDato)
+                setBoolean(2, vurdering.erArbeidsevnenNedsatt)
+                setBoolean(3, vurdering.erSkadeSykdomEllerLyteVesentligdel)
+                setBoolean(4, vurdering.erNedsettelseIArbeidsevneHøyereEnnNedreGrense)
+                setEnumName(5, vurdering.nedreGrense)
+                setLocalDate(6, vurdering.nedsattArbeidsevneDato)
             }
         }
 
@@ -161,7 +162,7 @@ class SykdomRepository(private val connection: DBConnection) {
         }
         return connection.queryFirstOrNull(
             """
-            SELECT BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE, NEDSATT_ARBEIDSEVNE_DATO
+            SELECT BEGRUNNELSE, ER_SYKDOM_SKADE_LYTE_VESETLING_DEL, ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE, NEDRE_GRENSE, NEDSATT_ARBEIDSEVNE_DATO, ER_ARBEIDSEVNE_NEDSATT
             FROM SYKDOM_VURDERING WHERE id = ?
             """.trimIndent()
         ) {
@@ -175,7 +176,8 @@ class SykdomRepository(private val connection: DBConnection) {
                     row.getBoolean("ER_SYKDOM_SKADE_LYTE_VESETLING_DEL"),
                     row.getBooleanOrNull("ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE"),
                     row.getEnumOrNull("NEDRE_GRENSE"),
-                    row.getLocalDate("NEDSATT_ARBEIDSEVNE_DATO")
+                    row.getLocalDate("NEDSATT_ARBEIDSEVNE_DATO"),
+                    row.getBoolean("ER_ARBEIDSEVNE_NEDSATT")
                 )
             }
         }
