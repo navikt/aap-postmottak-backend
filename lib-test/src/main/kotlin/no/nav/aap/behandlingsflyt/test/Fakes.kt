@@ -134,7 +134,7 @@ fun Application.yrkesskadeFake() {
     routing {
         post("api/v1/saker/oprett"){
             val req = call.receive<Ident>()
-            returnerYrkesskade.add(req.aktivIdent.toString())
+            returnerYrkesskade.add(req.identifikator)
             call.respond(req)
         }
         post("/api/v1/saker/") {
