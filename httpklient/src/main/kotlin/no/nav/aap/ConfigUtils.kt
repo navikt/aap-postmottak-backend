@@ -5,11 +5,12 @@ fun requiredConfigForKey(key: String): String {
     if (property != null) {
         return property
     }
-    property = System.getProperty(key.uppercase().replace(".", "_"))
+    val oppdatertKey = key.uppercase().replace(".", "_")
+    property = System.getProperty(oppdatertKey)
     if (property != null) {
         return property
     }
-    property = System.getenv(key)
+    property = System.getenv(oppdatertKey)
     if (property != null) {
         return property
     }
