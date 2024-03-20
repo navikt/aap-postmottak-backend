@@ -5,8 +5,7 @@ enum class TypeBehandling(private var identifikator: String) {
     Førstegangsbehandling("ae0034"),
     Revurdering("ae0028"),
     Tilbakekreving(""),
-    Klage(""),
-    Anke("");
+    Klage("");
 
     fun identifikator(): String = identifikator
 

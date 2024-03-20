@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.forretningsflyt.behandlingstyper.Anke
 import no.nav.aap.behandlingsflyt.forretningsflyt.behandlingstyper.Førstegangsbehandling
 import no.nav.aap.behandlingsflyt.forretningsflyt.behandlingstyper.Klage
 import no.nav.aap.behandlingsflyt.forretningsflyt.behandlingstyper.Revurdering
@@ -17,6 +16,5 @@ fun utledType(identifikator: TypeBehandling): BehandlingType {
         TypeBehandling.Revurdering -> Revurdering
         TypeBehandling.Tilbakekreving -> Tilbakekreving
         TypeBehandling.Klage -> Klage
-        TypeBehandling.Anke -> Anke
     }
 }
