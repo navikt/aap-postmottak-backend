@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.AvklaringsbehovsLøser
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
@@ -14,24 +13,14 @@ import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.Status
 import org.slf4j.LoggerFactory
-import kotlin.reflect.full.primaryConstructor
 
 class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
 
-    private val avklaringsbehovsLøsere = mutableMapOf<Definisjon, AvklaringsbehovsLøser<*>>()
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
     private val behandlingRepository = BehandlingRepositoryImpl(connection)
     private val oppgaveRepository = OppgaveRepository(connection)
 
     private val log = LoggerFactory.getLogger(AvklaringsbehovOrkestrator::class.java)
-
-    init {
-        AvklaringsbehovsLøser::class.sealedSubclasses.forEach {
-            val løser = it.primaryConstructor?.call(connection)
-            requireNotNull(løser)
-            avklaringsbehovsLøsere[løser.forBehov()] = løser
-        }
-    }
 
     fun løsAvklaringsbehovOgFortsettProsessering(behandlingId: BehandlingId) {
         val behandling = behandlingRepository.hent(behandlingId)
@@ -127,10 +116,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         it: AvklaringsbehovLøsning
     ) {
         avklaringsbehovene.leggTilFrivilligHvisMangler(it.definisjon())
-        // Liker denne casten fryktelig lite godt -_- men må til pga generics *
-        val avklaringsbehovsLøser =
-            avklaringsbehovsLøsere.getValue(it.definisjon()) as AvklaringsbehovsLøser<AvklaringsbehovLøsning>
-        val løsningsResultat = avklaringsbehovsLøser.løs(kontekst = kontekst, løsning = it)
+        val løsningsResultat = it.løs(connection, kontekst)
 
         avklaringsbehovene.løsAvklaringsbehov(
             it.definisjon(),

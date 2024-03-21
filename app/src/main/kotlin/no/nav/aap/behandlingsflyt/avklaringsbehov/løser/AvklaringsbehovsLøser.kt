@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.verdityper.flyt.FlytKontekst
 
-sealed interface AvklaringsbehovsLøser<T : AvklaringsbehovLøsning> {
+sealed interface AvklaringsbehovsLøser<in T : AvklaringsbehovLøsning> {
 
     fun løs(kontekst: FlytKontekst, løsning: T): LøsningsResultat
 
