@@ -7,10 +7,13 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonOgSakService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
+import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import javax.sql.DataSource
@@ -37,6 +40,22 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                 }
             }
             respond(saker)
+        }
+        route("/finnEllerOpprett").post<Unit, SaksinfoDTO, FinnEllerOpprettSakDTO> { _, dto ->
+            lateinit var saken: SaksinfoDTO
+            dataSource.transaction { connection ->
+
+                val ident = Ident(dto.ident)
+                val periode = Periode(dto.søknadsdato, dto.søknadsdato)
+                val sak =
+                    PersonOgSakService(
+                        connection = connection,
+                        pdlGateway = PdlIdentGateway
+                    ).finnEllerOpprett(ident = ident, periode = periode)
+
+                saken = SaksinfoDTO(sak.saksnummer.toString(), periode)
+            }
+            respond(saken)
         }
         route("") {
             route("/alle").get<Unit, List<SaksinfoDTO>> {
