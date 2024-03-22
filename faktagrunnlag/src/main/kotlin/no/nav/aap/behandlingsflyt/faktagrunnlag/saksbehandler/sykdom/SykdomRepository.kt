@@ -181,7 +181,7 @@ class SykdomRepository(private val connection: DBConnection) {
                     row.getBooleanOrNull("ER_SYKDOM_SKADE_LYTE_VESETLING_DEL"),
                     row.getBooleanOrNull("ER_NEDSETTELSE_HOYERE_ENN_NEDRE_GRENSE"),
                     row.getEnumOrNull("NEDRE_GRENSE"),
-                    row.getIntOrNull("NEDSATT_ARBEIDSEVNE_DATO")?.let { Year.of(it) },
+                    row.getLocalDateOrNull("NEDSATT_ARBEIDSEVNE_DATO")?.let { Year.of(it.year) },
                     row.getBoolean("ER_ARBEIDSEVNE_NEDSATT")
                 )
             }

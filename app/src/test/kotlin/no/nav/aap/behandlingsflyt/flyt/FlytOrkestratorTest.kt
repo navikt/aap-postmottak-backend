@@ -175,23 +175,6 @@ class FlytOrkestratorTest {
         }
         ventPåSvar()
 
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = FastsettBeregningstidspunktLøsning(
-                        beregningVurdering = BeregningVurdering(
-                            begrunnelse = "Trenger hjelp fra nav",
-                            ytterligereNedsattArbeidsevneDato = null,
-                            antattÅrligInntekt = null
-                        ),
-                    ),
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
-
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
         dataSource.transaction { dbConnection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, dbConnection)
@@ -544,23 +527,6 @@ class FlytOrkestratorTest {
         }
         ventPåSvar()
 
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = FastsettBeregningstidspunktLøsning(
-                        beregningVurdering = BeregningVurdering(
-                            begrunnelse = "Trenger hjelp fra nav",
-                            ytterligereNedsattArbeidsevneDato = null,
-                            antattÅrligInntekt = null
-                        ),
-                    ),
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
-
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
         dataSource.transaction { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
@@ -633,23 +599,6 @@ class FlytOrkestratorTest {
                         )
                     ),
                     ingenEndringIGruppe = true,
-                    behandlingVersjon = behandling.versjon
-                )
-            )
-        }
-        ventPåSvar()
-
-        dataSource.transaction {
-            AvklaringsbehovHendelseHåndterer(it).håndtere(
-                behandling.id,
-                LøsAvklaringsbehovBehandlingHendelse(
-                    løsning = FastsettBeregningstidspunktLøsning(
-                        beregningVurdering = BeregningVurdering(
-                            begrunnelse = "Trenger hjelp fra nav",
-                            ytterligereNedsattArbeidsevneDato = null,
-                            antattÅrligInntekt = null
-                        ),
-                    ),
                     behandlingVersjon = behandling.versjon
                 )
             )
