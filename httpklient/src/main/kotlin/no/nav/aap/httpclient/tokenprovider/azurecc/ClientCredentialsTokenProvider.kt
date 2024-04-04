@@ -55,7 +55,7 @@ object ClientCredentialsTokenProvider : TokenProvider {
 
     private fun formPost(scope: String): String {
         val encodedScope = URLEncoder.encode(scope, UTF_8)
-        return "grant_type=client_credentials" + "&client_id=" + config.clientId + "&client_secret=" + config.clientSecret + "&scope=" + encodedScope
+        return "client_id=" + config.clientId + "&client_secret=" + config.clientSecret + "&scope=" + encodedScope + "&grant_type=client_credentials"
     }
 }
 
