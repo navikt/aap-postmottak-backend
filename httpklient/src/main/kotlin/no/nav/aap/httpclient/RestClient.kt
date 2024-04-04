@@ -61,10 +61,14 @@ class RestClient(private val config: ClientConfig, private val tokenProvider: To
             SECURE_LOGGER.info(value)
             return DefaultJsonMapper.fromJson(value, clazz)
         }
+        if (status == HttpURLConnection.HTTP_BAD_REQUEST) {
+            SECURE_LOGGER.info(response.body())
+            throw UhåndtertHttpResponsException("Bad request mot ${request.uri()}")
+        }
         if (status == HttpURLConnection.HTTP_FORBIDDEN) {
             throw ManglerTilgangException("Feilet mot ${request.uri()}")
         }
-        SECURE_LOGGER.info(response.body())
+
         throw UhåndtertHttpResponsException("Uventet httprespons kode $status")
     }
 }
