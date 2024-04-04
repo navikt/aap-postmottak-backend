@@ -64,7 +64,7 @@ class RestClient(private val config: ClientConfig, private val tokenProvider: To
         if (status == HttpURLConnection.HTTP_FORBIDDEN) {
             throw ManglerTilgangException("Feilet mot ${request.uri()}")
         }
-
+        SECURE_LOGGER.info(response.body())
         throw UhåndtertHttpResponsException("Uventet httprespons kode $status")
     }
 }
