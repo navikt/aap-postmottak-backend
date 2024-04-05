@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 internal class OidcTokenResponse(
     @JsonProperty("access_token") val access_token: String,
     @JsonProperty("refresh_token") val refresh_token: String?,
-    @JsonProperty("id_token") val id_token: String,
+    @JsonProperty("id_token") val id_token: String?,
     @JsonProperty("token_type") val token_type: String,
     @JsonProperty("scope") val scope: String?,
     @JsonProperty("expires_in") val expires_in: Int
