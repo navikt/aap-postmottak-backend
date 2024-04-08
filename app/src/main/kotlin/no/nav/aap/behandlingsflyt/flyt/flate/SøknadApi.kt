@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt.flate
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
@@ -32,6 +33,7 @@ fun NormalOpenAPIRoute.søknadApi(dataSource: DataSource) {
                     )
                 )
             )
+            respond(Unit)
         }
     }
 }

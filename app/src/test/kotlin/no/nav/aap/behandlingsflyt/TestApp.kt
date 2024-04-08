@@ -63,7 +63,7 @@ private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
     return postgres
 }
 
-fun Application.module(fakes: Fakes) {
+private fun Application.module(fakes: Fakes) {
     // Setter opp virtuell sandkasse lokalt
 
 
