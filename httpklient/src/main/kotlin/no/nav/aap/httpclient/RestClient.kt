@@ -1,20 +1,24 @@
 package no.nav.aap.httpclient
 
+import no.nav.aap.httpclient.error.DefaultErrorHandler
+import no.nav.aap.httpclient.error.RestErrorHandler
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.request.Request
 import no.nav.aap.httpclient.tokenprovider.TokenProvider
-import no.nav.aap.json.DefaultJsonMapper
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import java.net.HttpURLConnection
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.*
 
-class RestClient(private val config: ClientConfig, private val tokenProvider: TokenProvider) {
+class RestClient(
+    private val config: ClientConfig,
+    private val tokenProvider: TokenProvider,
+    private val errorHandler: RestErrorHandler = DefaultErrorHandler(config)
+) {
 
     private val SECURE_LOGGER = LoggerFactory.getLogger("secureLog")
 
@@ -50,26 +54,7 @@ class RestClient(private val config: ClientConfig, private val tokenProvider: To
     private fun <R> executeRequestAndHandleResponse(request: HttpRequest, clazz: Class<R>): R? {
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
 
-        val status: Int = response.statusCode()
-        if (status == HttpURLConnection.HTTP_NO_CONTENT) {
-            return null
-        }
-        if ((status >= HttpURLConnection.HTTP_OK && status < HttpURLConnection.HTTP_MULT_CHOICE)
-            || config.isParseableStatus(status)
-        ) {
-            val value = response.body()
-            SECURE_LOGGER.info(value)
-            return DefaultJsonMapper.fromJson(value, clazz)
-        }
-        if (status == HttpURLConnection.HTTP_BAD_REQUEST) {
-            SECURE_LOGGER.info(response.body())
-            throw UhåndtertHttpResponsException("Bad request mot ${request.uri()}")
-        }
-        if (status == HttpURLConnection.HTTP_FORBIDDEN) {
-            throw ManglerTilgangException("Feilet mot ${request.uri()}")
-        }
-
-        throw UhåndtertHttpResponsException("Uventet httprespons kode $status")
+        return errorHandler.håndter(request, response, clazz)
     }
 }
 

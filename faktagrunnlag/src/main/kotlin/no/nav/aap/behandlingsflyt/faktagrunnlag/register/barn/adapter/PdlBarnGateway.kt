@@ -5,13 +5,12 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.BarnGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.Dødsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlQueryException
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.pdl.GraphQLError
 import no.nav.aap.pdl.IdentVariables
+import no.nav.aap.pdl.PdlErrorHandler
 import no.nav.aap.pdl.PdlRelasjonDataResponse
 import no.nav.aap.pdl.PdlRequest
 import no.nav.aap.requiredConfigForKey
@@ -21,9 +20,11 @@ import java.net.URI
 object PdlBarnGateway : BarnGateway {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.pdl.url"))
+    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.pdl.scope"))
     private val client = RestClient(
-        config = ClientConfig(scope = requiredConfigForKey("integrasjon.pdl.scope")),
-        tokenProvider = ClientCredentialsTokenProvider
+        config = config,
+        tokenProvider = ClientCredentialsTokenProvider,
+        errorHandler = PdlErrorHandler(config = config)
     )
 
     override fun hentBarn(person: Person): List<Barn> {
@@ -33,15 +34,6 @@ object PdlBarnGateway : BarnGateway {
     private fun hentBarnRelasjoner(person: Person): List<Ident> {
         val request = PdlRequest(BARN_RELASJON_QUERY, IdentVariables(person.aktivIdent().identifikator))
         val response: PdlRelasjonDataResponse = query(request)
-
-        if (response.errors?.isEmpty() == true) {
-            throw PdlQueryException(
-                String.format(
-                    "Feil %s ved GraphQL oppslag mot %s",
-                    response.errors?.map(GraphQLError::message)?.joinToString()
-                )
-            )
-        }
 
         val relasjoner = (response.data
             ?.hentPerson
@@ -58,15 +50,6 @@ object PdlBarnGateway : BarnGateway {
     private fun hentBarn(identer: List<Ident>): List<Barn> {
         val request = PdlRequest(PERSON_BOLK_QUERY, IdentVariables(identer = identer.map { it.identifikator }))
         val response: PdlRelasjonDataResponse = query(request)
-
-        if (response.errors?.isEmpty() == true) {
-            throw PdlQueryException(
-                String.format(
-                    "Feil %s ved GraphQL oppslag mot %s",
-                    response.errors?.map(GraphQLError::message)?.joinToString()
-                )
-            )
-        }
 
         val bolk = response
             .data

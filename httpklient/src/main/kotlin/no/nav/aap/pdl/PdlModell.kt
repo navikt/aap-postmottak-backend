@@ -10,23 +10,28 @@ data class IdentVariables(
     val identer: List<String>? = null
 )
 
-data class PdlRelasjonDataResponse(
+abstract class PdlResponse(
+    val errors: List<GraphQLError>?,
+    val extensions: GraphQLExtensions?
+)
+
+class PdlRelasjonDataResponse(
     val data: PdlRelasjonData?,
-    val errors: List<GraphQLError>?,
-    val extensions: GraphQLExtensions?
-)
+    errors: List<GraphQLError>?,
+    extensions: GraphQLExtensions?
+) : PdlResponse(errors, extensions)
 
-data class PdlPersoninfoDataResponse(
+class PdlPersoninfoDataResponse(
     val data: PdlPersoninfoData?,
-    val errors: List<GraphQLError>?,
-    val extensions: GraphQLExtensions?
-)
+    errors: List<GraphQLError>?,
+    extensions: GraphQLExtensions?
+) : PdlResponse(errors, extensions)
 
-data class PdlIdenterDataResponse(
+class PdlIdenterDataResponse(
     val data: PdlIdenterData?,
-    val errors: List<GraphQLError>?,
-    val extensions: GraphQLExtensions?
-)
+    errors: List<GraphQLError>?,
+    extensions: GraphQLExtensions?
+) : PdlResponse(errors, extensions)
 
 data class GraphQLError(
     val message: String,

@@ -5,8 +5,8 @@ import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.pdl.GraphQLError
 import no.nav.aap.pdl.IdentVariables
+import no.nav.aap.pdl.PdlErrorHandler
 import no.nav.aap.pdl.PdlGruppe
 import no.nav.aap.pdl.PdlIdenterDataResponse
 import no.nav.aap.pdl.PdlRequest
@@ -17,9 +17,11 @@ import java.net.URI
 object PdlIdentGateway : IdentGateway {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.pdl.url"))
+    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.pdl.scope"))
     private val client = RestClient(
-        config = ClientConfig(scope = requiredConfigForKey("integrasjon.pdl.scope")),
-        tokenProvider = ClientCredentialsTokenProvider
+        config = config,
+        tokenProvider = ClientCredentialsTokenProvider,
+        errorHandler = PdlErrorHandler(config = config)
     )
 
     private fun query(request: PdlRequest): PdlIdenterDataResponse {
@@ -30,15 +32,6 @@ object PdlIdentGateway : IdentGateway {
     override fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
         val request = PdlRequest(IDENT_QUERY, IdentVariables(ident.identifikator))
         val response: PdlIdenterDataResponse = query(request)
-
-        if (response.errors?.isEmpty() == true) {
-            throw PdlQueryException(
-                String.format(
-                    "Feil %s ved GraphQL oppslag mot %s",
-                    response.errors?.map(GraphQLError::message)?.joinToString()
-                )
-            )
-        }
 
         return response.data
             ?.hentIdenter
@@ -64,4 +57,3 @@ val IDENT_QUERY = """
     }
 """.trimIndent()
 
-class PdlQueryException(msg: String) : RuntimeException(msg)
