@@ -69,10 +69,10 @@ internal class RetryFeiledeOppgaverRepository(private val connection: DBConnecti
         }
     }
 
-    internal fun planleggNyKjøring(localDateTime: LocalDateTime) {
+    internal fun planleggNyKjøring() {
         oppgaverRepository.leggTil(
             OppgaveInput(RekjørFeiledeOppgaver)
-                .medNesteKjøring(localDateTime)
+                .medNesteKjøring(RekjørFeiledeOppgaver.cron()!!.nextLocalDateTimeAfter(LocalDateTime.now()))
         )
     }
 

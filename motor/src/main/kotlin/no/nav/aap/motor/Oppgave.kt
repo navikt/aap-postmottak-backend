@@ -14,4 +14,11 @@ interface Oppgave {
     fun retries(): Int {
         return 3
     }
+
+    /**
+     * ved fullføring vil oppgaven schedulere seg selv etter dette mønsteret
+     */
+    fun cron(): CronExpression? {
+        return null
+    }
 }

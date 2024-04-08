@@ -102,6 +102,15 @@ class Motor(
                     oppgaveInput.oppgave.konstruer(nyConnection).utfør(oppgaveInput)
 
                     log.info("Fullført oppgave")
+                    if (oppgaveInput.erScheduledOppgave()) {
+                        OppgaveRepository(nyConnection).leggTil(
+                            oppgaveInput.medNesteKjøring(
+                                oppgaveInput.cron()!!.nextLocalDateTimeAfter(
+                                    LocalDateTime.now()
+                                )
+                            )
+                        )
+                    }
                 }
                 OppgaveRepository(connection).markerKjørt(oppgaveInput)
             } catch (exception: Throwable) {
@@ -129,7 +138,7 @@ class Motor(
                 val allRunning = workers.values.all { !it.isDone }
 
                 if (!allRunning && !stopped) {
-                    val nyeWorkers: List<Pair<Int, Forbrenningskammer>> = listOf()
+                    val nyeWorkers: MutableList<Pair<Int, Forbrenningskammer>> = mutableListOf()
                     workers.forEach { (key, value) ->
                         if (value.state() in setOf(Future.State.CANCELLED, Future.State.SUCCESS)) {
                             logger.info("Fant workers som uventet har stoppet [{}]", value)

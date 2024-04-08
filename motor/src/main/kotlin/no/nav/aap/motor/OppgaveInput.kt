@@ -69,4 +69,12 @@ class OppgaveInput(val oppgave: Oppgave) {
     fun skalMarkeresSomFeilet(): Boolean {
         return oppgave.retries() <= antallFeil + 1
     }
+
+    fun cron(): CronExpression? {
+        return oppgave.cron()
+    }
+
+    fun erScheduledOppgave(): Boolean {
+        return cron() != null
+    }
 }
