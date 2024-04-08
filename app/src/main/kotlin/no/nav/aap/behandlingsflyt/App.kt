@@ -38,6 +38,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.medlemskap.medlems
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt.flate.meldepliktsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.flate.studentgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.sykdomsgrunnlagApi
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.sykepengerGrunnlagApi
 import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
 import no.nav.aap.behandlingsflyt.flyt.flate.søknadApi
@@ -133,6 +134,7 @@ internal fun Application.server(dbConfig: DbConfig) {
         medlemskapsgrunnlagApi(dataSource)
         studentgrunnlagApi(dataSource)
         sykdomsgrunnlagApi(dataSource)
+        sykepengerGrunnlagApi(dataSource)
         avklaringsbehovApi(dataSource)
         tilkjentYtelseAPI(dataSource)
 
