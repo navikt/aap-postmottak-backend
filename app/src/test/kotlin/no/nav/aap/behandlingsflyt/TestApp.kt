@@ -50,6 +50,20 @@ fun main() {
                     respond(dto)
                 }
             }
+            route("/testdataApi/genererPerson") {
+                post<Unit, OpprettTestPersonResponsDto, OpprettTestPersonDto> { _, dto ->
+                    val ident = fakes.genererIdent(dto.fødselsdato)
+                    fakes.leggTil(
+                        TestPerson(
+                            identer = setOf(ident),
+                            fødselsdato = Fødselsdato(dto.fødselsdato),
+                            yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList()
+                        )
+                    )
+
+                    respond(OpprettTestPersonResponsDto(ident.identifikator))
+                }
+            }
         }
 
     }.start(wait = true)

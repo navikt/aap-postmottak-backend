@@ -14,6 +14,15 @@ data class OpprettTestcaseDTO(
     @NotNull @JsonProperty(value = "student", defaultValue = "false") val student: Boolean
 )
 
+data class OpprettTestPersonDto(
+    @JsonProperty(value = "fødselsdato", required = true) val fødselsdato: LocalDate,
+    @NotNull @JsonProperty(value = "yrkesskade", defaultValue = "false") val yrkesskade: Boolean
+)
+
+data class OpprettTestPersonResponsDto(
+    @JsonProperty(value = "ident", required = true) val ident: String
+)
+
 @Response(statusCode = 202)
 data class PliktkortTestDTO(
     @JsonProperty(value = "ident", required = true) val ident: String,

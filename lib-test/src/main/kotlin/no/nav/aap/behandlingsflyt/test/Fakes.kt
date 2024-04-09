@@ -73,7 +73,9 @@ class Fakes : AutoCloseable {
             )
         val PERSON_MED_BARN_65ÅR =
             TestPerson(
-                setOf(Ident("86322434234", true)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(65)), barn = listOf(
+                setOf(Ident("86322434234", true)),
+                fødselsdato = Fødselsdato(LocalDate.now().minusYears(65)),
+                barn = listOf(
                     BARNLØS_PERSON_18ÅR, BARNLØS_PERSON_30ÅR
                 )
             )
@@ -89,7 +91,7 @@ class Fakes : AutoCloseable {
     }
 
     fun leggTil(person: TestPerson) {
-        person.identer.forEach{ fakePersoner[it.identifikator] = person }
+        person.identer.forEach { fakePersoner[it.identifikator] = person }
         person.barn.forEach { leggTil(it) }
     }
 
@@ -102,9 +104,6 @@ class Fakes : AutoCloseable {
         runBlocking { resolvedConnectors() }
             .first { it.type == ConnectorType.HTTP }
             .port
-
-
-
 
 
     fun Application.pdlFake() {
@@ -274,6 +273,10 @@ class Fakes : AutoCloseable {
                 call.respond(TestToken())
             }
         }
+    }
+
+    fun genererIdent(fødselsdato: LocalDate): Ident {
+        return Ident(FødselsnummerGenerator.Builder().fodselsdato(fødselsdato).buildAndGenerate())
     }
 
     internal data class TestToken(
