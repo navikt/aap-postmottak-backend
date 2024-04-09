@@ -26,7 +26,7 @@ fun NormalOpenAPIRoute.søknadApi(dataSource: DataSource) {
                     mottattTidspunkt = LocalDateTime.now(), //FIXME: Faktisk søknadstidspunkt
                     strukturertDokument = StrukturertDokument(
                         data = Søknad(
-                            periode = Periode(LocalDate.now().minusYears(3), LocalDate.now().plusYears(3)),
+                            periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3)),
                             student = dto.søknad.student
                         ),
                         brevkode = Brevkode.SØKNAD
