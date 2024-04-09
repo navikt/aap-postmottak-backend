@@ -31,7 +31,8 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                         .map { sak ->
                             SaksinfoDTO(
                                 saksnummer = sak.saksnummer.toString(),
-                                periode = sak.rettighetsperiode
+                                periode = sak.rettighetsperiode,
+                                ident = sak.person.aktivIdent().identifikator
                             )
                         }
 
@@ -49,7 +50,11 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                         pdlGateway = PdlIdentGateway
                     ).finnEllerOpprett(ident = ident, periode = periode)
 
-                SaksinfoDTO(sak.saksnummer.toString(), periode)
+                SaksinfoDTO(
+                    saksnummer = sak.saksnummer.toString(),
+                    periode = periode,
+                    ident = sak.person.aktivIdent().identifikator
+                )
             }
             respond(saken)
         }
@@ -60,7 +65,8 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                         .map { sak ->
                             SaksinfoDTO(
                                 saksnummer = sak.saksnummer.toString(),
-                                periode = sak.rettighetsperiode
+                                periode = sak.rettighetsperiode,
+                                ident = sak.person.aktivIdent().identifikator
                             )
                         }
                 }
