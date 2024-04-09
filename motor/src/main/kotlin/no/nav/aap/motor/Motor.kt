@@ -97,11 +97,11 @@ class Motor(
                     MDC.put("behandlingId", oppgaveInput.behandlingIdOrNull().toString())
                     MDC.put("callId", UUID.randomUUID().toString())
 
-                    log.info("Starter på oppgave")
+                    log.info("Starter på oppgave :: {}", oppgaveInput.toString())
 
                     oppgaveInput.oppgave.konstruer(nyConnection).utfør(oppgaveInput)
 
-                    log.info("Fullført oppgave")
+                    log.info("Fullført oppgave :: {}", oppgaveInput.toString())
                     if (oppgaveInput.erScheduledOppgave()) {
                         OppgaveRepository(nyConnection).leggTil(
                             oppgaveInput.medNesteKjøring(
