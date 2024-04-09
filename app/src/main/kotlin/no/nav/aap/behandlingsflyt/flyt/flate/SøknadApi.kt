@@ -18,7 +18,7 @@ import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.søknadApi(dataSource: DataSource) {
     route("/api/soknad") {
-        route("/send").post<Unit, Unit, SøknadSendDto> { _, dto ->
+        route("/send").post<Unit, String, SøknadSendDto> { _, dto ->
             HendelsesMottak(dataSource).håndtere(
                 key = Saksnummer(dto.saksnummer),
                 hendelse = DokumentMottattSakHendelse(
@@ -33,7 +33,8 @@ fun NormalOpenAPIRoute.søknadApi(dataSource: DataSource) {
                     )
                 )
             )
-            respond(Unit)
+            //TODO: Må ha String-respons på grunn av Accept-header. Denne må returnere json
+            respond("{}")
         }
     }
 }
