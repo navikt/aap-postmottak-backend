@@ -60,10 +60,10 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         status = Status.UTREDES
     ),
     FATTE_VEDTAK(
-        gruppe = StegGruppe.VEDTAK,
+        gruppe = StegGruppe.FATTE_VEDTAK,
         status = Status.UTREDES
     ),
-    IVERKSETT_VEDTAK(gruppe = StegGruppe.VEDTAK, status = Status.AVSLUTTET),
+    IVERKSETT_VEDTAK(gruppe = StegGruppe.IVERKSETT_VEDTAK, status = Status.AVSLUTTET),
     UDEFINERT(
         gruppe = StegGruppe.UDEFINERT, status = Status.UTREDES, tekniskSteg = true
     ), // Forbeholdt deklarasjon for avklaringsbehov som
