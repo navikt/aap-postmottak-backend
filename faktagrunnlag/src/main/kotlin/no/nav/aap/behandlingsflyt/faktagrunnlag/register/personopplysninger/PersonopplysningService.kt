@@ -13,16 +13,16 @@ class PersonopplysningService private constructor(
     private val personopplysningGateway: PersonopplysningGateway,
 ) : Grunnlag {
 
-    override fun oppdater(kontekst: FlytKontekst): Boolean {
+    override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
         val sak = sakService.hent(kontekst.sakId)
         val personopplysninger = personopplysningGateway.innhent(sak.person) ?: error("fødselsdato skal alltid eksistere i PDL")
         val eksisterendeData = personopplysningRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         if (personopplysninger != eksisterendeData?.personopplysning) {
             personopplysningRepository.lagre(kontekst.behandlingId, personopplysninger)
-            return true
+            return false
         }
-        return false
+        return true
     }
 
     companion object : Grunnlagkonstruktør {

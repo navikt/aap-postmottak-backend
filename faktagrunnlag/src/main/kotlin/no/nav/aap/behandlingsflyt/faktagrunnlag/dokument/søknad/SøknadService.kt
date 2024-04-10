@@ -25,10 +25,10 @@ class SøknadService private constructor(
         }
     }
 
-    override fun oppdater(kontekst: FlytKontekst): Boolean {
+    override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
         val ubehandletSøknader = mottaDokumentService.søknaderSomIkkeHarBlittBehandlet(kontekst.sakId)
         if (ubehandletSøknader.isEmpty()) {
-            return false
+            return true
         }
 
         val behandlingId = kontekst.behandlingId
@@ -43,6 +43,6 @@ class SøknadService private constructor(
             )
         }
 
-        return true // Antar her at alle nye søknader gir en endring vi må ta hensyn til
+        return false // Antar her at alle nye søknader gir en endring vi må ta hensyn til
     }
 }

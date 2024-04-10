@@ -10,6 +10,6 @@ class Faktagrunnlag(private val connection: DBConnection) {
         kontekst: FlytKontekst
     ): List<Grunnlagkonstruktør> {
         // Hva gir dette leddet?
-        return kravliste.filterNot { grunnlagstype -> grunnlagstype.konstruer(connection).oppdater(kontekst) }
+        return kravliste.filterNot { grunnlagstype -> grunnlagstype.konstruer(connection).harIkkeGjortOppdateringNå(kontekst) }
     }
 }

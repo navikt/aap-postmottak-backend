@@ -18,7 +18,7 @@ class InntektService private constructor(
     private val inntektRegisterGateway: InntektRegisterGateway
 ) : Grunnlag {
 
-    override fun oppdater(kontekst: FlytKontekst): Boolean {
+    override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
         val behandlingId = kontekst.behandlingId
         val beregningVurdering = sykdomRepository.hentHvisEksisterer(behandlingId)
         if (beregningVurdering?.sykdomsvurdering?.nedsattArbeidsevneDato == null) {

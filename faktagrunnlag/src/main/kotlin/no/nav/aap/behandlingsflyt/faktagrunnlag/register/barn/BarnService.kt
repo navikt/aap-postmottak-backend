@@ -14,7 +14,7 @@ class BarnService private constructor(
     private val barnGateway: BarnGateway
 ) : Grunnlag {
 
-    override fun oppdater(kontekst: FlytKontekst): Boolean {
+    override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
         val behandlingId = kontekst.behandlingId
 
         val barn = if (harBehandlingsgrunnlag(behandlingId)) {
@@ -27,9 +27,9 @@ class BarnService private constructor(
         val eksisterendeData = barnRepository.hent(behandlingId)
         if (barn.toSet() != eksisterendeData.barn.toSet()) {
             barnRepository.lagre(behandlingId, barn)
-            return true
+            return false
         }
-        return false
+        return true
     }
 
     private fun harBehandlingsgrunnlag(behandlingId: BehandlingId): Boolean {

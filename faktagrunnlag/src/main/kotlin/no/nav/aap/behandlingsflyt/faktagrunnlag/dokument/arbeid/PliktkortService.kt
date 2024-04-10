@@ -23,10 +23,10 @@ class PliktkortService private constructor(
         }
     }
 
-    override fun oppdater(kontekst: FlytKontekst): Boolean {
+    override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
         val pliktkortSomIkkeErBehandlet = mottaDokumentService.pliktkortSomIkkeErBehandlet(kontekst.sakId)
         if (pliktkortSomIkkeErBehandlet.isEmpty()) {
-            return false
+            return true
         }
 
         val eksisterendeGrunnlag = pliktkortRepository.hentHvisEksisterer(kontekst.behandlingId)
@@ -48,6 +48,6 @@ class PliktkortService private constructor(
 
         pliktkortRepository.lagre(behandlingId = kontekst.behandlingId, pliktkortene = allePlussNye)
 
-        return true // Antar her at alle nye kort gir en endring vi må ta hensyn til
+        return false // Antar her at alle nye kort gir en endring vi må ta hensyn til
     }
 }
