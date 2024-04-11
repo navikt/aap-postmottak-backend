@@ -110,7 +110,11 @@ class FlytOrkestrator(
                 behandlingFlyt,
                 avklaringsbehov.filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER }
             )
-            val neste = behandlingFlyt.neste()
+            val neste = if (result.erTilbakeføring()) {
+                behandlingFlyt.aktivtSteg()
+            } else {
+                behandlingFlyt.neste()
+            }
 
             if (!result.kanFortsette() || neste == null) {
                 if (neste == null) {

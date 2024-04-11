@@ -213,6 +213,10 @@ class BehandlingFlyt private constructor(
     internal fun aktivtStegType(): StegType {
         return requireNotNull(aktivtSteg).steg.type()
     }
+
+    internal fun aktivtSteg(): FlytSteg {
+        return requireNotNull(aktivtSteg).steg
+    }
 }
 
 class StegComparator(private var flyt: List<BehandlingFlyt.Behandlingsflytsteg>) : Comparator<StegType> {
