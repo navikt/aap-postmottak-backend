@@ -5,13 +5,15 @@ import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
 
 fun NormalOpenAPIRoute.fatteVedtakGrunnlagApi(dataSource: HikariDataSource) {
@@ -21,16 +23,32 @@ fun NormalOpenAPIRoute.fatteVedtakGrunnlagApi(dataSource: HikariDataSource) {
 
                 val dto = dataSource.transaction { connection ->
                     val behandling: Behandling = BehandlingReferanseService(connection).behandling(req)
-                    val avklaringsbehovene = AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandling.id)
+                    val avklaringsbehovene =
+                        AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandling.id)
 
-                    FatteVedtakGrunnlagDto(avklaringsbehovene.alle()
-                        .filter { it.erTotrinn() }
-                        .map { tilTotrinnsVurdering(it) })
+                    val vurderinger = totrinnsVurdering(avklaringsbehovene)
+                    FatteVedtakGrunnlagDto(vurderinger = vurderinger, historikk = utledHistorikk(avklaringsbehovene))
                 }
                 respond(dto)
             }
         }
     }
+}
+
+fun utledHistorikk(avklaringsbehovene: Avklaringsbehovene): List<Historikk> {
+    val relevanteBehov =
+        avklaringsbehovene.hentBehovForDefinisjon(listOf(Definisjon.FORESLÅ_VEDTAK, Definisjon.FATTE_VEDTAK))
+
+    return relevanteBehov.map {
+        it.historikk.filter { e -> e.status in listOf(Status.AVSLUTTET) }
+            .map { at -> Historikk(it.definisjon, at.tidsstempel, at.endretAv) }
+    }.flatten().sorted()
+}
+
+private fun totrinnsVurdering(avklaringsbehovene: Avklaringsbehovene): List<TotrinnsVurdering> {
+    return avklaringsbehovene.alle()
+        .filter { it.erTotrinn() }
+        .map { tilTotrinnsVurdering(it) }
 }
 
 private fun tilTotrinnsVurdering(it: Avklaringsbehov): TotrinnsVurdering {
