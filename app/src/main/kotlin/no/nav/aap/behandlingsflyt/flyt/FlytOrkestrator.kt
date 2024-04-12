@@ -7,7 +7,9 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Faktagrunnlag
+import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
+import no.nav.aap.behandlingsflyt.flyt.steg.Transisjon
 import no.nav.aap.behandlingsflyt.hendelse.avløp.BehandlingHendelseService
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -110,11 +112,7 @@ class FlytOrkestrator(
                 behandlingFlyt,
                 avklaringsbehov.filter { it.status() != Status.SENDT_TILBAKE_FRA_BESLUTTER }
             )
-            val neste = if (result.erTilbakeføring()) {
-                behandlingFlyt.aktivtSteg()
-            } else {
-                behandlingFlyt.neste()
-            }
+            val neste = utledNesteSteg(result, behandlingFlyt)
 
             if (!result.kanFortsette() || neste == null) {
                 if (neste == null) {
@@ -128,6 +126,18 @@ class FlytOrkestrator(
             }
             gjeldendeSteg = neste
         }
+    }
+
+    private fun utledNesteSteg(
+        result: Transisjon,
+        behandlingFlyt: BehandlingFlyt
+    ): FlytSteg? {
+        val neste = if (result.erTilbakeføring()) {
+            behandlingFlyt.aktivtSteg()
+        } else {
+            behandlingFlyt.neste()
+        }
+        return neste
     }
 
     internal fun forberedLøsingAvBehov(definisjoner: Definisjon, behandling: Behandling, kontekst: FlytKontekst) {
