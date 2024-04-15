@@ -50,7 +50,7 @@ class Fakes : AutoCloseable {
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
         System.setProperty("azure.app.client.id", "")
         System.setProperty("azure.app.client.secret", "")
-        System.setProperty("azure.openid.config.jwks.uri", "")
+        System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.port()}")
         System.setProperty("azure.openid.config.issuer", "")
 
         // Pdl

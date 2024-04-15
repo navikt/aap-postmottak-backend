@@ -1,7 +1,6 @@
 package no.nav.aap.behandlingsflyt
 
 import com.papsign.ktor.openapigen.OpenAPIGen
-import com.papsign.ktor.openapigen.route.apiRouting
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
@@ -12,6 +11,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
@@ -25,6 +25,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import no.nav.aap.behandlingsflyt.auth.AZURE
+import no.nav.aap.behandlingsflyt.auth.authentication
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.fatteVedtakGrunnlagApi
@@ -48,11 +50,13 @@ import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsOppgaver
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
+import no.nav.aap.behandlingsflyt.server.apiRouting
 import no.nav.aap.behandlingsflyt.tilkjentytelse.flate.tilkjentYtelseAPI
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
+import no.nav.aap.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
@@ -120,31 +124,35 @@ internal fun Application.server(dbConfig: DbConfig) {
         allowHeader(HttpHeaders.ContentType)
     }
 
+    authentication(AzureConfig())
+
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
 
-    apiRouting {
-        configApi()
-        saksApi(dataSource)
-        søknadApi(dataSource)
-        behandlingApi(dataSource)
-        flytApi(dataSource)
-        fatteVedtakGrunnlagApi(dataSource)
-        bistandsgrunnlagApi(dataSource)
-        meldepliktsgrunnlagApi(dataSource)
-        medlemskapsgrunnlagApi(dataSource)
-        studentgrunnlagApi(dataSource)
-        sykdomsgrunnlagApi(dataSource)
-        sykepengerGrunnlagApi(dataSource)
-        avklaringsbehovApi(dataSource)
-        tilkjentYtelseAPI(dataSource)
+    routing {
+        // Setter optional enn så lenge
+        authenticate(AZURE, optional = true) {
+            apiRouting {
+                configApi()
+                saksApi(dataSource)
+                søknadApi(dataSource)
+                behandlingApi(dataSource)
+                flytApi(dataSource)
+                fatteVedtakGrunnlagApi(dataSource)
+                bistandsgrunnlagApi(dataSource)
+                meldepliktsgrunnlagApi(dataSource)
+                medlemskapsgrunnlagApi(dataSource)
+                studentgrunnlagApi(dataSource)
+                sykdomsgrunnlagApi(dataSource)
+                sykepengerGrunnlagApi(dataSource)
+                avklaringsbehovApi(dataSource)
+                tilkjentYtelseAPI(dataSource)
 
-        hendelsesApi(dataSource)
-
-        routing {
-            actuator(prometheus)
-            testIntegrasjoner()
+                hendelsesApi(dataSource)
+            }
         }
+        actuator(prometheus)
+        testIntegrasjoner()
     }
     module(dataSource)
 }
