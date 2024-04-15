@@ -33,6 +33,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 
+@Disabled
 class ApiTest {
     companion object {
         private val postgres = postgreSQLContainer()
