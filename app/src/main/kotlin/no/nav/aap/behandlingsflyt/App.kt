@@ -50,7 +50,7 @@ import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsOppgaver
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
-import no.nav.aap.behandlingsflyt.server.apiRouting
+import no.nav.aap.behandlingsflyt.server.apiRoute
 import no.nav.aap.behandlingsflyt.tilkjentytelse.flate.tilkjentYtelseAPI
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
@@ -132,7 +132,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     routing {
         // Setter optional enn så lenge
         authenticate(AZURE, optional = true) {
-            apiRouting {
+            apiRoute {
                 configApi()
                 saksApi(dataSource)
                 søknadApi(dataSource)

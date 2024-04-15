@@ -13,7 +13,7 @@ import io.ktor.util.*
  * Triks for å få NormalOpenAPIRoute til å virke med auth
  */
 @KtorDsl
-fun Route.apiRouting(config: NormalOpenAPIRoute.() -> Unit) {
+fun Route.apiRoute(config: NormalOpenAPIRoute.() -> Unit) {
     NormalOpenAPIRoute(
         this,
         application.plugin(OpenAPIGen).globalModuleProvider
