@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.hendelse.avløp
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.flyt.flate.AvklaringsbehovDTO
 import no.nav.aap.behandlingsflyt.flyt.flate.EndringDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
@@ -25,11 +26,16 @@ class BehandlingHendelseService(private val sakService: SakService) {
                 AvklaringsbehovDTO(
                     definisjon = avklaringsbehov.definisjon,
                     status = avklaringsbehov.status(),
-                    endringer = avklaringsbehov.historikk.map { endring ->
+                    endringer = avklaringsbehov.historikk.filter {
+                        it.status in listOf(
+                            Status.SENDT_TILBAKE_FRA_BESLUTTER,
+                            Status.AVSLUTTET
+                        )
+                    }.map { endring ->
                         EndringDTO(
                             status = endring.status,
                             tidsstempel = endring.tidsstempel,
-                            begrunnelse = endring.begrunnelse + "Noe",
+                            begrunnelse = endring.begrunnelse,
                             endretAv = endring.endretAv
                         )
                     }
