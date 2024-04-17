@@ -13,7 +13,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingRef
 
 fun NormalOpenAPIRoute.beregningVurderingAPI(dataSource: HikariDataSource) {
     route("/api/behandling") {
-        route("/{referanse}/grunnlag/beregning") {
+        route("/{referanse}/grunnlag/beregningsvurdering") {
             get<BehandlingReferanse, BeregningsVurderingDTO> { req ->
                 val behandling: Behandling = dataSource.transaction {
                     BehandlingReferanseService(it).behandling(req)
