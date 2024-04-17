@@ -25,7 +25,7 @@ object DefaultJsonMapper {
 
     fun toJson(value: Any): String {
         try {
-            return mapper.writeValueAsString(value)
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(value)
         } catch (e: IOException) {
             throw SerializationException(e)
         }
