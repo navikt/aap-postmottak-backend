@@ -1,9 +1,11 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.sak
 
+import com.fasterxml.jackson.annotation.JsonValue
 import java.util.*
 
 class Saksnummer(private val identifikator: String) {
 
+    @JsonValue
     override fun toString(): String {
         return identifikator
     }
