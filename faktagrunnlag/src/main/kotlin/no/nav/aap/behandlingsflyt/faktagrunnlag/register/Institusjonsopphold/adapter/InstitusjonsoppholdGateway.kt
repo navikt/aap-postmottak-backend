@@ -8,7 +8,7 @@ import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.institusjon.InstitusjonoppholdRequest
-import no.nav.aap.institusjon.InstitusjonsoppholdRespons
+import no.nav.aap.institusjon.InstitusjonoppholdRespons
 import no.nav.aap.requiredConfigForKey
 import java.net.URI
 
@@ -20,9 +20,9 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    private fun query(request: InstitusjonoppholdRequest): InstitusjonsoppholdRespons {
+    private fun query(request: InstitusjonoppholdRequest): InstitusjonoppholdRespons {
         val httpRequest = GetRequest(
-            responseClazz = InstitusjonsoppholdRespons::class.java,
+            responseClazz = InstitusjonoppholdRespons::class.java,
             additionalHeaders = listOf(
                 Pair("Nav-Personident",request.foedselsnumre.first().toString()),
                 Pair("Nav-Consumer-Id", "aap-behandlingsflyt"),
@@ -32,17 +32,18 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
         return requireNotNull(client.get(uri = url, request = httpRequest))
     }
 
-    override fun innhent(person: Person): Institusjonsopphold {
+    override fun innhent(person: Person): List<Institusjonsopphold> {
         val request = InstitusjonoppholdRequest(person.identer().map { it.identifikator })
-        val opphold = query(request)
+        val oppholdRes = query(request)
 
-        val institusjonsopphold = Institusjonsopphold.nyttOpphold(
-            requireNotNull(opphold.institusjonstype),
-            requireNotNull(opphold.kategori),
-            requireNotNull(opphold.startdato),
-            opphold.faktiskSluttdato?:opphold.forventetSluttdato
-        )
-
+        val institusjonsopphold = oppholdRes.institusjonsopphold.map { opphold ->
+            Institusjonsopphold.nyttOpphold(
+                requireNotNull(opphold.institusjonstype),
+                requireNotNull(opphold.kategori),
+                requireNotNull(opphold.startdato),
+                opphold.faktiskSluttdato ?: opphold.forventetSluttdato
+            )
+        }
         return institusjonsopphold
     }
 }

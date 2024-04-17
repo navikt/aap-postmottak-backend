@@ -8,12 +8,16 @@ data class InstitusjonoppholdRequest(
     val foedselsnumre: List<String>
 )
 
-class InstitusjonsoppholdRespons {
-    val oppholdId: Long? = null
+class InstitusjonoppholdRespons (
+    val institusjonsopphold: List<Institusjonsopphold>
+)
+
+class Institusjonsopphold {
+    private val oppholdId: Long? = null
 
     private val tssEksternId: String? = null
 
-    private val organisasjonsnummer: String? = null
+    val organisasjonsnummer: String? = null
 
     val institusjonstype: String? = null
 

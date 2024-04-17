@@ -49,6 +49,22 @@ class TilkjentYtelseRepositoryTest{
                             grunnbeløp = Beløp(1000)
                         )
                     ),
+                    Segment(
+                        periode = Periode(
+                            LocalDate.now().plusDays(2),
+                            LocalDate.now().plusDays(3)
+                        ),
+                        verdi = Tilkjent(
+                            dagsats = Beløp(1000),
+                            gradering = Prosent(50),
+                            barnetillegg = Beløp(1000),
+                            grunnlagsfaktor = GUnit("1.0"),
+                            grunnlag = Beløp(1000),
+                            antallBarn = 1,
+                            barnetilleggsats = Beløp(1000),
+                            grunnbeløp = Beløp(1000)
+                        )
+                    ),
                 )
             )
             tilkjentYtelseRepository.lagre(behandling.id,tilkjentYtelse)
