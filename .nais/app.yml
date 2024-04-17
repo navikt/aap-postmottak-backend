@@ -75,3 +75,7 @@ spec:
       value: http://yrkesskade-saker.yrkesskade/api/v1/saker/
     - name: INTEGRASJON_YRKESSKADE_SCOPE
       value: api://dev-gcp.yrkesskade.yrkesskade-saker/.default
+    - name: INTEGRASJON_INSTITUSJONSOPPHOLD_URL
+      value: https://institusjon-opphold-proxy-q2.dev-fss-pub.nais.io/api/v1/person/institusjonsopphold
+    - name: INTEGRASJON_INSTITUSJONSOPPHOLD_SCOPE
+      value: api://dev-gcp.team-rocket.institusjon-api/.default

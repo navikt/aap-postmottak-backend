@@ -25,7 +25,6 @@ fun NormalOpenAPIRoute.beregningVurderingAPI(dataSource: HikariDataSource) {
 
                 respond(
                     BeregningsVurderingDTO(beregningVurdering)
-
                 )
             }
         }
