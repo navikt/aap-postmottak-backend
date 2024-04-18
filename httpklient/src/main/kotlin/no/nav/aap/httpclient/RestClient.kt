@@ -83,6 +83,7 @@ private fun HttpRequest.Builder.addHeaders(
     }
     val callId = sikreCorrelationId()
     this.header("X-Correlation-ID", callId)
+    this.header("Nav-Call-Id", callId)
     return this
 }
 
