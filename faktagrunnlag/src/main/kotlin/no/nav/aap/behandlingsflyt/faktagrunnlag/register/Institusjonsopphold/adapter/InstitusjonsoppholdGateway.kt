@@ -41,7 +41,8 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
                 requireNotNull(opphold.institusjonstype),
                 requireNotNull(opphold.kategori),
                 requireNotNull(opphold.startdato),
-                opphold.faktiskSluttdato ?: opphold.forventetSluttdato
+                opphold.faktiskSluttdato ?: opphold.forventetSluttdato,
+                requireNotNull(opphold.organisasjonsnummer)
             )
         }
         return institusjonsopphold

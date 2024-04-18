@@ -2,27 +2,11 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold
 
 import java.time.LocalDate
 
-class Institusjonsopphold(val institusjonstype: Institusjonstype, val kategori: Oppholdstype, val startdato: LocalDate, sluttdato: LocalDate?) {
+class Institusjonsopphold(val institusjonstype: Institusjonstype, val kategori: Oppholdstype, val startdato: LocalDate, val sluttdato: LocalDate?, val orgnr: String? = null) {
     companion object {
-        fun nyttOpphold(institusjonstype: String, kategori: String, startdato: LocalDate, sluttdato: LocalDate?): Institusjonsopphold {
-            return Institusjonsopphold(Institusjonstype.valueOf(institusjonstype), Oppholdstype.valueOf(kategori), startdato, sluttdato)
+        fun nyttOpphold(institusjonstype: String, kategori: String, startdato: LocalDate, sluttdato: LocalDate?, orgnr: String?): Institusjonsopphold {
+            return Institusjonsopphold(Institusjonstype.valueOf(institusjonstype), Oppholdstype.valueOf(kategori), startdato, sluttdato, orgnr)
         }
     }
 
-    enum class Institusjonstype(val beskrivelse: String) {
-        AS("Alders- og sykehjem"),
-        FO("Fengsel"),
-        HS("Helseinstitusjon")
-    }
-
-    enum class Oppholdstype(val beskrivelse: String) {
-        A("Alders- og sykehjem"),
-        D("Dagpasient"),
-        F("Ferieopphold"),
-        H("Heldøgnpasient"),
-        P("Fødsel"),
-        R("Opptreningsinstitusjon"),
-        S("Soningsfange"),
-        V("Varetektsfange")
-    }
 }

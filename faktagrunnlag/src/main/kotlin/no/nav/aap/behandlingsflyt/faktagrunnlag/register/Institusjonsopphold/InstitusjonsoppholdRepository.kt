@@ -1,20 +1,96 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.tidslinje.Segment
+import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import java.time.LocalDate
 
 class InstitusjonsoppholdRepository(private val connection: DBConnection) {
-    fun hentHvisEksisterer(behandlingId: BehandlingId): Institusjonsopphold? {
-        //fix later
-        return null
+
+    private fun hentOpphold(opphold_grunnlag_id: Long?): List<Segment<Institusjon>> {
+        return connection.queryList(
+            """
+                SELECT * FROM OPPHOLD WHERE OPPHOLD_PERSON_ID =?
+            """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, opphold_grunnlag_id)
+            }
+            setRowMapper {
+                val institusjonsopphold = Institusjon(
+                    Institusjonstype.valueOf(it.getString("INSTITUSJONSTYPE")),
+                    Oppholdstype.valueOf(it.getString("KATEGORI")),
+                    it.getString("ORGNR")
+                )
+                Segment(
+                    it.getPeriode("PERIODE"),
+                    institusjonsopphold
+                )
+            }
+        }.toList()
     }
 
-    fun lagre(behandlingId: BehandlingId, institusjonsopphold: Institusjonsopphold?) {
-        //fix later
+    fun hent(behandlingId: BehandlingId): List<Segment<Institusjon>> {
+        val behandlings_opphold = connection.queryFirstOrNull(
+            "SELECT OPPHOLD_PERSON_ID FROM OPPHOLD_GRUNNLAG WHERE BEHANDLING_ID=? AND AKTIV=TRUE"
+        ) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+            }
+            setRowMapper {
+                it.getLong("OPPHOLD_PERSON_ID")
+            }
+        }
+        return hentOpphold(behandlings_opphold)
     }
 
-    fun kopier(fraBehandling:BehandlingId, tilBehandling:BehandlingId){
-        //fix later
+    fun lagreOpphold(behandlingId: BehandlingId, institusjonsopphold: List<Institusjonsopphold>) {
+        val oppholdPersonId = connection.executeReturnKey(
+            """
+            INSERT INTO OPPHOLD_PERSON DEFAULT VALUES
+        """.trimIndent()
+        )
+
+        connection.executeReturnKey(
+            """
+            INSERT INTO OPPHOLD_GRUNNLAG (BEHANDLING_ID, OPPHOLD_PERSON_ID) VALUES (?, ?)
+        """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+                setLong(2, oppholdPersonId)
+            }
+        }
+
+        institusjonsopphold.forEach { opphold ->
+            connection.execute(
+                """
+                INSERT INTO OPPHOLD (INSTITUSJONSTYPE, KATEGORI, ORGNR, PERIODE, OPPHOLD_PERSON_ID) VALUES (?, ?, ?, ?::daterange, ?)
+            """.trimIndent()
+            ) {
+                setParams {
+                    setString(1, opphold.institusjonstype.name)
+                    setString(2, opphold.kategori.name)
+                    setString(3, opphold.orgnr)
+                    setPeriode(4, Periode(opphold.startdato, opphold.sluttdato ?: LocalDate.MAX))
+                    setLong(5, oppholdPersonId)
+                }
+            }
+        }
+
+
+    }
+
+
+    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+        require(fraBehandling != tilBehandling)
+        connection.execute("INSERT INTO OPPHOLD_GRUNNLAG (BEHANDLING_ID, OPPHOLD_PERSON_ID) SELECT ?, OPPHOLD_PERSON_ID FROM OPPHOLD_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
+            setParams {
+                setLong(1, tilBehandling.toLong())
+                setLong(2, fraBehandling.toLong())
+            }
+        }
     }
 
 }
