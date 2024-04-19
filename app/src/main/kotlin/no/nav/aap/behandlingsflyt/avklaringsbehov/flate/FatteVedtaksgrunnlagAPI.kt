@@ -9,7 +9,6 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Endring
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
@@ -38,48 +37,52 @@ fun NormalOpenAPIRoute.fatteVedtakGrunnlagApi(dataSource: HikariDataSource) {
     }
 }
 
-private fun utledHistorikk(avklaringsbehovene: Avklaringsbehovene): List<Historikk> {
+fun utledHistorikk(avklaringsbehovene: Avklaringsbehovene): List<Historikk> {
     val relevanteBehov =
         avklaringsbehovene.hentBehovForDefinisjon(listOf(Definisjon.FORESLÅ_VEDTAK, Definisjon.FATTE_VEDTAK))
     val alleBehov = avklaringsbehovene.alle()
         .filterNot { behov -> behov.definisjon in listOf(Definisjon.FORESLÅ_VEDTAK, Definisjon.FATTE_VEDTAK) }
     var tidsstempelForrigeBehov = LocalDateTime.MIN
 
-    return relevanteBehov.map { behov ->
-        behov.historikk.filter { e -> e.status in listOf(Status.AVSLUTTET) }
-            .map { at ->
-                val aksjon = if (behov.definisjon == Definisjon.FORESLÅ_VEDTAK) {
-                    Aksjon.SENDT_TIL_BESLUTTER
+    return relevanteBehov
+        .asSequence()
+        .map { behov ->
+            behov.historikk.filter { e -> e.status in listOf(Status.AVSLUTTET) }
+                .map { endring -> DefinisjonEndring(behov.definisjon, endring) }
+        }
+        .flatten()
+        .sorted()
+        .map { behov ->
+            val aksjon = if (behov.definisjon == Definisjon.FORESLÅ_VEDTAK) {
+                Aksjon.SENDT_TIL_BESLUTTER
+            } else {
+                val endringerSidenSist =
+                    utledEndringerSidenSist(alleBehov, tidsstempelForrigeBehov, behov.endring.tidsstempel)
+                if (endringerSidenSist.any { it.endring.status == Status.SENDT_TILBAKE_FRA_BESLUTTER }) {
+                    Aksjon.RETURNERT_FRA_BESLUTTER
                 } else {
-                    val endringerSidenSist =
-                        utledEndringerSidenSist(alleBehov, tidsstempelForrigeBehov, at.tidsstempel)
-                    if (endringerSidenSist.any { it.status == Status.SENDT_TILBAKE_FRA_BESLUTTER }) {
-                        Aksjon.RETURNERT_FRA_BESLUTTER
-                    } else {
-                        Aksjon.FATTET_VEDTAK
-                    }
+                    Aksjon.FATTET_VEDTAK
                 }
-                tidsstempelForrigeBehov = at.tidsstempel
-                Historikk(aksjon, at.tidsstempel, at.endretAv)
             }
-    }.flatten().sorted()
+            tidsstempelForrigeBehov = behov.endring.tidsstempel
+            Historikk(aksjon, behov.endring.tidsstempel, behov.endring.endretAv)
+        }.sorted()
+        .toList()
 }
 
 private fun utledEndringerSidenSist(
     alleBehov: List<Avklaringsbehov>,
     tidsstempelForrigeBehov: LocalDateTime,
     tidsstempel: LocalDateTime
-): List<Endring> {
+): List<DefinisjonEndring> {
     return alleBehov.map { behov ->
         behov.historikk.filter {
             Interval(
                 tidsstempelForrigeBehov,
                 tidsstempel
             ).inneholder(it.tidsstempel)
-        }
+        }.map { endring -> DefinisjonEndring(behov.definisjon, endring) }
     }.flatten()
-
-
 }
 
 private fun totrinnsVurdering(avklaringsbehovene: Avklaringsbehovene): List<TotrinnsVurdering> {

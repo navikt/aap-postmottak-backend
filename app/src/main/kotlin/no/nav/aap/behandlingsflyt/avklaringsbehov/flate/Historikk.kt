@@ -7,4 +7,7 @@ class Historikk(val aksjon: Aksjon, val tidspunkt: LocalDateTime, val avIdent: S
         return tidspunkt.compareTo(other.tidspunkt)
     }
 
+    override fun toString(): String {
+        return "Historikk(aksjon=$aksjon, tidspunkt=$tidspunkt, avIdent='$avIdent')"
+    }
 }
