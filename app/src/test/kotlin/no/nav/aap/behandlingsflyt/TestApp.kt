@@ -78,15 +78,10 @@ private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
 
 private fun Application.module(fakes: Fakes) {
     // Setter opp virtuell sandkasse lokalt
-
-
-    environment.monitor.subscribe(ApplicationStarted) {
-    }
     environment.monitor.subscribe(ApplicationStopped) { application ->
         application.environment.log.info("Server har stoppet")
         fakes.close()
         // Release resources and unsubscribe from events
-        application.environment.monitor.unsubscribe(ApplicationStarted) {}
         application.environment.monitor.unsubscribe(ApplicationStopped) {}
     }
 }

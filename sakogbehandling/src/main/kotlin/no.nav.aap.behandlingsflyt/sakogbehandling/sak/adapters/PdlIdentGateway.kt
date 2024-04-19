@@ -6,10 +6,10 @@ import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.pdl.IdentVariables
-import no.nav.aap.pdl.PdlErrorHandler
 import no.nav.aap.pdl.PdlGruppe
 import no.nav.aap.pdl.PdlIdenterDataResponse
 import no.nav.aap.pdl.PdlRequest
+import no.nav.aap.pdl.PdlResponseHandler
 import no.nav.aap.requiredConfigForKey
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.net.URI
@@ -21,11 +21,11 @@ object PdlIdentGateway : IdentGateway {
     private val client = RestClient(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
-        errorHandler = PdlErrorHandler(config = config)
+        errorHandler = PdlResponseHandler(config = config)
     )
 
     private fun query(request: PdlRequest): PdlIdenterDataResponse {
-        val httpRequest = PostRequest(body = request, responseClazz = PdlIdenterDataResponse::class.java)
+        val httpRequest = PostRequest(body = request)
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 

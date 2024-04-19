@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.IOException
 import java.util.*
 
@@ -34,6 +35,14 @@ object DefaultJsonMapper {
     fun <T> fromJson(value: String, toClass: Class<T>): T {
         try {
             return mapper.readValue(value, toClass)
+        } catch (e: IOException) {
+            throw DeserializationException(e)
+        }
+    }
+
+   inline fun <reified T> fromJson(value: String): T {
+        try {
+            return objectMapper().readValue<T>(value)
         } catch (e: IOException) {
             throw DeserializationException(e)
         }

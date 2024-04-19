@@ -233,9 +233,9 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
                 config = ClientConfig(),
                 tokenProvider = NoTokenTokenProvider()
             )
-            client.post(
+            client.post<_, Unit>(
                 URI.create("http://localhost:8080/").resolve("testdataApi/opprettPerson"),
-                PostRequest(body = dto, responseClazz = OpprettTestcaseDTO::class.java)
+                PostRequest(body = dto)
             )
 
 

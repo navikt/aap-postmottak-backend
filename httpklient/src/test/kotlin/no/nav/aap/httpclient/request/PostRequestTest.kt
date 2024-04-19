@@ -7,7 +7,7 @@ class PostRequestTest {
 
     @Test
     fun contenttypestring() {
-        val request = PostRequest(body = "asdf", responseClazz = String::class.java)
+        val request = PostRequest(body = "asdf")
 
         assertThat(request.contentType()).isEqualTo("application/json")
     }

@@ -10,9 +10,9 @@ import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.pdl.IdentVariables
-import no.nav.aap.pdl.PdlErrorHandler
 import no.nav.aap.pdl.PdlRelasjonDataResponse
 import no.nav.aap.pdl.PdlRequest
+import no.nav.aap.pdl.PdlResponseHandler
 import no.nav.aap.requiredConfigForKey
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.net.URI
@@ -24,7 +24,7 @@ object PdlBarnGateway : BarnGateway {
     private val client = RestClient(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
-        errorHandler = PdlErrorHandler(config = config)
+        errorHandler = PdlResponseHandler(config = config)
     )
 
     override fun hentBarn(person: Person): List<Barn> {
@@ -72,7 +72,7 @@ object PdlBarnGateway : BarnGateway {
     }
 
     private fun query(request: PdlRequest): PdlRelasjonDataResponse {
-        val httpRequest = PostRequest(body = request, responseClazz = PdlRelasjonDataResponse::class.java)
+        val httpRequest = PostRequest(body = request)
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 }

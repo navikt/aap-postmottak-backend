@@ -1,18 +1,17 @@
 package no.nav.aap.httpclient.error
 
 import no.nav.aap.httpclient.ClientConfig
-import no.nav.aap.json.DefaultJsonMapper
 import org.slf4j.LoggerFactory
 import java.net.HttpURLConnection
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 
-class DefaultErrorHandler(private val config: ClientConfig) : RestErrorHandler {
+class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHandler {
 
     private val SECURE_LOGGER = LoggerFactory.getLogger("secureLog")
 
-    override fun <R> håndter(request: HttpRequest, response: HttpResponse<String>, clazz: Class<R>): R? {
+    override fun <R> håndter(request: HttpRequest, response: HttpResponse<String>, mapper: (String) -> R): R? {
         val status: Int = response.statusCode()
         if (status == HttpURLConnection.HTTP_NO_CONTENT) {
             return null
@@ -22,7 +21,7 @@ class DefaultErrorHandler(private val config: ClientConfig) : RestErrorHandler {
         ) {
             val value = response.body()
             SECURE_LOGGER.info(value)
-            return DefaultJsonMapper.fromJson(value, clazz)
+            return mapper(value)
         }
         if (status == HttpURLConnection.HTTP_BAD_REQUEST) {
             SECURE_LOGGER.info(response.body())

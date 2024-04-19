@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.Ins
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.InstitusjonsoppholdGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
+import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
@@ -22,11 +23,10 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
 
     private fun query(request: InstitusjonoppholdRequest): InstitusjonoppholdRespons {
         val httpRequest = GetRequest(
-            responseClazz = InstitusjonoppholdRespons::class.java,
             additionalHeaders = listOf(
-                Pair("Nav-Personident",request.foedselsnumre.first().toString()),
-                Pair("Nav-Consumer-Id", "aap-behandlingsflyt"),
-                Pair("Accept", "application/json")
+                Header("Nav-Personident",request.foedselsnumre.first().toString()),
+                Header("Nav-Consumer-Id", "aap-behandlingsflyt"),
+                Header("Accept", "application/json")
             )
         )
         return requireNotNull(client.get(uri = url, request = httpRequest))

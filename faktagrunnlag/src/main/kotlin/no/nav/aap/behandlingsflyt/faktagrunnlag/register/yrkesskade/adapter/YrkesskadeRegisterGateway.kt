@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fød
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.Yrkesskade
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
+import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
@@ -15,12 +16,12 @@ import java.net.URI
 object YrkesskadeRegisterGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.yrkesskade.url")).resolve("/api/v1/saker/")
     private val client = RestClient(
-        config = ClientConfig(scope = requiredConfigForKey("integrasjon.yrkesskade.scope"), additionalHeaders = listOf(Pair("Nav-Consumer-Id", "aap-behandlingsflyt"))), //TODO: bruk env var
+        config = ClientConfig(scope = requiredConfigForKey("integrasjon.yrkesskade.scope"), additionalHeaders = listOf(Header("Nav-Consumer-Id", "aap-behandlingsflyt"))), //TODO: bruk env var
         tokenProvider = ClientCredentialsTokenProvider
     )
 
     private fun query(request: YrkesskadeRequest): Yrkesskader {
-        val httpRequest = PostRequest(body = request, responseClazz = Yrkesskader::class.java)
+        val httpRequest = PostRequest(body = request)
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 

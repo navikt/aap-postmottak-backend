@@ -1,17 +1,17 @@
 package no.nav.aap.pdl
 
 import no.nav.aap.httpclient.ClientConfig
-import no.nav.aap.httpclient.error.DefaultErrorHandler
-import no.nav.aap.httpclient.error.RestErrorHandler
+import no.nav.aap.httpclient.error.DefaultResponseHandler
+import no.nav.aap.httpclient.error.RestResponseHandler
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-class PdlErrorHandler(config: ClientConfig) : RestErrorHandler {
+class PdlResponseHandler(config: ClientConfig) : RestResponseHandler {
 
-    private val defaultErrorHandler = DefaultErrorHandler(config)
+    private val defaultErrorHandler = DefaultResponseHandler(config)
 
-    override fun <R> håndter(request: HttpRequest, response: HttpResponse<String>, clazz: Class<R>): R? {
-        val respons = defaultErrorHandler.håndter(request, response, clazz)
+    override fun <R> håndter(request: HttpRequest, response: HttpResponse<String>, mapper: (String) -> R): R? {
+        val respons = defaultErrorHandler.håndter(request, response, mapper)
 
         if (respons != null && respons is PdlResponse) {
             if (respons.errors?.isNotEmpty() == true) {

@@ -9,9 +9,9 @@ import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.pdl.IdentVariables
-import no.nav.aap.pdl.PdlErrorHandler
 import no.nav.aap.pdl.PdlPersoninfoDataResponse
 import no.nav.aap.pdl.PdlRequest
+import no.nav.aap.pdl.PdlResponseHandler
 import no.nav.aap.requiredConfigForKey
 import java.net.URI
 import java.time.LocalDateTime
@@ -23,11 +23,11 @@ object PdlPersonopplysningGateway : PersonopplysningGateway {
     private val client = RestClient(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
-        errorHandler = PdlErrorHandler(config)
+        errorHandler = PdlResponseHandler(config)
     )
 
     private fun query(request: PdlRequest): PdlPersoninfoDataResponse {
-        val httpRequest = PostRequest(body = request, responseClazz = PdlPersoninfoDataResponse::class.java)
+        val httpRequest = PostRequest(body = request)
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 

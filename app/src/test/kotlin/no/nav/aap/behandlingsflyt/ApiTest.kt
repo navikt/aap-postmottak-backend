@@ -81,24 +81,22 @@ class ApiTest {
         val responseSak: SaksinfoDTO? = client.post(
             URI.create("http://localhost:8080/").resolve("api/sak/finnEllerOpprett"),
             PostRequest(
-                body = FinnEllerOpprettSakDTO("12345678910", LocalDate.now()),
-                responseClazz = SaksinfoDTO::class.java
+                body = FinnEllerOpprettSakDTO("12345678910", LocalDate.now())
             )
         )
 
         requireNotNull(responseSak)
 
-        client.post(
+        client.post<_, Unit>(
             URI.create("http://localhost:8080/").resolve("api/soknad/send"),
             PostRequest(
-                body = SøknadSendDto(responseSak.saksnummer, "123", SøknadDto(SøknadStudentDto("NEI"))),
-                responseClazz = Unit::class.java
+                body = SøknadSendDto(responseSak.saksnummer, "123", SøknadDto(SøknadStudentDto("NEI")))
             )
         )
 
         val utvidetSak: UtvidetSaksinfoDTO? = client.get(
             URI.create("http://localhost:8080/").resolve("api/sak/").resolve(responseSak.saksnummer),
-            GetRequest(responseClazz = UtvidetSaksinfoDTO::class.java)
+            GetRequest()
         )
 
         requireNotNull(utvidetSak)
@@ -133,7 +131,7 @@ class ApiTest {
             URI.create("http://localhost:8080/")
                 .resolve("api/behandling/")
                 .resolve(utvidetSak.behandlinger.first().referanse.toString()),
-            GetRequest(responseClazz = DetaljertBehandlingDTO::class.java)
+            GetRequest()
         )
 
         println(behandling)

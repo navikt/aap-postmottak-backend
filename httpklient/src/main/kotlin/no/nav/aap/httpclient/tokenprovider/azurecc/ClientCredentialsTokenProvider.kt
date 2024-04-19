@@ -1,6 +1,7 @@
 package no.nav.aap.httpclient.tokenprovider.azurecc
 
 import no.nav.aap.httpclient.ClientConfig
+import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.ContentType
 import no.nav.aap.httpclient.request.PostRequest
@@ -28,7 +29,7 @@ object ClientCredentialsTokenProvider : TokenProvider {
     private val cache = HashMap<String, OidcToken>()
 
     override fun getToken(scope: String?): OidcToken? {
-        if (scope == null ) {
+        if (scope == null) {
             throw IllegalArgumentException("Kan ikke be om token uten å be om hvilket scope det skal gjelde for")
         }
         if (cache.contains(scope) && cache.getValue(scope).isNotExpired()) {
@@ -37,12 +38,11 @@ object ClientCredentialsTokenProvider : TokenProvider {
         val postRequest = PostRequest(
             body = formPost(scope),
             contentType = ContentType.APPLICATION_FORM_URLENCODED,
-            responseClazz = OidcTokenResponse::class.java,
             timeout = Duration.ofSeconds(10),
-            additionalHeaders = listOf("Cache-Control" to "no-cache")
+            additionalHeaders = listOf(Header("Cache-Control", "no-cache"))
         )
 
-        val response = client.post(uri = config.tokenEndpoint, request = postRequest)
+        val response: OidcTokenResponse? = client.post(uri = config.tokenEndpoint, request = postRequest)
 
         if (response == null) {
             return null

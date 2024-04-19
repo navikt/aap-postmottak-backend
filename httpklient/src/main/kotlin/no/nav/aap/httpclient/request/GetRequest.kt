@@ -1,13 +1,13 @@
 package no.nav.aap.httpclient.request
 
+import no.nav.aap.httpclient.Header
 import java.time.Duration
 
-class GetRequest<R>(
-    val responseClazz: Class<R>,
-    private val additionalHeaders: List<Pair<String, String>> = emptyList(),
+class GetRequest(
+    private val additionalHeaders: List<Header> = emptyList(),
     private val timeout: Duration = Duration.ofSeconds(60),
 ) : Request {
-    override fun aditionalHeaders(): List<Pair<String, String>> {
+    override fun additionalHeaders(): List<Header> {
         return additionalHeaders
     }
 

@@ -17,9 +17,9 @@ class GrunnlagetForBeregningenTest {
         val inntekterForToÅr = setOf(
             InntektPerÅr(
                 Year.of(2022),
-                Beløp(BigDecimal(0))
+                Beløp(0)
             ),
-            InntektPerÅr(Year.of(2021), Beløp(BigDecimal(0)))
+            InntektPerÅr(Year.of(2021), Beløp(0))
         )
         val toÅrException = assertThrows<IllegalArgumentException> {
             GrunnlagetForBeregningen(inntekterForToÅr)
@@ -29,13 +29,13 @@ class GrunnlagetForBeregningenTest {
         val inntekterForTreIkkesammenhengendeÅr = setOf(
             InntektPerÅr(
                 Year.of(2022),
-                Beløp(BigDecimal(0))
+                Beløp(0)
             ),
             InntektPerÅr(
                 Year.of(2021),
-                Beløp(BigDecimal(0))
+                Beløp(0)
             ),
-            InntektPerÅr(Year.of(2019), Beløp(BigDecimal(0)))
+            InntektPerÅr(Year.of(2019), Beløp(0))
         )
         val treIkkesammenhengendeÅrException = assertThrows<IllegalArgumentException> {
             GrunnlagetForBeregningen(inntekterForTreIkkesammenhengendeÅr)
@@ -48,13 +48,13 @@ class GrunnlagetForBeregningenTest {
         val inntekterPerÅr = setOf(
             InntektPerÅr(
                 Year.of(2022),
-                Beløp(BigDecimal(0))
+                Beløp(0)
             ),
             InntektPerÅr(
                 Year.of(2021),
-                Beløp(BigDecimal(0))
+                Beløp(0)
             ),
-            InntektPerÅr(Year.of(2020), Beløp(BigDecimal(0)))
+            InntektPerÅr(Year.of(2020), Beløp(0))
         )
         val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
 
@@ -72,13 +72,13 @@ class GrunnlagetForBeregningenTest {
         val inntekterPerÅr = setOf(
             InntektPerÅr(
                 Year.of(2022),
-                Beløp(BigDecimal(5 * 109_784))
+                Beløp(5 * 109_784)
             ),    // 548 920
             InntektPerÅr(
                 Year.of(2021),
-                Beløp(BigDecimal(0))
+                Beløp(0)
             ),
-            InntektPerÅr(Year.of(2020), Beløp(BigDecimal(0)))
+            InntektPerÅr(Year.of(2020), Beløp(0))
         )
         val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
 
@@ -96,15 +96,15 @@ class GrunnlagetForBeregningenTest {
         val inntekterPerÅr = setOf(
             InntektPerÅr(
                 Year.of(2022),
-                Beløp(BigDecimal(5 * 109_784))
+                Beløp(5 * 109_784)
             ),   // 548 920
             InntektPerÅr(
                 Year.of(2021),
-                Beløp(BigDecimal(2 * 104_716))
+                Beløp(2 * 104_716)
             ),   // 209 432
             InntektPerÅr(
                 Year.of(2020),
-                Beløp(BigDecimal(2 * 100_853))
+                Beløp(2 * 100_853)
             )    // 201 706
         )
         val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
@@ -123,15 +123,15 @@ class GrunnlagetForBeregningenTest {
         val inntekterPerÅr = setOf(
             InntektPerÅr(
                 Year.of(2022),
-                Beløp(BigDecimal(5 * 109_784))
+                Beløp(5 * 109_784)
             ),   // 548 920
             InntektPerÅr(
                 Year.of(2021),
-                Beløp(BigDecimal(5 * 104_716))
+                Beløp(5 * 104_716)
             ),   // 523 580
             InntektPerÅr(
                 Year.of(2020),
-                Beløp(BigDecimal(5 * 100_853))
+                Beløp(5 * 100_853)
             )    // 504 265
         )
         val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
@@ -150,79 +150,49 @@ class GrunnlagetForBeregningenTest {
         val inntekterPerÅr = setOf(
             InntektPerÅr(
                 Year.of(2022),
-                Beløp(BigDecimal(7 * 109_784))
+                Beløp(7 * 109_784)
             ),   // 768 488
             InntektPerÅr(
                 Year.of(2021),
-                Beløp(BigDecimal(2 * 104_716))
+                Beløp(2 * 104_716)
             ),   // 209 432
             InntektPerÅr(
                 Year.of(2020),
-                Beløp(BigDecimal(2 * 100_853))
+                Beløp(2 * 100_853)
             )    // 201 706
         )
         val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(
-            Grunnlag11_19(
-                GUnit(BigDecimal(6))
-            )
-        )
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(6)))
     }
 
     @Test
     fun `Gjennomsnittlig inntekt siste tre år begrenses oppad til 6G`() {
         val inntekterPerÅr = setOf(
-            InntektPerÅr(
-                Year.of(2022),
-                Beløp(BigDecimal(7 * 109_784))
-            ),   // 768 488
-            InntektPerÅr(
-                Year.of(2021),
-                Beløp(BigDecimal(7 * 104_716))
-            ),   // 733 012
-            InntektPerÅr(
-                Year.of(2020),
-                Beløp(BigDecimal(7 * 100_853))
-            )    // 705 971
+            InntektPerÅr(Year.of(2022), Beløp(7 * 109_784)),   // 768 488
+            InntektPerÅr(Year.of(2021), Beløp(7 * 104_716)),   // 733 012
+            InntektPerÅr(Year.of(2020), Beløp(7 * 100_853))    // 705 971
         )
         val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(
-            Grunnlag11_19(
-                GUnit(BigDecimal(6))
-            )
-        )
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(6)))
     }
 
     @Test
     fun `Hvert av kalenderårene begrenses individuelt oppad til 6G før gjennomsnittet beregnes`() {
         val inntekterPerÅr = setOf(
-            InntektPerÅr(
-                Year.of(2022),
-                Beløp(BigDecimal(3 * 109_784))
-            ),    //   329 352
-            InntektPerÅr(
-                Year.of(2021),
-                Beløp(BigDecimal(3 * 104_716))
-            ),    //   314 148
-            InntektPerÅr(
-                Year.of(2020),
-                Beløp(BigDecimal(12 * 100_853))
-            )    // 1 210 236
+            InntektPerÅr(Year.of(2022), Beløp(3 * 109_784)),    //   329 352
+            InntektPerÅr(Year.of(2021), Beløp(3 * 104_716)),    //   314 148
+            InntektPerÅr(Year.of(2020), Beløp(12 * 100_853))    // 1 210 236
         )
         val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
 
         val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
 
-        assertThat(grunnlaget).isEqualTo(
-            Grunnlag11_19(
-                GUnit(BigDecimal(4))
-            )
-        )
+        assertThat(grunnlaget).isEqualTo(Grunnlag11_19(GUnit(4)))
     }
 }
