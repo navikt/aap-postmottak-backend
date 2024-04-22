@@ -52,7 +52,6 @@ fun Application.authentication(config: AzureConfig) {
                     SECURE_LOGGER.warn("AzureAD validering feilet (issued after expiration: ${cred.issuedAt} )")
                     return@validate null
                 }
-                log.info("Bruker innlogget")
 
                 JWTPrincipal(cred.payload)
             }
