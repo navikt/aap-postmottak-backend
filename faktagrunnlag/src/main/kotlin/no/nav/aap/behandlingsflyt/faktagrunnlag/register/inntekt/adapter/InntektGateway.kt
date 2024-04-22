@@ -15,9 +15,9 @@ import no.nav.aap.verdityper.Beløp
 import java.net.URI
 import java.time.Year
 
-object InntektRegisterGateway : InntektRegisterGateway {
+object InntektGateway : InntektRegisterGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.inntekt.url"))
-    val config = ClientConfig(scope = requiredConfigForKey("integrassjon.inntekt.scope"))
+    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.inntekt.scope"))
     private val client = RestClient(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
@@ -35,14 +35,18 @@ object InntektRegisterGateway : InntektRegisterGateway {
     }
 
     override fun innhent(person: Person, år: Set<Year>): Set<InntektPerÅr> {
-        val request = InntektRequest(person.identer().map { it.identifikator }.first(), tomAr = år.min().value, fomAr = år.max().value)
+        val request = InntektRequest(
+            person.identer().map { it.identifikator }.first(),
+            tomAr = år.min().value,
+            fomAr = år.max().value
+        )
         val inntektRes = query(request)
 
-        return  inntektRes.inntekt.map { inntekt ->
+        return inntektRes.inntekt.map { inntekt ->
             InntektPerÅr(
-                Year.parse(requireNotNull(inntekt.inntektAr.toString())),
-                Beløp(requireNotNull(inntekt.belop).toString())
-                )
+                Year.of(inntekt.inntektAr),
+                Beløp(inntekt.belop)
+            )
         }.toSet()
     }
 

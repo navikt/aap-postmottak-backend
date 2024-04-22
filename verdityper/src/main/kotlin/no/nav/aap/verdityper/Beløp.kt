@@ -8,6 +8,7 @@ class Beløp(verdi: BigDecimal) {
 
     constructor(intVerdi: Int) : this(BigDecimal(intVerdi))
     constructor(stringVerdi: String) : this(BigDecimal(stringVerdi))
+    constructor(longVerdi: Long) : this(BigDecimal(longVerdi))
 
     fun verdi(): BigDecimal {
         return verdi

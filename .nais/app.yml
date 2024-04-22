@@ -79,3 +79,8 @@ spec:
       value: https://institusjon-opphold-proxy-q2.dev-fss-pub.nais.io/api/v1/person/institusjonsopphold
     - name: INTEGRASJON_INSTITUSJONSOPPHOLD_SCOPE
       value: api://dev-gcp.team-rocket.institusjon-api/.default
+    - name: INTEGRASJON_INNTEKT_URL
+      value: https://pensjon-popp-q2.dev.intern.nav.no/api/v1/inntekt/hentSumPi
+    - name: INTEGRASJON_INNTEKT_SCOPE
+      value: api://dev-gcp.pensjonopptjening.pensjon-popp-q2/.default
+

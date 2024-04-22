@@ -23,7 +23,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.FakeInntektRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandVurdering
@@ -98,17 +97,24 @@ class FlytOrkestratorTest {
             TestPerson(
                 identer = setOf(ident),
                 fødselsdato = Fødselsdato(LocalDate.now().minusYears(20)),
-                yrkesskade = listOf(TestYrkesskade())
-            )
-        )
-        FakeInntektRegisterGateway.konstruer(
-            ident = ident, inntekterPerÅr = listOf(
-                InntektPerÅr(
-                    Year.now().minusYears(3),
-                    Beløp(1000000)
+                yrkesskade = listOf(TestYrkesskade()),
+                inntekter = listOf(
+                    InntektPerÅr(
+                        Year.now().minusYears(1),
+                        Beløp(1000000)
+                    ),
+                    InntektPerÅr(
+                        Year.now().minusYears(2),
+                        Beløp(1000000)
+                    ),
+                    InntektPerÅr(
+                        Year.now().minusYears(3),
+                        Beløp(1000000)
+                    )
                 )
             )
         )
+
 
         // Sender inn en søknad
         hendelsesMottak.håndtere(
@@ -478,12 +484,16 @@ class FlytOrkestratorTest {
 
         // Simulerer et svar fra YS-løsning om at det finnes en yrkesskade
         fakes.returnerYrkesskade(ident.identifikator)
-        FakeInntektRegisterGateway.konstruer(
-            ident = ident, inntekterPerÅr = listOf(
-                InntektPerÅr(
-                    Year.now().minusYears(3),
-                    Beløp(1000000)
-                )
+        fakes.leggTil(
+            TestPerson(
+                identer = setOf(ident),
+                fødselsdato = Fødselsdato(LocalDate.now().minusYears(20)),
+                yrkesskade = listOf(TestYrkesskade()),
+                inntekter = listOf(
+                    InntektPerÅr(Year.now().minusYears(1), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(2), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(3), Beløp("1000000.0")),
+                    )
             )
         )
 

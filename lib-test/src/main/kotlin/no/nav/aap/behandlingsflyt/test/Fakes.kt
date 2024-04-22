@@ -12,8 +12,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.Inntekt.InntektRequest
+import no.nav.aap.Inntekt.InntektResponse
+import no.nav.aap.Inntekt.SumPi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.BARN_RELASJON_QUERY
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.PERSON_BOLK_QUERY
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
@@ -32,12 +36,14 @@ import no.nav.aap.pdl.PdlPersoninfoDataResponse
 import no.nav.aap.pdl.PdlRelasjon
 import no.nav.aap.pdl.PdlRelasjonDataResponse
 import no.nav.aap.pdl.PdlRequest
+import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import no.nav.aap.yrkesskade.YrkesskadeModell
 import no.nav.aap.yrkesskade.YrkesskadeRequest
 import no.nav.aap.yrkesskade.Yrkesskader
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.Year
 import no.nav.aap.pdl.PdlRelasjonData as BarnPdlData
 
 class Fakes : AutoCloseable {
@@ -46,6 +52,7 @@ class Fakes : AutoCloseable {
         embeddedServer(Netty, port = 0, module = { azureFake() }).apply { start() }
     private val pdl = embeddedServer(Netty, port = 0, module = { pdlFake() }).apply { start() }
     private val yrkesskade = embeddedServer(Netty, port = 0, module = { yrkesskadeFake() }).apply { start() }
+    private val inntekt = embeddedServer(Netty, port = 0, module = { poppFake() }).apply { start() }
     val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
 
     init {
@@ -61,6 +68,10 @@ class Fakes : AutoCloseable {
         System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
         System.setProperty("integrasjon.pdl.scope", "pdl")
 
+        //popp
+        System.setProperty("integrasjon.inntekt.url", "http://localhost:${inntekt.port()}")
+        System.setProperty("integrasjon.inntekt.scope", "popp")
+
 
         // Yrkesskade
         System.setProperty("integrasjon.yrkesskade.url", "http://localhost:${yrkesskade.port()}")
@@ -69,11 +80,25 @@ class Fakes : AutoCloseable {
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
-            TestPerson(setOf(Ident("12345678910", true)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)))
+            TestPerson(
+                setOf(Ident("12345678910", true)), fødselsdato = Fødselsdato(
+                    LocalDate.now().minusYears(30),
+                ),
+                inntekter = listOf(
+                    InntektPerÅr(Year.now(), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(1), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(2), Beløp("1000000.0")),
+                    )
+            )
         val BARNLØS_PERSON_18ÅR =
             TestPerson(
                 setOf(Ident("42346734567", true)),
-                fødselsdato = Fødselsdato(LocalDate.now().minusYears(18).minusDays(10))
+                fødselsdato = Fødselsdato(LocalDate.now().minusYears(18).minusDays(10)),
+                inntekter = listOf(
+                    InntektPerÅr(Year.now(), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(1), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(2), Beløp("1000000.0")),
+                    )
             )
         val PERSON_MED_BARN_65ÅR =
             TestPerson(
@@ -81,6 +106,11 @@ class Fakes : AutoCloseable {
                 fødselsdato = Fødselsdato(LocalDate.now().minusYears(65)),
                 barn = listOf(
                     BARNLØS_PERSON_18ÅR, BARNLØS_PERSON_30ÅR
+                ),
+                inntekter = listOf(
+                    InntektPerÅr(Year.now(), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(1), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(2), Beløp("1000000.0")),
                 )
             )
 
@@ -109,6 +139,33 @@ class Fakes : AutoCloseable {
             .first { it.type == ConnectorType.HTTP }
             .port
 
+
+    fun Application.poppFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@poppFake.log.info("Inntekt :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+            }
+        }
+        routing {
+            post {
+                val req = call.receive<InntektRequest>()
+                val person = hentEllerGenererTestPerson(req.fnr)
+
+                call.respond(
+                    InntektResponse(person.inntekter.map { inntekt ->
+                        SumPi(
+                            inntektAr = inntekt.år.value,
+                            belop = inntekt.beløp.verdi().toLong(),
+                            inntektType = "Lønnsinntekt"
+                        )}.toList())
+                )
+            }
+        }
+    }
 
     fun Application.pdlFake() {
         install(ContentNegotiation) {
@@ -257,7 +314,13 @@ class Fakes : AutoCloseable {
             return person
         }
 
-        return TestPerson(setOf(Ident(forespurtIdent)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)))
+        return TestPerson(
+            setOf(Ident(forespurtIdent)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)), inntekter = listOf(
+                InntektPerÅr(Year.now().minusYears(1), Beløp("1000000.0")),
+                InntektPerÅr(Year.now().minusYears(2), Beløp("1000000.0")),
+                InntektPerÅr(Year.now().minusYears(3), Beløp("1000000.0")),
+                )
+        )
     }
 
     fun mapIdent(person: TestPerson?): List<PdlIdent> {

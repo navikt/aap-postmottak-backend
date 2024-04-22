@@ -6,12 +6,12 @@ class InntektRequest (
     var tomAr: Int
 )
 
-class InntektResponse {
-    val inntekt: List<sumPi> = emptyList()
-}
+class InntektResponse (
+    val inntekt: List<SumPi> = emptyList()
+    )
 
-class sumPi(
-    val inntektAr: Int?,
-    val belop: Long?,
-    val inntektType: String?
+class SumPi(
+    val inntektAr: Int,
+    val belop: Long, //TODO: Vi prøver å se om belop klarer seg uten nullable
+    val inntektType: String
     )
