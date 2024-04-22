@@ -13,6 +13,6 @@ data class AvklaringsbehovDTO(
 data class EndringDTO(
     val status: Status,
     val tidsstempel: LocalDateTime = LocalDateTime.now(),
-    val begrunnelse: String,
+    val begrunnelse: String?,
     val endretAv: String
 )

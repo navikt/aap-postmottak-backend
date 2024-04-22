@@ -2,8 +2,6 @@ package no.nav.aap.behandlingsflyt.hendelse.avløp
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
-import no.nav.aap.behandlingsflyt.flyt.flate.AvklaringsbehovDTO
-import no.nav.aap.behandlingsflyt.flyt.flate.EndringDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
@@ -23,11 +21,16 @@ class BehandlingHendelseService(private val sakService: SakService) {
             behandlingType = behandling.typeBehandling(),
             status = behandling.status(),
             avklaringsbehov = avklaringsbehovene.alle().map { avklaringsbehov ->
-                AvklaringsbehovDTO(
-                    definisjon = avklaringsbehov.definisjon,
+                AvklaringsbehovHendelseDto(
+                    definisjon = DefinisjonDTO(
+                        type = avklaringsbehov.definisjon.kode,
+                        behovType = avklaringsbehov.definisjon.type,
+                        løsesISteg = avklaringsbehov.løsesISteg()
+                    ),
                     status = avklaringsbehov.status(),
                     endringer = avklaringsbehov.historikk.filter {
                         it.status in listOf(
+                            Status.OPPRETTET,
                             Status.SENDT_TILBAKE_FRA_BESLUTTER,
                             Status.AVSLUTTET
                         )
@@ -35,7 +38,6 @@ class BehandlingHendelseService(private val sakService: SakService) {
                         EndringDTO(
                             status = endring.status,
                             tidsstempel = endring.tidsstempel,
-                            begrunnelse = endring.begrunnelse,
                             endretAv = endring.endretAv
                         )
                     }

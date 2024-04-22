@@ -22,7 +22,7 @@ const val FATTE_VEDTAK_KODE = "5099"
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
     @JsonProperty("kode") val kode: String,
-    private val type: BehovType,
+    val type: BehovType,
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
     val kreverToTrinn: Boolean = false

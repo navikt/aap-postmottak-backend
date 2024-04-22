@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.hendelse.avløp
 
-import no.nav.aap.behandlingsflyt.flyt.flate.AvklaringsbehovDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.Status
@@ -12,6 +11,6 @@ data class BehandlingFlytStoppetHendelse(
     val referanse: BehandlingReferanse,
     val behandlingType: TypeBehandling,
     val status: Status,
-    val avklaringsbehov: List<AvklaringsbehovDTO>,
+    val avklaringsbehov: List<AvklaringsbehovHendelseDto>,
     val opprettetTidspunkt: LocalDateTime
 )
