@@ -10,6 +10,7 @@ import io.ktor.server.response.*
 import no.nav.aap.httpclient.tokenprovider.azurecc.AzureConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.net.URI
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -20,7 +21,7 @@ fun Application.authentication(config: AzureConfig) {
 
     val log = LoggerFactory.getLogger("no.nav.aap.behandlingsflyt.auth.AzureADAuthentication")
 
-    val jwkProvider: JwkProvider = JwkProviderBuilder(config.jwksUri)
+    val jwkProvider: JwkProvider = JwkProviderBuilder(URI.create(config.jwksUri).toURL())
         .cached(10, 24, TimeUnit.HOURS)
         .rateLimited(10, 1, TimeUnit.MINUTES)
         .build()
