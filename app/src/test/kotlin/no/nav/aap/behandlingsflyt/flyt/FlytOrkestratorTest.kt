@@ -21,8 +21,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.ArbeidIPeriode
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.pliktkort.Pliktkort
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.FakeInntektRegisterGateway
@@ -51,7 +49,6 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.OppgaveRepository
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.Periode
-import no.nav.aap.verdityper.TimerArbeid
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.flyt.StegType
@@ -64,7 +61,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Year
@@ -182,28 +178,70 @@ class FlytOrkestratorTest {
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
-        hendelsesMottak.håndtere(
-            ident, DokumentMottattPersonHendelse(
-                journalpost = JournalpostId("21"),
-                mottattTidspunkt = fom.plusDays(18).atStartOfDay(),
-                strukturertDokument = StrukturertDokument(
-                    Pliktkort(
-                        timerArbeidPerPeriode = setOf(
-                            ArbeidIPeriode(
-                                Periode(LocalDate.now(), LocalDate.now().plusDays(13)), TimerArbeid(
-                                    BigDecimal(20)
-                                )
-                            ),
-                            ArbeidIPeriode(
-                                Periode(LocalDate.now().plusDays(14), LocalDate.now().plusDays(27)), TimerArbeid(
-                                    BigDecimal(60)
-                                )
-                            )
-                        )
-                    ), Brevkode.PLIKTKORT
+        dataSource.transaction {
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = ForeslåVedtakLøsning("Begrunnelse"),
+                    behandlingVersjon = behandling.versjon
                 )
             )
-        )
+        }
+        ventPåSvar()
+
+        dataSource.transaction { connection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
+            AvklaringsbehovHendelseHåndterer(connection).håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = FatteVedtakLøsning(avklaringsbehov.alle()
+                        .filter { behov -> behov.erTotrinn() }
+                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, behov.definisjon.kode != Definisjon.AVKLAR_SYKDOM.kode, "begrunnelse") }),
+                    behandlingVersjon = behandling.versjon
+                )
+            )
+        }
+
+        ventPåSvar()
+
+        dataSource.transaction {
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarSykdomLøsning(
+                        sykdomsvurdering = SykdomsvurderingDto(
+                            begrunnelse = "Er syk nok",
+                            dokumenterBruktIVurdering = listOf(JournalpostId("123123")),
+                            erSkadeSykdomEllerLyteVesentligdel = true,
+                            erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
+                            nedreGrense = NedreGrense.FEMTI,
+                            nedsattArbeidsevneDato = LocalDate.now(),
+                            erArbeidsevnenNedsatt = true,
+                            yrkesskadevurdering = YrkesskadevurderingDto(
+                                erÅrsakssammenheng = false
+                            )
+                        )
+                    ),
+                    behandlingVersjon = behandling.versjon
+                )
+            )
+        }
+        ventPåSvar()
+
+        dataSource.transaction {
+            AvklaringsbehovHendelseHåndterer(it).håndtere(
+                behandling.id,
+                LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = AvklarBistandsbehovLøsning(
+                        bistandsVurdering = BistandVurdering(
+                            begrunnelse = "Trenger hjelp fra nav",
+                            erBehovForBistand = true
+                        ),
+                    ),
+                    behandlingVersjon = behandling.versjon
+                )
+            )
+        }
         ventPåSvar()
         // Saken er tilbake til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
         dataSource.transaction { dbConnection ->

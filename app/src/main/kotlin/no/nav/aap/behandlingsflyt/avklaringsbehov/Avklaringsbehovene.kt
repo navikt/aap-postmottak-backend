@@ -1,8 +1,8 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(Avklaringsbehovene::class.java)
@@ -50,7 +50,7 @@ class Avklaringsbehovene(
         definisjoner.forEach { definisjon ->
             val avklaringsbehov = hentBehovForDefinisjon(definisjon)
             if (avklaringsbehov != null) {
-                if (avklaringsbehov.erAvsluttet()) {
+                if (avklaringsbehov.erAvsluttet() || avklaringsbehov.status() == Status.AVBRUTT) {
                     avklaringsbehov.reåpne()
                     repository.endre(avklaringsbehov)
                 } else {
