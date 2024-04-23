@@ -122,6 +122,7 @@ class Fakes : AutoCloseable {
         yrkesskade.stop(0L, 0L)
         pdl.stop(0L, 0L)
         azure.stop(0L, 0L)
+        inntekt.stop(0L, 0L)
     }
 
     fun leggTil(person: TestPerson) {
@@ -310,17 +311,19 @@ class Fakes : AutoCloseable {
 
     private fun hentEllerGenererTestPerson(forespurtIdent: String): TestPerson {
         val person = fakePersoner[forespurtIdent]
-        if (person != null) {
-            return person
+        if (person == null) {
+            fakePersoner[forespurtIdent] = TestPerson(
+                identer = setOf(Ident(forespurtIdent)),
+                fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)),
+                inntekter = listOf(
+                    InntektPerÅr(Year.now().minusYears(1), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(2), Beløp("1000000.0")),
+                    InntektPerÅr(Year.now().minusYears(3), Beløp("1000000.0")),
+                )
+            )
         }
 
-        return TestPerson(
-            setOf(Ident(forespurtIdent)), fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)), inntekter = listOf(
-                InntektPerÅr(Year.now().minusYears(1), Beløp("1000000.0")),
-                InntektPerÅr(Year.now().minusYears(2), Beløp("1000000.0")),
-                InntektPerÅr(Year.now().minusYears(3), Beløp("1000000.0")),
-                )
-        )
+        return fakePersoner[forespurtIdent]!!
     }
 
     fun mapIdent(person: TestPerson?): List<PdlIdent> {
