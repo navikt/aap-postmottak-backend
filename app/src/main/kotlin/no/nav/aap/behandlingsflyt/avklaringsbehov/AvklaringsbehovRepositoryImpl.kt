@@ -1,7 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ÅrsakTilRetur
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.verdityper.flyt.StegType
@@ -44,8 +43,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
             Status.OPPRETTET,
             "",
             SYSTEMBRUKER.ident,
-            null,
-            null
+            listOf()
         )
     }
 
@@ -95,8 +93,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
             avklaringsbehov.status(),
             avklaringsbehov.begrunnelse(),
             avklaringsbehov.endretAv(),
-            avklaringsbehov.årsakTilRetur(),
-            avklaringsbehov.årsakTilReturFritekst()
+            avklaringsbehov.årsakTilRetur()
         )
     }
 
@@ -105,23 +102,31 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         status: Status,
         begrunnelse: String,
         opprettetAv: String,
-        årsakTilRetur: ÅrsakTilRetur?,
-        årsakTilReturFritekst: String?
+        årsakTilRetur: List<ÅrsakTilRetur>
     ) {
         val query = """
-            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, aarsak_til_retur, aarsak_til_retur_fritekst, opprettet_av, opprettet_tid) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, opprettet_av, opprettet_tid) 
+            VALUES (?, ?, ?, ?, ?)
             """.trimIndent()
 
-        connection.execute(query) {
+        val key = connection.executeReturnKey(query) {
             setParams {
                 setLong(1, avklaringsbehovId)
                 setEnumName(2, status)
                 setString(3, begrunnelse)
-                setEnumName(4, årsakTilRetur)
-                setString(5, årsakTilReturFritekst)
-                setString(6, opprettetAv)
-                setLocalDateTime(7, LocalDateTime.now())
+                setString(4, opprettetAv)
+                setLocalDateTime(5, LocalDateTime.now())
+            }
+        }
+        val queryPeriode = """
+                    INSERT INTO AVKLARINGSBEHOV_ENDRING_AARSAK (endring_id, aarsak_til_retur, aarsak_til_retur_fritekst, OPPRETTET_AV) VALUES (?, ?, ?, ?)
+                """.trimIndent()
+        connection.executeBatch(queryPeriode, årsakTilRetur) {
+            setParams {
+                setLong(1, key)
+                setEnumName(2, it.årsak)
+                setString(3, it.årsakFritekst)
+                setString(4, opprettetAv)
             }
         }
     }
@@ -176,8 +181,28 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
             tidsstempel = row.getLocalDateTime("opprettet_tid"),
             begrunnelse = row.getString("begrunnelse"),
             endretAv = row.getString("opprettet_av"),
-            årsakTilRetur = row.getEnumOrNull("aarsak_til_retur"),
-            årsakTilReturFritekst = row.getStringOrNull("aarsak_til_retur_fritekst")
+            årsakTilRetur = hentÅrsaker(row.getLong("id"))
         )
+    }
+
+    private fun hentÅrsaker(endringId: Long): List<ÅrsakTilRetur> {
+        val query = """
+            SELECT * FROM AVKLARINGSBEHOV_ENDRING_AARSAK 
+            WHERE endring_id = ? 
+            ORDER BY opprettet_tid ASC
+            """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setLong(1, endringId)
+            }
+            setRowMapper {
+                mapÅrsaker(it)
+            }
+        }
+    }
+
+    private fun mapÅrsaker(row: Row): ÅrsakTilRetur {
+        return ÅrsakTilRetur(row.getEnum("aarsak_til_retur"), row.getStringOrNull("aarsak_til_retur_fritekst"))
     }
 }

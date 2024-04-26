@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ÅrsakTilRetur
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -79,11 +78,10 @@ class Avklaringsbehovene(
         godkjent: Boolean,
         begrunnelse: String,
         vurdertAv: String,
-        årsakTilRetur: ÅrsakTilRetur? = null,
-        årsakTilReturFritekst: String? = null
+        årsakTilRetur: List<ÅrsakTilRetur> = emptyList(),
     ) {
         val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.vurderTotrinn(begrunnelse, godkjent, vurdertAv, årsakTilRetur, årsakTilReturFritekst)
+        avklaringsbehov.vurderTotrinn(begrunnelse, godkjent, vurdertAv, årsakTilRetur)
         repository.endre(avklaringsbehov)
     }
 

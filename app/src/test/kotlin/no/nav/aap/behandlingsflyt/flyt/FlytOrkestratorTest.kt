@@ -7,13 +7,14 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ÅrsakTilRetur
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ÅrsakTilReturKode
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarBistandsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarStudentLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarSykdomLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.FastsettBeregningstidspunktLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.FatteVedtakLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.ForeslåVedtakLøsning
+import no.nav.aap.behandlingsflyt.avklaringsbehov.ÅrsakTilRetur
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
@@ -213,11 +214,10 @@ class FlytOrkestratorTest {
                                 behov.definisjon.kode != Definisjon.AVKLAR_SYKDOM.kode,
                                 "begrunnelse",
                                 if (behov.definisjon.kode != Definisjon.AVKLAR_SYKDOM.kode) {
-                                    null
+                                    emptyList()
                                 } else {
-                                    ÅrsakTilRetur.FEIL_LOVANVENDELSE
-                                },
-                                null
+                                    listOf(ÅrsakTilRetur(ÅrsakTilReturKode.FEIL_LOVANVENDELSE, null))
+                                }
                             )
                         }),
                     behandlingVersjon = behandling.versjon,
@@ -303,7 +303,7 @@ class FlytOrkestratorTest {
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FatteVedtakLøsning(avklaringsbehov.alle()
                         .filter { behov -> behov.erTotrinn() }
-                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, true, "begrunnelse", null, null) }),
+                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, true, "begrunnelse", emptyList()) }),
                     behandlingVersjon = behandling.versjon,
                     bruker = Bruker("SAKSBEHANDLER")
                 )
@@ -459,7 +459,7 @@ class FlytOrkestratorTest {
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FatteVedtakLøsning(avklaringsbehov.alle()
                         .filter { behov -> behov.erTotrinn() }
-                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, true, "begrunnelse", null, null) }),
+                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, true, "begrunnelse", emptyList()) }),
                     behandlingVersjon = behandling.versjon,
                     bruker = Bruker("SAKSBEHANDLER")
                 )
@@ -626,8 +626,7 @@ class FlytOrkestratorTest {
                                 behov.definisjon.kode,
                                 behov.definisjon != Definisjon.AVKLAR_SYKDOM,
                                 "begrunnelse",
-                                null,
-                                null
+                                emptyList()
                             )
                         }),
                     behandlingVersjon = behandling.versjon,
@@ -704,7 +703,7 @@ class FlytOrkestratorTest {
                 LøsAvklaringsbehovBehandlingHendelse(
                     løsning = FatteVedtakLøsning(avklaringsbehov.alle()
                         .filter { behov -> behov.erTotrinn() }
-                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, true, "begrunnelse", null, null) }),
+                        .map { behov -> TotrinnsVurdering(behov.definisjon.kode, true, "begrunnelse", emptyList()) }),
                     behandlingVersjon = behandling.versjon,
                     bruker = Bruker("SAKSBEHANDLER")
                 )

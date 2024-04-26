@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak
 
-enum class ÅrsakTilRetur {
+enum class ÅrsakTilReturKode {
     MANGELFULL_BEGRUNNELSE,
     MANGLENDE_UTREDNING,
     FEIL_LOVANVENDELSE,

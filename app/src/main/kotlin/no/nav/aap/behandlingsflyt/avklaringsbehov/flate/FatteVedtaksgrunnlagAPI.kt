@@ -97,8 +97,13 @@ private fun tilTotrinnsVurdering(it: Avklaringsbehov): TotrinnsVurdering {
             it.historikk.lastOrNull { it.status in setOf(Status.SENDT_TILBAKE_FRA_BESLUTTER, Status.TOTRINNS_VURDERT) }
         val godkjent = it.status() == Status.TOTRINNS_VURDERT
 
-        TotrinnsVurdering(it.definisjon.kode, godkjent, sisteVurdering?.begrunnelse, sisteVurdering?.årsakTilRetur, sisteVurdering?.årsakTilReturFritekst)
+        TotrinnsVurdering(
+            it.definisjon.kode,
+            godkjent,
+            sisteVurdering?.begrunnelse,
+            sisteVurdering?.årsakTilRetur ?: emptyList()
+        )
     } else {
-        TotrinnsVurdering(it.definisjon.kode, null, null, null, null)
+        TotrinnsVurdering(it.definisjon.kode, null, null, listOf())
     }
 }

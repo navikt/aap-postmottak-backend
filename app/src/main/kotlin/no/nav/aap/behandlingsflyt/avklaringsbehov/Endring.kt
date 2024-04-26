@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ÅrsakTilRetur
 import java.time.LocalDateTime
 
 class Endring(
@@ -8,8 +7,7 @@ class Endring(
     val tidsstempel: LocalDateTime = LocalDateTime.now(),
     val begrunnelse: String,
     val endretAv: String,
-    val årsakTilRetur: ÅrsakTilRetur? = null,
-    val årsakTilReturFritekst: String? = null
+    val årsakTilRetur: List<ÅrsakTilRetur> = emptyList()
 ) : Comparable<Endring> {
 
     override fun compareTo(other: Endring): Int {

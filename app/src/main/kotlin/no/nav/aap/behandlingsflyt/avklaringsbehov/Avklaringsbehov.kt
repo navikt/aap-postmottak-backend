@@ -1,7 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
-import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ÅrsakTilRetur
 import no.nav.aap.verdityper.flyt.StegType
 
 class Avklaringsbehov(
@@ -32,8 +31,7 @@ class Avklaringsbehov(
         begrunnelse: String,
         godkjent: Boolean,
         vurdertAv: String,
-        årsakTilRetur: ÅrsakTilRetur?,
-        årsakTilReturFritekst: String?
+        årsakTilRetur: List<ÅrsakTilRetur>,
     ) {
         require(definisjon.kreverToTrinn)
         val status = if (godkjent) {
@@ -46,7 +44,6 @@ class Avklaringsbehov(
             begrunnelse = begrunnelse,
             endretAv = vurdertAv,
             årsakTilRetur = årsakTilRetur,
-            årsakTilReturFritekst = årsakTilReturFritekst
         )
     }
 
@@ -91,8 +88,7 @@ class Avklaringsbehov(
 
     fun begrunnelse(): String = historikk.last().begrunnelse
     fun endretAv(): String = historikk.last().endretAv
-    fun årsakTilRetur(): ÅrsakTilRetur? = historikk.last().årsakTilRetur
-    fun årsakTilReturFritekst(): String? = historikk.last().årsakTilReturFritekst
+    fun årsakTilRetur(): List<ÅrsakTilRetur> = historikk.last().årsakTilRetur
 
     fun skalLøsesISteg(type: StegType): Boolean {
         return definisjon.skalLøsesISteg(type, funnetISteg)

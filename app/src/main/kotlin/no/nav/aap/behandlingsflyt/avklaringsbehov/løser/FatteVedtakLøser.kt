@@ -55,7 +55,6 @@ class FatteVedtakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<F
                     begrunnelse = vurdering.begrunnelse(),
                     godkjent = vurdering.godkjent!!,
                     årsakTilRetur = vurdering.grunn,
-                    årsakTilReturFritekst = vurdering.grunnnFritekst,
                     vurdertAv = kontekst.bruker.ident // TODO: Hente fra context
                 )
             }

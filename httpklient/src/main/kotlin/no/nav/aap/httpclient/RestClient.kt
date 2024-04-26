@@ -7,7 +7,6 @@ import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.request.Request
 import no.nav.aap.httpclient.tokenprovider.TokenProvider
 import no.nav.aap.json.DefaultJsonMapper
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.net.URI
 import java.net.http.HttpClient
@@ -20,8 +19,6 @@ class RestClient(
     private val tokenProvider: TokenProvider,
     private val errorHandler: RestResponseHandler = DefaultResponseHandler(config)
 ) {
-
-    private val SECURE_LOGGER = LoggerFactory.getLogger("secureLog")
 
     private val client = HttpClient.newBuilder()
         .connectTimeout(config.connectionTimeout)
