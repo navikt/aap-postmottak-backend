@@ -17,6 +17,7 @@ class BehandlingHendelseService(private val sakService: SakService) {
         // TODO: Slippe ut event om at behandlingen har stoppet opp
         val sak = sakService.hent(behandling.sakId)
         val hendelse = BehandlingFlytStoppetHendelse(
+            personident = sak.person.aktivIdent().identifikator,
             saksnummer = sak.saksnummer,
             referanse = BehandlingReferanse(behandling.referanse.toString()),
             behandlingType = behandling.typeBehandling(),

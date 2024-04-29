@@ -7,6 +7,7 @@ import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
 
 data class BehandlingFlytStoppetHendelse(
+    val personident: String,
     val saksnummer: Saksnummer,
     val referanse: BehandlingReferanse,
     val behandlingType: TypeBehandling,

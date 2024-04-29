@@ -31,6 +31,7 @@ class OppgavestyringGatewayTest {
         assertDoesNotThrow {
             gateway.varsleHendelse(
                 BehandlingFlytStoppetHendelse(
+                    personident = "124512451245",
                     Saksnummer("24352363"),
                     opprettetTidspunkt = LocalDateTime.now(),
                     status = Status.PÅ_VENT,
