@@ -25,5 +25,5 @@ data class YrkesskadeModell (
 )
 
 data class Yrkesskader (
-    val skader:List<YrkesskadeModell>
+    val skader:List<YrkesskadeModell>?
 )
