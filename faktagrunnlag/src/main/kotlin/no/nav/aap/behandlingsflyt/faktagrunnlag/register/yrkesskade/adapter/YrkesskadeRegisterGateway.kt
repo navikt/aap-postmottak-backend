@@ -20,17 +20,17 @@ object YrkesskadeRegisterGateway {
         tokenProvider = ClientCredentialsTokenProvider
     )
 
-    private fun query(request: YrkesskadeRequest): Yrkesskader {
+    private fun query(request: YrkesskadeRequest): Yrkesskader? {
         val httpRequest = PostRequest(body = request)
-        return requireNotNull(client.post(uri = url, request = httpRequest))
+        return client.post(uri = url, request = httpRequest)
     }
 
     fun innhent(person: Person, fødselsdato: Fødselsdato): List<Yrkesskade> {
         val identer = person.identer().map { it.identifikator }
         val request = YrkesskadeRequest(identer, fødselsdato.toLocalDate()) //TODO: fra når skal yrkesskade hentes
-        val response: Yrkesskader = query(request)
+        val response: Yrkesskader? = query(request)
 
-        val skader = response.skader.map { Yrkesskade(it.saksreferanse, it.skadedato) }
+        val skader = response?.skader?.map { Yrkesskade(it.saksreferanse, it.skadedato) }?: emptyList()
 
         return skader
     }
