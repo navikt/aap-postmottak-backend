@@ -15,7 +15,8 @@ object OppgavestyringGateway {
 
     private val client = RestClient(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider
+        tokenProvider = ClientCredentialsTokenProvider,
+        errorHandler = EverythingIsOkResponseHandler // TODO: FJerne når det virker
     )
 
     fun varsleHendelse(hendelse: BehandlingFlytStoppetHendelse) {
