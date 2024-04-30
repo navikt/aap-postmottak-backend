@@ -6,11 +6,13 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
+import org.junit.Ignore
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
+@Ignore
 class OppgavestyringGatewayTest {
     companion object {
         private val fakes = Fakes()
@@ -24,6 +26,7 @@ class OppgavestyringGatewayTest {
 
     @Test
     fun `varsleHendelse returnerer 200 når alt er fint`() {
+        // USikker på hva denne testen bidrar med når den implisitt er testet gjennom flyttest
         val gateway = OppgavestyringGateway
         assertDoesNotThrow {
             gateway.varsleHendelse(
