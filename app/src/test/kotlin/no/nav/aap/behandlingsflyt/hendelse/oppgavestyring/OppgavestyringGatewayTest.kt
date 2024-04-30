@@ -4,7 +4,6 @@ import no.nav.aap.behandlingsflyt.hendelse.avløp.BehandlingFlytStoppetHendelse
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.test.Fakes
-import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.junit.jupiter.api.AfterAll
@@ -25,8 +24,7 @@ class OppgavestyringGatewayTest {
 
     @Test
     fun `varsleHendelse returnerer 200 når alt er fint`() {
-        OppgavestyringGatewaySingleton.initialize(NoTokenTokenProvider())
-        val gateway = OppgavestyringGatewaySingleton.getInstance()
+        val gateway = OppgavestyringGateway
         assertDoesNotThrow {
             gateway.varsleHendelse(
                 BehandlingFlytStoppetHendelse(

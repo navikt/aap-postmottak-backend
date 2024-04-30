@@ -1,6 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     kotlin("jvm") version "1.9.23"
@@ -15,14 +13,6 @@ allprojects {
     repositories {
         mavenCentral()
         maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-    }
-}
-
-tasks.withType(Test::class) {
-    testLogging {
-        events = setOf(TestLogEvent.FAILED,
-                 TestLogEvent.SKIPPED)
-        exceptionFormat = TestExceptionFormat.FULL
     }
 }
 

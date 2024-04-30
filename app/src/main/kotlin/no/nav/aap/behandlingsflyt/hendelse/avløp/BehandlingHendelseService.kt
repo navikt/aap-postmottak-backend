@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.hendelse.avløp
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
-import no.nav.aap.behandlingsflyt.hendelse.oppgavestyring.OppgavestyringGatewaySingleton
+import no.nav.aap.behandlingsflyt.hendelse.oppgavestyring.OppgavestyringGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(BehandlingHendelseService::class.java)
 
 class BehandlingHendelseService(private val sakService: SakService) {
+
+    private val oppgavestyringGateway = OppgavestyringGateway
 
     fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
         // TODO: Slippe ut event om at behandlingen har stoppet opp
@@ -47,7 +49,7 @@ class BehandlingHendelseService(private val sakService: SakService) {
             },
             opprettetTidspunkt = behandling.opprettetTidspunkt
         )
-        OppgavestyringGatewaySingleton.getInstance().varsleHendelse(hendelse)
+        oppgavestyringGateway.varsleHendelse(hendelse)
         log.info(DefaultJsonMapper.toJson(hendelse))
     }
 }
