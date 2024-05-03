@@ -53,6 +53,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
 import no.nav.aap.behandlingsflyt.server.apiRoute
+import no.nav.aap.behandlingsflyt.server.respond
 import no.nav.aap.behandlingsflyt.tilkjentytelse.flate.tilkjentYtelseAPI
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
@@ -61,6 +62,7 @@ import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.Motor
+import no.nav.aap.motor.retry.RetryFeiledeOppgaverRepositoryExposed
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.dokument.JournalpostId
@@ -222,49 +224,59 @@ fun Route.testIntegrasjoner() {
 
 @Deprecated("Kun for test lokalt enn så lenge")
 fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
-    route("/test/opprett") {
-        post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
+    route("/test") {
+        route("/opprett") {
+            post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
 
-            val ident = Ident(dto.ident)
-            val periode = Periode(
-                LocalDate.now(),
-                LocalDate.now().plusYears(3)
-            )
-
-
-            val client = RestClient(
-                config = ClientConfig(),
-                tokenProvider = NoTokenTokenProvider()
-            )
-            client.post<_, Unit>(
-                URI.create("http://localhost:8080/").resolve("testdataApi/opprettPerson"),
-                PostRequest(body = dto)
-            )
-
-
-            HendelsesMottak(dataSource).håndtere(
-                ident, DokumentMottattPersonHendelse(
-                    journalpost = JournalpostId("" + System.currentTimeMillis()),
-                    mottattTidspunkt = LocalDateTime.now(),
-                    strukturertDokument = StrukturertDokument(Søknad(periode, dto.student), Brevkode.SØKNAD)
+                val ident = Ident(dto.ident)
+                val periode = Periode(
+                    LocalDate.now(),
+                    LocalDate.now().plusYears(3)
                 )
-            )
-            respond(dto)
+
+
+                val client = RestClient(
+                    config = ClientConfig(),
+                    tokenProvider = NoTokenTokenProvider()
+                )
+                client.post<_, Unit>(
+                    URI.create("http://localhost:8080/").resolve("testdataApi/opprettPerson"),
+                    PostRequest(body = dto)
+                )
+
+
+                HendelsesMottak(dataSource).håndtere(
+                    ident, DokumentMottattPersonHendelse(
+                        journalpost = JournalpostId("" + System.currentTimeMillis()),
+                        mottattTidspunkt = LocalDateTime.now(),
+                        strukturertDokument = StrukturertDokument(Søknad(periode, dto.student), Brevkode.SØKNAD)
+                    )
+                )
+                respond(dto)
+            }
         }
-    }
-    route("/test/pliktkort") {
-        post<Unit, PliktkortTestDTO, PliktkortTestDTO> { _, dto ->
+        route("/pliktkort") {
+            post<Unit, PliktkortTestDTO, PliktkortTestDTO> { _, dto ->
 
-            val ident = Ident(dto.ident)
+                val ident = Ident(dto.ident)
 
-            HendelsesMottak(dataSource).håndtere(
-                ident, DokumentMottattPersonHendelse(
-                    journalpost = JournalpostId("" + System.currentTimeMillis()),
-                    mottattTidspunkt = LocalDateTime.now(),
-                    strukturertDokument = StrukturertDokument(dto.pliktkort, Brevkode.PLIKTKORT)
+                HendelsesMottak(dataSource).håndtere(
+                    ident, DokumentMottattPersonHendelse(
+                        journalpost = JournalpostId("" + System.currentTimeMillis()),
+                        mottattTidspunkt = LocalDateTime.now(),
+                        strukturertDokument = StrukturertDokument(dto.pliktkort, Brevkode.PLIKTKORT)
+                    )
                 )
-            )
-            respond(dto)
+                respond(dto)
+            }
+        }
+        route("/rekjørFeilede") {
+            get<Unit, Unit> {
+                dataSource.transaction { connection ->
+                    RetryFeiledeOppgaverRepositoryExposed(connection).markerAlleFeiledeForKlare()
+                }
+                respond(HttpStatusCode.OK)
+            }
         }
     }
 }

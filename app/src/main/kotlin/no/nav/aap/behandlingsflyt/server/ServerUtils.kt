@@ -24,5 +24,11 @@ suspend inline fun <reified TResponse : Any> OpenAPIPipelineResponseContext<TRes
     statusCode: HttpStatusCode = HttpStatusCode.OK,
     response: TResponse
 ) {
-    responder.respond(statusCode, response as Any, pipeline)
+    responder.respond(statusCode, response, pipeline)
+}
+
+suspend inline fun <reified TResponse : Any> OpenAPIPipelineResponseContext<TResponse>.respond(
+    statusCode: HttpStatusCode
+) {
+    responder.respond(statusCode, Unit, pipeline)
 }
