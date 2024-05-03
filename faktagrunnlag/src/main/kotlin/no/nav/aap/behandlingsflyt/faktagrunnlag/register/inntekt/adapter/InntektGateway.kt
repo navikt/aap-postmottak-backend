@@ -37,8 +37,8 @@ object InntektGateway : InntektRegisterGateway {
     override fun innhent(person: Person, år: Set<Year>): Set<InntektPerÅr> {
         val request = InntektRequest(
             person.identer().map { it.identifikator }.first(),
-            tomAr = år.min().value,
-            fomAr = år.max().value
+            fomAr = år.min().value,
+            tomAr = år.max().value
         )
         val inntektRes = query(request)
 
