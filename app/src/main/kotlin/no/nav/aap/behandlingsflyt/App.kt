@@ -270,7 +270,7 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
                 respond(dto)
             }
         }
-        route("/rekjørFeilede") {
+        route("/rekjorFeilede") {
             get<Unit, Unit> {
                 dataSource.transaction { connection ->
                     RetryFeiledeOppgaverRepositoryExposed(connection).markerAlleFeiledeForKlare()
