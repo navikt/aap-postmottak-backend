@@ -50,7 +50,6 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsOppgaver
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
 import no.nav.aap.behandlingsflyt.server.apiRoute
 import no.nav.aap.behandlingsflyt.server.respond
@@ -159,7 +158,6 @@ internal fun Application.server(dbConfig: DbConfig) {
             }
         }
         actuator(prometheus)
-        testIntegrasjoner()
     }
     module(dataSource)
 }
@@ -205,19 +203,6 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
         get("/ready") {
             val status = HttpStatusCode.OK
             call.respond(status, "Oppe!")
-        }
-    }
-}
-
-@Deprecated("Test av integrasjoner")
-fun Route.testIntegrasjoner() {
-    route("/test/pdl") {
-        get {
-            val ident = call.request.header("personident")
-                ?: return@get call.respond(HttpStatusCode.BadRequest, "Mangler header personident")
-
-            val identer = PdlIdentGateway.hentAlleIdenterForPerson(Ident(ident))
-            call.respond(identer)
         }
     }
 }
