@@ -6,10 +6,6 @@ import no.nav.aap.behandlingsflyt.hendelse.oppgavestyring.OppgavestyringGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
-import no.nav.aap.json.DefaultJsonMapper
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(BehandlingHendelseService::class.java)
 
 class BehandlingHendelseService(private val sakService: SakService) {
 
@@ -50,6 +46,5 @@ class BehandlingHendelseService(private val sakService: SakService) {
             opprettetTidspunkt = behandling.opprettetTidspunkt
         )
         oppgavestyringGateway.varsleHendelse(hendelse)
-        log.info(DefaultJsonMapper.toJson(hendelse))
     }
 }
