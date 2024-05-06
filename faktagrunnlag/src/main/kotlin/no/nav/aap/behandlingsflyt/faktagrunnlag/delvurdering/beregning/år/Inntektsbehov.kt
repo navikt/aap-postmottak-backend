@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
+import no.nav.aap.verdityper.Beløp
 import java.time.LocalDate
 import java.time.Year
 
@@ -34,6 +35,12 @@ class Inntektsbehov(private val input: Input) {
         inntekter: Set<InntektPerÅr>
     ): Set<InntektPerÅr> {
         val relevanteÅr = treÅrForutFor(nedsettelsesdato)
-        return inntekter.filter { inntektPerÅr -> inntektPerÅr.år in relevanteÅr }.toSortedSet()
+        return relevanteÅr.map { relevantÅr ->
+            val år = inntekter.firstOrNull{entry -> entry.år == relevantÅr}
+            if (år == null) {
+                return@map InntektPerÅr(relevantÅr, Beløp(0))
+            }
+            return@map år
+        }.toSet()
     }
 }
