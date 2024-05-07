@@ -149,7 +149,13 @@ class FlytOrkestrator(
         val behovForLøsninger = avklaringsbehovene.hentBehovForDefinisjon(definisjoner)
         val tilbakeføringsflyt = flyt.tilbakeflyt(behovForLøsninger)
 
-        tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene)
+        tilbakefør(
+            kontekst,
+            behandling,
+            tilbakeføringsflyt,
+            avklaringsbehovene,
+            harHeltStoppet = false
+        ) // Setter til false for å ikke trigge unødvendig event
 
         val skulleVærtISteg = flyt.skalTilStegForBehov(behovForLøsninger)
         if (skulleVærtISteg != null) {
@@ -157,12 +163,17 @@ class FlytOrkestrator(
         }
     }
 
+    internal fun ferdigstiltLøsingAvBehov(behandling: Behandling, kontekst: FlytKontekst) {
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+        loggStopp(behandling, avklaringsbehovene, true)
+    }
+
     private fun tilbakefør(
         kontekst: FlytKontekst,
         behandling: Behandling,
         behandlingFlyt: BehandlingFlyt,
         avklaringsbehovene: Avklaringsbehovene,
-        erIkkeFerdig: Boolean = true
+        harHeltStoppet: Boolean = true
     ) {
         if (behandlingFlyt.erTom()) {
             return
@@ -172,7 +183,7 @@ class FlytOrkestrator(
             val neste = behandlingFlyt.neste()
 
             if (neste == null) {
-                loggStopp(behandling, avklaringsbehovene, erIkkeFerdig)
+                loggStopp(behandling, avklaringsbehovene, harHeltStoppet)
                 return
             }
             StegOrkestrator(connection, neste).utførTilbakefør(

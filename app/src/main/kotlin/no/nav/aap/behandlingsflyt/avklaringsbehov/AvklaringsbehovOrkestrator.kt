@@ -113,6 +113,9 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
 
         // Bør ideelt kalle på
         løsFaktiskAvklaringsbehov(kontekst, avklaringsbehovene, avklaringsbehov, bruker)
+
+        // Avklaringsbehovløst - trigger flyt stoppet event
+        flytOrkestrator.ferdigstiltLøsingAvBehov(behandling, kontekst)
     }
 
     private fun løsFaktiskAvklaringsbehov(
