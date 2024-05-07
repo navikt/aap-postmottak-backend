@@ -209,7 +209,7 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
 
 @Deprecated("Kun for test lokalt enn så lenge")
 fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
-    route("/thomas") {
+    route("/test") {
         route("/opprett") {
             post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
 
@@ -256,11 +256,11 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
             }
         }
         route("/rekjorFeilede") {
-            get<Unit, Unit> {
+            get<Unit, String> {
                 dataSource.transaction { connection ->
                     RetryFeiledeOppgaverRepositoryExposed(connection).markerAlleFeiledeForKlare()
                 }
-                respond(HttpStatusCode.OK)
+                respond(HttpStatusCode.OK, "Rekjøring av feilede startet")
             }
         }
     }
