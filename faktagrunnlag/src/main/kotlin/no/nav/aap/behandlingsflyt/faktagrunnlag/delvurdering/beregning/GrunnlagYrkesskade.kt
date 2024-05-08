@@ -6,7 +6,7 @@ import java.math.BigDecimal
 
 class GrunnlagYrkesskade(
     private val grunnlaget: GUnit,
-    private val beregningsgrunnlag: Grunnlag11_19
+    private val beregningsgrunnlag: Beregningsgrunnlag
 ) : Beregningsgrunnlag {
 
     override fun grunnlaget(): GUnit {
@@ -26,7 +26,7 @@ class GrunnlagYrkesskade(
         val beregningsgrunnlag: Faktagrunnlag
     ) : Faktagrunnlag
 
-    fun underliggende(): Grunnlag11_19 {
+    fun underliggende(): Beregningsgrunnlag {
         return beregningsgrunnlag
     }
 

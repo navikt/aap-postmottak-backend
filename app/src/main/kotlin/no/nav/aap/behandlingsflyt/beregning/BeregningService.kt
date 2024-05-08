@@ -2,7 +2,6 @@ package no.nav.aap.behandlingsflyt.beregning
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.Beregningsgrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.BeregningsgrunnlagRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.Grunnlag11_19
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.Inntektsbehov
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.Input
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektGrunnlagRepository
@@ -67,7 +66,7 @@ class BeregningService(
                     antattÅrligInntekt!!
                 )
                 val yrkesskaden = YrkesskadeBeregning(
-                    grunnlag11_19 = beregningMedEllerUtenUføre as Grunnlag11_19,
+                    grunnlag11_19 = beregningMedEllerUtenUføre,
                     antattÅrligInntekt = inntektPerÅr,
                     andelAvNedsettelsenSomSkyldesYrkesskaden = andelAvNedsettelsenSomSkyldesYrkesskaden!!
                 ).beregnYrkesskaden()

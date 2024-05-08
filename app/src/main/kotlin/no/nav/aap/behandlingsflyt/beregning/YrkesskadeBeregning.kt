@@ -1,12 +1,12 @@
 package no.nav.aap.behandlingsflyt.beregning
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.Grunnlag11_19
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.Beregningsgrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.GrunnlagYrkesskade
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.verdityper.Prosent
 
 class YrkesskadeBeregning(
-    private val grunnlag11_19: Grunnlag11_19,
+    private val grunnlag11_19: Beregningsgrunnlag,
     //TODO: Skal antattÅrligInntekt begrenses til 6G i det hele tatt?...
     private val antattÅrligInntekt: InntektPerÅr,
     private val andelAvNedsettelsenSomSkyldesYrkesskaden: Prosent
