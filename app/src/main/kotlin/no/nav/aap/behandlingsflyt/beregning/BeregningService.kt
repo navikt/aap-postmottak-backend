@@ -31,30 +31,25 @@ class BeregningService(
 
         val inntekter = utledInput(sykdomGrunnlag.sykdomsvurdering!!, beregningVurdering)
 
-        val beregningMedYrkesskade = beregn(sykdomGrunnlag, beregningVurdering, inntekter.utledForOrdinær(inntektGrunnlag.inntekter))
-
         val inntekterYtterligereNedsatt = inntekter.utledForYtterligereNedsatt(inntektGrunnlag.inntekter)
-
         val uføregrad = uføre?.vurdering?.uføregrad
 
-        if (inntekterYtterligereNedsatt != null && uføregrad != null) {
-            val beregningMedYrkesskadeVedYtterligereNedsatt = beregn(
-                sykdomGrunnlag,
-                beregningVurdering,
-                inntekterYtterligereNedsatt
-            )
-            val uføreberegning = UføreBeregning(
-                grunnlag = beregningMedYrkesskade,
-                ytterligereNedsattGrunnlag = beregningMedYrkesskadeVedYtterligereNedsatt,
-                //TODO:
-                // Hva hvis bruker har flere uføregrader?
-                // Skal saksbahandler velge den som er knyttet til ytterligere nedsatt-tidspunktet?
-                uføregrad = uføregrad
-            )
-            val grunnlagUføre = uføreberegning.beregnUføre()
-            beregningsgrunnlagRepository.lagre(behandlingId, grunnlagUføre)
-            return grunnlagUføre
-        }
+        val beregningMedYrkesskade =
+            if (inntekterYtterligereNedsatt != null && uføregrad != null) {
+                val beregningMedYrkesskadeVedYtterligereNedsatt = beregn(sykdomGrunnlag, beregningVurdering, inntekterYtterligereNedsatt)
+                val uføreberegning = UføreBeregning(
+                    grunnlag = beregningMedYrkesskadeVedYtterligereNedsatt,
+                    ytterligereNedsattGrunnlag = beregningMedYrkesskadeVedYtterligereNedsatt,
+                    //TODO:
+                    // Hva hvis bruker har flere uføregrader?
+                    // Skal saksbahandler velge den som er knyttet til ytterligere nedsatt-tidspunktet?
+                    uføregrad = uføregrad
+                )
+                uføreberegning.beregnUføre()
+            }else {
+                beregn(sykdomGrunnlag, beregningVurdering, inntekter.utledForOrdinær(inntektGrunnlag.inntekter))
+            }
+
 
         beregningsgrunnlagRepository.lagre(behandlingId, beregningMedYrkesskade)
 
