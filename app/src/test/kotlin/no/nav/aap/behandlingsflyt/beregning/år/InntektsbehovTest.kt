@@ -12,7 +12,13 @@ class InntektsbehovTest {
     @Test
     fun `skal utlede de tre forutgående kalenderårene fra nedsettelsesdato`() {
         val nedsettelsesDato = LocalDate.now().minusYears(3)
-        val relevanteÅr = Inntektsbehov(Input(nedsettelsesDato)).utledAlleRelevanteÅr()
+        val relevanteÅr = Inntektsbehov(Input(
+            nedsettelsesDato,
+            inntekter = inntekter,
+            uføregrad = uføregrad,
+            yrkesskadevurdering = yrkesskadevurdering,
+            beregningVurdering = vurdering
+        )).utledAlleRelevanteÅr()
 
         val nedsattYear = Year.of(nedsettelsesDato.year)
 
@@ -28,7 +34,13 @@ class InntektsbehovTest {
     fun `skal utlede de tre forutgående kalenderårene fra nedsettelsesdato og tre forutgående kalenderårene fra ytterligere nedsattdato`() {
         val nedsettelsesDato = LocalDate.now().minusYears(6)
         val ytterligereNedsattDato = LocalDate.now().minusYears(2)
-        val relevanteÅr = Inntektsbehov(Input(nedsettelsesDato, ytterligereNedsattDato)).utledAlleRelevanteÅr()
+        val relevanteÅr = Inntektsbehov(Input(
+            nedsettelsesDato,
+            inntekter,
+            uføregrad,
+            yrkesskadevurdering,
+            vurdering
+        )).utledAlleRelevanteÅr()
 
         val nedsattYear = Year.of(nedsettelsesDato.year)
         val ytterligereNedsattYear = Year.of(ytterligereNedsattDato.year)

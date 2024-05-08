@@ -11,10 +11,9 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.Beregnin
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurderingRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Sykdomsvurdering
-import no.nav.aap.verdityper.Beløp
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Yrkesskadevurdering
 import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import java.time.LocalDate
 import java.time.Year
 
 class BeregningService(
@@ -31,23 +30,32 @@ class BeregningService(
         val uføre = uføreRepository.hentHvisEksisterer(behandlingId)
         val beregningVurdering = beregningVurderingRepository.hentHvisEksisterer(behandlingId)
 
-        val inntekter = utledInput(sykdomGrunnlag.sykdomsvurdering!!, beregningVurdering)
+        val input = utledInput(
+            sykdomGrunnlag.sykdomsvurdering!!,
+            sykdomGrunnlag.yrkesskadevurdering,
+            beregningVurdering,
+            inntektGrunnlag.inntekter,
+            uføre?.vurdering?.uføregrad
+        )
 
-        val grunnlag11_19 = beregn(inntekter.utledForOrdinær(inntektGrunnlag.inntekter))
+        val beregningMedEllerUtenUføreMedEllerUtenYrkesskade = beregneMedInput(input)
 
-        val inntekterYtterligereNedsatt = inntekter.utledForYtterligereNedsatt(inntektGrunnlag.inntekter)
+        beregningsgrunnlagRepository.lagre(behandlingId, beregningMedEllerUtenUføreMedEllerUtenYrkesskade)
+        return beregningMedEllerUtenUføreMedEllerUtenYrkesskade
+    }
 
-        val uføregrad = uføre?.vurdering?.uføregrad
+    private fun beregneMedInput(input: Inntektsbehov): Beregningsgrunnlag {
+        val grunnlag11_19 = beregn(input.utledForOrdinær())
 
-        val beregningMedEllerUtenUføre = if (skalBeregnemedUføre(inntekterYtterligereNedsatt,uføregrad)) {
-            val beregningVedUføre = beregn(inntekterYtterligereNedsatt!!)
+        val beregningMedEllerUtenUføre = if (input.skalBeregneMedUføre()) {
+            val beregningVedUføre = beregn(input.utledForYtterligereNedsatt())
             val uføreberegning = UføreBeregning(
                 grunnlag = grunnlag11_19,
                 ytterligereNedsattGrunnlag = beregningVedUføre,
                 //TODO:
                 // Hva hvis bruker har flere uføregrader?
                 // Skal saksbahandler velge den som er knyttet til ytterligere nedsatt-tidspunktet?
-                uføregrad = uføregrad!!
+                uføregrad = input.uføregrad()
             )
             val grunnlagUføre = uføreberegning.beregnUføre()
             grunnlagUføre
@@ -55,49 +63,40 @@ class BeregningService(
             grunnlag11_19
         }
 
-        val skadetidspunkt = sykdomGrunnlag.yrkesskadevurdering?.skadetidspunkt
-        val antattÅrligInntekt = beregningVurdering?.antattÅrligInntekt
-        val andelAvNedsettelsenSomSkyldesYrkesskaden = sykdomGrunnlag.yrkesskadevurdering?.andelAvNedsettelse
-
         val beregningMedEllerUtenUføreMedEllerUtenYrkesskade =
-            if (skalBeregneMedYrkesskadeFordel(skadetidspunkt,antattÅrligInntekt,andelAvNedsettelsenSomSkyldesYrkesskaden)) { //11-22
+            if (input.skalBeregneMedYrkesskadeFordel()) { //11-22
                 val inntektPerÅr = InntektPerÅr(
-                    Year.from(skadetidspunkt),
-                    antattÅrligInntekt!!
+                    Year.from(input.skadetidspunkt()),
+                    input.antattÅrligInntekt()
                 )
                 val yrkesskaden = YrkesskadeBeregning(
                     grunnlag11_19 = beregningMedEllerUtenUføre,
                     antattÅrligInntekt = inntektPerÅr,
-                    andelAvNedsettelsenSomSkyldesYrkesskaden = andelAvNedsettelsenSomSkyldesYrkesskaden!!
+                    andelAvNedsettelsenSomSkyldesYrkesskaden = input.andelYrkesskade()
                 ).beregnYrkesskaden()
                 yrkesskaden
             } else {
                 beregningMedEllerUtenUføre
             }
-
-        beregningsgrunnlagRepository.lagre(behandlingId, beregningMedEllerUtenUføreMedEllerUtenYrkesskade)
         return beregningMedEllerUtenUføreMedEllerUtenYrkesskade
     }
 
-    private fun utledInput(sykdomsvurdering: Sykdomsvurdering, vurdering: BeregningVurdering?): Inntektsbehov {
+    private fun utledInput(
+        sykdomsvurdering: Sykdomsvurdering,
+        yrkesskadevurdering: Yrkesskadevurdering?,
+        vurdering: BeregningVurdering?,
+        inntekter: Set<InntektPerÅr>,
+        uføregrad: Prosent?
+    ): Inntektsbehov {
         return Inntektsbehov(
             Input(
                 nedsettelsesDato = requireNotNull(sykdomsvurdering.nedsattArbeidsevneDato).atMonth(1).atDay(1),
-                ytterligereNedsettelsesDato = vurdering?.ytterligereNedsattArbeidsevneDato
+                inntekter = inntekter,
+                uføregrad = uføregrad,
+                yrkesskadevurdering = yrkesskadevurdering,
+                beregningVurdering = vurdering
             )
         )
-    }
-
-    private fun skalBeregnemedUføre(inntekterYtterligereNedsatt: Set<InntektPerÅr>?, uføregrad: Prosent?): Boolean {
-        return inntekterYtterligereNedsatt != null && uføregrad != null
-    }
-
-    private fun skalBeregneMedYrkesskadeFordel(
-        skadetidspunkt: LocalDate?,
-        antattÅrligInntekt: Beløp?,
-        andelAvNedsettelsenSomSkyldesYrkesskaden: Prosent?
-    ): Boolean {
-        return skadetidspunkt != null && antattÅrligInntekt != null && andelAvNedsettelsenSomSkyldesYrkesskaden != null
     }
 
     private fun beregn(

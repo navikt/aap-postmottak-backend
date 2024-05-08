@@ -5,11 +5,11 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Grunnlagkonstruktør
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.Inntektsbehov
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.Input
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.InntektGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.InntektGateway
 
 class InntektService private constructor(
     private val sakService: SakService,
@@ -28,7 +28,13 @@ class InntektService private constructor(
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
 
         val nedsettelsesDato = beregningVurdering.sykdomsvurdering.nedsattArbeidsevneDato.atMonth(1).atDay(1)
-        val behov = Inntektsbehov(Input(nedsettelsesDato = nedsettelsesDato))
+        val behov = Inntektsbehov(Input(
+            nedsettelsesDato = nedsettelsesDato,
+            inntekter = inntekter,
+            uføregrad = uføregrad,
+            yrkesskadevurdering = yrkesskadevurdering,
+            beregningVurdering = vurdering
+        ))
         val inntektsBehov = behov.utledAlleRelevanteÅr()
 
         val sak = sakService.hent(kontekst.sakId)

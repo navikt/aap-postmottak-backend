@@ -30,7 +30,10 @@ data class BeregningVurdering(
         return Inntektsbehov(
             Input(
                 nedsettelsesDato = requireNotNull(sykdomsvurdering.nedsattArbeidsevneDato).atMonth(1).atDay(1),
-                ytterligereNedsettelsesDato = ytterligereNedsattArbeidsevneDato
+                inntekter = inntekter,
+                uføregrad = uføregrad,
+                yrkesskadevurdering = yrkesskadevurdering,
+                beregningVurdering = vurdering
             )
         )
     }
