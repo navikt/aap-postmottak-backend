@@ -182,24 +182,24 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
 
         when (beregningsgrunnlag) {
             is GrunnlagYrkesskade -> {
-                val beregningHovedId = lagreGrunnlag11_19(beregningUføreId, beregningsgrunnlag.underliggende())
+                val beregningHovedId = lagreGrunnlag(beregningUføreId, beregningsgrunnlag.underliggende())
                 lagreGrunnlagYrkesskade(beregningHovedId, beregningsgrunnlag)
             }
 
             is Grunnlag11_19 -> {
-                lagreGrunnlag11_19(beregningUføreId, beregningsgrunnlag)
+                lagreGrunnlag(beregningUføreId, beregningsgrunnlag)
             }
         }
     }
 
-    private fun lagreGrunnlag11_19(
+    private fun lagreGrunnlag(
         beregningUføreId: Long,
-        grunnlag11_19: Grunnlag11_19
+        grunnlag: Beregningsgrunnlag
     ): Long {
         return connection.executeReturnKey("INSERT INTO BEREGNING_HOVED (BEREGNING_UFORE_ID, G_UNIT) VALUES (?, ?)") {
             setParams {
                 setLong(1, beregningUføreId)
-                setBigDecimal(2, grunnlag11_19.grunnlaget().verdi())
+                setBigDecimal(2, grunnlag.grunnlaget().verdi())
             }
         }
     }
