@@ -37,7 +37,6 @@ class BeregningService(
 
         val uføregrad = uføre?.vurdering?.uføregrad
 
-
         val beregningMedEllerUtenUføre = if (inntekterYtterligereNedsatt != null && uføregrad != null) {
             val beregningVedYtterligereNedsatt = beregn(inntekterYtterligereNedsatt)
             val uføreberegning = UføreBeregning(
@@ -50,32 +49,31 @@ class BeregningService(
             )
             val grunnlagUføre = uføreberegning.beregnUføre()
             grunnlagUføre
-        }else{
+        } else {
             grunnlag11_19
         }
-
 
         val skadetidspunkt = sykdomGrunnlag.yrkesskadevurdering?.skadetidspunkt
         val antattÅrligInntekt = beregningVurdering?.antattÅrligInntekt
         val andelAvNedsettelsenSomSkyldesYrkesskaden = sykdomGrunnlag.yrkesskadevurdering?.andelAvNedsettelse
 
-        val beregningMedEllerUtenUføreMedEllerUtenYrkesskade = if (skadetidspunkt != null && antattÅrligInntekt != null && andelAvNedsettelsenSomSkyldesYrkesskaden != null) { //11-22
-            val inntektPerÅr = InntektPerÅr(
-                Year.from(skadetidspunkt),
-                antattÅrligInntekt
-            )
-            val yrkesskaden = YrkesskadeBeregning(
-                grunnlag11_19 = grunnlag11_19 as Grunnlag11_19,
-                antattÅrligInntekt = inntektPerÅr,
-                andelAvNedsettelsenSomSkyldesYrkesskaden = andelAvNedsettelsenSomSkyldesYrkesskaden
-            ).beregnYrkesskaden()
-            return yrkesskaden
-        }else{
-            beregningMedEllerUtenUføre
-        }
+        val beregningMedEllerUtenUføreMedEllerUtenYrkesskade =
+            if (skadetidspunkt != null && antattÅrligInntekt != null && andelAvNedsettelsenSomSkyldesYrkesskaden != null) { //11-22
+                val inntektPerÅr = InntektPerÅr(
+                    Year.from(skadetidspunkt),
+                    antattÅrligInntekt
+                )
+                val yrkesskaden = YrkesskadeBeregning(
+                    grunnlag11_19 = grunnlag11_19 as Grunnlag11_19,
+                    antattÅrligInntekt = inntektPerÅr,
+                    andelAvNedsettelsenSomSkyldesYrkesskaden = andelAvNedsettelsenSomSkyldesYrkesskaden
+                ).beregnYrkesskaden()
+                return yrkesskaden
+            } else {
+                beregningMedEllerUtenUføre
+            }
 
         beregningsgrunnlagRepository.lagre(behandlingId, beregningMedEllerUtenUføreMedEllerUtenYrkesskade)
-
         return beregningMedEllerUtenUføreMedEllerUtenYrkesskade
     }
 
