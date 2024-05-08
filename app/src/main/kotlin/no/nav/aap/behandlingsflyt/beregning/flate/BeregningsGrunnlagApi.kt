@@ -4,6 +4,8 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
+import io.ktor.http.*
+import io.ktor.server.response.*
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.BeregningsgrunnlagRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
@@ -19,10 +21,16 @@ fun NormalOpenAPIRoute.beregningsGrunnlagApi (dataSource: DataSource) {
                     val behandling: Behandling = BehandlingReferanseService(connection).behandling(req)
                     val beregning = BeregningsgrunnlagRepository(connection).hentHvisEksisterer(behandling.id)
 
-                    if (beregning == null) return@transaction BeregningDTO(null, null)
+                    if (beregning == null) return@transaction null
 
                     BeregningDTO(beregning.grunnlaget(), beregning.faktagrunnlag())
                 }
+
+                if (begregningsgrunnlag == null) {
+                    pipeline.context.respond(HttpStatusCode.NoContent)
+                    return@get
+                }
+
                 respond(begregningsgrunnlag)
             }
         }
