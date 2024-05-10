@@ -2,6 +2,9 @@ package no.nav.aap.behandlingsflyt.beregning.år
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.Inntektsbehov
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.Input
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurdering
+import no.nav.aap.verdityper.Beløp
+import no.nav.aap.verdityper.Prosent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -14,10 +17,10 @@ class InntektsbehovTest {
         val nedsettelsesDato = LocalDate.now().minusYears(3)
         val relevanteÅr = Inntektsbehov(Input(
             nedsettelsesDato,
-            inntekter = inntekter,
-            uføregrad = uføregrad,
-            yrkesskadevurdering = yrkesskadevurdering,
-            beregningVurdering = vurdering
+            inntekter = setOf(),
+            uføregrad = Prosent.`0_PROSENT`,
+            yrkesskadevurdering = null,
+            beregningVurdering = null
         )).utledAlleRelevanteÅr()
 
         val nedsattYear = Year.of(nedsettelsesDato.year)
@@ -36,10 +39,10 @@ class InntektsbehovTest {
         val ytterligereNedsattDato = LocalDate.now().minusYears(2)
         val relevanteÅr = Inntektsbehov(Input(
             nedsettelsesDato,
-            inntekter,
-            uføregrad,
-            yrkesskadevurdering,
-            vurdering
+            setOf(),
+            Prosent.`0_PROSENT`,
+            null,
+            BeregningVurdering(begrunnelse = "asdf", ytterligereNedsattArbeidsevneDato = ytterligereNedsattDato, antattÅrligInntekt = Beløp(100))
         )).utledAlleRelevanteÅr()
 
         val nedsattYear = Year.of(nedsettelsesDato.year)
