@@ -8,7 +8,14 @@ class FakeAvklaringsbehovRepository : AvklaringsbehovRepository, Avklaringsbehov
 
     private val behovPerBehandling = HashMap<BehandlingId, MutableList<Avklaringsbehov>>()
 
-    override fun opprett(behandlingId: BehandlingId, definisjon: Definisjon, funnetISteg: StegType, frist: LocalDate?) {
+    override fun opprett(
+        behandlingId: BehandlingId,
+        definisjon: Definisjon,
+        funnetISteg: StegType,
+        frist: LocalDate?,
+        begrunnelse: String,
+        endretAv: String
+    ) {
         val avklaringsbehov = behovPerBehandling.getOrDefault(behandlingId, mutableListOf())
 
         avklaringsbehov.add(

@@ -2,9 +2,13 @@ package no.nav.aap.behandlingsflyt.flyt.flate
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
+import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.http.*
+import io.ktor.server.response.*
+import no.nav.aap.behandlingsflyt.auth.bruker
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.avklaringsbehov.FrivilligeAvklaringsbehov
@@ -16,15 +20,19 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.utledType
+import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingHendelseHåndterer
+import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
+import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.motor.OppgaveInput
 import no.nav.aap.motor.OppgaveRepository
 import no.nav.aap.motor.OppgaveStatus
 import no.nav.aap.verdityper.flyt.StegGruppe
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import org.slf4j.MDC
 
 fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
@@ -80,7 +88,12 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                         aktivGruppe = aktivtSteg.gruppe,
                         behandlingVersjon = behandling.versjon,
                         prosessering = prosessering,
-                        visning = utledVisning(aktivtSteg, flyt, alleAvklaringsbehovInkludertFrivillige, prosessering.status)
+                        visning = utledVisning(
+                            aktivtSteg,
+                            flyt,
+                            alleAvklaringsbehovInkludertFrivillige,
+                            prosessering.status
+                        )
                     )
                 }
                 respond(dto)
@@ -96,6 +109,31 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                     BehandlingResultatDto(alleVilkår(vilkårResultat))
                 }
                 respond(dto)
+            }
+        }
+        route("/{referanse}/sett-på-vent") {
+            post<BehandlingReferanse, BehandlingResultatDto, SettPåVentRequest> { request, body ->
+                dataSource.transaction { connection ->
+                    val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
+                    val lås = taSkriveLåsRepository.lås(request.ref())
+
+                    MDC.putCloseable("sakId", lås.sakSkrivelås.id.toString()).use {
+                        MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
+
+                            BehandlingHendelseHåndterer(connection).håndtere(
+                                key = lås.behandlingSkrivelås.id,
+                                hendelse = BehandlingSattPåVent(
+                                    frist = body.frist,
+                                    begrunnelse = body.begrunnelse,
+                                    bruker = pipeline.context.bruker()
+                                )
+                            )
+                            taSkriveLåsRepository.verifiserSkrivelås(lås)
+                        }
+                    }
+                }
+                pipeline.context.respond(HttpStatusCode.NoContent)
+                return@post
             }
         }
     }

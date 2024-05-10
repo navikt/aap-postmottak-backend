@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt
 
+import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
 import no.nav.aap.behandlingsflyt.auth.Bruker
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovHendelseHåndterer
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
@@ -837,7 +838,7 @@ class FlytOrkestratorTest {
 
         hendelsesMottak.håndtere(
             behandling.id,
-            BehandlingSattPåVent()
+            BehandlingSattPåVent(frist = null, begrunnelse = "Avventer dokumentasjon", SYSTEMBRUKER)
         )
 
         behandling = hentBehandling(sak.id)

@@ -1,5 +1,7 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
+import no.nav.aap.behandlingsflyt.auth.Bruker
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -38,11 +40,11 @@ class Avklaringsbehovene(
         repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
     }
 
-    fun leggTilFrivilligHvisMangler(definisjon: Definisjon) {
+    fun leggTilFrivilligHvisMangler(definisjon: Definisjon, bruker: Bruker) {
         if (definisjon.erFrivillig()) {
             if (hentBehovForDefinisjon(definisjon) == null) {
                 // Legger til frivillig behov
-                leggTil(listOf(definisjon), definisjon.løsesISteg)
+                leggTil(definisjoner = listOf(definisjon), stegType = definisjon.løsesISteg, bruker = bruker)
             }
         }
     }
@@ -52,7 +54,13 @@ class Avklaringsbehovene(
      *
      * NB! Dersom avklaringsbehovet finnes fra før og er åpent så ignorerer vi det nye behovet, mens dersom det er avsluttet eller avbrutt så reåpner vi det.
      */
-    fun leggTil(definisjoner: List<Definisjon>, stegType: StegType, fristUtgangspunkt: LocalDate? = null) {
+    fun leggTil(
+        definisjoner: List<Definisjon>,
+        stegType: StegType,
+        frist: LocalDate? = null,
+        begrunnelse: String = "",
+        bruker: Bruker = SYSTEMBRUKER
+    ) {
         definisjoner.forEach { definisjon ->
             val avklaringsbehov = hentBehovForDefinisjon(definisjon)
             if (avklaringsbehov != null) {
@@ -67,15 +75,17 @@ class Avklaringsbehovene(
                     behandlingId = behandlingId,
                     definisjon = definisjon,
                     funnetISteg = stegType,
-                    frist = utledFrist(definisjon, fristUtgangspunkt)
+                    frist = utledFrist(definisjon, frist),
+                    begrunnelse = begrunnelse,
+                    endretAv = bruker.ident
                 )
             }
         }
     }
 
-    private fun utledFrist(definisjon: Definisjon, fristUtgangspunkt: LocalDate?): LocalDate? {
+    private fun utledFrist(definisjon: Definisjon, frist: LocalDate?): LocalDate? {
         if (definisjon.erVentepunkt()) {
-            return definisjon.utledFrist(fristUtgangspunkt)
+            return definisjon.utledFrist(frist)
         }
         return null
     }

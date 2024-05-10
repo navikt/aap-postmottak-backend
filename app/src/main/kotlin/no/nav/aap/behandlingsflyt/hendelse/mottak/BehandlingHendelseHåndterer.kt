@@ -11,7 +11,7 @@ class BehandlingHendelseHåndterer(connection: DBConnection) {
     fun håndtere(key: BehandlingId, hendelse: BehandlingHendelse) {
         when (hendelse) {
             is BehandlingSattPåVent -> {
-                avklaringsbehovOrkestrator.settBehandlingPåVent(key)
+                avklaringsbehovOrkestrator.settBehandlingPåVent(key, hendelse)
             } else -> {
                 avklaringsbehovOrkestrator.taAvVentHvisPåVentOgFortsettProsessering(key)
             }

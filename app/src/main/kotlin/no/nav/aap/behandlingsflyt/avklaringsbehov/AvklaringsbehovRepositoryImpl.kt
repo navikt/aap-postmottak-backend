@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.verdityper.flyt.StegType
@@ -31,7 +30,14 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         }
     }
 
-    override fun opprett(behandlingId: BehandlingId, definisjon: Definisjon, funnetISteg: StegType, frist: LocalDate?) {
+    override fun opprett(
+        behandlingId: BehandlingId,
+        definisjon: Definisjon,
+        funnetISteg: StegType,
+        frist: LocalDate?,
+        begrunnelse: String,
+        endretAv: String
+    ) {
         //TODO: Kan vi utelukke denne sjekken? LeggTil burde alltid opprette - finnes den fra før må den evt. endres.
         var avklaringsbehovId = hentRelevantAvklaringsbehov(behandlingId, definisjon)
 
@@ -41,7 +47,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
 
         endreAvklaringsbehov(
             avklaringsbehovId,
-            Endring(status = Status.OPPRETTET, begrunnelse = "", endretAv = SYSTEMBRUKER.ident, frist = frist)
+            Endring(status = Status.OPPRETTET, begrunnelse = begrunnelse, endretAv = endretAv, frist = frist)
         )
     }
 

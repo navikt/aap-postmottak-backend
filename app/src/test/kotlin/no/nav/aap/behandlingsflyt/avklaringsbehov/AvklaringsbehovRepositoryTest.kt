@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
@@ -27,7 +28,7 @@ class AvklaringsbehovRepositoryTest {
             val repository = AvklaringsbehovRepositoryImpl(connection)
             val avklaringsbehovene = Avklaringsbehovene(repository, behandling.id)
             avklaringsbehovene.leggTil(
-                listOf(Definisjon.AVKLAR_SYKDOM), StegType.AVKLAR_SYKDOM
+                listOf(Definisjon.AVKLAR_SYKDOM), StegType.AVKLAR_SYKDOM, begrunnelse = "", bruker = SYSTEMBRUKER
             )
 
             val avklaringsbehov = repository.hentAvklaringsbehovene(behandling.id)

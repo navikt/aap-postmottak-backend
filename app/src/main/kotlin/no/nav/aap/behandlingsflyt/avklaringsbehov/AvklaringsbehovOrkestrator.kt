@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.utledType
+import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.behandlingsflyt.prosessering.ProsesserBehandlingOppgaveUtfører
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -129,7 +130,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         it: AvklaringsbehovLøsning,
         bruker: Bruker
     ) {
-        avklaringsbehovene.leggTilFrivilligHvisMangler(it.definisjon())
+        avklaringsbehovene.leggTilFrivilligHvisMangler(it.definisjon(), bruker)
         val løsningsResultat = it.løs(connection, AvklaringsbehovKontekst(bruker, kontekst))
 
         avklaringsbehovene.løsAvklaringsbehov(
@@ -140,12 +141,18 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
         )
     }
 
-    fun settBehandlingPåVent(behandlingId: BehandlingId) {
+    fun settBehandlingPåVent(behandlingId: BehandlingId, hendelse: BehandlingSattPåVent) {
         val behandling = behandlingRepository.hent(behandlingId)
 
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
-        avklaringsbehovene.leggTil(listOf(Definisjon.MANUELT_SATT_PÅ_VENT), behandling.aktivtSteg())
+        avklaringsbehovene.leggTil(
+            definisjoner = listOf(Definisjon.MANUELT_SATT_PÅ_VENT),
+            stegType = behandling.aktivtSteg(),
+            frist = hendelse.frist,
+            begrunnelse = hendelse.begrunnelse,
+            bruker = hendelse.bruker
+        )
     }
 }

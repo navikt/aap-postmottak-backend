@@ -55,7 +55,11 @@ class GjenopptakRepositoryTest {
 
             val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
 
-            avklaringsbehovene.leggTil(listOf(Definisjon.MANUELT_SATT_PÅ_VENT), StegType.START_BEHANDLING, fristUtgangspunkt = LocalDate.now().minusDays(60))
+            avklaringsbehovene.leggTil(
+                listOf(Definisjon.MANUELT_SATT_PÅ_VENT),
+                StegType.START_BEHANDLING,
+                frist = LocalDate.now().minusDays(1)
+            )
         }
 
         dataSource.transaction { connection ->
