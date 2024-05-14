@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.IdentGateway
 import no.nav.aap.httpclient.ClientConfig
+import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
@@ -25,7 +26,7 @@ object PdlIdentGateway : IdentGateway {
     )
 
     private fun query(request: PdlRequest): PdlIdenterDataResponse {
-        val httpRequest = PostRequest(body = request)
+        val httpRequest = PostRequest(body = request, additionalHeaders = listOf(Header("Behandlingsnummer", "B287")))
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 

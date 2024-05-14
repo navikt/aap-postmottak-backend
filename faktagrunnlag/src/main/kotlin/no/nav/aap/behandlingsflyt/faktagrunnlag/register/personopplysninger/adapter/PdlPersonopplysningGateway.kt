@@ -5,6 +5,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Pers
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
+import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
@@ -27,7 +28,7 @@ object PdlPersonopplysningGateway : PersonopplysningGateway {
     )
 
     private fun query(request: PdlRequest): PdlPersoninfoDataResponse {
-        val httpRequest = PostRequest(body = request)
+        val httpRequest = PostRequest(body = request, additionalHeaders = listOf(Header("Behandlingsnummer", "B287")))
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 

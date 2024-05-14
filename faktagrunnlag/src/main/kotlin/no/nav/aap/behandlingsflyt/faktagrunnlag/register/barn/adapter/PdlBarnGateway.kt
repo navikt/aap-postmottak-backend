@@ -6,6 +6,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.Dødsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
+import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
@@ -76,7 +77,7 @@ object PdlBarnGateway : BarnGateway {
     }
 
     private fun query(request: PdlRequest): PdlRelasjonDataResponse {
-        val httpRequest = PostRequest(body = request)
+        val httpRequest = PostRequest(body = request, additionalHeaders = listOf(Header("Behandlingsnummer", "B287")))
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 }
