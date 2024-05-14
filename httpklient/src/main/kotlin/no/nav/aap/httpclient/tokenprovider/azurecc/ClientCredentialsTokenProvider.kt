@@ -11,9 +11,7 @@ import no.nav.aap.httpclient.tokenprovider.OidcTokenResponse
 import no.nav.aap.httpclient.tokenprovider.TokenProvider
 import java.net.URLEncoder
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 import kotlin.text.Charsets.UTF_8
 
 object ClientCredentialsTokenProvider : TokenProvider {
@@ -58,7 +56,8 @@ object ClientCredentialsTokenProvider : TokenProvider {
 }
 
 internal fun calculateExpiresTime(expiresInSec: Int): LocalDateTime {
-    val expiresAtMillis = System.currentTimeMillis() + (expiresInSec * 1000) - Duration.ofSeconds(30).toMillis()
+    val expiresIn =
+        Duration.ofSeconds(expiresInSec.toLong()).minus(Duration.ofSeconds(30))
 
-    return LocalDateTime.ofInstant(Instant.ofEpochMilli(expiresAtMillis), ZoneId.systemDefault());
+    return LocalDateTime.now().plus(expiresIn);
 }
