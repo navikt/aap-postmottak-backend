@@ -16,8 +16,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.text.Charsets.UTF_8
 
-private const val BUFFER = 150
-
 object ClientCredentialsTokenProvider : TokenProvider {
 
     private val client = RestClient(
@@ -60,7 +58,7 @@ object ClientCredentialsTokenProvider : TokenProvider {
 }
 
 internal fun calculateExpiresTime(expiresInSec: Int): LocalDateTime {
-    val expiresAtMillis = System.currentTimeMillis() + (expiresInSec * 1000) - BUFFER
+    val expiresAtMillis = System.currentTimeMillis() + (expiresInSec * 1000) - Duration.ofSeconds(30).toMillis()
 
     return LocalDateTime.ofInstant(Instant.ofEpochMilli(expiresAtMillis), ZoneId.systemDefault());
 }

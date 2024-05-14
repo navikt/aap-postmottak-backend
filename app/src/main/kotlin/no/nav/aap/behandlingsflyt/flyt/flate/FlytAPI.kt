@@ -122,7 +122,6 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
 
                     MDC.putCloseable("sakId", lås.sakSkrivelås.id.toString()).use {
                         MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
-
                             BehandlingHendelseHåndterer(connection).håndtere(
                                 key = lås.behandlingSkrivelås.id,
                                 hendelse = BehandlingSattPåVent(
