@@ -21,7 +21,10 @@ import java.net.URI
 object PdlBarnGateway : BarnGateway {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.pdl.url"))
-    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.pdl.scope"))
+    val config = ClientConfig(
+        scope = requiredConfigForKey("integrasjon.pdl.scope"),
+        additionalHeaders = listOf(Header("Behandlingsnummer", "B287"))
+    )
     private val client = RestClient(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
@@ -36,10 +39,7 @@ object PdlBarnGateway : BarnGateway {
         val request = PdlRequest(BARN_RELASJON_QUERY, IdentVariables(person.aktivIdent().identifikator))
         val response: PdlRelasjonDataResponse = query(request)
 
-        val relasjoner = (response.data
-            ?.hentPerson
-            ?.forelderBarnRelasjon
-            ?: return emptyList())
+        val relasjoner = (response.data?.hentPerson?.forelderBarnRelasjon ?: return emptyList())
 
         return relasjoner.map {
             Ident(
@@ -56,20 +56,15 @@ object PdlBarnGateway : BarnGateway {
         val request = PdlRequest(PERSON_BOLK_QUERY, IdentVariables(identer = identer.map { it.identifikator }))
         val response: PdlRelasjonDataResponse = query(request)
 
-        val bolk = response
-            .data
-            ?.hentPersonBolk
-            ?: return emptyList()
+        val bolk = response.data?.hentPersonBolk ?: return emptyList()
 
         return bolk.mapNotNull { res ->
             res.person?.let { person ->
                 person.foedsel?.let { foedsel ->
                     foedsel.singleOrNull()?.let { fdato ->
-                        Barn(
-                            ident = Ident(res.ident),
+                        Barn(ident = Ident(res.ident),
                             fødselsdato = Fødselsdato.parse(fdato.foedselsdato.toString()),
-                            dødsdato = person.doedsfall?.firstOrNull()?.doedsdato?.let { Dødsdato.parse(it) }
-                        )
+                            dødsdato = person.doedsfall?.firstOrNull()?.doedsdato?.let { Dødsdato.parse(it) })
                     }
                 }
             }
@@ -77,7 +72,7 @@ object PdlBarnGateway : BarnGateway {
     }
 
     private fun query(request: PdlRequest): PdlRelasjonDataResponse {
-        val httpRequest = PostRequest(body = request, additionalHeaders = listOf(Header("Behandlingsnummer", "B287")))
+        val httpRequest = PostRequest(body = request)
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 }

@@ -18,7 +18,10 @@ import java.net.URI
 object PdlIdentGateway : IdentGateway {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.pdl.url"))
-    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.pdl.scope"))
+    val config = ClientConfig(
+        scope = requiredConfigForKey("integrasjon.pdl.scope"),
+        additionalHeaders = listOf(Header("Behandlingsnummer", "B287"))
+    )
     private val client = RestClient(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
@@ -26,7 +29,7 @@ object PdlIdentGateway : IdentGateway {
     )
 
     private fun query(request: PdlRequest): PdlIdenterDataResponse {
-        val httpRequest = PostRequest(body = request, additionalHeaders = listOf(Header("Behandlingsnummer", "B287")))
+        val httpRequest = PostRequest(body = request)
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 

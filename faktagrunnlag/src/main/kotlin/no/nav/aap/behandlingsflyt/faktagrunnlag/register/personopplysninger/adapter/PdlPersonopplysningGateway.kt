@@ -20,7 +20,10 @@ import java.time.LocalDateTime
 object PdlPersonopplysningGateway : PersonopplysningGateway {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.pdl.url"))
-    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.pdl.scope"))
+    val config = ClientConfig(
+        scope = requiredConfigForKey("integrasjon.pdl.scope"),
+        additionalHeaders = listOf(Header("Behandlingsnummer", "B287"))
+    )
     private val client = RestClient(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
@@ -28,7 +31,7 @@ object PdlPersonopplysningGateway : PersonopplysningGateway {
     )
 
     private fun query(request: PdlRequest): PdlPersoninfoDataResponse {
-        val httpRequest = PostRequest(body = request, additionalHeaders = listOf(Header("Behandlingsnummer", "B287")))
+        val httpRequest = PostRequest(body = request)
         return requireNotNull(client.post(uri = url, request = httpRequest))
     }
 
