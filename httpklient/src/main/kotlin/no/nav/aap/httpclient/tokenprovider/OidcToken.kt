@@ -1,10 +1,14 @@
 package no.nav.aap.httpclient.tokenprovider
 
 import com.auth0.jwt.JWT
-import java.time.Instant
-import java.util.*
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 class OidcToken(accessToken: String) {
+
+    private val log: Logger = LoggerFactory.getLogger(OidcToken::class.java)
 
     private val accessToken = JWT.decode(accessToken)
 
@@ -12,11 +16,13 @@ class OidcToken(accessToken: String) {
         return accessToken.token
     }
 
-    fun expires(): Date {
-        return accessToken.expiresAt
+    fun expires(): LocalDateTime {
+        return LocalDateTime.ofInstant(accessToken.expiresAt.toInstant(), ZoneId.systemDefault())
     }
 
     fun isNotExpired(): Boolean {
-        return accessToken.expiresAt.after(Date.from(Instant.now().minusSeconds(30)))
+        val now = LocalDateTime.now().plusSeconds(30)
+        log.info("$now < ${expires()}")
+        return now.isBefore(expires())
     }
 }
