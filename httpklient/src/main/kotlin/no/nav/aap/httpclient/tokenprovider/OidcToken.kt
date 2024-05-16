@@ -17,6 +17,6 @@ class OidcToken(accessToken: String) {
     }
 
     fun isNotExpired(): Boolean {
-        return !accessToken.expiresAt.after(Date.from(Instant.now().minusSeconds(30)))
+        return accessToken.expiresAt.after(Date.from(Instant.now().minusSeconds(30)))
     }
 }
