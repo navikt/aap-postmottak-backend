@@ -390,7 +390,7 @@ class Fakes : AutoCloseable {
 
 
     internal data class TestToken(
-        val access_token: String = "very.secure.token",
+        val access_token: String = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE4OTE2MjM5MDIyfQ.BIR7ZqtdKxxIVxcDt-yShbff1MnHaKbEcuFHwuPuTh0",
         val refresh_token: String = "very.secure.token",
         val id_token: String = "very.secure.token",
         val token_type: String = "token-type",
