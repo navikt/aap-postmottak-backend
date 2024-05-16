@@ -79,7 +79,7 @@ private fun HttpRequest.Builder.addHeaders(
 
     val token = tokenProvider.getToken(scope)
     if (token != null) {
-        this.header("Authorization", "Bearer ${token.accessToken}")
+        this.header("Authorization", "Bearer ${token.token()}")
     }
     val callId = sikreCorrelationId()
     this.header("X-Correlation-ID", callId)

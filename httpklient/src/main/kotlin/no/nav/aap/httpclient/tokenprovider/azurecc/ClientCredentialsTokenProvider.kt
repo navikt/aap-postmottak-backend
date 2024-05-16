@@ -44,8 +44,9 @@ object ClientCredentialsTokenProvider : TokenProvider {
             return null
         }
 
-        val oidcToken = OidcToken(response.access_token, calculateExpiresTime(response.expires_in))
-        cache[scope] = oidcToken
+        val oidcToken = OidcToken(response.access_token)
+
+
         return oidcToken
     }
 
