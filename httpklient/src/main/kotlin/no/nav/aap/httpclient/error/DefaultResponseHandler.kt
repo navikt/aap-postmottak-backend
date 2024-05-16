@@ -20,6 +20,9 @@ class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHan
             || config.isParseableStatus(status)
         ) {
             val value = response.body()
+            if (value == null || value.isEmpty()) {
+                return null
+            }
             SECURE_LOGGER.info(value)
             return mapper(value)
         }
