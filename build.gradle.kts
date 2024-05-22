@@ -7,8 +7,6 @@ plugins {
 
 group = "no.nav.aap"
 
-val javaVersion = 21
-
 allprojects {
     repositories {
         mavenCentral()
@@ -18,12 +16,13 @@ allprojects {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
+    kotlin {
+        compilerOptions {
+            apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        }
+    }
 
     tasks {
-        withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-            kotlinOptions.jvmTarget = "$javaVersion"
-        }
-
         withType<ShadowJar> {
             mergeServiceFiles()
         }
