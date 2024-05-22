@@ -46,6 +46,18 @@ class RettTilRegelTest {
                     )
                 )
             )
+        val medlemskapVilkåret =
+            Vilkår(
+                Vilkårtype.MEDLEMSKAP, setOf(
+                    Vilkårsperiode(
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
+            )
         val bistandVilkåret =
             Vilkår(
                 Vilkårtype.BISTANDSVILKÅRET, setOf(
@@ -61,7 +73,7 @@ class RettTilRegelTest {
 
         val input = UnderveisInput(
             rettighetsperiode = periode,
-            relevanteVilkår = listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
+            relevanteVilkår = listOf(aldersVilkåret, sykdomsVilkåret, medlemskapVilkåret, bistandVilkåret),
             opptrappingPerioder = listOf(),
             pliktkort = listOf(),
             innsendingsTidspunkt = mapOf(),
@@ -113,6 +125,18 @@ class RettTilRegelTest {
                     )
                 )
             )
+        val medlemskapVilkåret =
+            Vilkår(
+                Vilkårtype.MEDLEMSKAP, setOf(
+                    Vilkårsperiode(
+                        periode,
+                        Utfall.OPPFYLT,
+                        false,
+                        null,
+                        faktagrunnlag = null
+                    )
+                )
+            )
         val bistandVilkåret =
             Vilkår(
                 Vilkårtype.BISTANDSVILKÅRET, setOf(
@@ -128,7 +152,7 @@ class RettTilRegelTest {
 
         val input = UnderveisInput(
             rettighetsperiode = periode,
-            relevanteVilkår = listOf(aldersVilkåret, sykdomsVilkåret, bistandVilkåret),
+            relevanteVilkår = listOf(aldersVilkåret, sykdomsVilkåret, medlemskapVilkåret, bistandVilkåret),
             opptrappingPerioder = listOf(),
             pliktkort = listOf(),
             innsendingsTidspunkt = mapOf(),

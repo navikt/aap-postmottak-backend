@@ -59,6 +59,18 @@ class UnderveisServiceTest {
                         )
                     )
                 )
+            val medlemskapVilkåret =
+                Vilkår(
+                    Vilkårtype.MEDLEMSKAP, setOf(
+                        Vilkårsperiode(
+                            periode,
+                            Utfall.OPPFYLT,
+                            false,
+                            null,
+                            faktagrunnlag = null
+                        )
+                    )
+                )
             val bistandVilkåret =
                 Vilkår(
                     Vilkårtype.BISTANDSVILKÅRET, setOf(
@@ -71,7 +83,7 @@ class UnderveisServiceTest {
                         )
                     )
                 )
-            val relevanteVilkår = listOf(aldersVilkåret, bistandVilkåret, sykdomsVilkåret)
+            val relevanteVilkår = listOf(aldersVilkåret, bistandVilkåret, medlemskapVilkåret, sykdomsVilkåret)
             val input = UnderveisInput(
                 rettighetsperiode = periode,
                 relevanteVilkår = relevanteVilkår,

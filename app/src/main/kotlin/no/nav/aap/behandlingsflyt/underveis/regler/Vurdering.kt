@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.underveis.regler
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.Gradering
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.UnderveisAvslagsårsak
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.UnderveisÅrsak
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Utfall
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.verdityper.Prosent
@@ -88,17 +88,17 @@ class Vurdering(
         }
     }
 
-    fun avslagsårsak(): UnderveisAvslagsårsak? {
+    fun avslagsårsak(): UnderveisÅrsak? {
         if (harRett()) {
             return null
         }
 
         if (!ingenVilkårErAvslått()) {
-            return UnderveisAvslagsårsak.IKKE_GRUNNLEGGENDE_RETT
+            return UnderveisÅrsak.IKKE_GRUNNLEGGENDE_RETT
         } else if (!arbeiderMindreEnnGrenseverdi()) {
-            return UnderveisAvslagsårsak.ARBEIDER_MER_ENN_GRENSEVERDI
+            return UnderveisÅrsak.ARBEIDER_MER_ENN_GRENSEVERDI
         } else if (!harOverholdtMeldeplikten()) {
-            return requireNotNull(meldepliktVurdering?.avslagsårsak)
+            return requireNotNull(meldepliktVurdering?.årsak)
         }
         throw IllegalStateException("Ukjent avslagsårsak")
     }
@@ -107,8 +107,8 @@ class Vurdering(
         return meldepliktVurdering?.utfall ?: Utfall.IKKE_VURDERT
     }
 
-    internal fun meldeplikAvslagsårsak(): UnderveisAvslagsårsak? {
-        return meldepliktVurdering?.avslagsårsak
+    internal fun meldeplikAvslagsårsak(): UnderveisÅrsak? {
+        return meldepliktVurdering?.årsak
     }
 
     override fun equals(other: Any?): Boolean {
@@ -132,7 +132,7 @@ class Vurdering(
     }
 
     override fun toString(): String {
-        return "Vurdering(harRett=${harRett()}, meldeplikt=${meldepliktVurdering?.utfall ?: Utfall.IKKE_VURDERT}(${meldepliktVurdering?.avslagsårsak ?: "-"}), gradering=${
+        return "Vurdering(harRett=${harRett()}, meldeplikt=${meldepliktVurdering?.utfall ?: Utfall.IKKE_VURDERT}(${meldepliktVurdering?.årsak ?: "-"}), gradering=${
             gradering?.gradering ?: Prosent(
                 0
             )

@@ -19,6 +19,7 @@ class RettTilRegel : UnderveisRegel {
     ): Tidslinje<Vurdering> {
         require(input.relevanteVilkår.any { it.type == Vilkårtype.ALDERSVILKÅRET })
         require(input.relevanteVilkår.any { it.type == Vilkårtype.BISTANDSVILKÅRET })
+        require(input.relevanteVilkår.any { it.type == Vilkårtype.MEDLEMSKAP })
         require(input.relevanteVilkår.any { it.type == Vilkårtype.SYKDOMSVILKÅRET })
 
         return input.relevanteVilkår.fold(resultat) { retur, vilkår ->

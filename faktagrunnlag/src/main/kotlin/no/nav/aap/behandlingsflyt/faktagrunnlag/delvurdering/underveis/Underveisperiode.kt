@@ -7,7 +7,7 @@ import no.nav.aap.verdityper.Prosent
 class Underveisperiode(
     val periode: Periode,
     val utfall: Utfall,
-    val avslagsårsak: UnderveisAvslagsårsak?,
+    val avslagsårsak: UnderveisÅrsak?,
     val grenseverdi: Prosent,
     val gradering: Gradering?
 ) : Comparable<Underveisperiode> {
