@@ -25,7 +25,7 @@ class Avklaringsbehov(
     }
 
     fun erTotrinnsVurdert(): Boolean {
-        return Status.TOTRINNS_VURDERT == historikk.last().status
+        return Status.TOTRINNS_VURDERT == historikk.maxOf { it }.status
     }
 
     fun vurderTotrinn(
@@ -84,12 +84,12 @@ class Avklaringsbehov(
     }
 
     fun status(): Status {
-        return historikk.last().status
+        return historikk.maxOf { it }.status
     }
 
-    fun begrunnelse(): String = historikk.last().begrunnelse
-    fun endretAv(): String = historikk.last().endretAv
-    fun årsakTilRetur(): List<ÅrsakTilRetur> = historikk.last().årsakTilRetur
+    fun begrunnelse(): String = historikk.maxOf { it }.begrunnelse
+    fun endretAv(): String = historikk.maxOf { it }.endretAv
+    fun årsakTilRetur(): List<ÅrsakTilRetur> = historikk.maxOf { it }.årsakTilRetur
 
     fun skalLøsesISteg(type: StegType): Boolean {
         return definisjon.skalLøsesISteg(type, funnetISteg)
@@ -115,7 +115,7 @@ class Avklaringsbehov(
     }
 
     fun frist(): LocalDate {
-        return requireNotNull(historikk.last().frist)
+        return requireNotNull(historikk.maxOf { it }.frist)
     }
 
     fun fristUtløpt(): Boolean {
