@@ -151,21 +151,7 @@ class BehandlingFlyt private constructor(
     internal fun tilbakeflyt(avklaringsbehov: List<Avklaringsbehov>): BehandlingFlyt {
         val skalTilSteg = skalTilStegForBehov(avklaringsbehov)
 
-        if (skalTilSteg == null) {
-            return BehandlingFlyt(emptyList(), emptyMap())
-        }
-
-        val returflyt = flyt.slice(flyt.indexOfFirst { it.steg.type() == skalTilSteg }..flyt.indexOf(this.aktivtSteg))
-
-        if (returflyt.size <= 1) {
-            return BehandlingFlyt(emptyList(), emptyMap())
-        }
-
-        return BehandlingFlyt(
-            flyt = returflyt.reversed(),
-            endringTilSteg = emptyMap(),
-            parent = this
-        )
+        return utletTilbakeflytTilSteg(skalTilSteg)
     }
 
     private fun skalTilStegForBehov(avklaringsbehov: List<Avklaringsbehov>): StegType? {
@@ -184,6 +170,10 @@ class BehandlingFlyt private constructor(
             flyt.filter { it.kravliste.any { at -> oppdaterteGrunnlagstype.contains(at) } }.map { it.steg.type() }
                 .minWithOrNull(compareable())
 
+        return utletTilbakeflytTilSteg(skalTilSteg)
+    }
+
+    private fun utletTilbakeflytTilSteg(skalTilSteg: StegType?): BehandlingFlyt {
         if (skalTilSteg == null) {
             return BehandlingFlyt(emptyList(), emptyMap())
         }
