@@ -14,27 +14,24 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykdomRepos
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
-import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
 
 class FastsettGrunnlagSteg(
     private val beregningService: BeregningService,
-    private val vilkårsresultatRepository: VilkårsresultatRepository,
-    private val periodeTilVurderingService: PeriodeTilVurderingService
+    private val vilkårsresultatRepository: VilkårsresultatRepository
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(FastsettGrunnlagSteg::class.java)
 
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val beregningsgrunnlag = beregningService.beregnGrunnlag(kontekst.behandlingId)
 
         val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
-        val periodeTilVurdering = periodeTilVurderingService.utled(kontekst, Vilkårtype.GRUNNLAGET)
 
         val vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.GRUNNLAGET)
 
-        periodeTilVurdering.forEach { periode ->
+        kontekst.perioderTilVurdering.forEach { periode ->
             vilkår.leggTilVurdering(
                 Vilkårsperiode(
                     periode = periode,
@@ -65,8 +62,7 @@ class FastsettGrunnlagSteg(
                     BeregningsgrunnlagRepository(connection),
                     BeregningVurderingRepository(connection)
                 ),
-                VilkårsresultatRepository(connection),
-                PeriodeTilVurderingService(SakService(connection))
+                VilkårsresultatRepository(connection)
             )
         }
 

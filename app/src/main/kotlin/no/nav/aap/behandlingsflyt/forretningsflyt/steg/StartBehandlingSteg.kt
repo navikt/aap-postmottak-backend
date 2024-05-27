@@ -7,7 +7,7 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
-import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 
@@ -16,7 +16,7 @@ class StartBehandlingSteg private constructor(
     private val sakService: SakService
 ) : BehandlingSteg {
 
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         if (kontekst.behandlingType == TypeBehandling.Førstegangsbehandling) {
             val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
             val rettighetsperiode = sakService.hent(kontekst.sakId).rettighetsperiode

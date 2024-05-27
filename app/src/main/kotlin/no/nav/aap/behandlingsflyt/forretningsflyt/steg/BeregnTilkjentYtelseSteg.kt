@@ -13,7 +13,7 @@ import no.nav.aap.behandlingsflyt.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.GUnit
 import no.nav.aap.verdityper.Prosent
-import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
 
@@ -27,7 +27,7 @@ class BeregnTilkjentYtelseSteg private constructor(
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(BeregnTilkjentYtelseSteg::class.java)
 
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val beregningsgrunnlag = requireNotNull(beregningsgrunnlagRepository.hentHvisEksisterer(kontekst.behandlingId))
         val underveisgrunnlag = underveisRepository.hent(kontekst.behandlingId)
         val fødselsdato = requireNotNull(personopplysningRepository.hentHvisEksisterer(kontekst.behandlingId)?.personopplysning?.fødselsdato)

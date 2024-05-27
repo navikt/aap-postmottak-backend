@@ -12,31 +12,27 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentRep
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.vilkår.bistand.BistandFaktagrunnlag
 import no.nav.aap.behandlingsflyt.vilkår.bistand.Bistandsvilkåret
 import no.nav.aap.verdityper.Periode
-import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 
 class VurderBistandsbehovSteg private constructor(
     private val bistandRepository: BistandRepository,
     private val studentRepository: StudentRepository,
-    private val vilkårsresultatRepository: VilkårsresultatRepository,
-    private val periodeTilVurderingService: PeriodeTilVurderingService
+    private val vilkårsresultatRepository: VilkårsresultatRepository
 ) : BehandlingSteg {
 
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val periodeTilVurdering =
-            periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.BISTANDSVILKÅRET)
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
 
-        if (periodeTilVurdering.isNotEmpty()) {
+        if (kontekst.perioderTilVurdering.isNotEmpty()) {
             val bistandsGrunnlag = bistandRepository.hentHvisEksisterer(kontekst.behandlingId)
             val studentGrunnlag = studentRepository.hentHvisEksisterer(kontekst.behandlingId)
 
             val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
             if (studentGrunnlag?.studentvurdering?.oppfyller11_14 == true || bistandsGrunnlag != null) {
-                for (periode in periodeTilVurdering) {
+                for (periode in kontekst.perioderTilVurdering) {
                     val grunnlag = BistandFaktagrunnlag(
                         periode.fom,
                         periode.tom,
@@ -50,7 +46,7 @@ class VurderBistandsbehovSteg private constructor(
 
             val vilkår = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
 
-            if (harBehovForAvklaring(vilkår, periodeTilVurdering, studentGrunnlag)) {
+            if (harBehovForAvklaring(vilkår, kontekst.perioderTilVurdering, studentGrunnlag)) {
                 return StegResultat(listOf(Definisjon.AVKLAR_BISTANDSBEHOV))
             }
         }
@@ -77,8 +73,7 @@ class VurderBistandsbehovSteg private constructor(
             return VurderBistandsbehovSteg(
                 BistandRepository(connection),
                 StudentRepository(connection),
-                VilkårsresultatRepository(connection),
-                PeriodeTilVurderingService(SakService(connection))
+                VilkårsresultatRepository(connection)
             )
         }
 

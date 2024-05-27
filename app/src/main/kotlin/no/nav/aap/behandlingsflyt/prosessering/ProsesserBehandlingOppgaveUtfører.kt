@@ -29,7 +29,7 @@ class ProsesserBehandlingOppgaveUtfører(
 
     companion object : Oppgave {
         override fun konstruer(connection: DBConnection): OppgaveUtfører {
-            return ProsesserBehandlingOppgaveUtfører(TaSkriveLåsRepository(connection), FlytOrkestrator(connection))
+            return ProsesserBehandlingOppgaveUtfører(TaSkriveLåsRepository(connection), FlytOrkestrator(connection), )
         }
 
         override fun type(): String {

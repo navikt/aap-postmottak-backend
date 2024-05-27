@@ -9,29 +9,25 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykdomRepos
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.vilkår.sykdom.Sykdomsvilkår
-import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 
 class VurderSykdomSteg private constructor(
     private val sykdomRepository: SykdomRepository,
     private val studentRepository: StudentRepository,
-    private val vilkårsresultatRepository: VilkårsresultatRepository,
-    private val periodeTilVurderingService: PeriodeTilVurderingService
+    private val vilkårsresultatRepository: VilkårsresultatRepository
 ) : BehandlingSteg {
 
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val periodeTilVurdering =
-            periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.SYKDOMSVILKÅRET)
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
 
-        if (periodeTilVurdering.isNotEmpty()) {
+        if (kontekst.perioderTilVurdering.isNotEmpty()) {
             val sykdomsGrunnlag = sykdomRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
             val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId = kontekst.behandlingId)
 
             val vilkårResultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
             if (sykdomsGrunnlag != null && sykdomsGrunnlag.erKonsistent() || studentGrunnlag?.studentvurdering?.oppfyller11_14 == true) {
-                for (periode in periodeTilVurdering) {
+                for (periode in kontekst.perioderTilVurdering) {
                     val faktagrunnlag = no.nav.aap.behandlingsflyt.vilkår.sykdom.SykdomsFaktagrunnlag(
                         periode.fom,
                         periode.tom,
@@ -45,7 +41,7 @@ class VurderSykdomSteg private constructor(
             vilkårsresultatRepository.lagre(kontekst.behandlingId, vilkårResultat)
             val sykdomsvilkåret = vilkårResultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
 
-            if (sykdomsvilkåret.harPerioderSomIkkeErVurdert(periodeTilVurdering)
+            if (sykdomsvilkåret.harPerioderSomIkkeErVurdert(kontekst.perioderTilVurdering)
                 || (studentGrunnlag?.studentvurdering?.oppfyller11_14 == false && sykdomsGrunnlag?.erKonsistent() != true)
             ) {
                 return StegResultat(listOf(Definisjon.AVKLAR_SYKDOM))
@@ -59,8 +55,7 @@ class VurderSykdomSteg private constructor(
             return VurderSykdomSteg(
                 SykdomRepository(connection),
                 StudentRepository(connection),
-                VilkårsresultatRepository(connection),
-                PeriodeTilVurderingService(SakService(connection))
+                VilkårsresultatRepository(connection)
             )
         }
 

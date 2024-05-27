@@ -2,33 +2,28 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.vilkår.alder.Aldersgrunnlag
 import no.nav.aap.behandlingsflyt.vilkår.alder.Aldersvilkåret
-import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 
 class VurderAlderSteg private constructor(
     private val vilkårsresultatRepository: VilkårsresultatRepository,
-    private val periodeTilVurderingService: PeriodeTilVurderingService,
     private val personopplysningRepository: PersonopplysningRepository
 ) : BehandlingSteg {
 
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val periodeTilVurdering =
-            periodeTilVurderingService.utled(kontekst = kontekst, vilkår = Vilkårtype.ALDERSVILKÅRET)
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
 
-        if (periodeTilVurdering.isNotEmpty()) {
+        if (kontekst.perioderTilVurdering.isNotEmpty()) {
             val personopplysningGrunnlag = personopplysningRepository.hentHvisEksisterer(kontekst.behandlingId)
                 ?: throw IllegalStateException("Forventet å finne personopplysninger")
 
             val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
-            for (periode in periodeTilVurdering) {
+            for (periode in kontekst.perioderTilVurdering) {
                 val aldersgrunnlag = Aldersgrunnlag(periode, personopplysningGrunnlag.personopplysning.fødselsdato)
                 Aldersvilkåret(vilkårsresultat).vurder(aldersgrunnlag)
             }
@@ -42,7 +37,6 @@ class VurderAlderSteg private constructor(
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return VurderAlderSteg(
                 VilkårsresultatRepository(connection),
-                PeriodeTilVurderingService(SakService(connection)),
                 PersonopplysningRepository(connection)
             )
         }

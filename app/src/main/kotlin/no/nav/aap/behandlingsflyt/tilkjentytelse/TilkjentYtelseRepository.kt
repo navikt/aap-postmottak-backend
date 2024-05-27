@@ -85,10 +85,6 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
-        require(fraBehandling != tilBehandling)
-    }
-
     private fun deaktiverEksisterende(behandlingId: BehandlingId) {
         connection.execute("UPDATE TILKJENT_YTELSE SET AKTIV = FALSE WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {

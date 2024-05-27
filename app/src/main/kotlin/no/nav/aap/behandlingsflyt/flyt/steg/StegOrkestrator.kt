@@ -2,10 +2,12 @@ package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.periodisering.PerioderTilVurderingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.StegTilstand
 import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -31,6 +33,7 @@ class StegOrkestrator(connection: DBConnection, private val aktivtSteg: FlytSteg
 
     private val behandlingRepository = BehandlingFlytRepository(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
+    private val perioderTilVurderingService = PerioderTilVurderingService(connection)
 
     private val behandlingSteg = aktivtSteg.konstruer(connection)
 
@@ -91,7 +94,13 @@ class StegOrkestrator(connection: DBConnection, private val aktivtSteg: FlytSteg
     }
 
     private fun behandleSteg(kontekst: FlytKontekst): Transisjon {
-        val stegResultat = behandlingSteg.utfør(kontekst)
+        val kontekstMedPerioder = FlytKontekstMedPerioder(
+            sakId = kontekst.sakId,
+            behandlingId = kontekst.behandlingId,
+            behandlingType = kontekst.behandlingType,
+            perioderTilVurdering = perioderTilVurderingService.utled(kontekst = kontekst, stegType = aktivtSteg.type())
+        )
+        val stegResultat = behandlingSteg.utfør(kontekstMedPerioder)
 
         val resultat = stegResultat.transisjon()
 

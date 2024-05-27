@@ -9,14 +9,14 @@ import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.underveis.UnderveisService
-import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
 
 class UnderveisSteg(private val underveisService: UnderveisService) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(UnderveisSteg::class.java)
 
-    override fun utfør(kontekst: FlytKontekst): StegResultat {
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val underveisTidslinje = underveisService.vurder(kontekst.behandlingId)
 
         log.info("Underveis tidslinje $underveisTidslinje")
