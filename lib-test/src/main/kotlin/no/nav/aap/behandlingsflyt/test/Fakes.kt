@@ -22,6 +22,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fød
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
 import no.nav.aap.behandlingsflyt.hendelse.avløp.BehandlingFlytStoppetHendelse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway.PERSONINFO_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.pdl.HentPersonBolkResult
 import no.nav.aap.pdl.PDLDødsfall
@@ -31,6 +32,9 @@ import no.nav.aap.pdl.PdlIdent
 import no.nav.aap.pdl.PdlIdenter
 import no.nav.aap.pdl.PdlIdenterData
 import no.nav.aap.pdl.PdlIdenterDataResponse
+import no.nav.aap.pdl.PdlNavn
+import no.nav.aap.pdl.PdlNavnData
+import no.nav.aap.pdl.PdlPersonNavnDataResponse
 import no.nav.aap.pdl.PdlPersoninfo
 import no.nav.aap.pdl.PdlPersoninfoData
 import no.nav.aap.pdl.PdlPersoninfoDataResponse
@@ -209,6 +213,7 @@ class Fakes : AutoCloseable {
                 when (req.query) {
                     IDENT_QUERY -> call.respond(identer(req))
                     PERSON_QUERY -> call.respond(personopplysninger(req))
+                    PERSONINFO_QUERY -> call.respond(navn(req))
                     BARN_RELASJON_QUERY -> call.respond(barnRelasjoner(req))
                     PERSON_BOLK_QUERY -> call.respond(barn(req))
                     else -> call.respond(HttpStatusCode.BadRequest)
@@ -360,6 +365,16 @@ class Fakes : AutoCloseable {
             extensions = null,
             data = PdlPersoninfoData(
                 hentPerson = mapPerson(testPerson)
+            ),
+        )
+    }
+
+    private fun navn(req: PdlRequest): PdlPersonNavnDataResponse {
+        return PdlPersonNavnDataResponse(
+            errors = null,
+            extensions = null,
+            data = PdlNavnData(
+                navn = listOf(PdlNavn(fornavn = "Testo", mellomnavn = null, etternavn = "Steron"))
             ),
         )
     }

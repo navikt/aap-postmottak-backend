@@ -18,7 +18,7 @@ import java.net.URI
 object PdlPersoninfoGateway : PersoninfoGateway {
 
     private const val ident = "\$ident"
-    private val QUERY = """
+    val PERSONINFO_QUERY = """
     query($ident: ID!) {
         hentPerson(ident: $ident) {
             navn(historikk: false) {
@@ -45,7 +45,7 @@ object PdlPersoninfoGateway : PersoninfoGateway {
     }
 
     override fun hentPersoninfoForIdent(ident: Ident, currentToken: OidcToken): Personinfo {
-        val request = PdlRequest(QUERY, IdentVariables(ident.identifikator))
+        val request = PdlRequest(PERSONINFO_QUERY, IdentVariables(ident.identifikator))
         val response: PdlPersonNavnDataResponse = query(request, currentToken)
         val navn = response.data?.navn?.first()
         return Personinfo(ident, navn?.fornavn, navn?.mellomnavn, navn?.etternavn)
