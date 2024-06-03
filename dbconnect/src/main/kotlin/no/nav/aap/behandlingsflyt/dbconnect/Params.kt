@@ -70,4 +70,8 @@ class Params(private val preparedStatement: PreparedStatement) {
     fun setLocalDateTime(index: Int, localDateTime: LocalDateTime?) {
         preparedStatement.setTimestamp(index, localDateTime?.let(Timestamp::valueOf))
     }
+
+    fun setProperties(index: Int, properties: Properties?) {
+        preparedStatement.setString(index, PropertiesParser.toSql(properties))
+    }
 }

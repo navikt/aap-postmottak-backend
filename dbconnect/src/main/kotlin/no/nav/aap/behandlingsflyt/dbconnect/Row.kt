@@ -161,4 +161,15 @@ class Row(private val resultSet: ResultSet) {
         val timestamp: Timestamp? = resultSet.getTimestamp(columnLabel)
         return timestamp?.toLocalDateTime()
     }
+
+    fun getPropertiesOrNull(columnLabel: String): Properties? {
+        val dbData = resultSet.getString(columnLabel)
+        return PropertiesParser.fromSql(dbData)
+    }
+
+    fun getProperties(columnLabel: String): Properties {
+        val propertiesOrNull = getPropertiesOrNull(columnLabel)
+        requireNotNull(propertiesOrNull)
+        return propertiesOrNull
+    }
 }
