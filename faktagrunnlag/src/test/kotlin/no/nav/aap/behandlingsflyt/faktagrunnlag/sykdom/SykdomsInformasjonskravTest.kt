@@ -23,7 +23,7 @@ class SykdomsInformasjonskravTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
-                nedsattArbeidsevneDato = Year.now(),
+                nedsattArbeidsevneDato = Year.now().value,
                 erArbeidsevnenNedsatt = true,
             )
         )
@@ -42,7 +42,7 @@ class SykdomsInformasjonskravTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
-                nedsattArbeidsevneDato = Year.now(),
+                nedsattArbeidsevneDato = Year.now().value,
                 erArbeidsevnenNedsatt = true,
             )
         )
@@ -66,7 +66,7 @@ class SykdomsInformasjonskravTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
-                nedsattArbeidsevneDato = Year.now(),
+                nedsattArbeidsevneDato = Year.now().value,
                 erArbeidsevnenNedsatt = true,
             )
         )
@@ -90,7 +90,7 @@ class SykdomsInformasjonskravTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
-                nedsattArbeidsevneDato = Year.now(),
+                nedsattArbeidsevneDato = Year.now().value,
                 erArbeidsevnenNedsatt = true,
             )
         )
@@ -114,7 +114,7 @@ class SykdomsInformasjonskravTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.TRETTI,
-                nedsattArbeidsevneDato = Year.now(),
+                nedsattArbeidsevneDato = Year.now().value,
                 erArbeidsevnenNedsatt = true,
             )
         )
@@ -138,7 +138,7 @@ class SykdomsInformasjonskravTest {
                 erSkadeSykdomEllerLyteVesentligdel = true,
                 erNedsettelseIArbeidsevneHøyereEnnNedreGrense = true,
                 nedreGrense = NedreGrense.FEMTI,
-                nedsattArbeidsevneDato = Year.now(),
+                nedsattArbeidsevneDato = Year.now().value,
                 erArbeidsevnenNedsatt = true,
             )
         )

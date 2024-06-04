@@ -12,6 +12,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import java.time.LocalDate
 
 class InntektService private constructor(
     private val sakService: SakService,
@@ -31,7 +32,7 @@ class InntektService private constructor(
 
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
 
-        val nedsettelsesDato = sykdomGrunnlag.sykdomsvurdering.nedsattArbeidsevneDato.atMonth(1).atDay(1)
+        val nedsettelsesDato = LocalDate.of(sykdomGrunnlag.sykdomsvurdering.nedsattArbeidsevneDato, 1, 1);
         val behov = Inntektsbehov(Input(
             nedsettelsesDato = nedsettelsesDato,
             inntekter = setOf(),

@@ -14,6 +14,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Sykdomsvurd
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Yrkesskadevurdering
 import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import java.time.LocalDate
 import java.time.Year
 
 class BeregningService(
@@ -90,7 +91,7 @@ class BeregningService(
     ): Inntektsbehov {
         return Inntektsbehov(
             Input(
-                nedsettelsesDato = requireNotNull(sykdomsvurdering.nedsattArbeidsevneDato).atMonth(1).atDay(1),
+                nedsettelsesDato = requireNotNull(sykdomsvurdering.nedsattArbeidsevneDato?.let { LocalDate.of(it, 1, 1) }),
                 inntekter = inntekter,
                 uføregrad = uføregrad,
                 yrkesskadevurdering = yrkesskadevurdering,

@@ -13,7 +13,7 @@ data class Sykdomsvurdering(
     val erSkadeSykdomEllerLyteVesentligdel: Boolean?,
     val erNedsettelseIArbeidsevneHøyereEnnNedreGrense: Boolean?,
     val nedreGrense: NedreGrense?,
-    val nedsattArbeidsevneDato: Year?,
+    val nedsattArbeidsevneDato: Int?,
     val erArbeidsevnenNedsatt: Boolean
 ) {
     fun toDto(yrkesskadevurdering: Yrkesskadevurdering?): SykdomsvurderingDto? {
@@ -24,7 +24,7 @@ data class Sykdomsvurdering(
             erSkadeSykdomEllerLyteVesentligdel,
             erNedsettelseIArbeidsevneHøyereEnnNedreGrense,
             nedreGrense,
-            nedsattArbeidsevneDato?.atMonth(1)?.atDay(1),
+            nedsattArbeidsevneDato,
             mapYrkesskade(yrkesskadevurdering)
         )
     }
