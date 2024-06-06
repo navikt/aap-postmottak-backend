@@ -5,8 +5,8 @@ class Visning(
     val beslutterReadOnly: Boolean,
     val visBeslutterKort: Boolean,
     val visVentekort: Boolean,
-    kvalitetssikringReadOnly: Boolean,
-    visKvalitetssikringKort: Boolean
+    val kvalitetssikringReadOnly: Boolean,
+    val visKvalitetssikringKort: Boolean
 ) {
 
 }
