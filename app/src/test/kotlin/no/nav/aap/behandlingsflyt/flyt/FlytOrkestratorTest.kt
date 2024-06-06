@@ -36,6 +36,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.SykdomsvurderingDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.YrkesskadevurderingDto
 import no.nav.aap.behandlingsflyt.flyt.flate.Venteinformasjon
+import no.nav.aap.behandlingsflyt.flyt.internals.TestJobbRepository
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
@@ -50,7 +51,6 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.behandlingsflyt.test.modell.TestYrkesskade
-import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Motor
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.Periode
@@ -74,7 +74,7 @@ class FlytOrkestratorTest {
 
     companion object {
         val dataSource = InitTestDatabase.dataSource
-        val motor = Motor(dataSource, 1, ProsesseringsJobber.alle())
+        val motor = Motor(dataSource, 2, ProsesseringsJobber.alle())
         val hendelsesMottak = HendelsesMottak(dataSource)
         val fakes = Fakes()
 
@@ -166,7 +166,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction {
@@ -184,7 +184,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
@@ -204,7 +204,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction { connection ->
@@ -231,7 +231,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction {
@@ -257,7 +257,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction {
@@ -275,7 +275,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
         // Saken er tilbake til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
         dataSource.transaction { dbConnection ->
@@ -294,7 +294,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         // Saken står til To-trinnskontroll hos beslutter
         dataSource.transaction { connection ->
@@ -317,7 +317,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         behandling = hentBehandling(sak.id)
         assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
@@ -396,7 +396,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction {
@@ -414,7 +414,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction {
@@ -433,7 +433,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
@@ -453,7 +453,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         // Saken står til To-trinnskontroll hos beslutter
         dataSource.transaction { connection ->
@@ -476,7 +476,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         behandling = hentBehandling(sak.id)
         assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
@@ -554,7 +554,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction {
@@ -580,7 +580,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         dataSource.transaction {
@@ -598,7 +598,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
@@ -618,7 +618,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         // Saken står til To-trinnskontroll hos beslutter
         dataSource.transaction { connection ->
@@ -648,7 +648,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         behandling = hentBehandling(sak.id)
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
@@ -681,7 +681,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         behandling = hentBehandling(sak.id)
 
         // Saken står til en-trinnskontroll hos saksbehandler klar for å bli sendt til beslutter
@@ -701,7 +701,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         // Saken står til To-trinnskontroll hos beslutter
         dataSource.transaction { connection ->
@@ -724,7 +724,7 @@ class FlytOrkestratorTest {
                 )
             )
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         //Henter vurder alder-vilkår
         //Assert utfall
@@ -768,10 +768,11 @@ class FlytOrkestratorTest {
         return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
     }
 
-    private fun ventPåSvar() {
-        dataSource.transaction {
+    private fun ventPåSvar(sakId: SakId? = null, behandlingId: BehandlingId? = null) {
+        dataSource.transaction(readOnly = true) {
             val maxTid = LocalDateTime.now().plusMinutes(1)
-            while ((FlytJobbRepository(it).harOppgaver()) && maxTid.isAfter(LocalDateTime.now())) {
+            val testJobbRepository = TestJobbRepository(it)
+            while ((testJobbRepository.harOppgaver(sakId, behandlingId)) && maxTid.isAfter(LocalDateTime.now())) {
                 Thread.sleep(50L)
             }
         }
@@ -880,7 +881,7 @@ class FlytOrkestratorTest {
                 .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
                 .anySatisfy { it.erÅpent() && it.definisjon == Definisjon.AVKLAR_SYKDOM }
         }
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
         hendelsesMottak.håndtere(
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("3"),
@@ -888,7 +889,7 @@ class FlytOrkestratorTest {
                 strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
             )
         )
-        ventPåSvar()
+        ventPåSvar(sak.id, behandling.id)
 
         behandling = hentBehandling(sak.id)
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)

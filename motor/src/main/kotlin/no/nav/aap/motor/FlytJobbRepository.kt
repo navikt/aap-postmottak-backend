@@ -67,18 +67,4 @@ class FlytJobbRepository(private val connection: DBConnection) {
             }
         }
     }
-
-    fun harOppgaver(): Boolean {
-        val antall =
-            connection.queryFirst(
-                "SELECT count(1) as antall " +
-                        "FROM JOBB " +
-                        "WHERE status not in ('${JobbStatus.FERDIG.name}', '${JobbStatus.FEILET.name}')"
-            ) {
-                setRowMapper {
-                    it.getLong("antall") > 0
-                }
-            }
-        return antall
-    }
 }
