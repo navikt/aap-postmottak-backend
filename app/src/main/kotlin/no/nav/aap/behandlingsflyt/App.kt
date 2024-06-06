@@ -143,7 +143,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     }
 
     install(CORS) {
-        anyHost() // FIXME: Dette blir litt vel aggresivt, men greit for nå? :pray:
+        anyHost()
         allowHeader(HttpHeaders.ContentType)
     }
 
