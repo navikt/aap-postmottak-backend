@@ -157,6 +157,7 @@ class AvklaringsbehovOrkestrator(private val connection: DBConnection) {
             stegType = behandling.aktivtSteg(),
             frist = hendelse.frist,
             begrunnelse = hendelse.begrunnelse,
+            grunn = hendelse.grunn,
             bruker = hendelse.bruker
         )
 

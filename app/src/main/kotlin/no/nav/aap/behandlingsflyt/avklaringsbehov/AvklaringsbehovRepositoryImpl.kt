@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.verdityper.flyt.StegType
@@ -36,6 +37,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         funnetISteg: StegType,
         frist: LocalDate?,
         begrunnelse: String,
+        grunn: ÅrsakTilSettPåVent?,
         endretAv: String
     ) {
         //TODO: Kan vi utelukke denne sjekken? LeggTil burde alltid opprette - finnes den fra før må den evt. endres.
@@ -47,7 +49,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
 
         endreAvklaringsbehov(
             avklaringsbehovId,
-            Endring(status = Status.OPPRETTET, begrunnelse = begrunnelse, endretAv = endretAv, frist = frist)
+            Endring(status = Status.OPPRETTET, begrunnelse = begrunnelse, grunn = grunn, endretAv = endretAv, frist = frist)
         )
     }
 
@@ -125,8 +127,8 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         endring: Endring
     ) {
         val query = """
-            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, frist, opprettet_av, opprettet_tid) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO AVKLARINGSBEHOV_ENDRING (avklaringsbehov_id, status, begrunnelse, frist, opprettet_av, opprettet_tid, venteaarsak) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
         val opprettetAv = endring.endretAv
@@ -139,6 +141,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
                 setLocalDate(4, endring.frist)
                 setString(5, opprettetAv)
                 setLocalDateTime(6, LocalDateTime.now())
+                setEnumName(7, endring.grunn)
             }
         }
         val queryPeriode = """
@@ -205,7 +208,8 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
             begrunnelse = row.getString("begrunnelse"),
             endretAv = row.getString("opprettet_av"),
             frist = row.getLocalDateOrNull("frist"),
-            årsakTilRetur = hentÅrsaker(row.getLong("id"))
+            årsakTilRetur = hentÅrsaker(row.getLong("id")),
+            grunn = row.getEnumOrNull("venteaarsak")
         )
     }
 

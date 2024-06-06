@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import no.nav.aap.auth.Bruker
 import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.behandlingsflyt.flyt.utledType
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.verdityper.flyt.StegType
@@ -60,13 +61,14 @@ class Avklaringsbehovene(
         stegType: StegType,
         frist: LocalDate? = null,
         begrunnelse: String = "",
+        grunn: ÅrsakTilSettPåVent? = null,
         bruker: Bruker = SYSTEMBRUKER
     ) {
         definisjoner.forEach { definisjon ->
             val avklaringsbehov = hentBehovForDefinisjon(definisjon)
             if (avklaringsbehov != null) {
                 if (avklaringsbehov.erAvsluttet() || avklaringsbehov.status() == Status.AVBRUTT) {
-                    avklaringsbehov.reåpne(frist, begrunnelse)
+                    avklaringsbehov.reåpne(frist, begrunnelse, grunn)
                     if (avklaringsbehov.erVentepunkt()) {
                         // TODO: Vurdere om funnet steg bør ligge på endringen...
                         repository.endreVentepunkt(avklaringsbehov.id, avklaringsbehov.historikk.last(), stegType)
@@ -83,6 +85,7 @@ class Avklaringsbehovene(
                     funnetISteg = stegType,
                     frist = utledFrist(definisjon, frist),
                     begrunnelse = begrunnelse,
+                    grunn = grunn,
                     endretAv = bruker.ident
                 )
             }

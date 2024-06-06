@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.verdityper.flyt.StegType
 import java.time.LocalDate
 
@@ -48,10 +49,11 @@ class Avklaringsbehov(
         )
     }
 
-    fun reåpne(frist: LocalDate? = null, begrunnelse: String = "") {
+    fun reåpne(frist: LocalDate? = null, begrunnelse: String = "", grunn: ÅrsakTilSettPåVent? = null) {
         historikk += Endring(
             status = Status.OPPRETTET,
             begrunnelse = begrunnelse,
+            grunn = grunn,
             frist = frist,
             endretAv = SYSTEMBRUKER.ident
         )
@@ -93,6 +95,7 @@ class Avklaringsbehov(
     }
 
     fun begrunnelse(): String = historikk.maxOf { it }.begrunnelse
+    fun grunn(): ÅrsakTilSettPåVent = requireNotNull(historikk.maxOf { it }.grunn)
     fun endretAv(): String = historikk.maxOf { it }.endretAv
     fun årsakTilRetur(): List<ÅrsakTilRetur> = historikk.maxOf { it }.årsakTilRetur
 

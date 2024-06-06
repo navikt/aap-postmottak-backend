@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDate
@@ -14,6 +15,7 @@ class FakeAvklaringsbehovRepository : AvklaringsbehovRepository, Avklaringsbehov
         funnetISteg: StegType,
         frist: LocalDate?,
         begrunnelse: String,
+        grunn: ÅrsakTilSettPåVent?,
         endretAv: String
     ) {
         val avklaringsbehov = behovPerBehandling.getOrDefault(behandlingId, mutableListOf())

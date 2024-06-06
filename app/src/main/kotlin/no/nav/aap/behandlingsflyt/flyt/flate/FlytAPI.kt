@@ -130,6 +130,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                     frist = body.frist,
                                     begrunnelse = body.begrunnelse,
                                     behandlingVersjon = body.behandlingVersjon,
+                                    grunn = body.grunn,
                                     bruker = pipeline.context.bruker()
                                 )
                             )
@@ -149,7 +150,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                     val ventepunkter = avklaringsbehovene.hentVentepunkter()
                     if (avklaringsbehovene.erSattPåVent()) {
                         val avklaringsbehov = ventepunkter.first()
-                        Venteinformasjon(avklaringsbehov.frist(), avklaringsbehov.begrunnelse())
+                        Venteinformasjon(avklaringsbehov.frist(), avklaringsbehov.begrunnelse(), avklaringsbehov.grunn())
                     } else {
                         null
                     }

@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.avklaringsbehov
 
 import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDate
@@ -16,6 +17,7 @@ interface AvklaringsbehovOperasjonerRepository {
         funnetISteg: StegType,
         frist: LocalDate? = null,
         begrunnelse: String = "",
+        grunn: ÅrsakTilSettPåVent? = null,
         endretAv: String = SYSTEMBRUKER.ident
     )
 

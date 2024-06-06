@@ -9,6 +9,7 @@ import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.TotrinnsVurdering
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.vedtak.ÅrsakTilReturKode
+import no.nav.aap.behandlingsflyt.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarBistandsbehovLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarStudentLøsning
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.AvklarSykdomLøsning
@@ -855,7 +856,8 @@ class FlytOrkestratorTest {
                 frist = null,
                 begrunnelse = "Avventer dokumentasjon",
                 bruker = SYSTEMBRUKER,
-                behandlingVersjon = behandling.versjon
+                behandlingVersjon = behandling.versjon,
+                grunn = ÅrsakTilSettPåVent.ET_ELLER_ANNET
             )
         )
         val dto = dataSource.transaction(readOnly = true) { connection ->
@@ -863,7 +865,7 @@ class FlytOrkestratorTest {
 
             if (avklaringsbehovene.erSattPåVent()) {
                 val avklaringsbehov = avklaringsbehovene.hentVentepunkter().first()
-                Venteinformasjon(avklaringsbehov.frist(), avklaringsbehov.begrunnelse())
+                Venteinformasjon(avklaringsbehov.frist(), avklaringsbehov.begrunnelse(), avklaringsbehov.grunn())
             } else {
                 null
             }
