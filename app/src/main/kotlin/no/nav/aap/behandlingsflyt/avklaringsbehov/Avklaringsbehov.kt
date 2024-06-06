@@ -29,6 +29,15 @@ class Avklaringsbehov(
         return Status.TOTRINNS_VURDERT == historikk.maxOf { it }.status
     }
 
+    fun erKvalitetssikret(): Boolean {
+        return Status.KVALITETSSIKRET == historikk.filterNot {
+            it.status in setOf(
+                Status.SENDT_TILBAKE_FRA_BESLUTTER,
+                Status.TOTRINNS_VURDERT
+            )
+        }.maxOf { it }.status
+    }
+
     fun vurderTotrinn(
         begrunnelse: String,
         godkjent: Boolean,
@@ -49,6 +58,26 @@ class Avklaringsbehov(
         )
     }
 
+    fun vurderKvalitet(
+        begrunnelse: String,
+        godkjent: Boolean,
+        vurdertAv: String,
+        årsakTilRetur: List<ÅrsakTilRetur>,
+    ) {
+        require(definisjon.kreverToTrinn)
+        val status = if (godkjent) {
+            Status.KVALITETSSIKRET
+        } else {
+            Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER
+        }
+        historikk += Endring(
+            status = status,
+            begrunnelse = begrunnelse,
+            endretAv = vurdertAv,
+            årsakTilRetur = årsakTilRetur,
+        )
+    }
+
     fun reåpne(frist: LocalDate? = null, begrunnelse: String = "", grunn: ÅrsakTilSettPåVent? = null) {
         historikk += Endring(
             status = Status.OPPRETTET,
@@ -60,7 +89,7 @@ class Avklaringsbehov(
     }
 
     fun erÅpent(): Boolean {
-        return status() in setOf(Status.OPPRETTET, Status.SENDT_TILBAKE_FRA_BESLUTTER)
+        return status() in setOf(Status.OPPRETTET, Status.SENDT_TILBAKE_FRA_BESLUTTER, Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER)
     }
 
     fun skalStoppeHer(stegType: StegType): Boolean {
@@ -111,6 +140,10 @@ class Avklaringsbehov(
         return historikk.any { it.status == Status.SENDT_TILBAKE_FRA_BESLUTTER }
     }
 
+    fun harVærtSendtTilbakeFraKvalitetssikrerTidligere(): Boolean {
+        return historikk.any { it.status == Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER }
+    }
+
     fun løsesISteg(): StegType {
         if (definisjon.løsesISteg == StegType.UDEFINERT) {
             return funnetISteg
@@ -130,8 +163,13 @@ class Avklaringsbehov(
         return frist().isBefore(LocalDate.now()) || frist().isEqual(LocalDate.now())
     }
 
+    fun kreverKvalitetssikring(): Boolean {
+        return definisjon.kvalitetssikres
+    }
+
     override fun toString(): String {
         return "Avklaringsbehov(definisjon=$definisjon, status=${status()})"
     }
+
 
 }

@@ -18,10 +18,10 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingRef
 import no.nav.aap.verdityper.Interval
 import java.time.LocalDateTime
 
-fun NormalOpenAPIRoute.fatteVedtakGrunnlagApi(dataSource: HikariDataSource) {
+fun NormalOpenAPIRoute.kvalitetssikringApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
-        route("/{referanse}/grunnlag/fatte-vedtak") {
-            get<BehandlingReferanse, FatteVedtakGrunnlagDto> { req ->
+        route("/{referanse}/grunnlag/kvalitetssikring") {
+            get<BehandlingReferanse, KvalitetssikringGrunnlagDto> { req ->
 
                 val dto = dataSource.transaction { connection ->
                     val behandling: Behandling = BehandlingReferanseService(connection).behandling(req)
@@ -29,7 +29,7 @@ fun NormalOpenAPIRoute.fatteVedtakGrunnlagApi(dataSource: HikariDataSource) {
                         AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandling.id)
 
                     val vurderinger = kvalitetssikringsVurdering(avklaringsbehovene)
-                    FatteVedtakGrunnlagDto(vurderinger = vurderinger, historikk = utledHistorikk(avklaringsbehovene))
+                    KvalitetssikringGrunnlagDto(vurderinger = vurderinger, historikk = utledKvalitetssikringHistorikk(avklaringsbehovene))
                 }
                 respond(dto)
             }
@@ -37,7 +37,7 @@ fun NormalOpenAPIRoute.fatteVedtakGrunnlagApi(dataSource: HikariDataSource) {
     }
 }
 
-fun utledHistorikk(avklaringsbehovene: Avklaringsbehovene): List<Historikk> {
+private fun utledKvalitetssikringHistorikk(avklaringsbehovene: Avklaringsbehovene): List<Historikk> {
     val relevanteBehov =
         avklaringsbehovene.hentBehovForDefinisjon(listOf(Definisjon.FORESLÅ_VEDTAK, Definisjon.FATTE_VEDTAK))
     val alleBehov = avklaringsbehovene.alle()
@@ -87,15 +87,15 @@ private fun utledEndringerSidenSist(
 
 private fun kvalitetssikringsVurdering(avklaringsbehovene: Avklaringsbehovene): List<TotrinnsVurdering> {
     return avklaringsbehovene.alle()
-        .filter { it.erTotrinn() }
+        .filter { it.definisjon.kvalitetssikres }
         .map { tilKvalitetssikring(it) }
 }
 
 private fun tilKvalitetssikring(it: Avklaringsbehov): TotrinnsVurdering {
-    return if (it.erTotrinnsVurdert() || it.harVærtSendtTilbakeFraBeslutterTidligere()) {
+    return if (it.erKvalitetssikret() || it.harVærtSendtTilbakeFraKvalitetssikrerTidligere()) {
         val sisteVurdering =
-            it.historikk.lastOrNull { it.status in setOf(Status.SENDT_TILBAKE_FRA_BESLUTTER, Status.TOTRINNS_VURDERT) }
-        val godkjent = it.status() == Status.TOTRINNS_VURDERT
+            it.historikk.lastOrNull { it.status in setOf(Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER, Status.KVALITETSSIKRET) }
+        val godkjent = it.status() == Status.KVALITETSSIKRET
 
         TotrinnsVurdering(
             it.definisjon.kode,

@@ -111,6 +111,18 @@ class Avklaringsbehovene(
         repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
     }
 
+    fun vurderKvalitet(
+        definisjon: Definisjon,
+        godkjent: Boolean,
+        begrunnelse: String,
+        vurdertAv: String,
+        årsakTilRetur: List<ÅrsakTilRetur> = emptyList(),
+    ) {
+        val avklaringsbehov = alle().single { it.definisjon == definisjon }
+        avklaringsbehov.vurderKvalitet(begrunnelse, godkjent, vurdertAv, årsakTilRetur)
+        repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
+    }
+
     fun avbryt(definisjon: Definisjon) {
         val avklaringsbehov = alle().single { it.definisjon == definisjon }
         avklaringsbehov.avbryt()
@@ -135,8 +147,16 @@ class Avklaringsbehovene(
         return tilbakeførtFraBeslutter().isNotEmpty()
     }
 
+    fun skalTilbakeføresEtterKvalitetssikring(): Boolean {
+        return tilbakeførtFraKvalitetssikrer().isNotEmpty()
+    }
+
     fun tilbakeførtFraBeslutter(): List<Avklaringsbehov> {
         return alle().filter { it.status() == Status.SENDT_TILBAKE_FRA_BESLUTTER }.toList()
+    }
+
+    fun tilbakeførtFraKvalitetssikrer(): List<Avklaringsbehov> {
+        return alle().filter { it.status() == Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER }.toList()
     }
 
     fun hentBehovForDefinisjon(definisjon: Definisjon): Avklaringsbehov? {
@@ -155,6 +175,13 @@ class Avklaringsbehovene(
         return alle()
             .filter { avklaringsbehov -> avklaringsbehov.erIkkeAvbrutt() }
             .any { avklaringsbehov -> avklaringsbehov.erTotrinn() && !avklaringsbehov.erTotrinnsVurdert() }
+    }
+
+    fun harHattAvklaringsbehovSomKreverKvalitetssikring(): Boolean {
+        return alle()
+            .filter { avklaringsbehov -> avklaringsbehov.kreverKvalitetssikring() }
+            .filter { avklaringsbehov -> avklaringsbehov.erIkkeAvbrutt() }
+            .any { avklaringsbehov -> avklaringsbehov.erTotrinn() && !avklaringsbehov.erKvalitetssikret() }
     }
 
     fun harIkkeForeslåttVedtak(): Boolean {

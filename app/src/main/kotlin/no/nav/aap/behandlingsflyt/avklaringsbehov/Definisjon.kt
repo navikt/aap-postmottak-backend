@@ -17,6 +17,7 @@ const val FRITAK_MELDEPLIKT_KODE = "5005"
 const val AVKLAR_BISTANDSBEHOV_KODE = "5006"
 const val VURDER_SYKEPENGEERSTATNING_KODE = "5007"
 const val FASTSETT_BEREGNINGSTIDSPUNKT_KODE = "5008"
+const val KVALITETSSIKRING_KODE = "5097"
 const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
 
@@ -26,7 +27,8 @@ enum class Definisjon(
     val type: BehovType,
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
-    val kreverToTrinn: Boolean = false
+    val kreverToTrinn: Boolean = false,
+    val kvalitetssikres: Boolean = false
 ) {
     MANUELT_SATT_PÅ_VENT(
         kode = MANUELT_SATT_PÅ_VENT_KODE,
@@ -42,13 +44,20 @@ enum class Definisjon(
         kode = AVKLAR_SYKDOM_KODE,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_SYKDOM,
-        kreverToTrinn = true
+        kreverToTrinn = true,
+        kvalitetssikres = true
+    ),
+    KVALITETSSIKRING(
+        kode = KVALITETSSIKRING_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.KVALITETSSIKRING
     ),
     FASTSETT_ARBEIDSEVNE(
         kode = FASTSETT_ARBEIDSEVNE_KODE,
         type = BehovType.MANUELT_FRIVILLIG,
         løsesISteg = StegType.FASTSETT_ARBEIDSEVNE,
-        kreverToTrinn = true
+        kreverToTrinn = true,
+        kvalitetssikres = true
     ),
     FASTSETT_BEREGNINGSTIDSPUNKT(
         kode = FASTSETT_BEREGNINGSTIDSPUNKT_KODE,
@@ -60,13 +69,15 @@ enum class Definisjon(
         kode = FRITAK_MELDEPLIKT_KODE,
         type = BehovType.MANUELT_FRIVILLIG,
         løsesISteg = StegType.FRITAK_MELDEPLIKT,
-        kreverToTrinn = true
+        kreverToTrinn = true,
+        kvalitetssikres = true
     ),
     AVKLAR_BISTANDSBEHOV(
         kode = AVKLAR_BISTANDSBEHOV_KODE,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.VURDER_BISTANDSBEHOV,
-        kreverToTrinn = true
+        kreverToTrinn = true,
+        kvalitetssikres = true
     ),
     AVKLAR_SYKEPENGEERSTATNING(
         kode = VURDER_SYKEPENGEERSTATNING_KODE,

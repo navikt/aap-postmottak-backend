@@ -9,6 +9,8 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.InformasjonskravGrunnlag
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
+import no.nav.aap.behandlingsflyt.flyt.steg.TilbakeførtFraBeslutter
+import no.nav.aap.behandlingsflyt.flyt.steg.TilbakeførtFraKvalitetssikrer
 import no.nav.aap.behandlingsflyt.flyt.steg.Transisjon
 import no.nav.aap.behandlingsflyt.hendelse.avløp.BehandlingHendelseService
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
@@ -135,7 +137,13 @@ class FlytOrkestrator(
 
             val avklaringsbehov = avklaringsbehovene.åpne()
             if (result.erTilbakeføring()) {
-                val tilbakeføringsflyt = behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraBeslutter())
+                val tilbakeføringsflyt = when (result) {
+                    is TilbakeførtFraBeslutter -> behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraBeslutter())
+                    is TilbakeførtFraKvalitetssikrer -> behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraKvalitetssikrer())
+                    else -> {
+                        throw IllegalStateException("Uhåndter transisjon ved tilbakeføring")
+                    }
+                }
                 log.info(
                     "Tilakeført fra '{}' til '{}'",
                     gjeldendeSteg.type(),

@@ -27,3 +27,8 @@ object TilbakeførtFraBeslutter : Transisjon {
         return true
     }
 }
+object TilbakeførtFraKvalitetssikrer : Transisjon {
+    override fun erTilbakeføring(): Boolean {
+        return true
+    }
+}

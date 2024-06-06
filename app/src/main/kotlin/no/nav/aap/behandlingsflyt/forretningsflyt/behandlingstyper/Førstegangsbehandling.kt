@@ -18,6 +18,7 @@ import no.nav.aap.behandlingsflyt.forretningsflyt.steg.FatteVedtakSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.ForeslåVedtakSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.FritakMeldepliktSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.IverksettVedtakSteg
+import no.nav.aap.behandlingsflyt.forretningsflyt.steg.KvalitetssikringsSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.SimulerUtbetalingSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.StartBehandlingSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.UnderveisSteg
@@ -40,6 +41,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = FritakMeldepliktSteg)
             .medSteg(steg = FastsettArbeidsevneSteg)
             .medSteg(steg = VurderBistandsbehovSteg)
+            .medSteg(steg = KvalitetssikringsSteg)
             .medSteg(steg = VurderSykepengeErstatningSteg)
             .medSteg(steg = VurderMedlemskapSteg)
             .medSteg(steg = FastsettBeregningstidspunktSteg)

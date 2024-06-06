@@ -32,6 +32,10 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES
     ),
+    KVALITETSSIKRING(
+        gruppe = StegGruppe.KVALITETSSIKRING,
+        status = Status.UTREDES
+    ),
     BARNETILLEGG(gruppe = StegGruppe.BARNETILLEGG, status = Status.UTREDES),
     AVKLAR_SYKDOM(
         gruppe = StegGruppe.SYKDOM,

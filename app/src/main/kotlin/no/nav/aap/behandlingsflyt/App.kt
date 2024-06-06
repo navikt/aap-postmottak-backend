@@ -32,6 +32,7 @@ import no.nav.aap.behandlingsflyt.auth.authentication
 import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.fatteVedtakGrunnlagApi
+import no.nav.aap.behandlingsflyt.avklaringsbehov.flate.kvalitetssikringApi
 import no.nav.aap.behandlingsflyt.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.behandlingsflyt.beregning.flate.beregningsGrunnlagApi
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
@@ -163,6 +164,7 @@ internal fun Application.server(dbConfig: DbConfig) {
                 behandlingApi(dataSource)
                 flytApi(dataSource)
                 fatteVedtakGrunnlagApi(dataSource)
+                kvalitetssikringApi(dataSource)
                 bistandsgrunnlagApi(dataSource)
                 meldepliktsgrunnlagApi(dataSource)
                 medlemskapsgrunnlagApi(dataSource)

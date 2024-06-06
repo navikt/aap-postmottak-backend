@@ -13,6 +13,7 @@ enum class StegGruppe {
     SIMULERING,
     VEDTAK,
     FATTE_VEDTAK,
+    KVALITETSSIKRING,
     IVERKSETT_VEDTAK,
     UDEFINERT
 }
