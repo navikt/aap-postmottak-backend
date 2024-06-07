@@ -44,7 +44,7 @@ private fun utledKvalitetssikringHistorikk(avklaringsbehovene: Avklaringsbehoven
     val relevanteBehov =
         avklaringsbehovene.hentBehovForDefinisjon(listOf(Definisjon.KVALITETSSIKRING))
     val alleBehov = avklaringsbehovene.alle()
-        .filterNot { behov -> behov.definisjon in Definisjon.entries.filter { it.kvalitetssikres } }
+        .filter { behov -> behov.definisjon in Definisjon.entries.filter { it.kvalitetssikres } }
     var tidsstempelForrigeBehov = LocalDateTime.MIN
 
     return relevanteBehov
