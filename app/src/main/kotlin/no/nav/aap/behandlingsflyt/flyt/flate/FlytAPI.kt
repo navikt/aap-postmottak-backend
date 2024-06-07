@@ -200,7 +200,7 @@ private fun utledVisning(
     return Visning(
         saksbehandlerReadOnly = påVent || (!jobber && saksbehandlerReadOnly),
         beslutterReadOnly = påVent || (!jobber && beslutterReadOnly),
-        kvalitetssikringReadOnly = kvalitetssikringReadOnly,
+        kvalitetssikringReadOnly = påVent || (!jobber && kvalitetssikringReadOnly),
         visBeslutterKort = visBeslutterKort,
         visKvalitetssikringKort = visKvalitetssikringKort,
         visVentekort = påVent
