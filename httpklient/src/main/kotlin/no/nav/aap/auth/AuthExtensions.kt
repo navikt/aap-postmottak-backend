@@ -8,15 +8,17 @@ import no.nav.aap.httpclient.tokenprovider.OidcToken
 
 
 fun ApplicationCall.bruker(): Bruker {
-    // TODO: Må kreve denne før produksjonssetting error("NAVident mangler i AzureAD claims")
-    return Bruker(
-        principal<JWTPrincipal>()?.getClaim("NAVident", String::class) ?: "Lokalsaksbehandler"
-    )
+    val navIdent = principal<JWTPrincipal>()?.getClaim("NAVident", String::class)
+    if (navIdent == null) {
+        error("NAVident mangler i AzureAD claims")
+    }
+    return Bruker(navIdent)
 }
 
 fun ApplicationCall.token(): OidcToken {
-    // TODO: Må kreve denne før produksjonssetting error("token mangler for OBO hendelse")
-    return OidcToken(
-        (principal<JWTPrincipal>()?.payload as DecodedJWT).token
-    )
+    val token: String? = (principal<JWTPrincipal>()?.payload as DecodedJWT).token
+    if (token == null) {
+        error("token mangler for OBO hendelse")
+    }
+    return OidcToken(token)
 }
