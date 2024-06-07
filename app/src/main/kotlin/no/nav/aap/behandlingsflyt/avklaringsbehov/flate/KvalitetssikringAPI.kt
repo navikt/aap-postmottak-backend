@@ -29,7 +29,10 @@ fun NormalOpenAPIRoute.kvalitetssikringApi(dataSource: HikariDataSource) {
                         AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandling.id)
 
                     val vurderinger = kvalitetssikringsVurdering(avklaringsbehovene)
-                    KvalitetssikringGrunnlagDto(vurderinger = vurderinger, historikk = utledKvalitetssikringHistorikk(avklaringsbehovene))
+                    KvalitetssikringGrunnlagDto(
+                        vurderinger = vurderinger,
+                        historikk = utledKvalitetssikringHistorikk(avklaringsbehovene)
+                    )
                 }
                 respond(dto)
             }
@@ -39,29 +42,29 @@ fun NormalOpenAPIRoute.kvalitetssikringApi(dataSource: HikariDataSource) {
 
 private fun utledKvalitetssikringHistorikk(avklaringsbehovene: Avklaringsbehovene): List<Historikk> {
     val relevanteBehov =
-        avklaringsbehovene.hentBehovForDefinisjon(listOf(Definisjon.FORESLÅ_VEDTAK, Definisjon.FATTE_VEDTAK))
+        avklaringsbehovene.hentBehovForDefinisjon(listOf(Definisjon.KVALITETSSIKRING))
     val alleBehov = avklaringsbehovene.alle()
-        .filterNot { behov -> behov.definisjon in listOf(Definisjon.FORESLÅ_VEDTAK, Definisjon.FATTE_VEDTAK) }
+        .filterNot { behov -> behov.definisjon in Definisjon.entries.filter { it.kvalitetssikres } }
     var tidsstempelForrigeBehov = LocalDateTime.MIN
 
     return relevanteBehov
         .asSequence()
         .map { behov ->
-            behov.historikk.filter { e -> e.status in listOf(Status.AVSLUTTET) }
+            behov.historikk.filter { e -> e.status in listOf(Status.OPPRETTET, Status.AVSLUTTET) }
                 .map { endring -> DefinisjonEndring(behov.definisjon, endring) }
         }
         .flatten()
         .sorted()
         .map { behov ->
-            val aksjon = if (behov.definisjon == Definisjon.FORESLÅ_VEDTAK) {
-                Aksjon.SENDT_TIL_BESLUTTER
+            val aksjon = if (behov.endring.status == Status.OPPRETTET) {
+                Aksjon.SENDT_TIL_KVALITETSSIKRER
             } else {
                 val endringerSidenSist =
                     utledEndringerSidenSist(alleBehov, tidsstempelForrigeBehov, behov.endring.tidsstempel)
-                if (endringerSidenSist.any { it.endring.status == Status.SENDT_TILBAKE_FRA_BESLUTTER }) {
-                    Aksjon.RETURNERT_FRA_BESLUTTER
+                if (endringerSidenSist.any { it.endring.status == Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER }) {
+                    Aksjon.RETURNERT_FRA_KVALITETSSIKRER
                 } else {
-                    Aksjon.FATTET_VEDTAK
+                    Aksjon.KVALITETSSIKRET
                 }
             }
             tidsstempelForrigeBehov = behov.endring.tidsstempel
@@ -94,7 +97,12 @@ private fun kvalitetssikringsVurdering(avklaringsbehovene: Avklaringsbehovene): 
 private fun tilKvalitetssikring(it: Avklaringsbehov): TotrinnsVurdering {
     return if (it.erKvalitetssikretTidligere() || it.harVærtSendtTilbakeFraKvalitetssikrerTidligere()) {
         val sisteVurdering =
-            it.historikk.lastOrNull { it.status in setOf(Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER, Status.KVALITETSSIKRET) }
+            it.historikk.lastOrNull {
+                it.status in setOf(
+                    Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER,
+                    Status.KVALITETSSIKRET
+                )
+            }
         val godkjent = it.status() == Status.KVALITETSSIKRET
 
         TotrinnsVurdering(
