@@ -62,6 +62,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
 import no.nav.aap.behandlingsflyt.server.apiRoute
 import no.nav.aap.behandlingsflyt.server.respondWithStatus
 import no.nav.aap.behandlingsflyt.tilkjentytelse.flate.tilkjentYtelseAPI
+import no.nav.aap.behandlingsflyt.vilkår.alder.flate.aldersGrunnlagApi
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
 import no.nav.aap.httpclient.request.PostRequest
@@ -174,6 +175,7 @@ internal fun Application.server(dbConfig: DbConfig) {
                 tilkjentYtelseAPI(dataSource)
                 beregningVurderingAPI(dataSource)
                 beregningsGrunnlagApi(dataSource)
+                aldersGrunnlagApi(dataSource)
                 driftApi(dataSource)
 
                 hendelsesApi(dataSource)
