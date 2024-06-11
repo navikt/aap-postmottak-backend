@@ -155,7 +155,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     Migrering.migrate(dataSource)
 
     routing {
-        authenticate(AZURE, optional = true) {
+        authenticate(AZURE) {
             apiRoute {
                 configApi()
                 saksApi(dataSource)
