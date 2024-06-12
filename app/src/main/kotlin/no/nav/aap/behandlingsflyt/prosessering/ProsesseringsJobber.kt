@@ -6,6 +6,11 @@ object ProsesseringsJobber {
 
     fun alle(): List<Jobb> {
         // Legger her alle oppgavene som sakl utføres i systemet
-        return listOf(ProsesserBehandlingJobbUtfører, StoppetHendelseJobbUtfører, GjenopptaBehandlingJobbUtfører)
+        return listOf(
+            ProsesserBehandlingJobbUtfører,
+            StoppetHendelseJobbUtfører,
+            GjenopptaBehandlingJobbUtfører,
+            HendelseMottattHåndteringOppgaveUtfører
+        )
     }
 }

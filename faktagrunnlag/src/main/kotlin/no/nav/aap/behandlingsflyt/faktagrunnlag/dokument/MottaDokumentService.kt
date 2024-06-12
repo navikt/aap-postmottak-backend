@@ -15,12 +15,32 @@ class MottaDokumentService(
     private val mottattDokumentRepository: MottattDokumentRepository,
 ) {
 
-    fun håndterMottattDokument(
+    fun mottattDokument(
         journalpostId: JournalpostId,
         sakId: SakId,
         mottattTidspunkt: LocalDateTime,
         brevkode: Brevkode,
         strukturertDokument: StrukturertDokument<*>
+    ) {
+        mottattDokumentRepository.lagre(
+            MottattDokument(
+                journalpostId = journalpostId,
+                sakId = sakId,
+                mottattTidspunkt = mottattTidspunkt,
+                type = brevkode,
+                status = Status.MOTTATT,
+                behandlingId = null,
+                strukturertDokument = strukturertDokument
+            )
+        )
+    }
+
+    fun mottattDokument(
+        journalpostId: JournalpostId,
+        sakId: SakId,
+        mottattTidspunkt: LocalDateTime,
+        brevkode: Brevkode,
+        strukturertDokument: UnparsedStrukturertDokument
     ) {
         mottattDokumentRepository.lagre(
             MottattDokument(
@@ -61,5 +81,9 @@ class MottaDokumentService(
 
     fun knyttTilBehandling(sakId: SakId, behandlingId: BehandlingId, journalpostId: JournalpostId) {
         mottattDokumentRepository.oppdaterStatus(journalpostId, behandlingId, sakId, Status.BEHANDLET)
+    }
+
+    fun uhåndterteDokumenter(sakId: SakId): Set<MottattDokument> {
+        return mottattDokumentRepository.hentUbehandledeDokumenter(sakId)
     }
 }

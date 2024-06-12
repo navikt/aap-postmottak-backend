@@ -4,36 +4,41 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
-import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattSakHendelse
-import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
+import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.behandlingsflyt.prosessering.BREVKODE
+import no.nav.aap.behandlingsflyt.prosessering.HendelseMottattHåndteringOppgaveUtfører
+import no.nav.aap.behandlingsflyt.prosessering.JOURNALPOST_ID
+import no.nav.aap.behandlingsflyt.prosessering.MOTTATT_TIDSPUNKT
+import no.nav.aap.behandlingsflyt.prosessering.PERIODE
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.server.respondWithStatus
-import no.nav.aap.verdityper.Periode
-import no.nav.aap.verdityper.dokument.JournalpostId
-import java.time.LocalDate
+import no.nav.aap.json.DefaultJsonMapper
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.motor.JobbInput
 import java.time.LocalDateTime
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.søknadApi(dataSource: DataSource) {
     route("/api/soknad") {
         route("/send").post<Unit, String, SøknadSendDto> { _, dto ->
-            HendelsesMottak(dataSource).håndtere(
-                key = Saksnummer(dto.saksnummer),
-                hendelse = DokumentMottattSakHendelse(
-                    journalpost = JournalpostId(dto.journalpostId),
-                    mottattTidspunkt = LocalDateTime.now(), //FIXME: Faktisk søknadstidspunkt
-                    strukturertDokument = StrukturertDokument(
-                        data = Søknad(
-                            periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3)),
-                            student = dto.søknad.student.erStudent()
-                        ),
-                        brevkode = Brevkode.SØKNAD
-                    )
+            dataSource.transaction { connection ->
+                val sakService = SakService(connection)
+
+                val sak = sakService.hent(Saksnummer(dto.saksnummer))
+
+                val flytJobbRepository = FlytJobbRepository(connection)
+                flytJobbRepository.leggTil(
+                    JobbInput(HendelseMottattHåndteringOppgaveUtfører)
+                        .forSak(sak.id)
+                        .medParameter(JOURNALPOST_ID, dto.journalpostId)
+                        .medParameter(BREVKODE, Brevkode.SØKNAD.name)
+                        .medParameter(PERIODE, "")
+                        .medParameter(MOTTATT_TIDSPUNKT, DefaultJsonMapper.toJson(LocalDateTime.now()))
+                        .medPayload(DefaultJsonMapper.toJson(dto.søknad))
                 )
-            )
+            }
             // Må ha String-respons på grunn av Accept-header. Denne må returnere json
             respondWithStatus(HttpStatusCode.Accepted, "{}")
         }

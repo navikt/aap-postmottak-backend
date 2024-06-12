@@ -5,8 +5,6 @@ import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.DokumentRekkefølge
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.DokumentType
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.Status
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.pliktkort.Pliktkort
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -74,7 +72,7 @@ class MottattDokumentRepository(private val connection: DBConnection) {
             row.getLocalDateTime("MOTTATT_TID"),
             brevkode,
             row.getEnum("status"),
-            LazyStrukturertDokument(journalpostId, brevkode, utledType(brevkode), connection)
+            LazyStrukturertDokument(journalpostId, brevkode, connection)
         )
     }
 
@@ -98,11 +96,19 @@ class MottattDokumentRepository(private val connection: DBConnection) {
         }.toSet()
     }
 
-    private fun <T : PeriodisertData> utledType(brevkode: Brevkode): Class<T> {
-        return when (brevkode) {
-            Brevkode.SØKNAD -> Søknad::class.java as Class<T>
-            Brevkode.PLIKTKORT -> Pliktkort::class.java as Class<T>
-            Brevkode.UKJENT -> throw IllegalArgumentException("Ukjent brevkode")
-        }
+    fun hentUbehandledeDokumenter(sakId: SakId): Set<MottattDokument> {
+        val query = """
+            SELECT * FROM MOTTATT_DOKUMENT WHERE sak_id = ? AND status = ?
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setLong(1, sakId.toLong())
+                setEnumName(2, Status.MOTTATT)
+            }
+            setRowMapper { row ->
+                mapMottattDokument(row)
+            }
+        }.toSet()
     }
 }

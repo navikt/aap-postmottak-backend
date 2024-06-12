@@ -4,10 +4,10 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.avklaringsbehov.FakePdlGateway
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
+import no.nav.aap.behandlingsflyt.faktagrunnlag.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Årsak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonOgSakService
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.sakogbehandling.Ident

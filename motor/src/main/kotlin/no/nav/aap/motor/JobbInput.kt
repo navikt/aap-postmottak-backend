@@ -3,6 +3,7 @@ package no.nav.aap.motor
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import java.time.LocalDateTime
+import java.util.*
 
 class JobbInput(val jobb: Jobb) {
 
@@ -12,6 +13,8 @@ class JobbInput(val jobb: Jobb) {
     private var nesteKjøring: LocalDateTime? = null
     private var antallFeil: Long = 0
     private var status: JobbStatus = JobbStatus.KLAR
+    internal var properties = Properties()
+    internal var payload: String? = null
 
     internal fun medId(id: Long): JobbInput {
         this.id = id
@@ -27,6 +30,23 @@ class JobbInput(val jobb: Jobb) {
         this.sakId = sakId
         this.behandlingId = behandlingId
 
+        return this
+    }
+
+    fun forSak(sakId: SakId): JobbInput {
+        this.sakId = sakId
+
+        return this
+    }
+
+    fun medParameter(key: String, value: String): JobbInput {
+        this.properties.setProperty(key, value)
+
+        return this
+    }
+
+    fun medPayload(payload: String?): JobbInput {
+        this.payload = payload
         return this
     }
 
@@ -67,10 +87,6 @@ class JobbInput(val jobb: Jobb) {
         return jobb.type()
     }
 
-    override fun toString(): String {
-        return "[${jobb.type()}] - id = $id, sakId = $sakId, behandlingId = $behandlingId"
-    }
-
     fun medNesteKjøring(nesteKjøring: LocalDateTime): JobbInput {
         this.nesteKjøring = nesteKjøring
         return this
@@ -87,4 +103,24 @@ class JobbInput(val jobb: Jobb) {
     fun erScheduledOppgave(): Boolean {
         return cron() != null
     }
+
+    fun parameter(key: String): String {
+        return properties.getProperty(key)
+    }
+
+    fun payload(): String {
+        return requireNotNull(payload)
+    }
+
+    override fun toString(): String {
+        return "[${jobb.type()}] - id = $id, sakId = $sakId, behandlingId = $behandlingId"
+    }
+
+    fun medProperties(properties: Properties?): JobbInput {
+        if (properties != null) {
+            this.properties = properties
+        }
+        return this
+    }
+
 }

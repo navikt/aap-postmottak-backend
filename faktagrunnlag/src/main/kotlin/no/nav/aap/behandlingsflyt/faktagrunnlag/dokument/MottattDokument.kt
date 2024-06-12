@@ -18,12 +18,16 @@ class MottattDokument(
     private val strukturertDokument: StrukturerteData?
 ) {
 
-    fun <T : PeriodisertData> strukturerteData(): StrukturertDokument<T>? {
+    fun <T> strukturerteData(): StrukturertDokument<T>? {
         if (strukturertDokument == null) {
             return null
         }
-        if (strukturertDokument is LazyStrukturertDokument<*>) {
-            return strukturertDokument.hent() as StrukturertDokument<T>?
+        if (strukturertDokument is LazyStrukturertDokument) {
+            val data = strukturertDokument.hent<T>()
+            if (data != null) {
+                return StrukturertDokument(data, brevkode = strukturertDokument.brevkode)
+            }
+            return null
         }
         return strukturertDokument as StrukturertDokument<T>?
     }
@@ -33,16 +37,21 @@ class MottattDokument(
             return null
         }
 
-        val data = data()
-
-        return DefaultJsonMapper.toJson(data!!.data)
+        return data()
     }
 
-    private fun data(): StrukturertDokument<*>? {
-        return if (strukturertDokument is LazyStrukturertDokument<*>) {
-            strukturertDokument.hent()
+    private fun data(): String? {
+        return if (strukturertDokument is LazyStrukturertDokument) {
+            val data = strukturertDokument.hent<Any>()
+            if (data != null) {
+                DefaultJsonMapper.toJson(data)
+            } else {
+                null
+            }
+        } else if (strukturertDokument is UnparsedStrukturertDokument) {
+            strukturertDokument.data
         } else {
-            strukturertDokument as StrukturertDokument<*>?
+            DefaultJsonMapper.toJson((strukturertDokument as StrukturertDokument<Any>).data)
         }
     }
 }

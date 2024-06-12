@@ -37,11 +37,11 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.NedreGrense
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.SykdomsvurderingDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.YrkesskadevurderingDto
 import no.nav.aap.behandlingsflyt.flyt.flate.Venteinformasjon
+import no.nav.aap.behandlingsflyt.flyt.internals.DokumentMottattPersonHendelse
+import no.nav.aap.behandlingsflyt.flyt.internals.TestHendelsesMottak
 import no.nav.aap.behandlingsflyt.flyt.internals.TestJobbRepository
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.TOGGLE_KVALITETSSIKRING
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
-import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
-import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsJobber
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -83,7 +83,7 @@ class FlytOrkestratorTest {
     companion object {
         val dataSource = InitTestDatabase.dataSource
         val motor = Motor(dataSource, 2, ProsesseringsJobber.alle())
-        val hendelsesMottak = HendelsesMottak(dataSource)
+        val hendelsesMottak = TestHendelsesMottak(dataSource)
         val fakes = Fakes()
 
         @BeforeAll
@@ -139,7 +139,8 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("20"),
                 mottattTidspunkt = LocalDateTime.now().minusMonths(3),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                periode = periode
             )
         )
         ventPåSvar()
@@ -393,7 +394,8 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("10"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                periode = periode
             )
         )
         ventPåSvar()
@@ -580,7 +582,8 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("11"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, true), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, true), Brevkode.SØKNAD),
+                periode = periode
             )
         )
         ventPåSvar()
@@ -880,7 +883,8 @@ class FlytOrkestratorTest {
             DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("1"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                periode = periode
             )
         )
         ventPåSvar()
@@ -920,7 +924,8 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("2"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                periode = periode
             )
         )
         ventPåSvar()
@@ -970,7 +975,8 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("3"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD)
+                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                periode = periode
             )
         )
         ventPåSvar(sak.id, behandling.id)

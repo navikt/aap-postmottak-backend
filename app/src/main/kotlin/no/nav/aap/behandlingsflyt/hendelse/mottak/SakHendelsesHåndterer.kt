@@ -2,15 +2,16 @@ package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.GrunnlagKopierer
+import no.nav.aap.behandlingsflyt.faktagrunnlag.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottaDokumentService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottattDokumentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.pliktkort.Pliktkort
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Årsak
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.SakSkrivelås
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakOgBehandlingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -56,7 +57,7 @@ class SakHendelsesHåndterer(connection: DBConnection) {
                 Brevkode.PLIKTKORT -> listOf(
                     Årsak(
                         EndringType.MOTTATT_MELDEKORT,
-                        hendelse.strukturertDokument.periode()
+                        (hendelse.strukturertDokument as Pliktkort).periode()
                     )
                 )
 
@@ -88,7 +89,7 @@ class SakHendelsesHåndterer(connection: DBConnection) {
 
         log.info("Mottatt dokument av typen {} på sak {}", hendelse.strukturertDokument.brevkode, key)
 
-        mottaDokumentService.håndterMottattDokument(
+        mottaDokumentService.mottattDokument(
             journalpostId = hendelse.journalpost,
             sakId = sakSkrivelås.id,
             mottattTidspunkt = hendelse.mottattTidspunkt,

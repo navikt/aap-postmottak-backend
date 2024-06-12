@@ -14,7 +14,7 @@ internal class JobbRepository(private val connection: DBConnection) {
         val oppgaveId = connection.executeReturnKey(
             """
             INSERT INTO JOBB 
-            (sak_id, behandling_id, type, neste_kjoring) VALUES (?, ?, ?, ?)
+            (sak_id, behandling_id, type, neste_kjoring, parameters, payload) VALUES (?, ?, ?, ?, ?, ?)
             """.trimIndent()
         ) {
             setParams {
@@ -22,6 +22,8 @@ internal class JobbRepository(private val connection: DBConnection) {
                 setLong(2, jobbInput.behandlingIdOrNull()?.toLong())
                 setString(3, jobbInput.type())
                 setLocalDateTime(4, jobbInput.nesteKjøringTidspunkt())
+                setProperties(5, jobbInput.properties)
+                setString(6, jobbInput.payload)
             }
         }
 
@@ -42,7 +44,7 @@ internal class JobbRepository(private val connection: DBConnection) {
     internal fun plukkJobb(): JobbInput? {
         val plukketJobb = connection.queryFirstOrNull(
             """
-            SELECT id, type, status, sak_id, behandling_id, neste_kjoring, 
+            SELECT id, type, status, sak_id, behandling_id, neste_kjoring, parameters, payload, 
                 (SELECT count(1) FROM JOBB_HISTORIKK h WHERE h.jobb_id = o.id AND h.status = '${JobbStatus.FEILET.name}') as antall_feil
             FROM JOBB o
             WHERE status = '${JobbStatus.KLAR.name}'
@@ -98,6 +100,8 @@ internal class JobbRepository(private val connection: DBConnection) {
                 row.getLongOrNull("behandling_id")?.let(::BehandlingId)
             )
             .medAntallFeil(row.getLong("antall_feil"))
+            .medProperties(row.getPropertiesOrNull("parameters"))
+            .medPayload(row.getStringOrNull("payload"))
     }
 
     internal fun markerKjørt(jobbInput: JobbInput) {

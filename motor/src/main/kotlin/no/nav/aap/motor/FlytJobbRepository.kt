@@ -4,38 +4,12 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
-import org.slf4j.LoggerFactory
 
 class FlytJobbRepository(private val connection: DBConnection) {
-    private val log = LoggerFactory.getLogger(FlytJobbRepository::class.java)
+    private val jobbRepository = JobbRepository(connection)
 
     fun leggTil(jobbInput: JobbInput) {
-        val oppgaveId = connection.executeReturnKey(
-            """
-            INSERT INTO JOBB 
-            (sak_id, behandling_id, type, neste_kjoring) VALUES (?, ?, ?, ?)
-            """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, jobbInput.sakIdOrNull()?.toLong())
-                setLong(2, jobbInput.behandlingIdOrNull()?.toLong())
-                setString(3, jobbInput.type())
-                setLocalDateTime(4, jobbInput.nesteKjøringTidspunkt())
-            }
-        }
-
-        connection.execute(
-            """
-            INSERT INTO JOBB_HISTORIKK 
-            (jobb_id, status) VALUES (?, ?)
-            """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, oppgaveId)
-                setEnumName(2, JobbStatus.KLAR)
-            }
-        }
-        log.info("Planlagt kjøring av oppgave[${jobbInput.type()}] med kjøring etter ${jobbInput.nesteKjøringTidspunkt()}")
+        jobbRepository.leggTil(jobbInput)
     }
 
 

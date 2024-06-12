@@ -39,8 +39,6 @@ import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.drift.driftApi
 import no.nav.aap.behandlingsflyt.exception.FlytOperasjonException
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
-import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.flate.beregningVurderingAPI
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.flate.bistandsgrunnlagApi
@@ -54,33 +52,21 @@ import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
 import no.nav.aap.behandlingsflyt.flyt.flate.søknadApi
 import no.nav.aap.behandlingsflyt.flyt.flate.torsHammerApi
-import no.nav.aap.behandlingsflyt.hendelse.mottak.DokumentMottattPersonHendelse
-import no.nav.aap.behandlingsflyt.hendelse.mottak.HendelsesMottak
 import no.nav.aap.behandlingsflyt.prosessering.ProsesseringsJobber
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
 import no.nav.aap.behandlingsflyt.server.apiRoute
 import no.nav.aap.behandlingsflyt.server.respondWithStatus
 import no.nav.aap.behandlingsflyt.tilkjentytelse.flate.tilkjentYtelseAPI
 import no.nav.aap.behandlingsflyt.vilkår.alder.flate.aldersGrunnlagApi
-import no.nav.aap.httpclient.ClientConfig
-import no.nav.aap.httpclient.RestClient
-import no.nav.aap.httpclient.request.PostRequest
-import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.DriftJobbRepositoryExposed
 import no.nav.aap.motor.retry.RetryService
-import no.nav.aap.verdityper.Periode
-import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.net.URI
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
@@ -132,9 +118,11 @@ internal fun Application.server(dbConfig: DbConfig) {
                 is ElementNotFoundException -> {
                     call.respondText(status = HttpStatusCode.NotFound, text = cause.message ?: "")
                 }
+
                 is FlytOperasjonException -> {
                     call.respond(status = cause.status(), message = cause.body())
                 }
+
                 else -> {
                     LoggerFactory.getLogger(App::class.java)
                         .info("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
@@ -247,51 +235,6 @@ fun NormalOpenAPIRoute.hendelsesApi(dataSource: DataSource) {
                 val yrkesskadeDato = dto.yrkesskadeDato
                 YrkesskadeRegisterGateway.puttInnTestPerson(ident, yrkesskadeDato)
                 respondWithStatus(HttpStatusCode.OK, "opprettet testcase med yrkesskade for ident $ident")
-            }
-        }
-        route("/opprett") {
-            post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
-
-                val ident = Ident(dto.ident)
-                val periode = Periode(
-                    LocalDate.now(),
-                    LocalDate.now().plusYears(3)
-                )
-
-
-                val client = RestClient(
-                    config = ClientConfig(),
-                    tokenProvider = NoTokenTokenProvider()
-                )
-                client.post<_, Unit>(
-                    URI.create("http://localhost:8080/").resolve("testdataApi/opprettPerson"),
-                    PostRequest(body = dto)
-                )
-
-
-                HendelsesMottak(dataSource).håndtere(
-                    ident, DokumentMottattPersonHendelse(
-                        journalpost = JournalpostId("" + System.currentTimeMillis()),
-                        mottattTidspunkt = LocalDateTime.now(),
-                        strukturertDokument = StrukturertDokument(Søknad(periode, dto.student), Brevkode.SØKNAD)
-                    )
-                )
-                respond(dto)
-            }
-        }
-        route("/pliktkort") {
-            post<Unit, PliktkortTestDTO, PliktkortTestDTO> { _, dto ->
-
-                val ident = Ident(dto.ident)
-
-                HendelsesMottak(dataSource).håndtere(
-                    ident, DokumentMottattPersonHendelse(
-                        journalpost = JournalpostId("" + System.currentTimeMillis()),
-                        mottattTidspunkt = LocalDateTime.now(),
-                        strukturertDokument = StrukturertDokument(dto.pliktkort, Brevkode.PLIKTKORT)
-                    )
-                )
-                respond(dto)
             }
         }
         route("/rekjorFeilede") {

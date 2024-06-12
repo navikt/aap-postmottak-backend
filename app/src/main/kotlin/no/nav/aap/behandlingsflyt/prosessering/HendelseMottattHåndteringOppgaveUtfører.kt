@@ -1,0 +1,69 @@
+package no.nav.aap.behandlingsflyt.prosessering
+
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottaDokumentService
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottattDokumentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.UnparsedStrukturertDokument
+import no.nav.aap.behandlingsflyt.hendelse.mottak.HåndterMottattDokumentService
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
+import no.nav.aap.json.DefaultJsonMapper
+import no.nav.aap.motor.Jobb
+import no.nav.aap.motor.JobbInput
+import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.dokument.JournalpostId
+import java.time.LocalDateTime
+
+const val BREVKODE = "brevkode"
+const val JOURNALPOST_ID = "journalpostId"
+const val MOTTATT_TIDSPUNKT = "mottattTidspunkt"
+const val PERIODE = "periode"
+
+class HendelseMottattHåndteringOppgaveUtfører(connection: DBConnection) : JobbUtfører {
+    private val låsRepository = TaSkriveLåsRepository(connection)
+    private val hånderMottattDokumentService = HåndterMottattDokumentService(connection)
+    private val mottaDokumentService = MottaDokumentService(MottattDokumentRepository(connection))
+
+    override fun utfør(input: JobbInput) {
+        val sakId = input.sakId()
+        val sakSkrivelås = låsRepository.låsSak(sakId)
+
+        val brevkode = Brevkode.valueOf(input.parameter(BREVKODE))
+        val payloadAsString = input.payload()
+        val mottattTidspunkt = DefaultJsonMapper.fromJson<LocalDateTime>(input.parameter(MOTTATT_TIDSPUNKT))
+
+        // DO WORK
+        mottaDokumentService.mottattDokument(
+            journalpostId = JournalpostId(input.parameter(JOURNALPOST_ID)),
+            sakId = sakId,
+            mottattTidspunkt = mottattTidspunkt,
+            brevkode = brevkode,
+            strukturertDokument = UnparsedStrukturertDokument(payloadAsString)
+        )
+
+        hånderMottattDokumentService.håndterMottatteDokumenter(sakId, brevkode, utledPeriode(input.parameter(PERIODE)))
+
+        låsRepository.verifiserSkrivelås(sakSkrivelås)
+    }
+
+    private fun utledPeriode(parameter: String): Periode? {
+        if (parameter.isEmpty()) {
+            return null
+        }
+
+        return DefaultJsonMapper.fromJson(parameter)
+    }
+
+    companion object : Jobb {
+        override fun konstruer(connection: DBConnection): JobbUtfører {
+            return HendelseMottattHåndteringOppgaveUtfører(
+                connection
+            )
+        }
+
+        override fun type(): String {
+            return "hendelse.håndterer"
+        }
+    }
+}
