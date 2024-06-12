@@ -32,7 +32,7 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
             utfall = Utfall.IKKE_OPPFYLT
             avslagsårsak = Avslagsårsak.BRUKER_UNDER_18
             return lagre(
-                grunnlag, VurderingsResultat(
+                grunnlag.periode, grunnlag, VurderingsResultat(
                     utfall = utfall,
                     avslagsårsak = avslagsårsak,
                     innvilgelsesårsak = null
@@ -42,7 +42,7 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
             utfall = Utfall.IKKE_OPPFYLT
             avslagsårsak = Avslagsårsak.BRUKER_OVER_67
             return lagre(
-                grunnlag, VurderingsResultat(
+                grunnlag.periode, grunnlag, VurderingsResultat(
                     utfall = utfall,
                     avslagsårsak = avslagsårsak,
                     innvilgelsesårsak = null
@@ -65,6 +65,7 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
 
         for (segment in alderstidslinje) {
             lagre(
+                segment.periode,
                 grunnlag, VurderingsResultat(
                     utfall = segment.verdi.utfall,
                     avslagsårsak = segment.verdi.avslagsårsak,
@@ -73,12 +74,10 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
             )
         }
 
-        return lagre(
-            grunnlag, VurderingsResultat(
-                utfall = Utfall.OPPFYLT,
-                avslagsårsak = avslagsårsak,
-                innvilgelsesårsak = null
-            )
+        return VurderingsResultat(
+            utfall = Utfall.OPPFYLT,
+            avslagsårsak = avslagsårsak,
+            innvilgelsesårsak = null
         )
     }
 
@@ -90,10 +89,14 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
         }
     }
 
-    private fun lagre(grunnlag: Aldersgrunnlag, vurderingsResultat: VurderingsResultat): VurderingsResultat {
+    private fun lagre(
+        periode: Periode,
+        grunnlag: Aldersgrunnlag,
+        vurderingsResultat: VurderingsResultat
+    ): VurderingsResultat {
         vilkår.leggTilVurdering(
             Vilkårsperiode(
-                periode = grunnlag.periode,
+                periode = periode,
                 utfall = vurderingsResultat.utfall,
                 avslagsårsak = vurderingsResultat.avslagsårsak,
                 begrunnelse = null,

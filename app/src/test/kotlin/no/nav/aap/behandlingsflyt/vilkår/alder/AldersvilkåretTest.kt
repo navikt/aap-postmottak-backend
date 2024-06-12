@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.vilkår.alder
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Utfall
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsresultat
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.verdityper.Periode
 import org.assertj.core.api.Assertions.assertThat
@@ -79,6 +80,24 @@ class AldersvilkåretTest {
         val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
 
         assertThat(resultat.utfall).isEqualTo(Utfall.OPPFYLT)
+    }
+
+    @Test
+    fun `vilkåret er oppfylt for perioden bruker er mellom 18 og 67`() {
+        val søknadsdato = LocalDate.now()
+        val rettighetsperiode = Periode(søknadsdato, søknadsdato.plusYears(3))
+        val aldersgrunnlaget = Aldersgrunnlag(
+            periode = rettighetsperiode,
+            fødselsdato = Fødselsdato(LocalDate.now().minusYears(66).minusMonths(6))
+        )
+
+        val vilkårsresultat = Vilkårsresultat()
+        Aldersvilkåret(vilkårsresultat).vurder(aldersgrunnlaget)
+        val aldersvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
+
+        assertThat(aldersvilkåret.vilkårsperioder()).hasSize(2)
+        assertThat(aldersvilkåret.vilkårsperioder()).anyMatch { it.erOppfylt() }
+        assertThat(aldersvilkåret.vilkårsperioder()).anyMatch { !it.erOppfylt() }
     }
 
 }
