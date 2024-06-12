@@ -9,6 +9,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.SøknadStudentDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.flyt.internals.DokumentMottattPersonHendelse
 import no.nav.aap.behandlingsflyt.flyt.internals.TestHendelsesMottak
@@ -111,7 +112,7 @@ fun main() {
                                 journalpost = JournalpostId("" + System.currentTimeMillis()),
                                 mottattTidspunkt = LocalDateTime.now(),
                                 strukturertDokument = StrukturertDokument(
-                                    Søknad(periode, dto.student),
+                                    mapTilSøknad(dto),
                                     Brevkode.SØKNAD
                                 ),
                                 periode = periode
@@ -140,6 +141,20 @@ fun main() {
         }
 
     }.start(wait = true)
+}
+
+fun mapTilSøknad(dto: OpprettTestcaseDTO): Søknad {
+    val erStudent = if (dto.student) {
+        "JA"
+    } else {
+        "NEI"
+    }
+    val harYrkesskade = if (dto.yrkesskade) {
+        "JA"
+    } else {
+        "NEI"
+    }
+    return Søknad(student = SøknadStudentDto(erStudent), harYrkesskade)
 }
 
 private fun aktiverToggles() {

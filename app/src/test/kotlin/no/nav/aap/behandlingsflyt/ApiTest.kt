@@ -3,10 +3,10 @@ package no.nav.aap.behandlingsflyt
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.SøknadStudentDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
-import no.nav.aap.behandlingsflyt.flyt.flate.SøknadDto
 import no.nav.aap.behandlingsflyt.flyt.flate.SøknadSendDto
-import no.nav.aap.behandlingsflyt.flyt.flate.SøknadStudentDto
 import no.nav.aap.behandlingsflyt.flyt.flate.VilkårDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.FinnEllerOpprettSakDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.SaksinfoDTO
@@ -90,7 +90,7 @@ class ApiTest {
         client.post<_, Unit>(
             URI.create("http://localhost:8080/").resolve("api/soknad/send"),
             PostRequest(
-                body = SøknadSendDto(responseSak.saksnummer, "123", SøknadDto(SøknadStudentDto("NEI")))
+                body = SøknadSendDto(responseSak.saksnummer, "123", Søknad(SøknadStudentDto("NEI"), "NEI"))
             )
         )
 

@@ -28,6 +28,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.StrukturertDokument
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.SøknadStudentDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurdering
@@ -139,7 +140,10 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("20"),
                 mottattTidspunkt = LocalDateTime.now().minusMonths(3),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                strukturertDokument = StrukturertDokument(
+                    Søknad(student = SøknadStudentDto("NEI"), yrkesskade = "NEI"),
+                    Brevkode.SØKNAD
+                ),
                 periode = periode
             )
         )
@@ -394,7 +398,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("10"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                strukturertDokument = StrukturertDokument(Søknad(student = SøknadStudentDto("NEI"), yrkesskade = "NEI"), Brevkode.SØKNAD),
                 periode = periode
             )
         )
@@ -582,7 +586,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("11"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, true), Brevkode.SØKNAD),
+                strukturertDokument = StrukturertDokument(Søknad(student = SøknadStudentDto("JA"), yrkesskade = "JA"), Brevkode.SØKNAD),
                 periode = periode
             )
         )
@@ -883,7 +887,7 @@ class FlytOrkestratorTest {
             DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("1"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                strukturertDokument = StrukturertDokument(Søknad(student = SøknadStudentDto("NEI"), yrkesskade = "NEI"), Brevkode.SØKNAD),
                 periode = periode
             )
         )
@@ -924,7 +928,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("2"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                strukturertDokument = StrukturertDokument(Søknad(student = SøknadStudentDto("NEI"), yrkesskade = "NEI"), Brevkode.SØKNAD),
                 periode = periode
             )
         )
@@ -975,7 +979,7 @@ class FlytOrkestratorTest {
             ident, DokumentMottattPersonHendelse(
                 journalpost = JournalpostId("3"),
                 mottattTidspunkt = LocalDateTime.now(),
-                strukturertDokument = StrukturertDokument(Søknad(periode, false), Brevkode.SØKNAD),
+                strukturertDokument = StrukturertDokument(Søknad(student = SøknadStudentDto("NEI"), yrkesskade = "NEI"), Brevkode.SØKNAD),
                 periode = periode
             )
         )

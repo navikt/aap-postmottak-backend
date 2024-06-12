@@ -6,6 +6,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.pliktkort.Plik
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.søknad.adapter.UbehandletSøknad
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
@@ -71,19 +72,21 @@ class MottaDokumentService(
         val ubehandledeSøknader =
             mottattDokumentRepository.hentUbehandledeDokumenterAvType(sakId, Brevkode.SØKNAD)
 
-        return ubehandledeSøknader.map { mapSøknad(it.journalpostId, it.strukturerteData()) }.toSet()
+        return ubehandledeSøknader.map { mapSøknad(it) }.toSet()
     }
 
-    private fun mapSøknad(journalpostId: JournalpostId, strukturerteData: StrukturertDokument<Søknad>?): UbehandletSøknad {
-        val søknad = requireNotNull(strukturerteData).data
-        return UbehandletSøknad(journalpostId, søknad.periode, søknad.student)
+    private fun mapSøknad(mottattDokument: MottattDokument): UbehandletSøknad {
+        val søknad = requireNotNull(mottattDokument.strukturerteData<Søknad>()).data
+        val mottattDato = mottattDokument.mottattTidspunkt.toLocalDate()
+        return UbehandletSøknad(
+            mottattDokument.journalpostId,
+            Periode(mottattDato, mottattDato),
+            søknad.student.erStudent(),
+            søknad.harYrkesskade()
+        )
     }
 
     fun knyttTilBehandling(sakId: SakId, behandlingId: BehandlingId, journalpostId: JournalpostId) {
         mottattDokumentRepository.oppdaterStatus(journalpostId, behandlingId, sakId, Status.BEHANDLET)
-    }
-
-    fun uhåndterteDokumenter(sakId: SakId): Set<MottattDokument> {
-        return mottattDokumentRepository.hentUbehandledeDokumenter(sakId)
     }
 }

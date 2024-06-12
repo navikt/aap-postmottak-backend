@@ -5,13 +5,16 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.Informasjonskrav
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottaDokumentService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottattDokumentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.adapter.YrkesskadeRegisterGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.OppgittStudent
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.flyt.FlytKontekst
 
 class SøknadService private constructor(
     private val mottaDokumentService: MottaDokumentService,
-    private val studentRepository: StudentRepository
+    private val studentRepository: StudentRepository,
+    private val sakService: SakService
 ) : Informasjonskrav {
 
     companion object : Informasjonskravkonstruktør {
@@ -20,7 +23,8 @@ class SøknadService private constructor(
                 MottaDokumentService(
                     MottattDokumentRepository(connection)
                 ),
-                StudentRepository(connection)
+                StudentRepository(connection),
+                SakService(connection)
             )
         }
     }
@@ -32,9 +36,17 @@ class SøknadService private constructor(
         }
 
         val behandlingId = kontekst.behandlingId
+        val sak = sakService.hent(kontekst.sakId)
 
         for (ubehandletSøknad in ubehandletSøknader) {
-            studentRepository.lagre(behandlingId = behandlingId, OppgittStudent(harAvbruttStudie = ubehandletSøknad.student))
+            studentRepository.lagre(
+                behandlingId = behandlingId,
+                OppgittStudent(harAvbruttStudie = ubehandletSøknad.student)
+            )
+            YrkesskadeRegisterGateway.puttInnTestPerson(
+                sak.person.aktivIdent(),
+                sak.rettighetsperiode.fom.minusDays(60)
+            )
 
             mottaDokumentService.knyttTilBehandling(
                 sakId = kontekst.sakId,

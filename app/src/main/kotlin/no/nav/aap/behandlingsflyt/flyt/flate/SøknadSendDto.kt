@@ -1,21 +1,12 @@
 package no.nav.aap.behandlingsflyt.flyt.flate
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.kontrakt.søknad.Søknad
+
 class SøknadSendDto(
     val saksnummer: String,
     val journalpostId: String,
-    val søknad: SøknadDto
+    val søknad: Søknad
 )
-
-class SøknadDto(
-    val student: SøknadStudentDto
-)
-
-class SøknadStudentDto(
-    val erStudent: String
-) {
-    fun erStudent() = erStudent == "JA"
-}
-
 
 /*
 
