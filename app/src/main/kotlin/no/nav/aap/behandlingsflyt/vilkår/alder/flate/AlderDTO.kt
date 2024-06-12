@@ -1,7 +1,9 @@
 package no.nav.aap.behandlingsflyt.vilkår.alder.flate
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsperiode
 import java.time.LocalDate
 
 data class AlderDTO (
-    val fødselsdato: LocalDate
+    val fødselsdato: LocalDate,
+    val vilkårsperioder: List<Vilkårsperiode>
 )

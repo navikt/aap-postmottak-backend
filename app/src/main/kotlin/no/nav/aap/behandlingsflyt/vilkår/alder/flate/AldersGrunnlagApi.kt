@@ -4,17 +4,28 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
+import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
-import java.time.LocalDate
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.aldersGrunnlagApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}/grunnlag/alder") {
             get<BehandlingReferanse, AlderDTO> { req ->
+                val alderDTO = dataSource.transaction(readOnly = true) { connection ->
+                    val behandling = BehandlingReferanseService(connection).behandling(req)
+                    val aldersvilkårperioder =
+                        VilkårsresultatRepository(connection).hent(behandling.id).finnVilkår(Vilkårtype.ALDERSVILKÅRET)
+                            .vilkårsperioder()
+                    val fødselsdato =
+                        requireNotNull(PersonopplysningRepository(connection).hentHvisEksisterer(behandling.id)?.personopplysning?.fødselsdato?.toLocalDate())
 
-                val alderDTO = AlderDTO(LocalDate.now());
-
+                    AlderDTO(fødselsdato, aldersvilkårperioder)
+                }
 
                 respond(alderDTO)
             }
