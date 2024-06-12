@@ -48,6 +48,7 @@ class HåndterMottattDokumentService(connection: DBConnection) {
                     periode
                 )
 
+            Brevkode.AKTIVITETSKORT -> TODO("Ukjent dokument")
             Brevkode.UKJENT -> TODO("Ukjent dokument")
         }
     }
