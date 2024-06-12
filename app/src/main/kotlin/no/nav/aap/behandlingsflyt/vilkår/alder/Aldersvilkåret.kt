@@ -15,39 +15,37 @@ import no.nav.aap.verdityper.Periode
 import java.time.LocalDate
 
 class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Aldersgrunnlag> {
-    private val vilkår: Vilkår
-
-    init {
-        this.vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.ALDERSVILKÅRET)
-    }
+    private val vilkår: Vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.ALDERSVILKÅRET)
 
     // TODO Det må avklares hva som er riktig adferd dersom bruker søker før fylte 18
-    override fun vurder(grunnlag: Aldersgrunnlag): VurderingsResultat {
+    override fun vurder(grunnlag: Aldersgrunnlag) {
         val utfall: Utfall
-        var avslagsårsak: Avslagsårsak? = null
+        val avslagsårsak: Avslagsårsak?
 
         val alderPåSøknadsdato = grunnlag.alderPåSøknadsdato()
 
         if (alderPåSøknadsdato < 18) {
             utfall = Utfall.IKKE_OPPFYLT
             avslagsårsak = Avslagsårsak.BRUKER_UNDER_18
-            return lagre(
+            lagre(
                 grunnlag.periode, grunnlag, VurderingsResultat(
                     utfall = utfall,
                     avslagsårsak = avslagsårsak,
                     innvilgelsesårsak = null
                 )
             )
+            return
         } else if (alderPåSøknadsdato >= 67) {
             utfall = Utfall.IKKE_OPPFYLT
             avslagsårsak = Avslagsårsak.BRUKER_OVER_67
-            return lagre(
+            lagre(
                 grunnlag.periode, grunnlag, VurderingsResultat(
                     utfall = utfall,
                     avslagsårsak = avslagsårsak,
                     innvilgelsesårsak = null
                 )
             )
+            return
         }
 
         val alderstidslinje = Tidslinje(grunnlag.periode, Utfall.OPPFYLT).kombiner(Tidslinje(
@@ -73,12 +71,6 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
                 )
             )
         }
-
-        return VurderingsResultat(
-            utfall = Utfall.OPPFYLT,
-            avslagsårsak = avslagsårsak,
-            innvilgelsesårsak = null
-        )
     }
 
     private fun utledÅrsak(høyre: Segment<Utfall>?): Avslagsårsak? {
@@ -93,7 +85,7 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
         periode: Periode,
         grunnlag: Aldersgrunnlag,
         vurderingsResultat: VurderingsResultat
-    ): VurderingsResultat {
+    ) {
         vilkår.leggTilVurdering(
             Vilkårsperiode(
                 periode = periode,
@@ -104,8 +96,6 @@ class Aldersvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Ald
                 versjon = vurderingsResultat.versjon()
             )
         )
-
-        return vurderingsResultat
     }
 
 }

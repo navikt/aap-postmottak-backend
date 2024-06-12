@@ -12,13 +12,9 @@ import no.nav.aap.behandlingsflyt.vilkår.VurderingsResultat
 import no.nav.aap.verdityper.Periode
 
 class Sykdomsvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<SykdomsFaktagrunnlag> {
-    private val vilkår: Vilkår
+    private val vilkår: Vilkår = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
 
-    init {
-        this.vilkår = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
-    }
-
-    override fun vurder(grunnlag: SykdomsFaktagrunnlag): VurderingsResultat {
+    override fun vurder(grunnlag: SykdomsFaktagrunnlag) {
         val utfall: Utfall
         var avslagsårsak: Avslagsårsak? = null
         var innvilgelsesårsak: Innvilgelsesårsak? = null
@@ -45,7 +41,7 @@ class Sykdomsvilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<Sykd
             }
         }
 
-        return lagre(
+        lagre(
             grunnlag,
             VurderingsResultat(
                 utfall = utfall,

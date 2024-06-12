@@ -4,5 +4,5 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Fa
 
 interface Vilkårsvurderer<T : Faktagrunnlag> {
 
-    fun vurder(grunnlag: T): VurderingsResultat
+    fun vurder(grunnlag: T)
 }

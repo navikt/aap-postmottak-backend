@@ -19,9 +19,11 @@ class AldersvilkåretTest {
             fødselsdato = Fødselsdato(LocalDate.now().minusYears(17))
         )
 
-        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
+        val vilkårsresultat = Vilkårsresultat()
+        Aldersvilkåret(vilkårsresultat).vurder(aldersgrunnlaget)
 
-        assertThat(resultat.utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
+        val vilkåret = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
+        assertThat(vilkåret.vilkårsperioder().first().utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
     }
 
     @Test
@@ -34,9 +36,11 @@ class AldersvilkåretTest {
             fødselsdato = Fødselsdato(fødselsdato)
         )
 
-        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
+        val vilkårsresultat = Vilkårsresultat()
+        Aldersvilkåret(vilkårsresultat).vurder(aldersgrunnlaget)
+        val vilkåret = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
 
-        assertThat(resultat.utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
+        assertThat(vilkåret.vilkårsperioder().first().utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
     }
 
     @Test
@@ -48,9 +52,11 @@ class AldersvilkåretTest {
             fødselsdato = Fødselsdato(LocalDate.now().minusYears(68))
         )
 
-        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
+        val vilkårsresultat = Vilkårsresultat()
+        Aldersvilkåret(vilkårsresultat).vurder(aldersgrunnlaget)
+        val vilkåret = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
 
-        assertThat(resultat.utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
+        assertThat(vilkåret.vilkårsperioder().first().utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
     }
 
     @Test
@@ -63,9 +69,11 @@ class AldersvilkåretTest {
             fødselsdato = Fødselsdato(fødselsdato)
         )
 
-        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
+        val vilkårsresultat = Vilkårsresultat()
+        Aldersvilkåret(vilkårsresultat).vurder(aldersgrunnlaget)
+        val vilkåret = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
 
-        assertThat(resultat.utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
+        assertThat(vilkåret.vilkårsperioder().first().utfall).isEqualTo(Utfall.IKKE_OPPFYLT)
     }
 
     @Test
@@ -77,9 +85,11 @@ class AldersvilkåretTest {
             fødselsdato = Fødselsdato(LocalDate.now().minusYears(45))
         )
 
-        val resultat = Aldersvilkåret(Vilkårsresultat()).vurder(aldersgrunnlaget)
+        val vilkårsresultat = Vilkårsresultat()
+        Aldersvilkåret(vilkårsresultat).vurder(aldersgrunnlaget)
+        val vilkåret = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
 
-        assertThat(resultat.utfall).isEqualTo(Utfall.OPPFYLT)
+        assertThat(vilkåret.vilkårsperioder().first().utfall).isEqualTo(Utfall.OPPFYLT)
     }
 
     @Test

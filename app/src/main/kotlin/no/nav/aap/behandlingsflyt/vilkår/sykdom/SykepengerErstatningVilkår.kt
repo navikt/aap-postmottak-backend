@@ -10,14 +10,11 @@ import no.nav.aap.behandlingsflyt.vilkår.Vilkårsvurderer
 import no.nav.aap.behandlingsflyt.vilkår.VurderingsResultat
 import no.nav.aap.verdityper.Periode
 
-class SykepengerErstatningVilkår(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<SykepengerErstatningFaktagrunnlag> {
-    private val vilkår: Vilkår
+class SykepengerErstatningVilkår(vilkårsresultat: Vilkårsresultat) :
+    Vilkårsvurderer<SykepengerErstatningFaktagrunnlag> {
+    private val vilkår: Vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.SYKEPENGEERSTATNING)
 
-    init {
-        this.vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.SYKEPENGEERSTATNING)
-    }
-
-    override fun vurder(grunnlag: SykepengerErstatningFaktagrunnlag): VurderingsResultat {
+    override fun vurder(grunnlag: SykepengerErstatningFaktagrunnlag) {
         val utfall: Utfall
         var avslagsårsak: Avslagsårsak? = null
 
@@ -30,14 +27,19 @@ class SykepengerErstatningVilkår(vilkårsresultat: Vilkårsresultat) : Vilkårs
             avslagsårsak = Avslagsårsak.MANGLENDE_DOKUMENTASJON // TODO noe mer rett
         }
 
-        return lagre(grunnlag, VurderingsResultat(
-            utfall = utfall,
-            avslagsårsak,
-            null
-        ))
+        lagre(
+            grunnlag, VurderingsResultat(
+                utfall = utfall,
+                avslagsårsak,
+                null
+            )
+        )
     }
 
-    private fun lagre(grunnlag: SykepengerErstatningFaktagrunnlag, vurderingsResultat: VurderingsResultat): VurderingsResultat {
+    private fun lagre(
+        grunnlag: SykepengerErstatningFaktagrunnlag,
+        vurderingsResultat: VurderingsResultat
+    ): VurderingsResultat {
         vilkår.leggTilVurdering(
             Vilkårsperiode(
                 Periode(grunnlag.vurderingsdato, grunnlag.sisteDagMedMuligYtelse),

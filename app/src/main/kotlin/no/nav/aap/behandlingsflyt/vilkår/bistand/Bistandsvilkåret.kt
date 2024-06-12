@@ -12,13 +12,9 @@ import no.nav.aap.behandlingsflyt.vilkår.VurderingsResultat
 import no.nav.aap.verdityper.Periode
 
 class Bistandsvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<BistandFaktagrunnlag> {
-    private val vilkår: Vilkår
+    private val vilkår: Vilkår = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
 
-    init {
-        this.vilkår = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
-    }
-
-    override fun vurder(grunnlag: BistandFaktagrunnlag): VurderingsResultat {
+    override fun vurder(grunnlag: BistandFaktagrunnlag) {
         val utfall: Utfall
         var avslagsårsak: Avslagsårsak? = null
         var innvilgelsesårsak: Innvilgelsesårsak? = null
@@ -33,7 +29,7 @@ class Bistandsvilkåret(vilkårsresultat: Vilkårsresultat) : Vilkårsvurderer<B
             avslagsårsak = Avslagsårsak.MANGLENDE_DOKUMENTASJON // TODO: Må ha mer
         }
 
-        return lagre(
+        lagre(
             grunnlag, VurderingsResultat(
                 utfall = utfall,
                 avslagsårsak = avslagsårsak,
