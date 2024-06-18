@@ -27,13 +27,12 @@ class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHan
             return mapper(value)
         }
         if (status == HttpURLConnection.HTTP_BAD_REQUEST) {
-            SECURE_LOGGER.info(response.body())
-            throw UhåndtertHttpResponsException("Bad request mot ${request.uri()}")
+            throw UhåndtertHttpResponsException("$response :: ${response.body()}")
         }
         if (status == HttpURLConnection.HTTP_FORBIDDEN) {
-            throw ManglerTilgangException("Feilet mot ${request.uri()}")
+            throw ManglerTilgangException("$response :: ${response.body()}")
         }
 
-        throw UhåndtertHttpResponsException("Uventet httprespons kode $status")
+        throw UhåndtertHttpResponsException("Uventet httprespons kode $response")
     }
 }
