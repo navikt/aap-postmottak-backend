@@ -37,7 +37,8 @@ class GrunnlagetForBeregningen(
         return Grunnlag11_19(
             gjeldende,
             er6GBegrenset = er6Gbegrenset,
-            erGjennomsnitt = erGjennomsnitt
+            erGjennomsnitt = erGjennomsnitt,
+            inntekter = inntekter.toList()
         )
     }
 }

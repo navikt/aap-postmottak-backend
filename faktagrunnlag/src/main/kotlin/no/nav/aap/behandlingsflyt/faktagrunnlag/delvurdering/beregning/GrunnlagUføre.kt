@@ -18,7 +18,7 @@ class GrunnlagUføre(
     private val uføreInntektIKroner: Beløp, //grunnlaget
     private val uføreYtterligereNedsattArbeidsevneÅr: Year,
     private val er6GBegrenset: Boolean, //skal være individuelt på hver inntekt
-    private val erGjennomsnitt: Boolean
+    private val erGjennomsnitt: Boolean,
 ) : Beregningsgrunnlag {
 
     enum class Type {

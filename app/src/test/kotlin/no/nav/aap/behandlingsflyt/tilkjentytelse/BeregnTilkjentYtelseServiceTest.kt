@@ -27,7 +27,8 @@ class BeregnTilkjentYtelseServiceTest {
         val beregningsgrunnlag = Grunnlag11_19(
             grunnlaget = GUnit(BigDecimal(4)),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = emptyList()
         )
         val underveisgrunnlag = UnderveisGrunnlag(
             id = 1L, listOf(
@@ -86,7 +87,8 @@ class BeregnTilkjentYtelseServiceTest {
         val beregningsgrunnlag = Grunnlag11_19(
             grunnlaget = GUnit(BigDecimal(4)),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = emptyList()
         )
         val underveisgrunnlag = UnderveisGrunnlag(
             id = 1L, listOf(
@@ -140,7 +142,8 @@ class BeregnTilkjentYtelseServiceTest {
         val beregningsgrunnlag = Grunnlag11_19(
             grunnlaget = GUnit(BigDecimal(4)),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = emptyList()
         )
         val underveisgrunnlag = UnderveisGrunnlag(
             id = 1L, listOf(
@@ -211,7 +214,8 @@ class BeregnTilkjentYtelseServiceTest {
         val beregningsgrunnlag = Grunnlag11_19(
             grunnlaget = GUnit(BigDecimal(0)),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = emptyList()
         )
         val underveisgrunnlag = UnderveisGrunnlag(
             id = 1L, listOf(
@@ -270,7 +274,8 @@ class BeregnTilkjentYtelseServiceTest {
         val beregningsgrunnlag = Grunnlag11_19(
             grunnlaget = GUnit(BigDecimal(0)),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = emptyList()
         )
         val underveisgrunnlag = UnderveisGrunnlag(
             id = 1L, listOf(

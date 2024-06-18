@@ -19,7 +19,8 @@ class YrkesskadeBeregningTest {
         val grunnlag11_19 = Grunnlag11_19(
             grunnlaget = GUnit(4),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = listOf(InntektPerÅr(2022, Beløp(4 * GRUNNBELØP_2022)))
         )
 
         val yrkesskadeBeregning = YrkesskadeBeregning(
@@ -38,7 +39,8 @@ class YrkesskadeBeregningTest {
         val grunnlag11_19 = Grunnlag11_19(
             grunnlaget = GUnit(4),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = listOf(InntektPerÅr(2022, Beløp(4 * GRUNNBELØP_2022)))
         )
 
         val yrkesskadeBeregning = YrkesskadeBeregning(
@@ -57,7 +59,8 @@ class YrkesskadeBeregningTest {
         val grunnlag11_19 = Grunnlag11_19(
             grunnlaget = GUnit(2),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = listOf(InntektPerÅr(2022, Beløp(4 * GRUNNBELØP_2022)))
         )
 
         val yrkesskadeBeregning = YrkesskadeBeregning(
@@ -76,7 +79,8 @@ class YrkesskadeBeregningTest {
         val grunnlag11_19 = Grunnlag11_19(
             grunnlaget = GUnit(2),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = listOf(InntektPerÅr(2022, Beløp(4 * GRUNNBELØP_2022)))
         )
 
         val yrkesskadeBeregning = YrkesskadeBeregning(
@@ -95,7 +99,8 @@ class YrkesskadeBeregningTest {
         val grunnlag11_19 = Grunnlag11_19(
             grunnlaget = GUnit(2),
             er6GBegrenset = false,
-            erGjennomsnitt = false
+            erGjennomsnitt = false,
+            inntekter = listOf(InntektPerÅr(2022, Beløp(4 * GRUNNBELØP_2022)))
         )
 
         val yrkesskadeBeregning = YrkesskadeBeregning(

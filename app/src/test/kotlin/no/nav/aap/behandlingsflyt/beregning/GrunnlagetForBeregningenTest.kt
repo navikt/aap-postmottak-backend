@@ -64,7 +64,8 @@ class GrunnlagetForBeregningenTest {
             Grunnlag11_19(
                 grunnlaget = GUnit(BigDecimal(0)),
                 er6GBegrenset = false,
-                erGjennomsnitt = false
+                erGjennomsnitt = false,
+                inntekter = inntekterPerÅr.toList()
             )
         )
     }
@@ -90,7 +91,8 @@ class GrunnlagetForBeregningenTest {
             Grunnlag11_19(
                 grunnlaget = GUnit(BigDecimal(5)),
                 er6GBegrenset = false,
-                erGjennomsnitt = false
+                erGjennomsnitt = false,
+                inntekter = inntekterPerÅr.toList()
             )
         )
     }
@@ -119,7 +121,8 @@ class GrunnlagetForBeregningenTest {
             Grunnlag11_19(
                 grunnlaget = GUnit(BigDecimal(5)),
                 er6GBegrenset = false,
-                erGjennomsnitt = false
+                erGjennomsnitt = false,
+                inntekter = inntekterPerÅr.toList()
             )
         )
     }
@@ -148,7 +151,8 @@ class GrunnlagetForBeregningenTest {
             Grunnlag11_19(
                 grunnlaget = GUnit(BigDecimal(5)),
                 er6GBegrenset = false,
-                erGjennomsnitt = false
+                erGjennomsnitt = false,
+                inntekter = inntekterPerÅr.toList()
             )
         )
     }
@@ -177,7 +181,8 @@ class GrunnlagetForBeregningenTest {
             Grunnlag11_19(
                 grunnlaget = GUnit(6),
                 er6GBegrenset = false,
-                erGjennomsnitt = false
+                erGjennomsnitt = false,
+                inntekter = inntekterPerÅr.toList()
             )
         )
     }
@@ -197,7 +202,8 @@ class GrunnlagetForBeregningenTest {
             Grunnlag11_19(
                 grunnlaget = GUnit(6),
                 er6GBegrenset = false,
-                erGjennomsnitt = false
+                erGjennomsnitt = false,
+                inntekter = inntekterPerÅr.toList()
             )
         )
     }
@@ -217,7 +223,8 @@ class GrunnlagetForBeregningenTest {
             Grunnlag11_19(
                 grunnlaget = GUnit(4),
                 er6GBegrenset = false,
-                erGjennomsnitt = false
+                erGjennomsnitt = false,
+                inntekter = inntekterPerÅr.toList()
             )
         )
     }

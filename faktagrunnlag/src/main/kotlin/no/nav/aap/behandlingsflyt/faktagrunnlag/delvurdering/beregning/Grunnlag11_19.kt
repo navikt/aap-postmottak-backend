@@ -1,14 +1,20 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Faktagrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.verdityper.GUnit
 import java.math.BigDecimal
 
 class Grunnlag11_19(
     private val grunnlaget: GUnit,
     private val er6GBegrenset: Boolean,
-    private val erGjennomsnitt: Boolean
+    private val erGjennomsnitt: Boolean,
+    private val inntekter: List<InntektPerÅr>,
 ) : Beregningsgrunnlag {
+
+    fun inntekter(): List<InntektPerÅr> {
+        return inntekter
+    }
 
     override fun grunnlaget(): GUnit {
         return grunnlaget

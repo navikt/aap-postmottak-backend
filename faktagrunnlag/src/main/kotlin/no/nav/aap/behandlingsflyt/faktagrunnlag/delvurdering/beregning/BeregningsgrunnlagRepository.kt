@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.GUnit
 import no.nav.aap.verdityper.Prosent
@@ -16,7 +17,26 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
         YRKESSKADE_UFØRE
     }
 
+    private fun hentInntekt(beregningsId: Long): List<InntektPerÅr> {
+        return connection.queryList(
+            """
+                SELECT BEREGNING_HOVED_ID, ARSTALL, INNTEKT
+                FROM BEREGNING_INNTEKT
+                WHERE BEREGNING_HOVED_ID = ?
+            """.trimIndent()
+        ) {
+            setParams { setLong(1, beregningsId) }
+            setRowMapper { row ->
+                InntektPerÅr(
+                    år = row.getInt("ARSTALL"),
+                    beløp = Beløp(verdi = row.getBigDecimal("INNTEKT")),
+                )
+            }
+        }
+    }
+
     private fun hentStandardBeregning(beregningsId: Long): Grunnlag11_19 {
+        val inntekter = hentInntekt(beregningsId)
         return connection.queryFirst(
             """
             SELECT  bh.G_UNIT AS G_UNIT_HOVED
@@ -29,7 +49,8 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
                 Grunnlag11_19(
                     grunnlaget = GUnit(row.getBigDecimal("G_UNIT_HOVED")),
                     er6GBegrenset = false,
-                    erGjennomsnitt = false
+                    erGjennomsnitt = false,
+                    inntekter = inntekter,
                 ) //TODO:tulledata
             }
         }
@@ -51,7 +72,8 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
                     Grunnlag11_19(
                         grunnlaget = GUnit(row.getBigDecimal("G_UNIT_HOVED")),
                         er6GBegrenset = false,
-                        erGjennomsnitt = false
+                        erGjennomsnitt = false,
+                        inntekter = hentInntekt(row.getLong("ID"))
                     )
                 ) //TODO:tulledata
             }
@@ -200,11 +222,27 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
         return beregningId
     }
 
+    private fun lagre(beregningsId: Long, inntektPerÅr: List<InntektPerÅr>) {
+        connection.executeBatch(
+            """
+            INSERT INTO BEREGNING_INNTEKT (BEREGNING_HOVED_ID, ARSTALL, INNTEKT) VALUES(?,?,?)
+        """.trimIndent(),
+            inntektPerÅr
+        ) {
+            setParams {
+                setLong(1, beregningsId)
+                setInt(2, it.år.value)
+                setBigDecimal(3, it.beløp.verdi)
+            }
+        }
+    }
+
     private fun lagre(behandlingId: BehandlingId, beregningsgrunnlag: Grunnlag11_19) {
         val beregningstype = Beregningstype.STANDARD
         val beregningsId = opprettBeregningId(behandlingId, beregningstype)
 
-        lagre(beregningsId, beregningsgrunnlag)
+        val key11_19 = lagre(beregningsId, beregningsgrunnlag)
+        lagre(key11_19, beregningsgrunnlag.inntekter())
     }
 
     private fun lagre(beregningsId: Long, beregningsgrunnlag: Grunnlag11_19): Long {
@@ -221,7 +259,9 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
         val beregningsId = beregningsIdparam ?: opprettBeregningId(behandlingId, beregningstype)
 
         val grunnlagId = lagre(beregningsId, beregningsgrunnlag.underliggende())
+        lagre(grunnlagId, beregningsgrunnlag.underliggende().inntekter())
         val ytterligereNedsattId = lagre(beregningsId, beregningsgrunnlag.underliggendeYtterligereNedsatt())
+        lagre(ytterligereNedsattId, beregningsgrunnlag.underliggendeYtterligereNedsatt().inntekter())
 
         connection.executeReturnKey(
             """
@@ -252,7 +292,9 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
         val beregningstype = Beregningstype.YRKESSKADE
         val beregningsId = opprettBeregningId(behandlingId, beregningstype)
 
-        val grunnlagId = lagre(beregningsId, beregningsgrunnlag.underliggende() as Grunnlag11_19)
+        val underliggendeBeregningsgrunnlag = beregningsgrunnlag.underliggende() as Grunnlag11_19
+        val grunnlagId = lagre(beregningsId, underliggendeBeregningsgrunnlag)
+        lagre(grunnlagId, underliggendeBeregningsgrunnlag.inntekter())
 
         connection.execute(
             """
@@ -296,7 +338,6 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
         val beregningstype = Beregningstype.YRKESSKADE_UFØRE
         val beregningId = opprettBeregningId(behandlingId, beregningstype)
         val beregningUføreId = lagre(behandlingId, beregningsgrunnlag.underliggende() as GrunnlagUføre, beregningId)
-
 
         connection.execute(
             """
