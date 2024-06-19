@@ -19,7 +19,7 @@ import no.nav.aap.verdityper.Prosent
 
 class BeregnTilkjentYtelseService(
     private val fødselsdato: Fødselsdato,
-    private val beregningsgrunnlag: Beregningsgrunnlag,
+    private val beregningsgrunnlag: Beregningsgrunnlag?,
     private val underveisgrunnlag: UnderveisGrunnlag,
     private val barnetilleggGrunnlag: BarnetilleggGrunnlag
 ) {
@@ -52,15 +52,16 @@ class BeregnTilkjentYtelseService(
     fun beregnTilkjentYtelse(): Tidslinje<Tilkjent> {
         val minsteÅrligYtelseAlderStrategiTidslinje = MinsteÅrligYtelseAlderTidslinje(fødselsdato).tilTidslinje()
         val underveisTidslinje = Tidslinje(underveisgrunnlag.perioder.map { Segment(it.periode, it) })
-        val grunnlagsfaktor = beregningsgrunnlag.grunnlaget()
+        val grunnlagsfaktor = beregningsgrunnlag?.grunnlaget()
         val barnetilleggGrunnlagTidslinje = tilTidslinje(barnetilleggGrunnlag)
-        val utgangspunktForÅrligYtelse = grunnlagsfaktor.multiplisert(Prosent.`66_PROSENT`)
+        val utgangspunktForÅrligYtelse = grunnlagsfaktor?.multiplisert(Prosent.`66_PROSENT`) ?: GUnit(0)
 
         val minsteÅrligYtelseMedAlderTidslinje = minsteÅrligYtelseAlderStrategiTidslinje.kombiner(
             MINSTE_ÅRLIG_YTELSE_TIDSLINJE,
             AldersjusteringAvMinsteÅrligYtelse
         )
 
+        // TODO: Vurder om vi her skal ha en egen tidslinje for "ikke rett" som gir 0 i grunnnlag
         val årligYtelseTidslinje = minsteÅrligYtelseMedAlderTidslinje.mapValue { minsteÅrligYtelse ->
             maxOf(minsteÅrligYtelse, utgangspunktForÅrligYtelse)
         }
