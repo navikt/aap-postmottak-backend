@@ -5,6 +5,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.BeregningsgrunnlagRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Utfall
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsperiode
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektGrunnlagRepository
@@ -25,30 +26,55 @@ class FastsettGrunnlagSteg(
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(FastsettGrunnlagSteg::class.java)
 
-    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val beregningsgrunnlag = beregningService.beregnGrunnlag(kontekst.behandlingId)
+    private fun skalBeregneGrunnlag(vilkårsresultat: Vilkårsresultat): Boolean {
+        val sykdomsvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
+        val bistandsvilkåret = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
 
+        return sykdomsvilkåret.harPerioderSomErOppfylt() && bistandsvilkåret.harPerioderSomErOppfylt()
+    }
+
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
 
         val vilkår = vilkårsresultat.leggTilHvisIkkeEksisterer(Vilkårtype.GRUNNLAGET)
 
-        kontekst.perioderTilVurdering.forEach { periode ->
-            vilkår.leggTilVurdering(
-                Vilkårsperiode(
-                    periode = periode,
-                    utfall = Utfall.OPPFYLT,
-                    manuellVurdering = false,
-                    begrunnelse = null,
-                    innvilgelsesårsak = null,
-                    avslagsårsak = null,
-                    faktagrunnlag = beregningsgrunnlag.faktagrunnlag()
+        if (skalBeregneGrunnlag(vilkårsresultat)) {
+            val beregningsgrunnlag = beregningService.beregnGrunnlag(kontekst.behandlingId)
+
+            kontekst.perioderTilVurdering.forEach { periode ->
+                vilkår.leggTilVurdering(
+                    Vilkårsperiode(
+                        periode = periode,
+                        utfall = Utfall.OPPFYLT,
+                        manuellVurdering = false,
+                        begrunnelse = null,
+                        innvilgelsesårsak = null,
+                        avslagsårsak = null,
+                        faktagrunnlag = beregningsgrunnlag.faktagrunnlag()
+                    )
                 )
-            )
+            }
+            log.info("Beregnet grunnlag til ${beregningsgrunnlag.grunnlaget()}")
+        } else {
+            log.info("Deaktiverer grunnlag når det ikke er relevant å beregne")
+            beregningService.deaktiverGrunnlag(kontekst.behandlingId)
+
+            kontekst.perioderTilVurdering.forEach { periode ->
+                vilkår.leggTilVurdering(
+                    Vilkårsperiode(
+                        periode = periode,
+                        utfall = Utfall.IKKE_RELEVANT,
+                        manuellVurdering = false,
+                        begrunnelse = null,
+                        innvilgelsesårsak = null,
+                        avslagsårsak = null,
+                        faktagrunnlag = null
+                    )
+                )
+            }
         }
 
         vilkårsresultatRepository.lagre(kontekst.behandlingId, vilkårsresultat)
-
-        log.info("Beregnet grunnlag til ${beregningsgrunnlag.grunnlaget()}")
 
         return StegResultat()
     }

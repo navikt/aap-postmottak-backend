@@ -50,6 +50,10 @@ class BeregningService(
         return beregningMedEllerUtenUføreMedEllerUtenYrkesskade
     }
 
+    fun deaktiverGrunnlag(behandlingId: BehandlingId) {
+        beregningsgrunnlagRepository.deaktiver(behandlingId)
+    }
+
     private fun utledInput(
         sykdomsvurdering: Sykdomsvurdering?,
         studentVurdering: StudentVurdering?,
