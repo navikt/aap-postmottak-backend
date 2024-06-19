@@ -9,6 +9,8 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.uføre.UføreRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurderingRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentVurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Sykdomsvurdering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.Yrkesskadevurdering
@@ -19,6 +21,7 @@ import java.time.LocalDate
 class BeregningService(
     private val inntektGrunnlagRepository: InntektGrunnlagRepository,
     private val sykdomRepository: SykdomRepository,
+    private val studentRepository: StudentRepository,
     private val uføreRepository: UføreRepository,
     private val beregningsgrunnlagRepository: BeregningsgrunnlagRepository,
     private val beregningVurderingRepository: BeregningVurderingRepository
@@ -28,10 +31,12 @@ class BeregningService(
         val inntektGrunnlag = inntektGrunnlagRepository.hent(behandlingId)
         val sykdomGrunnlag = sykdomRepository.hent(behandlingId)
         val uføre = uføreRepository.hentHvisEksisterer(behandlingId)
+        val student = studentRepository.hentHvisEksisterer(behandlingId)
         val beregningVurdering = beregningVurderingRepository.hentHvisEksisterer(behandlingId)
 
         val input = utledInput(
             sykdomGrunnlag.sykdomsvurdering!!,
+            student?.studentvurdering,
             sykdomGrunnlag.yrkesskadevurdering,
             beregningVurdering,
             inntektGrunnlag.inntekter,
@@ -47,6 +52,7 @@ class BeregningService(
 
     private fun utledInput(
         sykdomsvurdering: Sykdomsvurdering,
+        studentVurdering: StudentVurdering?,
         yrkesskadevurdering: Yrkesskadevurdering?,
         vurdering: BeregningVurdering?,
         inntekter: Set<InntektPerÅr>,
@@ -54,14 +60,25 @@ class BeregningService(
     ): Inntektsbehov {
         return Inntektsbehov(
             Input(
-                nedsettelsesDato = requireNotNull(
-                    sykdomsvurdering.nedsattArbeidsevneDato?.let { LocalDate.of(it, 1, 1) }),
+                nedsettelsesDato = utledNedsettelsesdato(sykdomsvurdering, studentVurdering),
                 inntekter = inntekter,
                 uføregrad = uføregrad,
                 yrkesskadevurdering = yrkesskadevurdering,
                 beregningVurdering = vurdering
             )
         )
+    }
+
+    private fun utledNedsettelsesdato(
+        sykdomsvurdering: Sykdomsvurdering,
+        studentVurdering: StudentVurdering?
+    ): LocalDate {
+        val nedsettelsesdatoer = setOf(
+            sykdomsvurdering.nedsattArbeidsevneDato?.let { LocalDate.of(it, 1, 1) },
+            studentVurdering?.avbruttStudieDato
+        ).filterNotNull()
+
+        return nedsettelsesdatoer.min()
     }
 
 }

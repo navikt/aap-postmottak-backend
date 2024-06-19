@@ -7,6 +7,9 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.Innte
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.år.Input
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.adapter.InntektGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.BeregningVurderingRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentGrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.StudentRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykdomGrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.SykdomRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.Prosent
@@ -18,6 +21,7 @@ class InntektService private constructor(
     private val sakService: SakService,
     private val inntektGrunnlagRepository: InntektGrunnlagRepository,
     private val sykdomRepository: SykdomRepository,
+    private val studentRepository: StudentRepository,
     private val beregningVurderingRepository: BeregningVurderingRepository,
     private val inntektRegisterGateway: InntektRegisterGateway
 ) : Informasjonskrav {
@@ -25,21 +29,24 @@ class InntektService private constructor(
     override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
         val behandlingId = kontekst.behandlingId
         val sykdomGrunnlag = sykdomRepository.hentHvisEksisterer(behandlingId)
-        if (sykdomGrunnlag?.sykdomsvurdering?.nedsattArbeidsevneDato == null) {
+        val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId)
+        if (sykdomGrunnlag?.sykdomsvurdering?.nedsattArbeidsevneDato == null && studentGrunnlag?.studentvurdering?.avbruttStudieDato == null) {
             return false
         }
         val beregningVurdering = beregningVurderingRepository.hentHvisEksisterer(behandlingId)
 
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
 
-        val nedsettelsesDato = LocalDate.of(sykdomGrunnlag.sykdomsvurdering.nedsattArbeidsevneDato, 1, 1);
-        val behov = Inntektsbehov(Input(
-            nedsettelsesDato = nedsettelsesDato,
-            inntekter = setOf(),
-            uføregrad = Prosent.`0_PROSENT`,
-            yrkesskadevurdering = sykdomGrunnlag.yrkesskadevurdering,
-            beregningVurdering = beregningVurdering
-        ))
+        val nedsettelsesDato = utledNedsettelsesdato(requireNotNull(sykdomGrunnlag), studentGrunnlag);
+        val behov = Inntektsbehov(
+            Input(
+                nedsettelsesDato = nedsettelsesDato,
+                inntekter = setOf(),
+                uføregrad = Prosent.`0_PROSENT`,
+                yrkesskadevurdering = sykdomGrunnlag.yrkesskadevurdering,
+                beregningVurdering = beregningVurdering
+            )
+        )
         val inntektsBehov = behov.utledAlleRelevanteÅr()
 
         val sak = sakService.hent(kontekst.sakId)
@@ -49,6 +56,15 @@ class InntektService private constructor(
         inntektGrunnlagRepository.lagre(behandlingId, inntekter)
 
         return eksisterendeGrunnlag?.inntekter == inntekter
+    }
+
+    private fun utledNedsettelsesdato(sykdomGrunnlag: SykdomGrunnlag, studentGrunnlag: StudentGrunnlag?): LocalDate {
+        val nedsettelsesdatoer = setOf(
+            sykdomGrunnlag.sykdomsvurdering?.nedsattArbeidsevneDato?.let { LocalDate.of(it, 1, 1) },
+            studentGrunnlag?.studentvurdering?.avbruttStudieDato
+        ).filterNotNull()
+
+        return nedsettelsesdatoer.min()
     }
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): InntektGrunnlag? {
@@ -61,6 +77,7 @@ class InntektService private constructor(
                 SakService(connection),
                 InntektGrunnlagRepository(connection),
                 SykdomRepository(connection),
+                StudentRepository(connection),
                 BeregningVurderingRepository(connection),
                 InntektGateway
             )
