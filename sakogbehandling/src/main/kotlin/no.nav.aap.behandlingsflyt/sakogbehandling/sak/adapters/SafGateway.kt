@@ -51,12 +51,11 @@ private val dokumentOversiktQuery = """
 query ($fagsakId: String!)
 {
   dokumentoversiktFagsak(
-    fagsak: { fagsakId: "$fagsakId", fagsaksystem: "KELVIN" }
+    fagsak: { fagsakId: $fagsakId, fagsaksystem: "KELVIN" }
    fraDato: null
     tema: []
     journalposttyper: []
     journalstatuser: []
-    foerste: 3
   ) {
     journalposter {
       journalpostId
