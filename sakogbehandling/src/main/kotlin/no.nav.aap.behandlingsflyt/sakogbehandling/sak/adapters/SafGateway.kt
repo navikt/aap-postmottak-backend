@@ -29,7 +29,7 @@ object SafGateway {
     }
 
     fun hentDokumenterForSak(saksnummer: Saksnummer, currentToken: OidcToken): String {
-        val request = SafRequest(dokumentOversiktQuery, SafRequest.Variables(saksnummer.toString()))
+        val request = SafRequest(dokumentOversiktQuery.asQuery(), SafRequest.Variables(saksnummer.toString()))
         val response = query(request, currentToken)
 
         return response
