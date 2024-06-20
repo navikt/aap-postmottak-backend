@@ -1,6 +1,6 @@
 package no.nav.aap.auth
 
-import com.auth0.jwt.interfaces.DecodedJWT
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -16,9 +16,7 @@ fun ApplicationCall.bruker(): Bruker {
 }
 
 fun ApplicationCall.token(): OidcToken {
-    val token: String? = (principal<JWTPrincipal>()?.payload as DecodedJWT).token
-    if (token == null) {
-        error("token mangler for OBO hendelse")
-    }
+    val token: String = requireNotNull(this.request.headers.get(HttpHeaders.Authorization)).split(" ")[1]
+
     return OidcToken(token)
 }
