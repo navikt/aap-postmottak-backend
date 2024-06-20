@@ -2,7 +2,7 @@ package no.nav.aap.motor.retry
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.motor.JobbType
 
 class DriftJobbRepositoryExposed(connection: DBConnection) {
     private val retryFeiledeOppgaverRepository = RetryFeiledeJobberRepository(connection)
@@ -11,11 +11,15 @@ class DriftJobbRepositoryExposed(connection: DBConnection) {
         return retryFeiledeOppgaverRepository.markerAlleFeiledeForKlare()
     }
 
-    fun markerFeilendeForKlar(behandlingId: BehandlingId): Int {
-        return retryFeiledeOppgaverRepository.markerFeiledeForKlare(behandlingId)
+    fun markerFeilendeForKlar(jobbId: Long): Int {
+        return retryFeiledeOppgaverRepository.markerFeiledeForKlare(jobbId)
     }
 
     fun hentAlleFeilende(): List<Pair<JobbInput, String>> {
         return retryFeiledeOppgaverRepository.hentAlleFeilede()
+    }
+
+    fun hentInfoOmGjentagendeJobber(): List<JobbInput> {
+        return JobbType.cronTypes().map { retryFeiledeOppgaverRepository.hentInfoOmSisteAvType(it) }
     }
 }

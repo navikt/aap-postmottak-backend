@@ -5,8 +5,8 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbRepository
 import no.nav.aap.motor.JobbStatus
 import no.nav.aap.motor.JobbType
+import no.nav.aap.motor.mapOppgave
 import no.nav.aap.motor.mapOppgaveInklusivFeilmelding
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDateTime
 
 internal class RetryFeiledeJobberRepository(private val connection: DBConnection) {
@@ -34,25 +34,25 @@ internal class RetryFeiledeJobberRepository(private val connection: DBConnection
         return antallRader
     }
 
-    internal fun markerFeiledeForKlare(behandlingId: BehandlingId): Int {
+    internal fun markerFeiledeForKlare(jobbId: Long): Int {
         val historikk = """
             INSERT INTO JOBB_HISTORIKK (jobb_id, status)
-            SELECT id, 'KLAR' FROM JOBB WHERE status = 'FEILET' AND behandling_id = ?
+            SELECT id, 'KLAR' FROM JOBB WHERE status = 'FEILET' AND id = ?
         """.trimIndent()
 
         connection.execute(historikk) {
             setParams {
-                setLong(1, behandlingId.toLong())
+                setLong(1, jobbId)
             }
         }
 
         val query = """
-                UPDATE JOBB SET status = 'KLAR' WHERE status = 'FEILET' AND behandling_id = ?
+                UPDATE JOBB SET status = 'KLAR' WHERE status = 'FEILET' AND id = ?
             """.trimIndent()
         var antallRader = 0
         connection.execute(query) {
             setParams {
-                setLong(1, behandlingId.toLong())
+                setLong(1, jobbId)
             }
             setResultValidator {
                 antallRader = it
@@ -128,6 +128,22 @@ internal class RetryFeiledeJobberRepository(private val connection: DBConnection
             setParams { }
             setRowMapper { row ->
                 mapOppgaveInklusivFeilmelding(row)
+            }
+        }
+    }
+
+    fun hentInfoOmSisteAvType(type: String): JobbInput {
+        val query = """
+            SELECT *, 
+            (SELECT count(1) FROM JOBB_HISTORIKK h WHERE h.jobb_id = j.id AND h.status = '${JobbStatus.FEILET.name}') as antall_feil,
+            FROM JOBB j WHERE status = 'KLAR' and type = ?
+        """.trimIndent()
+        return connection.queryFirst(query) {
+            setParams {
+                setString(1, type)
+            }
+            setRowMapper {
+                mapOppgave(it)
             }
         }
     }
