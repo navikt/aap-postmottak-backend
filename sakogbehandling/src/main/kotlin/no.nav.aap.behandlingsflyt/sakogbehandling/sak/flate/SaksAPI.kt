@@ -109,7 +109,7 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
             }
             route("/{saksnummer}/dokumenter") {
                 get<HentSakDTO, String> { req ->
-                    val token = pipeline.context.token()
+                    val token = token()
                     // 1. gjør api-kall graphql med token over
                     // 2. returner som streng
                     // TODO gjør pent
@@ -128,7 +128,7 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                         sak.person.aktivIdent()
                     }
 
-                    val personinfo = PdlPersoninfoGateway.hentPersoninfoForIdent(ident, pipeline.context.token())
+                    val personinfo = PdlPersoninfoGateway.hentPersoninfoForIdent(ident, token())
 
                     respond(
                         SakPersoninfoDTO(

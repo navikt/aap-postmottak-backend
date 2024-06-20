@@ -1,5 +1,6 @@
 package no.nav.aap.auth
 
+import com.papsign.ktor.openapigen.route.response.OpenAPIPipelineResponseContext
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -16,7 +17,15 @@ fun ApplicationCall.bruker(): Bruker {
 }
 
 fun ApplicationCall.token(): OidcToken {
-    val token: String = requireNotNull(this.request.headers.get(HttpHeaders.Authorization)).split(" ")[1]
+    val token: String = requireNotNull(this.request.headers[HttpHeaders.Authorization]).split(" ")[1]
 
     return OidcToken(token)
+}
+
+fun <TResponse> OpenAPIPipelineResponseContext<TResponse>.token(): OidcToken {
+    return pipeline.context.token()
+}
+
+fun <TResponse> OpenAPIPipelineResponseContext<TResponse>.bruker(): Bruker {
+    return pipeline.context.bruker()
 }
