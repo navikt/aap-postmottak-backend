@@ -25,7 +25,7 @@ object SafGateway {
 
     private fun query(request: SafRequest, currentToken: OidcToken): String {
         val httpRequest = PostRequest(body = request, currentToken = currentToken)
-        return requireNotNull(client.post(uri = url, request = httpRequest))
+        return requireNotNull(client.post(uri = url, request = httpRequest, mapper = ::noParsing))
     }
 
     fun hentDokumenterForSak(saksnummer: Saksnummer, currentToken: OidcToken): String {
@@ -36,17 +36,14 @@ object SafGateway {
     }
 }
 
+fun noParsing(s: String): String {
+    return s
+}
+
 fun String.asQuery() = this.replace("\n", "")
 
 internal data class SafRequest(val query: String, val variables: Variables) {
     data class Variables(val fagsakId: String)
-
-/*    companion object {
-        fun hentDokumenter(fagsakId: String) = SafRequest(
-            query = dokumenter.asQuery(),
-            variables = Variables(ident = personIdent)
-        )
-    }*/
 }
 
 private const val fagsakId = "\$fagsakId"
