@@ -21,4 +21,5 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.26.0")
     testImplementation("org.testcontainers:postgresql:1.19.8")
     testImplementation(kotlin("test"))
+    testImplementation(project(":lib-test"))
 }

@@ -15,6 +15,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGate
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
+import no.nav.aap.saf.Dokument
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.dokument.JournalpostId
@@ -110,7 +111,7 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                 )
             }
             route("/{saksnummer}/dokumenter") {
-                get<HentSakDTO, String> { req ->
+                get<HentSakDTO, List<Dokument>> { req ->
                     val token = token()
                     // 1. gjør api-kall graphql med token over
                     // 2. returner som streng

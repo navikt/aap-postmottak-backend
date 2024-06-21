@@ -90,9 +90,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("integrasjon.oppgavestyring.url", "http://localhost:${oppgavestyring.port()}")
 
         // Saf
-        System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}")
+        System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}/graphql")
         System.setProperty("integrasjon.saf.scope", "saf")
-
+        System.setProperty("integrasjon.saf.url.rest", "http://localhost:${saf.port()}/rest")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -236,48 +236,56 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
 
         routing {
-            post("/graphql"){
+            post("/graphql") {
                 val body = call.receive<String>()
 
-                // TODO: Oppdater med korrekt respons
-                if("journalpostById" in body) {
-                    call.respondText("""
+                if ("dokumentoversiktFagsak" in body) {
+                    call.respondText(
+                        """
                     {
                       "data": {
-                        "journalpostById": {
-                          "journalpostId": "400000000",
-                          "tittel": "Søknad om arbeidsavklaringspenger",
-                          "journalposttype": "I",
-                          "eksternReferanseId": "639af3ed-b557-4829-a057-14f8e9d48052",
-                          "relevanteDatoer": [
-                            {
-                                "dato": "2020-02-02T12:00:00.000000",
-                                "datotype": "DATO_OPPRETTET"
-                            }
-                          ],
-                          "dokumenter": [
-                            {
-                                "dokumentInfoId": "23423535",
-                                "tittel": "Søknad",
-                                "dokumentvarianter": [
+                        "dokumentoversiktFagsak": {
+                            "journalposter": [
+                                {
+                                  "journalpostId": "400000000",
+                                  "tittel": "Søknad om arbeidsavklaringspenger",
+                                  "journalposttype": "I",
+                                  "eksternReferanseId": "639af3ed-b557-4829-a057-14f8e9d48052",
+                                  "relevanteDatoer": [
                                     {
-                                        "variantformat": "ARKIV",
-                                        "brukerHarTilgang": true,
-                                        "filtype": "PDF"
-                                    },
-                                    {
-                                        "variantformat": "ORIGINAL",
-                                        "brukerHarTilgang": true,
-                                        "filtype": "JSON"
+                                        "dato": "2020-02-02T12:00:00.000000",
+                                        "datotype": "DATO_OPPRETTET"
                                     }
-                                ]
+                                  ],
+                                  "dokumenter": [
+                                    {
+                                        "dokumentInfoId": "23423535",
+                                        "brevkode": "Brevkode",
+                                        "tittel": "Søknad",
+                                        "dokumentvarianter": [
+                                            {
+                                                "filnavn": "arkivfil",
+                                                "variantformat": "ARKIV",
+                                                "brukerHarTilgang": true,
+                                                "filtype": "PDF"
+                                            },
+                                            {
+                                                "filnavn": "originalfil",
+                                                "variantformat": "ORIGINAL",
+                                                "brukerHarTilgang": true,
+                                                "filtype": "JSON"
+                                            }
+                                        ]
+                                    }
+                                  ]
+                                }
+                             ]
                             }
-                          ]
-                        }
                       }
                     }
                 """.trimIndent(),
-                        contentType = ContentType.Application.Json)
+                        contentType = ContentType.Application.Json
+                    )
                 } else {
                     print("FEIL KALL")
                     call.respond(HttpStatusCode.BadRequest)

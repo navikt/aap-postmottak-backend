@@ -7,10 +7,12 @@ import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.OidcToken
 import no.nav.aap.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import no.nav.aap.pdl.PdlResponseHandler
 import no.nav.aap.requiredConfigForKey
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.dokument.JournalpostId
+import no.nav.aap.saf.Dokument
+import no.nav.aap.saf.SafDokumentoversiktFagsakDataResponse
+import no.nav.aap.saf.SafResponseHandler
 import java.net.URI
 import java.net.http.HttpHeaders
 import java.util.*
@@ -26,22 +28,29 @@ object SafGateway {
     private val client = RestClient(
         config = config,
         tokenProvider = OnBehalfOfTokenProvider,
-        errorHandler = PdlResponseHandler(config = config)
+        errorHandler = SafResponseHandler(config = config)
     )
 
-    private fun query(request: SafRequest, currentToken: OidcToken): String {
+    private fun query(request: SafRequest, currentToken: OidcToken): SafDokumentoversiktFagsakDataResponse {
         val httpRequest = PostRequest(body = request, currentToken = currentToken)
-        return requireNotNull(client.post(uri = graphqlUrl, request = httpRequest, mapper = { s,_ -> s}))
+        return requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
     }
 
-    fun hentDokumenterForSak(saksnummer: Saksnummer, currentToken: OidcToken): String {
+    fun hentDokumenterForSak(saksnummer: Saksnummer, currentToken: OidcToken): List<Dokument> {
         val request = SafRequest(dokumentOversiktQuery.asQuery(), SafRequest.Variables(saksnummer.toString()))
         val response = query(request, currentToken)
 
-        return response
+        val dokumentoversiktFagsak = response.data?.dokumentoversiktFagsak ?: return emptyList()
+
+        // TODO: Sammenstill resultat
+        return dokumentoversiktFagsak.journalposter.flatMap { it.dokumenter }
     }
 
-    fun hentDokument(journalpostId: JournalpostId, dokumentInfoId: DokumentInfoId, currentToken: OidcToken): SafDocumentResponse {
+    fun hentDokument(
+        journalpostId: JournalpostId,
+        dokumentInfoId: DokumentInfoId,
+        currentToken: OidcToken
+    ): SafDocumentResponse {
         // Se https://confluence.adeo.no/display/BOA/Enum%3A+Variantformat
         // for gyldige verdier
         val variantFormat = "ARKIV"
