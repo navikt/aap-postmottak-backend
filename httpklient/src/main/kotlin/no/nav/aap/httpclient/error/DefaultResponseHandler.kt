@@ -3,6 +3,7 @@ package no.nav.aap.httpclient.error
 import no.nav.aap.httpclient.ClientConfig
 import org.slf4j.LoggerFactory
 import java.net.HttpURLConnection
+import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
@@ -11,7 +12,7 @@ class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHan
 
     private val SECURE_LOGGER = LoggerFactory.getLogger("secureLog")
 
-    override fun <R> håndter(request: HttpRequest, response: HttpResponse<String>, mapper: (String) -> R): R? {
+    override fun <R> håndter(request: HttpRequest, response: HttpResponse<String>, mapper: (String, HttpHeaders) -> R): R? {
         val status: Int = response.statusCode()
         if (status == HttpURLConnection.HTTP_NO_CONTENT) {
             return null
@@ -23,8 +24,9 @@ class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHan
             if (value == null || value.isEmpty()) {
                 return null
             }
+
             SECURE_LOGGER.info(value)
-            return mapper(value)
+            return mapper(value, response.headers())
         }
         if (status == HttpURLConnection.HTTP_BAD_REQUEST) {
             throw UhåndtertHttpResponsException("$response :: ${response.body()}")

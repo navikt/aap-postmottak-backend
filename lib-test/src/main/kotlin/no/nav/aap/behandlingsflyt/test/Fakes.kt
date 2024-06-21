@@ -90,7 +90,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("integrasjon.oppgavestyring.url", "http://localhost:${oppgavestyring.port()}")
 
         // Saf
-        System.setProperty("integrasjon.saf.url", "http://localhost:${saf.port()}")
+        System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}")
         System.setProperty("integrasjon.saf.scope", "saf")
 
 

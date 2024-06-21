@@ -16,6 +16,8 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.dokument.DokumentInfoId
+import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import javax.sql.DataSource
@@ -113,12 +115,31 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                     // 1. gjør api-kall graphql med token over
                     // 2. returner som streng
                     // TODO gjør pent
-
+                    val safRespons = SafGateway.hentDokumenterForSak(Saksnummer(req.saksnummer), token)
                     respond(
-                        SafGateway.hentDokumenterForSak(Saksnummer(req.saksnummer), token)
+                        safRespons
                     )
                 }
             }
+
+            route("/dokument/{journalPostId}/{dokumentInfoId}") {
+                get<HentDokumentDTO, DokumentResponsDTO> { req ->
+                    val journalpostId = req.journalpostId
+                    val dokumentInfoId = req.dokumentinfoId
+
+                    val token = pipeline.context.token()
+
+                    val dokumentRespons =
+                        SafGateway.hentDokument(JournalpostId(journalpostId), DokumentInfoId(dokumentInfoId), token)
+                    pipeline.context.response.headers.append(
+                        name = "Content-Disposition",
+                        value = "inline; filename=${dokumentRespons.filnavn}"
+                    )
+
+                    respond(DokumentResponsDTO(stream = dokumentRespons.dokument.inputStream()))
+                }
+            }
+
             route("/{saksnummer}/personinformasjon") {
                 get<HentSakDTO, SakPersoninfoDTO> { req ->
                     val saksnummer = req.saksnummer

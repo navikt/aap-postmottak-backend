@@ -8,12 +8,16 @@ import no.nav.aap.httpclient.request.Request
 import no.nav.aap.httpclient.tokenprovider.OidcToken
 import no.nav.aap.httpclient.tokenprovider.TokenProvider
 import no.nav.aap.json.DefaultJsonMapper
+import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.net.URI
 import java.net.http.HttpClient
+import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.*
+
+private val log = LoggerFactory.getLogger(RestClient::class.java)
 
 class RestClient(
     private val config: ClientConfig,
@@ -28,15 +32,15 @@ class RestClient(
         .build()
 
     inline fun <T : Any, reified R> post(uri: URI, request: PostRequest<T>): R? {
-        return post(uri, request, DefaultJsonMapper::fromJson)
+        return post(uri, request) { body, _ -> DefaultJsonMapper.fromJson(body) }
     }
 
-    fun <T : Any, R> post(uri: URI, request: PostRequest<T>, mapper: (String) -> R): R? {
+    fun <T : Any, R> post(uri: URI, request: PostRequest<T>, mapper: (String, HttpHeaders) -> R): R? {
         val httpRequest = HttpRequest.newBuilder(uri)
             .timeout(request.timeout())
             .header("Content-Type", request.contentType())
             .addHeaders(request)
-            .addHeaders(config, tokenProvider, config.scope, request.currentToken())
+            .addHeaders(config, tokenProvider, request.currentToken())
             .POST(HttpRequest.BodyPublishers.ofString(request.convertBodyToString()))
             .build()
 
@@ -44,13 +48,13 @@ class RestClient(
     }
 
     inline fun <reified R> get(uri: URI, request: GetRequest): R? {
-        return get(uri, request, DefaultJsonMapper::fromJson)
+        return get(uri, request) { body, _ -> DefaultJsonMapper.fromJson(body) }
     }
 
-    fun <R> get(uri: URI, request: GetRequest, mapper: (String) -> R): R? {
+    fun <R> get(uri: URI, request: GetRequest, mapper: (String, HttpHeaders) -> R): R? {
         val httpRequest = HttpRequest.newBuilder(uri)
             .addHeaders(request)
-            .addHeaders(config, tokenProvider, config.scope, request.currentToken())
+            .addHeaders(config, tokenProvider, request.currentToken())
             .timeout(request.timeout())
             .GET()
             .build()
@@ -58,7 +62,7 @@ class RestClient(
         return executeRequestAndHandleResponse(httpRequest, mapper)
     }
 
-    private fun <R> executeRequestAndHandleResponse(request: HttpRequest, mapper: (String) -> R): R? {
+    private fun <R> executeRequestAndHandleResponse(request: HttpRequest, mapper: (String, HttpHeaders) -> R): R? {
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
         return errorHandler.håndter(request, response, mapper)
     }
@@ -72,11 +76,11 @@ private fun HttpRequest.Builder.addHeaders(restRequest: Request): HttpRequest.Bu
 private fun HttpRequest.Builder.addHeaders(
     clientConfig: ClientConfig,
     tokenProvider: TokenProvider,
-    scope: String?,
     currentToken: OidcToken?
 ): HttpRequest.Builder {
     clientConfig.additionalHeaders.forEach(this::addHeader)
     clientConfig.additionalFunctionalHeaders.forEach(this::addHeader)
+    val scope = clientConfig.scope
 
     val token = tokenProvider.getToken(scope, currentToken)
     if (token != null) {
