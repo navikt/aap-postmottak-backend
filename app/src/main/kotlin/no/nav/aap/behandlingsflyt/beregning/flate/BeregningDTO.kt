@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.beregning.flate
 
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning.Beregningsgrunnlag
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Faktagrunnlag
 import no.nav.aap.verdityper.GUnit
 import java.math.BigDecimal
@@ -19,7 +18,7 @@ class GrunnlagUføreDTO(
     val grunnlag: Grunnlag11_19DTO,
     val grunnlagYtterligereNedsatt: Grunnlag11_19DTO,
     val uføregrad: Int,
-    val uføreInntekterFraForegåendeÅr: Map<Int, BigDecimal>, //uføre ikke oppjustert
+    val uføreInntekterFraForegåendeÅr: Map<String, BigDecimal>, //uføre ikke oppjustert
     val uføreInntektIKroner: BigDecimal, //grunnlaget
     val uføreYtterligereNedsattArbeidsevneÅr: Int,
     val er6GBegrenset: Boolean, //skal være individuelt på hver inntekt
@@ -30,7 +29,7 @@ class Grunnlag11_19DTO(
     val grunnlaget: BigDecimal,
     val er6GBegrenset: Boolean,
     val erGjennomsnitt: Boolean,
-    val inntekter: Map<Int,BigDecimal>,
+    val inntekter: Map<String,BigDecimal>,
 )
 
 class GrunnlagYrkesskadeDTO(

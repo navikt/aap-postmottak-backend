@@ -37,7 +37,7 @@ fun NormalOpenAPIRoute.beregningsGrunnlagApi(dataSource: DataSource) {
                                     grunnlaget = beregning.grunnlaget().verdi(),
                                     er6GBegrenset = beregning.er6GBegrenset(),
                                     erGjennomsnitt = beregning.erGjennomsnitt(),
-                                    inntekter = (beregning.underliggende() as Grunnlag11_19).inntekter().map { it.år.value to it.beløp.verdi() }.toMap()
+                                    inntekter = (beregning.underliggende() as Grunnlag11_19).inntekter().map { it.år.value.toString() to it.beløp.verdi() }.toMap()
                                 ),
                                 grunnlagYrkesskade = GrunnlagYrkesskadeDTO(
                                     grunnlaget = beregning.grunnlaget().verdi(),
@@ -68,7 +68,7 @@ fun NormalOpenAPIRoute.beregningsGrunnlagApi(dataSource: DataSource) {
                                     grunnlag = grunnlag11_19_to_DTO(beregning.underliggende()),
                                     grunnlagYtterligereNedsatt = grunnlag11_19_to_DTO(beregning.underliggendeYtterligereNedsatt()),
                                     uføregrad = beregning.uføregrad().prosentverdi(),
-                                    uføreInntekterFraForegåendeÅr = beregning.underliggendeYtterligereNedsatt().inntekter().map { it.år.value to it.beløp.verdi() }.toMap(),
+                                    uføreInntekterFraForegåendeÅr = beregning.underliggendeYtterligereNedsatt().inntekter().map { it.år.value.toString() to it.beløp.verdi() }.toMap(),
                                     uføreInntektIKroner = beregning.uføreInntektIKroner().verdi(),
                                     uføreYtterligereNedsattArbeidsevneÅr = beregning.uføreYtterligereNedsattArbeidsevneÅr().value,
                                     er6GBegrenset = beregning.er6GBegrenset(),
@@ -110,6 +110,6 @@ fun grunnlag11_19_to_DTO(grunnlag:Grunnlag11_19):Grunnlag11_19DTO{
         grunnlaget = grunnlag.grunnlaget().verdi(),
         er6GBegrenset = grunnlag.er6GBegrenset(),
         erGjennomsnitt = grunnlag.erGjennomsnitt(),
-        inntekter = grunnlag.inntekter().map { it.år.value to it.beløp.verdi() }.toMap()
+        inntekter = grunnlag.inntekter().map { it.år.value.toString() to it.beløp.verdi() }.toMap()
     )
 }
