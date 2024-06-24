@@ -242,47 +242,140 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 if ("dokumentoversiktFagsak" in body) {
                     call.respondText(
                         """
-                    {
-                      "data": {
-                        "dokumentoversiktFagsak": {
-                            "journalposter": [
-                                {
-                                  "journalpostId": "400000000",
-                                  "tittel": "Søknad om arbeidsavklaringspenger",
-                                  "journalposttype": "I",
-                                  "eksternReferanseId": "639af3ed-b557-4829-a057-14f8e9d48052",
-                                  "relevanteDatoer": [
+                            {
+                              "data": {
+                                "dokumentoversiktFagsak": {
+                                  "journalposter": [
                                     {
-                                        "dato": "2020-02-02T12:00:00.000000",
-                                        "datotype": "DATO_OPPRETTET"
-                                    }
-                                  ],
-                                  "dokumenter": [
-                                    {
-                                        "dokumentInfoId": "23423535",
-                                        "brevkode": "Brevkode",
-                                        "tittel": "Søknad",
-                                        "dokumentvarianter": [
+                                      "journalpostId": "453876204",
+                                      "behandlingstema": null,
+                                      "antallRetur": null,
+                                      "kanal": "NAV_NO",
+                                      "innsynsregelBeskrivelse": "Standardreglene avgjør om dokumentet vises",
+                                      "sak": {
+                                        "datoOpprettet": "2024-06-20T11:01:14",
+                                        "fagsakId": "4LE7Uo0",
+                                        "fagsaksystem": "KELVIN",
+                                        "sakstype": "FAGSAK",
+                                        "tema": "AAP"
+                                      },
+                                      "dokumenter": [
+                                        {
+                                          "dokumentInfoId": "454271758",
+                                          "tittel": "Søknad om Arbeidsavklaringspenger",
+                                          "brevkode": "NAV 11-13.05",
+                                          "Dokumentstatus": null,
+                                          "datoFerdigstilt": null,
+                                          "originalJournalpostId": "453876204",
+                                          "skjerming": null,
+                                          "logiskeVedlegg": [],
+                                          "dokumentvarianter": [
                                             {
-                                                "filnavn": "arkivfil",
-                                                "variantformat": "ARKIV",
-                                                "brukerHarTilgang": true,
-                                                "filtype": "PDF"
+                                              "variantformat": "ARKIV",
+                                              "filnavn": null,
+                                              "saksbehandlerHarTilgang": false,
+                                              "skjerming": null
                                             },
                                             {
-                                                "filnavn": "originalfil",
-                                                "variantformat": "ORIGINAL",
-                                                "brukerHarTilgang": true,
-                                                "filtype": "JSON"
+                                              "variantformat": "ORIGINAL",
+                                              "filnavn": null,
+                                              "saksbehandlerHarTilgang": false,
+                                              "skjerming": null
                                             }
-                                        ]
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "journalpostId": "453871794",
+                                      "behandlingstema": null,
+                                      "antallRetur": null,
+                                      "kanal": "NAV_NO",
+                                      "innsynsregelBeskrivelse": "Standardreglene avgjør om dokumentet vises",
+                                      "sak": {
+                                        "datoOpprettet": "2024-05-16T14:46:27",
+                                        "fagsakId": "4LE7Uo0",
+                                        "fagsaksystem": "KELVIN",
+                                        "sakstype": "FAGSAK",
+                                        "tema": "AAP"
+                                      },
+                                      "dokumenter": [
+                                        {
+                                          "dokumentInfoId": "454266758",
+                                          "tittel": "Søknad om Arbeidsavklaringspenger",
+                                          "brevkode": "NAV 11-13.05",
+                                          "dokumentstatus": null,
+                                          "datoFerdigstilt": null,
+                                          "originalJournalpostId": "453871794",
+                                          "skjerming": null,
+                                          "logiskeVedlegg": [],
+                                          "dokumentvarianter": [
+                                            {
+                                              "variantformat": "ARKIV",
+                                              "filnavn": null,
+                                              "saksbehandlerHarTilgang": false,
+                                              "skjerming": null
+                                            },
+                                            {
+                                              "variantformat": "ORIGINAL",
+                                              "filnavn": null,
+                                              "saksbehandlerHarTilgang": false,
+                                              "skjerming": null
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "journalpostId": "453870298",
+                                      "behandlingstema": null,
+                                      "antallRetur": null,
+                                      "kanal": "NAV_NO",
+                                      "innsynsregelBeskrivelse": "Standardreglene avgjør om dokumentet vises",
+                                      "sak": {
+                                        "datoOpprettet": "2024-05-03T14:45:57",
+                                        "fagsakId": "4LE7Uo0",
+                                        "fagsaksystem": "KELVIN",
+                                        "sakstype": "FAGSAK",
+                                        "tema": "AAP"
+                                      },
+                                      "dokumenter": [
+                                        {
+                                          "dokumentInfoId": "454265122",
+                                          "tittel": "Søknad om Arbeidsavklaringspenger",
+                                          "brevkode": "NAV 11-13.05",
+                                          "dokumentstatus": null,
+                                          "datoFerdigstilt": null,
+                                          "originalJournalpostId": "453870298",
+                                          "skjerming": null,
+                                          "logiskeVedlegg": [],
+                                          "dokumentvarianter": [
+                                            {
+                                              "variantformat": "ARKIV",
+                                              "filnavn": null,
+                                              "saksbehandlerHarTilgang": false,
+                                              "skjerming": null
+                                            },
+                                            {
+                                              "variantformat": "ORIGINAL",
+                                              "filnavn": null,
+                                              "saksbehandlerHarTilgang": false,
+                                              "skjerming": null
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     }
-                                  ]
+                                  ],
+                                  "sideInfo": {
+                                    "sluttpeker": "NDUzODcwMjk4",
+                                    "finnesNesteSide": false,
+                                    "antall": 3,
+                                    "totaltAntall": 3
+                                  }
                                 }
-                             ]
+                              }
                             }
-                      }
-                    }
                 """.trimIndent(),
                         contentType = ContentType.Application.Json
                     )

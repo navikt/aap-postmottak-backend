@@ -14,7 +14,7 @@ class SafDokumentoversiktFagsakDataResponse(
     extensions: GraphQLExtensions?
 ) : SafResponse(errors, extensions)
 
-data class Dokumentvariant(val variantformat: String /* TODO: enum */, val filnavn: String)
+data class Dokumentvariant(val variantformat: String /* TODO: enum */)
 data class Dokument(
     val dokumentInfoId: String,
     val tittel: String,

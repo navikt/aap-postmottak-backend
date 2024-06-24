@@ -65,6 +65,7 @@ object SafGateway {
                     throw IllegalStateException("Respons inneholdt ikke korrekte headere: $headers")
                 }
 
+                // TODO muligens les body som stream med annen responsebodyhandler
                 val decodedResponse = Base64.getDecoder().decode(body)
                 SafDocumentResponse(dokument = decodedResponse, contentType = contentType, filnavn = filnavn)
             }
@@ -139,13 +140,6 @@ query ($fagsakId: String!)
       kanal
       innsynsregelBeskrivelse
       behandlingstema
-      sak {
-        datoOpprettet
-        fagsakId
-        fagsaksystem
-        sakstype
-        tema
-      } 
       dokumenter {
         dokumentInfoId
         tittel
@@ -160,7 +154,6 @@ query ($fagsakId: String!)
         }
         dokumentvarianter {
           variantformat
-          filnavn
           saksbehandlerHarTilgang
           skjerming
         }
