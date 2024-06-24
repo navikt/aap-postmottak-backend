@@ -34,6 +34,7 @@ class BeregnTilkjentYtelseServiceTest {
             id = 1L, listOf(
                 Underveisperiode(
                     periode = Periode(LocalDate.of(2023, 4, 30), LocalDate.of(2023, 5, 1)),
+                    meldePeriode = null,
                     utfall = Utfall.OPPFYLT,
                     avslagsårsak = null,
                     grenseverdi = Prosent.`100_PROSENT`,
@@ -94,6 +95,7 @@ class BeregnTilkjentYtelseServiceTest {
             id = 1L, listOf(
                 Underveisperiode(
                     periode = Periode(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 1)),
+                    meldePeriode = null,
                     utfall = Utfall.OPPFYLT,
                     avslagsårsak = null,
                     grenseverdi = Prosent.`100_PROSENT`,
@@ -149,6 +151,7 @@ class BeregnTilkjentYtelseServiceTest {
             id = 1L, listOf(
                 Underveisperiode(
                     periode = Periode(LocalDate.of(2023, 12, 30), LocalDate.of(2024, 1, 1)),
+                    meldePeriode = null,
                     utfall = Utfall.OPPFYLT,
                     avslagsårsak = null,
                     grenseverdi = Prosent.`100_PROSENT`,
@@ -221,6 +224,7 @@ class BeregnTilkjentYtelseServiceTest {
             id = 1L, listOf(
                 Underveisperiode(
                     periode = Periode(LocalDate.of(2024, 6, 30), LocalDate.of(2024, 7, 1)),
+                    meldePeriode = null,
                     utfall = Utfall.OPPFYLT,
                     avslagsårsak = null,
                     grenseverdi = Prosent.`100_PROSENT`,
@@ -281,6 +285,7 @@ class BeregnTilkjentYtelseServiceTest {
             id = 1L, listOf(
                 Underveisperiode(
                     periode = Periode(LocalDate.of(2020, 3, 31), LocalDate.of(2020, 4, 1)),
+                    meldePeriode = null,
                     utfall = Utfall.OPPFYLT,
                     avslagsårsak = null,
                     grenseverdi = Prosent.`100_PROSENT`,

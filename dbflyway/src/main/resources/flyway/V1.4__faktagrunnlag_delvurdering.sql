@@ -122,6 +122,7 @@ CREATE TABLE UNDERVEIS_PERIODE
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
     PERIODER_ID   BIGINT                                 NOT NULL REFERENCES UNDERVEIS_PERIODER (ID),
     PERIODE       DATERANGE                              NOT NULL,
+    MELDEPERIODE  DATERANGE                              NULL,
     TIMER_ARBEID  NUMERIC(5, 1)                          NULL,
     UTFALL        VARCHAR(50)                            NOT NULL,
     AVSLAGSARSAK  VARCHAR(50)                            NULL,

@@ -6,6 +6,7 @@ import no.nav.aap.verdityper.Prosent
 
 class Underveisperiode(
     val periode: Periode,
+    val meldePeriode: Periode?,
     val utfall: Utfall,
     val avslagsårsak: UnderveisÅrsak?,
     val grenseverdi: Prosent,

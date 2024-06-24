@@ -59,6 +59,7 @@ class UnderveisRepository(private val connection: DBConnection) {
 
         return Underveisperiode(
             it.getPeriode("periode"),
+            it.getPeriodeOrNull("meldeperiode"),
             it.getEnum("utfall"),
             it.getEnumOrNull("avslagsarsak"),
             Prosent(it.getInt("grenseverdi")),
@@ -87,7 +88,7 @@ class UnderveisRepository(private val connection: DBConnection) {
         val perioderId = connection.executeReturnKey(pliktkorteneQuery)
 
         val query = """
-            INSERT INTO UNDERVEIS_PERIODE (perioder_id, periode, utfall, avslagsarsak, grenseverdi, timer_arbeid, gradering) VALUES (?, ?::daterange, ?, ?, ?, ?, ?)
+            INSERT INTO UNDERVEIS_PERIODE (perioder_id, periode, utfall, avslagsarsak, grenseverdi, timer_arbeid, gradering, meldeperiode) VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?::daterange)
             """.trimIndent()
         connection.executeBatch(query, underveisperioder) {
             setParams { periode ->
@@ -98,6 +99,7 @@ class UnderveisRepository(private val connection: DBConnection) {
                 setInt(5, periode.grenseverdi.prosentverdi())
                 setBigDecimal(6, periode.gradering?.totaltAntallTimer?.antallTimer)
                 setInt(7, periode.gradering?.gradering?.prosentverdi())
+                setPeriode(8, periode.meldePeriode)
             }
         }
 

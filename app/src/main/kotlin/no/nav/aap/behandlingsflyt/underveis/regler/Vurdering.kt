@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.Gradering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis.UnderveisÅrsak
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Utfall
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
+import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.Prosent
 import java.util.*
 
@@ -109,6 +110,10 @@ class Vurdering(
 
     internal fun meldeplikAvslagsårsak(): UnderveisÅrsak? {
         return meldepliktVurdering?.årsak
+    }
+
+    fun meldeperiode(): Periode? {
+        return meldepliktVurdering?.meldeperiode
     }
 
     override fun equals(other: Any?): Boolean {
