@@ -11,6 +11,7 @@ import java.net.http.HttpResponse
 class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHandler {
 
     private val SECURE_LOGGER = LoggerFactory.getLogger("secureLog")
+    private val logger = LoggerFactory.getLogger(DefaultResponseHandler::class.java)
 
     override fun <R> håndter(request: HttpRequest, response: HttpResponse<String>, mapper: (String, HttpHeaders) -> R): R? {
         val status: Int = response.statusCode()
@@ -25,7 +26,9 @@ class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHan
                 return null
             }
 
-            SECURE_LOGGER.info(value)
+            // TODO: logg til sikker log før PRODUKSJON
+            // SECURE_LOGGER.info(value)
+            logger.info(value)
             return mapper(value, response.headers())
         }
         if (status == HttpURLConnection.HTTP_BAD_REQUEST) {
