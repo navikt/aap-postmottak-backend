@@ -8,15 +8,19 @@ import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.OidcToken
 import no.nav.aap.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 import no.nav.aap.requiredConfigForKey
+import no.nav.aap.saf.Dokument
 import no.nav.aap.saf.Journalpost
-import no.nav.aap.verdityper.dokument.DokumentInfoId
-import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.saf.SafDokumentoversiktFagsakDataResponse
 import no.nav.aap.saf.SafResponseHandler
 import no.nav.aap.saf.Variantformat
+import no.nav.aap.verdityper.dokument.DokumentInfoId
+import no.nav.aap.verdityper.dokument.JournalpostId
+import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.http.HttpHeaders
 import java.util.*
+
+val log = LoggerFactory.getLogger(SafGateway::class.java)
 
 object SafGateway {
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
@@ -54,8 +58,11 @@ object SafGateway {
         // Se https://confluence.adeo.no/display/BOA/Enum%3A+Variantformat
         // for gyldige verdier
         val variantFormat = "ARKIV"
+
+        val safURI= konstruerSafRestURL(restUrl, journalpostId, dokumentInfoId, variantFormat)
+        log.info("Kaller SAF meD URL: ${safURI}.")
         val respons = client.get(
-            uri = restUrl.resolve("/${journalpostId}/${dokumentInfoId}/${variantFormat}"),
+            uri = safURI,
             request = GetRequest(currentToken = currentToken),
             mapper = { body, headers ->
                 val contentType = headers.map()["Content-Type"]?.firstOrNull()
@@ -73,6 +80,15 @@ object SafGateway {
 
         return respons!!
     }
+}
+
+fun konstruerSafRestURL(
+    baseUrl: URI,
+    journalpostId: JournalpostId,
+    dokumentInfoId: DokumentInfoId,
+    variantFormat: String
+): URI {
+    return URI.create("$baseUrl/hentdokument/${journalpostId.identifikator}/${dokumentInfoId.dokumentInfoId}/${variantFormat}")
 }
 
 fun extractFileNameFromHeaders(headers: HttpHeaders): String? {
@@ -184,7 +200,7 @@ query ($fagsakId: String!)
           saksbehandlerHarTilgang
           skjerming
         }
-      } 
+      }
     }
     sideInfo {
       sluttpeker

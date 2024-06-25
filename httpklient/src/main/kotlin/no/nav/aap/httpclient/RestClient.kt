@@ -8,7 +8,6 @@ import no.nav.aap.httpclient.request.Request
 import no.nav.aap.httpclient.tokenprovider.OidcToken
 import no.nav.aap.httpclient.tokenprovider.TokenProvider
 import no.nav.aap.json.DefaultJsonMapper
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.net.URI
 import java.net.http.HttpClient
@@ -16,8 +15,6 @@ import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.*
-
-private val log = LoggerFactory.getLogger(RestClient::class.java)
 
 class RestClient(
     private val config: ClientConfig,

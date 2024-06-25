@@ -123,12 +123,12 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                 }
             }
 
-            route("/dokument/{journalPostId}/{dokumentInfoId}") {
+            route("/dokument/{journalpostId}/{dokumentinfoId}") {
                 get<HentDokumentDTO, DokumentResponsDTO> { req ->
                     val journalpostId = req.journalpostId
                     val dokumentInfoId = req.dokumentinfoId
 
-                    val token = pipeline.context.token()
+                    val token = token()
 
                     val dokumentRespons =
                         SafGateway.hentDokument(JournalpostId(journalpostId), DokumentInfoId(dokumentInfoId), token)

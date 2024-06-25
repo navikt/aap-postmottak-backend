@@ -236,6 +236,17 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
 
         routing {
+            get("/rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}") {
+                call.response.header(
+                    HttpHeaders.ContentDisposition,
+                    ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, "ktor_logo.pdf")
+                        .toString()
+                )
+                call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
+                call.respondText(
+                    "JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=="
+                )
+            }
             post("/graphql") {
                 val body = call.receive<String>()
 
