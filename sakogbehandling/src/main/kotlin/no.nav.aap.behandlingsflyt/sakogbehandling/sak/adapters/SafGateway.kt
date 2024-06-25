@@ -71,6 +71,7 @@ object SafGateway {
                     throw IllegalStateException("Respons inneholdt ikke korrekte headere: $headers")
                 }
 
+                log.info("Body fra respons: ${body.substring(0, 100)}")
                 // TODO muligens les body som stream med annen responsebodyhandler
                 val decodedResponse = Base64.getDecoder().decode(body)
                 SafDocumentResponse(dokument = decodedResponse, contentType = contentType, filnavn = filnavn)
