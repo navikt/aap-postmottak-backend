@@ -8,7 +8,6 @@ import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.OidcToken
 import no.nav.aap.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 import no.nav.aap.requiredConfigForKey
-import no.nav.aap.saf.Dokument
 import no.nav.aap.saf.Journalpost
 import no.nav.aap.saf.SafDokumentoversiktFagsakDataResponse
 import no.nav.aap.saf.SafResponseHandler
@@ -59,7 +58,7 @@ object SafGateway {
         // for gyldige verdier
         val variantFormat = "ARKIV"
 
-        val safURI= konstruerSafRestURL(restUrl, journalpostId, dokumentInfoId, variantFormat)
+        val safURI = konstruerSafRestURL(restUrl, journalpostId, dokumentInfoId, variantFormat)
         log.info("Kaller SAF meD URL: ${safURI}.")
         val respons = client.get(
             uri = safURI,

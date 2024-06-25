@@ -51,6 +51,6 @@ class SafGatewayTest {
         val baseURL = URI.create("http://localhost:50309/rest")
         val res = konstruerSafRestURL(baseURL, JournalpostId("1234"), DokumentInfoId("5674"), variantFormat = "ARKIV")
 
-        assertThat(res.toString()).isEqualTo("http://localhost:50309/rest/1234/5674/ARKIV")
+        assertThat(res.toString()).isEqualTo("http://localhost:50309/rest/hentdokument/1234/5674/ARKIV")
     }
 }
