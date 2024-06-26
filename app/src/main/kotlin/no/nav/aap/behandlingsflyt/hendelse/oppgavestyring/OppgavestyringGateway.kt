@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.hendelse.oppgavestyring
 import no.nav.aap.behandlingsflyt.hendelse.avløp.BehandlingFlytStoppetHendelse
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.post
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.requiredConfigForKey
@@ -12,9 +13,9 @@ object OppgavestyringGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.oppgavestyring.url"))
     private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.oppgavestyring.scope"))
 
-    private val client = RestClient(
+    private val client = RestClient.withDefaultResponseHandler(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider
+        tokenProvider = ClientCredentialsTokenProvider,
     )
 
     fun varsleHendelse(hendelse: BehandlingFlytStoppetHendelse) {

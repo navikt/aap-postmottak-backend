@@ -8,6 +8,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.get
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.requiredConfigForKey
@@ -19,12 +20,12 @@ import java.time.format.DateTimeFormatter
 object UføreGateway : UføreRegisterGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.pesys.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.pesys.scope"))
-    private val client = RestClient(
+    private val client = RestClient.withDefaultResponseHandler(
         config = InntektGateway.config,
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    private fun query(uføreRequest: UføreRequest):Int? {
+    private fun query(uføreRequest: UføreRequest): Int? {
         val httpRequest = GetRequest(
             additionalHeaders = listOf(
                 Header("Nav-Personident", uføreRequest.fnr.first().toString()),
@@ -33,16 +34,19 @@ object UføreGateway : UføreRegisterGateway {
             )
         )
 
-        return client.get(uri = url.resolve("vedtak/gradalderellerufore?fom=${uføreRequest.fom}&sakstype=${uføreRequest.sakstype}"), request = httpRequest)
+        return client.get(
+            uri = url.resolve("vedtak/gradalderellerufore?fom=${uføreRequest.fom}&sakstype=${uføreRequest.sakstype}"),
+            request = httpRequest
+        )
     } //TODO: få inn request parameter på en bedre måte
+
     // /springapi/vedtak/gradalderellerufore
-    override fun innhent(person: Person, Fødselsdato: Fødselsdato): Uføre
-    {
+    override fun innhent(person: Person, Fødselsdato: Fødselsdato): Uføre {
         val fom = Fødselsdato.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         val request = UføreRequest(person.identer().map { it.identifikator }, fom) // TODO: fra når skal uføre hentes
         val uføreRes = query(request)
 
-        if(uføreRes == null) return Uføre(uføregrad = Prosent(0))
+        if (uføreRes == null) return Uføre(uføregrad = Prosent(0))
 
         return Uføre(
             uføregrad = Prosent(uføreRes),

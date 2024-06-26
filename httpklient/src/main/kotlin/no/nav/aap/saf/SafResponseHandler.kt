@@ -1,6 +1,5 @@
 package no.nav.aap.saf
 
-import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.error.DefaultResponseHandler
 import no.nav.aap.httpclient.error.RestResponseHandler
 import no.nav.aap.pdl.GraphQLError
@@ -8,9 +7,9 @@ import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-class SafResponseHandler(config: ClientConfig) : RestResponseHandler {
+class SafResponseHandler() : RestResponseHandler<String> {
 
-    private val defaultErrorHandler = DefaultResponseHandler(config)
+    private val defaultErrorHandler = DefaultResponseHandler()
 
     override fun <R> håndter(
         request: HttpRequest,
@@ -31,6 +30,10 @@ class SafResponseHandler(config: ClientConfig) : RestResponseHandler {
         }
 
         return respons
+    }
+
+    override fun bodyHandler(): HttpResponse.BodyHandler<String> {
+        return HttpResponse.BodyHandlers.ofString()
     }
 }
 

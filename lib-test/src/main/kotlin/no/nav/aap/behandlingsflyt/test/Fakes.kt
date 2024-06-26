@@ -48,8 +48,10 @@ import no.nav.aap.yrkesskade.YrkesskadeRequest
 import no.nav.aap.yrkesskade.Yrkesskader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.Year
+import java.util.*
 import no.nav.aap.pdl.PdlRelasjonData as BarnPdlData
 
 class Fakes(azurePort: Int = 0) : AutoCloseable {
@@ -243,9 +245,13 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                         .toString()
                 )
                 call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
-                call.respondText(
-                    "JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=="
-                )
+                // Smallest possible PDF
+                // https://stackoverflow.com/a/17280876/1013553
+                val base64Pdf =  "JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=="
+                call.respondOutputStream {
+                    val decode = Base64.getDecoder().decode(base64Pdf)
+                    ByteArrayInputStream(decode).copyTo(this)
+                }
             }
             post("/graphql") {
                 val body = call.receive<String>()

@@ -1,15 +1,13 @@
 package no.nav.aap.httpclient.error
 
-import no.nav.aap.httpclient.ClientConfig
+import no.nav.aap.httpclient.håndterStatus
 import org.slf4j.LoggerFactory
-import java.net.HttpURLConnection
 import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 
-class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHandler {
-
+class DefaultResponseHandler() : RestResponseHandler<String> {
     private val SECURE_LOGGER = LoggerFactory.getLogger("secureLog")
     private val log = LoggerFactory.getLogger(DefaultResponseHandler::class.java)
 
@@ -18,29 +16,15 @@ class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHan
         response: HttpResponse<String>,
         mapper: (String, HttpHeaders) -> R
     ): R? {
-        val status: Int = response.statusCode()
-        if (status == HttpURLConnection.HTTP_NO_CONTENT) {
-            return null
-        }
-        if ((status >= HttpURLConnection.HTTP_OK && status < HttpURLConnection.HTTP_MULT_CHOICE)
-            || config.isParseableStatus(status)
-        ) {
+        return håndterStatus(response, block = {
             val value = response.body()
             if (value == null || value.isEmpty()) {
-                return null
+                return@håndterStatus null
+            } else {
+                loggRespons(value)
+                return@håndterStatus mapper(value, response.headers())
             }
-
-            loggRespons(value)
-            return mapper(value, response.headers())
-        }
-        if (status == HttpURLConnection.HTTP_BAD_REQUEST) {
-            throw UhåndtertHttpResponsException("$response :: ${response.body()}")
-        }
-        if (status == HttpURLConnection.HTTP_FORBIDDEN) {
-            throw ManglerTilgangException("$response :: ${response.body()}")
-        }
-
-        throw UhåndtertHttpResponsException("Uventet httprespons kode $response")
+        })
     }
 
     private fun loggRespons(value: String?) {
@@ -50,5 +34,9 @@ class DefaultResponseHandler(private val config: ClientConfig) : RestResponseHan
             log.info(value)
         }
         SECURE_LOGGER.info(value)
+    }
+
+    override fun bodyHandler(): HttpResponse.BodyHandler<String> {
+        return HttpResponse.BodyHandlers.ofString()
     }
 }

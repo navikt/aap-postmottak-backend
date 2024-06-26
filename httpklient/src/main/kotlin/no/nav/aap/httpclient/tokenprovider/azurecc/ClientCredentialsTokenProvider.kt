@@ -3,6 +3,7 @@ package no.nav.aap.httpclient.tokenprovider.azurecc
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.post
 import no.nav.aap.httpclient.request.ContentType
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
@@ -20,9 +21,9 @@ object ClientCredentialsTokenProvider : TokenProvider {
 
     private val log: Logger = LoggerFactory.getLogger(ClientCredentialsTokenProvider::class.java)
 
-    private val client = RestClient(
+    private val client = RestClient.withDefaultResponseHandler(
         config = ClientConfig(),
-        tokenProvider = NoTokenTokenProvider()
+        tokenProvider = NoTokenTokenProvider(),
     )
     private val config = AzureConfig() // Laster config on-demand
 

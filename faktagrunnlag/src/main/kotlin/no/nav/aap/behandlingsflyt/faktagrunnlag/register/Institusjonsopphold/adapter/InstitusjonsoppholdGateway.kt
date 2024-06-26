@@ -6,6 +6,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.get
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.institusjon.InstitusjonoppholdRequest
@@ -16,7 +17,7 @@ import java.net.URI
 object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.institusjonsopphold.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrassjon.institusjonsopphold.scope"))
-    private val client = RestClient(
+    private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
     )

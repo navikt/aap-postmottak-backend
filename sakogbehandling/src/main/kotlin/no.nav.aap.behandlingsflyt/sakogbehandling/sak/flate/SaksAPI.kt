@@ -13,7 +13,8 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.Dokument
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafHentDokumentGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafListDokumentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.Periode
@@ -116,7 +117,7 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                     // 1. gjør api-kall graphql med token over
                     // 2. returner som streng
                     // TODO gjør pent
-                    val safRespons = SafGateway.hentDokumenterForSak(Saksnummer(req.saksnummer), token)
+                    val safRespons = SafListDokumentGateway.hentDokumenterForSak(Saksnummer(req.saksnummer), token)
                     respond(
                         safRespons
                     )
@@ -129,15 +130,15 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                     val dokumentInfoId = req.dokumentinfoId
 
                     val token = token()
-
+                    val gateway = SafHentDokumentGateway()
                     val dokumentRespons =
-                        SafGateway.hentDokument(JournalpostId(journalpostId), DokumentInfoId(dokumentInfoId), token)
+                        gateway.hentDokument(JournalpostId(journalpostId), DokumentInfoId(dokumentInfoId), token)
                     pipeline.context.response.headers.append(
                         name = "Content-Disposition",
                         value = "inline; filename=${dokumentRespons.filnavn}"
                     )
 
-                    respond(DokumentResponsDTO(stream = dokumentRespons.dokument.inputStream()))
+                    respond(DokumentResponsDTO(stream = dokumentRespons.dokument))
                 }
             }
 

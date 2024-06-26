@@ -13,14 +13,19 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.util.*
 
-class RestClient(
+class RestClient<K>(
     private val config: ClientConfig,
     private val tokenProvider: TokenProvider,
-    private val errorHandler: RestResponseHandler = DefaultResponseHandler(config)
+    private val errorHandler: RestResponseHandler<K>
 ) {
+
+    companion object {
+        fun withDefaultResponseHandler(config: ClientConfig, tokenProvider: TokenProvider): RestClient<String> {
+            return RestClient(config, tokenProvider, DefaultResponseHandler())
+        }
+    }
 
     private val client = HttpClient.newBuilder()
         .connectTimeout(config.connectionTimeout)
@@ -28,11 +33,7 @@ class RestClient(
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    inline fun <T : Any, reified R> post(uri: URI, request: PostRequest<T>): R? {
-        return post(uri, request) { body, _ -> DefaultJsonMapper.fromJson(body) }
-    }
-
-    fun <T : Any, R> post(uri: URI, request: PostRequest<T>, mapper: (String, HttpHeaders) -> R): R? {
+    fun <T : Any, R> post(uri: URI, request: PostRequest<T>, mapper: (K, HttpHeaders) -> R): R? {
         val httpRequest = HttpRequest.newBuilder(uri)
             .timeout(request.timeout())
             .header("Content-Type", request.contentType())
@@ -44,11 +45,7 @@ class RestClient(
         return executeRequestAndHandleResponse(httpRequest, mapper)
     }
 
-    inline fun <reified R> get(uri: URI, request: GetRequest): R? {
-        return get(uri, request) { body, _ -> DefaultJsonMapper.fromJson(body) }
-    }
-
-    fun <R> get(uri: URI, request: GetRequest, mapper: (String, HttpHeaders) -> R): R? {
+    fun <R> get(uri: URI, request: GetRequest, mapper: (K, HttpHeaders) -> R): R? {
         val httpRequest = HttpRequest.newBuilder(uri)
             .addHeaders(request)
             .addHeaders(config, tokenProvider, request.currentToken())
@@ -59,10 +56,18 @@ class RestClient(
         return executeRequestAndHandleResponse(httpRequest, mapper)
     }
 
-    private fun <R> executeRequestAndHandleResponse(request: HttpRequest, mapper: (String, HttpHeaders) -> R): R? {
-        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+    private fun <R> executeRequestAndHandleResponse(request: HttpRequest, mapper: (K, HttpHeaders) -> R): R? {
+        val response = client.send(request, errorHandler.bodyHandler())
         return errorHandler.håndter(request, response, mapper)
     }
+}
+
+inline fun <reified R> RestClient<String>.get(uri: URI, request: GetRequest): R? {
+    return get(uri, request) { body, _ -> DefaultJsonMapper.fromJson(body) }
+}
+
+inline fun <T : Any, reified R> RestClient<String>.post(uri: URI, request: PostRequest<T>): R? {
+    return post(uri, request) { body, _ -> DefaultJsonMapper.fromJson(body) }
 }
 
 private fun HttpRequest.Builder.addHeaders(restRequest: Request): HttpRequest.Builder {

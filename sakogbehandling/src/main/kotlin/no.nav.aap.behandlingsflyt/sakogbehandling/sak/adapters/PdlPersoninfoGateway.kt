@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersoninfoGateway
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.post
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.OidcToken
 import no.nav.aap.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
@@ -36,7 +37,7 @@ object PdlPersoninfoGateway : PersoninfoGateway {
     private val client = RestClient(
         config = config,
         tokenProvider = OnBehalfOfTokenProvider,
-        errorHandler = PdlResponseHandler(config = config)
+        errorHandler = PdlResponseHandler()
     )
 
     private fun query(request: PdlRequest, currentToken: OidcToken): PdlPersonNavnDataResponse {

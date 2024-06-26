@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.post
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.pdl.IdentVariables
@@ -27,7 +28,7 @@ object PdlPersonopplysningGateway : PersonopplysningGateway {
     private val client = RestClient(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
-        errorHandler = PdlResponseHandler(config)
+        errorHandler = PdlResponseHandler()
     )
 
     private fun query(request: PdlRequest): PdlPersoninfoDataResponse {

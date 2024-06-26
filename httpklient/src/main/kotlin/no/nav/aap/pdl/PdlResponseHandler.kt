@@ -1,15 +1,14 @@
 package no.nav.aap.pdl
 
-import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.error.DefaultResponseHandler
 import no.nav.aap.httpclient.error.RestResponseHandler
 import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-class PdlResponseHandler(config: ClientConfig) : RestResponseHandler {
+class PdlResponseHandler() : RestResponseHandler<String> {
 
-    private val defaultErrorHandler = DefaultResponseHandler(config)
+    private val defaultErrorHandler = DefaultResponseHandler()
 
     override fun <R> håndter(request: HttpRequest, response: HttpResponse<String>, mapper: (String, HttpHeaders) -> R): R? {
         val respons = defaultErrorHandler.håndter(request, response, mapper)
@@ -26,6 +25,10 @@ class PdlResponseHandler(config: ClientConfig) : RestResponseHandler {
         }
 
         return respons
+    }
+
+    override fun bodyHandler(): HttpResponse.BodyHandler<String> {
+        return HttpResponse.BodyHandlers.ofString()
     }
 }
 

@@ -3,7 +3,7 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
-import no.nav.aap.httpclient.request.GetRequest
+import no.nav.aap.httpclient.post
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.OidcToken
 import no.nav.aap.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
@@ -15,13 +15,13 @@ import no.nav.aap.saf.Variantformat
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.dokument.JournalpostId
 import org.slf4j.LoggerFactory
+import java.io.InputStream
 import java.net.URI
 import java.net.http.HttpHeaders
-import java.util.*
 
-val log = LoggerFactory.getLogger(SafGateway::class.java)
+val log = LoggerFactory.getLogger(SafListDokumentGateway::class.java)
 
-object SafGateway {
+object SafListDokumentGateway {
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
     private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
 
@@ -32,7 +32,7 @@ object SafGateway {
     private val client = RestClient(
         config = config,
         tokenProvider = OnBehalfOfTokenProvider,
-        errorHandler = SafResponseHandler(config = config)
+        errorHandler = SafResponseHandler()
     )
 
     private fun query(request: SafRequest, currentToken: OidcToken): SafDokumentoversiktFagsakDataResponse {
@@ -47,38 +47,6 @@ object SafGateway {
         val dokumentoversiktFagsak = response.data?.dokumentoversiktFagsak ?: return emptyList()
 
         return dokumentoversiktFagsak.journalposter.tilArkivDokumenter()
-    }
-
-    fun hentDokument(
-        journalpostId: JournalpostId,
-        dokumentInfoId: DokumentInfoId,
-        currentToken: OidcToken
-    ): SafDocumentResponse {
-        // Se https://confluence.adeo.no/display/BOA/Enum%3A+Variantformat
-        // for gyldige verdier
-        val variantFormat = "ARKIV"
-
-        val safURI = konstruerSafRestURL(restUrl, journalpostId, dokumentInfoId, variantFormat)
-        log.info("Kaller SAF meD URL: ${safURI}.")
-        val respons = client.get(
-            uri = safURI,
-            request = GetRequest(currentToken = currentToken),
-            mapper = { body, headers ->
-                val contentType = headers.map()["Content-Type"]?.firstOrNull()
-                val filnavn: String? = extractFileNameFromHeaders(headers)
-
-                if (contentType == null || filnavn == null) {
-                    throw IllegalStateException("Respons inneholdt ikke korrekte headere: $headers")
-                }
-
-                log.info("Body fra respons: ${body.substring(0, 100)}")
-                // TODO muligens les body som stream med annen responsebodyhandler
-                val decodedResponse = Base64.getDecoder().decode(body)
-                SafDocumentResponse(dokument = decodedResponse, contentType = contentType, filnavn = filnavn)
-            }
-        )
-
-        return respons!!
     }
 }
 
@@ -130,28 +98,7 @@ data class Dokument(
 )
 
 
-data class SafDocumentResponse(val dokument: ByteArray, val contentType: String, val filnavn: String) {
-    // equals, hashCode må implementeres fordi dokument ikke er en immutable klasse
-    // Implementasjon auto-generert av IntelliJ
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as SafDocumentResponse
-
-        if (!dokument.contentEquals(other.dokument)) return false
-        if (contentType != other.contentType) return false
-        if (filnavn != other.filnavn) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = dokument.contentHashCode()
-        result = 31 * result + contentType.hashCode()
-        result = 31 * result + filnavn.hashCode()
-        return result
-    }
+data class SafDocumentResponse(val dokument: InputStream, val contentType: String, val filnavn: String) {
 }
 
 enum class DokumentFormat {

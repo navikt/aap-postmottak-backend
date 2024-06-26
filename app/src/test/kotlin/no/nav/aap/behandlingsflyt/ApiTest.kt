@@ -15,6 +15,9 @@ import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.post
+import no.nav.aap.httpclient.get
+import no.nav.aap.httpclient.error.DefaultResponseHandler
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
@@ -76,7 +79,8 @@ class ApiTest {
 
         val client = RestClient(
             config = ClientConfig(),
-            tokenProvider = NoTokenTokenProvider()
+            tokenProvider = NoTokenTokenProvider(),
+            errorHandler = DefaultResponseHandler()
         )
         val responseSak: SaksinfoDTO? = client.post(
             URI.create("http://localhost:8080/").resolve("api/sak/finnEllerOpprett"),

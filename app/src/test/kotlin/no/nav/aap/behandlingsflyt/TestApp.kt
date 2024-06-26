@@ -20,6 +20,7 @@ import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.behandlingsflyt.test.modell.TestYrkesskade
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.post
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.verdityper.Periode
@@ -97,9 +98,9 @@ fun main() {
                         )
 
 
-                        val client = RestClient(
+                        val client = RestClient.withDefaultResponseHandler(
                             config = ClientConfig(),
-                            tokenProvider = NoTokenTokenProvider()
+                            tokenProvider = NoTokenTokenProvider(),
                         )
                         client.post<_, Unit>(
                             URI.create("http://localhost:8080/").resolve("testdataApi/opprettPerson"),

@@ -8,6 +8,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
+import no.nav.aap.httpclient.post
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.requiredConfigForKey
@@ -18,7 +19,7 @@ import java.time.Year
 object InntektGateway : InntektRegisterGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.inntekt.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.inntekt.scope"))
-    private val client = RestClient(
+    private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
     )
