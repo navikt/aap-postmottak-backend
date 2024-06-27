@@ -65,6 +65,7 @@ spec:
         - host: pdl-api.dev-fss-pub.nais.io
         - host: pensjon-popp-q2.dev-fss-pub.nais.io
       rules:
+        - application: tilgang
         - application: yrkesskade-saker
           namespace: yrkesskade
         - application: oppgavestyring
