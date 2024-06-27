@@ -48,7 +48,7 @@ class HåndterMottattDokumentService(connection: DBConnection) {
                     periode
                 )
 
-            Brevkode.AKTIVITETSKORT -> TODO("Ukjent dokument")
+            Brevkode.AKTIVITETSKORT -> Årsak(EndringType.MOTTATT_AKTIVITETSMELDING, periode)
             Brevkode.UKJENT -> TODO("Ukjent dokument")
         }
     }
