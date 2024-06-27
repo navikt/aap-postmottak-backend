@@ -19,7 +19,7 @@ class SøknadStudentDto(
     fun erStudent(): ErStudentStatus {
       if (erStudent.uppercase() == "JA"){
           return ErStudentStatus.JA
-      } else if (erStudent.uppercase() === "AVBRUTT"){
+      } else if (erStudent.uppercase() == "AVBRUTT"){
           return ErStudentStatus.AVBRUTT
       } else {
           return ErStudentStatus.NEI
