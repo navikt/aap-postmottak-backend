@@ -19,4 +19,5 @@ enum class HammerType {
 class HammerDto(
     val type: HammerType,
     val dato: LocalDate,
+    val begrunnelse: String
 )
