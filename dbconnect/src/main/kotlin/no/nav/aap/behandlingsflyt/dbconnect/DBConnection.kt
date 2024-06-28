@@ -106,9 +106,10 @@ class DBConnection internal constructor(private val connection: Connection) {
         block: Query<T>.() -> Unit,
         extractor: Sequence<T>.() -> U
     ): U {
-        return this.connection.prepareStatement(query).use { preparedStatement ->
+        val queryparser = Queryparser(query)
+        return this.connection.prepareStatement(queryparser.getPreparedQuery()).use { preparedStatement ->
             preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-            val queryStatement = Query<T>(preparedStatement)
+            val queryStatement = Query<T>(preparedStatement, queryparser)
             queryStatement.block()
             val result = queryStatement.executeQuery()
             return@use result.extractor()

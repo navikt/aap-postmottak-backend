@@ -12,20 +12,15 @@ class TestJobbRepository(private val connection: DBConnection) {
                 "FROM JOBB " +
                 "WHERE status not in ('${JobbStatus.FERDIG.name}', '${JobbStatus.FEILET.name}')"
 
-        var params = HashMap<Int, Long>()
+        var params = HashMap<String, Long>()
 
         if (sakId != null) {
-            query += " AND sak_id = ?"
-            params[1] = sakId.toLong()
+            query += " AND sak_id = :sak_id"
+            params["sak_id"] = sakId.toLong()
         }
         if (behandlingId != null) {
-            query += " AND behandling_id = ?"
-            val index = if (sakId != null) {
-                2
-            } else {
-                1
-            }
-            params[index] = behandlingId.toLong()
+            query += " AND behandling_id = :behandling_id"
+            params["behandling_id"] = behandlingId.toLong()
         }
 
 
@@ -33,9 +28,11 @@ class TestJobbRepository(private val connection: DBConnection) {
             connection.queryFirst(
                 query
             ) {
-                setParams {
-                    for (param in params) {
-                        setLong(param.key, param.value)
+                if (params.isNotEmpty()) {
+                    setNamedParams {
+                        for (param in params) {
+                            setLong(param.key, param.value)
+                        }
                     }
                 }
                 setRowMapper {

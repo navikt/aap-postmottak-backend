@@ -2,7 +2,10 @@ package no.nav.aap.behandlingsflyt.dbconnect
 
 import java.sql.PreparedStatement
 
-class Query<T>(private val preparedStatement: PreparedStatement) {
+class Query<T> internal constructor(
+    private val preparedStatement: PreparedStatement,
+    private val queryparser: Queryparser
+) {
     private lateinit var rowMapper: (Row) -> T
     private var queryTimeout = 30
 
@@ -14,12 +17,20 @@ class Query<T>(private val preparedStatement: PreparedStatement) {
 
     fun setParams(block: Params.() -> Unit) {
         assertParams()
+        require(queryparser.isIndexed())
         Params(preparedStatement).block()
     }
 
     fun setParamsAutoIndex(block: ParamsAutoIndex.() -> Unit) {
         assertParams()
+        require(queryparser.isIndexed())
         ParamsAutoIndex(preparedStatement).block()
+    }
+
+    fun setNamedParams(block: NamedParams.() -> Unit) {
+        assertParams()
+        require(queryparser.isNamed())
+        NamedParams(preparedStatement, queryparser).block()
     }
 
     fun setRowMapper(block: (Row) -> T) {
