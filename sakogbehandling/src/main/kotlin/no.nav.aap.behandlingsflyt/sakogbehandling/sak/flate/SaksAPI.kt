@@ -15,7 +15,6 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafHentDokumentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafListDokumentGateway
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.TilgangGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.Periode
@@ -89,13 +88,9 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
             }
             route("/{saksnummer}").get<HentSakDTO, UtvidetSaksinfoDTO> { req ->
                 val saksnummer = req.saksnummer
-                val token = token()
 
                 val (sak, behandlinger) = dataSource.transaction { connection ->
                     val sak = SakRepositoryImpl(connection).hent(saksnummer = Saksnummer(saksnummer))
-
-                    val leseTilgang = TilgangGateway.kanLeseSak(sak.person.identer(), token)
-                    logger.info("Har lesetilgang: $leseTilgang")
 
                     val behandlinger = BehandlingRepositoryImpl(connection).hentAlleFor(sak.id).map { behandling ->
                         BehandlinginfoDTO(

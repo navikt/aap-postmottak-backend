@@ -28,6 +28,15 @@ object TilgangGateway {
         return respons.tilgang
     }
 
+    fun kanSkriveSak(identer: List<Ident>, currentToken: OidcToken): Boolean {
+        val respons = query(
+            "skrive",
+            TilgangRequest(identer.map { it.identifikator }),
+            currentToken = currentToken
+        )
+        return respons.tilgang
+    }
+
     private fun query(endepunkt: String, request: TilgangRequest, currentToken: OidcToken): TilgangResponse {
         val httpRequest = PostRequest(
             body = request,
