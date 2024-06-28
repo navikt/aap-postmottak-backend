@@ -15,6 +15,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafHentDokumentGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.SafListDokumentGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.TilgangGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.PersonRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.verdityper.Periode
@@ -22,12 +23,9 @@ import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.aap.verdityper.sakogbehandling.Ident
-import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
-    val logger = LoggerFactory.getLogger("Saks-api")
-
     route("/api/sak") {
         route("/finn").post<Unit, List<SaksinfoDTO>, FinnSakForIdentDTO> { _, dto ->
             val saker: List<SaksinfoDTO> = dataSource.transaction { connection ->
@@ -142,6 +140,18 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                     )
 
                     respond(DokumentResponsDTO(stream = dokumentRespons.dokument))
+                }
+            }
+
+            route("/{saksnummer}/lesetilgang") {
+                get<HentSakDTO, LesetilgangDTO> { req ->
+                    val saksnummer = req.saksnummer
+                    val sak = dataSource.transaction { connection ->
+                        SakRepositoryImpl(connection).hent(saksnummer = Saksnummer(saksnummer))
+                    }
+                    val harLesetilgang =
+                        TilgangGateway.kanLeseSak(identer = sak.person.identer(), currentToken = token())
+                    respond(LesetilgangDTO(harLesetilgang))
                 }
             }
 
