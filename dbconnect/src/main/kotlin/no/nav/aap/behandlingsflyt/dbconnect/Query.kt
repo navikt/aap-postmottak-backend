@@ -6,8 +6,20 @@ class Query<T>(private val preparedStatement: PreparedStatement) {
     private lateinit var rowMapper: (Row) -> T
     private var queryTimeout = 30
 
+    private var paramsSet = false
+    private fun assertParams() {
+        require(!paramsSet) { "Kan ikke sette paramertre flere ganger" }
+        paramsSet = true
+    }
+
     fun setParams(block: Params.() -> Unit) {
+        assertParams()
         Params(preparedStatement).block()
+    }
+
+    fun setParamsAutoIndex(block: ParamsAutoIndex.() -> Unit) {
+        assertParams()
+        ParamsAutoIndex(preparedStatement).block()
     }
 
     fun setRowMapper(block: (Row) -> T) {
