@@ -18,18 +18,27 @@ class MottattDokument(
     private val strukturertDokument: StrukturerteData?
 ) {
 
-    fun <T> strukturerteData(): StrukturertDokument<T>? {
+    fun <T> strukturerteData(): StrukturertDokument<out T>? {
         if (strukturertDokument == null) {
             return null
         }
-        if (strukturertDokument is LazyStrukturertDokument) {
-            val data = strukturertDokument.hent<T>()
-            if (data != null) {
-                return StrukturertDokument(data, brevkode = strukturertDokument.brevkode)
+        when (strukturertDokument) {
+            is LazyStrukturertDokument -> {
+                val data = strukturertDokument.hent<T>()
+                if (data != null) {
+                    return StrukturertDokument(data, brevkode = strukturertDokument.brevkode)
+                }
+                return null
             }
-            return null
+
+            is StrukturertDokument<*> -> {
+                return strukturertDokument as StrukturertDokument<T>
+            }
+
+            else -> {
+                throw IllegalStateException("Ukjent type strukturert dokument")
+            }
         }
-        return strukturertDokument as StrukturertDokument<T>?
     }
 
     fun ustrukturerteData(): String? {

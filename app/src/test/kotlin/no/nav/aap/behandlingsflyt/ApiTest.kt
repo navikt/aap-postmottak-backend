@@ -15,9 +15,9 @@ import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.RestClient
-import no.nav.aap.httpclient.post
-import no.nav.aap.httpclient.get
 import no.nav.aap.httpclient.error.DefaultResponseHandler
+import no.nav.aap.httpclient.get
+import no.nav.aap.httpclient.post
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.request.PostRequest
 import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
@@ -108,7 +108,7 @@ class ApiTest {
         Thread.sleep(Duration.ofSeconds(10))
 
         data class EndringDTO(
-            val status: no.nav.aap.behandlingsflyt.avklaringsbehov.Status,
+            val status: no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status,
             val tidsstempel: LocalDateTime = LocalDateTime.now(),
             val begrunnelse: String,
             val endretAv: String
@@ -116,7 +116,7 @@ class ApiTest {
 
         data class AvklaringsbehovDTO(
             val definisjon: Any,
-            val status: no.nav.aap.behandlingsflyt.avklaringsbehov.Status,
+            val status: no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status,
             val endringer: List<EndringDTO>
         )
 

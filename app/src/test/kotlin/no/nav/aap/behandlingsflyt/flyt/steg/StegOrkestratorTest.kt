@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt.steg
 
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.behandlingsflyt.avklaringsbehov.FakePdlGateway
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.FakePdlGateway
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.faktagrunnlag.SakOgBehandlingService

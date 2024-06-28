@@ -17,6 +17,7 @@ class LazyStrukturertDokument(
     private val connection: DBConnection
 ) : StrukturerteData {
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> hent(): T? {
         val strukturerteData =
             connection.queryFirstOrNull("SELECT strukturert_dokument FROM MOTTATT_DOKUMENT WHERE journalpost = ?") {
@@ -30,12 +31,11 @@ class LazyStrukturertDokument(
         if (strukturerteData == null) {
             return null
         }
-        log.info(strukturerteData)
         return when (brevkode) {
             Brevkode.SØKNAD -> DefaultJsonMapper.fromJson(strukturerteData, Søknad::class.java) as T
             Brevkode.PLIKTKORT -> DefaultJsonMapper.fromJson(strukturerteData, Pliktkort::class.java) as T
-            Brevkode.UKJENT -> throw IllegalArgumentException("Ukjent brevkode")
             Brevkode.AKTIVITETSKORT -> DefaultJsonMapper.fromJson(strukturerteData, TorsHammerDto::class.java) as T
+            Brevkode.UKJENT -> throw IllegalArgumentException("Ukjent brevkode")
         }
     }
 

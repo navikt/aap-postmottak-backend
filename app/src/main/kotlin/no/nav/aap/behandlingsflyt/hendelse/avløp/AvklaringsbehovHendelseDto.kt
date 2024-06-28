@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.hendelse.avløp
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Status
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import no.nav.aap.verdityper.flyt.StegType
 import java.time.LocalDate
 import java.time.LocalDateTime

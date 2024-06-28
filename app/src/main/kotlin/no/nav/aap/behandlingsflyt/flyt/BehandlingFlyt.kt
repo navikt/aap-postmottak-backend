@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
@@ -137,7 +137,9 @@ class BehandlingFlyt private constructor(
         val stegene = stegene()
         return Definisjon.entries
             .filter { def ->
-                stegene.contains(def.løsesISteg) && def.erFrivillig() && stegene.indexOf(aktivtSteg) >= stegene.indexOf(def.løsesISteg)
+                stegene.contains(def.løsesISteg) && def.erFrivillig() && stegene.indexOf(aktivtSteg) >= stegene.indexOf(
+                    def.løsesISteg
+                )
             }
     }
 

@@ -25,7 +25,7 @@ class GjenopptakRepository(private val connection: DBConnection) {
 
         return connection.queryList(query) {
             setParams {
-                setEnumName(1, no.nav.aap.behandlingsflyt.avklaringsbehov.Status.OPPRETTET)
+                setEnumName(1, no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status.OPPRETTET)
             }
             setRowMapper { row ->
                 SakOgBehandling(sakId = SakId(row.getLong("sak_id")), behandlingId = BehandlingId(row.getLong("id")))

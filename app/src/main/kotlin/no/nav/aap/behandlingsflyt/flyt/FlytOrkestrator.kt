@@ -1,10 +1,9 @@
 package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.behandlingsflyt.avklaringsbehov.AvklaringsbehovRepositoryImpl
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Avklaringsbehovene
-import no.nav.aap.behandlingsflyt.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.InformasjonskravGrunnlag
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
@@ -245,7 +244,7 @@ class FlytOrkestrator(
 
     private fun validerPlassering(
         behandlingFlyt: BehandlingFlyt,
-        åpneAvklaringsbehov: List<Avklaringsbehov>
+        åpneAvklaringsbehov: List<no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov>
     ) {
         val nesteSteg = behandlingFlyt.aktivtStegType()
         val uhåndterteBehov = åpneAvklaringsbehov
