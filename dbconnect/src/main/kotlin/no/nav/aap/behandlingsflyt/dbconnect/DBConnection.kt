@@ -29,11 +29,16 @@ class DBConnection internal constructor(private val connection: Connection) {
         elements: Iterable<T>,
         block: ExecuteBatch<T>.() -> Unit = {}
     ) {
-        return this.connection.prepareStatement(query).use { preparedStatement ->
-            preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
-            val executeStatement = ExecuteBatch(preparedStatement, elements)
-            executeStatement.block()
-            executeStatement.execute()
+        if (elements.none()) {
+            return
+        }
+        elements.chunked(8000).forEach { subelement ->
+            this.connection.prepareStatement(query).use { preparedStatement ->
+                preparedStatement.queryTimeout = QUERY_TIMEOUT_IN_SECONDS
+                val executeStatement = ExecuteBatch(preparedStatement, subelement)
+                executeStatement.block()
+                executeStatement.execute()
+            }
         }
     }
 
