@@ -17,6 +17,7 @@ const val FRITAK_MELDEPLIKT_KODE = "5005"
 const val AVKLAR_BISTANDSBEHOV_KODE = "5006"
 const val VURDER_SYKEPENGEERSTATNING_KODE = "5007"
 const val FASTSETT_BEREGNINGSTIDSPUNKT_KODE = "5008"
+const val AVKLAR_BARNETILLEGG_KODE = "5009"
 const val KVALITETSSIKRING_KODE = "5097"
 const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
@@ -84,6 +85,12 @@ enum class Definisjon(
         kode = VURDER_SYKEPENGEERSTATNING_KODE,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.VURDER_SYKEPENGEERSTATNING,
+        kreverToTrinn = true
+    ),
+    AVKLAR_BARNETILLEGG(
+        kode = AVKLAR_BARNETILLEGG_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.BARNETILLEGG,
         kreverToTrinn = true
     ),
     FORESLÅ_VEDTAK(
