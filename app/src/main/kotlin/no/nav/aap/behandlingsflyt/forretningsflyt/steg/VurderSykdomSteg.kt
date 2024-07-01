@@ -52,7 +52,7 @@ class VurderSykdomSteg private constructor(
                 return StegResultat(listOf(Definisjon.AVKLAR_SYKDOM))
             } else {
                 val avklaringsbehov = avklaringsbehovene.hentBehovForDefinisjon(Definisjon.AVKLAR_SYKDOM)
-                if (avklaringsbehov != null && avklaringsbehov.erÅpent()) {
+                if (avklaringsbehov != null && avklaringsbehov.erÅpent() && studentVurdering?.erOppfylt() == true) {
                     avklaringsbehovene.avbryt(Definisjon.AVKLAR_SYKDOM)
                 }
             }
