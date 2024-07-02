@@ -122,7 +122,7 @@ class SakRepositoryImpl(private val connection: DBConnection) : SakRepository, S
     }
 
     override fun hent(saksnummer: Saksnummer): Sak {
-        return connection.queryFirst("SELECT id, saksnummer, person_id, rettighetsperiode, status FROM SAK WHERE saksnummer = ?") {
+        return connection.queryFirst("SELECT * FROM SAK WHERE saksnummer = ?") {
             setParams {
                 setString(1, saksnummer.toString())
             }
