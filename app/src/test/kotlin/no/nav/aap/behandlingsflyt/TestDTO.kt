@@ -11,8 +11,11 @@ data class OpprettTestcaseDTO(
     @JsonProperty(value = "ident", required = true) val ident: String,
     @JsonProperty(value = "fødselsdato", required = true) val fødselsdato: LocalDate,
     @NotNull @JsonProperty(value = "yrkesskade", defaultValue = "false") val yrkesskade: Boolean,
-    @NotNull @JsonProperty(value = "student", defaultValue = "false") val student: Boolean
+    @NotNull @JsonProperty(value = "student", defaultValue = "false") val student: Boolean,
+    @NotNull @JsonProperty(value = "barn") val barn: List<TestBarn> = emptyList()
 )
+
+data class TestBarn(@JsonProperty(value = "fodselsdato", required = true) val fodselsdato: LocalDate)
 
 data class OpprettTestPersonDto(
     @JsonProperty(value = "fødselsdato", required = true) val fødselsdato: LocalDate,

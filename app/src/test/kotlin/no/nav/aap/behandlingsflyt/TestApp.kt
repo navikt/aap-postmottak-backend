@@ -62,11 +62,14 @@ fun main() {
         apiRouting {
             route("/testdataApi/opprettPerson") {
                 post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
+                    val barn = dto.barn.map { genererBarn(it) }
+                    barn.forEach { fakes.leggTil(it) }
                     fakes.leggTil(
                         TestPerson(
                             identer = setOf(Ident(dto.ident)),
                             fødselsdato = Fødselsdato(dto.fødselsdato),
-                            yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList()
+                            yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList(),
+                            barn = barn
                         )
                     )
 
@@ -142,6 +145,16 @@ fun main() {
         }
 
     }.start(wait = true)
+}
+
+private fun genererBarn(dto: TestBarn): TestPerson {
+    val ident = genererIdent(dto.fodselsdato)
+
+    return TestPerson(
+        identer = setOf(ident),
+        fødselsdato = Fødselsdato(dto.fodselsdato),
+        yrkesskade = emptyList()
+    )
 }
 
 fun mapTilSøknad(dto: OpprettTestcaseDTO): Søknad {
