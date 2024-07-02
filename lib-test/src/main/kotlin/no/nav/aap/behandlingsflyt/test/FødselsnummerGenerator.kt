@@ -120,7 +120,9 @@ enum class Kjønn {
     KVINNE,
     MANN;
 
-    fun randomKjonn(): Kjønn {
-        return Kjønn.entries.random()
+    companion object {
+        fun random(): Kjønn {
+            return Kjønn.entries.random()
+        }
     }
 }

@@ -219,7 +219,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 when (req.query) {
                     IDENT_QUERY -> call.respond(identer(req))
                     PERSON_QUERY -> call.respond(personopplysninger(req))
-                    PERSONINFO_QUERY -> call.respond(navn())
+                    PERSONINFO_QUERY -> call.respond(navn(req))
                     BARN_RELASJON_QUERY -> call.respond(barnRelasjoner(req))
                     PERSON_BOLK_QUERY -> call.respond(barn(req))
                     else -> call.respond(HttpStatusCode.BadRequest)
@@ -247,7 +247,8 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
                 // Smallest possible PDF
                 // https://stackoverflow.com/a/17280876/1013553
-                val base64Pdf =  "JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=="
+                val base64Pdf =
+                    "JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=="
                 call.respondOutputStream {
                     val decode = Base64.getDecoder().decode(base64Pdf)
                     ByteArrayInputStream(decode).copyTo(this)
@@ -551,12 +552,19 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         )
     }
 
-    private fun navn(): PdlPersonNavnDataResponse {
+    private fun navn(req: PdlRequest): PdlPersonNavnDataResponse {
+        val testPerson = hentEllerGenererTestPerson(req.variables.ident ?: "")
         return PdlPersonNavnDataResponse(
             errors = null,
             extensions = null,
             data = PdlNavnData(
-                navn = listOf(PdlNavn(fornavn = "Testo", mellomnavn = null, etternavn = "Steron"))
+                navn = listOf(
+                    PdlNavn(
+                        fornavn = testPerson.navn.fornavn,
+                        mellomnavn = null,
+                        etternavn = testPerson.navn.etternavn
+                    )
+                )
             ),
         )
     }
