@@ -8,7 +8,6 @@ import java.time.LocalDate
 
 @Response(statusCode = 202)
 data class OpprettTestcaseDTO(
-    @JsonProperty(value = "ident", required = true) val ident: String,
     @JsonProperty(value = "fødselsdato", required = true) val fødselsdato: LocalDate,
     @NotNull @JsonProperty(value = "yrkesskade", defaultValue = "false") val yrkesskade: Boolean,
     @NotNull @JsonProperty(value = "student", defaultValue = "false") val student: Boolean,

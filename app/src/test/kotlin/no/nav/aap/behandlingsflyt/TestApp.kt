@@ -66,7 +66,7 @@ fun main() {
                     barn.forEach { fakes.leggTil(it) }
                     fakes.leggTil(
                         TestPerson(
-                            identer = setOf(Ident(dto.ident)),
+                            identer = setOf(genererIdent(dto.fødselsdato)),
                             fødselsdato = Fødselsdato(dto.fødselsdato),
                             yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList(),
                             barn = barn
@@ -94,7 +94,7 @@ fun main() {
                 route("/opprett") {
                     post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
 
-                        val ident = Ident(dto.ident)
+                        val ident = genererIdent(dto.fødselsdato)
                         val periode = Periode(
                             LocalDate.now(),
                             LocalDate.now().plusYears(3)
