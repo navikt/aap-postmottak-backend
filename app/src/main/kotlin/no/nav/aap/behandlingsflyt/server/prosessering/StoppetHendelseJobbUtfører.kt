@@ -37,5 +37,13 @@ class StoppetHendelseJobbUtfører(
         override fun type(): String {
             return "flyt.hendelse"
         }
+
+        override fun navn(): String {
+            return "Oppgavestyrings hendelse"
+        }
+
+        override fun beskrivelse(): String {
+            return "Produsere hendelse til oppgavestyring"
+        }
     }
 }

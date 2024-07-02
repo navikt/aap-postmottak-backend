@@ -20,6 +20,8 @@ fun NormalOpenAPIRoute.motorApi(dataSource: DataSource) {
                             JobbInfoDto(
                                 id = info.jobbId(),
                                 type = info.type(),
+                                navn = info.navn(),
+                                beskrivelse = info.beskrivelse(),
                                 status = info.status(),
                                 antallFeilendeForsøk = info.antallRetriesForsøkt(),
                                 feilmelding = pair.second,
@@ -41,9 +43,11 @@ fun NormalOpenAPIRoute.motorApi(dataSource: DataSource) {
                             id = info.jobbId(),
                             type = info.type(),
                             status = info.status(),
-                            antallFeilendeForsøk = 0,
                             planlagtKjøretidspunkt = info.nesteKjøring(),
-                            metadata = mapOf()
+                            metadata = mapOf(),
+                            antallFeilendeForsøk = 0,
+                            beskrivelse = info.beskrivelse(),
+                            navn = info.navn()
                         )
                     }
                 }

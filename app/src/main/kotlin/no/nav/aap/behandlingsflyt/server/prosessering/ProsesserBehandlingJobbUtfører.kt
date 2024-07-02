@@ -35,5 +35,13 @@ class ProsesserBehandlingJobbUtfører(
         override fun type(): String {
             return "flyt.prosesserBehandling"
         }
+
+        override fun navn(): String {
+            return "Prosesser behandling"
+        }
+
+        override fun beskrivelse(): String {
+            return "Ansvarlig for å drive prosessen på en gitt behandling"
+        }
     }
 }

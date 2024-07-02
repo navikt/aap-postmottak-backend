@@ -65,5 +65,13 @@ class HendelseMottattHåndteringOppgaveUtfører(connection: DBConnection) : Jobb
         override fun type(): String {
             return "hendelse.håndterer"
         }
+
+        override fun navn(): String {
+            return "Hendelses håndterer"
+        }
+
+        override fun beskrivelse(): String {
+            return "Håndterer hendelser på en gitt sak. Knytter de nye opplysningene til rett behandling og oppretter behandling hvis det er behov for det."
+        }
     }
 }

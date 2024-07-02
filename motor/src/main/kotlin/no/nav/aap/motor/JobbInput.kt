@@ -137,4 +137,12 @@ class JobbInput(internal val jobb: Jobb) {
         return requireNotNull(nesteKjøring)
     }
 
+    fun navn(): String {
+        return jobb.navn()
+    }
+
+    fun beskrivelse(): String {
+        return jobb.beskrivelse()
+    }
+
 }

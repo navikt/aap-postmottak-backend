@@ -18,5 +18,13 @@ class TullTestJobbUtfører() : JobbUtfører {
         override fun type(): String {
             return "Tull"
         }
+
+        override fun navn(): String {
+            return "tull"
+        }
+
+        override fun beskrivelse(): String {
+            return "tull"
+        }
     }
 }

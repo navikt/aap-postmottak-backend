@@ -67,10 +67,12 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                     id = it.jobbId(),
                                     type = it.type(),
                                     status = it.status(),
+                                    planlagtKjøretidspunkt = it.nesteKjøring(),
+                                    metadata = mapOf(),
                                     antallFeilendeForsøk = it.antallRetriesForsøkt(),
                                     feilmelding = hentFeilmeldingHvisBehov(it.status(), it.jobbId(), flytJobbRepository),
-                                    planlagtKjøretidspunkt = it.nesteKjøring(),
-                                    metadata = mapOf()
+                                    beskrivelse = it.beskrivelse(),
+                                    navn = it.navn()
                                 )
                             })
                     BehandlingFlytOgTilstandDto(

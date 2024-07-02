@@ -18,5 +18,13 @@ class TøysTestJobbUtfører() : JobbUtfører {
         override fun type(): String {
             return "tøys"
         }
+
+        override fun navn(): String {
+            return type()
+        }
+
+        override fun beskrivelse(): String {
+            return type()
+        }
     }
 }

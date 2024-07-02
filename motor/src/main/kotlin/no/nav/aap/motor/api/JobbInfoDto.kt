@@ -10,5 +10,7 @@ class JobbInfoDto(
     val planlagtKjøretidspunkt: LocalDateTime,
     val metadata: Map<String, String>,
     val antallFeilendeForsøk: Int = 0,
-    val feilmelding: String? = null
+    val feilmelding: String? = null,
+    val beskrivelse: String,
+    val navn: String
 )

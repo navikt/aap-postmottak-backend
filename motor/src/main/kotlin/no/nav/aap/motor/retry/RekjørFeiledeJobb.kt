@@ -27,6 +27,14 @@ internal class RekjørFeiledeJobb(private val repository: RetryFeiledeJobberRepo
             return OPPGAVE_TYPE
         }
 
+        override fun navn(): String {
+            return "Rekjør feilende jobber"
+        }
+
+        override fun beskrivelse(): String {
+            return "Finner feilende jobber og markerer disse som klar for nytt forsøk ved hver kjøring av denne jobben."
+        }
+
         override fun cron(): CronExpression {
             return CronExpression.create("0 0,15,30,45 7-17,20 * * *")
         }

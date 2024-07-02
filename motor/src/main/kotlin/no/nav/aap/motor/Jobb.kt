@@ -9,6 +9,10 @@ interface Jobb {
 
     fun type(): String
 
+    fun navn(): String
+
+    fun beskrivelse(): String
+
     /**
      * Antall ganger oppgaven prøves før den settes til feilet
      */

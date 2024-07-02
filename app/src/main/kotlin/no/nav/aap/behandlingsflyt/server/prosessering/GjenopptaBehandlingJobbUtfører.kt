@@ -42,6 +42,14 @@ class GjenopptaBehandlingJobbUtfører(
             return "batch.gjenopptaBehandlinger"
         }
 
+        override fun navn(): String {
+            return "Gjenoppta behandling"
+        }
+
+        override fun beskrivelse(): String {
+            return "Finner behandlinger som er satt på vent og fristen har løpt ut. Gjenopptar behandlingen av disse slik at saksbehandler kan fortsette på saksbehandling av saken"
+        }
+
         override fun cron(): CronExpression {
             return CronExpression.create("0 0 7 * * *")
         }
