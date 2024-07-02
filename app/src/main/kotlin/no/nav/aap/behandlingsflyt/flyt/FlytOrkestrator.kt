@@ -158,6 +158,7 @@ class FlytOrkestrator(
                 if (neste == null) {
                     // Avslutter behandling
                     log.info("Behandlingen har nådd slutten, avslutter behandling")
+                    behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
                 } else {
                     // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
                     loggStopp(behandling, avklaringsbehovene)
