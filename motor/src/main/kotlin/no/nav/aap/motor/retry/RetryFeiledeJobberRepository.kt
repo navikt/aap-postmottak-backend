@@ -125,7 +125,6 @@ internal class RetryFeiledeJobberRepository(private val connection: DBConnection
             FROM JOBB j WHERE status = 'FEILET'
         """.trimIndent()
         return connection.queryList(query) {
-            setParams { }
             setRowMapper { row ->
                 mapOppgaveInklusivFeilmelding(row)
             }
