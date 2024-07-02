@@ -5,8 +5,8 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbRepository
 import no.nav.aap.motor.JobbStatus
 import no.nav.aap.motor.JobbType
-import no.nav.aap.motor.mapOppgave
-import no.nav.aap.motor.mapOppgaveInklusivFeilmelding
+import no.nav.aap.motor.mapJobb
+import no.nav.aap.motor.mapJobbInklusivFeilmelding
 import java.time.LocalDateTime
 
 internal class RetryFeiledeJobberRepository(private val connection: DBConnection) {
@@ -126,7 +126,7 @@ internal class RetryFeiledeJobberRepository(private val connection: DBConnection
         """.trimIndent()
         return connection.queryList(query) {
             setRowMapper { row ->
-                mapOppgaveInklusivFeilmelding(row)
+                mapJobbInklusivFeilmelding(row)
             }
         }
     }
@@ -142,7 +142,7 @@ internal class RetryFeiledeJobberRepository(private val connection: DBConnection
                 setString(1, type)
             }
             setRowMapper {
-                mapOppgave(it)
+                mapJobb(it)
             }
         }
     }

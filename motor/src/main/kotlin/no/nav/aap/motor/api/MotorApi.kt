@@ -23,6 +23,7 @@ fun NormalOpenAPIRoute.motorApi(dataSource: DataSource) {
                                 status = info.status(),
                                 antallFeilendeForsøk = info.antallRetriesForsøkt(),
                                 feilmelding = pair.second,
+                                planlagtKjøretidspunkt = info.nesteKjøring(),
                                 metadata = JobbLogInfoProviderHolder.get().hentInformasjon(connection, info)?.felterMedVerdi
                                     ?: mapOf()
                             )
@@ -41,6 +42,7 @@ fun NormalOpenAPIRoute.motorApi(dataSource: DataSource) {
                             type = info.type(),
                             status = info.status(),
                             antallFeilendeForsøk = info.antallRetriesForsøkt(),
+                            planlagtKjøretidspunkt = info.nesteKjøring(),
                             metadata = mapOf()
                         )
                     }

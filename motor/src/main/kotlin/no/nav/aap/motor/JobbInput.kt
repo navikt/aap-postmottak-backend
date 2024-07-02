@@ -133,4 +133,8 @@ class JobbInput(internal val jobb: Jobb) {
         return requireNotNull(id)
     }
 
+    fun nesteKjøring(): LocalDateTime {
+        return requireNotNull(nesteKjøring)
+    }
+
 }

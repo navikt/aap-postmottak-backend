@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 
-fun mapOppgave(row: Row): JobbInput {
+fun mapJobb(row: Row): JobbInput {
     return JobbInput(JobbType.parse(row.getString("type")))
         .medId(row.getLong("id"))
         .medStatus(row.getEnum("status"))
@@ -13,11 +13,12 @@ fun mapOppgave(row: Row): JobbInput {
             row.getLongOrNull("sak_id")?.let(::SakId),
             row.getLongOrNull("behandling_id")?.let(::BehandlingId)
         )
+        .medNesteKjøring(row.getLocalDateTime("neste_kjoring"))
         .medAntallFeil(row.getLong("antall_feil"))
 }
 
-fun mapOppgaveInklusivFeilmelding(row: Row): Pair<JobbInput, String> {
-    return mapOppgave(row) to row.getString("feilmelding")
+fun mapJobbInklusivFeilmelding(row: Row): Pair<JobbInput, String> {
+    return mapJobb(row) to row.getString("feilmelding")
 }
 
 class FlytJobbRepository(private val connection: DBConnection) {
@@ -40,7 +41,7 @@ class FlytJobbRepository(private val connection: DBConnection) {
                 setLong(1, id.toLong())
             }
             setRowMapper { row ->
-                mapOppgave(row)
+                mapJobb(row)
             }
         }
     }
