@@ -41,7 +41,7 @@ fun NormalOpenAPIRoute.motorApi(dataSource: DataSource) {
                             id = info.jobbId(),
                             type = info.type(),
                             status = info.status(),
-                            antallFeilendeForsøk = info.antallRetriesForsøkt(),
+                            antallFeilendeForsøk = 0,
                             planlagtKjøretidspunkt = info.nesteKjøring(),
                             metadata = mapOf()
                         )
