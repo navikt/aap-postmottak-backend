@@ -6,17 +6,13 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
 class BarnVurderingGrunnlag(
-    val id: Long,
-    val behandlingId: BehandlingId,
-    val vurdering: BarnVurdering
+    val id: Long, val behandlingId: BehandlingId, val vurdering: BarnVurdering
 ) {
-    fun Tidslinjer(): Tidslinje<Set<Ident>> {
+    fun tidslinje(): Tidslinje<Set<Ident>> {
         return Tidslinje(vurdering.barn.map { barnVurderingPeriode ->
             Segment(
-                verdi = barnVurderingPeriode.barn,
-                periode = barnVurderingPeriode.periode
+                verdi = barnVurderingPeriode.barn, periode = barnVurderingPeriode.periode
             )
-        }
-        )
+        })
     }
 }

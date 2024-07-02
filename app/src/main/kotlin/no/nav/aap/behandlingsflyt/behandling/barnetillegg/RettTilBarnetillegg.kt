@@ -5,7 +5,12 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 class RettTilBarnetillegg(barn:Set<Ident> = emptySet()) {
     private val barn = barn.toMutableSet()
 
-    fun leggTilBarn(ident: Set<Ident>): RettTilBarnetillegg {
+    fun leggTilFolkeregisterBarn(ident: Set<Ident>): RettTilBarnetillegg {
+        barn.addAll(ident)
+        return this
+    }
+
+    fun leggTilAndreBarn(ident: Set<Ident>): RettTilBarnetillegg {
         barn.addAll(ident)
         return this
     }
