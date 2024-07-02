@@ -101,7 +101,6 @@ class StudentRepository(private val connection: DBConnection) {
                 setBoolean(3, studentvurdering.godkjentStudieAvLånekassen)
                 setBoolean(4, studentvurdering.avbruttPgaSykdomEllerSkade)
                 setBoolean(5, studentvurdering.harBehovForBehandling)
-                setBoolean(6, studentvurdering.skalGjenopptaStudie)
                 setLocalDate(7, studentvurdering.avbruttStudieDato)
                 setBoolean(8, studentvurdering.avbruddMerEnn6Måneder)
             }
@@ -212,7 +211,6 @@ class StudentRepository(private val connection: DBConnection) {
                     it.getBoolean("godkjent_studie_av_laanekassen"),
                     it.getBoolean("avbrutt_pga_sykdom_eller_skade"),
                     it.getBoolean("har_behov_for_behandling"),
-                    it.getBoolean("skal_gjenoppta_studie"),
                     it.getLocalDate("avbrutt_dato"),
                     it.getBoolean("avbrudd_mer_enn_6_maaneder"),
                     hentDokumenterTilVurdering(studentId),

@@ -608,7 +608,6 @@ class FlytOrkestratorTest {
                             avbruddMerEnn6Måneder = true,
                             harBehovForBehandling = true,
                             harAvbruttStudie = true,
-                            skalGjenopptaStudie = true,
                             avbruttPgaSykdomEllerSkade = true,
                             godkjentStudieAvLånekassen = false,
                         )
