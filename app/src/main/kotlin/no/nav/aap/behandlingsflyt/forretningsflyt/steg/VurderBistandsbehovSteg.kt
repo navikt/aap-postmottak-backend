@@ -37,8 +37,8 @@ class VurderBistandsbehovSteg private constructor(
             if (studentVurdering?.erOppfylt() == true || bistandsGrunnlag != null) {
                 for (periode in kontekst.perioderTilVurdering) {
                     val grunnlag = BistandFaktagrunnlag(
-                        periode.fom,
-                        periode.tom,
+                        periode.periode.fom,
+                        periode.periode.tom,
                         bistandsGrunnlag?.vurdering,
                         studentGrunnlag?.studentvurdering
                     )
@@ -49,7 +49,7 @@ class VurderBistandsbehovSteg private constructor(
 
             val vilkår = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
 
-            if (harBehovForAvklaring(vilkår, kontekst.perioderTilVurdering, studentVurdering?.erOppfylt() == true)) {
+            if (harBehovForAvklaring(vilkår, kontekst.perioder(), studentVurdering?.erOppfylt() == true)) {
                 return StegResultat(listOf(Definisjon.AVKLAR_BISTANDSBEHOV))
             }
         }

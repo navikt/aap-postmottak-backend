@@ -32,7 +32,7 @@ class VurderSykdomSteg private constructor(
             val studentVurdering = studentGrunnlag?.studentvurdering
 
             if (sykdomsGrunnlag != null && sykdomsGrunnlag.erKonsistent() || studentVurdering?.erOppfylt() == true) {
-                for (periode in kontekst.perioderTilVurdering) {
+                for (periode in kontekst.perioder()) {
                     val faktagrunnlag = no.nav.aap.behandlingsflyt.behandling.vilkår.sykdom.SykdomsFaktagrunnlag(
                         periode.fom,
                         periode.tom,
@@ -47,7 +47,7 @@ class VurderSykdomSteg private constructor(
             val sykdomsvilkåret = vilkårResultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
             val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
-            if (sykdomsvilkåret.harPerioderSomIkkeErVurdert(kontekst.perioderTilVurdering) || (studentVurdering?.erOppfylt() == false && sykdomsGrunnlag?.erKonsistent() != true)
+            if (sykdomsvilkåret.harPerioderSomIkkeErVurdert(kontekst.perioder()) || (studentVurdering?.erOppfylt() == false && sykdomsGrunnlag?.erKonsistent() != true)
             ) {
                 return StegResultat(listOf(Definisjon.AVKLAR_SYKDOM))
             } else {

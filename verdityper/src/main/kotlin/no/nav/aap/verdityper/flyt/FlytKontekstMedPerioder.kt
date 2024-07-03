@@ -4,6 +4,7 @@ import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
+import java.util.*
 
 /**
  * Kontekst for behandlingen som inneholder hvilke perioder som er til vurdering for det enkelte steget som skal vurderes
@@ -13,5 +14,9 @@ data class FlytKontekstMedPerioder(
     val sakId: SakId,
     val behandlingId: BehandlingId,
     val behandlingType: TypeBehandling,
-    val perioderTilVurdering: Set<Periode>
-)
+    val perioderTilVurdering: Set<Vurdering>
+) {
+    fun perioder(): NavigableSet<Periode> {
+        return perioderTilVurdering.map { it.periode }.toCollection(TreeSet())
+    }
+}

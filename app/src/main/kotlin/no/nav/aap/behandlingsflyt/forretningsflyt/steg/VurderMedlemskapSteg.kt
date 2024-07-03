@@ -20,7 +20,7 @@ class VurderMedlemskapSteg private constructor(
         val vilkårsresultat = vilkårsresultatRepository.hent(behandlingId)
         val vilkår = vilkårsresultat.finnVilkår(Vilkårtype.MEDLEMSKAP)
 
-        for (periode in kontekst.perioderTilVurdering) {
+        for (periode in kontekst.perioder()) {
             vilkår.leggTilVurdering(
                 Vilkårsperiode(
                     periode = periode,

@@ -23,7 +23,7 @@ class VurderAlderSteg private constructor(
                 ?: throw IllegalStateException("Forventet å finne personopplysninger")
 
             val vilkårsresultat = vilkårsresultatRepository.hent(kontekst.behandlingId)
-            for (periode in kontekst.perioderTilVurdering) {
+            for (periode in kontekst.perioder()) {
                 val aldersgrunnlag = Aldersgrunnlag(periode, personopplysningGrunnlag.personopplysning.fødselsdato)
                 Aldersvilkåret(vilkårsresultat).vurder(aldersgrunnlag)
             }

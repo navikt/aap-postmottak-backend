@@ -41,7 +41,7 @@ class FastsettGrunnlagSteg(
         if (skalBeregneGrunnlag(vilkårsresultat)) {
             val beregningsgrunnlag = beregningService.beregnGrunnlag(kontekst.behandlingId)
 
-            kontekst.perioderTilVurdering.forEach { periode ->
+            kontekst.perioder().forEach { periode ->
                 vilkår.leggTilVurdering(
                     Vilkårsperiode(
                         periode = periode,
@@ -59,7 +59,7 @@ class FastsettGrunnlagSteg(
             log.info("Deaktiverer grunnlag når det ikke er relevant å beregne")
             beregningService.deaktiverGrunnlag(kontekst.behandlingId)
 
-            kontekst.perioderTilVurdering.forEach { periode ->
+            kontekst.perioder().forEach { periode ->
                 vilkår.leggTilVurdering(
                     Vilkårsperiode(
                         periode = periode,
