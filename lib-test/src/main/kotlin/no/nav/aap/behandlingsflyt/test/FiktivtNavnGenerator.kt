@@ -49,9 +49,7 @@ object FiktivtNavnGenerator {
                         ArrayList()
                     var strLine: String
                     while ((br.readLine().also { strLine = it }) != null) {
-                        val capitalizedName =
-                            strLine.substring(0, 1).uppercase(Locale.getDefault()) + strLine.substring(1)
-                        resultat.add(capitalizedName)
+                        resultat.add(strLine.uppercase(Locale.getDefault()))
                     }
                     return resultat
                 }
