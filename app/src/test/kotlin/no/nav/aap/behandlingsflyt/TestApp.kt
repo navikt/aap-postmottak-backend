@@ -18,17 +18,11 @@ import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.behandlingsflyt.test.genererIdent
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.behandlingsflyt.test.modell.TestYrkesskade
-import no.nav.aap.httpclient.ClientConfig
-import no.nav.aap.httpclient.RestClient
-import no.nav.aap.httpclient.post
-import no.nav.aap.httpclient.request.PostRequest
-import no.nav.aap.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
-import java.net.URI
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,56 +54,24 @@ fun main() {
         val datasource = initDatasource(dbConfig)
 
         apiRouting {
-            route("/testdataApi/opprettPerson") {
-                post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
-                    val barn = dto.barn.map { genererBarn(it) }
-                    barn.forEach { fakes.leggTil(it) }
-                    fakes.leggTil(
-                        TestPerson(
-                            identer = setOf(genererIdent(dto.fødselsdato)),
-                            fødselsdato = Fødselsdato(dto.fødselsdato),
-                            yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList(),
-                            barn = barn
-                        )
-                    )
-
-                    respond(dto)
-                }
-            }
-            route("/testdataApi/genererPerson") {
-                post<Unit, OpprettTestPersonResponsDto, OpprettTestPersonDto> { _, dto ->
-                    val ident = genererIdent(dto.fødselsdato)
-                    fakes.leggTil(
-                        TestPerson(
-                            identer = setOf(ident),
-                            fødselsdato = Fødselsdato(dto.fødselsdato),
-                            yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList()
-                        )
-                    )
-
-                    respond(OpprettTestPersonResponsDto(ident.identifikator))
-                }
-            }
             route("/test") {
                 route("/opprett") {
                     post<Unit, OpprettTestcaseDTO, OpprettTestcaseDTO> { _, dto ->
-
                         val ident = genererIdent(dto.fødselsdato)
+                        val barn = dto.barn.map { genererBarn(it) }
+                        barn.forEach { fakes.leggTil(it) }
+                        fakes.leggTil(
+                            TestPerson(
+                                identer = setOf(ident),
+                                fødselsdato = Fødselsdato(dto.fødselsdato),
+                                yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList(),
+                                barn = barn
+                            )
+                        )
                         val periode = Periode(
                             LocalDate.now(),
                             LocalDate.now().plusYears(3)
                         )
-
-
-                        val client = RestClient.withDefaultResponseHandler(
-                            config = ClientConfig(),
-                            tokenProvider = NoTokenTokenProvider(),
-                        )
-                        client.post<_, Unit>(
-                            URI.create("http://localhost:8080/").resolve("testdataApi/opprettPerson"),
-                            PostRequest(body = dto)
-                        )
-
 
                         TestHendelsesMottak(datasource).håndtere(
                             ident, DokumentMottattPersonHendelse(
