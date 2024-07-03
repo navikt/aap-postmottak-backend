@@ -97,6 +97,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("integrasjon.saf.scope", "saf")
         System.setProperty("integrasjon.saf.url.rest", "http://localhost:${saf.port()}/rest")
 
+        // MEDL
+        System.setProperty("integrasjon.medl.url", "https://medlemskap-medl-api.dev-fss-pub.nais.io/api/v1/medlemskapsunntak")
+        System.setProperty("integrasjon.medl.scope", "medl")
+
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
             TestPerson(
