@@ -70,7 +70,11 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                     planlagtKjøretidspunkt = it.nesteKjøring(),
                                     metadata = mapOf(),
                                     antallFeilendeForsøk = it.antallRetriesForsøkt(),
-                                    feilmelding = hentFeilmeldingHvisBehov(it.status(), it.jobbId(), flytJobbRepository),
+                                    feilmelding = hentFeilmeldingHvisBehov(
+                                        it.status(),
+                                        it.jobbId(),
+                                        flytJobbRepository
+                                    ),
                                     beskrivelse = it.beskrivelse(),
                                     navn = it.navn()
                                 )
@@ -185,7 +189,11 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     }
 }
 
-private fun hentFeilmeldingHvisBehov(status: JobbStatus, jobbId: Long, flytJobbRepository: FlytJobbRepository): String? {
+private fun hentFeilmeldingHvisBehov(
+    status: JobbStatus,
+    jobbId: Long,
+    flytJobbRepository: FlytJobbRepository
+): String? {
     if (status == JobbStatus.FEILET) {
         return flytJobbRepository.hentFeilmeldingForOppgave(jobbId)
     }
@@ -219,14 +227,25 @@ private fun utledVisning(
     val visKvalitetssikringKort = utledVisningAvKvalitetsikrerKort(alleAvklaringsbehovInkludertFrivillige)
     val kvalitetssikringReadOnly = visKvalitetssikringKort && flyt.erStegFør(aktivtSteg, StegType.KVALITETSSIKRING)
 
-    return Visning(
-        saksbehandlerReadOnly = påVent || (!jobber && saksbehandlerReadOnly),
-        beslutterReadOnly = påVent || (!jobber && beslutterReadOnly),
-        kvalitetssikringReadOnly = påVent || (!jobber && kvalitetssikringReadOnly),
-        visBeslutterKort = visBeslutterKort,
-        visKvalitetssikringKort = visKvalitetssikringKort,
-        visVentekort = påVent
-    )
+    if (jobber) {
+        return Visning(
+            saksbehandlerReadOnly = true,
+            beslutterReadOnly = true,
+            kvalitetssikringReadOnly = true,
+            visBeslutterKort = visBeslutterKort,
+            visKvalitetssikringKort = visKvalitetssikringKort,
+            visVentekort = påVent
+        )
+    } else {
+        return Visning(
+            saksbehandlerReadOnly = påVent || saksbehandlerReadOnly,
+            beslutterReadOnly = påVent || beslutterReadOnly,
+            kvalitetssikringReadOnly = påVent || kvalitetssikringReadOnly,
+            visBeslutterKort = visBeslutterKort,
+            visKvalitetssikringKort = visKvalitetssikringKort,
+            visVentekort = påVent
+        )
+    }
 }
 
 private fun utledVisningAvKvalitetsikrerKort(
