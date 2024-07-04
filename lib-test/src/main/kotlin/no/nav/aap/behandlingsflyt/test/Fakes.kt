@@ -253,6 +253,12 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         install(ContentNegotiation) {
             jackson()
         }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@statistikkFake.log.info("STATISTIKK :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+            }
+        }
         routing {
             post("/motta") {
                 val receive = call.receive<StatistikkHendelseDTO>()
