@@ -9,8 +9,8 @@ metadata:
 spec:
   image: {{image}}
   # Setter utrullingsstrategi til Recreate for test. Settes til default før prodsetting
-  strategy:
-    type: Recreate
+#  strategy:
+#    type: Recreate
   ingresses:
       - "https://aap-behandlingsflyt.intern.dev.nav.no"
   replicas:
