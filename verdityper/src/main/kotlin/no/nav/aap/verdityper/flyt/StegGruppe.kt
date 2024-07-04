@@ -16,6 +16,6 @@ enum class StegGruppe(val måVises: Boolean) {
     VEDTAK(true),
     FATTE_VEDTAK(true),
     KVALITETSSIKRING(true),
-    IVERKSETT_VEDTAK(true),
-    UDEFINERT(true)
+    IVERKSETT_VEDTAK(false),
+    UDEFINERT(false)
 }
