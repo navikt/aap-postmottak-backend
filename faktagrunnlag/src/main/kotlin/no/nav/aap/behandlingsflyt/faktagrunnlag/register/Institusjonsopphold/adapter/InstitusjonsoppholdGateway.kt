@@ -25,7 +25,7 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
     private fun query(request: InstitusjonoppholdRequest): InstitusjonoppholdRespons {
         val httpRequest = GetRequest(
             additionalHeaders = listOf(
-                Header("Nav-Personident", request.foedselsnumre.first().toString()),
+                Header("Nav-Personident", request.foedselsnumre),
                 Header("Nav-Consumer-Id", "aap-behandlingsflyt"),
                 Header("Accept", "application/json")
             )
