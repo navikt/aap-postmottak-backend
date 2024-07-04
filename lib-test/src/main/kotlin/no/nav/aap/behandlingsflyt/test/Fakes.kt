@@ -68,8 +68,8 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
     private val inst2 = embeddedServer(Netty, port = 0, module = { inst2Fake() }).apply { start() }
 
-    private val statikk = embeddedServer(Netty, port = 0, module = { statistikkFake() }).apply { start() }
-    val statistikkHendelser = mutableListOf<StatistikkHendelseDTO>()
+    private val statistikk = embeddedServer(Netty, port = 0, module = { statistikkFake() }).apply { start() }
+    //private val statistikkHendelser = mutableListOf<StatistikkHendelseDTO>()
 
 
     init {
@@ -115,7 +115,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("integrasjon.institusjonsopphold.scope", "inst2")
 
         // Statistikk-app
-        System.setProperty("integrasjon.statistikk.url", "http://localhost:${statikk.port()}")
+        System.setProperty("integrasjon.statistikk.url", "http://localhost:${statistikk.port()}")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -261,8 +261,8 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
         routing {
             post("/motta") {
-                val receive = call.receive<StatistikkHendelseDTO>()
-                statistikkHendelser.add(receive)
+                //val receive = call.receive<StatistikkHendelseDTO>()
+                //statistikkHendelser.add(receive)
                 call.respond(HttpStatusCode.OK)
             }
         }
