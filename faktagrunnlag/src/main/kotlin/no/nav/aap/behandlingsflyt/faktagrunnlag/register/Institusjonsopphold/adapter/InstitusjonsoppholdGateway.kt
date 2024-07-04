@@ -10,7 +10,6 @@ import no.nav.aap.httpclient.get
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.institusjon.InstitusjonoppholdRequest
-import no.nav.aap.institusjon.InstitusjonoppholdRespons
 import no.nav.aap.requiredConfigForKey
 import java.net.URI
 
@@ -22,7 +21,7 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    private fun query(request: InstitusjonoppholdRequest): InstitusjonoppholdRespons {
+    private fun query(request: InstitusjonoppholdRequest): List<no.nav.aap.institusjon.Institusjonsopphold> {
         val httpRequest = GetRequest(
             additionalHeaders = listOf(
                 Header("Nav-Personident", request.foedselsnumre),
@@ -37,7 +36,7 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
         val request = InstitusjonoppholdRequest(person.aktivIdent().identifikator)
         val oppholdRes = query(request)
 
-        val institusjonsopphold = oppholdRes.institusjonsopphold.map { opphold ->
+        val institusjonsopphold = oppholdRes.map { opphold ->
             Institusjonsopphold.nyttOpphold(
                 requireNotNull(opphold.institusjonstype),
                 requireNotNull(opphold.kategori),

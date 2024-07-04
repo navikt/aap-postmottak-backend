@@ -25,7 +25,6 @@ import no.nav.aap.behandlingsflyt.hendelse.statistikk.StatistikkHendelseDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway.PERSONINFO_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
-import no.nav.aap.institusjon.InstitusjonoppholdRespons
 import no.nav.aap.pdl.HentPerson
 import no.nav.aap.pdl.HentPersonBolkResult
 import no.nav.aap.pdl.PDLDødsfall
@@ -467,9 +466,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
                 val opphold = person.institusjonsopphold
 
-                call.respond(
-                    InstitusjonoppholdRespons(opphold.toList())
-                )
+                call.respond(opphold.toList())
             }
         }
     }
