@@ -20,11 +20,21 @@ class InstitusjonsoppholdService private constructor(
 
         val sak = sakService.hent(kontekst.sakId)
 
+        val rettighetsperiode = sak.rettighetsperiode
+
         val institusjonsopphold = InstitusjonsoppholdRegisterGateway.innhent(sak.person)
+            .filter { it.periode().overlapper(rettighetsperiode) }
 
         institusjonsoppholdRepository.lagreOpphold(behandlingId, institusjonsopphold)
 
-        return eksisterendeGrunnlag?.opphold == institusjonsopphold
+        return erUendret(eksisterendeGrunnlag, hentHvisEksisterer(behandlingId))
+    }
+
+    private fun erUendret(
+        eksisterendeGrunnlag: InstitusjonsoppholdGrunnlag?,
+        institusjonsopphold: InstitusjonsoppholdGrunnlag?
+    ): Boolean {
+        return eksisterendeGrunnlag?.opphold == institusjonsopphold?.opphold
     }
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): InstitusjonsoppholdGrunnlag? {

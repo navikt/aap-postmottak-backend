@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 
 data class InstitusjonoppholdRequest(
-    val foedselsnumre: List<String>
+    val foedselsnumre: String
 )
 
 class InstitusjonoppholdRespons (

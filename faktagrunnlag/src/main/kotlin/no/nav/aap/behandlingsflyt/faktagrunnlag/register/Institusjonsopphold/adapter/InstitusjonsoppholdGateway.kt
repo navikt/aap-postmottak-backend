@@ -16,7 +16,7 @@ import java.net.URI
 
 object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.institusjonsopphold.url"))
-    val config = ClientConfig(scope = requiredConfigForKey("integrassjon.institusjonsopphold.scope"))
+    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.institusjonsopphold.scope"))
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
@@ -25,7 +25,7 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
     private fun query(request: InstitusjonoppholdRequest): InstitusjonoppholdRespons {
         val httpRequest = GetRequest(
             additionalHeaders = listOf(
-                Header("Nav-Personident",request.foedselsnumre.first().toString()),
+                Header("Nav-Personident", request.foedselsnumre.first().toString()),
                 Header("Nav-Consumer-Id", "aap-behandlingsflyt"),
                 Header("Accept", "application/json")
             )
@@ -34,7 +34,7 @@ object InstitusjonsoppholdGateway : InstitusjonsoppholdGateway {
     }
 
     override fun innhent(person: Person): List<Institusjonsopphold> {
-        val request = InstitusjonoppholdRequest(person.identer().map { it.identifikator })
+        val request = InstitusjonoppholdRequest(person.aktivIdent().identifikator)
         val oppholdRes = query(request)
 
         val institusjonsopphold = oppholdRes.institusjonsopphold.map { opphold ->

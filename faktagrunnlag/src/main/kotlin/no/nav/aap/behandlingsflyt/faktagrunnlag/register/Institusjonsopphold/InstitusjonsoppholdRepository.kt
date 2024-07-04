@@ -63,6 +63,9 @@ class InstitusjonsoppholdRepository(private val connection: DBConnection) {
     }
 
     fun lagreOpphold(behandlingId: BehandlingId, institusjonsopphold: List<Institusjonsopphold>) {
+        if(hentHvisEksisterer(behandlingId) != null) {
+            deaktiverEksisterendeGrunnlag(behandlingId)
+        }
         val oppholdPersonId = connection.executeReturnKey(
             """
             INSERT INTO OPPHOLD_PERSON DEFAULT VALUES
@@ -97,6 +100,17 @@ class InstitusjonsoppholdRepository(private val connection: DBConnection) {
         }
 
 
+    }
+
+    private fun deaktiverEksisterendeGrunnlag(behandlingId: BehandlingId) {
+        connection.execute("UPDATE OPPHOLD_GRUNNLAG SET AKTIV = FALSE WHERE AKTIV AND BEHANDLING_ID = ?") {
+            setParams {
+                setLong(1, behandlingId.toLong())
+            }
+            setResultValidator { rowsUpdated ->
+                require(rowsUpdated == 1)
+            }
+        }
     }
 
 

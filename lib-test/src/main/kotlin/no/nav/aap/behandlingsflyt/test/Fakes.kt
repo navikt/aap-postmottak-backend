@@ -25,6 +25,7 @@ import no.nav.aap.behandlingsflyt.hendelse.statistikk.StatistikkHendelseDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway.PERSONINFO_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
+import no.nav.aap.institusjon.InstitusjonoppholdRespons
 import no.nav.aap.pdl.HentPerson
 import no.nav.aap.pdl.HentPersonBolkResult
 import no.nav.aap.pdl.PDLDødsfall
@@ -65,6 +66,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val oppgavestyring = embeddedServer(Netty, port = 0, module = { oppgavestyringFake() }).start()
     private val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
+    private val inst2 = embeddedServer(Netty, port = 0, module = { inst2Fake() }).apply { start() }
 
     private val statikk = embeddedServer(Netty, port = 0, module = { statistikkFake() }).apply { start() }
     val statistikkHendelser = mutableListOf<StatistikkHendelseDTO>()
@@ -102,8 +104,15 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("integrasjon.saf.url.rest", "http://localhost:${saf.port()}/rest")
 
         // MEDL
-        System.setProperty("integrasjon.medl.url", "https://medlemskap-medl-api.dev-fss-pub.nais.io/api/v1/medlemskapsunntak")
+        System.setProperty(
+            "integrasjon.medl.url",
+            "https://medlemskap-medl-api.dev-fss-pub.nais.io/api/v1/medlemskapsunntak"
+        )
         System.setProperty("integrasjon.medl.scope", "medl")
+
+        // Inst
+        System.setProperty("integrasjon.institusjonsopphold.url", "http://localhost:${inst2.port()}")
+        System.setProperty("integrasjon.institusjonsopphold.scope", "inst2")
 
         // Statistikk-app
         System.setProperty("integrasjon.statistikk.url", "http://localhost:${statikk.port()}")
@@ -426,6 +435,31 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                     print("FEIL KALL")
                     call.respond(HttpStatusCode.BadRequest)
                 }
+            }
+        }
+    }
+
+
+    private fun Application.inst2Fake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@inst2Fake.log.info("Inntekt :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+            }
+        }
+        routing {
+            get {
+                val ident = requireNotNull(call.request.header("Nav-Personident"))
+                val person = hentEllerGenererTestPerson(ident)
+
+                val opphold = person.institusjonsopphold
+
+                call.respond(
+                    InstitusjonoppholdRespons(opphold.toList())
+                )
             }
         }
     }

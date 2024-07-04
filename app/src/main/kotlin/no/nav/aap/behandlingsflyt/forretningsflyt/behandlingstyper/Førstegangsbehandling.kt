@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.behandlingstyper
 
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid.PliktkortService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.søknad.SøknadService
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.InstitusjonsoppholdService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.BarnService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningService
@@ -47,7 +48,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = VurderMedlemskapSteg)
             .medSteg(steg = FastsettBeregningstidspunktSteg)
             .medSteg(steg = FastsettGrunnlagSteg, informasjonskrav = listOf(InntektService))
-            .medSteg(steg = EtAnnetStedSteg) //, informasjonskrav = listOf(InstitusjonsoppholdService))
+            .medSteg(steg = EtAnnetStedSteg, informasjonskrav = listOf(InstitusjonsoppholdService))
             .medSteg(steg = UnderveisSteg, informasjonskrav = listOf(PliktkortService))
             .medSteg(steg = BarnetilleggSteg, informasjonskrav = listOf(BarnService))
             .medSteg(steg = BeregnTilkjentYtelseSteg, informasjonskrav = listOf(PersonopplysningService))
