@@ -196,6 +196,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     }
 }
 
+// Utleder hvilken visningsgruppe frontend skal rute til for kvalitetsikring / totrinn
 private fun utledVurdertGruppe(
     aktivtSteg: StegType,
     flyt: BehandlingFlyt,
