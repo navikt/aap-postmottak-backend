@@ -9,6 +9,7 @@ data class BehandlingFlytOgTilstandDto(
     val flyt: List<FlytGruppe>,
     val aktivtSteg: StegType,
     val aktivGruppe: StegGruppe,
+    val vurdertSteg: StegType?,
     val vurdertGruppe: StegGruppe?,
     val behandlingVersjon: Long,
     val prosessering: Prosessering,
