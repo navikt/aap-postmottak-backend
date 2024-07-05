@@ -15,7 +15,7 @@ class StudentVisningUtleder(connection: DBConnection) : StegGruppeVisningUtleder
 
     override fun skalVises(behandlingId: BehandlingId): Boolean {
         val studentGrunnlag = studentRepository.hentHvisEksisterer(behandlingId)
-        if (studentGrunnlag != null) {
+        if (studentGrunnlag?.studentvurdering != null) {
             return true
         }
         val hentAvklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
