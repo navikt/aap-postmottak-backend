@@ -6,9 +6,9 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.httpclient.ClientConfig
 import no.nav.aap.httpclient.Header
 import no.nav.aap.httpclient.RestClient
-import no.nav.aap.httpclient.get
 import no.nav.aap.httpclient.request.GetRequest
 import no.nav.aap.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.medlemskap.MedlemskapRequest
 import no.nav.aap.medlemskap.MedlemskapResponse
 import no.nav.aap.requiredConfigForKey
@@ -32,11 +32,18 @@ object MedlemskapGateway : MedlemskapGateway{
             )
         )
 
-        return requireNotNull(client.get(uri = url, request = httpRequest))
+        return requireNotNull(
+            client.get(
+                uri = url,
+                request = httpRequest,
+                mapper = { body, _ ->
+                    DefaultJsonMapper.fromJson(body)
+                }
+            )
+        )
     }
 
     override fun innhent(person: Person): List<Medlemskap> {
-        TODO("Not yet implemented")
         val request = MedlemskapRequest(person.identer().map { it.identifikator })
         val medlemskapResultat = query(request)
 
