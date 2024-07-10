@@ -18,6 +18,7 @@ const val AVKLAR_BISTANDSBEHOV_KODE = "5006"
 const val VURDER_SYKEPENGEERSTATNING_KODE = "5007"
 const val FASTSETT_BEREGNINGSTIDSPUNKT_KODE = "5008"
 const val AVKLAR_BARNETILLEGG_KODE = "5009"
+const val AVKLAR_SONINGSFORRHOLD_KODE = "5010"
 const val KVALITETSSIKRING_KODE = "5097"
 const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
@@ -92,6 +93,11 @@ enum class Definisjon(
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.BARNETILLEGG,
         kreverToTrinn = true
+    ),
+    AVKLAR_SONINGSFORRHOLD(
+        kode = AVKLAR_SONINGSFORRHOLD_KODE,
+        type = BehovType.MANUELT_FRIVILLIG,
+        løsesISteg = StegType.DU_ER_ET_ANNET_STED
     ),
     FORESLÅ_VEDTAK(
         kode = FORESLÅ_VEDTAK_KODE,
