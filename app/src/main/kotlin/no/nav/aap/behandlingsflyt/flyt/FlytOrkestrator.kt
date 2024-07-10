@@ -6,6 +6,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.InformasjonskravGrunnlag
+import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.steg.TilbakeførtFraBeslutter
@@ -42,7 +43,11 @@ class FlytOrkestrator(
     private val sakRepository = SakRepositoryImpl(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
     private val behandlingRepository = BehandlingRepositoryImpl(connection)
-    private val behandlingHendelseService = BehandlingHendelseService(SakService(connection), FlytJobbRepository(connection))
+    private val behandlingHendelseService = BehandlingHendelseService(
+        SakService(connection),
+        FlytJobbRepository(connection),
+        VilkårsresultatRepository(connection)
+    )
 
     fun forberedBehandling(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
@@ -158,7 +163,9 @@ class FlytOrkestrator(
             if (!result.kanFortsette() || neste == null) {
                 if (neste == null) {
                     // Avslutter behandling
+                    validerAtAvklaringsBehovErLukkede(avklaringsbehovene)
                     log.info("Behandlingen har nådd slutten, avslutter behandling")
+                    behandlingHendelseService.avsluttet(behandling)
                 } else {
                     // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
                     loggStopp(behandling, avklaringsbehovene)
@@ -168,6 +175,12 @@ class FlytOrkestrator(
             }
             gjeldendeSteg = neste
         }
+    }
+
+    private fun validerAtAvklaringsBehovErLukkede(avklaringsbehovene: Avklaringsbehovene) {
+        assert(
+            avklaringsbehovene.åpne().isEmpty()
+        ) { "Behandlingen er avsluttet, men det finnes åpne avklaringsbehov." }
     }
 
     private fun utledNesteSteg(

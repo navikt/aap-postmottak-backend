@@ -18,7 +18,8 @@ import java.util.*
 class RestClient<K>(
     private val config: ClientConfig,
     private val tokenProvider: TokenProvider,
-    private val errorHandler: RestResponseHandler<K>
+    private val errorHandler: RestResponseHandler<K>,
+    httpClient: HttpClient? = null
 ) {
 
     companion object {
@@ -27,7 +28,7 @@ class RestClient<K>(
         }
     }
 
-    private val client = HttpClient.newBuilder()
+    private val client = httpClient ?: HttpClient.newBuilder()
         .connectTimeout(config.connectionTimeout)
         .proxy(HttpClient.Builder.NO_PROXY)
         .followRedirects(HttpClient.Redirect.NEVER)

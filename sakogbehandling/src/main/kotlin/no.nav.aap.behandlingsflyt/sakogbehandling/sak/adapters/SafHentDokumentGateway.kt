@@ -9,20 +9,28 @@ import no.nav.aap.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 import no.nav.aap.requiredConfigForKey
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.dokument.JournalpostId
+import java.io.InputStream
 import java.net.URI
 
-class SafHentDokumentGateway {
+class SafHentDokumentGateway(private val restClient: RestClient<InputStream>) {
     private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
 
-    val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.saf.scope"),
-    )
+    companion object {
+        val config = ClientConfig(
+            scope = requiredConfigForKey("integrasjon.saf.scope"),
+        )
 
-    private val client = RestClient(
-        config = config,
-        tokenProvider = OnBehalfOfTokenProvider,
-        errorHandler = InputStreamResponseHandler()
-    )
+        fun withDefaultRestClient(): SafHentDokumentGateway {
+            return SafHentDokumentGateway(
+                RestClient(
+                    config = config,
+                    tokenProvider = OnBehalfOfTokenProvider,
+                    errorHandler = InputStreamResponseHandler()
+                )
+            )
+        }
+    }
+
     fun hentDokument(
         journalpostId: JournalpostId,
         dokumentInfoId: DokumentInfoId,
@@ -33,8 +41,8 @@ class SafHentDokumentGateway {
         val variantFormat = "ARKIV"
 
         val safURI = konstruerSafRestURL(restUrl, journalpostId, dokumentInfoId, variantFormat)
-        log.info("Kaller SAF meD URL: ${safURI}.")
-        val respons = client.get(
+        log.info("Kaller SAF med URL: ${safURI}.")
+        val respons = restClient.get(
             uri = safURI,
             request = GetRequest(currentToken = currentToken),
             mapper = { body, headers ->

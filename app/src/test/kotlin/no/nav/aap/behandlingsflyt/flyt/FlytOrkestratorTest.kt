@@ -377,6 +377,12 @@ class FlytOrkestratorTest {
 
         assertThat(underveisGrunnlag.perioder).isNotEmpty
         assertThat(underveisGrunnlag.perioder.any { (it.gradering?.gradering?.prosentverdi() ?: 0) > 0 }).isTrue()
+
+        // Saken er avsluttet, så det skal ikke være flere åpne avklaringsbehov
+        dataSource.transaction { connection ->
+            val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
+            assertThat(avklaringsbehov.åpne()).isEmpty()
+        }
     }
 
     @Test

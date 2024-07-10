@@ -23,7 +23,6 @@ val log = LoggerFactory.getLogger(SafListDokumentGateway::class.java)
 
 object SafListDokumentGateway {
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
-    private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
 
     val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.saf.scope"),
@@ -98,12 +97,7 @@ data class Dokument(
 )
 
 
-data class SafDocumentResponse(val dokument: InputStream, val contentType: String, val filnavn: String) {
-}
-
-enum class DokumentFormat {
-    PDF, PNG
-}
+data class SafDocumentResponse(val dokument: InputStream, val contentType: String, val filnavn: String)
 
 fun String.asQuery() = this.replace("\n", "")
 

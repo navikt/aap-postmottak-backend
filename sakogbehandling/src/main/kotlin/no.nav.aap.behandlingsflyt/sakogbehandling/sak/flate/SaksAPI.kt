@@ -137,7 +137,7 @@ fun NormalOpenAPIRoute.saksApi(dataSource: DataSource) {
                     val dokumentInfoId = req.dokumentinfoId
 
                     val token = token()
-                    val gateway = SafHentDokumentGateway()
+                    val gateway = SafHentDokumentGateway.withDefaultRestClient()
                     val dokumentRespons =
                         gateway.hentDokument(JournalpostId(journalpostId), DokumentInfoId(dokumentInfoId), token)
                     pipeline.context.response.headers.append(

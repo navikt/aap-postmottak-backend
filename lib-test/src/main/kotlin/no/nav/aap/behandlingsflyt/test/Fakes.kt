@@ -22,6 +22,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
 import no.nav.aap.behandlingsflyt.hendelse.statistikk.StatistikkHendelseDTO
+import no.nav.aap.behandlingsflyt.hendelse.statistikk.VilkårsResultatDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway.PERSONINFO_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
@@ -250,7 +251,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
     private fun Application.statistikkFake() {
         install(ContentNegotiation) {
-            jackson()
+            jackson {
+                registerModule(JavaTimeModule())
+            }
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
@@ -266,6 +269,11 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             post("/motta") {
                 val receive = call.receive<StatistikkHendelseDTO>()
                 statistikkHendelser.add(receive)
+                call.respond(HttpStatusCode.OK)
+            }
+            post("/vilkarsresultat") {
+                val receive = call.receive<VilkårsResultatDTO>()
+                this@statistikkFake.log.info("Statistikk mottok: {}", receive)
                 call.respond(HttpStatusCode.OK)
             }
         }
@@ -476,7 +484,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         install(ContentNegotiation) {
             jackson()
         }
-        install(StatusPages)  {
+        install(StatusPages) {
             exception<Throwable> { call, cause ->
                 this@medlFake.log.info("MEDL :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
                 call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
