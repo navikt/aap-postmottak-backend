@@ -39,6 +39,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.flate.beregningVurderingAPI
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.flate.bistandsgrunnlagApi
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.helseinstitusjonVurderingAPI
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.soningVurderingAPI
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.medlemskap.medlemskapsgrunnlagApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt.flate.meldepliktsgrunnlagApi
@@ -159,6 +160,7 @@ internal fun Application.server(dbConfig: DbConfig) {
                 sykdomsgrunnlagApi(dataSource)
                 sykepengerGrunnlagApi(dataSource)
                 soningVurderingAPI(dataSource)
+                helseinstitusjonVurderingAPI(dataSource)
                 avklaringsbehovApi(dataSource)
                 tilkjentYtelseAPI(dataSource)
                 beregningVurderingAPI(dataSource)
