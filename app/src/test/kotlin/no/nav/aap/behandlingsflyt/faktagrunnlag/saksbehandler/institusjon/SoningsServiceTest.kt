@@ -62,8 +62,8 @@ class SoningsServiceTest {
             SoningsoppholdDto(
                 status = "Ukjent",
                 institusjonstype = Institusjonstype.FO.beskrivelse,
-                institusjonsopphold = Oppholdstype.S.beskrivelse,
-                kildeInstitusjon = "12345",
+                oppholdstype = Oppholdstype.S.beskrivelse,
+                kildeinstitusjon = "12345",
                 avsluttetDato = toDate,
                 oppholdFra = fromDate
             )
