@@ -20,6 +20,9 @@ class BehandlingHendelseService(
     private val vilkårsresultatRepository: VilkårsresultatRepository,
 ) {
 
+    /**
+     * Kjøres når en behandling er avsluttet. For statistikkformål.
+     */
     fun avsluttet(behandling: Behandling) {
         val vilkår = vilkårsresultatRepository.hent(behandling.id)
         val sak = sakService.hent(behandling.sakId)
