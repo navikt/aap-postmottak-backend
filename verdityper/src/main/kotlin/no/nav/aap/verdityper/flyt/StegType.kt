@@ -47,6 +47,7 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     ),
     FASTSETT_BEREGNINGSTIDSPUNKT(gruppe = StegGruppe.GRUNNLAG, status = Status.UTREDES),
     FASTSETT_GRUNNLAG(gruppe = StegGruppe.GRUNNLAG, status = Status.UTREDES),
+    VIS_GRUNNLAG(gruppe = StegGruppe.GRUNNLAG, status = Status.UTREDES),
     FASTSETT_UTTAK(
         gruppe = StegGruppe.UNDERVEIS,
         status = Status.UTREDES

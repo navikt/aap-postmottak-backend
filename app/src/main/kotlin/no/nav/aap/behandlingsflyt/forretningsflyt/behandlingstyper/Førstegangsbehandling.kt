@@ -24,6 +24,7 @@ import no.nav.aap.behandlingsflyt.forretningsflyt.steg.KvalitetssikringsSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.SimulerUtbetalingSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.StartBehandlingSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.UnderveisSteg
+import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VisGrunnlagSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderAlderSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderBistandsbehovSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderLovvalgSteg
@@ -47,6 +48,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = VurderSykepengeErstatningSteg)
             .medSteg(steg = VurderMedlemskapSteg)
             .medSteg(steg = FastsettBeregningstidspunktSteg)
+            .medSteg(steg = VisGrunnlagSteg)
             .medSteg(steg = FastsettGrunnlagSteg, informasjonskrav = listOf(InntektService))
             .medSteg(steg = EtAnnetStedSteg, informasjonskrav = listOf(InstitusjonsoppholdService))
             .medSteg(steg = UnderveisSteg, informasjonskrav = listOf(PliktkortService))
