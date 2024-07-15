@@ -3,21 +3,16 @@ package no.nav.aap.behandlingsflyt.hendelse.avløp
 import io.mockk.checkUnnecessaryStub
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
-import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
-import no.nav.aap.behandlingsflyt.server.prosessering.StoppetHendelseJobbUtfører
 import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -31,7 +26,7 @@ import java.util.*
 
 class BehandlingHendelseServiceTest {
     @Test
-    fun `sadas d`() {
+    fun `verifiser at FlytJobbRepository blir kalt med riktige argumenter`() {
         val sakService = mockk<SakService>()
         val flytJobbRepository = mockk<FlytJobbRepository>()
 
