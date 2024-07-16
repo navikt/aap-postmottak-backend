@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.InstitusjonsoppholdService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.Institusjonstype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.SoningsgrunnlagResponse
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.SoningsoppholdDto
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.InstitusjonsoppholdDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.SoningsvurderingDto
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -28,10 +28,10 @@ class SoningsService(
         return SoningsgrunnlagResponse(soningsopphold, soningsvurdering)
     }
 
-    private fun getSoningsopphold(behandlingId: BehandlingId): List<SoningsoppholdDto> {
+    private fun getSoningsopphold(behandlingId: BehandlingId): List<InstitusjonsoppholdDto> {
         val soningsopphold = institusjonRepository.hentHvisEksisterer(behandlingId)
         return soningsopphold?.opphold?.filter { it.verdi.type == Institusjonstype.FO }
-            ?.map { SoningsoppholdDto.institusjonToDto(it) } ?: emptyList()
+            ?.map { InstitusjonsoppholdDto.institusjonToDto(it) } ?: emptyList()
     }
 
     private fun getSoningsvurderingDto(behandlingId: BehandlingId) = SoningsvurderingDto.toDto(

@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.Ins
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.InstitusjonsoppholdService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.Institusjonstype
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.Oppholdstype
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.SoningsoppholdDto
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.InstitusjonsoppholdDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.SoningsvurderingDto
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
@@ -59,7 +59,7 @@ class SoningsServiceTest {
 
         assertThat(actual.soningsopphold).hasSize(1)
         assertThat(actual.soningsopphold[0]).isEqualTo(
-            SoningsoppholdDto(
+            InstitusjonsoppholdDto(
                 status = "Ukjent",
                 institusjonstype = Institusjonstype.FO.beskrivelse,
                 oppholdstype = Oppholdstype.S.beskrivelse,

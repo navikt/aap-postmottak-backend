@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.Ins
 import no.nav.aap.tidslinje.Segment
 import java.time.LocalDate
 
-data class SoningsoppholdDto(
+data class InstitusjonsoppholdDto(
     val institusjonstype: String,
     val oppholdstype: String,
     val status: String,
@@ -14,7 +14,7 @@ data class SoningsoppholdDto(
     ) {
     companion object {
         fun institusjonToDto(institusjonsopphold: Segment<Institusjon>) =
-            SoningsoppholdDto(
+            InstitusjonsoppholdDto(
                 institusjonstype = institusjonsopphold.verdi.type.beskrivelse,
                 oppholdstype = institusjonsopphold.verdi.kategori.beskrivelse,
                 status = "Ukjent",  // TODO finn ut hva som skal være her

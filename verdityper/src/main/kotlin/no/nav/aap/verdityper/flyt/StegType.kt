@@ -52,6 +52,14 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.UNDERVEIS,
         status = Status.UTREDES
     ),
+    VURDER_HELSEINSTITUSJON(
+      gruppe = StegGruppe.ET_ANNET_STED,
+        status = Status.UTREDES
+    ),
+    VURDER_SONING(
+        gruppe = StegGruppe.ET_ANNET_STED,
+        status = Status.UTREDES
+    ),
     DU_ER_ET_ANNET_STED(
         gruppe = StegGruppe.ET_ANNET_STED,
         status = Status.UTREDES

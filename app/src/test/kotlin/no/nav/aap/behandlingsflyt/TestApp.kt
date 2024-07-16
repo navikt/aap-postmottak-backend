@@ -118,7 +118,7 @@ fun main() {
 
 private fun genererFengselsopphold() = Institusjonsopphold(
     organisasjonsnummer = "12345",
-    kategori = Oppholdstype.P.name,
+    kategori = Oppholdstype.S.name,
     institusjonstype = Institusjonstype.FO.name,
     forventetSluttdato = LocalDate.of(2024, 12, 31),
     startdato = LocalDate.of(2021, 1, 1)
@@ -126,7 +126,7 @@ private fun genererFengselsopphold() = Institusjonsopphold(
 
 private fun genererSykehusopphold() = Institusjonsopphold(
     organisasjonsnummer = "12345",
-    kategori = Oppholdstype.S.name,
+    kategori = Oppholdstype.H.name,
     institusjonstype = Institusjonstype.HS.name,
     forventetSluttdato = LocalDate.of(2022, 12, 31),
     startdato = LocalDate.of(2021, 1, 1)

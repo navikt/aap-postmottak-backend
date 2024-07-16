@@ -6,23 +6,17 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.HelseinstitusjonRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.HelseinstitusjonService
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
 
 fun NormalOpenAPIRoute.helseinstitusjonVurderingAPI(dataSource: HikariDataSource) {
     route("/api/behandling") {
         route("/{referanse}/grunnlag/institusjon/helse") {
             get<BehandlingReferanse, HelseinstitusjonGrunnlagResponse> { req ->
-                val helseinstitusjonVurdering = dataSource.transaction { connection ->
-                    val helseinstitusjonRepository = HelseinstitusjonRepository(connection)
-                    val behandlingRepository = BehandlingRepositoryImpl(connection)
-                    val behandling: Behandling = BehandlingReferanseService(behandlingRepository).behandling(req)
-                    helseinstitusjonRepository.hentAktivHelseinstitusjonVurderingHvisEksisterer(behandling.id)
+                val helseinstitusjonGrunnlag = dataSource.transaction { connection ->
+                    HelseinstitusjonService(connection).samleHelseinstitusjonGrunnlag(req)
                 }
-                respond(HelseinstitusjonGrunnlagResponse(HelseinstitusjonVurderingDto.toDto(helseinstitusjonVurdering)))
+                respond(helseinstitusjonGrunnlag)
             }
         }
     }
