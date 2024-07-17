@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.hendelse.oppgavestyring
 
-import no.nav.aap.behandlingsflyt.hendelse.avløp.BehandlingFlytStoppetHendelse
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.test.Fakes
@@ -31,7 +30,7 @@ class OppgavestyringGatewayTest {
         val gateway = OppgavestyringGateway
         assertDoesNotThrow {
             gateway.varsleHendelse(
-                BehandlingFlytStoppetHendelse(
+                BehandlingsFlytStoppetHendelseDTO(
                     personident = "124512451245",
                     Saksnummer("24352363"),
                     opprettetTidspunkt = LocalDateTime.now(),

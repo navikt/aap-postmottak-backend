@@ -33,7 +33,7 @@ class BehandlingHendelseServiceTest {
         every { flytJobbRepository.leggTil(any()) } returns Unit
         val vilkårsresultatRepository = mockk<VilkårsresultatRepository>()
         val behandlingHendelseService =
-            BehandlingHendelseService(sakService, flytJobbRepository)
+            BehandlingHendelseService(flytJobbRepository)
 
         val behandling = Behandling(
             BehandlingId(0), sakId = SakId(1), typeBehandling = TypeBehandling.Førstegangsbehandling, versjon = 1
@@ -53,13 +53,11 @@ class BehandlingHendelseServiceTest {
         behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
 
         val calls = mutableListOf<JobbInput>()
-
         verify {
             flytJobbRepository.leggTil(capture(calls))
         }
 
         val hendelse = DefaultJsonMapper.fromJson<BehandlingFlytStoppetHendelse>(calls.first().payload())
-        assertThat(hendelse.saksnummer.toString()).isEqualTo("1")
         assertThat(hendelse.referanse.referanse).isEqualTo(behandling.referanse.toString())
 
         checkUnnecessaryStub(flytJobbRepository, vilkårsresultatRepository)

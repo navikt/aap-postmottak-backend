@@ -21,7 +21,9 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositor
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.IdentGateway
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Person
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonOgSakService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Sak
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.test.Fakes
@@ -29,6 +31,7 @@ import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.Ident
+import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.assertj.core.api.Assertions.assertThat
@@ -36,6 +39,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 class StatistikkJobbUtførerTest {
     companion object {
@@ -57,19 +61,18 @@ class StatistikkJobbUtførerTest {
             val utfører =
                 StatistikkJobbUtfører(StatistikkGateway(), vilkårsResultatRepository, behandlingRepository, sakService)
 
-            val identGateway = mockk<IdentGateway>()
-            every { identGateway.hentAlleIdenterForPerson(any()) } returns listOf(
-                Ident(
-                    identifikator = "123",
-                    aktivIdent = true
-                )
+            val ident = Ident(
+                identifikator = "123",
+                aktivIdent = true
             )
+            val identGateway = object : IdentGateway {
+                override fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
+                    return listOf(ident)
+                }
+            }
 
             val sak = PersonOgSakService(connection, identGateway).finnEllerOpprett(
-                Ident(
-                    identifikator = "123",
-                    aktivIdent = true
-                ), periode = Periode(LocalDate.now().minusDays(10), LocalDate.now().plusDays(1))
+                ident, periode = Periode(LocalDate.now().minusDays(10), LocalDate.now().plusDays(1))
             )
 
             val id = behandlingRepository.opprettBehandling(
@@ -106,10 +109,14 @@ class StatistikkJobbUtførerTest {
             val payload = VilkårsResultatHendelseDTO(behandlingId = id)
             val hendelse2 = DefaultJsonMapper.toJson(payload)
 
+            // Act
+
             utfører.utfør(
                 JobbInput(StatistikkJobbUtfører).medPayload(hendelse2)
                     .medParameter("statistikk-type", StatistikkType.AvsluttetBehandling.toString())
             )
+
+            // Assert
 
             assertThat(fakes.mottatteVilkårsResult).isNotEmpty()
             assertThat(fakes.mottatteVilkårsResult.first()).isEqualTo(
@@ -138,30 +145,40 @@ class StatistikkJobbUtførerTest {
 
     @Test
     fun `prosesserings-kall avgir statistikk korrekt`() {
-        // Blir ikke kalt (ennå), så derfor bare mock (vil fjerne etter refaktorering)
+        // Blir ikke kalt i denne metoden, så derfor bare mock
         val vilkårsResultatRepository = mockk<VilkårsresultatRepository>()
         val behandlingRepository = mockk<BehandlingRepository>()
-        val sakSerice = mockk<SakService>()
+
+        // Mock her siden dette er eneste eksterne kall
+        val sakService = mockk<SakService>()
+        every { sakService.hent(SakId(123)) } returns Sak(
+            id = SakId(123),
+            person = Person(0, identifikator = UUID.randomUUID(), identer = listOf(Ident("1234", aktivIdent = true))),
+            rettighetsperiode = Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)),
+            saksnummer = Saksnummer("456")
+        )
+
         val utfører =
-            StatistikkJobbUtfører(StatistikkGateway(), vilkårsResultatRepository, behandlingRepository, sakSerice)
+            StatistikkJobbUtfører(StatistikkGateway(), vilkårsResultatRepository, behandlingRepository, sakService)
 
         val payload = BehandlingFlytStoppetHendelse(
-            personident = "123",
+            sakID = SakId(123),
             status = Status.UTREDES,
             behandlingType = TypeBehandling.Klage,
             referanse = BehandlingReferanse("123"),
-            saksnummer = Saksnummer("456"),
             opprettetTidspunkt = LocalDateTime.now(),
             avklaringsbehov = listOf()
         )
 
         val hendelse = DefaultJsonMapper.toJson(payload)
 
+        // Act
         utfører.utfør(
             JobbInput(StatistikkJobbUtfører).medPayload(hendelse)
                 .medParameter("statistikk-type", StatistikkType.BehandlingStoppet.toString())
         )
 
+        // Assert
         assertThat(fakes.statistikkHendelser).isNotEmpty()
         assertThat(fakes.statistikkHendelser.size).isEqualTo(1)
         assertThat(fakes.statistikkHendelser.first()).isEqualTo(

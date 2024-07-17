@@ -44,10 +44,11 @@ class StatistikkJobbUtfører(
 
     private fun håndterBehandlingStoppet(payload: String) {
         val hendelse = DefaultJsonMapper.fromJson<BehandlingFlytStoppetHendelse>(payload)
+        val sak = sakService.hent(hendelse.sakID)
 
         statistikkGateway.avgiStatistikk(
             StatistikkHendelseDTO(
-                saksnummer = hendelse.saksnummer.toString(),
+                saksnummer = sak.saksnummer.toString(),
                 behandlingType = hendelse.behandlingType,
                 status = hendelse.status
             )
