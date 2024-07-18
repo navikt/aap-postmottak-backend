@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.server.prosessering.StatistikkJobbUtfører
 import no.nav.aap.behandlingsflyt.server.prosessering.StatistikkType
 import no.nav.aap.behandlingsflyt.server.prosessering.StoppetHendelseJobbUtfører
@@ -13,6 +14,7 @@ import no.nav.aap.motor.JobbInput
 
 class BehandlingHendelseService(
     private val flytJobbRepository: FlytJobbRepository,
+    private val sakService: SakService
 ) {
 
     /**
@@ -31,9 +33,12 @@ class BehandlingHendelseService(
     }
 
     fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
+        val sak = sakService.hent(behandling.sakId)
+
         // TODO: Utvide med flere parametere for prioritering
         val hendelse = BehandlingFlytStoppetHendelse(
-            sakID = behandling.sakId,
+            personIdent = sak.person.aktivIdent().identifikator,
+            saksnummer = sak.saksnummer,
             referanse = BehandlingReferanse(behandling.referanse.toString()),
             behandlingType = behandling.typeBehandling(),
             status = behandling.status(),

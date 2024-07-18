@@ -162,7 +162,8 @@ class StatistikkJobbUtførerTest {
             StatistikkJobbUtfører(StatistikkGateway(), vilkårsResultatRepository, behandlingRepository, sakService)
 
         val payload = BehandlingFlytStoppetHendelse(
-            sakID = SakId(123),
+            saksnummer = Saksnummer("456"),
+            personIdent = "123",
             status = Status.UTREDES,
             behandlingType = TypeBehandling.Klage,
             referanse = BehandlingReferanse("123"),
