@@ -26,7 +26,6 @@ import no.nav.aap.behandlingsflyt.hendelse.statistikk.VilkårsResultatDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway.PERSONINFO_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.medlemskap.adapter.MedlemskapResponse
 import no.nav.aap.pdl.HentPerson
 import no.nav.aap.pdl.HentPersonBolkResult
 import no.nav.aap.pdl.PDLDødsfall
@@ -70,6 +69,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
     private val inst2 = embeddedServer(Netty, port = 0, module = { inst2Fake() }).apply { start() }
     private val medl = embeddedServer(Netty, port = 0, module = { medlFake() }).apply { start() }
+    private val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() }).apply { start() }
 
     private val statistikk = embeddedServer(Netty, port = 0, module = { statistikkFake() }).apply { start() }
     val statistikkHendelser = mutableListOf<StatistikkHendelseDTO>()
@@ -117,6 +117,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
         // Statistikk-app
         System.setProperty("integrasjon.statistikk.url", "http://localhost:${statistikk.port()}")
+
+        // Pesys
+        System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
+        System.setProperty("integrasjon.pesys.scope", "scope")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -192,6 +196,24 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         routing {
             post("/behandling") {
                 call.respond(HttpStatusCode.NoContent)
+            }
+        }
+    }
+
+    private fun Application.pesysFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@pesysFake.log.info("Inntekt :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+            }
+        }
+        routing() {
+            get("/vedtak/gradalderellerufore") {
+                //val req = call.receive<UføreRequest>()
+                call.respond(70)
             }
         }
     }
@@ -740,8 +762,4 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         val scope: String? = null,
         val expires_in: Int = 3599,
     )
-}
-
-fun genererIdent(fødselsdato: LocalDate): Ident {
-    return Ident(FødselsnummerGenerator.Builder().fodselsdato(fødselsdato).buildAndGenerate())
 }

@@ -4,7 +4,7 @@ enum class SakTypeCode {
     UFORE
 }
 
-class UføreRequest (
+data class UføreRequest (
     val fnr: List<String>,
     val fom: String,
     val sakstype:SakTypeCode = SakTypeCode.UFORE

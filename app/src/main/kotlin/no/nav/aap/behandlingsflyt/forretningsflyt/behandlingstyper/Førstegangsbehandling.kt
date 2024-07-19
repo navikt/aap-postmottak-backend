@@ -6,6 +6,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.Institusjonsopphold.Ins
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.BarnService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.PersonopplysningService
+import no.nav.aap.behandlingsflyt.faktagrunnlag.register.uføre.UføreService
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade.YrkesskadeService
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder
@@ -42,7 +43,7 @@ object Førstegangsbehandling : BehandlingType {
             .medSteg(steg = VurderLovvalgSteg)
             .medSteg(steg = VurderAlderSteg, informasjonskrav = listOf(PersonopplysningService))
             .medSteg(steg = VurderStudentSteg)
-            .medSteg(steg = VurderSykdomSteg, informasjonskrav = listOf(YrkesskadeService))
+            .medSteg(steg = VurderSykdomSteg, informasjonskrav = listOf(YrkesskadeService, UføreService))
             .medSteg(steg = FritakMeldepliktSteg)
             .medSteg(steg = FastsettArbeidsevneSteg)
             .medSteg(steg = VurderBistandsbehovSteg)

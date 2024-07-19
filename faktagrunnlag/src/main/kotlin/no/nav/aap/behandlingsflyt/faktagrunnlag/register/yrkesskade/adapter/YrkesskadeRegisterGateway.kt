@@ -47,7 +47,7 @@ object YrkesskadeRegisterGateway {
         additionalHeaders = listOf(Header("Nav-Consumer-Id", "aap-behandlingsflyt"))
     )
     private val client = RestClient.withDefaultResponseHandler(
-        config = config, //TODO: bruk env var
+        config = config,
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
@@ -66,7 +66,8 @@ object YrkesskadeRegisterGateway {
 
     fun innhent(person: Person, fødselsdato: Fødselsdato): List<Yrkesskade> {
         val identer = person.identer().map { it.identifikator }
-        val request = YrkesskadeRequest(identer, fødselsdato.toLocalDate()) //TODO: fra når skal yrkesskade hentes
+        val request =
+            YrkesskadeRequest(identer, fomDato = fødselsdato.toLocalDate()) //TODO: fra når skal yrkesskade hentes
         val response: Yrkesskader? = query(request)
 
         val skader = response?.skader?.map { Yrkesskade(it.saksreferanse, it.skadedato) } ?: emptyList()

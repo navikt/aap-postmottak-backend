@@ -40,8 +40,9 @@ object UføreGateway : UføreRegisterGateway {
     } //TODO: få inn request parameter på en bedre måte
 
     // /springapi/vedtak/gradalderellerufore
-    override fun innhent(person: Person, Fødselsdato: Fødselsdato): Uføre {
-        val fom = Fødselsdato.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    // https://github.com/navikt/pensjon-pen/blob/16fd07f36c6bfaaeeb1e5e139834f07f9c59b0e2/pen-app/src/main/java/no/nav/pensjon/pen_app/provider/api/vedtak/VedtakController.kt#L288
+    override fun innhent(person: Person, fødselsdato: Fødselsdato): Uføre {
+        val fom = fødselsdato.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         val request = UføreRequest(person.identer().map { it.identifikator }, fom) // TODO: fra når skal uføre hentes
         val uføreRes = query(request)
 

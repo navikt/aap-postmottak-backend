@@ -9,21 +9,22 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.flyt.FlytKontekst
 
-class UføreService (
+class UføreService(
     private val sakService: SakService,
     private val uføreRepository: UføreRepository,
     private val personopplysningRepository: PersonopplysningRepository,
     private val uføreRegisterGateway: UføreRegisterGateway
-):Informasjonskrav{
+) : Informasjonskrav {
     override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
         val sak = sakService.hent(kontekst.sakId)
-        val fødselsdato = requireNotNull(personopplysningRepository.hentHvisEksisterer(kontekst.behandlingId)?.personopplysning?.fødselsdato)
+        val fødselsdato =
+            requireNotNull(personopplysningRepository.hentHvisEksisterer(kontekst.behandlingId)?.personopplysning?.fødselsdato)
         val uføregrad = uføreRegisterGateway.innhent(sak.person, fødselsdato)
 
         val behandlingId = kontekst.behandlingId
         val gamleData = uføreRepository.hentHvisEksisterer(behandlingId)
 
-        if (uføregrad.uføregrad.prosentverdi()!=0) {
+        if (uføregrad.uføregrad.prosentverdi() != 0) {
             uføreRepository.lagre(
                 behandlingId,
                 uføregrad
