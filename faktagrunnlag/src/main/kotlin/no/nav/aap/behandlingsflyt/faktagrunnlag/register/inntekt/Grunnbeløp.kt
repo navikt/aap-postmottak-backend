@@ -10,6 +10,7 @@ import java.time.Year
 
 object Grunnbeløp {
     private val grunnbeløp = listOf(
+        Element(2024, 5, 1, 124_028, 122_225),
         Element(2023, 5, 1, 118620, 116239),
         Element(2022, 5, 1, 111477, 109784),
         Element(2021, 5, 1, 106399, 104716),
