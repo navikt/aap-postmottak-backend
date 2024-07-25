@@ -211,7 +211,7 @@ class BeregnTilkjentYtelseServiceTest {
     }
 
     @Test
-    fun `minste årlige ytelse er lik 2G før 1 juli 2024 og lik 2,041G fom 1 juli 2024`() { //Denne må oppdateres når grunnbeløper endres 1. mai 2024
+    fun `minste årlige ytelse er lik 2G før 1 juli 2024 og lik 2,041G fom 1 juli 2024`() { //Denne må oppdateres når grunnbeløper endres 1. mai 2025
         val fødeselsdato = Fødselsdato(LocalDate.of(1985, 4, 1))
         val beregningsgrunnlag = Grunnlag11_19(
             grunnlaget = GUnit(BigDecimal(0)),
@@ -234,14 +234,14 @@ class BeregnTilkjentYtelseServiceTest {
 
         val barnetilleggGrunnlag = BarnetilleggGrunnlag(1L, emptyList())
 
-        val beregnTilkjentYtelseService = BeregnTilkjentYtelseService(
+        val beregnetTilkjentYtelse = BeregnTilkjentYtelseService(
             fødeselsdato,
             beregningsgrunnlag,
             underveisgrunnlag,
             barnetilleggGrunnlag
         ).beregnTilkjentYtelse()
 
-        assertThat(beregnTilkjentYtelseService.segmenter()).containsExactly(
+        assertThat(beregnetTilkjentYtelse.segmenter()).containsExactly(
             Segment(
                 periode = Periode(LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 30)),
                 verdi = Tilkjent(
