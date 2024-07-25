@@ -8,8 +8,8 @@ class BeregningDTO(
     val grunnlag: GUnit,
     val faktagrunnlag: Faktagrunnlag,
     val grunnlag11_19: Grunnlag11_19DTO,
-    val grunnlagUføre: GrunnlagUføreDTO?=null,
-    val grunnlagYrkesskade: GrunnlagYrkesskadeDTO?=null,
+    val grunnlagUføre: GrunnlagUføreDTO? = null,
+    val grunnlagYrkesskade: GrunnlagYrkesskadeDTO? = null,
 )
 
 class GrunnlagUføreDTO(
@@ -29,7 +29,7 @@ class Grunnlag11_19DTO(
     val grunnlaget: BigDecimal,
     val er6GBegrenset: Boolean,
     val erGjennomsnitt: Boolean,
-    val inntekter: Map<String,BigDecimal>,
+    val inntekter: Map<String, BigDecimal>,
 )
 
 class GrunnlagYrkesskadeDTO(

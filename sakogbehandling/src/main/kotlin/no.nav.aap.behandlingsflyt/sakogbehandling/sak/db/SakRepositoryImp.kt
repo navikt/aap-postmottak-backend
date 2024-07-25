@@ -11,6 +11,9 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Status
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import no.nav.aap.verdityper.sakogbehandling.SakId
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(SakRepositoryImpl::class.java)
 
 class SakRepositoryImpl(private val connection: DBConnection) : SakRepository, SakFlytRepository {
 
@@ -48,6 +51,7 @@ class SakRepositoryImpl(private val connection: DBConnection) : SakRepository, S
                 setEnumName(4, Status.OPPRETTET)
             }
         }
+        logger.info("Opprettet sak med ID: $keys. Saksnummer: $saksnummer")
         return Sak(SakId(keys), saksnummer, person, periode)
     }
 

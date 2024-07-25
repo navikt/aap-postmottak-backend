@@ -37,4 +37,8 @@ class TestPerson(
             inntekter.add(InntektPerÅr(år, beløp))
         }
     }
+
+    override fun toString(): String {
+        return "TestPerson(fødselsdato=$fødselsdato, identer=$identer, dødsdato=$dødsdato, barn=$barn, navn=$navn, yrkesskade=$yrkesskade, institusjonsopphold=$institusjonsopphold, inntekter=$inntekter)"
+    }
 }

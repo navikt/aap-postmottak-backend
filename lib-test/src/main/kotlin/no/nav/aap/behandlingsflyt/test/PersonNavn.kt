@@ -8,6 +8,10 @@ class PersonNavn(
     @JsonProperty("etternavn") val etternavn: String
 ) {
     fun fulltnavn(): String {
-        return fornavn + " " + etternavn
+        return "$fornavn $etternavn"
+    }
+
+    override fun toString(): String {
+        return "PersonNavn(fornavn='$fornavn', etternavn='$etternavn')"
     }
 }

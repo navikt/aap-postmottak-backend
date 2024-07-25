@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt
 
-import com.papsign.ktor.openapigen.OpenAPIGen
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
@@ -91,15 +90,7 @@ internal fun Application.server(dbConfig: DbConfig) {
         registry = prometheus
         meterBinders += LogbackMetrics()
     }
-    install(OpenAPIGen) {
-        // this serves OpenAPI definition on /openapi.json
-        serveOpenApiJson = true
-        // this servers Swagger UI on /swagger-ui/index.html
-        serveSwaggerUi = true
-        info {
-            title = "AAP - Saksbehandling"
-        }
-    }
+    generateOpenAPI()
     install(ContentNegotiation) {
         register(ContentType.Application.Json, JacksonConverter(objectMapper = DefaultJsonMapper.objectMapper(), true))
     }
@@ -174,7 +165,6 @@ internal fun Application.server(dbConfig: DbConfig) {
     }
 
 }
-
 
 fun Application.module(dataSource: DataSource): Motor {
     val motor = Motor(

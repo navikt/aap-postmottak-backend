@@ -19,8 +19,10 @@ private val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 const val AZURE = "azure"
 fun Application.authentication(config: AzureConfig) {
 
-    val jwkProvider: JwkProvider = JwkProviderBuilder(URI.create(config.jwksUri).toURL()).cached(10, 24, TimeUnit.HOURS)
-        .rateLimited(10, 1, TimeUnit.MINUTES).build()
+    val jwkProvider: JwkProvider = JwkProviderBuilder(URI.create(config.jwksUri).toURL())
+        .cached(10, 24, TimeUnit.HOURS)
+        .rateLimited(10, 1, TimeUnit.MINUTES)
+        .build()
 
     authentication {
         jwt(AZURE) {

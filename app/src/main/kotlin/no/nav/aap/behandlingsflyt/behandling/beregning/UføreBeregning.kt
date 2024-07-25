@@ -41,7 +41,8 @@ class UføreBeregning(
                 uføregrad = uføregrad,
                 uføreInntekterFraForegåendeÅr = inntekterForegåendeÅr.toList(), //TODO: wat?
                 uføreInntektIKroner = grunnlag.grunnlaget().multiplisert(Beløp(10)), //TODO: Gang med årets g
-                uføreYtterligereNedsattArbeidsevneÅr = ytterligereNedsattÅr, er6GBegrenset = grunnlag.er6GBegrenset(),
+                uføreYtterligereNedsattArbeidsevneÅr = ytterligereNedsattÅr,
+                er6GBegrenset = grunnlag.er6GBegrenset(),
                 erGjennomsnitt = grunnlag.erGjennomsnitt()
             )
         }

@@ -23,7 +23,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fød
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
 import no.nav.aap.behandlingsflyt.hendelse.statistikk.AvsluttetBehandlingDTO
 import no.nav.aap.behandlingsflyt.hendelse.statistikk.StatistikkHendelseDTO
-import no.nav.aap.behandlingsflyt.hendelse.statistikk.VilkårsResultatDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway.PERSONINFO_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson

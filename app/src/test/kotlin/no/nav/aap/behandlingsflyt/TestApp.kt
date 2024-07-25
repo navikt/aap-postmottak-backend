@@ -69,10 +69,10 @@ fun main() {
                                 fødselsdato = Fødselsdato(dto.fødselsdato),
                                 yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList(),
                                 barn = barn,
-                                institusjonsopphold = listOf(
+                                institusjonsopphold = listOfNotNull(
                                     if (dto.institusjoner.fengsel == true) genererFengselsopphold() else null,
                                     if (dto.institusjoner.sykehus == true) genererSykehusopphold() else null,
-                                    ).filterNotNull()
+                                )
                             )
                         )
                         val periode = Periode(
@@ -120,7 +120,7 @@ private fun genererFengselsopphold() = Institusjonsopphold(
     organisasjonsnummer = "12345",
     kategori = Oppholdstype.S.name,
     institusjonstype = Institusjonstype.FO.name,
-    forventetSluttdato =  LocalDate.now().plusYears(1),
+    forventetSluttdato = LocalDate.now().plusYears(1),
     startdato = LocalDate.now().minusYears(2)
 )
 
@@ -128,7 +128,7 @@ private fun genererSykehusopphold() = Institusjonsopphold(
     organisasjonsnummer = "12345",
     kategori = Oppholdstype.H.name,
     institusjonstype = Institusjonstype.HS.name,
-    forventetSluttdato =  LocalDate.now().plusYears(1),
+    forventetSluttdato = LocalDate.now().plusYears(1),
     startdato = LocalDate.now().minusYears(2)
 )
 
