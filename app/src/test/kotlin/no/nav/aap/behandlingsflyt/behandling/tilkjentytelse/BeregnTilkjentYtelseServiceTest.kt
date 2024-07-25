@@ -245,7 +245,7 @@ class BeregnTilkjentYtelseServiceTest {
             Segment(
                 periode = Periode(LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 30)),
                 verdi = Tilkjent(
-                    dagsats = Beløp("912.46"), //118620*2/260
+                    dagsats = Beløp("954.06"), //118620*2/260
                     gradering = Prosent.`0_PROSENT`,
                     grunnlag = Beløp("0"),
                     grunnlagsfaktor = GUnit(0),
@@ -258,11 +258,11 @@ class BeregnTilkjentYtelseServiceTest {
             Segment(
                 periode = Periode(LocalDate.of(2024, 7, 1), LocalDate.of(2024, 7, 1)),
                 verdi = Tilkjent(
-                    dagsats = Beløp("931.17"), //118620*2.041/260
+                    dagsats = Beløp("973.62"), // 124_028 * 2.041/260
                     gradering = Prosent.`0_PROSENT`,
                     grunnlag = Beløp("0"),
                     grunnlagsfaktor = GUnit(0),
-                    grunnbeløp = Beløp("118620"),
+                    grunnbeløp = Beløp("118620"), // <- dette er jo fjorårets!?
                     antallBarn = 0,
                     barnetilleggsats = Beløp("27"),
                     barnetillegg = Beløp("0")
