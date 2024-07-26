@@ -57,11 +57,11 @@ class BeregnTilkjentYtelseServiceTest {
                 verdi = Tilkjent(
                     dagsats = Beløp("1131.92"), //4*0.66*111477/260
                     gradering = Prosent.`0_PROSENT`,
-                    grunnlag = Beløp("0"),
-                    grunnlagsfaktor = GUnit(0),
-                    grunnbeløp = Beløp("99858"),
+                    grunnlag = Beløp("1131.92"),
+                    grunnlagsfaktor = GUnit("0.0101538462"),
+                    grunnbeløp = Beløp("111477"),
                     antallBarn = 0,
-                    barnetilleggsats = Beløp("27"),
+                    barnetilleggsats = Beløp("0"),
                     barnetillegg = Beløp("0")
                 )
             ),
@@ -70,11 +70,11 @@ class BeregnTilkjentYtelseServiceTest {
                 verdi = Tilkjent(
                     dagsats = Beløp("1204.45"), //4*0.66*118620/260
                     gradering = Prosent.`0_PROSENT`,
-                    grunnlag = Beløp("0"),
-                    grunnlagsfaktor = GUnit(0),
-                    grunnbeløp = Beløp("99858"),
+                    grunnlag = Beløp("1204.45"),
+                    grunnlagsfaktor = GUnit("0.0101538462"),
+                    grunnbeløp = Beløp("118620.00"),
                     antallBarn = 0,
-                    barnetilleggsats = Beløp("27"),
+                    barnetilleggsats = Beløp("0"),
                     barnetillegg = Beløp("0")
                 )
             )
