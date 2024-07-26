@@ -169,7 +169,7 @@ class ApiTest {
         @Language("JSON") val expectedJSON =
             """{
   "grunnlag": {
-    "verdi": 7.1000000000
+    "verdi": 7.0000000000
   },
   "faktagrunnlag": {
     "grunnlaget": 7.0000000000
