@@ -36,6 +36,25 @@ jobs:
           reporter: java-junit
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: slackapi/slack-github-action@v1.26.0
+        if: failure()
+        with:
+          channel-id: "C02PPNUT6CD"
+          payload: |
+            {
+              "text": "Tester feilet for Behandlingsflyt!",
+              "attachments": [
+                {
+                  "pretext": "Deployment started",
+                  "color": "danger",
+                  "fields": [
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
       - uses: nais/docker-build-push@v0
         id: docker-push
         with:
