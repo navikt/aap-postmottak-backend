@@ -77,7 +77,7 @@ class InstitusjonsoppholdRepositoryTest {
             val sak2 = sak(connection)
             val behandling2 = behandling(connection, sak2)
 
-            institusjonsoppholdRepository.kopier(behandling.id, behandling2.id)
+            institusjonsoppholdRepository.kopierTilAnnenBehandling(behandling.id, behandling2.id)
 
             val institusjonsoppholdTidslinje2 = institusjonsoppholdRepository.hent(behandling2.id)
             assertThat(institusjonsoppholdTidslinje2).hasSize(1)

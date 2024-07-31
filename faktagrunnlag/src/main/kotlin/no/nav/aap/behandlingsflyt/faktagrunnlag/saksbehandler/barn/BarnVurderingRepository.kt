@@ -2,10 +2,11 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.barn
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
-class BarnVurderingRepository(private val connection: DBConnection) {
+class BarnVurderingRepository(private val connection: DBConnection) : Kopierbar {
 
     fun hentHvisEksisterer(behandlingsId: BehandlingId): BarnVurderingGrunnlag? {
         val query = """
@@ -76,7 +77,7 @@ class BarnVurderingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+    override fun kopierTilAnnenBehandling(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
         val eksisterendeGrunnlag = hentHvisEksisterer(fraBehandlingId)
         if (eksisterendeGrunnlag == null) {
             return
@@ -139,4 +140,5 @@ class BarnVurderingRepository(private val connection: DBConnection) {
             periodeRow.getPeriode("periode")
         )
     }
+
 }

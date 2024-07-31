@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.beregning
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.GUnit
@@ -8,7 +9,7 @@ import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.Year
 
-class BeregningsgrunnlagRepository(private val connection: DBConnection) {
+class BeregningsgrunnlagRepository(private val connection: DBConnection) : Kopierbar {
 
     enum class Beregningstype {
         STANDARD,
@@ -411,7 +412,7 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         require(fraBehandling != tilBehandling)
         connection.execute("INSERT INTO BEREGNINGSGRUNNLAG (BEHANDLING_ID, BEREGNING_ID) SELECT ?, BEREGNING_ID FROM BEREGNINGSGRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {

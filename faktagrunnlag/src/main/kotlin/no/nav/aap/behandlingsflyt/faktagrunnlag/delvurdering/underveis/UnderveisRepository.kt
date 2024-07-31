@@ -2,11 +2,12 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.underveis
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.TimerArbeid
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
-class UnderveisRepository(private val connection: DBConnection) {
+class UnderveisRepository(private val connection: DBConnection) : Kopierbar {
 
     fun hent(behandlingId: BehandlingId): UnderveisGrunnlag {
         return requireNotNull(hentHvisEksisterer(behandlingId))
@@ -123,7 +124,7 @@ class UnderveisRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+    override fun kopierTilAnnenBehandling(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
         val eksisterendeGrunnlag = hentHvisEksisterer(fraBehandlingId)
         if (eksisterendeGrunnlag == null) {
             return

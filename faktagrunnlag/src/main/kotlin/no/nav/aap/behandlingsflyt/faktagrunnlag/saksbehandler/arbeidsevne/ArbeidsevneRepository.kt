@@ -1,10 +1,11 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.arbeidsevne
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
-class ArbeidsevneRepository(private val connection: DBConnection) {
+class ArbeidsevneRepository(private val connection: DBConnection) : Kopierbar {
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): ArbeidsevneGrunnlag? {
         return connection.queryFirstOrNull(
@@ -67,7 +68,7 @@ class ArbeidsevneRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         require(fraBehandling != tilBehandling)
         connection.execute("INSERT INTO ARBEIDSEVNE_GRUNNLAG (BEHANDLING_ID, ARBEIDSEVNE_ID) SELECT ?, ARBEIDSEVNE_ID FROM ARBEIDSEVNE_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {

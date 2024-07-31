@@ -1,10 +1,11 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
-class MeldepliktRepository(private val connection: DBConnection) {
+class MeldepliktRepository(private val connection: DBConnection) : Kopierbar {
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): MeldepliktGrunnlag? {
         return connection.queryList(
@@ -98,7 +99,7 @@ class MeldepliktRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         require(fraBehandling != tilBehandling)
         connection.execute("INSERT INTO MELDEPLIKT_FRITAK_GRUNNLAG (BEHANDLING_ID, MELDEPLIKT_ID) SELECT ?, MELDEPLIKT_ID FROM MELDEPLIKT_FRITAK_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {

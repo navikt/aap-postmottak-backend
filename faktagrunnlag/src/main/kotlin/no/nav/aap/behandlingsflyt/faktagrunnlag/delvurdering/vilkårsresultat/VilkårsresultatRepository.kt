@@ -2,12 +2,13 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(VilkårsresultatRepository::class.java)
 
-class VilkårsresultatRepository(private val connection: DBConnection) {
+class VilkårsresultatRepository(private val connection: DBConnection) : Kopierbar {
 
     fun lagre(behandlingId: BehandlingId, vilkårsresultat: Vilkårsresultat) {
         val eksisterendeResultat = hentVilkårresultat(behandlingId)
@@ -146,7 +147,7 @@ class VilkårsresultatRepository(private val connection: DBConnection) {
         )
     }
 
-    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         val eksisterendeResultat = hent(fraBehandling)
         lagre(tilBehandling, eksisterendeResultat)
     }

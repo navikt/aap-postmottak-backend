@@ -1,10 +1,11 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.yrkesskade
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDate
 
-class YrkesskadeRepository(private val connection: DBConnection) {
+class YrkesskadeRepository(private val connection: DBConnection) : Kopierbar {
 
     fun hentHvisEksisterer(behandlingId: BehandlingId): YrkesskadeGrunnlag? {
         return connection.queryList(
@@ -98,7 +99,7 @@ class YrkesskadeRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         require(fraBehandling != tilBehandling)
         connection.execute("INSERT INTO YRKESSKADE_GRUNNLAG (BEHANDLING_ID, YRKESSKADE_ID) SELECT ?, YRKESSKADE_ID FROM YRKESSKADE_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {

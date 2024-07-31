@@ -2,10 +2,11 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.barnetillegg
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
-class BarnetilleggRepository(private val connection: DBConnection) {
+class BarnetilleggRepository(private val connection: DBConnection) : Kopierbar {
 
     fun hentHvisEksisterer(behandlingsId: BehandlingId): BarnetilleggGrunnlag? {
         val query = """
@@ -76,7 +77,7 @@ class BarnetilleggRepository(private val connection: DBConnection) {
         }
     }
 
-    fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+    override fun kopierTilAnnenBehandling(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
         val eksisterendeGrunnlag = hentHvisEksisterer(fraBehandlingId)
         if (eksisterendeGrunnlag == null) {
             return

@@ -106,7 +106,7 @@ class PersonopplysningRepositoryTest {
         InitTestDatabase.dataSource.transaction { connection ->
             val personopplysningRepository = PersonopplysningRepository(connection)
             assertDoesNotThrow {
-                personopplysningRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
+                personopplysningRepository.kopierTilAnnenBehandling(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
             }
         }
     }

@@ -105,7 +105,7 @@ class ArbeidsevneRepositoryTest {
         InitTestDatabase.dataSource.transaction { connection ->
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
             assertDoesNotThrow {
-                arbeidsevneRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
+                arbeidsevneRepository.kopierTilAnnenBehandling(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
             }
         }
     }
