@@ -228,4 +228,33 @@ class GrunnlagetForBeregningenTest {
             )
         )
     }
+
+    @Test
+    fun `Om alle 3 foregående år overstiger 6G, så er er6GBegrenset true`() {
+        val inntekterPerÅr = setOf(
+            InntektPerÅr(Year.of(2022), Beløp(7 * 109_784)),    //   329 352
+            InntektPerÅr(Year.of(2021), Beløp(8 * 104_716)),    //   314 148
+            InntektPerÅr(Year.of(2020), Beløp(12 * 100_853))    // 1 210 236
+        )
+
+        val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
+        val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
+
+        assertThat(grunnlaget.er6GBegrenset()).isTrue()
+    }
+
+
+    @Test
+    fun `Om noen av de 3 foregående år overstiger 6G, så er er6GBegrenset true`() {
+        val inntekterPerÅr = setOf(
+            InntektPerÅr(Year.of(2022), Beløp(0 * 109_784)),    //   329 352
+            InntektPerÅr(Year.of(2021), Beløp(1 * 104_716)),    //   314 148
+            InntektPerÅr(Year.of(2020), Beløp(12 * 100_853))    // 1 210 236
+        )
+
+        val grunnlagetForBeregningen = GrunnlagetForBeregningen(inntekterPerÅr)
+        val grunnlaget = grunnlagetForBeregningen.beregnGrunnlaget()
+
+        assertThat(grunnlaget.er6GBegrenset()).isTrue()
+    }
 }

@@ -10,7 +10,8 @@ class Beregning(
     private val input: Inntektsbehov
 ) {
     internal fun beregneMedInput(): Beregningsgrunnlag {
-        val grunnlag11_19 = beregn(input.utledForOrdinær())//6G begrensning ligger her samt gjennomsnitt
+        //6G begrensning ligger her samt gjennomsnitt
+        val grunnlag11_19 = beregn(input.utledForOrdinær())
 
         val beregningMedEllerUtenUføre = if (input.skalBeregneMedUføre()) {
             val ikkeOppjusterteInntekter = input.utledForYtterligereNedsatt()

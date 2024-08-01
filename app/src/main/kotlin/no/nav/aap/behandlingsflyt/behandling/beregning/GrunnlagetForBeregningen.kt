@@ -23,7 +23,7 @@ class GrunnlagetForBeregningen(
         }
 
         val gUnitsBegrensetTil6GUnits = gUnits.map(GUnit::begrensTil6GUnits)
-        val er6Gbegrenset = gUnitsBegrensetTil6GUnits == gUnits
+        val er6Gbegrenset = gUnitsBegrensetTil6GUnits != gUnits
         val gUnitFørsteÅr = gUnitsBegrensetTil6GUnits.first()
 
         val gUnitGjennomsnitt = GUnit.gjennomsnittlig(gUnitsBegrensetTil6GUnits)
