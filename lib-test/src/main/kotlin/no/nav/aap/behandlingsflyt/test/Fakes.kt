@@ -211,7 +211,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
         }
         routing() {
-            get("/vedtak/gradalderellerufore") {
+            get("/vedtak/gradalderellerufore?fom={ting1}&sakstype={ting2}") {
                 //val req = call.receive<UføreRequest>()
                 call.respond(70)
             }
