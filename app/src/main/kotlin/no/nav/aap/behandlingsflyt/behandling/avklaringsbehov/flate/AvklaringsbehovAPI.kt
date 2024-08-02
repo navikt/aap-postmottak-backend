@@ -9,8 +9,8 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovHend
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
-import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.behandlingsflyt.server.respondWithStatus
 import org.slf4j.MDC
 import javax.sql.DataSource
@@ -20,17 +20,20 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
         route("/løs-behov") {
             post<Unit, LøsAvklaringsbehovPåBehandling, LøsAvklaringsbehovPåBehandling> { _, request ->
                 dataSource.transaction { connection ->
-                    val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
-                    val lås = taSkriveLåsRepository.lås(request.referanse)
-                    MDC.putCloseable("sakId", lås.sakSkrivelås.id.toString()).use {
-                        MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
+                    val behandlingRepository = BehandlingRepositoryImpl(connection)
+                    val sakRepository = SakRepositoryImpl(connection)
+                    behandlingRepository.hentMedLås(request.referanse)
+                    val behandling = behandlingRepository.hent(request.referanse)
+                    sakRepository.låsSak(behandling.sakId)
+                    MDC.putCloseable("sakId", behandling.sakId.toString()).use {
+                        MDC.putCloseable("behandlingId", behandling.id.toString()).use {
                             BehandlingTilstandValidator(connection).validerTilstand(
-                                BehandlingReferanse(request.referanse),
+                                request.referanse,
                                 request.behandlingVersjon
                             )
 
                             AvklaringsbehovHendelseHåndterer(connection).håndtere(
-                                key = lås.behandlingSkrivelås.id,
+                                key = behandling.id,
                                 hendelse = LøsAvklaringsbehovBehandlingHendelse(
                                     request.behov,
                                     request.ingenEndringIGruppe ?: false,
@@ -38,7 +41,8 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                                     pipeline.context.bruker()
                                 )
                             )
-                            taSkriveLåsRepository.verifiserSkrivelås(lås)
+                            behandlingRepository.bumpVersjon(behandling.id)
+                            sakRepository.bumpVersjon(behandling.sakId)
                         }
                     }
                 }

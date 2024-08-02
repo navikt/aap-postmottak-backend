@@ -215,4 +215,35 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             }
         }
     }
+
+    override fun hentMedLås(behandlingId: BehandlingId): Behandling {
+       return hentMedLåsIntern(behandlingId)
+    }
+
+    override fun hentMedLås(behandlingReferanse: BehandlingReferanse): Behandling {
+        return hentMedLåsIntern(behandlingReferanse = behandlingReferanse)
+    }
+
+    override fun bumpVersjon(behandlingId: BehandlingId) {
+        connection.execute("""UPDATE behandling SET versjon = versjon + 1 WHERE ID = ?""") {
+            setParams { setLong(1, behandlingId.toLong()) }
+        }
+    }
+
+    override fun bumpVersjon(behandlingReferanse: BehandlingReferanse) {
+        connection.execute("""UPDATE behandling SET versjon = versjon + 1 WHERE referanse = ?""") {
+            setParams { setUUID(1, behandlingReferanse.referanse) }
+        }
+    }
+
+    private fun hentMedLåsIntern(behnadlingId: BehandlingId? = null, behandlingReferanse: BehandlingReferanse? = null): Behandling {
+        return connection.queryFirst("""SELECT * FROM BEHANDLING WHERE referanse = ? OR ID = ? FOR UPDATE""") {
+            setParams {
+                setUUID(1, behandlingReferanse?.referanse)
+                setLong(2, behnadlingId?.toLong())
+            }
+            setRowMapper { mapBehandling(it) }
+        }
+    }
+
 }

@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottattDokumentReposito
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.UnparsedStrukturertDokument
 import no.nav.aap.behandlingsflyt.hendelse.mottak.HåndterMottattDokumentService
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -21,13 +21,13 @@ const val MOTTATT_TIDSPUNKT = "mottattTidspunkt"
 const val PERIODE = "periode"
 
 class HendelseMottattHåndteringOppgaveUtfører(connection: DBConnection) : JobbUtfører {
-    private val låsRepository = TaSkriveLåsRepository(connection)
+    private val sakRepository = SakRepositoryImpl(connection)
     private val hånderMottattDokumentService = HåndterMottattDokumentService(connection)
     private val mottaDokumentService = MottaDokumentService(MottattDokumentRepository(connection))
 
     override fun utfør(input: JobbInput) {
         val sakId = input.sakId()
-        val sakSkrivelås = låsRepository.låsSak(sakId)
+        sakRepository.låsSak(sakId)
 
         val brevkode = Brevkode.valueOf(input.parameter(BREVKODE))
         val payloadAsString = input.payload()
@@ -44,7 +44,7 @@ class HendelseMottattHåndteringOppgaveUtfører(connection: DBConnection) : Jobb
 
         hånderMottattDokumentService.håndterMottatteDokumenter(sakId, brevkode, utledPeriode(input.parameter(PERIODE)))
 
-        låsRepository.verifiserSkrivelås(sakSkrivelås)
+        sakRepository.bumpVersjon(sakId)
     }
 
     private fun utledPeriode(parameter: String): Periode? {
