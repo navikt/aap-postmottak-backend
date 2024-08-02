@@ -8,6 +8,7 @@ import no.nav.aap.behandlingsflyt.test.FødselsnummerGenerator
 import no.nav.aap.behandlingsflyt.test.PersonNavn
 import no.nav.aap.institusjon.Institusjonsopphold
 import no.nav.aap.verdityper.Beløp
+import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.time.LocalDate
 import java.time.Year
@@ -24,6 +25,7 @@ class TestPerson(
     val navn: PersonNavn = FiktivtNavnGenerator.genererNavn(),
     val yrkesskade: List<TestYrkesskade> = emptyList(),
     val institusjonsopphold: List<Institusjonsopphold> = emptyList(),
+    val uføre: Prosent = Prosent(0),
     inntekter: List<InntektPerÅr> = (1..10).map { InntektPerÅr(Year.now().minusYears(it.toLong()), Beløp("1000000.0")) }
 ) {
     private val inntekter: MutableList<InntektPerÅr> = inntekter.toMutableList()
