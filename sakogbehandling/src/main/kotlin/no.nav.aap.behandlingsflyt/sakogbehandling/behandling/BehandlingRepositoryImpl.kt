@@ -2,12 +2,12 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
-import java.util.*
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
@@ -17,11 +17,11 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             INSERT INTO BEHANDLING (sak_id, referanse, status, type)
                  VALUES (?, ?, ?, ?)
             """.trimIndent()
-        val uuid = UUID.randomUUID()
+        val behandlingsreferanse = BehandlingReferanse()
         val behandlingId = connection.executeReturnKey(query) {
             setParams {
                 setLong(1, sakId.toLong())
-                setUUID(2, uuid)
+                setUUID(2, behandlingsreferanse.referanse)
                 setEnumName(3, Status.OPPRETTET)
                 setString(4, typeBehandling.identifikator())
             }
@@ -42,7 +42,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
 
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
-            referanse = uuid,
+            referanse = behandlingsreferanse,
             sakId = sakId,
             typeBehandling = typeBehandling,
             årsaker = årsaker,
@@ -69,7 +69,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         val behandlingId = BehandlingId(row.getLong("id"))
         return Behandling(
             id = behandlingId,
-            referanse = row.getUUID("referanse"),
+            referanse = BehandlingReferanse(row.getUUID("referanse")),
             sakId = SakId(row.getLong("sak_id")),
             typeBehandling = TypeBehandling.from(row.getString("type")),
             status = row.getEnum("status"),
@@ -186,14 +186,14 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    override fun hent(referanse: UUID): Behandling {
+    override fun hent(referanse: BehandlingReferanse): Behandling {
         val query = """
             SELECT * FROM BEHANDLING WHERE referanse = ?
             """.trimIndent()
 
         return connection.queryFirst(query) {
             setParams {
-                setUUID(1, referanse)
+                setUUID(1, referanse.referanse)
             }
             setRowMapper {
                 mapBehandling(it)

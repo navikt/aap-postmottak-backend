@@ -42,7 +42,7 @@ class BehandlingHendelseService(
         val hendelse = BehandlingFlytStoppetHendelse(
             personIdent = sak.person.aktivIdent().identifikator,
             saksnummer = sak.saksnummer,
-            referanse = BehandlingReferanse(behandling.referanse.toString()),
+            referanse = BehandlingReferanse(behandling.referanse.referanse),
             behandlingType = behandling.typeBehandling(),
             status = behandling.status(),
             avklaringsbehov = avklaringsbehovene.alle().map { avklaringsbehov ->

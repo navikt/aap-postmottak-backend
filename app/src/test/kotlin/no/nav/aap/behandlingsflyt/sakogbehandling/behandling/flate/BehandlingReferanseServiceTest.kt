@@ -17,7 +17,7 @@ class BehandlingReferanseServiceTest {
             assertThrows<ElementNotFoundException> {
                 service.behandling(
                     BehandlingReferanse(
-                        UUID.randomUUID().toString()
+                        UUID.randomUUID()
                     )
                 )
             }

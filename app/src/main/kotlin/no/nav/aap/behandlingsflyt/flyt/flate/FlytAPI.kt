@@ -147,7 +147,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             post<BehandlingReferanse, BehandlingResultatDto, SettPåVentRequest> { request, body ->
                 dataSource.transaction { connection ->
                     val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
-                    val lås = taSkriveLåsRepository.lås(request.ref())
+                    val lås = taSkriveLåsRepository.lås(request.referanse)
                     BehandlingTilstandValidator(connection).validerTilstand(
                         request,
                         body.behandlingVersjon

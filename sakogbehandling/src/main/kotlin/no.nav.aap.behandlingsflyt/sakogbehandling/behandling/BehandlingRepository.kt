@@ -1,9 +1,9 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
-import java.util.*
 
 interface BehandlingRepository {
 
@@ -15,7 +15,7 @@ interface BehandlingRepository {
 
     fun hent(behandlingId: BehandlingId): Behandling
 
-    fun hent(referanse: UUID): Behandling
+    fun hent(referanse: BehandlingReferanse): Behandling
 
     fun oppdaterÅrsaker(behandling: Behandling, årsaker: List<Årsak>)
 }

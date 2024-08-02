@@ -216,7 +216,7 @@ class StatistikkJobbUtførerTest {
             personIdent = "123",
             status = Status.UTREDES,
             behandlingType = TypeBehandling.Klage,
-            referanse = BehandlingReferanse("123"),
+            referanse = BehandlingReferanse(),
             opprettetTidspunkt = LocalDateTime.now(),
             avklaringsbehov = listOf()
         )

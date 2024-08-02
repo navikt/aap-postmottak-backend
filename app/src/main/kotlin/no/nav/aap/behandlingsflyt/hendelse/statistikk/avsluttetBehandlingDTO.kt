@@ -7,11 +7,11 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsperiode
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsresultat
 import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 data class VilkårsResultatDTO(
     val typeBehandling: TypeBehandling,
@@ -72,7 +72,7 @@ data class TilkjentYtelsePeriodeDTO(
 )
 
 data class AvsluttetBehandlingDTO(
-    val behandlingsReferanse: UUID,
+    val behandlingsReferanse: BehandlingReferanse,
     val saksnummer: Saksnummer,
     val vilkårsResultat: VilkårsResultatDTO,
     val tilkjentYtelse: TilkjentYtelseDTO,

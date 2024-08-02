@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.flyt.StegType
@@ -8,11 +9,10 @@ import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
-import java.util.*
 
 class Behandling(
     val id: BehandlingId,
-    val referanse: UUID = UUID.randomUUID(),
+    val referanse: BehandlingReferanse = BehandlingReferanse(),
     val sakId: SakId,
     private val typeBehandling: TypeBehandling,
     private var status: Status = Status.OPPRETTET,

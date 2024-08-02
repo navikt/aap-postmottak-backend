@@ -53,7 +53,7 @@ class SoningsServiceTest {
             )
         )
 
-        val actual = soningsService.samleSoningsGrunnlag(BehandlingReferanse("324234"))
+        val actual = soningsService.samleSoningsGrunnlag(BehandlingReferanse())
 
         assertThat(actual.soningsvurdering)
             .isEqualTo(SoningsvurderingDto(emptyList(), false, "YOLO"))

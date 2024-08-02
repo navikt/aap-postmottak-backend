@@ -37,7 +37,7 @@ class OppgavestyringGatewayTest {
                     status = Status.OPPRETTET,
                     behandlingType = TypeBehandling.Klage,
                     avklaringsbehov = emptyList(),
-                    referanse = BehandlingReferanse("yolo")
+                    referanse = BehandlingReferanse()
                 )
             )
         }

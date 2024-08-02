@@ -33,7 +33,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                     val behandling = behandling(connection, req)
                     val flyt = utledType(behandling.typeBehandling()).flyt()
                     DetaljertBehandlingDTO(
-                        referanse = behandling.referanse,
+                        referanse = behandling.referanse.referanse,
                         type = behandling.typeBehandling().name,
                         status = behandling.status(),
                         opprettet = behandling.opprettetTidspunkt,
@@ -85,7 +85,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
                 dataSource.transaction { connection ->
                     val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
-                    val lås = taSkriveLåsRepository.lås(req.ref())
+                    val lås = taSkriveLåsRepository.lås(req.referanse)
                     val behandling = behandling(connection, req)
                     val flytJobbRepository = FlytJobbRepository(connection)
                     if (flytJobbRepository.hentJobberForBehandling(behandling.id).isEmpty()) {
