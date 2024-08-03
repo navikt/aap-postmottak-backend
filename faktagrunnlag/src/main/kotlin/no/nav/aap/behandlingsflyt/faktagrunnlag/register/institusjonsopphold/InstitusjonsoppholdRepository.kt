@@ -1,13 +1,12 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.institusjonsopphold
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.tidslinje.Segment
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDate
 
-class InstitusjonsoppholdRepository(private val connection: DBConnection) : Kopierbar {
+class InstitusjonsoppholdRepository(private val connection: DBConnection) {
 
     private fun hentOpphold(opphold_grunnlag_id: Long): List<Segment<Institusjon>> {
         return connection.queryList(
@@ -117,7 +116,7 @@ class InstitusjonsoppholdRepository(private val connection: DBConnection) : Kopi
     }
 
 
-    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         require(fraBehandling != tilBehandling)
         connection.execute("INSERT INTO OPPHOLD_GRUNNLAG (BEHANDLING_ID, OPPHOLD_PERSON_ID) SELECT ?, OPPHOLD_PERSON_ID FROM OPPHOLD_GRUNNLAG WHERE AKTIV AND BEHANDLING_ID = ?") {
             setParams {

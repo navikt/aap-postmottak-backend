@@ -2,11 +2,10 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
-import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
-class BeregningVurderingRepository(private val connection: DBConnection) : Kopierbar {
+class BeregningVurderingRepository(private val connection: DBConnection) {
 
     private fun mapVurdering(row: Row): BeregningVurdering {
         return BeregningVurdering(
@@ -66,7 +65,7 @@ class BeregningVurderingRepository(private val connection: DBConnection) : Kopie
         }
     }
 
-    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         val eksisterendeGrunnlag = hentHvisEksisterer(fraBehandling)
         if (eksisterendeGrunnlag == null) {
             return

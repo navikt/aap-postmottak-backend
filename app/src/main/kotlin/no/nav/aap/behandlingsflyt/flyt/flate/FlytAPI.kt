@@ -31,7 +31,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.server.respondWithStatus
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -146,20 +146,17 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
         route("/{referanse}/sett-på-vent") {
             post<BehandlingReferanse, BehandlingResultatDto, SettPåVentRequest> { request, body ->
                 dataSource.transaction { connection ->
-                    val behandlingRepository = BehandlingRepositoryImpl(connection)
-                    val sakRepository = SakRepositoryImpl(connection)
-                    behandlingRepository.hentMedLås(request)
-                    val behandling = behandlingRepository.hent(request)
-                    sakRepository.låsSak(behandling.sakId)
+                    val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
+                    val lås = taSkriveLåsRepository.lås(request.referanse)
                     BehandlingTilstandValidator(connection).validerTilstand(
                         request,
                         body.behandlingVersjon
                     )
 
-                    MDC.putCloseable("sakId", behandling.sakId.toString()).use {
-                        MDC.putCloseable("behandlingId", behandling.id.toString()).use {
+                    MDC.putCloseable("sakId", lås.sakSkrivelås.id.toString()).use {
+                        MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
                             BehandlingHendelseHåndterer(connection).håndtere(
-                                key = behandling.id,
+                                key = lås.behandlingSkrivelås.id,
                                 hendelse = BehandlingSattPåVent(
                                     frist = body.frist,
                                     begrunnelse = body.begrunnelse,
@@ -168,8 +165,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                     bruker = pipeline.context.bruker()
                                 )
                             )
-                            sakRepository.bumpVersjon(behandling.sakId)
-                            behandlingRepository.bumpVersjon(request)
+                            taSkriveLåsRepository.verifiserSkrivelås(lås)
                         }
                     }
                 }

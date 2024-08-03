@@ -1,12 +1,11 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
-class BarnRepository(private val connection: DBConnection) : Kopierbar {
+class BarnRepository(private val connection: DBConnection) {
 
     fun hent(behandlingId: BehandlingId): BarnGrunnlag {
         val barn = connection.queryList(
@@ -65,7 +64,7 @@ class BarnRepository(private val connection: DBConnection) : Kopierbar {
         }
     }
 
-    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         require(fraBehandling != tilBehandling)
         val query = """
             INSERT INTO BARNOPPLYSNING_GRUNNLAG (behandling_id, BGB_ID) SELECT ?, BGB_ID from BARNOPPLYSNING_GRUNNLAG where behandling_id = ? and aktiv

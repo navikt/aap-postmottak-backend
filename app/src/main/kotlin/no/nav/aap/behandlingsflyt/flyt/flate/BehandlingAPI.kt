@@ -17,7 +17,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.behandlingsflyt.server.respondWithStatus
 import no.nav.aap.motor.FlytJobbRepository
@@ -84,12 +84,9 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
         route("/{referanse}/forbered") {
             get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
                 dataSource.transaction { connection ->
-                    val behandlingRepository = BehandlingRepositoryImpl(connection)
-                    val sakRepository = SakRepositoryImpl(connection)
-                    behandlingRepository.hentMedLås(req)
+                    val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
+                    val lås = taSkriveLåsRepository.lås(req.referanse)
                     val behandling = behandling(connection, req)
-                    sakRepository.låsSak(behandling.sakId)
-
                     val flytJobbRepository = FlytJobbRepository(connection)
                     if (flytJobbRepository.hentJobberForBehandling(behandling.id).isEmpty()) {
                         flytJobbRepository.leggTil(
@@ -99,8 +96,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                             )
                         )
                     }
-                    behandlingRepository.bumpVersjon(req)
-                    sakRepository.bumpVersjon(behandling.sakId)
+                    taSkriveLåsRepository.verifiserSkrivelås(lås)
                 }
                 respondWithStatus(HttpStatusCode.Accepted)
             }

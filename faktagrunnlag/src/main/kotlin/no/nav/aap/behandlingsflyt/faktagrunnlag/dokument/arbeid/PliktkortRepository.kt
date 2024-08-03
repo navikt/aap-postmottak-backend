@@ -2,7 +2,6 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.arbeid
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
-import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.behandlingsflyt.faktagrunnlag.dokument.MottattDokumentRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.TimerArbeid
@@ -10,7 +9,7 @@ import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 
-class PliktkortRepository(private val connection: DBConnection) : Kopierbar {
+class PliktkortRepository(private val connection: DBConnection) {
 
     private val mottattDokumentRepository = MottattDokumentRepository(connection)
 
@@ -148,7 +147,7 @@ class PliktkortRepository(private val connection: DBConnection) : Kopierbar {
         }
     }
 
-    override fun kopierTilAnnenBehandling(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+    fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
         val eksisterendeGrunnlag = hentHvisEksisterer(fraBehandlingId)
         if (eksisterendeGrunnlag == null) {
             return

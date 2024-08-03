@@ -126,7 +126,7 @@ class YrkesskadeRepositoryTest {
         InitTestDatabase.dataSource.transaction { connection ->
             val yrkesskadeRepository = YrkesskadeRepository(connection)
             assertDoesNotThrow {
-                yrkesskadeRepository.kopierTilAnnenBehandling(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
+                yrkesskadeRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
             }
         }
     }

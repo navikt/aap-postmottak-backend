@@ -18,8 +18,4 @@ interface SakRepository {
 
     fun finnBarn(saksnummer: Saksnummer): List<Ident>
 
-    fun låsSak(sakId: SakId)
-
-    fun bumpVersjon(sakId: SakId)
-
 }

@@ -104,7 +104,7 @@ class UføreRepositoryTest {
         InitTestDatabase.dataSource.transaction { connection ->
             val uføreRepository = UføreRepository(connection)
             assertDoesNotThrow {
-                uføreRepository.kopierTilAnnenBehandling(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
+                uføreRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
             }
         }
     }

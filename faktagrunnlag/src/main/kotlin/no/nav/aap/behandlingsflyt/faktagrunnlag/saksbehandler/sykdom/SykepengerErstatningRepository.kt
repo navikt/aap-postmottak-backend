@@ -1,11 +1,10 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.faktagrunnlag.Kopierbar
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
-class SykepengerErstatningRepository(private val connection: DBConnection) : Kopierbar {
+class SykepengerErstatningRepository(private val connection: DBConnection) {
 
     fun lagre(behandlingId: BehandlingId, vurdering: SykepengerVurdering?) {
         val eksisterendeGrunnlag = hentHvisEksisterer(behandlingId)
@@ -75,7 +74,7 @@ class SykepengerErstatningRepository(private val connection: DBConnection) : Kop
         }
     }
 
-    override fun kopierTilAnnenBehandling(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+    fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         val hentHvisEksisterer = hentHvisEksisterer(fraBehandling)
         if (hentHvisEksisterer == null) {
             return

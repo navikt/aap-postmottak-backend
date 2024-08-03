@@ -158,19 +158,6 @@ class SakRepositoryImpl(private val connection: DBConnection) : SakRepository, S
         return barn
     }
 
-    override fun låsSak(sakId: SakId) {
-        connection.queryList<Unit>("""SELECT FROM SAK WHERE ID = ? FOR UPDATE""") {
-            setParams { setLong(1, sakId.toLong()) }
-            setRowMapper { it -> "" }
-        }
-    }
-
-    override fun bumpVersjon(sakId: SakId) {
-        connection.execute("""UPDATE sak SET versjon = versjon + 1 WHERE ID = ?""") {
-            setParams { setLong(1, sakId.toLong()) }
-        }
-    }
-
     private fun mapSak(row: Row) = Sak(
         id = SakId(row.getLong("id")),
         person = personRepository.hent(row.getLong("person_id")),

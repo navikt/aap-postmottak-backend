@@ -2,10 +2,10 @@ package no.nav.aap.behandlingsflyt.hendelse.mottak
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.SakOgBehandlingService
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Årsak
+import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.motor.FlytJobbRepository
@@ -17,7 +17,7 @@ class HåndterMottattDokumentService(connection: DBConnection) {
 
     private val sakService = SakService(connection)
     private val sakOgBehandlingService = SakOgBehandlingService(connection)
-    private val behandlingRepository = BehandlingRepositoryImpl(connection)
+    private val låsRepository = TaSkriveLåsRepository(connection)
     private val flytJobbRepository = FlytJobbRepository(connection)
 
     fun håndterMottatteDokumenter(sakId: SakId, brevkode: Brevkode, periode: Periode?) {
@@ -26,7 +26,7 @@ class HåndterMottattDokumentService(connection: DBConnection) {
         val beriketBehandling =
             sakOgBehandlingService.finnEllerOpprettBehandling(sak.saksnummer, listOf(utledÅrsak(brevkode, periode)))
 
-        behandlingRepository.hentMedLås(beriketBehandling.behandling.id)
+        val behandlingSkrivelås = låsRepository.låsBehandling(beriketBehandling.behandling.id)
 
         // Skal da planlegge ny jobb
         flytJobbRepository.leggTil(
@@ -36,7 +36,7 @@ class HåndterMottattDokumentService(connection: DBConnection) {
             ).medCallId()
         )
 
-        behandlingRepository.bumpVersjon(beriketBehandling.behandling.id)
+        låsRepository.verifiserSkrivelås(behandlingSkrivelås)
     }
 
     private fun utledÅrsak(brevkode: Brevkode, periode: Periode?): Årsak {

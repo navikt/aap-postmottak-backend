@@ -18,14 +18,5 @@ interface BehandlingRepository {
     fun hent(referanse: BehandlingReferanse): Behandling
 
     fun oppdaterÅrsaker(behandling: Behandling, årsaker: List<Årsak>)
-
-    fun hentMedLås(behandlingId: BehandlingId): Behandling
-
-    fun hentMedLås(behandlingReferanse: BehandlingReferanse): Behandling
-
-    fun bumpVersjon(behandlingId: BehandlingId)
-
-    fun bumpVersjon(behandlingReferanse: BehandlingReferanse)
-
 }
 
