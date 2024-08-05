@@ -98,12 +98,12 @@ enum class Definisjon(
     AVKLAR_SONINGSFORRHOLD(
         kode = AVKLAR_SONINGSFORRHOLD_KODE,
         type = BehovType.MANUELT_PÅKREVD,
-        løsesISteg = StegType.VURDER_SONING
+        løsesISteg = StegType.DU_ER_ET_ANNET_STED
     ),
     AVKLAR_HELSEINSTITUSJON(
         kode = AVKLAR_HELSEINSTITUSJON_KODE,
         type = BehovType.MANUELT_PÅKREVD,
-        løsesISteg = StegType.VURDER_HELSEINSTITUSJON
+        løsesISteg = StegType.DU_ER_ET_ANNET_STED
     ),
     FORESLÅ_VEDTAK(
         kode = FORESLÅ_VEDTAK_KODE,
