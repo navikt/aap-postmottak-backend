@@ -20,117 +20,125 @@ import no.nav.aap.verdityper.GUnit
 import no.nav.aap.verdityper.Periode
 import no.nav.aap.verdityper.Prosent
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Year
 
+// TODO! Det er bugs i repositoriet: den blander inntekter nå
+// Testen feiler kun når man kjører alle testene i klassen
+// Problemet er at BEREGNING_INNTEKT-tabellen referer til BEREGNING_HOVED
 class BeregningsgrunnlagRepositoryTest {
 
     @Test
     fun `Lagre og hente opp beregningsgrunnlaget med uføre og yrkesskade`() {
+        val sak = InitTestDatabase.dataSource.transaction { sak(it) }
+        val behandling = InitTestDatabase.dataSource.transaction { behandling(it, sak) }
+        val inntektPerÅr = listOf(
+            InntektPerÅr(
+                år = 2015,
+                beløp = Beløp(400000)
+            ),
+            InntektPerÅr(
+                år = 2016,
+                beløp = Beløp(400000)
+            ),
+            InntektPerÅr(
+                år = 2017,
+                beløp = Beløp(200000)
+            ),
+        )
+
+        val inntektPerÅrUføre = listOf(
+            InntektPerÅr(
+                år = 2010,
+                beløp = Beløp(300000)
+            ),
+            InntektPerÅr(
+                år = 2011,
+                beløp = Beløp(350000)
+            ),
+        )
+
+        val grunnlag11_19Standard = Grunnlag11_19(
+            grunnlaget = GUnit(1),
+            er6GBegrenset = false,
+            erGjennomsnitt = false,
+            inntekter = inntektPerÅr
+        )
+        val grunnlag11_19Ytterligere = Grunnlag11_19(
+            grunnlaget = GUnit(3),
+            er6GBegrenset = false,
+            erGjennomsnitt = false,
+            inntekter = inntektPerÅrUføre
+        )
+        val grunnlagUføre = GrunnlagUføre(
+            grunnlaget = GUnit(4),
+            type = GrunnlagUføre.Type.YTTERLIGERE_NEDSATT,
+            grunnlag = grunnlag11_19Standard,
+            grunnlagYtterligereNedsatt = grunnlag11_19Ytterligere,
+            uføregrad = Prosent(50),
+            uføreInntekterFraForegåendeÅr = inntektPerÅrUføre,
+            uføreInntektIKroner = Beløp(0),
+            uføreYtterligereNedsattArbeidsevneÅr = Year.of(2022),
+            er6GBegrenset = false,
+            erGjennomsnitt = false,
+        )
         InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling = behandling(connection, sak)
-
-            val inntektPerÅr = listOf(
-                InntektPerÅr(
-                    år = 2015,
-                    beløp = Beløp(400000)
-                ),
-                InntektPerÅr(
-                    år = 2016,
-                    beløp = Beløp(400000)
-                ),
-                InntektPerÅr(
-                    år = 2017,
-                    beløp = Beløp(200000)
-                ),
-            )
-
-            val inntektPerÅrUføre = listOf(
-                InntektPerÅr(
-                    år = 2010,
-                    beløp = Beløp(300000)
-                ),
-                InntektPerÅr(
-                    år = 2011,
-                    beløp = Beløp(350000)
-                ),
-            )
-
-            val grunnlag11_19Standard = Grunnlag11_19(
-                grunnlaget = GUnit(1),
-                er6GBegrenset = false,
-                erGjennomsnitt = false,
-                inntekter = inntektPerÅr
-            )
-            val grunnlag11_19Ytterligere = Grunnlag11_19(
-                grunnlaget = GUnit(3),
-                er6GBegrenset = false,
-                erGjennomsnitt = false,
-                inntekter = inntektPerÅrUføre
-            )
-            val grunnlagUføre = GrunnlagUføre(
-                grunnlaget = GUnit(4),
-                type = GrunnlagUføre.Type.YTTERLIGERE_NEDSATT,
-                grunnlag = grunnlag11_19Standard,
-                grunnlagYtterligereNedsatt = grunnlag11_19Ytterligere,
-                uføregrad = Prosent(50),
-                uføreInntekterFraForegåendeÅr = inntektPerÅrUføre,
-                uføreInntektIKroner = Beløp(0),
-                uføreYtterligereNedsattArbeidsevneÅr = Year.of(2022),
-                er6GBegrenset = false,
-                erGjennomsnitt = false,
-            )
-
             val beregningsgrunnlagRepository = BeregningsgrunnlagRepository(connection)
 
             beregningsgrunnlagRepository.lagre(behandling.id, grunnlagUføre)
+        }
 
-            val beregningsgrunnlag: GrunnlagUføre = beregningsgrunnlagRepository.hentHvisEksisterer(behandling.id) as GrunnlagUføre
+        InitTestDatabase.dataSource.transaction { connection ->
+            val beregningsgrunnlag: GrunnlagUføre =
+                BeregningsgrunnlagRepository(connection).hentHvisEksisterer(behandling.id) as GrunnlagUføre
 
             assertThat(beregningsgrunnlag).isEqualTo(grunnlagUføre)
             assertThat(beregningsgrunnlag.underliggende().inntekter()).isEqualTo(inntektPerÅr)
             assertThat(beregningsgrunnlag.underliggendeYtterligereNedsatt().inntekter()).isEqualTo(inntektPerÅrUføre)
+            assertThat(beregningsgrunnlag).isEqualTo(grunnlagUføre)
         }
     }
 
     @Test
     fun `Lagre og hente opp beregningsgrunnlaget med uføre uten yrkesskade`() {
+        val sak = InitTestDatabase.dataSource.transaction { sak(it) }
+        val behandling = InitTestDatabase.dataSource.transaction { behandling(it, sak) }
+
+        val grunnlag11_19Standard = Grunnlag11_19(
+            grunnlaget = GUnit(1),
+            er6GBegrenset = false,
+            erGjennomsnitt = false,
+            inntekter = emptyList()
+        )
+        val grunnlag11_19Ytterligere = Grunnlag11_19(
+            grunnlaget = GUnit(3),
+            er6GBegrenset = false,
+            erGjennomsnitt = false,
+            inntekter = emptyList()
+        )
+        val grunnlagUføre = GrunnlagUføre(
+            grunnlaget = GUnit(4),
+            type = GrunnlagUføre.Type.STANDARD,
+            grunnlag = grunnlag11_19Standard,
+            grunnlagYtterligereNedsatt = grunnlag11_19Ytterligere,
+            uføregrad = Prosent(50),
+            uføreInntekterFraForegåendeÅr = emptyList(),
+            uføreInntektIKroner = Beløp(0),
+            uføreYtterligereNedsattArbeidsevneÅr = Year.of(2022),
+            er6GBegrenset = false,
+            erGjennomsnitt = false,
+        )
+
         InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling = behandling(connection, sak)
-
-            val grunnlag11_19Standard = Grunnlag11_19(
-                grunnlaget = GUnit(1),
-                er6GBegrenset = false,
-                erGjennomsnitt = false,
-                inntekter = emptyList()
-            )
-            val grunnlag11_19Ytterligere = Grunnlag11_19(
-                grunnlaget = GUnit(3),
-                er6GBegrenset = false,
-                erGjennomsnitt = false,
-                inntekter = emptyList()
-            )
-            val grunnlagUføre = GrunnlagUføre(
-                grunnlaget = GUnit(4),
-                type = GrunnlagUføre.Type.STANDARD,
-                grunnlag = grunnlag11_19Standard,
-                grunnlagYtterligereNedsatt = grunnlag11_19Ytterligere,
-                uføregrad = Prosent(50),
-                uføreInntekterFraForegåendeÅr = emptyList(),
-                uføreInntektIKroner = Beløp(0),
-                uføreYtterligereNedsattArbeidsevneÅr = Year.of(2022),
-                er6GBegrenset = false,
-                erGjennomsnitt = false,
-            )
-
             val beregningsgrunnlagRepository = BeregningsgrunnlagRepository(connection)
 
             beregningsgrunnlagRepository.lagre(behandling.id, grunnlagUføre)
+        }
 
-            val beregningsgrunnlag = beregningsgrunnlagRepository.hentHvisEksisterer(behandling.id)
+        InitTestDatabase.dataSource.transaction { connection ->
+            val beregningsgrunnlag = BeregningsgrunnlagRepository(connection).hentHvisEksisterer(behandling.id)
 
             assertThat(beregningsgrunnlag).isEqualTo(grunnlagUføre)
         }
@@ -138,23 +146,24 @@ class BeregningsgrunnlagRepositoryTest {
 
     @Test
     fun `Lagre og hente opp beregningsgrunnlaget uten uføre og yrkesskade`() {
+        val sak = InitTestDatabase.dataSource.transaction { sak(it) }
+        val behandling = InitTestDatabase.dataSource.transaction {
+            behandling(it, sak)
+        }
+
+        val grunnlag11_19Standard = Grunnlag11_19(
+            grunnlaget = GUnit("1.1"),
+            er6GBegrenset = false,
+            erGjennomsnitt = false,
+            inntekter = emptyList()
+        )
         InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling = behandling(connection, sak)
-
-            val grunnlag11_19Standard = Grunnlag11_19(
-                grunnlaget = GUnit(1),
-                er6GBegrenset = false,
-                erGjennomsnitt = false,
-                inntekter = emptyList()
-            )
-
             val beregningsgrunnlagRepository = BeregningsgrunnlagRepository(connection)
-
             beregningsgrunnlagRepository.lagre(behandling.id, grunnlag11_19Standard)
+        }
 
-            val beregningsgrunnlag = beregningsgrunnlagRepository.hentHvisEksisterer(behandling.id)
-
+        InitTestDatabase.dataSource.transaction { connection ->
+            val beregningsgrunnlag = BeregningsgrunnlagRepository(connection).hentHvisEksisterer(behandling.id)
             assertThat(beregningsgrunnlag).isEqualTo(grunnlag11_19Standard)
         }
     }

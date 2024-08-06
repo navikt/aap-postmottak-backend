@@ -48,8 +48,8 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 Grunnlag11_19(
                     grunnlaget = GUnit(row.getBigDecimal("G_UNIT_HOVED")),
-                    er6GBegrenset = false,
-                    erGjennomsnitt = false,
+                    er6GBegrenset = false, // TODO!!
+                    erGjennomsnitt = false, // TODO!!
                     inntekter = inntekter,
                 ) //TODO:tulledata
             }
@@ -174,7 +174,7 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
 
         val beregningsType = connection.queryFirstOrNull(
             """
-            SELECT  b.BEREGNINGSTYPE, b.ID
+            SELECT b.BEREGNINGSTYPE, b.ID
             FROM BEREGNINGSGRUNNLAG bg
             INNER JOIN BEREGNING b ON bg.BEREGNING_ID = b.ID
             WHERE bg.AKTIV AND bg.BEHANDLING_ID = ?
@@ -260,6 +260,7 @@ class BeregningsgrunnlagRepository(private val connection: DBConnection) {
 
         val grunnlagId = lagre(beregningsId, beregningsgrunnlag.underliggende())
         lagre(grunnlagId, beregningsgrunnlag.underliggende().inntekter())
+
         val ytterligereNedsattId = lagre(beregningsId, beregningsgrunnlag.underliggendeYtterligereNedsatt())
         lagre(ytterligereNedsattId, beregningsgrunnlag.underliggendeYtterligereNedsatt().inntekter())
 
