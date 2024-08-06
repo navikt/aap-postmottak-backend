@@ -28,10 +28,8 @@ import no.nav.aap.behandlingsflyt.forretningsflyt.steg.UnderveisSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VisGrunnlagSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderAlderSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderBistandsbehovSteg
-import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderHelseinstitusjonSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderLovvalgSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderMedlemskapSteg
-import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderSoningSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderStudentSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderSykdomSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.VurderSykepengeErstatningSteg
@@ -56,8 +54,6 @@ object Førstegangsbehandling : BehandlingType {
             // Relevant issue: https://github.com/navikt/pensjon-pen/pull/13138
             .medSteg(steg = FastsettGrunnlagSteg, informasjonskrav = listOf(InntektService))
             .medSteg(steg = EtAnnetStedSteg, informasjonskrav = listOf(InstitusjonsoppholdService))
-            .medSteg(steg = VurderHelseinstitusjonSteg)  // TODO: Trengs dette?
-            .medSteg(steg = VurderSoningSteg) // TODO: Trengs dette?
             .medSteg(steg = UnderveisSteg, informasjonskrav = listOf(PliktkortService))
             .medSteg(steg = BarnetilleggSteg, informasjonskrav = listOf(BarnService))
             .medSteg(steg = BeregnTilkjentYtelseSteg, informasjonskrav = listOf(PersonopplysningService))
