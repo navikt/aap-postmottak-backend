@@ -12,7 +12,7 @@ class AvklarHelseinstitusjonLøser(connection: DBConnection) : AvklaringsbehovsL
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarHelseinstitusjonLøsning): LøsningsResultat {
         helseinstitusjonRepository.lagre(kontekst.kontekst.behandlingId, løsning.helseinstitusjonVurdering.tilDomeneobjekt())
-        return LøsningsResultat("YOLO")
+        return LøsningsResultat(løsning.helseinstitusjonVurdering.begrunnelse)
     }
 
     override fun forBehov(): Definisjon {

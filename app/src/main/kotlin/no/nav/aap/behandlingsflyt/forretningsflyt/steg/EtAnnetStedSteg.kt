@@ -24,11 +24,11 @@ class EtAnnetStedSteg(
         val avklaringsbehov = mutableListOf<Definisjon>()
 
         if (grunnlag?.opphold?.any { segment -> segment.verdi.type == Institusjonstype.FO } == true &&
-            avklaringsbehovene.hentBehovForDefinisjon(Definisjon.AVKLAR_SONINGSFORRHOLD) != null) {
+            avklaringsbehovene.hentBehovForDefinisjon(Definisjon.AVKLAR_SONINGSFORRHOLD) == null) {
             avklaringsbehov.add(Definisjon.AVKLAR_SONINGSFORRHOLD)
         }
         if (grunnlag?.opphold?.any { segment -> segment.verdi.type == Institusjonstype.HS } == true &&
-            avklaringsbehovene.hentBehovForDefinisjon(Definisjon.AVKLAR_HELSEINSTITUSJON) != null) {
+            avklaringsbehovene.hentBehovForDefinisjon(Definisjon.AVKLAR_HELSEINSTITUSJON) == null) {
             avklaringsbehov.add(Definisjon.AVKLAR_HELSEINSTITUSJON)
         }
 

@@ -6,9 +6,10 @@ import no.nav.aap.verdityper.dokument.JournalpostId
 data class SoningsvurderingDto(
     val dokumenterBruktIVurdering: List<JournalpostId>,
     val soningUtenforFengsel: Boolean,
-    val begrunnelseForSoningUtenforAnstalt: String? = null,
+    val begrunnelseForSoningUtenforAnstalt: String? = null, // TODO: Erstattes av begrunnelse, begrunnes sammen i den totale vurderingen
     val arbeidUtenforAnstalt: Boolean? = null,
-    val begrunnelseForArbeidUtenforAnstalt: String? = null
+    val begrunnelseForArbeidUtenforAnstalt: String? = null, // TODO: Erstattes av begrunnelse, begrunnes sammen i den totale vurderingen
+    val begrunnelse: String? = null
 ) {
 
     fun tilDomeneobjekt() = Soningsvurdering(
