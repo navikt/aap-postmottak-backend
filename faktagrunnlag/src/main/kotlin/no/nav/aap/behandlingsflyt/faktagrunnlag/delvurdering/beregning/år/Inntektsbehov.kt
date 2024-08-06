@@ -62,7 +62,6 @@ class Inntektsbehov(private val input: Input) {
         return relevanteÅr.map { relevantÅr ->
             val år = inntekter.firstOrNull { entry -> entry.år == relevantÅr }
             if (år == null) {
-                // TODO: undersøk om denne burde være default eller om det bør kastes exception
                 return@map InntektPerÅr(relevantÅr, Beløp(0))
             }
             return@map år
