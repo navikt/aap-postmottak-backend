@@ -6,27 +6,23 @@ import no.nav.aap.verdityper.dokument.JournalpostId
 data class SoningsvurderingDto(
     val dokumenterBruktIVurdering: List<JournalpostId>,
     val soningUtenforFengsel: Boolean,
-    val begrunnelseForSoningUtenforAnstalt: String? = null, // TODO: Erstattes av begrunnelse, begrunnes sammen i den totale vurderingen
-    val arbeidUtenforAnstalt: Boolean? = null,
-    val begrunnelseForArbeidUtenforAnstalt: String? = null, // TODO: Erstattes av begrunnelse, begrunnes sammen i den totale vurderingen
-    val begrunnelse: String? = null
+    val begrunnelse: String?,
+    val arbeidUtenforAnstalt: Boolean? = null
 ) {
 
     fun tilDomeneobjekt() = Soningsvurdering(
         dokumenterBruktIVurdering = listOf(),
-        begrunnelseForArbeidUtenforAnstalt = begrunnelseForArbeidUtenforAnstalt,
+        begrunnelse = begrunnelse,
         arbeidUtenforAnstalt = arbeidUtenforAnstalt,
         soningUtenforFengsel = soningUtenforFengsel,
-        begrunnelseForSoningUtenforAnstalt = begrunnelseForSoningUtenforAnstalt,
     )
 
     companion object {
         fun toDto(soningsvurdering: Soningsvurdering?) = if (soningsvurdering != null) SoningsvurderingDto(
-            dokumenterBruktIVurdering = listOf(),
+            dokumenterBruktIVurdering = soningsvurdering.dokumenterBruktIVurdering,
             arbeidUtenforAnstalt = soningsvurdering.arbeidUtenforAnstalt,
-            begrunnelseForArbeidUtenforAnstalt = soningsvurdering.begrunnelseForArbeidUtenforAnstalt,
+            begrunnelse = soningsvurdering.begrunnelse,
             soningUtenforFengsel = soningsvurdering.soningUtenforFengsel,
-            begrunnelseForSoningUtenforAnstalt = soningsvurdering.begrunnelseForSoningUtenforAnstalt,
         ) else null
     }
 }

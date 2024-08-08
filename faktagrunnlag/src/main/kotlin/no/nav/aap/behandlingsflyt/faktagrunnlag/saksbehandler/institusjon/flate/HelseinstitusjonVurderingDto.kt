@@ -19,7 +19,7 @@ data class HelseinstitusjonVurderingDto(
 
     companion object {
         fun toDto(helseinstitusjonVurdering: HelseinstitusjonVurdering?) = if (helseinstitusjonVurdering != null) HelseinstitusjonVurderingDto(
-            dokumenterBruktIVurdering = listOf(),
+            dokumenterBruktIVurdering = helseinstitusjonVurdering.dokumenterBruktIVurdering,
             begrunnelse = helseinstitusjonVurdering.begrunnelse,
             faarFriKostOgLosji = helseinstitusjonVurdering.faarFriKostOgLosji,
             forsoergerEktefelle = helseinstitusjonVurdering.forsoergerEktefelle,

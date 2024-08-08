@@ -13,16 +13,14 @@ class SoningRepository(private val connection: DBConnection) {
         val vurderingId = connection.executeReturnKey("""INSERT INTO SONINGSFORHOLD_VURDERING 
             (BEHANDLING_ID, 
             SONING_UTENFOR_FENGSEL,
-             BEGRUNNELSE_FOR_SONING_UTENFOR_FENGSEL, 
-             ARBEID_UTENFOR_ANSALT, 
-             BEGRUNNELSE_FOR_SONING_UTENFOR_ANSTALT) 
-             VALUES (?, ?, ?, ?, ?)""".trimMargin()) {
+             BEGRUNNELSE, 
+             ARBEID_UTENFOR_ANSALT)
+             VALUES (?, ?, ?, ?)""".trimMargin()) {
             setParams {
                 setLong(1, behandlkingId.toLong())
                 setBoolean(2, soningsvurdering.soningUtenforFengsel)
-                setString(3, soningsvurdering.begrunnelseForSoningUtenforAnstalt)
+                setString(3, soningsvurdering.begrunnelse)
                 setBoolean(4, soningsvurdering.arbeidUtenforAnstalt)
-                setString(5, soningsvurdering.begrunnelseForArbeidUtenforAnstalt)
             }
         }
 
@@ -82,9 +80,8 @@ class SoningRepository(private val connection: DBConnection) {
         return Soningsvurdering(
             dokumenterBruktIVurdering = hentDokumenterTilVurdering(row.getLong("ID")),
             soningUtenforFengsel = row.getBoolean("SONING_UTENFOR_FENGSEL"),
-            begrunnelseForSoningUtenforAnstalt = row.getStringOrNull("BEGRUNNELSE_FOR_SONING_UTENFOR_FENGSEL"),
+            begrunnelse = row.getStringOrNull("BEGRUNNELSE"),
             arbeidUtenforAnstalt = row.getBooleanOrNull("ARBEID_UTENFOR_ANSALT"),
-            begrunnelseForArbeidUtenforAnstalt = row.getStringOrNull("BEGRUNNELSE_FOR_SONING_UTENFOR_ANSTALT")
         )
     }
 

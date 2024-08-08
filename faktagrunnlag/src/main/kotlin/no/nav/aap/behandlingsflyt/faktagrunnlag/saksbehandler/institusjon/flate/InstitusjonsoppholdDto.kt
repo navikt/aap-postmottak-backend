@@ -4,6 +4,11 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.institusjonsopphold.Ins
 import no.nav.aap.tidslinje.Segment
 import java.time.LocalDate
 
+enum class Status{
+    AKTIV,
+    AVSLUTTET
+}
+
 data class InstitusjonsoppholdDto(
     val institusjonstype: String,
     val oppholdstype: String,
@@ -17,7 +22,7 @@ data class InstitusjonsoppholdDto(
             InstitusjonsoppholdDto(
                 institusjonstype = institusjonsopphold.verdi.type.beskrivelse,
                 oppholdstype = institusjonsopphold.verdi.kategori.beskrivelse,
-                status = "Ukjent",  // TODO finn ut hva som skal være her
+                status = if (institusjonsopphold.tom() > LocalDate.now()) Status.AKTIV.toString() else Status.AVSLUTTET.toString(), // TODO skal muligens være start av rettighetsperiode i seteden for dd
                 kildeinstitusjon = institusjonsopphold.verdi.navn,
                 oppholdFra = institusjonsopphold.periode.fom,
                 avsluttetDato = institusjonsopphold.periode.tom

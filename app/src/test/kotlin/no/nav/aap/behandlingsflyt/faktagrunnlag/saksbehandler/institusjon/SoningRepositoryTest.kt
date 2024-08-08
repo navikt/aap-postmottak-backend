@@ -30,7 +30,7 @@ class SoningRepositoryTest {
 
             val soningsvurdering = Soningsvurdering(
                 dokumenterBruktIVurdering = listOf(JournalpostId("vsafdvasfv")),
-                soningUtenforFengsel = true
+                soningUtenforFengsel = true,
             )
 
             soningRepository.lagre(behandling.id, soningsvurdering)
@@ -47,12 +47,12 @@ class SoningRepositoryTest {
 
             val soningsvurdering1 = Soningsvurdering(
                 dokumenterBruktIVurdering = emptyList(),
-                soningUtenforFengsel = true
+                soningUtenforFengsel = true,
             )
 
             val soningsvurdering2 = Soningsvurdering(
                 dokumenterBruktIVurdering = emptyList(),
-                soningUtenforFengsel = false
+                soningUtenforFengsel = false,
             )
 
             soningRepository.lagre(behandling.id, soningsvurdering1)
@@ -74,7 +74,7 @@ class SoningRepositoryTest {
 
             val soningsvurdering = Soningsvurdering(
                 dokumenterBruktIVurdering = listOf(JournalpostId("yolo"), JournalpostId("swag")),
-                soningUtenforFengsel = true
+                soningUtenforFengsel = true,
             )
 
             soningRepository.lagre(behandling.id, soningsvurdering)

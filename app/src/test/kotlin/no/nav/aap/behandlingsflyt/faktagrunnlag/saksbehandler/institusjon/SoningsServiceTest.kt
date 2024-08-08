@@ -37,7 +37,7 @@ class SoningsServiceTest {
         every { soningRepository.hentAktivSoningsvurderingHvisEksisterer(any()) } returns Soningsvurdering(
             emptyList(),
             soningUtenforFengsel = false,
-            begrunnelseForSoningUtenforAnstalt = "YOLO"
+            begrunnelse = "YOLO"
         )
         every { institusjonRepository.hentHvisEksisterer(any()) } returns InstitusjonsoppholdGrunnlag(
             listOf(
@@ -61,7 +61,7 @@ class SoningsServiceTest {
         assertThat(actual.soningsopphold).hasSize(1)
         assertThat(actual.soningsopphold[0]).isEqualTo(
             InstitusjonsoppholdDto(
-                status = "Ukjent",
+                status = "AVSLUTTET",
                 institusjonstype = Institusjonstype.FO.beskrivelse,
                 oppholdstype = Oppholdstype.S.beskrivelse,
                 kildeinstitusjon = "Anstalten",
