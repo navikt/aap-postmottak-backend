@@ -96,10 +96,10 @@ class HelseinstitusjonRepositoryTest {
             val sak = sak(connection)
             val behandling = behandling(connection, sak)
 
-            val soningRepository = SoningRepository(connection)
+            val helseinstitusjonRepository = HelseinstitusjonRepository(connection)
 
             assertThrows<NoSuchElementException> {
-                soningRepository.hentAktiveSoningsvurdering(behandling.id)
+                helseinstitusjonRepository.hentAktivHelseinstitusjonVurdering(behandling.id)
             }
         }
     }

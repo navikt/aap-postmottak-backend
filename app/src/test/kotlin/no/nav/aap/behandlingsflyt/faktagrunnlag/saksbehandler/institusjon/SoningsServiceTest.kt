@@ -37,7 +37,7 @@ class SoningsServiceTest {
         every { soningRepository.hentAktivSoningsvurderingHvisEksisterer(any()) } returns Soningsvurdering(
             emptyList(),
             soningUtenforFengsel = false,
-            begrunnelse = "YOLO"
+            begrunnelse = "YOLO",
         )
         every { institusjonRepository.hentHvisEksisterer(any()) } returns InstitusjonsoppholdGrunnlag(
             listOf(

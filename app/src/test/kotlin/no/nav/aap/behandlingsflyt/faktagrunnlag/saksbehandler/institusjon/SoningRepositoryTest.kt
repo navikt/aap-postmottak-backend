@@ -31,6 +31,9 @@ class SoningRepositoryTest {
             val soningsvurdering = Soningsvurdering(
                 dokumenterBruktIVurdering = listOf(JournalpostId("vsafdvasfv")),
                 soningUtenforFengsel = true,
+                førsteArbeidsdag = LocalDate.now(),
+                arbeidUtenforAnstalt = true,
+                begrunnelse = "YOLO"
             )
 
             soningRepository.lagre(behandling.id, soningsvurdering)
@@ -75,6 +78,7 @@ class SoningRepositoryTest {
             val soningsvurdering = Soningsvurdering(
                 dokumenterBruktIVurdering = listOf(JournalpostId("yolo"), JournalpostId("swag")),
                 soningUtenforFengsel = true,
+                førsteArbeidsdag = LocalDate.now()
             )
 
             soningRepository.lagre(behandling.id, soningsvurdering)
