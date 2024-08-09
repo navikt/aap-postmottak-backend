@@ -15,6 +15,7 @@ data class Institusjoner(
 data class OpprettTestcaseDTO(
     @JsonProperty(value = "fødselsdato", required = true) val fødselsdato: LocalDate,
     @NotNull @JsonProperty(value = "yrkesskade", defaultValue = "false") val yrkesskade: Boolean,
+    @JsonProperty(value = "uføre") val uføre: Int?,
     @NotNull @JsonProperty(value = "student", defaultValue = "false") val student: Boolean,
     @NotNull @JsonProperty(value = "barn") val barn: List<TestBarn> = emptyList(),
     val institusjoner: Institusjoner = Institusjoner()

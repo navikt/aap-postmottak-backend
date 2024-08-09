@@ -167,11 +167,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         person.barn.forEach { leggTil(it) }
     }
 
-    fun returnerYrkesskade(ident: String) {
-        returnerYrkesskade.add(ident)
-    }
-
-
     private fun NettyApplicationEngine.port(): Int =
         runBlocking { resolvedConnectors() }
             .first { it.type == ConnectorType.HTTP }
@@ -213,7 +208,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         routing() {
             get("/vedtak/gradalderellerufore?fom={ting1}&sakstype={ting2}") {
                 val ident = requireNotNull(call.request.header("Nav-Personident"))
-                val uføregrad = fakePersoner[ident]?.uføre?.prosentverdi()?:0
+                val uføregrad = fakePersoner[ident]?.uføre?.prosentverdi() ?: 0
 
                 call.respond(HttpStatusCode.OK, uføregrad)
             }
@@ -520,8 +515,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
         }
     }
-
-    private val returnerYrkesskade = mutableListOf<String>()
 
     private fun Application.yrkesskadeFake() {
         install(ContentNegotiation) {

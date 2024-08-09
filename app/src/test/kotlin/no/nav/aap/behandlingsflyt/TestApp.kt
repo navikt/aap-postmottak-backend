@@ -22,6 +22,7 @@ import no.nav.aap.behandlingsflyt.test.modell.TestYrkesskade
 import no.nav.aap.behandlingsflyt.test.modell.genererIdent
 import no.nav.aap.institusjon.Institusjonsopphold
 import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.junit.jupiter.api.Test
@@ -80,6 +81,7 @@ fun main() {
                                 identer = setOf(ident),
                                 fødselsdato = Fødselsdato(dto.fødselsdato),
                                 yrkesskade = if (dto.yrkesskade) listOf(TestYrkesskade()) else emptyList(),
+                                uføre = dto.uføre?.let(::Prosent) ?: Prosent.`0_PROSENT`,
                                 barn = barn,
                                 institusjonsopphold = listOfNotNull(
                                     if (dto.institusjoner.fengsel == true) genererFengselsopphold() else null,
