@@ -117,6 +117,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
         // Statistikk-app
         System.setProperty("integrasjon.statistikk.url", "http://localhost:${statistikk.port()}")
+        System.setProperty("integrasjon.statistikk.scope", "statistikk")
 
         // Pesys
         System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
