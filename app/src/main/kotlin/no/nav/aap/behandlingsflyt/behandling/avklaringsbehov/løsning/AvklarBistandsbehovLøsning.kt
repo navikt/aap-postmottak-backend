@@ -3,17 +3,22 @@ package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeName
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AVKLAR_BISTANDSBEHOV_KODE
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.AvklarBistandLøser
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandGrunnerDeserializer
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.BistandVurdering
+
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = AVKLAR_BISTANDSBEHOV_KODE)
 class AvklarBistandsbehovLøsning(
-    @JsonProperty("bistandsVurdering", required = true) val bistandsVurdering: BistandVurdering,
+    @JsonProperty("bistandsVurdering", required = true)
+    @JsonDeserialize(using = BistandGrunnerDeserializer::class)
+    val bistandsVurdering: BistandVurdering,
     @JsonProperty(
         "behovstype",
         required = true,
@@ -24,3 +29,5 @@ class AvklarBistandsbehovLøsning(
         return AvklarBistandLøser(connection).løs(kontekst, this)
     }
 }
+
+
