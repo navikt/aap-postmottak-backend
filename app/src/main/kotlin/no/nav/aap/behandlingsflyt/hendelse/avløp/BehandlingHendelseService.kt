@@ -5,8 +5,6 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
-import no.nav.aap.behandlingsflyt.server.prosessering.StatistikkJobbUtfører
-import no.nav.aap.behandlingsflyt.server.prosessering.StatistikkType
 import no.nav.aap.behandlingsflyt.server.prosessering.StoppetHendelseJobbUtfører
 import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
@@ -29,10 +27,6 @@ class BehandlingHendelseService(
 
         val payload = DefaultJsonMapper.toJson(vilkårsResultatDTO)
 
-        flytJobbRepository.leggTil(
-            JobbInput(jobb = StatistikkJobbUtfører).medPayload(payload)
-                .medParameter("statistikk-type", StatistikkType.AvsluttetBehandling.toString())
-        )
     }
 
     fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
@@ -72,9 +66,6 @@ class BehandlingHendelseService(
         flytJobbRepository.leggTil(
             JobbInput(jobb = StoppetHendelseJobbUtfører).medPayload(payload)
         )
-        flytJobbRepository.leggTil(
-            JobbInput(jobb = StatistikkJobbUtfører).medPayload(payload)
-                .medParameter("statistikk-type", StatistikkType.BehandlingStoppet.toString())
-        )
+
     }
 }

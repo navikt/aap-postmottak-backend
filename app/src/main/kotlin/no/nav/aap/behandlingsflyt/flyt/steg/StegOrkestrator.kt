@@ -2,7 +2,6 @@ package no.nav.aap.behandlingsflyt.flyt.steg
 
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
-import no.nav.aap.behandlingsflyt.periodisering.PerioderTilVurderingService
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.StegTilstand
@@ -33,7 +32,6 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
 
     private val behandlingRepository = BehandlingFlytRepository(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
-    private val perioderTilVurderingService = PerioderTilVurderingService(connection)
 
     private val behandlingSteg = aktivtSteg.konstruer(connection)
 
@@ -102,7 +100,6 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
             sakId = kontekst.sakId,
             behandlingId = kontekst.behandlingId,
             behandlingType = kontekst.behandlingType,
-            perioderTilVurdering = perioderTilVurderingService.utled(kontekst = kontekst, stegType = aktivtSteg.type())
         )
         val stegResultat = behandlingSteg.utfør(kontekstMedPerioder)
 

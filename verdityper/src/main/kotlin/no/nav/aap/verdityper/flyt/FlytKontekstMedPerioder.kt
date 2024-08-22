@@ -14,9 +14,4 @@ data class FlytKontekstMedPerioder(
     val sakId: SakId,
     val behandlingId: BehandlingId,
     val behandlingType: TypeBehandling,
-    val perioderTilVurdering: Set<Vurdering>
-) {
-    fun perioder(): NavigableSet<Periode> {
-        return perioderTilVurdering.map { it.periode }.toCollection(TreeSet())
-    }
-}
+)

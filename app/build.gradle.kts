@@ -7,7 +7,7 @@ plugins {
 }
 
 application {
-    mainClass.set("no.nav.aap.behandlingsflyt.AppKt")
+    mainClass.set("no.nav.aap.dokumentmottak.AppKt")
 }
 
 tasks {
@@ -65,7 +65,6 @@ dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":faktagrunnlag"))
     implementation(project(":verdityper"))
-    implementation(project(":tidslinje"))
     implementation(project(":dbflyway"))
     implementation(project(":dbconnect"))
     implementation("com.zaxxer:HikariCP:5.1.0")

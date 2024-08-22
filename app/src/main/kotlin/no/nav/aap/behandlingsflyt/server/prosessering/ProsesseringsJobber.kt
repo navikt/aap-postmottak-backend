@@ -10,8 +10,7 @@ object ProsesseringsJobber {
             ProsesserBehandlingJobbUtfører,
             StoppetHendelseJobbUtfører,
             GjenopptaBehandlingJobbUtfører,
-            HendelseMottattHåndteringOppgaveUtfører,
-            StatistikkJobbUtfører
+            HendelseMottattHåndteringOppgaveUtfører
         )
     }
 }

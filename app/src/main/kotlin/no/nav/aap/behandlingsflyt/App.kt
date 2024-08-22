@@ -30,10 +30,6 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbeh
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.fatteVedtakGrunnlagApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.kvalitetssikringApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.behandlingsflyt.behandling.barnetillegg.flate.barnetilleggApi
-import no.nav.aap.behandlingsflyt.behandling.beregning.flate.beregningsGrunnlagApi
-import no.nav.aap.behandlingsflyt.behandling.tilkjentytelse.flate.tilkjentYtelseAPI
-import no.nav.aap.behandlingsflyt.behandling.vilkår.alder.flate.aldersGrunnlagApi
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.flate.beregningVurderingAPI
@@ -153,11 +149,7 @@ internal fun Application.server(dbConfig: DbConfig) {
                 soningVurderingAPI(dataSource)
                 helseinstitusjonVurderingAPI(dataSource)
                 avklaringsbehovApi(dataSource)
-                tilkjentYtelseAPI(dataSource)
                 beregningVurderingAPI(dataSource)
-                beregningsGrunnlagApi(dataSource)
-                aldersGrunnlagApi(dataSource)
-                barnetilleggApi(dataSource)
                 motorApi(dataSource)
             }
         }
