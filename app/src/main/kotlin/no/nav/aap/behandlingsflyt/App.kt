@@ -32,20 +32,10 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.kvalitetssikr
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.beregning.flate.beregningVurderingAPI
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.bistand.flate.bistandsgrunnlagApi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.helseinstitusjonVurderingAPI
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.institusjon.flate.soningVurderingAPI
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.medlemskap.flate.medlemskapsgrunnlagApi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.meldeplikt.flate.meldepliktsgrunnlagApi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.student.flate.studentgrunnlagApi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.sykdomsgrunnlagApi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.sykdom.flate.sykepengerGrunnlagApi
 import no.nav.aap.behandlingsflyt.flyt.flate.DefinisjonDTO
 import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
 import no.nav.aap.behandlingsflyt.flyt.flate.søknadApi
-import no.nav.aap.behandlingsflyt.flyt.flate.torsHammerApi
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
 import no.nav.aap.behandlingsflyt.server.apiRoute
 import no.nav.aap.behandlingsflyt.server.authenticate.AZURE
@@ -135,21 +125,11 @@ internal fun Application.server(dbConfig: DbConfig) {
                 configApi()
                 saksApi(dataSource)
                 søknadApi(dataSource)
-                torsHammerApi(dataSource)
                 behandlingApi(dataSource)
                 flytApi(dataSource)
                 fatteVedtakGrunnlagApi(dataSource)
                 kvalitetssikringApi(dataSource)
-                bistandsgrunnlagApi(dataSource)
-                meldepliktsgrunnlagApi(dataSource)
-                medlemskapsgrunnlagApi(dataSource)
-                studentgrunnlagApi(dataSource)
-                sykdomsgrunnlagApi(dataSource)
-                sykepengerGrunnlagApi(dataSource)
-                soningVurderingAPI(dataSource)
-                helseinstitusjonVurderingAPI(dataSource)
                 avklaringsbehovApi(dataSource)
-                beregningVurderingAPI(dataSource)
                 motorApi(dataSource)
             }
         }
