@@ -63,7 +63,6 @@ dependencies {
     implementation(project(":motor"))
     implementation(project(":httpklient"))
     implementation(project(":sakogbehandling"))
-    implementation(project(":faktagrunnlag"))
     implementation(project(":verdityper"))
     implementation(project(":dbflyway"))
     implementation(project(":dbconnect"))

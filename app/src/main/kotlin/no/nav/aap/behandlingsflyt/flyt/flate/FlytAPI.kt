@@ -15,10 +15,6 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkår
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårtype
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.behandlingsflyt.flyt.flate.visning.Prosessering
@@ -107,7 +103,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                                 )
                                             },
                                         vilkårDTO = hentUtRelevantVilkårForSteg(
-                                            vilkårsresultat = vilkårResultat(connection, behandling.id),
+                                            vilkårsresultat = Vilkårsresultat(null, emptyList()),
                                             stegType = stegType
                                         )
                                     )
@@ -136,9 +132,8 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = behandling(connection, req)
 
-                    val vilkårResultat = vilkårResultat(connection, behandling.id)
 
-                    BehandlingResultatDto(alleVilkår(vilkårResultat))
+                    BehandlingResultatDto(emptyList())
                 }
                 respond(dto)
             }
@@ -299,22 +294,6 @@ private fun utledVisningAvKvalitetsikrerKort(
     return false
 }
 
-private fun alleVilkår(vilkårResultat: Vilkårsresultat): List<VilkårDTO> {
-    return vilkårResultat.alle().map { vilkår ->
-        VilkårDTO(
-            vilkår.type,
-            perioder = vilkår.vilkårsperioder().map { vp ->
-                VilkårsperiodeDTO(
-                    vp.periode,
-                    vp.utfall,
-                    vp.manuellVurdering,
-                    vp.begrunnelse,
-                    vp.avslagsårsak,
-                    vp.innvilgelsesårsak
-                )
-            })
-    }
-}
 
 private fun behandling(connection: DBConnection, req: BehandlingReferanse): Behandling {
     return BehandlingReferanseService(BehandlingRepositoryImpl(connection)).behandling(req)
@@ -324,34 +303,6 @@ private fun avklaringsbehov(connection: DBConnection, behandlingId: BehandlingId
     return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
 }
 
-private fun vilkårResultat(connection: DBConnection, behandlingId: BehandlingId): Vilkårsresultat {
-    return VilkårsresultatRepository(connection).hent(behandlingId)
-}
-
 private fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: StegType): VilkårDTO? {
-    var vilkår: Vilkår? = null
-    if (stegType == StegType.AVKLAR_SYKDOM) {
-        vilkår = vilkårsresultat.finnVilkår(Vilkårtype.SYKDOMSVILKÅRET)
-    }
-    if (stegType == StegType.VURDER_ALDER) {
-        vilkår = vilkårsresultat.finnVilkår(Vilkårtype.ALDERSVILKÅRET)
-    }
-    if (stegType == StegType.VURDER_BISTANDSBEHOV) {
-        vilkår = vilkårsresultat.finnVilkår(Vilkårtype.BISTANDSVILKÅRET)
-    }
-    if (vilkår == null) {
-        return null
-    }
-    return VilkårDTO(
-        vilkår.type,
-        perioder = vilkår.vilkårsperioder().map { vp ->
-            VilkårsperiodeDTO(
-                vp.periode,
-                vp.utfall,
-                vp.manuellVurdering,
-                vp.begrunnelse,
-                vp.avslagsårsak,
-                vp.innvilgelsesårsak
-            )
-        })
+    return null
 }

@@ -42,7 +42,6 @@ fun NormalOpenAPIRoute.søknadApi(dataSource: DataSource) {
                             DefaultJsonMapper.toJson(Periode(LocalDate.now(), LocalDate.now().plusYears(3))) // TODO: Sette innsendingsdato
                         )
                         .medParameter(MOTTATT_TIDSPUNKT, DefaultJsonMapper.toJson(LocalDateTime.now()))
-                        .medPayload(DefaultJsonMapper.toJson(dto.søknad))
                 )
             }
             // Må ha String-respons på grunn av Accept-header. Denne må returnere json

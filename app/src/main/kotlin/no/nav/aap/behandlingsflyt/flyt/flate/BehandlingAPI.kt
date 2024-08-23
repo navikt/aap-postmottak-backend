@@ -10,8 +10,6 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.Vilkårsresultat
-import no.nav.aap.behandlingsflyt.faktagrunnlag.delvurdering.vilkårsresultat.VilkårsresultatRepository
 import no.nav.aap.behandlingsflyt.flyt.utledType
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -59,21 +57,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                                 }
                             )
                         },
-                        vilkår = vilkårResultat(connection, behandling.id).alle().map { vilkår ->
-                            VilkårDTO(
-                                vilkårtype = vilkår.type,
-                                perioder = vilkår.vilkårsperioder()
-                                    .map { vp ->
-                                        VilkårsperiodeDTO(
-                                            periode = vp.periode,
-                                            utfall = vp.utfall,
-                                            manuellVurdering = vp.manuellVurdering,
-                                            begrunnelse = vp.begrunnelse,
-                                            avslagsårsak = vp.avslagsårsak,
-                                            innvilgelsesårsak = vp.innvilgelsesårsak
-                                        )
-                                    })
-                        },
+                        vilkår = emptyList(),
                         aktivtSteg = behandling.stegHistorikk().last().steg(),
                         versjon = behandling.versjon
                     )
@@ -110,8 +94,4 @@ private fun behandling(connection: DBConnection, req: BehandlingReferanse): Beha
 
 private fun avklaringsbehov(connection: DBConnection, behandlingId: BehandlingId): Avklaringsbehovene {
     return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
-}
-
-private fun vilkårResultat(connection: DBConnection, behandlingId: BehandlingId): Vilkårsresultat {
-    return VilkårsresultatRepository(connection).hent(behandlingId)
 }
