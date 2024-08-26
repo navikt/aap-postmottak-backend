@@ -2,6 +2,7 @@ package no.nav.aap.verdityper.sakogbehandling
 
 enum class TypeBehandling(private var identifikator: String) {
 
+    DokumentHåndtering("ae1999"),
     Førstegangsbehandling("ae0034"),
     Revurdering("ae0028"),
     Tilbakekreving(""),

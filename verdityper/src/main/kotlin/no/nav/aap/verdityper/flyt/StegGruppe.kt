@@ -8,6 +8,7 @@ enum class StegGruppe(val skalVises: Boolean, val obligatoriskVisning: Boolean) 
     BARNETILLEGG(true, true),
     STUDENT(true, false),
     SYKDOM(true, true),
+    KATEGORISER(true, true),
     GRUNNLAG(true, true),
     ET_ANNET_STED(true, false),
     UNDERVEIS(true, true),

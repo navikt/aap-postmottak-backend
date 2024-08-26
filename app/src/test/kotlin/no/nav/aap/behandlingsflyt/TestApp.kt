@@ -3,12 +3,26 @@ package no.nav.aap.behandlingsflyt
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonOgSakService
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
+import no.nav.aap.behandlingsflyt.server.prosessering.ProssesserDokumentJobbUtfører
 import no.nav.aap.behandlingsflyt.test.Fakes
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.motor.JobbInput
+import no.nav.aap.verdityper.Periode
+import no.nav.aap.verdityper.sakogbehandling.Ident
+import no.nav.aap.verdityper.sakogbehandling.SakOgBehandling
+import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.time.Duration
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 class TestApp {
@@ -44,9 +58,22 @@ fun main() {
         )
         module(fakes)
 
+        val datasource = initDatasource(dbConfig)
+
+        datasource.transaction {
+            opprettBehanlding(it)
+        }
 
 
     }.start(wait = true)
+}
+
+private fun opprettBehanlding(connection: DBConnection) {
+    val sag = PersonOgSakService(connection, PdlIdentGateway)
+        .finnEllerOpprett(Ident("12345467"), Periode(LocalDate.of(2020, 1, 1), LocalDate.of(2025, 1, 1)))
+    val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(sag.id, TypeBehandling.DokumentHåndtering)
+    FlytJobbRepository(connection).leggTil(JobbInput(ProssesserDokumentJobbUtfører)
+        .forBehandling(sag.id, behandling.id).medCallId())
 }
 
 private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {

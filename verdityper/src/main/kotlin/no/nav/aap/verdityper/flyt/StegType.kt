@@ -24,6 +24,10 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES
     ),
+    KATEGORISER_DOKUMENT(
+        gruppe = StegGruppe.KATEGORISER,
+        status = Status.UTREDES
+    ),
     VURDER_SYKEPENGEERSTATNING(
         gruppe = StegGruppe.SYKDOM,
         status = Status.UTREDES

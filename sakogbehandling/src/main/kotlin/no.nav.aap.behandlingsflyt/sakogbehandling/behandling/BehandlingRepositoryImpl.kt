@@ -27,18 +27,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             }
         }
 
-        val årsakQuery = """
-            INSERT INTO AARSAK_TIL_BEHANDLING (behandling_id, aarsak, periode)
-            VALUES (?, ?, ?::daterange)
-        """.trimIndent()
-
-        connection.executeBatch(årsakQuery, årsaker) {
-            setParams {
-                setLong(1, behandlingId)
-                setEnumName(2, it.type)
-                setPeriode(3, it.periode)
-            }
-        }
 
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
@@ -46,6 +34,35 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             sakId = sakId,
             typeBehandling = typeBehandling,
             årsaker = årsaker,
+            versjon = 0
+        )
+
+        return behandling
+    }
+
+    override fun opprettBehandling(sakId: SakId, typeBehandling: TypeBehandling): Behandling {
+
+        val query = """
+            INSERT INTO BEHANDLING (sak_id, referanse, status, type)
+                 VALUES (?, ?, ?, ?)
+            """.trimIndent()
+        val behandlingsreferanse = BehandlingReferanse()
+        val behandlingId = connection.executeReturnKey(query) {
+            setParams {
+                setLong(1, sakId.toLong())
+                setUUID(2, behandlingsreferanse.referanse)
+                setEnumName(3, Status.OPPRETTET)
+                setString(4, typeBehandling.identifikator())
+            }
+        }
+
+
+        val behandling = Behandling(
+            id = BehandlingId(behandlingId),
+            referanse = behandlingsreferanse,
+            sakId = sakId,
+            typeBehandling = typeBehandling,
+            årsaker = emptyList(),
             versjon = 0
         )
 

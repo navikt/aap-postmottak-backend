@@ -9,6 +9,8 @@ interface BehandlingRepository {
 
     fun opprettBehandling(sakId: SakId, årsaker: List<Årsak>, typeBehandling: TypeBehandling): Behandling
 
+    fun opprettBehandling(sakId: SakId, typeBehandling: TypeBehandling): Behandling
+
     fun finnSisteBehandlingFor(sakId: SakId): Behandling?
 
     fun hentAlleFor(sakId: SakId): List<Behandling>
