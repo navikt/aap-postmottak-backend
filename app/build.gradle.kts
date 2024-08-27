@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":verdityper"))
     implementation(project(":dbflyway"))
     implementation(project(":dbconnect"))
+    implementation(project(":faktagrunnlag"))
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.17.0")
     runtimeOnly("org.postgresql:postgresql:42.7.3")
