@@ -143,10 +143,6 @@ class Avklaringsbehovene(
         return alle().filter { it.erÅpent() }.toList()
     }
 
-    fun skalTilbakeføresEtterTotrinnsVurdering(): Boolean {
-        return tilbakeførtFraBeslutter().isNotEmpty()
-    }
-
     override fun skalTilbakeføresEtterKvalitetssikring(): Boolean {
         return tilbakeførtFraKvalitetssikrer().isNotEmpty()
     }
@@ -167,36 +163,11 @@ class Avklaringsbehovene(
         return alle().filter { it.definisjon in definisjoner }.toList()
     }
 
-    fun harHattAvklaringsbehov(): Boolean {
-        return alle().any { avklaringsbehov -> avklaringsbehov.erIkkeAvbrutt() }
-    }
-
-    fun harHattAvklaringsbehovSomHarKrevdToTrinn(): Boolean {
-        return alle()
-            .filter { avklaringsbehov -> avklaringsbehov.erIkkeAvbrutt() }
-            .any { avklaringsbehov -> avklaringsbehov.erTotrinn() && !avklaringsbehov.erTotrinnsVurdert() }
-    }
-
-    fun harHattAvklaringsbehovSomKreverKvalitetssikring(): Boolean {
-        return alle()
-            .filter { avklaringsbehov -> avklaringsbehov.kreverKvalitetssikring() }
-            .filter { avklaringsbehov -> avklaringsbehov.erIkkeAvbrutt() }
-            .any { avklaringsbehov -> !avklaringsbehov.erKvalitetssikretTidligere() }
-    }
-
-    fun harIkkeForeslåttVedtak(): Boolean {
-        return alle()
-            .filter { avklaringsbehov -> avklaringsbehov.erForeslåttVedtak() }
-            .none { it.status() == Status.AVSLUTTET }
-    }
 
     fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
         return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraBeslutterTidligere() }
     }
 
-    fun harVærtSendtTilbakeFraKvalitetssikringTidligere(): Boolean {
-        return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraKvalitetssikrerTidligere() }
-    }
 
     fun validateTilstand(behandling: Behandling, avklaringsbehov: Definisjon? = null) {
         ValiderBehandlingTilstand.validerTilstandBehandling(

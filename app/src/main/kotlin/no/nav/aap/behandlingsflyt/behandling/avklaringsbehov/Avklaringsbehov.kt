@@ -141,10 +141,6 @@ class Avklaringsbehov(
         return definisjon.skalLøsesISteg(type, funnetISteg)
     }
 
-    fun erForeslåttVedtak(): Boolean {
-        return definisjon == Definisjon.FORESLÅ_VEDTAK
-    }
-
     fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
         return historikk.any { it.status == Status.SENDT_TILBAKE_FRA_BESLUTTER }
     }

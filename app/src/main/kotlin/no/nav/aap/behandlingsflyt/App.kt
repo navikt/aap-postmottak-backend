@@ -27,8 +27,6 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.auth.Bruker
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbehovApi
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.fatteVedtakGrunnlagApi
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.kvalitetssikringApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
@@ -127,8 +125,6 @@ internal fun Application.server(dbConfig: DbConfig) {
                 søknadApi(dataSource)
                 behandlingApi(dataSource)
                 flytApi(dataSource)
-                fatteVedtakGrunnlagApi(dataSource)
-                kvalitetssikringApi(dataSource)
                 avklaringsbehovApi(dataSource)
                 motorApi(dataSource)
             }

@@ -82,7 +82,6 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                     navn = it.navn()
                                 )
                             })
-                    val vurdertStegPair = utledVurdertGruppe(aktivtSteg, flyt, avklaringsbehovene)
                     BehandlingFlytOgTilstandDto(
                         flyt = stegGrupper.map { (gruppe, steg) ->
                             erFullført = erFullført && gruppe != aktivtSteg.gruppe
@@ -112,8 +111,8 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                         },
                         aktivtSteg = aktivtSteg,
                         aktivGruppe = aktivtSteg.gruppe,
-                        vurdertSteg = vurdertStegPair?.second,
-                        vurdertGruppe = vurdertStegPair?.first,
+                        vurdertSteg = null,
+                        vurdertGruppe = null,
                         behandlingVersjon = behandling.versjon,
                         prosessering = prosessering,
                         visning = utledVisning(
@@ -195,34 +194,6 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     }
 }
 
-// Utleder hvilken visningsgruppe frontend skal rute til for kvalitetsikring / totrinn
-private fun utledVurdertGruppe(
-    aktivtSteg: StegType,
-    flyt: BehandlingFlyt,
-    avklaringsbehovene: Avklaringsbehovene
-): Pair<StegGruppe, StegType>? {
-    if (aktivtSteg == StegType.KVALITETSSIKRING) {
-        val relevanteBehov = avklaringsbehovene.alle().filter { it.kreverKvalitetssikring() }
-            .filter { avklaringsbehov -> avklaringsbehov.erIkkeAvbrutt() }
-            .filter { avklaringsbehov -> !avklaringsbehov.erKvalitetssikretTidligere() }
-
-        val skalTilStegForBehov = flyt.skalTilStegForBehov(relevanteBehov)
-        val stegType = requireNotNull(skalTilStegForBehov)
-
-        return stegType.gruppe to stegType
-    } else if (aktivtSteg == StegType.FATTE_VEDTAK) {
-        val relevanteBehov = avklaringsbehovene.alle().filter { it.erTotrinn() }
-            .filter { avklaringsbehov -> avklaringsbehov.erIkkeAvbrutt() }
-            .filter { avklaringsbehov -> !avklaringsbehov.erTotrinnsVurdert() }
-
-        val skalTilStegForBehov = flyt.skalTilStegForBehov(relevanteBehov)
-        val stegType = requireNotNull(skalTilStegForBehov)
-
-        return stegType.gruppe to stegType
-    }
-    return null
-}
-
 private fun hentFeilmeldingHvisBehov(
     status: JobbStatus,
     jobbId: Long,
@@ -252,14 +223,13 @@ private fun utledVisning(
 ): Visning {
     val jobber = status in listOf(ProsesseringStatus.JOBBER, ProsesseringStatus.FEILET)
     val påVent = alleAvklaringsbehovInkludertFrivillige.erSattPåVent()
-    val beslutterReadOnly = aktivtSteg != StegType.FATTE_VEDTAK
-    val erTilKvalitetssikring =
-        alleAvklaringsbehovInkludertFrivillige.hentBehovForDefinisjon(Definisjon.KVALITETSSIKRING)?.erÅpent() == true
-    val saksbehandlerReadOnly = erTilKvalitetssikring || !flyt.erStegFør(aktivtSteg, StegType.FATTE_VEDTAK)
+    val beslutterReadOnly = false
+    val erTilKvalitetssikring = false
+    val saksbehandlerReadOnly = false
     val visBeslutterKort =
         !beslutterReadOnly || (!saksbehandlerReadOnly && alleAvklaringsbehovInkludertFrivillige.harVærtSendtTilbakeFraBeslutterTidligere())
     val visKvalitetssikringKort = utledVisningAvKvalitetsikrerKort(alleAvklaringsbehovInkludertFrivillige)
-    val kvalitetssikringReadOnly = visKvalitetssikringKort && flyt.erStegFør(aktivtSteg, StegType.KVALITETSSIKRING)
+    val kvalitetssikringReadOnly = false
 
     if (jobber) {
         return Visning(
@@ -284,15 +254,7 @@ private fun utledVisning(
 
 private fun utledVisningAvKvalitetsikrerKort(
     avklaringsbehovene: FrivilligeAvklaringsbehov
-): Boolean {
-    if (avklaringsbehovene.skalTilbakeføresEtterKvalitetssikring()) {
-        return true
-    }
-    if (avklaringsbehovene.hentBehovForDefinisjon(Definisjon.KVALITETSSIKRING)?.erÅpent() == true) {
-        return true
-    }
-    return false
-}
+): Boolean = true
 
 
 private fun behandling(connection: DBConnection, req: BehandlingReferanse): Behandling {
