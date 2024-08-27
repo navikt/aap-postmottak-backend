@@ -27,7 +27,7 @@ class SakOgBehandlingService(connection: DBConnection) {
                 behandling = behandlingRepository.opprettBehandling(
                     sak.id,
                     årsaker,
-                    TypeBehandling.Førstegangsbehandling
+                    TypeBehandling.DokumentHåndtering
                 ), tilstand = BehandlingTilstand.NY, sisteAvsluttedeBehandling = null
             )
 
@@ -36,7 +36,7 @@ class SakOgBehandlingService(connection: DBConnection) {
                 val nyBehandling = behandlingRepository.opprettBehandling(
                     sak.id,
                     årsaker,
-                    TypeBehandling.Revurdering
+                    TypeBehandling.DokumentHåndtering
                 )
 
 

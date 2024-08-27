@@ -93,39 +93,6 @@ class BarnetilleggRepositoryTest {
         }
     }
 
-    @Test
-    fun `Kopierer barnetilleggGrunnlag fra en behandling til en annen`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val barnetilleggRepository = BarnetilleggRepository(connection)
-            barnetilleggRepository.lagre(
-                behandling1.id,
-                listOf(
-                    BarnetilleggPeriode(
-                        Periode(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 1)),
-                        setOf(Ident("12345678910"), Ident("12345678911"))
-                    ),
-                )
-            )
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-            val behandling2 = behandling(connection, sak)
-
-            val barnetilleggGrunnlag = barnetilleggRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(barnetilleggGrunnlag?.perioder)
-                .containsExactly(
-                    BarnetilleggPeriode(
-                        Periode(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 1)),
-                        setOf(Ident("12345678910"), Ident("12345678911"))
-                    ),
-                )
-        }
-    }
-
     private companion object {
         private val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))
     }

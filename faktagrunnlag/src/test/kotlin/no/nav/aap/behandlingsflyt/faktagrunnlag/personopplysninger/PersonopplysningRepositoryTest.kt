@@ -83,52 +83,12 @@ class PersonopplysningRepositoryTest {
     }
 
     @Test
-    fun `Kopierer personopplysninger fra en behandling til en annen`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val personopplysningRepository = PersonopplysningRepository(connection)
-            personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 mars 1992)))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-            val behandling2 = behandling(connection, sak)
-
-            val personopplysningGrunnlag = personopplysningRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(personopplysningGrunnlag?.personopplysning).isEqualTo(Personopplysning(Fødselsdato(17 mars 1992)))
-        }
-    }
-
-    @Test
     fun `Kopiering av personopplysninger fra en behandling uten opplysningene skal ikke føre til feil`() {
         InitTestDatabase.dataSource.transaction { connection ->
             val personopplysningRepository = PersonopplysningRepository(connection)
             assertDoesNotThrow {
                 personopplysningRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
             }
-        }
-    }
-
-    @Test
-    fun `Kopierer personopplysninger fra en behandling til en annen der fraBehandlingen har to versjoner av opplysningene`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val personopplysningRepository = PersonopplysningRepository(connection)
-            personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(16 mars 1992)))
-            personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 mars 1992)))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-
-            val behandling2 = behandling(connection, sak)
-
-            val personopplysningGrunnlag = personopplysningRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(personopplysningGrunnlag?.personopplysning).isEqualTo(Personopplysning(Fødselsdato(17 mars 1992)))
         }
     }
 
@@ -178,73 +138,6 @@ class PersonopplysningRepositoryTest {
                 )
         }
     }
-
-    @Test
-    fun `Ved kopiering av opplysninger fra en avsluttet behandling til en ny skal kun referansen kopieres, ikke hele raden`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val personopplysningRepository = PersonopplysningRepository(connection)
-            personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 mars 1992)))
-            personopplysningRepository.lagre(behandling1.id, Personopplysning(Fødselsdato(17 april 1992)))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-            val behandling2 = behandling(connection, sak)
-
-            data class Opplysning(val behandlingId: Long, val fødselsdato: LocalDate, val aktiv: Boolean)
-            data class Grunnlag(val personopplysningId: Long, val opplysning: Opplysning)
-
-            val opplysninger =
-                connection.queryList(
-                    """
-                    SELECT b.ID AS BEHANDLING_ID, p.ID AS PERSONOPPLYSNING_ID, p.FODSELSDATO, g.AKTIV
-                    FROM BEHANDLING b
-                    INNER JOIN PERSONOPPLYSNING_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
-                    INNER JOIN PERSONOPPLYSNING p ON g.PERSONOPPLYSNING_ID = p.ID
-                    WHERE b.SAK_ID = ?
-                    """.trimIndent()
-                ) {
-                    setParams {
-                        setLong(1, sak.id.toLong())
-                    }
-                    setRowMapper { row ->
-                        Grunnlag(
-                            personopplysningId = row.getLong("PERSONOPPLYSNING_ID"),
-                            opplysning = Opplysning(
-                                behandlingId = row.getLong("BEHANDLING_ID"),
-                                fødselsdato = row.getLocalDate("FODSELSDATO"),
-                                aktiv = row.getBoolean("AKTIV")
-                            )
-                        )
-                    }
-                }
-            assertThat(opplysninger.map(Grunnlag::personopplysningId).distinct())
-                .hasSize(2)
-            assertThat(opplysninger.map(Grunnlag::opplysning))
-                .hasSize(3)
-                .containsExactly(
-                    Opplysning(
-                        behandlingId = behandling1.id.toLong(),
-                        fødselsdato = 17 mars 1992,
-                        aktiv = false
-                    ),
-                    Opplysning(
-                        behandlingId = behandling1.id.toLong(),
-                        fødselsdato = 17 april 1992,
-                        aktiv = true
-                    ),
-                    Opplysning(
-                        behandlingId = behandling2.id.toLong(),
-                        fødselsdato = 17 april 1992,
-                        aktiv = true
-                    )
-                )
-        }
-    }
-
 
     private companion object {
         private val periode = Periode(LocalDate.now(), LocalDate.now().plusYears(3))

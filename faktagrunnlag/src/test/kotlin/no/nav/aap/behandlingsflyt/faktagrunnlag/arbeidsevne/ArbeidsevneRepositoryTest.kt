@@ -81,53 +81,12 @@ class ArbeidsevneRepositoryTest {
     }
 
     @Test
-    fun `Kopierer arbeidsevne fra en behandling til en annen`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val arbeidsevneRepository = ArbeidsevneRepository(connection)
-            arbeidsevneRepository.lagre(behandling1.id, Arbeidsevne("begrunnelse", Prosent(100)))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-
-            val behandling2 = behandling(connection, sak)
-
-            val arbeidsevneGrunnlag = arbeidsevneRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(arbeidsevneGrunnlag?.vurdering).isEqualTo(Arbeidsevne("begrunnelse", Prosent(100)))
-        }
-    }
-
-    @Test
     fun `Kopiering av arbeidsevne fra en behandling uten opplysningene skal ikke føre til feil`() {
         InitTestDatabase.dataSource.transaction { connection ->
             val arbeidsevneRepository = ArbeidsevneRepository(connection)
             assertDoesNotThrow {
                 arbeidsevneRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
             }
-        }
-    }
-
-    @Test
-    fun `Kopierer arbeidsevne fra en behandling til en annen der fraBehandlingen har to versjoner av opplysningene`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val arbeidsevneRepository = ArbeidsevneRepository(connection)
-            arbeidsevneRepository.lagre(behandling1.id, Arbeidsevne("en begrunnelse", Prosent(100)))
-            arbeidsevneRepository.lagre(behandling1.id, Arbeidsevne("annen begrunnelse", Prosent(100)))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-
-            val behandling2 = behandling(connection, sak)
-
-            val arbeidsevneGrunnlag = arbeidsevneRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(arbeidsevneGrunnlag?.vurdering).isEqualTo(Arbeidsevne("annen begrunnelse", Prosent(100)))
         }
     }
 
@@ -178,83 +137,6 @@ class ArbeidsevneRepositoryTest {
                 .containsExactly(
                     Opplysning(aktiv = false, begrunnelse = "en begrunnelse", andelNedsattArbeidsevne = Prosent(100)),
                     Opplysning(aktiv = true, begrunnelse = "annen begrunnelse", andelNedsattArbeidsevne = Prosent(100))
-                )
-        }
-    }
-
-    @Test
-    fun `Ved kopiering av arbeidsevneopplysninger fra en avsluttet behandling til en ny skal kun referansen kopieres, ikke hele raden`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val arbeidsevneRepository = ArbeidsevneRepository(connection)
-            arbeidsevneRepository.lagre(behandling1.id, Arbeidsevne("en begrunnelse", Prosent(100)))
-            arbeidsevneRepository.lagre(behandling1.id, Arbeidsevne("annen begrunnelse", Prosent(100)))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-            val behandling2 = behandling(connection, sak)
-
-            data class Opplysning(
-                val behandlingId: Long,
-                val aktiv: Boolean,
-                val begrunnelse: String,
-                val andelNedsattArbeidsevne: Prosent
-            )
-
-            data class Grunnlag(val arbeidsevneId: Long, val opplysning: Opplysning)
-
-            val opplysninger =
-                connection.queryList(
-                    """
-                    SELECT b.ID AS BEHANDLING_ID, a.ID AS ARBEIDSEVNE_ID, g.AKTIV, a.BEGRUNNELSE, a.ANDEL_AV_NEDSETTELSE
-                    FROM BEHANDLING b
-                    INNER JOIN ARBEIDSEVNE_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
-                    INNER JOIN ARBEIDSEVNE a ON g.ARBEIDSEVNE_ID = a.ID
-                    WHERE b.SAK_ID = ?
-                    """.trimIndent()
-                ) {
-                    setParams {
-                        setLong(1, sak.id.toLong())
-                    }
-                    setRowMapper { row ->
-                        Grunnlag(
-                            arbeidsevneId = row.getLong("ARBEIDSEVNE_ID"),
-                            opplysning = Opplysning(
-                                behandlingId = row.getLong("BEHANDLING_ID"),
-                                aktiv = row.getBoolean("AKTIV"),
-                                begrunnelse = row.getString("BEGRUNNELSE"),
-                                andelNedsattArbeidsevne = Prosent(row.getInt("ANDEL_AV_NEDSETTELSE"))
-                            )
-                        )
-                    }
-                }
-            assertThat(opplysninger.map(Grunnlag::arbeidsevneId).distinct())
-                .hasSize(2)
-            assertThat(opplysninger.map(Grunnlag::opplysning))
-                .hasSize(3)
-                .containsExactly(
-                    Opplysning(
-                        behandlingId = behandling1.id.toLong(),
-                        aktiv = false,
-                        begrunnelse = "en begrunnelse",
-                        andelNedsattArbeidsevne = Prosent(100)
-                    ),
-                    Opplysning(
-                        behandlingId = behandling1.id.toLong(),
-                        aktiv = true,
-                        begrunnelse = "annen begrunnelse",
-                        andelNedsattArbeidsevne = Prosent(100)
-                    ),
-                    Opplysning(
-                        behandlingId = behandling2.id.toLong(),
-                        aktiv = true,
-                        begrunnelse = "annen begrunnelse",
-                        andelNedsattArbeidsevne = Prosent(100)
-                    )
                 )
         }
     }

@@ -79,53 +79,12 @@ class BistandRepositoryTest {
     }
 
     @Test
-    fun `Kopierer bistand fra en behandling til en annen`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val bistandRepository = BistandRepository(connection)
-            bistandRepository.lagre(behandling1.id, BistandVurdering("begrunnelse", false))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-
-            val behandling2 = behandling(connection, sak)
-
-            val bistandGrunnlag = bistandRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("begrunnelse", false))
-        }
-    }
-
-    @Test
     fun `Kopiering av bistand fra en behandling uten opplysningene skal ikke føre til feil`() {
         InitTestDatabase.dataSource.transaction { connection ->
             val bistandRepository = BistandRepository(connection)
             assertDoesNotThrow {
                 bistandRepository.kopier(BehandlingId(Long.MAX_VALUE - 1), BehandlingId(Long.MAX_VALUE))
             }
-        }
-    }
-
-    @Test
-    fun `Kopierer bistand fra en behandling til en annen der fraBehandlingen har to versjoner av opplysningene`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val bistandRepository = BistandRepository(connection)
-            bistandRepository.lagre(behandling1.id, BistandVurdering("en begrunnelse", false))
-            bistandRepository.lagre(behandling1.id, BistandVurdering("annen begrunnelse", false))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-
-            val behandling2 = behandling(connection, sak)
-
-            val bistandGrunnlag = bistandRepository.hentHvisEksisterer(behandling2.id)
-            assertThat(bistandGrunnlag?.vurdering).isEqualTo(BistandVurdering("annen begrunnelse", false))
         }
     }
 
@@ -176,82 +135,6 @@ class BistandRepositoryTest {
                 .containsExactly(
                     Opplysning(aktiv = false, begrunnelse = "en begrunnelse", erBehovForBistand = false),
                     Opplysning(aktiv = true, begrunnelse = "annen begrunnelse", erBehovForBistand = false)
-                )
-        }
-    }
-
-    @Test
-    fun `Ved kopiering av bistandsopplysninger fra en avsluttet behandling til en ny skal kun referansen kopieres, ikke hele raden`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            val sak = sak(connection)
-            val behandling1 = behandling(connection, sak)
-            val bistandRepository = BistandRepository(connection)
-            bistandRepository.lagre(behandling1.id, BistandVurdering("en begrunnelse", false))
-            bistandRepository.lagre(behandling1.id, BistandVurdering("annen begrunnelse", false))
-            connection.execute("UPDATE BEHANDLING SET STATUS = 'AVSLUTTET' WHERE ID = ?") {
-                setParams {
-                    setLong(1, behandling1.id.toLong())
-                }
-            }
-            val behandling2 = behandling(connection, sak)
-
-            data class Opplysning(
-                val behandlingId: Long,
-                val aktiv: Boolean,
-                val begrunnelse: String,
-                val erBehovForBistand: Boolean
-            )
-
-            data class Grunnlag(val bistandId: Long, val opplysning: Opplysning)
-
-            val opplysninger =
-                connection.queryList(
-                    """
-                    SELECT b.ID AS BEHANDLING_ID, bi.ID AS BISTAND_ID, g.AKTIV, bi.BEGRUNNELSE, bi.ER_BEHOV_FOR_BISTAND
-                    FROM BEHANDLING b
-                    INNER JOIN BISTAND_GRUNNLAG g ON b.ID = g.BEHANDLING_ID
-                    INNER JOIN BISTAND bi ON g.BISTAND_ID = bi.ID
-                    WHERE b.SAK_ID = ?
-                    """.trimIndent()
-                ) {
-                    setParams {
-                        setLong(1, sak.id.toLong())
-                    }
-                    setRowMapper { row ->
-                        Grunnlag(
-                            bistandId = row.getLong("BISTAND_ID"),
-                            opplysning = Opplysning(
-                                behandlingId = row.getLong("BEHANDLING_ID"),
-                                aktiv = row.getBoolean("AKTIV"),
-                                begrunnelse = row.getString("BEGRUNNELSE"),
-                                erBehovForBistand = row.getBoolean("ER_BEHOV_FOR_BISTAND")
-                            )
-                        )
-                    }
-                }
-            assertThat(opplysninger.map(Grunnlag::bistandId).distinct())
-                .hasSize(2)
-            assertThat(opplysninger.map(Grunnlag::opplysning))
-                .hasSize(3)
-                .containsExactly(
-                    Opplysning(
-                        behandlingId = behandling1.id.toLong(),
-                        aktiv = false,
-                        begrunnelse = "en begrunnelse",
-                        erBehovForBistand = false
-                    ),
-                    Opplysning(
-                        behandlingId = behandling1.id.toLong(),
-                        aktiv = true,
-                        begrunnelse = "annen begrunnelse",
-                        erBehovForBistand = false
-                    ),
-                    Opplysning(
-                        behandlingId = behandling2.id.toLong(),
-                        aktiv = true,
-                        begrunnelse = "annen begrunnelse",
-                        erBehovForBistand = false
-                    )
                 )
         }
     }

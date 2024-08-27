@@ -10,7 +10,7 @@ data class BeriketBehandling(
     val sisteAvsluttedeBehandling: BehandlingId?
 ) {
     fun skalKopierFraSisteBehandling(): Boolean {
-        return tilstand == BehandlingTilstand.NY && behandling.typeBehandling() == TypeBehandling.Revurdering && sisteAvsluttedeBehandling != null
+        return false
     }
 }
 
