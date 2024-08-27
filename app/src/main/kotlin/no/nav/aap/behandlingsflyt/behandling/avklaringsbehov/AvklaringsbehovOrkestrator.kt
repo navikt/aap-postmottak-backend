@@ -3,7 +3,6 @@ package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 import no.nav.aap.auth.Bruker
 import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.AvklaringsbehovLøsning
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.SattPåVentLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.FlytOrkestrator
 import no.nav.aap.behandlingsflyt.flyt.utledType
@@ -34,15 +33,7 @@ class AvklaringsbehovOrkestrator(
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
         val kontekst = behandling.flytKontekst()
-        if (avklaringsbehovene.erSattPåVent()) {
-            løsAvklaringsbehov(
-                kontekst = kontekst,
-                avklaringsbehovene = avklaringsbehovene,
-                avklaringsbehov = SattPåVentLøsning(),
-                bruker = SYSTEMBRUKER,
-                behandling = behandling
-            )
-        }
+
         fortsettProsessering(kontekst)
     }
 
@@ -125,23 +116,4 @@ class AvklaringsbehovOrkestrator(
         )
     }
 
-    fun settBehandlingPåVent(behandlingId: BehandlingId, hendelse: BehandlingSattPåVent) {
-        val behandling = behandlingRepository.hent(behandlingId)
-
-        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
-        avklaringsbehovene.validateTilstand(behandling = behandling)
-
-        avklaringsbehovene.leggTil(
-            definisjoner = listOf(Definisjon.MANUELT_SATT_PÅ_VENT),
-            stegType = behandling.aktivtSteg(),
-            frist = hendelse.frist,
-            begrunnelse = hendelse.begrunnelse,
-            grunn = hendelse.grunn,
-            bruker = hendelse.bruker
-        )
-
-        avklaringsbehovene.validateTilstand(behandling = behandling)
-        avklaringsbehovene.validerPlassering(behandling = behandling)
-        behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
-    }
 }

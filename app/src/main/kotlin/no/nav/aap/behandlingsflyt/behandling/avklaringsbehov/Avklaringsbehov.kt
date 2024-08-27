@@ -20,65 +20,6 @@ class Avklaringsbehov(
         }
     }
 
-    fun erTotrinn(): Boolean {
-        if (definisjon.kreverToTrinn) {
-            return true
-        }
-        return kreverToTrinn == true
-    }
-
-    fun erTotrinnsVurdert(): Boolean {
-        return Status.TOTRINNS_VURDERT == historikk.maxOf { it }.status
-    }
-
-    fun erKvalitetssikretTidligere(): Boolean {
-        return Status.KVALITETSSIKRET == historikk.filter {
-            it.status in setOf(
-                Status.OPPRETTET, Status.KVALITETSSIKRET, Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER
-            )
-        }.maxOf { it }.status
-    }
-
-    internal fun vurderTotrinn(
-        begrunnelse: String,
-        godkjent: Boolean,
-        vurdertAv: String,
-        årsakTilRetur: List<ÅrsakTilRetur>,
-    ) {
-        require(definisjon.kreverToTrinn)
-        val status = if (godkjent) {
-            Status.TOTRINNS_VURDERT
-        } else {
-            Status.SENDT_TILBAKE_FRA_BESLUTTER
-        }
-        historikk += Endring(
-            status = status,
-            begrunnelse = begrunnelse,
-            endretAv = vurdertAv,
-            årsakTilRetur = årsakTilRetur,
-        )
-    }
-
-    internal fun vurderKvalitet(
-        begrunnelse: String,
-        godkjent: Boolean,
-        vurdertAv: String,
-        årsakTilRetur: List<ÅrsakTilRetur>,
-    ) {
-        require(definisjon.kreverToTrinn)
-        val status = if (godkjent) {
-            Status.KVALITETSSIKRET
-        } else {
-            Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER
-        }
-        historikk += Endring(
-            status = status,
-            begrunnelse = begrunnelse,
-            endretAv = vurdertAv,
-            årsakTilRetur = årsakTilRetur,
-        )
-    }
-
     internal fun reåpne(frist: LocalDate? = null, begrunnelse: String = "", grunn: ÅrsakTilSettPåVent? = null) {
         historikk += Endring(
             status = Status.OPPRETTET,
@@ -114,16 +55,6 @@ class Avklaringsbehov(
         )
     }
 
-    internal fun avbryt() {
-        historikk += Endring(
-            status = Status.AVBRUTT, begrunnelse = "", endretAv = SYSTEMBRUKER.ident
-        )
-    }
-
-    fun erIkkeAvbrutt(): Boolean {
-        return Status.AVBRUTT != status()
-    }
-
     fun erAvsluttet(): Boolean {
         return status() == Status.AVSLUTTET
     }
@@ -133,9 +64,7 @@ class Avklaringsbehov(
     }
 
     fun begrunnelse(): String = historikk.maxOf { it }.begrunnelse
-    fun grunn(): ÅrsakTilSettPåVent = requireNotNull(historikk.maxOf { it }.grunn)
     fun endretAv(): String = historikk.maxOf { it }.endretAv
-    fun årsakTilRetur(): List<ÅrsakTilRetur> = historikk.maxOf { it }.årsakTilRetur
 
     fun skalLøsesISteg(type: StegType): Boolean {
         return definisjon.skalLøsesISteg(type, funnetISteg)
@@ -145,10 +74,6 @@ class Avklaringsbehov(
         return historikk.any { it.status == Status.SENDT_TILBAKE_FRA_BESLUTTER }
     }
 
-    fun harVærtSendtTilbakeFraKvalitetssikrerTidligere(): Boolean {
-        return historikk.any { it.status == Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER }
-    }
-
     fun løsesISteg(): StegType {
         if (definisjon.løsesISteg == StegType.UDEFINERT) {
             return funnetISteg
@@ -156,20 +81,8 @@ class Avklaringsbehov(
         return definisjon.løsesISteg
     }
 
-    fun erVentepunkt(): Boolean {
-        return definisjon.type == Definisjon.BehovType.VENTEPUNKT
-    }
-
     fun frist(): LocalDate {
         return requireNotNull(historikk.last { it.status == Status.OPPRETTET }.frist)
-    }
-
-    fun fristUtløpt(): Boolean {
-        return frist().isBefore(LocalDate.now()) || frist().isEqual(LocalDate.now())
-    }
-
-    fun kreverKvalitetssikring(): Boolean {
-        return definisjon.kvalitetssikres
     }
 
     override fun toString(): String {

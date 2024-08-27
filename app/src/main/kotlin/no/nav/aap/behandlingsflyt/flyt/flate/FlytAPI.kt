@@ -19,9 +19,7 @@ import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.behandlingsflyt.flyt.flate.visning.Prosessering
 import no.nav.aap.behandlingsflyt.flyt.flate.visning.ProsesseringStatus
-import no.nav.aap.behandlingsflyt.flyt.flate.visning.Visning
 import no.nav.aap.behandlingsflyt.flyt.utledType
-import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingHendelseHåndterer
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -101,26 +99,14 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                                     emptyList()
                                                 )
                                             },
-                                        vilkårDTO = hentUtRelevantVilkårForSteg(
-                                            vilkårsresultat = Vilkårsresultat(null, emptyList()),
-                                            stegType = stegType
-                                        )
                                     )
                                 }
                             )
                         },
                         aktivtSteg = aktivtSteg,
                         aktivGruppe = aktivtSteg.gruppe,
-                        vurdertSteg = null,
-                        vurdertGruppe = null,
                         behandlingVersjon = behandling.versjon,
-                        prosessering = prosessering,
-                        visning = utledVisning(
-                            aktivtSteg = aktivtSteg,
-                            flyt = flyt,
-                            alleAvklaringsbehovInkludertFrivillige = alleAvklaringsbehovInkludertFrivillige,
-                            status = prosessering.status
-                        )
+                        prosessering = prosessering
                     )
                 }
                 respond(dto)
@@ -129,68 +115,13 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
         route("/{referanse}/resultat") {
             get<BehandlingReferanse, BehandlingResultatDto> { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
-                    val behandling = behandling(connection, req)
 
-
-                    BehandlingResultatDto(emptyList())
+                    BehandlingResultatDto()
                 }
                 respond(dto)
             }
         }
-        route("/{referanse}/sett-på-vent") {
-            post<BehandlingReferanse, BehandlingResultatDto, SettPåVentRequest> { request, body ->
-                dataSource.transaction { connection ->
-                    val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
-                    val lås = taSkriveLåsRepository.lås(request.referanse)
-                    BehandlingTilstandValidator(connection).validerTilstand(
-                        request,
-                        body.behandlingVersjon
-                    )
 
-                    MDC.putCloseable("sakId", lås.sakSkrivelås.id.toString()).use {
-                        MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
-                            BehandlingHendelseHåndterer(connection).håndtere(
-                                key = lås.behandlingSkrivelås.id,
-                                hendelse = BehandlingSattPåVent(
-                                    frist = body.frist,
-                                    begrunnelse = body.begrunnelse,
-                                    behandlingVersjon = body.behandlingVersjon,
-                                    grunn = body.grunn,
-                                    bruker = pipeline.context.bruker()
-                                )
-                            )
-                            taSkriveLåsRepository.verifiserSkrivelås(lås)
-                        }
-                    }
-                }
-                respondWithStatus(HttpStatusCode.NoContent)
-            }
-        }
-        route("/{referanse}/vente-informasjon") {
-            get<BehandlingReferanse, Venteinformasjon> { request ->
-                val dto = dataSource.transaction(readOnly = true) { connection ->
-                    val behandling = behandling(connection, request)
-                    val avklaringsbehovene = avklaringsbehov(connection, behandling.id)
-
-                    val ventepunkter = avklaringsbehovene.hentVentepunkter()
-                    if (avklaringsbehovene.erSattPåVent()) {
-                        val avklaringsbehov = ventepunkter.first()
-                        Venteinformasjon(
-                            avklaringsbehov.frist(),
-                            avklaringsbehov.begrunnelse(),
-                            avklaringsbehov.grunn()
-                        )
-                    } else {
-                        null
-                    }
-                }
-                if (dto == null) {
-                    respondWithStatus(HttpStatusCode.NoContent)
-                } else {
-                    respond(dto)
-                }
-            }
-        }
     }
 }
 
@@ -215,56 +146,10 @@ private fun utledStatus(oppgaver: List<JobbInput>): ProsesseringStatus {
     return ProsesseringStatus.JOBBER
 }
 
-private fun utledVisning(
-    aktivtSteg: StegType,
-    flyt: BehandlingFlyt,
-    alleAvklaringsbehovInkludertFrivillige: FrivilligeAvklaringsbehov,
-    status: ProsesseringStatus
-): Visning {
-    val jobber = status in listOf(ProsesseringStatus.JOBBER, ProsesseringStatus.FEILET)
-    val påVent = alleAvklaringsbehovInkludertFrivillige.erSattPåVent()
-    val beslutterReadOnly = false
-    val erTilKvalitetssikring = false
-    val saksbehandlerReadOnly = false
-    val visBeslutterKort =
-        !beslutterReadOnly || (!saksbehandlerReadOnly && alleAvklaringsbehovInkludertFrivillige.harVærtSendtTilbakeFraBeslutterTidligere())
-    val visKvalitetssikringKort = utledVisningAvKvalitetsikrerKort(alleAvklaringsbehovInkludertFrivillige)
-    val kvalitetssikringReadOnly = false
-
-    if (jobber) {
-        return Visning(
-            saksbehandlerReadOnly = true,
-            beslutterReadOnly = true,
-            kvalitetssikringReadOnly = true,
-            visBeslutterKort = visBeslutterKort,
-            visKvalitetssikringKort = visKvalitetssikringKort,
-            visVentekort = påVent
-        )
-    } else {
-        return Visning(
-            saksbehandlerReadOnly = påVent || saksbehandlerReadOnly,
-            beslutterReadOnly = påVent || beslutterReadOnly,
-            kvalitetssikringReadOnly = påVent || kvalitetssikringReadOnly,
-            visBeslutterKort = visBeslutterKort,
-            visKvalitetssikringKort = visKvalitetssikringKort,
-            visVentekort = påVent
-        )
-    }
-}
-
-private fun utledVisningAvKvalitetsikrerKort(
-    avklaringsbehovene: FrivilligeAvklaringsbehov
-): Boolean = true
-
-
 private fun behandling(connection: DBConnection, req: BehandlingReferanse): Behandling {
     return BehandlingReferanseService(BehandlingRepositoryImpl(connection)).behandling(req)
 }
 
 private fun avklaringsbehov(connection: DBConnection, behandlingId: BehandlingId): Avklaringsbehovene {
     return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
-}
-
-private fun hentUtRelevantVilkårForSteg(vilkårsresultat: Vilkårsresultat, stegType: StegType): VilkårDTO? {
-    return null
 }

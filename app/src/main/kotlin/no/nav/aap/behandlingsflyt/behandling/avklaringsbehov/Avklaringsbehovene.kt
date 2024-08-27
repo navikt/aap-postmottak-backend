@@ -69,12 +69,7 @@ class Avklaringsbehovene(
             if (avklaringsbehov != null) {
                 if (avklaringsbehov.erAvsluttet() || avklaringsbehov.status() == Status.AVBRUTT) {
                     avklaringsbehov.reåpne(frist, begrunnelse, grunn)
-                    if (avklaringsbehov.erVentepunkt()) {
-                        // TODO: Vurdere om funnet steg bør ligge på endringen...
-                        repository.endreVentepunkt(avklaringsbehov.id, avklaringsbehov.historikk.last(), stegType)
-                    } else {
                         repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
-                    }
                 } else {
                     log.warn("Forsøkte å legge til et avklaringsbehov som allerede eksisterte")
                 }
@@ -83,55 +78,12 @@ class Avklaringsbehovene(
                     behandlingId = behandlingId,
                     definisjon = definisjon,
                     funnetISteg = stegType,
-                    frist = utledFrist(definisjon, frist),
                     begrunnelse = begrunnelse,
                     grunn = grunn,
                     endretAv = bruker.ident
                 )
             }
         }
-    }
-
-    private fun utledFrist(definisjon: Definisjon, frist: LocalDate?): LocalDate? {
-        if (definisjon.erVentepunkt()) {
-            return definisjon.utledFrist(frist)
-        }
-        return null
-    }
-
-    fun vurderTotrinn(
-        definisjon: Definisjon,
-        godkjent: Boolean,
-        begrunnelse: String,
-        vurdertAv: String,
-        årsakTilRetur: List<ÅrsakTilRetur> = emptyList(),
-    ) {
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.vurderTotrinn(begrunnelse, godkjent, vurdertAv, årsakTilRetur)
-        repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
-    }
-
-    fun vurderKvalitet(
-        definisjon: Definisjon,
-        godkjent: Boolean,
-        begrunnelse: String,
-        vurdertAv: String,
-        årsakTilRetur: List<ÅrsakTilRetur> = emptyList(),
-    ) {
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.vurderKvalitet(begrunnelse, godkjent, vurdertAv, årsakTilRetur)
-        repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
-    }
-
-    fun avbryt(definisjon: Definisjon) {
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.avbryt()
-        repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
-    }
-
-    fun reåpne(definisjon: Definisjon) {
-        val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        avklaringsbehov.reåpne()
     }
 
     override fun alle(): List<Avklaringsbehov> {
@@ -159,15 +111,9 @@ class Avklaringsbehovene(
         return alle().filter { it.definisjon == definisjon }.singleOrNull()
     }
 
-    fun hentBehovForDefinisjon(definisjoner: List<Definisjon>): List<Avklaringsbehov> {
-        return alle().filter { it.definisjon in definisjoner }.toList()
-    }
-
-
     fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
         return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraBeslutterTidligere() }
     }
-
 
     fun validateTilstand(behandling: Behandling, avklaringsbehov: Definisjon? = null) {
         ValiderBehandlingTilstand.validerTilstandBehandling(
@@ -193,15 +139,4 @@ class Avklaringsbehovene(
         }
     }
 
-    override fun erSattPåVent(): Boolean {
-        return alle().any { avklaringsbehov -> avklaringsbehov.erVentepunkt() && avklaringsbehov.erÅpent() }
-    }
-
-    fun hentVentepunkterMedUtløptFrist(): List<Avklaringsbehov> {
-        return alle().filter { it.erVentepunkt() && it.erÅpent() && it.fristUtløpt() }
-    }
-
-    fun hentVentepunkter(): List<Avklaringsbehov> {
-        return alle().filter { it.erVentepunkt() && it.erÅpent() }
-    }
 }

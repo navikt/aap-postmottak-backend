@@ -21,8 +21,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.PERSON_BOL
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
-import no.nav.aap.behandlingsflyt.hendelse.statistikk.AvsluttetBehandlingDTO
-import no.nav.aap.behandlingsflyt.hendelse.statistikk.StatistikkHendelseDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway.PERSONINFO_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
@@ -71,10 +69,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val medl = embeddedServer(Netty, port = 0, module = { medlFake() }).apply { start() }
     private val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() }).apply { start() }
 
-    private val statistikk = embeddedServer(Netty, port = 0, module = { statistikkFake() }).apply { start() }
-    val statistikkHendelser = mutableListOf<StatistikkHendelseDTO>()
-    val mottatteVilkårsResult = mutableListOf<AvsluttetBehandlingDTO>()
-
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -114,10 +108,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Inst
         System.setProperty("integrasjon.institusjonsopphold.url", "http://localhost:${inst2.port()}")
         System.setProperty("integrasjon.institusjonsopphold.scope", "inst2")
-
-        // Statistikk-app
-        System.setProperty("integrasjon.statistikk.url", "http://localhost:${statistikk.port()}")
-        System.setProperty("integrasjon.statistikk.scope", "statistikk")
 
         // Pesys
         System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
@@ -274,38 +264,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
     }
 
-    private fun Application.statistikkFake() {
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-            }
-        }
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@statistikkFake.log.info(
-                    "STATISTIKK :: Ukjent feil ved kall til '{}'",
-                    call.request.local.uri,
-                    cause
-                )
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
-            }
-        }
-        routing {
-            post("/motta") {
-                val receive = call.receive<StatistikkHendelseDTO>()
-                statistikkHendelser.add(receive)
-                call.respond(HttpStatusCode.OK)
-            }
-            post("/avsluttetBehandling") {
-                val receive = call.receive<AvsluttetBehandlingDTO>()
-                this@statistikkFake.log.info("Statistikk mottok: {}", receive)
-                synchronized(mottatteVilkårsResult) {
-                    mottatteVilkårsResult.add(receive)
-                }
-                call.respond(HttpStatusCode.OK)
-            }
-        }
-    }
+
 
     private fun Application.safFake() {
 

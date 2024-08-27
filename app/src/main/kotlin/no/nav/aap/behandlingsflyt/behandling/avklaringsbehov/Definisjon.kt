@@ -9,20 +9,7 @@ import java.time.Period
 import java.util.*
 import java.util.stream.Collectors
 
-const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
-const val AVKLAR_STUDENT_KODE = "5001"
-const val AVKLAR_SYKDOM_KODE = "5003"
-const val FASTSETT_ARBEIDSEVNE_KODE = "5004"
-const val FRITAK_MELDEPLIKT_KODE = "5005"
-const val AVKLAR_BISTANDSBEHOV_KODE = "5006"
-const val VURDER_SYKEPENGEERSTATNING_KODE = "5007"
-const val FASTSETT_BEREGNINGSTIDSPUNKT_KODE = "5008"
-const val AVKLAR_BARNETILLEGG_KODE = "5009"
-const val AVKLAR_SONINGSFORRHOLD_KODE = "5010"
-const val AVKLAR_HELSEINSTITUSJON_KODE = "5011"
-const val KVALITETSSIKRING_KODE = "5097"
-const val FORESLÅ_VEDTAK_KODE = "5098"
-const val FATTE_VEDTAK_KODE = "5099"
+
 const val KATEGORISER_DOKUMENT_KODE = "1337"
 const val DIGITALISER_DOKUMENT_KODE = "1338"
 
@@ -30,10 +17,8 @@ const val DIGITALISER_DOKUMENT_KODE = "1338"
 enum class Definisjon(
     @JsonProperty("kode") val kode: String,
     val type: BehovType,
-    @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
-    val kreverToTrinn: Boolean = false,
-    val kvalitetssikres: Boolean = false
+    val kreverToTrinn: Boolean = false
 ) {
     KATEGORISER_DOKUMENT(
         kode =  KATEGORISER_DOKUMENT_KODE,
@@ -44,11 +29,6 @@ enum class Definisjon(
         kode = DIGITALISER_DOKUMENT_KODE,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.DIGITALISER_DOKUMENT
-    ),
-    MANUELT_SATT_PÅ_VENT(
-        kode = MANUELT_SATT_PÅ_VENT_KODE,
-        type = BehovType.VENTEPUNKT,
-        defaultFrist = Period.ofWeeks(3),
     );
 
     companion object {
@@ -74,8 +54,7 @@ enum class Definisjon(
 
     enum class BehovType(val valideringsFunksjon: Definisjon.() -> Unit) {
         MANUELT_PÅKREVD(Definisjon::validerManuelt),
-        MANUELT_FRIVILLIG(Definisjon::validerManuelt),
-        VENTEPUNKT(Definisjon::validerVentepunkt)
+        MANUELT_FRIVILLIG(Definisjon::validerManuelt)
     }
 
     fun skalLøsesISteg(steg: StegType, funnetISteg: StegType): Boolean {
@@ -93,22 +72,6 @@ enum class Definisjon(
         }
     }
 
-    private fun validerVentepunkt() {
-        if (this == MANUELT_SATT_PÅ_VENT) {
-            if (this.løsesISteg != StegType.UDEFINERT) {
-                throw IllegalArgumentException("Manueltsatt på vent er lagt til feil steg")
-            }
-        }
-        if (this != MANUELT_SATT_PÅ_VENT) {
-            if (this.løsesISteg == StegType.UDEFINERT) {
-                throw IllegalArgumentException("Ventepunkt er lagt til feil steg")
-            }
-            if (defaultFrist == Period.ZERO) {
-                throw IllegalArgumentException("Vent trenger å sette en default frist")
-            }
-        }
-    }
-
     override fun toString(): String {
         return "$name(kode='$kode')"
     }
@@ -117,17 +80,4 @@ enum class Definisjon(
         return type == BehovType.MANUELT_FRIVILLIG
     }
 
-    fun erVentepunkt(): Boolean {
-        return type == BehovType.VENTEPUNKT
-    }
-
-    fun utledFrist(frist: LocalDate?): LocalDate {
-        if (!erVentepunkt()) {
-            throw IllegalStateException("Forsøker utlede frist for et behov som ikke er ventepunkt")
-        }
-        if (frist != null) {
-            return frist
-        }
-        return LocalDate.now().plus(defaultFrist)
-    }
 }

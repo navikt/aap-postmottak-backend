@@ -67,27 +67,6 @@ class FlytOrkestrator(
 
         behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
-        // fjerner av ventepunkt med utløpt frist
-        if (avklaringsbehovene.erSattPåVent()) {
-            val behov = avklaringsbehovene.hentVentepunkterMedUtløptFrist()
-            behov.forEach { avklaringsbehovene.løsAvklaringsbehov(it.definisjon, "", SYSTEMBRUKER.ident) }
-            // Hvis fortsatt på vent
-            if (avklaringsbehovene.erSattPåVent()) {
-                return // Bail out
-            } else {
-                // Behandlingen er tatt av vent pga frist og flyten flyttes tilbake til steget hvor den sto på vent
-                val tilbakeflyt = behandlingFlyt.tilbakeflyt(behov)
-                if (!tilbakeflyt.erTom()) {
-                    log.info(
-                        "Tilbakeført etter tatt av vent fra '{}' til '{}'",
-                        behandling.aktivtSteg(),
-                        tilbakeflyt.stegene().last()
-                    )
-                }
-                tilbakefør(kontekst, behandling, tilbakeflyt, avklaringsbehovene)
-            }
-        }
-
         val oppdaterFaktagrunnlagForKravliste =
             informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
                 kravliste = behandlingFlyt.faktagrunnlagFremTilOgMedGjeldendeSteg(),
@@ -115,20 +94,6 @@ class FlytOrkestrator(
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
         avklaringsbehovene.validateTilstand(behandling = behandling)
-
-        // TODO: Vurdere om det hendelser som trigger prosesserBehandling
-        //  (f.eks ankommet dokument) skal ta behandling av vent
-
-        // fjerner av ventepunkt med utløpt frist
-        if (avklaringsbehovene.erSattPåVent()) {
-            val behov = avklaringsbehovene.hentVentepunkterMedUtløptFrist()
-            behov.forEach { avklaringsbehovene.løsAvklaringsbehov(it.definisjon, "", SYSTEMBRUKER.ident) }
-        }
-
-        // Hvis fortsatt på vent
-        if (avklaringsbehovene.erSattPåVent()) {
-            return // Bail out
-        }
 
         val behandlingFlyt = utledFlytFra(behandling)
 

@@ -57,7 +57,6 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                                 }
                             )
                         },
-                        vilkår = emptyList(),
                         aktivtSteg = behandling.stegHistorikk().last().steg(),
                         versjon = behandling.versjon
                     )
