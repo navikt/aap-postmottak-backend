@@ -24,6 +24,7 @@ const val KVALITETSSIKRING_KODE = "5097"
 const val FORESLÅ_VEDTAK_KODE = "5098"
 const val FATTE_VEDTAK_KODE = "5099"
 const val KATEGORISER_DOKUMENT_KODE = "1337"
+const val DIGITALISER_DOKUMENT_KODE = "1338"
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
@@ -34,6 +35,16 @@ enum class Definisjon(
     val kreverToTrinn: Boolean = false,
     val kvalitetssikres: Boolean = false
 ) {
+    KATEGORISER_DOKUMENT(
+        kode =  KATEGORISER_DOKUMENT_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.KATEGORISER_DOKUMENT
+    ),
+    DIGITALISER_DOKUMENT(
+        kode = DIGITALISER_DOKUMENT_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.DIGITALISER_DOKUMENT
+    ),
     MANUELT_SATT_PÅ_VENT(
         kode = MANUELT_SATT_PÅ_VENT_KODE,
         type = BehovType.VENTEPUNKT,
@@ -95,11 +106,6 @@ enum class Definisjon(
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.BARNETILLEGG,
         kreverToTrinn = true
-    ),
-    KATEGORISER_DOKUMENT(
-        kode =  KATEGORISER_DOKUMENT_KODE,
-        type = BehovType.MANUELT_PÅKREVD,
-        løsesISteg = StegType.KATEGORISER_DOKUMENT
     ),
     AVKLAR_SONINGSFORRHOLD(
         kode = AVKLAR_SONINGSFORRHOLD_KODE,
