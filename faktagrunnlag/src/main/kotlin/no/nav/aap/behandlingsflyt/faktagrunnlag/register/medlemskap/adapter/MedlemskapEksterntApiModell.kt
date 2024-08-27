@@ -1,9 +1,5 @@
 package no.nav.aap.behandlingsflyt.faktagrunnlag.register.medlemskap.adapter
 
-data class MedlemskapRequest(
-    val ident: String,
-)
-
 // Swagger-doc her: https://medlemskap-medl-api.dev.intern.nav.no/swagger-ui/index.html
 data class MedlemskapResponse(
     val unntakId: Number,

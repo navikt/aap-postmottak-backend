@@ -16,8 +16,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.Inntekt.InntektRequest
 import no.nav.aap.Inntekt.InntektResponse
 import no.nav.aap.Inntekt.SumPi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.BARN_RELASJON_QUERY
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.barn.adapter.PERSON_BOLK_QUERY
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
@@ -256,8 +254,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                     IDENT_QUERY -> call.respond(identer(req))
                     PERSON_QUERY -> call.respond(personopplysninger(req))
                     PERSONINFO_QUERY -> call.respond(navn(req))
-                    BARN_RELASJON_QUERY -> call.respond(barnRelasjoner(req))
-                    PERSON_BOLK_QUERY -> call.respond(barn(req))
                     else -> call.respond(HttpStatusCode.BadRequest)
                 }
             }

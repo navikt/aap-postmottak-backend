@@ -15,7 +15,6 @@ class SakOgBehandlingService(connection: DBConnection) {
 
     private val sakRepository = SakRepositoryImpl(connection)
     private val behandlingRepository = BehandlingRepositoryImpl(connection)
-    private val grunnlagKopierer = GrunnlagKopierer(connection)
 
     fun finnEllerOpprettBehandling(key: Saksnummer, årsaker: List<Årsak>): BeriketBehandling {
         val sak = sakRepository.hent(key)
@@ -45,9 +44,6 @@ class SakOgBehandlingService(connection: DBConnection) {
                     tilstand = BehandlingTilstand.NY,
                     sisteAvsluttedeBehandling = sisteBehandlingForSak.id
                 )
-                if (beriketBehandling.skalKopierFraSisteBehandling()) {
-                    grunnlagKopierer.overfør(requireNotNull(beriketBehandling.sisteAvsluttedeBehandling), nyBehandling.id)
-                }
 
                 return beriketBehandling
 
