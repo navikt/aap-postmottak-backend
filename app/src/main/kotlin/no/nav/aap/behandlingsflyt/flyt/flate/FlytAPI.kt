@@ -40,75 +40,23 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
             get<BehandlingReferanse, BehandlingFlytOgTilstandDto> { req ->
-                val dto = dataSource.transaction(readOnly = true) { connection ->
-                    val behandling = behandling(connection, req)
-                    val flytJobbRepository = FlytJobbRepository(connection)
-                    val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
-                    val flyt = utledType(behandling.typeBehandling()).flyt()
-
-                    val stegGrupper: Map<StegGruppe, List<StegType>> =
-                        flyt.stegene().groupBy { steg -> steg.gruppe }
-
-                    val aktivtSteg = behandling.aktivtSteg()
-                    var erFullført = true
-                    val avklaringsbehovene = avklaringsbehov(
-                        connection,
-                        behandling.id
-                    )
-                    val alleAvklaringsbehovInkludertFrivillige = FrivilligeAvklaringsbehov(
-                        avklaringsbehovene,
-                        flyt, aktivtSteg
-                    )
-                    val jobber = flytJobbRepository.hentJobberForBehandling(behandling.id)
-                    val prosessering =
-                        Prosessering(
-                            utledStatus(jobber),
-                            jobber.map {
-                                JobbInfoDto(
-                                    id = it.jobbId(),
-                                    type = it.type(),
-                                    status = it.status(),
-                                    planlagtKjøretidspunkt = it.nesteKjøring(),
-                                    metadata = mapOf(),
-                                    antallFeilendeForsøk = it.antallRetriesForsøkt(),
-                                    feilmelding = hentFeilmeldingHvisBehov(
-                                        it.status(),
-                                        it.jobbId(),
-                                        flytJobbRepository
-                                    ),
-                                    beskrivelse = it.beskrivelse(),
-                                    navn = it.navn()
-                                )
-                            })
-                    BehandlingFlytOgTilstandDto(
-                        flyt = stegGrupper.map { (gruppe, steg) ->
-                            erFullført = erFullført && gruppe != aktivtSteg.gruppe
-                            FlytGruppe(
-                                stegGruppe = gruppe,
-                                skalVises = gruppeVisningService.skalVises(gruppe, behandling.id),
-                                erFullført = erFullført,
-                                steg = steg.map { stegType ->
-                                    FlytSteg(
-                                        stegType = stegType,
-                                        avklaringsbehov = alleAvklaringsbehovInkludertFrivillige.alle()
-                                            .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
-                                            .map { behov ->
-                                                AvklaringsbehovDTO(
-                                                    behov.definisjon,
-                                                    behov.status(),
-                                                    emptyList()
-                                                )
-                                            },
-                                    )
-                                }
-                            )
-                        },
-                        aktivtSteg = aktivtSteg,
-                        aktivGruppe = aktivtSteg.gruppe,
-                        behandlingVersjon = behandling.versjon,
-                        prosessering = prosessering
-                    )
-                }
+                val dto = BehandlingFlytOgTilstandDto(
+                    flyt = listOf(
+                        FlytGruppe(
+                            stegGruppe = StegGruppe.KATEGORISER,
+                            steg = listOf(FlytSteg(StegType.KATEGORISER_DOKUMENT, avklaringsbehov = emptyList())),
+                            erFullført = true,
+                            skalVises = true
+                        )
+                    ),
+                    aktivtSteg = StegType.DIGITALISER_DOKUMENT,
+                    aktivGruppe = StegGruppe.DIGITALISER,
+                    prosessering = Prosessering(
+                        status = ProsesseringStatus.FERDIG,
+                        ventendeOppgaver = emptyList()
+                    ),
+                    behandlingVersjon = 1
+                )
                 respond(dto)
             }
         }
