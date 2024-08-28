@@ -40,23 +40,60 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
             get<BehandlingReferanse, BehandlingFlytOgTilstandDto> { req ->
-                val dto = BehandlingFlytOgTilstandDto(
-                    flyt = listOf(
+                val dto = dataSource.transaction(readOnly = true) { connection ->
+                val behandling = BehandlingRepositoryImpl(connection).hent(req)
+                val flytJobbRepository = FlytJobbRepository(connection)
+                val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
+                val flyt = utledType(behandling.typeBehandling()).flyt()
+
+                    var erFullført = true
+
+                val stegGrupper: Map<StegGruppe, List<StegType>> =
+                    flyt.stegene().groupBy { steg -> steg.gruppe }
+
+                val aktivtSteg = behandling.aktivtSteg()
+
+                    val avklaringsbehovene = avklaringsbehov(
+                        connection,
+                        behandling.id
+                    )
+
+                    val alleAvklaringsbehovInkludertFrivillige = FrivilligeAvklaringsbehov(
+                        avklaringsbehovene,
+                        flyt, aktivtSteg
+                    )
+
+                BehandlingFlytOgTilstandDto(
+                    flyt = stegGrupper.map { (gruppe, steg) ->
+                        erFullført = erFullført && gruppe != aktivtSteg.gruppe
                         FlytGruppe(
-                            stegGruppe = StegGruppe.KATEGORISER,
-                            steg = listOf(FlytSteg(StegType.KATEGORISER_DOKUMENT, avklaringsbehov = emptyList())),
-                            erFullført = true,
-                            skalVises = true
+                            stegGruppe = gruppe,
+                            skalVises = gruppeVisningService.skalVises(gruppe, behandling.id),
+                            erFullført = erFullført,
+                            steg = steg.map { stegType ->
+                                FlytSteg(
+                                    stegType = stegType,
+                                    avklaringsbehov = alleAvklaringsbehovInkludertFrivillige.alle()
+                                        .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
+                                        .map { behov ->
+                                            AvklaringsbehovDTO(
+                                                behov.definisjon,
+                                                behov.status(),
+                                                emptyList()
+                                            )
+                                        },
+                                )
+                            }
                         )
-                    ),
-                    aktivtSteg = StegType.DIGITALISER_DOKUMENT,
-                    aktivGruppe = StegGruppe.DIGITALISER,
+                    },
+                    aktivtSteg = aktivtSteg,
+                    aktivGruppe = aktivtSteg.gruppe,
                     prosessering = Prosessering(
                         status = ProsesseringStatus.FERDIG,
                         ventendeOppgaver = emptyList()
                     ),
                     behandlingVersjon = 1
-                )
+                )}
                 respond(dto)
             }
         }

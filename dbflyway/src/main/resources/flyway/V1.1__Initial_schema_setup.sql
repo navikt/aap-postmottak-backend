@@ -24,6 +24,7 @@ CREATE TABLE BEHANDLING
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
     SAK_ID        BIGINT                                 NULL,
     REFERANSE     UUID UNIQUE                            NOT NULL,
+    KATEGORI      VARCHAR(50)                            NULL,
     STATUS        VARCHAR(100)                           NOT NULL,
     TYPE          VARCHAR(100)                           NOT NULL,
     VERSJON       BIGINT       DEFAULT 0                 NOT NULL,
@@ -47,14 +48,14 @@ CREATE UNIQUE INDEX IDX_AVKLARINGSBEHOV_BEHANDLING_DEFINISJON ON AVKLARINGSBEHOV
 CREATE INDEX IDX_AVKLARINGSBEHOV_TID ON AVKLARINGSBEHOV (OPPRETTET_TID);
 CREATE TABLE AVKLARINGSBEHOV_ENDRING
 (
-    ID                        BIGSERIAL                              NOT NULL PRIMARY KEY,
-    AVKLARINGSBEHOV_ID        BIGINT                                 NOT NULL REFERENCES AVKLARINGSBEHOV (ID),
-    STATUS                    VARCHAR(50)                            NOT NULL,
-    BEGRUNNELSE               TEXT,
-    VENTEAARSAK               VARCHAR(50),
-    FRIST                     DATE,
-    OPPRETTET_AV              VARCHAR(100)                           NOT NULL,
-    OPPRETTET_TID             TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+    ID                 BIGSERIAL                              NOT NULL PRIMARY KEY,
+    AVKLARINGSBEHOV_ID BIGINT                                 NOT NULL REFERENCES AVKLARINGSBEHOV (ID),
+    STATUS             VARCHAR(50)                            NOT NULL,
+    BEGRUNNELSE        TEXT,
+    VENTEAARSAK        VARCHAR(50),
+    FRIST              DATE,
+    OPPRETTET_AV       VARCHAR(100)                           NOT NULL,
+    OPPRETTET_TID      TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 CREATE INDEX IDX_AVKLARINGSBEHOV_ENDRING_TID ON AVKLARINGSBEHOV_ENDRING (OPPRETTET_TID);
 

@@ -5,16 +5,18 @@ import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StartBehandlingSteg::class.java)
 
-class AutomatiskKategoriseringSteg: BehandlingSteg {
-    companion object: FlytSteg {
+class AutomatiskKategoriseringSteg(private val behandlingRepository: BehandlingRepository) : BehandlingSteg {
+    companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return AutomatiskKategoriseringSteg()
+            return AutomatiskKategoriseringSteg(BehandlingRepositoryImpl(connection))
         }
 
         override fun type(): StegType {
@@ -24,13 +26,13 @@ class AutomatiskKategoriseringSteg: BehandlingSteg {
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-       log.info("Treffer AutomatiskKategoriseringSteg")
+        log.info("Treffer AutomatiskKategoriseringSteg")
 
-        val kanAutomatiskKAtegorisereDokument = false
+        val saksid = behandlingRepository.hent(kontekst.behandlingId).sakId
 
         return StegResultat(
-            avklaringsbehov = if (kanAutomatiskKAtegorisereDokument) emptyList()
-                                else listOf(Definisjon.KATEGORISER_DOKUMENT)
+            avklaringsbehov = if (saksid != null) emptyList()
+            else listOf(Definisjon.KATEGORISER_DOKUMENT)
         )
     }
 }

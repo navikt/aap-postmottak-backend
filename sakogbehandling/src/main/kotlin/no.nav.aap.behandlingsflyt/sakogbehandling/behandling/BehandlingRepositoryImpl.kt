@@ -30,7 +30,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
             referanse = behandlingsreferanse,
-            sakId = null,
+            sakId = SakId(1),
             typeBehandling = typeBehandling,
             årsaker = emptyList(),
             versjon = 0
@@ -44,7 +44,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return Behandling(
             id = behandlingId,
             referanse = BehandlingReferanse(row.getUUID("referanse")),
-            sakId = row.getLongOrNull("sak_id")?.let { SakId(it) },
+            sakId = SakId(1),//row.getLongOrNull("sak_id")?.let { SakId(it) },
             typeBehandling = TypeBehandling.from(row.getString("type")),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
