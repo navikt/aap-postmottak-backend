@@ -12,7 +12,6 @@ private const val CALL_ID_KEY = "CallId"
 class JobbInput(internal val jobb: Jobb) {
 
     internal var id: Long? = null
-    private var sakId: SakId? = null
     private var behandlingId: BehandlingId? = null
     private var nesteKjøring: LocalDateTime? = null
     private var antallFeil: Long = 0
@@ -30,15 +29,8 @@ class JobbInput(internal val jobb: Jobb) {
         return this
     }
 
-    fun forBehandling(sakId: SakId?, behandlingId: BehandlingId?): JobbInput {
-        this.sakId = sakId
+    fun forBehandling(behandlingId: BehandlingId?): JobbInput {
         this.behandlingId = behandlingId
-
-        return this
-    }
-
-    fun forSak(sakId: SakId): JobbInput {
-        this.sakId = sakId
 
         return this
     }
@@ -52,14 +44,6 @@ class JobbInput(internal val jobb: Jobb) {
     fun medPayload(payload: String?): JobbInput {
         this.payload = payload
         return this
-    }
-
-    fun sakIdOrNull(): SakId? {
-        return sakId
-    }
-
-    fun sakId(): SakId {
-        return sakId!!
     }
 
     fun status(): JobbStatus {
@@ -121,7 +105,7 @@ class JobbInput(internal val jobb: Jobb) {
     }
 
     override fun toString(): String {
-        return "[${jobb.type()}] - id = $id, sakId = $sakId, behandlingId = $behandlingId"
+        return "[${jobb.type()}] - id = $id, behandlingId = $behandlingId"
     }
 
     fun medProperties(properties: Properties?): JobbInput {

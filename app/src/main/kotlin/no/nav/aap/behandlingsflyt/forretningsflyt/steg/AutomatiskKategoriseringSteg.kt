@@ -7,6 +7,9 @@ import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger(StartBehandlingSteg::class.java)
 
 class AutomatiskKategoriseringSteg: BehandlingSteg {
     companion object: FlytSteg {
@@ -21,6 +24,8 @@ class AutomatiskKategoriseringSteg: BehandlingSteg {
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+       log.info("Treffer AutomatiskKategoriseringSteg")
+
         val kanAutomatiskKAtegorisereDokument = false
 
         return StegResultat(

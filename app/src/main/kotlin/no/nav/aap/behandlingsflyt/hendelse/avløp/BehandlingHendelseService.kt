@@ -14,8 +14,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(BehandlingHendelseService::class.java)
 
 class BehandlingHendelseService(
-    private val flytJobbRepository: FlytJobbRepository,
-    private val sakService: SakService
+    private val flytJobbRepository: FlytJobbRepository
 ) {
 
     /**
@@ -30,12 +29,9 @@ class BehandlingHendelseService(
     }
 
     fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
-        val sak = sakService.hent(behandling.sakId)
 
         // TODO: Utvide med flere parametere for prioritering
-        val hendelse = BehandlingFlytStoppetHendelse(
-            personIdent = sak.person.aktivIdent().identifikator,
-            saksnummer = sak.saksnummer,
+        val hendelse = DokumentflytStoppetHendelse(
             referanse = BehandlingReferanse(behandling.referanse.referanse),
             behandlingType = behandling.typeBehandling(),
             status = behandling.status(),

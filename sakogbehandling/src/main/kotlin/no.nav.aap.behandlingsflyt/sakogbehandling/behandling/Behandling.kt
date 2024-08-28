@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 class Behandling(
     val id: BehandlingId,
     val referanse: BehandlingReferanse = BehandlingReferanse(),
-    val sakId: SakId,
+    val sakId: SakId?,
     private val typeBehandling: TypeBehandling,
     private var status: Status = Status.OPPRETTET,
     private var årsaker: List<Årsak> = mutableListOf(),
@@ -25,7 +25,7 @@ class Behandling(
     fun typeBehandling(): TypeBehandling = typeBehandling
 
     fun flytKontekst(): FlytKontekst {
-        return FlytKontekst(sakId, id, typeBehandling)
+        return FlytKontekst(id, typeBehandling)
     }
 
     fun visit(stegTilstand: StegTilstand) {

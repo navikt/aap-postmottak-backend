@@ -7,12 +7,16 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger(StartBehandlingSteg::class.java)
 
 class StartBehandlingSteg private constructor(
     private val sakService: SakService
 ) : BehandlingSteg {
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        log.info("Treffer Start behandling steg")
         return StegResultat()
     }
 

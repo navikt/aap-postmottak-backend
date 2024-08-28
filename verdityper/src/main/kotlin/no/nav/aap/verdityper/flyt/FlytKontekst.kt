@@ -5,7 +5,6 @@ import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 
 data class FlytKontekst(
-    val sakId: SakId,
     val behandlingId: BehandlingId,
     val behandlingType: TypeBehandling
 )

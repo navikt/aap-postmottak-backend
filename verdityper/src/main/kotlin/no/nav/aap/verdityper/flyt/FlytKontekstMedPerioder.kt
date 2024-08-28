@@ -11,7 +11,6 @@ import java.util.*
  * Orkestratoren beriker objektet med periodene slik at det følger av reglene for periodisering for de enkelte typene behandlingene
  */
 data class FlytKontekstMedPerioder(
-    val sakId: SakId,
     val behandlingId: BehandlingId,
     val behandlingType: TypeBehandling,
 )

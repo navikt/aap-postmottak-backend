@@ -11,19 +11,18 @@ import java.time.LocalDateTime
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    override fun opprettBehandling(sakId: SakId, årsaker: List<Årsak>, typeBehandling: TypeBehandling): Behandling {
+    override fun opprettBehandling(typeBehandling: TypeBehandling): Behandling {
 
         val query = """
-            INSERT INTO BEHANDLING (sak_id, referanse, status, type)
-                 VALUES (?, ?, ?, ?)
+            INSERT INTO BEHANDLING (referanse, status, type)
+                 VALUES (?, ?, ?)
             """.trimIndent()
         val behandlingsreferanse = BehandlingReferanse()
         val behandlingId = connection.executeReturnKey(query) {
             setParams {
-                setLong(1, sakId.toLong())
-                setUUID(2, behandlingsreferanse.referanse)
-                setEnumName(3, Status.OPPRETTET)
-                setString(4, typeBehandling.identifikator())
+                setUUID(1, behandlingsreferanse.referanse)
+                setEnumName(2, Status.OPPRETTET)
+                setString(3, typeBehandling.identifikator())
             }
         }
 
@@ -31,36 +30,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
             referanse = behandlingsreferanse,
-            sakId = sakId,
-            typeBehandling = typeBehandling,
-            årsaker = årsaker,
-            versjon = 0
-        )
-
-        return behandling
-    }
-
-    override fun opprettBehandling(sakId: SakId, typeBehandling: TypeBehandling): Behandling {
-
-        val query = """
-            INSERT INTO BEHANDLING (sak_id, referanse, status, type)
-                 VALUES (?, ?, ?, ?)
-            """.trimIndent()
-        val behandlingsreferanse = BehandlingReferanse()
-        val behandlingId = connection.executeReturnKey(query) {
-            setParams {
-                setLong(1, sakId.toLong())
-                setUUID(2, behandlingsreferanse.referanse)
-                setEnumName(3, Status.OPPRETTET)
-                setString(4, typeBehandling.identifikator())
-            }
-        }
-
-
-        val behandling = Behandling(
-            id = BehandlingId(behandlingId),
-            referanse = behandlingsreferanse,
-            sakId = sakId,
+            sakId = null,
             typeBehandling = typeBehandling,
             årsaker = emptyList(),
             versjon = 0
@@ -69,45 +39,17 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return behandling
     }
 
-    override fun finnSisteBehandlingFor(sakId: SakId): Behandling? {
-        val query = """
-            SELECT * FROM BEHANDLING WHERE sak_id = ? ORDER BY opprettet_tid DESC LIMIT 1
-            """.trimIndent()
-
-        return connection.queryFirstOrNull(query) {
-            setParams {
-                setLong(1, sakId.toLong())
-            }
-            setRowMapper(::mapBehandling)
-        }
-    }
-
     private fun mapBehandling(row: Row): Behandling {
         val behandlingId = BehandlingId(row.getLong("id"))
         return Behandling(
             id = behandlingId,
             referanse = BehandlingReferanse(row.getUUID("referanse")),
-            sakId = SakId(row.getLong("sak_id")),
+            sakId = row.getLongOrNull("sak_id")?.let { SakId(it) },
             typeBehandling = TypeBehandling.from(row.getString("type")),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
-            versjon = row.getLong("versjon"),
-            årsaker = hentÅrsaker(behandlingId)
+            versjon = row.getLong("versjon")
         )
-    }
-
-    private fun hentÅrsaker(behandlingId: BehandlingId): List<Årsak> {
-        val query = """
-            SELECT * FROM AARSAK_TIL_BEHANDLING WHERE behandling_id = ? ORDER BY opprettet_tid DESC
-        """.trimIndent()
-        return connection.queryList(query) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-            }
-            setRowMapper {
-                Årsak(it.getEnum("aarsak"), it.getPeriodeOrNull("periode"))
-            }
-        }
     }
 
     override fun oppdaterBehandlingStatus(
@@ -173,21 +115,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    override fun hentAlleFor(sakId: SakId): List<Behandling> {
-        val query = """
-            SELECT * FROM BEHANDLING WHERE sak_id = ? ORDER BY opprettet_tid DESC
-            """.trimIndent()
-
-        return connection.queryList(query) {
-            setParams {
-                setLong(1, sakId.toLong())
-            }
-            setRowMapper {
-                mapBehandling(it)
-            }
-        }
-    }
-
     override fun hent(behandlingId: BehandlingId): Behandling {
         val query = """
             SELECT * FROM BEHANDLING WHERE id = ?
@@ -233,18 +160,4 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    override fun oppdaterÅrsaker(behandling: Behandling, årsaker: List<Årsak>) {
-        val årsakQuery = """
-            INSERT INTO AARSAK_TIL_BEHANDLING (behandling_id, aarsak, periode)
-            VALUES (?, ?, ?::daterange)
-        """.trimIndent()
-
-        connection.executeBatch(årsakQuery, årsaker.filter { !behandling.årsaker().contains(it) }) {
-            setParams {
-                setLong(1, behandling.id.toLong())
-                setEnumName(2, it.type)
-                setPeriode(3, it.periode)
-            }
-        }
-    }
 }

@@ -2,23 +2,14 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 
 interface BehandlingRepository {
 
-    fun opprettBehandling(sakId: SakId, årsaker: List<Årsak>, typeBehandling: TypeBehandling): Behandling
-
-    fun opprettBehandling(sakId: SakId, typeBehandling: TypeBehandling): Behandling
-
-    fun finnSisteBehandlingFor(sakId: SakId): Behandling?
-
-    fun hentAlleFor(sakId: SakId): List<Behandling>
+    fun opprettBehandling(typeBehandling: TypeBehandling): Behandling
 
     fun hent(behandlingId: BehandlingId): Behandling
 
     fun hent(referanse: BehandlingReferanse): Behandling
-
-    fun oppdaterÅrsaker(behandling: Behandling, årsaker: List<Årsak>)
 }
 

@@ -97,7 +97,6 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
 
     private fun behandleSteg(kontekst: FlytKontekst): Transisjon {
         val kontekstMedPerioder = FlytKontekstMedPerioder(
-            sakId = kontekst.sakId,
             behandlingId = kontekst.behandlingId,
             behandlingType = kontekst.behandlingType,
         )

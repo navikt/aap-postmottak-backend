@@ -34,8 +34,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.dok
 import no.nav.aap.behandlingsflyt.flyt.flate.DefinisjonDTO
 import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
-import no.nav.aap.behandlingsflyt.flyt.flate.søknadApi
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.saksApi
 import no.nav.aap.behandlingsflyt.server.apiRoute
 import no.nav.aap.behandlingsflyt.server.authenticate.AZURE
 import no.nav.aap.behandlingsflyt.server.authenticate.authentication
@@ -122,8 +120,6 @@ internal fun Application.server(dbConfig: DbConfig) {
         authenticate(AZURE) {
             apiRoute {
                 configApi()
-                saksApi(dataSource)
-                søknadApi(dataSource)
                 behandlingApi(dataSource)
                 flytApi(dataSource)
                 dokumentApi(dataSource)

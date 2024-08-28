@@ -8,8 +8,6 @@ import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
 
 data class BehandlingsFlytStoppetHendelseDTO(
-    val personident: String,
-    val saksnummer: Saksnummer,
     val referanse: BehandlingReferanse,
     val behandlingType: TypeBehandling,
     val status: Status,

@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositor
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.PersonOgSakService
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlIdentGateway
-import no.nav.aap.behandlingsflyt.server.prosessering.ProssesserDokumentJobbUtfører
+import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -69,11 +69,10 @@ fun main() {
 }
 
 private fun opprettBehanlding(connection: DBConnection) {
-    val sag = PersonOgSakService(connection, PdlIdentGateway)
-        .finnEllerOpprett(Ident("12345467"), Periode(LocalDate.of(2020, 1, 1), LocalDate.of(2025, 1, 1)))
-    val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(sag.id, TypeBehandling.DokumentHåndtering)
-    FlytJobbRepository(connection).leggTil(JobbInput(ProssesserDokumentJobbUtfører)
-        .forBehandling(sag.id, behandling.id).medCallId())
+
+    val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(TypeBehandling.DokumentHåndtering)
+    FlytJobbRepository(connection).leggTil(JobbInput(ProsesserBehandlingJobbUtfører)
+        .forBehandling(behandling.id).medCallId())
 }
 
 private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {

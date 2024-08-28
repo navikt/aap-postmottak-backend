@@ -10,7 +10,6 @@ fun mapJobb(row: Row): JobbInput {
         .medId(row.getLong("id"))
         .medStatus(row.getEnum("status"))
         .forBehandling(
-            row.getLongOrNull("sak_id")?.let(::SakId),
             row.getLongOrNull("behandling_id")?.let(::BehandlingId)
         )
         .medNesteKjøring(row.getLocalDateTime("neste_kjoring"))

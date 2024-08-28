@@ -18,7 +18,7 @@ internal class JobbRepository(private val connection: DBConnection) {
             """.trimIndent()
         ) {
             setParams {
-                setLong(1, jobbInput.sakIdOrNull()?.toLong())
+                setLong(1, null)
                 setLong(2, jobbInput.behandlingIdOrNull()?.toLong())
                 setString(3, jobbInput.type())
                 setLocalDateTime(4, jobbInput.nesteKjøringTidspunkt())
@@ -96,7 +96,6 @@ internal class JobbRepository(private val connection: DBConnection) {
             .medId(row.getLong("id"))
             .medStatus(row.getEnum("status"))
             .forBehandling(
-                row.getLongOrNull("sak_id")?.let(::SakId),
                 row.getLongOrNull("behandling_id")?.let(::BehandlingId)
             )
             .medAntallFeil(row.getLong("antall_feil"))

@@ -13,14 +13,12 @@ class ProsesserBehandlingJobbUtfører(
 ) : JobbUtfører {
 
     override fun utfør(input: JobbInput) {
-        val skrivelås = låsRepository.lås(input.sakId(), input.behandlingId())
 
-        val kontekst = kontroller.opprettKontekst(input.sakId(), input.behandlingId())
+        val kontekst = kontroller.opprettKontekst(input.behandlingId())
 
         kontroller.forberedBehandling(kontekst)
         kontroller.prosesserBehandling(kontekst)
 
-        låsRepository.verifiserSkrivelås(skrivelås)
     }
 
     companion object : Jobb {

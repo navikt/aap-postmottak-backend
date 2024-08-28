@@ -18,34 +18,11 @@ CREATE TABLE PERSON_IDENT
 
 CREATE INDEX IDX_PERSON_IDENT_IDENT ON PERSON_IDENT (IDENT);
 
-CREATE TABLE SAK
-(
-    ID                BIGSERIAL                              NOT NULL PRIMARY KEY,
-    SAKSNUMMER        VARCHAR(19)                            NOT NULL,
-    PERSON_ID         BIGINT                                 NOT NULL REFERENCES PERSON (ID),
-    RETTIGHETSPERIODE DATERANGE                              NOT NULL,
-    STATUS            VARCHAR(100)                           NOT NULL,
-    VERSJON           BIGINT       DEFAULT 0                 NOT NULL,
-    OPPRETTET_TID     TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
--- avhenger av: "CREATE EXTENSION IF NOT EXISTS BTREE_GIST;" som superbruker
-
-ALTER TABLE SAK
-    ADD CONSTRAINT SAK_IKKE_OVERLAPP_PERIODE EXCLUDE USING GIST (
-        PERSON_ID WITH =,
-        RETTIGHETSPERIODE WITH &&
-        );
-
-CREATE INDEX IDX_SAK_SAKSNUMMER ON SAK (SAKSNUMMER);
-CREATE INDEX IDX_SAK_PERSON ON SAK (PERSON_ID);
-
-CREATE SEQUENCE IF NOT EXISTS SEQ_SAKSNUMMER INCREMENT BY 50 MINVALUE 10000000;
 
 CREATE TABLE BEHANDLING
 (
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
-    SAK_ID        BIGINT                                 NOT NULL REFERENCES SAK (ID),
+    SAK_ID        BIGINT                                 NULL,
     REFERANSE     UUID UNIQUE                            NOT NULL,
     STATUS        VARCHAR(100)                           NOT NULL,
     TYPE          VARCHAR(100)                           NOT NULL,
@@ -54,7 +31,6 @@ CREATE TABLE BEHANDLING
 );
 
 CREATE INDEX IDX_BEHANDLING_REFERANSE ON BEHANDLING (REFERANSE);
-CREATE INDEX IDX_BEHANDLING_SAK_TID ON BEHANDLING (SAK_ID, OPPRETTET_TID);
 
 CREATE TABLE AVKLARINGSBEHOV
 (
@@ -111,7 +87,7 @@ CREATE TABLE OPPGAVE
     ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
     STATUS        VARCHAR(50)  DEFAULT 'KLAR'            NOT NULL,
     TYPE          VARCHAR(50)                            NOT NULL,
-    SAK_ID        BIGINT                                 NULL REFERENCES SAK (ID),
+    SAK_ID        BIGINT                                 NULL,
     BEHANDLING_ID BIGINT                                 NULL REFERENCES BEHANDLING (ID),
     NESTE_KJORING TIMESTAMP(3)                           NOT NULL,
     OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL

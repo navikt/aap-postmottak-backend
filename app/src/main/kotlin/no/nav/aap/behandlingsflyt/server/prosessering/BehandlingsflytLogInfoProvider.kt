@@ -10,40 +10,27 @@ object BehandlingsflytLogInfoProvider : JobbLogInfoProvider {
     override fun hentInformasjon(connection: DBConnection, jobbInput: JobbInput): LogInformasjon? {
 
         val behandlingId = jobbInput.behandlingIdOrNull()
-        val sakId = jobbInput.sakIdOrNull()
+        if (behandlingId == null) return null
 
-        if (behandlingId != null) {
-            val query = """
-            SELECT s.saksnummer, b.referanse
-            FROM SAK s
-                INNER JOIN BEHANDLING b on s.id = b.sak_id
-            WHERE b.id = ?
+
+        val query = """
+            SELECT referanse
+            FROM BEHANDLING 
+            WHERE id = ?
         """.trimIndent()
 
-            return connection.queryFirst(query) {
-                setParams {
-                    setLong(1, behandlingId.toLong())
-                }
-                setRowMapper { row ->
-                    LogInformasjon(mapOf("saksnummer" to row.getString("saksnummer"), "behandlingReferanse" to row.getString("referanse")))
-                }
+        return connection.queryFirst(query) {
+            setParams {
+                setLong(1, behandlingId.toLong())
             }
-        } else if (sakId != null) {
-            val query = """
-            SELECT s.saksnummer
-            FROM SAK s
-            WHERE s.id = ?
-        """.trimIndent()
-
-            return connection.queryFirst(query) {
-                setParams {
-                    setLong(1, sakId.toLong())
-                }
-                setRowMapper {
-                    LogInformasjon(mapOf())
-                }
+            setRowMapper { row ->
+                LogInformasjon(
+                    mapOf(
+                        "behandlingReferanse" to row.getString("referanse")
+                    )
+                )
             }
         }
-        return null
+
     }
 }

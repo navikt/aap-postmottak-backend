@@ -74,7 +74,6 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                     if (flytJobbRepository.hentJobberForBehandling(behandling.id).isEmpty()) {
                         flytJobbRepository.leggTil(
                             JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(
-                                behandling.sakId,
                                 behandling.id
                             )
                         )

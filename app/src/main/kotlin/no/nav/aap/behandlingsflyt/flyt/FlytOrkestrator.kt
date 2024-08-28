@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.flyt
 
-import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
@@ -14,8 +13,6 @@ import no.nav.aap.behandlingsflyt.hendelse.avløp.BehandlingHendelseService
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.SakService
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Status.UTREDES
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.db.SakRepositoryImpl
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -40,17 +37,16 @@ class FlytOrkestrator(
     private val connection: DBConnection
 ) {
     private val informasjonskravGrunnlag = InformasjonskravGrunnlag(connection)
-    private val sakRepository = SakRepositoryImpl(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
     private val behandlingRepository = BehandlingRepositoryImpl(connection)
     private val behandlingHendelseService = BehandlingHendelseService(
-        FlytJobbRepository(connection), SakService(connection)
+        FlytJobbRepository(connection)
     )
 
-    fun opprettKontekst(sakId: SakId, behandlingId: BehandlingId): FlytKontekst {
+    fun opprettKontekst(behandlingId: BehandlingId): FlytKontekst {
         val typeBehandling = behandlingRepository.hentBehandlingType(behandlingId)
 
-        return FlytKontekst(sakId = sakId, behandlingId = behandlingId, behandlingType = typeBehandling)
+        return FlytKontekst(behandlingId = behandlingId, behandlingType = typeBehandling)
     }
 
     fun forberedBehandling(kontekst: FlytKontekst) {
@@ -60,10 +56,6 @@ class FlytOrkestrator(
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
         val behandlingFlyt = utledFlytFra(behandling)
-
-        if (starterOppBehandling(behandling)) {
-            sakRepository.oppdaterSakStatus(kontekst.sakId, UTREDES)
-        }
 
         behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
