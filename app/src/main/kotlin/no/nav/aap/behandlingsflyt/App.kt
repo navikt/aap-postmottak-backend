@@ -45,7 +45,9 @@ import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
+import no.nav.aap.requiredConfigForKey
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
+import org.flywaydb.core.internal.configuration.ConfigUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -195,12 +197,12 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) 
 }
 
 class DbConfig(
-    val host: String = System.getenv("DB_POSTMOTTAK_HOST"),
-    val port: String = System.getenv("DB_POSTMOTTAK_PORT"),
-    val database: String = System.getenv("DB_POSTMOTTAK_DATABASE"),
-    val url: String = System.getenv("DB_POSTMOTTAK_URL"),
-    val username: String = System.getenv("DB_POSTMOTTAK_USERNAME"),
-    val password: String = System.getenv("DB_POSTMOTTAK_PASSWORD")
+    val host: String = requiredConfigForKey("DB_POSTMOTTAK_HOST"),
+    val port: String = requiredConfigForKey("DB_POSTMOTTAK_PORT"),
+    val database: String = requiredConfigForKey("DB_POSTMOTTAK_DATABASE"),
+    val url: String = requiredConfigForKey("DB_POSTMOTTAK_URL"),
+    val username: String = requiredConfigForKey("DB_POSTMOTTAK_USERNAME"),
+    val password: String = requiredConfigForKey("DB_POSTMOTTAK_PASSWORD")
 )
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
