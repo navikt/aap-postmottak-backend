@@ -47,7 +47,6 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.requiredConfigForKey
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
-import org.flywaydb.core.internal.configuration.ConfigUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -196,21 +195,24 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) 
     }
 }
 
-class DbConfig(
+data class DbConfig(
     val host: String = requiredConfigForKey("DB_POSTMOTTAK_HOST"),
     val port: String = requiredConfigForKey("DB_POSTMOTTAK_PORT"),
     val database: String = requiredConfigForKey("DB_POSTMOTTAK_DATABASE"),
-    val url: String = requiredConfigForKey("DB_POSTMOTTAK_URL"),
+    val url: String = "jdbc:postgresql://$host:$port/$database",
     val username: String = requiredConfigForKey("DB_POSTMOTTAK_USERNAME"),
     val password: String = requiredConfigForKey("DB_POSTMOTTAK_PASSWORD")
 )
 
-fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
-    jdbcUrl = "jdbc:" + dbConfig.url
+fun initDatasource(dbConfig: DbConfig): DataSource {
+    SECURE_LOGGER.info(dbConfig.toString())
+    return HikariDataSource(HikariConfig().apply {
+    jdbcUrl = dbConfig.url
     username = dbConfig.username
     password = dbConfig.password
     maximumPoolSize = 10 + ANTALL_WORKERS
     minimumIdle = 1
     driverClassName = "org.postgresql.Driver"
     connectionTestQuery = "SELECT 1"
-})
+
+})}
