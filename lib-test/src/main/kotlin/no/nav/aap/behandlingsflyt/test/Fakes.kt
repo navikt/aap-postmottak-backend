@@ -16,7 +16,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.Inntekt.InntektRequest
 import no.nav.aap.Inntekt.InntektResponse
 import no.nav.aap.Inntekt.SumPi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.inntekt.InntektPerÅr
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
@@ -118,13 +117,11 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 fødselsdato = Fødselsdato(
                     LocalDate.now().minusYears(30),
                 ),
-                inntekter = (1..10).map { InntektPerÅr(Year.now().minusYears(it.toLong()), Beløp("1000000.0")) }
             )
         val BARNLØS_PERSON_18ÅR =
             TestPerson(
                 identer = setOf(Ident("42346734567", true)),
                 fødselsdato = Fødselsdato(LocalDate.now().minusYears(18).minusDays(10)),
-                inntekter = (1..10).map { InntektPerÅr(Year.now().minusYears(it.toLong()), Beløp("1000000.0")) }
             )
         val PERSON_MED_BARN_65ÅR =
             TestPerson(
@@ -133,7 +130,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 barn = listOf(
                     BARNLØS_PERSON_18ÅR, BARNLØS_PERSON_30ÅR
                 ),
-                inntekter = (1..10).map { InntektPerÅr(Year.now().minusYears(it.toLong()), Beløp("1000000.0")) }
             )
 
         // Legg til alle testpersoner
@@ -219,18 +215,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 val req = call.receive<InntektRequest>()
                 val person = hentEllerGenererTestPerson(req.fnr)
 
-                for (år in req.fomAr..req.tomAr) {
-                    person.leggTilInntektHvisÅrMangler(Year.of(år), Beløp("0"))
-                }
 
                 call.respond(
-                    InntektResponse(person.inntekter().map { inntekt ->
-                        SumPi(
-                            inntektAr = inntekt.år.value,
-                            belop = inntekt.beløp.verdi().toLong(),
-                            inntektType = "Lønnsinntekt"
-                        )
-                    }.toList())
+                    InntektResponse(emptyList())
                 )
             }
         }
@@ -591,7 +578,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             fakePersoner[forespurtIdent] = TestPerson(
                 identer = setOf(Ident(forespurtIdent)),
                 fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)),
-                inntekter = (1..10).map { InntektPerÅr(Year.now().minusYears(it.toLong()), Beløp("1000000.0")) }
             )
         }
 
