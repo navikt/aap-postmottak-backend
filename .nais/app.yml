@@ -36,6 +36,9 @@ spec:
               extra:
                   - "NAVident"
                   - "azp_name"
+  kafka:
+      pool: nav-dev
+      streams: true
   gcp:
     sqlInstances:
       - type: POSTGRES_16

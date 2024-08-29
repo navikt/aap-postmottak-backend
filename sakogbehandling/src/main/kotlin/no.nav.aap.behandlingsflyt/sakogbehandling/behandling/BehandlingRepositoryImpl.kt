@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
+import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.Status
@@ -11,11 +12,11 @@ import java.time.LocalDateTime
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    override fun opprettBehandling(typeBehandling: TypeBehandling): Behandling {
+    override fun opprettBehandling(journalpostId: Long, typeBehandling: TypeBehandling): Behandling {
 
         val query = """
-            INSERT INTO BEHANDLING (referanse, status, type)
-                 VALUES (?, ?, ?)
+            INSERT INTO BEHANDLING (referanse, status, type, journalpostId)
+                 VALUES (?, ?, ?, ?)
             """.trimIndent()
         val behandlingsreferanse = BehandlingReferanse()
         val behandlingId = connection.executeReturnKey(query) {
@@ -23,6 +24,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
                 setUUID(1, behandlingsreferanse.referanse)
                 setEnumName(2, Status.OPPRETTET)
                 setString(3, typeBehandling.identifikator())
+                setLong(4, journalpostId)
             }
         }
 
@@ -32,7 +34,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             referanse = behandlingsreferanse,
             sakId = SakId(1),
             typeBehandling = typeBehandling,
-            årsaker = emptyList(),
             versjon = 0
         )
 

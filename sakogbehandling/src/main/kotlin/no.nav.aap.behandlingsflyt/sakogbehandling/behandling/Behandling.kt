@@ -13,14 +13,13 @@ import java.time.LocalDateTime
 
 class Behandling(
     val id: BehandlingId,
+    private val typeBehandling: TypeBehandling = TypeBehandling.DokumentHåndtering,
     val referanse: BehandlingReferanse = BehandlingReferanse(),
-    val sakId: SakId?,
-    private val typeBehandling: TypeBehandling,
+    val sakId: SakId? = null,
     private var status: Status = Status.OPPRETTET,
-    private var årsaker: List<Årsak> = mutableListOf(),
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
-    val versjon: Long
+    val versjon: Long = 1
 ) : Comparable<Behandling> {
 
     fun typeBehandling(): TypeBehandling = typeBehandling
@@ -41,10 +40,6 @@ class Behandling(
         validerStegTilstand()
 
         oppdaterStatus(stegTilstand)
-    }
-
-    fun årsaker(): List<Årsak> {
-        return årsaker.toList()
     }
 
     private fun validerStegTilstand() {

@@ -8,8 +8,8 @@ object Migrering {
         val miljø = Miljø.er()
         val flyway = Flyway
             .configure()
-            .cleanDisabled(miljø != MiljøKode.LOKALT)
-            .cleanOnValidationError(miljø == MiljøKode.LOKALT)
+            .cleanDisabled(false)
+            .cleanOnValidationError(true)
             .dataSource(dataSource)
             .locations("flyway")
             .validateMigrationNaming(true)

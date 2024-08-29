@@ -1,6 +1,7 @@
 import java.io.ByteArrayOutputStream
 
 val ktorVersion = "2.3.12"
+val aapLibVersion = "5.0.23"
 
 plugins {
     id("io.ktor.plugin")
@@ -70,6 +71,14 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.17.0")
     runtimeOnly("org.postgresql:postgresql:42.7.3")
+
+    // kafka
+    implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
+    implementation("com.github.navikt.aap-libs:kafka-streams:$aapLibVersion")
+    implementation("com.github.navikt.aap-libs:kafka-avroserde:$aapLibVersion")
+    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
+    testImplementation("com.github.navikt.aap-libs:kafka-streams-test:$aapLibVersion")
+
 
     testImplementation(project(":dbtestdata"))
     testImplementation(project(":dbtest"))

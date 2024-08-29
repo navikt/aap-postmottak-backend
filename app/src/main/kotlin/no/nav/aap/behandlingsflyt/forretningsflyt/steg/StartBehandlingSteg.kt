@@ -11,9 +11,7 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StartBehandlingSteg::class.java)
 
-class StartBehandlingSteg private constructor(
-    private val sakService: SakService
-) : BehandlingSteg {
+class StartBehandlingSteg private constructor() : BehandlingSteg {
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         log.info("Treffer Start behandling steg")
@@ -22,9 +20,7 @@ class StartBehandlingSteg private constructor(
 
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return StartBehandlingSteg(
-                SakService(connection)
-            )
+            return StartBehandlingSteg()
         }
 
         override fun type(): StegType {
