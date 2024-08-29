@@ -198,7 +198,7 @@ class DbConfig(
     val host: String = System.getenv("DB_POSTMOTTAK_HOST"),
     val port: String = System.getenv("DB_POSTMOTTAK_PORT"),
     val database: String = System.getenv("DB_POSTMOTTAK_DATABASE"),
-    val url: String = "jdbc:postgresql://$host:$port/$database",
+    val url: String = System.getenv("DB_POSTMOTTAK_URL"),
     val username: String = System.getenv("DB_POSTMOTTAK_USERNAME"),
     val password: String = System.getenv("DB_POSTMOTTAK_PASSWORD")
 )
