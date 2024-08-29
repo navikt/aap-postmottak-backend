@@ -196,7 +196,7 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) 
 }
 
 data class DbConfig(
-    val url: String = requiredConfigForKey("DB_POSTMOTTAK_DATABASE_JDBC_URL"),
+    val url: String = requiredConfigForKey("DB_POSTMOTTAK_JDBC_URL"),
     val username: String = requiredConfigForKey("DB_POSTMOTTAK_USERNAME"),
     val password: String = requiredConfigForKey("DB_POSTMOTTAK_PASSWORD")
 )
