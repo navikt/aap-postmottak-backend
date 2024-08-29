@@ -7,7 +7,7 @@ plugins {
 }
 
 application {
-    mainClass.set("no.nav.aap.postmottak.AppKt")
+    mainClass.set("no.nav.aap.behandlingsflyt.AppKt")
 }
 
 tasks {
