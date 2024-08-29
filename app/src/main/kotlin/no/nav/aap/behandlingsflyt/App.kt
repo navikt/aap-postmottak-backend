@@ -204,7 +204,7 @@ class DbConfig(
 )
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
-    jdbcUrl = dbConfig.url
+    jdbcUrl = "jdbc:" + dbConfig.url
     username = dbConfig.username
     password = dbConfig.password
     maximumPoolSize = 10 + ANTALL_WORKERS
