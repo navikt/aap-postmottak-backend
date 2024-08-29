@@ -196,10 +196,7 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) 
 }
 
 data class DbConfig(
-    val host: String = requiredConfigForKey("DB_POSTMOTTAK_HOST"),
-    val port: String = requiredConfigForKey("DB_POSTMOTTAK_PORT"),
-    val database: String = requiredConfigForKey("DB_POSTMOTTAK_DATABASE"),
-    val url: String = "jdbc:postgresql://$host:$port/$database",
+    val url: String = requiredConfigForKey("DB_POSTMOTTAK_DATABASE_JDBC_URL"),
     val username: String = requiredConfigForKey("DB_POSTMOTTAK_USERNAME"),
     val password: String = requiredConfigForKey("DB_POSTMOTTAK_PASSWORD")
 )
