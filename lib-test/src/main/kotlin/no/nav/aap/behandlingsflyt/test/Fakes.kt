@@ -15,11 +15,7 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.Inntekt.InntektRequest
 import no.nav.aap.Inntekt.InntektResponse
-import no.nav.aap.Inntekt.SumPi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
-import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.adapter.PERSON_QUERY
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.IDENT_QUERY
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.adapters.PdlPersoninfoGateway.PERSONINFO_QUERY
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.pdl.HentPerson
 import no.nav.aap.pdl.HentPersonBolkResult
@@ -39,7 +35,6 @@ import no.nav.aap.pdl.PdlPersoninfoDataResponse
 import no.nav.aap.pdl.PdlRelasjon
 import no.nav.aap.pdl.PdlRelasjonDataResponse
 import no.nav.aap.pdl.PdlRequest
-import no.nav.aap.verdityper.Beløp
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import no.nav.aap.yrkesskade.YrkesskadeModell
 import no.nav.aap.yrkesskade.YrkesskadeRequest
@@ -49,7 +44,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.time.LocalDate
-import java.time.Year
 import java.util.*
 import no.nav.aap.pdl.PdlRelasjonData as BarnPdlData
 
@@ -238,9 +232,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 val req = call.receive<PdlRequest>()
 
                 when (req.query) {
-                    IDENT_QUERY -> call.respond(identer(req))
-                    PERSON_QUERY -> call.respond(personopplysninger(req))
-                    PERSONINFO_QUERY -> call.respond(navn(req))
                     else -> call.respond(HttpStatusCode.BadRequest)
                 }
             }

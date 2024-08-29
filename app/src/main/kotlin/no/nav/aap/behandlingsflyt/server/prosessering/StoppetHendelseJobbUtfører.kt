@@ -3,7 +3,6 @@ package no.nav.aap.behandlingsflyt.server.prosessering
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.hendelse.avløp.DokumentflytStoppetHendelse
 import no.nav.aap.behandlingsflyt.hendelse.oppgavestyring.BehandlingsFlytStoppetHendelseDTO
-import no.nav.aap.behandlingsflyt.hendelse.oppgavestyring.OppgavestyringGateway
 import no.nav.aap.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -28,7 +27,6 @@ class StoppetHendelseJobbUtfører private constructor() : JobbUtfører {
         )
 
         log.info("Varsler hendelse til OppgaveStyring. Saksnummer: ${hendelseTilOppgaveStyring.referanse}")
-        OppgavestyringGateway.varsleHendelse(hendelseTilOppgaveStyring)
     }
 
     companion object : Jobb {
