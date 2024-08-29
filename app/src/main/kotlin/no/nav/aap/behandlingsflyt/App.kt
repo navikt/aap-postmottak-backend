@@ -204,7 +204,7 @@ data class DbConfig(
     val password: String = requiredConfigForKey("DB_POSTMOTTAK_PASSWORD")
 )
 
-fun initDatasource(dbConfig: DbConfig): DataSource {
+fun initDatasource(dbConfig: DbConfig): HikariDataSource {
     SECURE_LOGGER.info(dbConfig.toString())
     return HikariDataSource(HikariConfig().apply {
     jdbcUrl = dbConfig.url
