@@ -1,18 +1,18 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: dokumentmottak
+  name: postmottak-backend
   namespace: aap
   labels:
     team: aap
-    sub: dokumentmottak
+    sub: postmottak
 spec:
   image: {{image}}
   # Setter utrullingsstrategi til Recreate for test. Settes til default før prodsetting
 #  strategy:
 #    type: Recreate
   ingresses:
-      - "https://aap-dokumentmottak.intern.dev.nav.no"
+      - "https://aap-postmottak-backend.intern.dev.nav.no"
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: true
@@ -32,7 +32,8 @@ spec:
     sqlInstances:
       - type: POSTGRES_16
         databases:
-          - name: dokumentmottak
+          - name: postmottak
+            envVarPrefix: DB_POSTMOTTAK
   liveness:
     path: /actuator/live
     initialDelay: 3
@@ -49,6 +50,7 @@ spec:
   secureLogs:
     enabled: true
   accessPolicy:
+    outbound:
       rules:
         - application: tilgang
         - application: oppgavestyring

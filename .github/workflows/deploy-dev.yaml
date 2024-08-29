@@ -1,4 +1,4 @@
-name: Deploy dokumentmottak
+name: Deploy postmottak-backend
 
 on:
   push:
@@ -42,13 +42,13 @@ jobs:
           channel-id: "C02PPNUT6CD"
           payload: |
             {
-              "text": "Tester feilet for Dokumentmottak! ⚠️ <!subteam^S055U2VSTT8>",
+              "text": "Tester feilet for postmottak-backend! ⚠️ <!subteam^S055U2VSTT8>",
               "attachments": [
                 {
                   "color": "danger",
                   "fields": [
                   {"title": "Commit",
-                   "value": "<https://github.com/navikt/aap-dokumentmottak/commit/${{ github.sha }}>",
+                   "value": "<https://github.com/navikt/aap-postmottak-backend/commit/${{ github.sha }}>",
                    "short": false}
                   ]
                 }

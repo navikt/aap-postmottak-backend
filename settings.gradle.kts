@@ -1,4 +1,4 @@
-rootProject.name = "behandlingflyt"
+rootProject.name = "postmottak"
 
 include(
     "app",
