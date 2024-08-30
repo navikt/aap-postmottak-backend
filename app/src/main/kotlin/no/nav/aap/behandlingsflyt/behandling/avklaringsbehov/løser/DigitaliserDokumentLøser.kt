@@ -6,14 +6,17 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.Digitalise
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.KategoriserDokumentLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.DigitaliserDokumentDto
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 
 class DigitaliserDokumentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
 
-        TODO("implementer logikk for lagring av digitalisert dokument")
+        // TODO valider strukturert dokument
+        BehandlingRepositoryImpl(connection)
+            .lagreStrukturertDokument(kontekst.kontekst.behandlingId, løsning.strukturertDokument.json)
 
-        return LøsningsResultat("CHANGE ME")
+        return LøsningsResultat("Dokument er strukturet")
     }
 
     override fun forBehov(): Definisjon {

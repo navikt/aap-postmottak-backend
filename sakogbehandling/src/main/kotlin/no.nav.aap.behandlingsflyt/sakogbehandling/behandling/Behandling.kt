@@ -12,6 +12,15 @@ import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
 
+
+class Vurdering<T>(val vurdering: T)
+
+class Vurderinger(
+    val grovkategorivurdering: Vurdering<Boolean>? = null,
+    val kategorivurdering: Vurdering<Brevkode>? = null,
+    val digitaliseringsvurdering: Vurdering<String>? = null
+)
+
 class Behandling(
     val id: BehandlingId,
     val journalpostId: JournalpostId,
@@ -21,7 +30,8 @@ class Behandling(
     private var status: Status = Status.OPPRETTET,
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
-    val versjon: Long = 1
+    val versjon: Long = 1,
+    val vurderinger: Vurderinger = Vurderinger()
 ) : Comparable<Behandling> {
 
     fun typeBehandling(): TypeBehandling = typeBehandling

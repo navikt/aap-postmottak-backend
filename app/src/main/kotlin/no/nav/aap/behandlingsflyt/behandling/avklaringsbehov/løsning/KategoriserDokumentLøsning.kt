@@ -9,13 +9,15 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.DokumentType
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = KATEGORISER_DOKUMENT_KODE)
 class KategoriserDokumentLøsning(
-    @JsonProperty("bistandsVurdering", required = true)
-    val kategori: KategoriavklaringDto,
+    @JsonProperty("dokumentkategori", required = true)
+    val kategori: Brevkode,
     @JsonProperty(
         "behovstype",
         required = true,

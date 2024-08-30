@@ -16,8 +16,8 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.Kat
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = DIGITALISER_DOKUMENT_KODE)
 class DigitaliserDokumentLøsning(
-    @JsonProperty("bistandsVurdering", required = true)
-    val kategori: DigitaliserDokumentDto,
+    @JsonProperty("strukturertDokument", required = true)
+    val strukturertDokument: DigitaliserDokumentDto,
     @JsonProperty(
         "behovstype",
         required = true,

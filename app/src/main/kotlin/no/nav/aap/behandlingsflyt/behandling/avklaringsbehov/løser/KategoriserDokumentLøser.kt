@@ -4,14 +4,15 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovKont
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.KategoriserDokumentLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 
 class KategoriserDokumentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<KategoriserDokumentLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: KategoriserDokumentLøsning): LøsningsResultat {
 
-        TODO("implementer logikk for lagring av kategorisering")
+        BehandlingRepositoryImpl(connection).lagreKategoriseringVurdering(kontekst.kontekst.behandlingId, løsning.kategori)
 
-        return LøsningsResultat("CHANGE ME")
+        return LøsningsResultat(løsning.kategori.toString())
     }
 
     override fun forBehov(): Definisjon {

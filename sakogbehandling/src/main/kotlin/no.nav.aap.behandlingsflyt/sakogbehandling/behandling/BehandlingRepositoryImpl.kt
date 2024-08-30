@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.Row
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -35,10 +36,53 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             referanse = behandlingsreferanse,
             sakId = SakId(1),
             typeBehandling = typeBehandling,
-            versjon = 0
+            versjon = 0,
+            vurderinger = Vurderinger()
         )
 
         return behandling
+    }
+
+    override fun lagreGrovvurdeingVurdering(behandlingId: BehandlingId, vurdering: Boolean) {
+        connection.execute(
+            """
+            INSERT INTO SKAL_TIL_AAP_AVKLARING (BEHANDLING_ID, SKAL_TIL_AAP) VALUES (
+            ?, ?)
+        """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+                setBoolean(2, vurdering)
+            }
+        }
+    }
+
+    override fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: Brevkode) {
+        connection.execute(
+            """
+            INSERT INTO KATEGORIAVKLARING (BEHANDLING_ID, KATEGORI) VALUES (
+            ?, ?)
+        """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+                setEnumName(2, brevkode)
+            }
+        }
+    }
+
+    override fun lagreStrukturertDokument(behandlingId: BehandlingId, strukturertDokument: String) {
+        connection.execute(
+            """
+            INSERT INTO DIGITALISERINGSAVKLARING (BEHANDLING_ID, KATEGORI) VALUES (
+            ?, ?)
+        """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+                setString(2, strukturertDokument)
+            }
+        }
     }
 
     private fun mapBehandling(row: Row): Behandling {
@@ -47,11 +91,16 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             id = behandlingId,
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
             referanse = BehandlingReferanse(row.getUUID("referanse")),
-            sakId = SakId(1),//row.getLongOrNull("sak_id")?.let { SakId(it) },
+            sakId = row.getLongOrNull("sak_id")?.let { SakId(it) },
             typeBehandling = TypeBehandling.from(row.getString("type")),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
-            versjon = row.getLong("versjon")
+            versjon = row.getLong("versjon"),
+            vurderinger = Vurderinger(
+                row.getBooleanOrNull("skal_til_aap")?.let(::Vurdering),
+                row.getEnumOrNull<Brevkode, _>("kategori")?.let(::Vurdering),
+                row.getStringOrNull("strukturert_dokument")?.let(::Vurdering),
+            )
         )
     }
 
@@ -119,8 +168,13 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     }
 
     override fun hent(behandlingId: BehandlingId): Behandling {
+
         val query = """
-            SELECT * FROM BEHANDLING WHERE id = ?
+            SELECT * FROM BEHANDLING b
+            ${vurderingJoinQuery("SKAL_TIL_AAP_AVKLARING")}
+            ${vurderingJoinQuery("KATEGORIAVKLARING")}
+            ${vurderingJoinQuery("DIGITALISERINGSAVKLARING")}
+            WHERE b.id = ?
             """.trimIndent()
 
         return connection.queryFirst(query) {
@@ -150,7 +204,11 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
 
     override fun hent(referanse: BehandlingReferanse): Behandling {
         val query = """
-            SELECT * FROM BEHANDLING WHERE referanse = ?
+            SELECT * FROM BEHANDLING b
+            ${vurderingJoinQuery("SKAL_TIL_AAP_AVKLARING")}
+            ${vurderingJoinQuery("KATEGORIAVKLARING")}
+            ${vurderingJoinQuery("DIGITALISERINGSAVKLARING")}
+            WHERE referanse = ?
             """.trimIndent()
 
         return connection.queryFirst(query) {
@@ -162,5 +220,8 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             }
         }
     }
+
+    private fun vurderingJoinQuery(tableName: String) =
+        "LEFT JOIN (SELECT * FROM $tableName ORDER BY TIDSSTEMPEL DESC LIMIT 1) as $tableName ON $tableName.BEHANDLING_ID = b.ID "
 
 }

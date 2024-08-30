@@ -18,8 +18,8 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.Kat
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = GROVKATEGORISER_DOKUMENT_KODE)
 class GrovkategoriserDokumentLøsning(
-    @JsonProperty("bistandsVurdering", required = true)
-    val kategori: DigitaliserDokumentDto,
+    @JsonProperty("skalTilAap", required = true)
+    val skalTilAap: Boolean,
     @JsonProperty(
         "behovstype",
         required = true,
@@ -27,9 +27,6 @@ class GrovkategoriserDokumentLøsning(
     ) val behovstype: String = GROVKATEGORISER_DOKUMENT_KODE
 ) : AvklaringsbehovLøsning {
     override fun løs(connection: DBConnection, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
-
-        // TODO Hånter løsning
-
         return GrovkategoriserDokumentLøser(connection).løs(kontekst, this)
     }
 }

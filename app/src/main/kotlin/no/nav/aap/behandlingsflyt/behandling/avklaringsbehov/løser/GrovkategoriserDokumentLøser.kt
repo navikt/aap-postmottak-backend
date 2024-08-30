@@ -7,17 +7,18 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.Grovkatego
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.KategoriserDokumentLøsning
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.DigitaliserDokumentDto
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 
 class GrovkategoriserDokumentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<GrovkategoriserDokumentLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: GrovkategoriserDokumentLøsning): LøsningsResultat {
 
-        TODO("implementer logikk for lagring av løsning")
+        BehandlingRepositoryImpl(connection).lagreGrovvurdeingVurdering(kontekst.kontekst.behandlingId, løsning.skalTilAap)
 
-        return LøsningsResultat("CHANGE ME")
+        return LøsningsResultat("Dokumnent er ${if (løsning.skalTilAap) "" else "ikke"} ment for AAP")
     }
 
     override fun forBehov(): Definisjon {
-        return Definisjon.DIGITALISER_DOKUMENT
+        return Definisjon.GROVKATEGORISER_DOKUMENT
     }
 }
