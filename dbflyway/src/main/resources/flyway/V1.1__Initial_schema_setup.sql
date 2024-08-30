@@ -21,15 +21,15 @@ CREATE INDEX IDX_PERSON_IDENT_IDENT ON PERSON_IDENT (IDENT);
 
 CREATE TABLE BEHANDLING
 (
-    ID            BIGSERIAL                              NOT NULL PRIMARY KEY,
-    SAK_ID        BIGINT                                 NULL,
-    JOURNALPOST_ID      BIGINT                                 NULL,
-    REFERANSE     UUID UNIQUE                            NOT NULL,
-    KATEGORI      VARCHAR(50)                            NULL,
-    STATUS        VARCHAR(100)                           NOT NULL,
-    TYPE          VARCHAR(100)                           NOT NULL,
-    VERSJON       BIGINT       DEFAULT 0                 NOT NULL,
-    OPPRETTET_TID TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
+    ID             BIGSERIAL                              NOT NULL PRIMARY KEY,
+    SAK_ID         BIGINT                                 NULL,
+    JOURNALPOST_ID BIGINT                                 NULL,
+    REFERANSE      UUID UNIQUE                            NOT NULL,
+    KATEGORI       VARCHAR(50)                            NULL,
+    STATUS         VARCHAR(100)                           NOT NULL,
+    TYPE           VARCHAR(100)                           NOT NULL,
+    VERSJON        BIGINT       DEFAULT 0                 NOT NULL,
+    OPPRETTET_TID  TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE INDEX IDX_BEHANDLING_REFERANSE ON BEHANDLING (REFERANSE);
