@@ -33,6 +33,15 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     UDEFINERT(
         gruppe = StegGruppe.UDEFINERT, status = Status.UTREDES, tekniskSteg = true
     ), // Forbeholdt deklarasjon for avklaringsbehov som
+    FINN_SAK(
+        gruppe = StegGruppe.FINN_SAK,
+        status = Status.UTREDES,
+        tekniskSteg = true
+    ),
+    GROVKATEGORTISER_DOKUMENT(
+        gruppe = StegGruppe.GROVKATEGORISERING,
+        status = Status.UTREDES,
+    ),
 
 
 }

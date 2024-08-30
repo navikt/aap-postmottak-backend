@@ -1,17 +1,15 @@
 package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.aap.verdityper.flyt.StegType
-import java.time.LocalDate
-import java.time.Period
 import java.util.*
 import java.util.stream.Collectors
 
 
 const val KATEGORISER_DOKUMENT_KODE = "1337"
 const val DIGITALISER_DOKUMENT_KODE = "1338"
+const val GROVKATEGORISER_DOKUMENT_KODE = "1339"
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
@@ -20,6 +18,11 @@ enum class Definisjon(
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
     val kreverToTrinn: Boolean = false
 ) {
+    GROVKATEGORISER_DOKUMENT(
+        kode = GROVKATEGORISER_DOKUMENT_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.GROVKATEGORTISER_DOKUMENT
+    ),
     KATEGORISER_DOKUMENT(
         kode =  KATEGORISER_DOKUMENT_KODE,
         type = BehovType.MANUELT_PÅKREVD,

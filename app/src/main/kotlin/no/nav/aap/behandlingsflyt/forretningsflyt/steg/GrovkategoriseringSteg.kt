@@ -13,14 +13,14 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StartBehandlingSteg::class.java)
 
-class AutomatiskKategoriseringSteg(private val behandlingRepository: BehandlingRepository) : BehandlingSteg {
+class GrovkategoriseringSteg(private val behandlingRepository: BehandlingRepository) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return AutomatiskKategoriseringSteg(BehandlingRepositoryImpl(connection))
+            return GrovkategoriseringSteg(BehandlingRepositoryImpl(connection))
         }
 
         override fun type(): StegType {
-            return StegType.KATEGORISER_DOKUMENT
+            return StegType.GROVKATEGORTISER_DOKUMENT
         }
 
     }
