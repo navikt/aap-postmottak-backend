@@ -32,8 +32,9 @@ class GrovkategoriseringSteg(private val behandlingRepository: BehandlingReposit
         *  Hvis avklart med nei: Returner avklaringsbehov for returnering av dokument
         *  Hvis ikke avklart enda: returner Definisjon.GROVKATEGORISER_DOKUMENT
         */
-        return StegResultat(
-            listOf()
-        )
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        return if (!behandling.harBlittgrovkategorisert()) StegResultat(listOf(Definisjon.GROVKATEGORISER_DOKUMENT))
+            else if (behandling.vurderinger.grovkategorivurdering!!.vurdering) StegResultat()
+            else StegResultat(listOf(/*Definisjon.RETURNERINGSPROSEDYRE*/))
     }
 }

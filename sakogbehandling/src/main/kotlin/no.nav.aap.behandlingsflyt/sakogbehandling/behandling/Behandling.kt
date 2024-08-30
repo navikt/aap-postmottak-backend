@@ -18,13 +18,12 @@ class Vurdering<T>(val vurdering: T)
 class Vurderinger(
     val grovkategorivurdering: Vurdering<Boolean>? = null,
     val kategorivurdering: Vurdering<Brevkode>? = null,
-    val digitaliseringsvurdering: Vurdering<String>? = null
+    val struktureringsvurdering: Vurdering<String>? = null
 )
 
 class Behandling(
     val id: BehandlingId,
     val journalpostId: JournalpostId,
-    private val typeBehandling: TypeBehandling = TypeBehandling.DokumentHåndtering,
     val referanse: BehandlingReferanse = BehandlingReferanse(),
     val sakId: SakId? = null,
     private var status: Status = Status.OPPRETTET,
@@ -34,16 +33,18 @@ class Behandling(
     val vurderinger: Vurderinger = Vurderinger()
 ) : Comparable<Behandling> {
 
-    fun typeBehandling(): TypeBehandling = typeBehandling
+    val typeBehandling = TypeBehandling.DokumentHåndtering
+
+    fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
+    fun harBlittgrovkategorisert() = vurderinger.grovkategorivurdering != null
 
     fun flytKontekst(): FlytKontekst {
         return FlytKontekst(id, typeBehandling)
     }
 
     fun visit(stegTilstand: StegTilstand) {
-        if (!stegTilstand.aktiv) {
-            throw IllegalStateException("Utvikler feil, prøver legge til steg med aktivtflagg false.")
-        }
+        check(!stegTilstand.aktiv) {"Utvikler feil, prøver legge til steg med aktivtflagg false."}
+
         if (stegHistorikk.isEmpty() || aktivtStegTilstand() != stegTilstand) {
             stegHistorikk.stream().filter { tilstand -> tilstand.aktiv }.forEach { tilstand -> tilstand.deaktiver() }
             stegHistorikk += stegTilstand
