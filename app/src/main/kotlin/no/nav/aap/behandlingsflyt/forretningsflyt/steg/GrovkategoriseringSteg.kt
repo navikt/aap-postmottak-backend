@@ -33,7 +33,7 @@ class GrovkategoriseringSteg(private val behandlingRepository: BehandlingReposit
         *  Hvis ikke avklart enda: returner Definisjon.GROVKATEGORISER_DOKUMENT
         */
         return StegResultat(
-            listOf(Definisjon.GROVKATEGORISER_DOKUMENT)
+            listOf()
         )
     }
 }

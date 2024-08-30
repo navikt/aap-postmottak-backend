@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.forretningsflyt.steg.GrovkategoriseringSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.DigitaliserDokumentSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.FinnSakSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.KategoriserDokumentSteg
+import no.nav.aap.behandlingsflyt.forretningsflyt.steg.OverleverTilFagsystemSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.StartBehandlingSteg
 
 object Dokumentflyt: BehandlingType {
@@ -16,5 +17,6 @@ object Dokumentflyt: BehandlingType {
         .medSteg(steg = FinnSakSteg)
         .medSteg(steg = KategoriserDokumentSteg)
         .medSteg(steg = DigitaliserDokumentSteg)
+        .medSteg(steg = OverleverTilFagsystemSteg)
         .build()
 }
