@@ -12,10 +12,10 @@ import java.time.LocalDateTime
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    override fun opprettBehandling(journalpostId: Long, typeBehandling: TypeBehandling): Behandling {
+    override fun opprettBehandling(journalpostId: JournalpostId, typeBehandling: TypeBehandling): Behandling {
 
         val query = """
-            INSERT INTO BEHANDLING (referanse, status, type, journalpostId)
+            INSERT INTO BEHANDLING (referanse, status, type, journalpost_id)
                  VALUES (?, ?, ?, ?)
             """.trimIndent()
         val behandlingsreferanse = BehandlingReferanse()
@@ -24,13 +24,14 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
                 setUUID(1, behandlingsreferanse.referanse)
                 setEnumName(2, Status.OPPRETTET)
                 setString(3, typeBehandling.identifikator())
-                setLong(4, journalpostId)
+                setLong(4, journalpostId.identifikator)
             }
         }
 
 
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
+            journalpostId = journalpostId,
             referanse = behandlingsreferanse,
             sakId = SakId(1),
             typeBehandling = typeBehandling,
@@ -44,6 +45,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         val behandlingId = BehandlingId(row.getLong("id"))
         return Behandling(
             id = behandlingId,
+            journalpostId = JournalpostId(row.getLong("journalpost_id")),
             referanse = BehandlingReferanse(row.getUUID("referanse")),
             sakId = SakId(1),//row.getLongOrNull("sak_id")?.let { SakId(it) },
             typeBehandling = TypeBehandling.from(row.getString("type")),

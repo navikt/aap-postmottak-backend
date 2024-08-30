@@ -11,12 +11,12 @@ import libs.kafka.StreamsConfig
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-
 
 
 class MottakListenerTest {
@@ -30,15 +30,25 @@ class MottakListenerTest {
         val kafka = setUpStreamsMock(config)
         val topics = Topics(config)
 
-        every { behandlingRepository.opprettBehandling(any(), any()) } returns Behandling(BehandlingId(1L))
         val hendelseRecord = lagHendelseRecord()
+
+        val behandling = Behandling(
+            BehandlingId(1),
+            JournalpostId(hendelseRecord.journalpostId)
+        )
+        every { behandlingRepository.opprettBehandling(any(), any()) } returns behandling
 
         val journalføringstopic = kafka.testTopic(topics.journalfoering)
         journalføringstopic.produce("1") {
             hendelseRecord
         }
 
-        verify(exactly = 1) { behandlingRepository.opprettBehandling(hendelseRecord.journalpostId, TypeBehandling.DokumentHåndtering) }
+        verify(exactly = 1) {
+            behandlingRepository.opprettBehandling(
+                JournalpostId(hendelseRecord.journalpostId),
+                TypeBehandling.DokumentHåndtering
+            )
+        }
         verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
     }
 

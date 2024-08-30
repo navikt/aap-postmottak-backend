@@ -10,6 +10,7 @@ import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtf
 import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -60,7 +61,7 @@ fun main() {
 
 private fun opprettBehanlding(connection: DBConnection) {
 
-    val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(1L, TypeBehandling.DokumentHåndtering)
+    val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1L), TypeBehandling.DokumentHåndtering)
     FlytJobbRepository(connection).leggTil(JobbInput(ProsesserBehandlingJobbUtfører)
         .forBehandling(behandling.id).medCallId())
 }

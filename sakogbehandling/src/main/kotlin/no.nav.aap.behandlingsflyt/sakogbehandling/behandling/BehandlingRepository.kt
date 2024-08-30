@@ -1,12 +1,13 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
+import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 
 interface BehandlingRepository {
 
-    fun opprettBehandling(journalpostId: Long, typeBehandling: TypeBehandling): Behandling
+    fun opprettBehandling(journalpostId: JournalpostId, typeBehandling: TypeBehandling): Behandling
 
     fun hent(behandlingId: BehandlingId): Behandling
 

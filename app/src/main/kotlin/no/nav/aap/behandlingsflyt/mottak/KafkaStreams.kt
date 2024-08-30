@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositor
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.slf4j.LoggerFactory
@@ -34,8 +35,9 @@ class MottakListener(
         journalpost: JournalfoeringHendelseRecord,
     ) {
         log.info("Mottatt ${journalpost.journalpostId}")
+        val journalpostId = JournalpostId(journalpost.journalpostId)
         val behandling =
-            behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.DokumentHåndtering)
+            behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
                 .forBehandling(behandling.id).medCallId()

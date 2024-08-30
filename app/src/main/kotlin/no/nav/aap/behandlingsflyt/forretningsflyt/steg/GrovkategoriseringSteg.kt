@@ -11,7 +11,7 @@ import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(StartBehandlingSteg::class.java)
+private val log = LoggerFactory.getLogger(GrovkategoriseringSteg::class.java)
 
 class GrovkategoriseringSteg(private val behandlingRepository: BehandlingRepository) : BehandlingSteg {
     companion object : FlytSteg {
@@ -27,12 +27,13 @@ class GrovkategoriseringSteg(private val behandlingRepository: BehandlingReposit
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         log.info("Treffer Grovkategoriseringssteg")
-
-        val saksid = behandlingRepository.hent(kontekst.behandlingId).sakId
-
+        /* TODO finn avklaring om dokument faktisk skal til AAP eller skal returneres
+        *  Hvis dokument er avklart med ja: Stegresultat()
+        *  Hvis avklart med nei: Returner avklaringsbehov for returnering av dokument
+        *  Hvis ikke avklart enda: returner Definisjon.GROVKATEGORISER_DOKUMENT
+        */
         return StegResultat(
-            avklaringsbehov = if (saksid != null) emptyList()
-            else listOf(Definisjon.KATEGORISER_DOKUMENT)
+            listOf(Definisjon.GROVKATEGORISER_DOKUMENT)
         )
     }
 }

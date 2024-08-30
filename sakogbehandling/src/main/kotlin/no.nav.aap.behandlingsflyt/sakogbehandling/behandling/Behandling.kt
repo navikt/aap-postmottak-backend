@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
+import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.flyt.StegType
@@ -13,6 +14,7 @@ import java.time.LocalDateTime
 
 class Behandling(
     val id: BehandlingId,
+    val journalpostId: JournalpostId,
     private val typeBehandling: TypeBehandling = TypeBehandling.DokumentHåndtering,
     val referanse: BehandlingReferanse = BehandlingReferanse(),
     val sakId: SakId? = null,

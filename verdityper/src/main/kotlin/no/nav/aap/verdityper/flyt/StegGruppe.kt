@@ -9,5 +9,5 @@ enum class StegGruppe(val skalVises: Boolean, val obligatoriskVisning: Boolean) 
     ENDERLIG_JOURNALFØRING(false, false),
     OVERLEVER_TIL_FAGSYSTEM(false, false),
     FINN_SAK(false, false),
-    GROVKATEGORISERING(false, false),
+    GROVKATEGORISERING(true, true),
 }

@@ -14,7 +14,7 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     START_BEHANDLING(
         gruppe = StegGruppe.START_BEHANDLING,
         status = Status.OPPRETTET,
-        tekniskSteg = true
+        //tekniskSteg = true
     ),
     AVKLAR_TEMA(
         gruppe = StegGruppe.AVKLAR_TEMA,
