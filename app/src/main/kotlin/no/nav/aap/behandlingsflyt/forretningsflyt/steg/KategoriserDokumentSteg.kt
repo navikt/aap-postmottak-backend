@@ -20,6 +20,13 @@ class KategoriserDokumentSteg private constructor(): BehandlingSteg {
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        /* TODO præv å automatisk kategorisere
+        * Dersom automatisk kategorisering er mulig og digitalisering ikke er nødvendig -> send til B-Flow
+        * Dersom automatisk kategorisering er mulig og dokumentet må digitaliseres -> send til digitalisering
+        * Dersom automatisk kategorisering ikke er mulig  -> avvent kategoriseringsvurdering
+        * Dersom manuell vurdering er gjort og digitalisering er nødvendig -> digitaliser
+        * Derosm manuell vurdeiring er gjort og digitalisering ikke er nødvendig -> sent til B-Flow
+        */
         return StegResultat()
     }
 }

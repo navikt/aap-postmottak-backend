@@ -26,7 +26,10 @@ class JournalføringsstegSteg(private val behandlingRepository: BehandlingReposi
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         log.info("Treffer JournalføringsstegSteg")
-
+        /* TODO legg til saksnummer på journalpost og "endelig journalfører"
+        *   send dokument til arena dersom sak er i arena
+        *   kategoriser dokument dersom sak er i arena
+        */
         return StegResultat()
     }
 }

@@ -20,6 +20,10 @@ class DigitaliserDokumentSteg private constructor(): BehandlingSteg {
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        /*
+        TODO avvent digitalisering, send så til B-Flow
+         */
+
         return StegResultat()
     }
 }

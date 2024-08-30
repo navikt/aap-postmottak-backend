@@ -23,20 +23,17 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     ENDERLIG_JOURNALFØRING(
         gruppe = StegGruppe.ENDERLIG_JOURNALFØRING,
         status = Status.UTREDES,
-        tekniskSteg = true
     ),
     OVERLEVER_TIL_FAGSYSTEM(
         gruppe = StegGruppe.OVERLEVER_TIL_FAGSYSTEM,
         status = Status.AVSLUTTET,
-        tekniskSteg = true
     ),
     UDEFINERT(
-        gruppe = StegGruppe.UDEFINERT, status = Status.UTREDES, tekniskSteg = true
+        gruppe = StegGruppe.UDEFINERT, status = Status.UTREDES
     ), // Forbeholdt deklarasjon for avklaringsbehov som
     FINN_SAK(
         gruppe = StegGruppe.FINN_SAK,
         status = Status.UTREDES,
-        tekniskSteg = true
     ),
     GROVKATEGORTISER_DOKUMENT(
         gruppe = StegGruppe.GROVKATEGORISERING,

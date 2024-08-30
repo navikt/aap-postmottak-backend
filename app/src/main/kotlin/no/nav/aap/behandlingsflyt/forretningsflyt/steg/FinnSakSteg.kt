@@ -21,6 +21,9 @@ class FinnSakSteg private constructor(): BehandlingSteg {
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        /* TODO Finn/Opprett sak i arena/B-flyt  og legg til behandling
+        *   Fortsett til journalføring
+        */
         return StegResultat()
     }
 }

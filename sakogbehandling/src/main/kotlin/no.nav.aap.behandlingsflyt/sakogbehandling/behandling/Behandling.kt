@@ -71,7 +71,7 @@ class Behandling(
             .findAny()
             .orElse(
                 StegTilstand(
-                    stegType = StegType.KATEGORISER_DOKUMENT,
+                    stegType = StegType.START_BEHANDLING,
                     stegStatus = StegStatus.START
                 )
             )
