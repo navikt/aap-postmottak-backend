@@ -1,7 +1,7 @@
 package no.nav.aap.saf
 
-import no.nav.aap.httpclient.error.DefaultResponseHandler
-import no.nav.aap.httpclient.error.RestResponseHandler
+import no.nav.aap.komponenter.httpklient.httpclient.error.DefaultResponseHandler
+import no.nav.aap.komponenter.httpklient.httpclient.error.RestResponseHandler
 import no.nav.aap.pdl.GraphQLError
 import java.net.http.HttpHeaders
 import java.net.http.HttpRequest

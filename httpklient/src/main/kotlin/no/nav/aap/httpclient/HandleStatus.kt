@@ -1,7 +1,7 @@
 package no.nav.aap.httpclient
 
-import no.nav.aap.httpclient.error.ManglerTilgangException
-import no.nav.aap.httpclient.error.UhåndtertHttpResponsException
+import no.nav.aap.komponenter.httpklient.httpclient.error.ManglerTilgangException
+import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import java.net.HttpURLConnection
 import java.net.http.HttpResponse
 

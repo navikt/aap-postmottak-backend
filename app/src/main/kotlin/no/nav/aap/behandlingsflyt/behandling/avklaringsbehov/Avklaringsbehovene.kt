@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
-import no.nav.aap.auth.Bruker
+import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.behandlingsflyt.SYSTEMBRUKER
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.behandlingsflyt.flyt.utledType

@@ -1,10 +1,11 @@
 val ktorVersion = "2.3.12"
+val komponenterVersjon = "0.0.19"
 
 dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":faktagrunnlag"))
     implementation(project(":verdityper"))
-    implementation(project(":httpklient"))
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation(project(":app"))
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")

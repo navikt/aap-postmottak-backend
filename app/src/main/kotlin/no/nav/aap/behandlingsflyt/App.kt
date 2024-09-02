@@ -24,7 +24,7 @@ import io.ktor.server.routing.*
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.auth.Bruker
+import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
@@ -40,12 +40,12 @@ import no.nav.aap.behandlingsflyt.server.authenticate.authentication
 import no.nav.aap.behandlingsflyt.server.exception.FlytOperasjonException
 import no.nav.aap.behandlingsflyt.server.prosessering.BehandlingsflytLogInfoProvider
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesseringsJobber
-import no.nav.aap.httpclient.tokenprovider.azurecc.AzureConfig
-import no.nav.aap.json.DefaultJsonMapper
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
-import no.nav.aap.requiredConfigForKey
+import no.nav.aap.komponenter.httpklient.requiredConfigForKey
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

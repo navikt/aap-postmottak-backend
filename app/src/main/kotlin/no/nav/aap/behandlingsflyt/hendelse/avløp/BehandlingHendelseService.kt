@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.server.prosessering.StoppetHendelseJobbUtfører
-import no.nav.aap.json.DefaultJsonMapper
+import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.slf4j.LoggerFactory

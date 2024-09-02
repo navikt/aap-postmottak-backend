@@ -1,7 +1,7 @@
 package no.nav.aap.httpclient.request
 
-import no.nav.aap.httpclient.Header
-import no.nav.aap.httpclient.tokenprovider.OidcToken
+import no.nav.aap.komponenter.httpklient.httpclient.Header
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import java.time.Duration
 
 interface Request {

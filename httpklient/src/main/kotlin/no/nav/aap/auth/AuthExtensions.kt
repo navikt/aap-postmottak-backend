@@ -5,7 +5,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import no.nav.aap.httpclient.tokenprovider.OidcToken
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 
 fun ApplicationCall.bruker(): Bruker {

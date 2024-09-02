@@ -9,8 +9,9 @@ dependencies {
 
     implementation(project(":verdityper"))
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation(project(":dbflyway"))
-    implementation(project(":httpklient"))
+
 
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.17.0")

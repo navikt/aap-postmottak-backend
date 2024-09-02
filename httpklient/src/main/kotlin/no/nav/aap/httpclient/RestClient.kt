@@ -1,13 +1,13 @@
 package no.nav.aap.httpclient
 
-import no.nav.aap.httpclient.error.DefaultResponseHandler
-import no.nav.aap.httpclient.error.RestResponseHandler
-import no.nav.aap.httpclient.request.GetRequest
-import no.nav.aap.httpclient.request.PostRequest
-import no.nav.aap.httpclient.request.Request
-import no.nav.aap.httpclient.tokenprovider.OidcToken
-import no.nav.aap.httpclient.tokenprovider.TokenProvider
-import no.nav.aap.json.DefaultJsonMapper
+import no.nav.aap.komponenter.httpklient.httpclient.error.DefaultResponseHandler
+import no.nav.aap.komponenter.httpklient.httpclient.error.RestResponseHandler
+import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
+import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
+import no.nav.aap.komponenter.httpklient.httpclient.request.Request
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.TokenProvider
+import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import org.slf4j.MDC
 import java.net.URI
 import java.net.http.HttpClient

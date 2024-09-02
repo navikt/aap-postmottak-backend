@@ -13,50 +13,22 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.Inntekt.InntektRequest
-import no.nav.aap.Inntekt.InntektResponse
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
-import no.nav.aap.pdl.HentPerson
-import no.nav.aap.pdl.HentPersonBolkResult
-import no.nav.aap.pdl.PDLDødsfall
-import no.nav.aap.pdl.PdlFoedsel
-import no.nav.aap.pdl.PdlGruppe
-import no.nav.aap.pdl.PdlIdent
-import no.nav.aap.pdl.PdlIdenter
-import no.nav.aap.pdl.PdlIdenterData
-import no.nav.aap.pdl.PdlIdenterDataResponse
-import no.nav.aap.pdl.PdlNavn
-import no.nav.aap.pdl.PdlNavnData
-import no.nav.aap.pdl.PdlPersonNavnDataResponse
-import no.nav.aap.pdl.PdlPersoninfo
-import no.nav.aap.pdl.PdlPersoninfoData
-import no.nav.aap.pdl.PdlPersoninfoDataResponse
-import no.nav.aap.pdl.PdlRelasjon
-import no.nav.aap.pdl.PdlRelasjonDataResponse
-import no.nav.aap.pdl.PdlRequest
 import no.nav.aap.verdityper.sakogbehandling.Ident
-import no.nav.aap.yrkesskade.YrkesskadeModell
-import no.nav.aap.yrkesskade.YrkesskadeRequest
-import no.nav.aap.yrkesskade.Yrkesskader
 import org.intellij.lang.annotations.Language
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.util.*
-import no.nav.aap.pdl.PdlRelasjonData as BarnPdlData
 
 class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
     private val azure = embeddedServer(Netty, port = azurePort, module = { azureFake() }).start()
-    private val pdl = embeddedServer(Netty, port = 0, module = { pdlFake() }).start()
-    private val yrkesskade = embeddedServer(Netty, port = 0, module = { yrkesskadeFake() }).start()
-    private val inntekt = embeddedServer(Netty, port = 0, module = { poppFake() }).start()
     private val oppgavestyring = embeddedServer(Netty, port = 0, module = { oppgavestyringFake() }).start()
     private val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
-    private val inst2 = embeddedServer(Netty, port = 0, module = { inst2Fake() }).apply { start() }
     private val medl = embeddedServer(Netty, port = 0, module = { medlFake() }).apply { start() }
     private val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() }).apply { start() }
 
@@ -69,19 +41,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("azure.app.client.secret", "")
         System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.port()}/jwks")
         System.setProperty("azure.openid.config.issuer", "behandlingsflyt")
-
-        // Pdl
-        System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
-        System.setProperty("integrasjon.pdl.scope", "pdl")
-
-        //popp
-        System.setProperty("integrasjon.inntekt.url", "http://localhost:${inntekt.port()}")
-        System.setProperty("integrasjon.inntekt.scope", "popp")
-
-
-        // Yrkesskade
-        System.setProperty("integrasjon.yrkesskade.url", "http://localhost:${yrkesskade.port()}")
-        System.setProperty("integrasjon.yrkesskade.scope", "yrkesskade")
 
         // Oppgavestyring
         System.setProperty("integrasjon.oppgavestyring.scope", "oppgavestyring")
@@ -96,9 +55,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("integrasjon.medl.url", "http://localhost:${medl.port()}")
         System.setProperty("integrasjon.medl.scope", "medl")
 
-        // Inst
-        System.setProperty("integrasjon.institusjonsopphold.url", "http://localhost:${inst2.port()}")
-        System.setProperty("integrasjon.institusjonsopphold.scope", "inst2")
 
         // Pesys
         System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
@@ -131,13 +87,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     }
 
     override fun close() {
-        yrkesskade.stop(0L, 0L)
-        pdl.stop(0L, 0L)
         azure.stop(0L, 0L)
-        inntekt.stop(0L, 0L)
         oppgavestyring.stop(0L, 0L)
         saf.stop(0L, 0L)
-        inst2.stop(0L, 0L)
         medl.stop(0L, 0L)
     }
 
@@ -193,52 +145,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
         }
     }
-
-    private fun Application.poppFake() {
-        install(ContentNegotiation) {
-            jackson()
-        }
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@poppFake.log.info("Inntekt :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
-            }
-        }
-        routing {
-            post {
-                val req = call.receive<InntektRequest>()
-                val person = hentEllerGenererTestPerson(req.fnr)
-
-
-                call.respond(
-                    InntektResponse(emptyList())
-                )
-            }
-        }
-    }
-
-    private fun Application.pdlFake() {
-        install(ContentNegotiation) {
-            jackson()
-        }
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@pdlFake.log.info("PDL :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
-            }
-        }
-        routing {
-            post {
-                val req = call.receive<PdlRequest>()
-
-                when (req.query) {
-                    else -> call.respond(HttpStatusCode.BadRequest)
-                }
-            }
-        }
-    }
-
-
 
     private fun Application.safFake() {
 
@@ -376,32 +282,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
     }
 
-
-    private fun Application.inst2Fake() {
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-            }
-        }
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@inst2Fake.log.info("INST2 :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
-            }
-        }
-        routing {
-            get {
-                val ident = requireNotNull(call.request.header("Nav-Personident"))
-                val person = hentEllerGenererTestPerson(ident)
-
-                val opphold = person.institusjonsopphold
-
-                call.respond(opphold)
-            }
-        }
-    }
-
-
     private fun Application.medlFake() {
         install(ContentNegotiation) {
             jackson()
@@ -450,118 +330,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
     }
 
-    private fun Application.yrkesskadeFake() {
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-            }
-        }
 
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@yrkesskadeFake.log.info(
-                    "YRKESSKADE :: Ukjent feil ved kall til '{}'",
-                    call.request.local.uri,
-                    cause
-                )
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
-            }
-        }
-        routing {
-            post("/api/v1/saker/") {
-                val req = call.receive<YrkesskadeRequest>()
-                val person = req.foedselsnumre.map { hentEllerGenererTestPerson(it) }
-
-                call.respond(
-                    Yrkesskader(
-                        skader = person.flatMap { it.yrkesskade }
-                            .map {
-                                YrkesskadeModell(
-                                    kommunenr = "1234",
-                                    saksblokk = "A",
-                                    saksnr = 1234,
-                                    sakstype = "Yrkesskade",
-                                    mottattdato = LocalDate.now(),
-                                    resultat = "Godkjent",
-                                    resultattekst = "Godkjent",
-                                    vedtaksdato = LocalDate.now(),
-                                    skadeart = "Arbeidsulykke",
-                                    diagnose = "Kuttskade",
-                                    skadedato = it.skadedato,
-                                    kildetabell = "Yrkesskade",
-                                    kildesystem = "Yrkesskade",
-                                    saksreferanse = it.saksreferanse
-                                )
-                            }
-                    )
-                )
-            }
-        }
-    }
-
-    private fun barn(req: PdlRequest): PdlRelasjonDataResponse {
-        val forespurtIdenter = req.variables.identer ?: emptyList()
-
-        val barnIdenter = forespurtIdenter.mapNotNull { mapIdentBolk(it) }.toList()
-
-        return PdlRelasjonDataResponse(
-            errors = null,
-            extensions = null,
-            data = BarnPdlData(
-                hentPersonBolk = barnIdenter
-            )
-        )
-    }
-
-    private fun mapIdentBolk(it: String): HentPersonBolkResult? {
-        val person = fakePersoner[it]
-        if (person == null) {
-            return null
-        }
-        return HentPersonBolkResult(
-            ident = person.identer.first().identifikator,
-            person = PdlPersoninfo(
-                foedsel = listOf(PdlFoedsel(person.fødselsdato.toFormatedString())),
-                doedsfall = mapDødsfall(person)
-            )
-        )
-    }
-
-    private fun mapDødsfall(person: TestPerson): Set<PDLDødsfall>? {
-        if (person.dødsdato == null) {
-            return null
-        }
-        return setOf(PDLDødsfall(person.dødsdato.toFormatedString()))
-    }
-
-    private fun barnRelasjoner(req: PdlRequest): PdlRelasjonDataResponse {
-        val testPerson = hentEllerGenererTestPerson(req.variables.ident ?: "")
-        return PdlRelasjonDataResponse(
-            errors = null,
-            extensions = null,
-            data = BarnPdlData(
-                hentPerson = PdlPersoninfo(
-                    forelderBarnRelasjon = testPerson.barn
-                        .map { PdlRelasjon(it.identer.first().identifikator) }
-                        .toList()
-                )
-            )
-        )
-    }
-
-    private fun identer(req: PdlRequest): PdlIdenterDataResponse {
-        val person = hentEllerGenererTestPerson(req.variables.ident ?: "")
-
-        return PdlIdenterDataResponse(
-            errors = null,
-            extensions = null,
-            data = PdlIdenterData(
-                hentIdenter = PdlIdenter(
-                    identer = mapIdent(person)
-                )
-            ),
-        )
-    }
 
     private fun hentEllerGenererTestPerson(forespurtIdent: String): TestPerson {
         val person = fakePersoner[forespurtIdent]
@@ -575,49 +344,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         return fakePersoner[forespurtIdent]!!
     }
 
-    private fun mapIdent(person: TestPerson?): List<PdlIdent> {
-        if (person == null) {
-            return emptyList()
-        }
-        return listOf(PdlIdent(person.identer.first().identifikator, false, PdlGruppe.FOLKEREGISTERIDENT))
-    }
 
-    private fun personopplysninger(req: PdlRequest): PdlPersoninfoDataResponse {
-        val testPerson = hentEllerGenererTestPerson(req.variables.ident ?: "")
-        return PdlPersoninfoDataResponse(
-            errors = null,
-            extensions = null,
-            data = PdlPersoninfoData(
-                hentPerson = mapPerson(testPerson)
-            ),
-        )
-    }
-
-    private fun navn(req: PdlRequest): PdlPersonNavnDataResponse {
-        val testPerson = hentEllerGenererTestPerson(req.variables.ident ?: "")
-        return PdlPersonNavnDataResponse(
-            errors = null,
-            extensions = null,
-            data = HentPerson(
-                hentPerson = PdlNavnData(
-                    navn = listOf(
-                        PdlNavn(
-                            fornavn = testPerson.navn.fornavn,
-                            mellomnavn = null,
-                            etternavn = testPerson.navn.etternavn
-                        )
-                    )
-                )
-            ),
-        )
-    }
-
-    private fun mapPerson(person: TestPerson?): PdlPersoninfo? {
-        if (person == null) {
-            return null
-        }
-        return PdlPersoninfo(foedsel = listOf(PdlFoedsel(person.fødselsdato.toFormatedString())))
-    }
 
     private fun Application.azureFake() {
         install(ContentNegotiation) {

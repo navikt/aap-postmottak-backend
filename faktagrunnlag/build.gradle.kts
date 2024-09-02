@@ -7,7 +7,7 @@ dependencies {
     implementation(project(":tidslinje"))
     implementation(project(":dbflyway"))
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
-    implementation(project(":httpklient"))
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
 
     implementation("dev.forst:ktor-openapi-generator:0.6.1")
     implementation("com.zaxxer:HikariCP:5.1.0")

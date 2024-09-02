@@ -10,7 +10,6 @@ include(
     "dbtest",
     "dbtestdata",
     "motor",
-    "httpklient",
     "lib-test",
     "infrastructure"
 )

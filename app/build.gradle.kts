@@ -64,10 +64,10 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
 
     implementation(project(":motor"))
-    implementation(project(":httpklient"))
     implementation(project(":sakogbehandling"))
     implementation(project(":verdityper"))
     implementation(project(":dbflyway"))
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation(project(":faktagrunnlag"))
     implementation("com.zaxxer:HikariCP:5.1.0")
