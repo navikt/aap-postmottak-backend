@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.dbtestdata
 
-import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.verdityper.sakogbehandling.Ident
 

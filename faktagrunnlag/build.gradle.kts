@@ -1,9 +1,12 @@
+val komponenterVersjon = "0.0.19"
+
+
 dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":verdityper"))
     implementation(project(":tidslinje"))
     implementation(project(":dbflyway"))
-    implementation(project(":dbconnect"))
+    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation(project(":httpklient"))
 
     implementation("dev.forst:ktor-openapi-generator:0.6.1")

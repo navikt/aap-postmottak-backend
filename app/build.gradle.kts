@@ -2,6 +2,8 @@ import java.io.ByteArrayOutputStream
 
 val ktorVersion = "2.3.12"
 val aapLibVersion = "5.0.23"
+val komponenterVersjon = "0.0.19"
+
 
 plugins {
     id("io.ktor.plugin")
@@ -66,7 +68,7 @@ dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":verdityper"))
     implementation(project(":dbflyway"))
-    implementation(project(":dbconnect"))
+    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation(project(":faktagrunnlag"))
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.17.0")

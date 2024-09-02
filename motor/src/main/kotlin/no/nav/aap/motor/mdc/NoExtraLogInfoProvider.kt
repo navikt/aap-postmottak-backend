@@ -1,6 +1,6 @@
 package no.nav.aap.motor.mdc
 
-import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.JobbInput
 
 object NoExtraLogInfoProvider : JobbLogInfoProvider {

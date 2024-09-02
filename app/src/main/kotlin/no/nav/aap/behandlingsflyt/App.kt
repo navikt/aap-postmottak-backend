@@ -28,7 +28,7 @@ import no.nav.aap.auth.Bruker
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.behandlingsflyt.dbconnect.transaction
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
 import no.nav.aap.behandlingsflyt.flyt.flate.DefinisjonDTO

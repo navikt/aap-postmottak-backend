@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.DIGITALISER_DOKUMEN
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.KATEGORISER_DOKUMENT_KODE
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.DigitaliserDokumentLøser
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.LøsningsResultat
-import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.DigitaliserDokumentDto
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.KategoriavklaringDto
 

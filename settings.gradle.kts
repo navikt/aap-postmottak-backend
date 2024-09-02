@@ -7,7 +7,6 @@ include(
     "verdityper",
     "tidslinje",
     "dbflyway",
-    "dbconnect",
     "dbtest",
     "dbtestdata",
     "motor",
