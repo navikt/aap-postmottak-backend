@@ -29,10 +29,10 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = behandling(connection, req)
-                    val flyt = utledType(behandling.typeBehandling()).flyt()
+                    val flyt = utledType(behandling.typeBehandling).flyt()
                     DetaljertBehandlingDTO(
                         referanse = behandling.referanse.referanse,
-                        type = behandling.typeBehandling().name,
+                        type = behandling.typeBehandling.name,
                         status = behandling.status(),
                         opprettet = behandling.opprettetTidspunkt,
 

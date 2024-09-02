@@ -125,7 +125,7 @@ class Avklaringsbehovene(
 
     fun validerPlassering(behandling: Behandling) {
         val nesteSteg = behandling.aktivtSteg()
-        val behandlingFlyt = utledType(behandling.typeBehandling()).flyt()
+        val behandlingFlyt = utledType(behandling.typeBehandling).flyt()
         behandlingFlyt.forberedFlyt(nesteSteg)
         val uhåndterteBehov = alle().filter { it.erÅpent() }
             .filter { definisjon ->

@@ -36,7 +36,7 @@ class MottakListenerTest {
             BehandlingId(1),
             JournalpostId(hendelseRecord.journalpostId)
         )
-        every { behandlingRepository.opprettBehandling(any(), any()) } returns behandling
+        every { behandlingRepository.opprettBehandling(any()) } returns behandling
 
         val journalføringstopic = kafka.testTopic(topics.journalfoering)
         journalføringstopic.produce("1") {
@@ -45,8 +45,7 @@ class MottakListenerTest {
 
         verify(exactly = 1) {
             behandlingRepository.opprettBehandling(
-                JournalpostId(hendelseRecord.journalpostId),
-                TypeBehandling.DokumentHåndtering
+                JournalpostId(hendelseRecord.journalpostId)
             )
         }
         verify(exactly = 1) { flytJobbRepository.leggTil(any()) }

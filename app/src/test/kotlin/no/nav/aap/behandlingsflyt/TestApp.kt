@@ -1,17 +1,21 @@
 package no.nav.aap.behandlingsflyt
 
+import com.papsign.ktor.openapigen.route.apiRouting
+import com.papsign.ktor.openapigen.route.path.normal.get
+import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.route
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.aap.behandlingsflyt.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.verdityper.dokument.JournalpostId
-import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.testcontainers.containers.PostgreSQLContainer
@@ -52,19 +56,78 @@ fun main() {
         val datasource = initDatasource(dbConfig)
 
         datasource.transaction {
-            opprettBehanlding(it)
+            opprettBehanldingGrovKategorisering(it)
+            opprettBehanldingGrovKategorisering(it)
+            opprettBehanldingDigitaliser(it)
         }
 
+        apiRouting {
+            route("/test/hentAlleBehandlinger") {
+                get<Unit, List<BehandlingsListe>>() {
+                    val response = datasource.transaction {
+                        it.queryList("""SELECT REFERANSE as ref, steg  FROM BEHANDLING
+                            LEFT JOIN STEG_HISTORIKK ON STEG_HISTORIKK.BEHANDLING_ID = BEHANDLING.ID AND aktiv = true
+                        """.trimMargin()) {
+                            setRowMapper { BehandlingsListe(
+                                it.getString("ref"),
+                                it.getString("steg")
+                            ) }
+                        }
+                    }
+                    respond(response)
+                }
+            }
+        }
 
     }.start(wait = true)
 }
 
-private fun opprettBehanlding(connection: DBConnection) {
+data class BehandlingsListe(
+    val id: String,
+    val status: String
+)
 
-    val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1L), TypeBehandling.DokumentHåndtering)
-    FlytJobbRepository(connection).leggTil(JobbInput(ProsesserBehandlingJobbUtfører)
-        .forBehandling(behandling.id).medCallId())
+private fun opprettBehanldingGrovKategorisering(connection: DBConnection) {
+
+    val behandling =
+        BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1L))
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(behandling.id).medCallId()
+    )
 }
+
+private fun opprettBehanldingKategoriser(connection: DBConnection) {
+
+
+    val behandlingRepository = BehandlingRepositoryImpl(connection)
+    val behandling =
+        behandlingRepository.opprettBehandling(JournalpostId(1L))
+    behandlingRepository.lagreGrovvurdeingVurdering(behandling.id, true)
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(behandling.id).medCallId()
+    )
+
+}
+
+private fun opprettBehanldingDigitaliser(connection: DBConnection) {
+
+
+    val behandlingRepository = BehandlingRepositoryImpl(connection)
+    val behandling =
+        behandlingRepository.opprettBehandling(JournalpostId(1L))
+    behandlingRepository.lagreGrovvurdeingVurdering(behandling.id, true)
+    behandlingRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD)
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(behandling.id).medCallId()
+    )
+
+}
+
+
+
 
 private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
     val postgres = PostgreSQLContainer<Nothing>("postgres:15")

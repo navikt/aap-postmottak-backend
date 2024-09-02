@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    override fun opprettBehandling(journalpostId: JournalpostId, typeBehandling: TypeBehandling): Behandling {
+    override fun opprettBehandling(journalpostId: JournalpostId): Behandling {
 
         val query = """
             INSERT INTO BEHANDLING (referanse, status, type, journalpost_id)
@@ -24,7 +24,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             setParams {
                 setUUID(1, behandlingsreferanse.referanse)
                 setEnumName(2, Status.OPPRETTET)
-                setString(3, typeBehandling.identifikator())
+                setString(3, TypeBehandling.DokumentHåndtering.identifikator())
                 setLong(4, journalpostId.identifikator)
             }
         }
@@ -35,7 +35,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             journalpostId = journalpostId,
             referanse = behandlingsreferanse,
             sakId = SakId(1),
-            typeBehandling = typeBehandling,
             versjon = 0,
             vurderinger = Vurderinger()
         )
@@ -92,7 +91,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
             referanse = BehandlingReferanse(row.getUUID("referanse")),
             sakId = row.getLongOrNull("sak_id")?.let { SakId(it) },
-            typeBehandling = TypeBehandling.from(row.getString("type")),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             versjon = row.getLong("versjon"),

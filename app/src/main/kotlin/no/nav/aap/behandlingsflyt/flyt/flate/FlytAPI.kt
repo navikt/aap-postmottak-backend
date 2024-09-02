@@ -43,7 +43,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                 val behandling = BehandlingRepositoryImpl(connection).hent(req)
                 val flytJobbRepository = FlytJobbRepository(connection)
                 val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
-                val flyt = utledType(behandling.typeBehandling()).flyt()
+                val flyt = utledType(behandling.typeBehandling).flyt()
 
                     var erFullført = true
 

@@ -67,7 +67,7 @@ class AvklaringsbehovOrkestrator(
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         if (ingenEndringIGruppe && avklaringsbehovene.harVærtSendtTilbakeFraBeslutterTidligere()) {
-            val typeBehandling = behandling.typeBehandling()
+            val typeBehandling = behandling.typeBehandling
             val flyt = utledType(typeBehandling).flyt()
 
             flyt.forberedFlyt(behandling.aktivtSteg())
