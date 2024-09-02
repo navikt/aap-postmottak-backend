@@ -103,7 +103,7 @@ private fun opprettBehanldingKategoriser(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val behandling =
         behandlingRepository.opprettBehandling(JournalpostId(1L))
-    behandlingRepository.lagreGrovvurdeingVurdering(behandling.id, true)
+    behandlingRepository.lagreGrovvurdeing(behandling.id, true)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(behandling.id).medCallId()
@@ -117,7 +117,7 @@ private fun opprettBehanldingDigitaliser(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val behandling =
         behandlingRepository.opprettBehandling(JournalpostId(1L))
-    behandlingRepository.lagreGrovvurdeingVurdering(behandling.id, true)
+    behandlingRepository.lagreGrovvurdeing(behandling.id, true)
     behandlingRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)

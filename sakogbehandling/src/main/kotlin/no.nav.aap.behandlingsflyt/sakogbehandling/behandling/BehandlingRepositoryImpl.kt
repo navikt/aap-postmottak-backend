@@ -11,7 +11,7 @@ import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
 
-class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
+class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository, VurderingRepository {
 
     override fun opprettBehandling(journalpostId: JournalpostId): Behandling {
 
@@ -42,7 +42,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return behandling
     }
 
-    override fun lagreGrovvurdeingVurdering(behandlingId: BehandlingId, vurdering: Boolean) {
+    override fun lagreGrovvurdeing(behandlingId: BehandlingId, vurdering: Boolean) {
         connection.execute(
             """
             INSERT INTO SKAL_TIL_AAP_AVKLARING (BEHANDLING_ID, SKAL_TIL_AAP) VALUES (
@@ -73,7 +73,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun lagreStrukturertDokument(behandlingId: BehandlingId, strukturertDokument: String) {
         connection.execute(
             """
-            INSERT INTO DIGITALISERINGSAVKLARING (BEHANDLING_ID, KATEGORI) VALUES (
+            INSERT INTO DIGITALISERINGSAVKLARING (BEHANDLING_ID, STRUKTURERT_DOKUMENT) VALUES (
             ?, ?)
         """.trimIndent()
         ) {
