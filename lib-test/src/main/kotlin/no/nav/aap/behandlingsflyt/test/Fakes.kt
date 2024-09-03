@@ -37,10 +37,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
-        System.setProperty("azure.app.client.id", "behandlingsflyt")
+        System.setProperty("azure.app.client.id", "postmottak-backend")
         System.setProperty("azure.app.client.secret", "")
         System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.port()}/jwks")
-        System.setProperty("azure.openid.config.issuer", "behandlingsflyt")
+        System.setProperty("azure.openid.config.issuer", "postmottak-backend")
 
         // Oppgavestyring
         System.setProperty("integrasjon.oppgavestyring.scope", "oppgavestyring")
@@ -358,7 +358,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
         routing {
             post("/token") {
-                val token = AzureTokenGen("behandlingsflyt", "behandlingsflyt").generate()
+                val token = AzureTokenGen("postmottak-backend", "postmottak-backend").generate()
                 call.respond(TestToken(access_token = token))
             }
             get("/jwks") {
