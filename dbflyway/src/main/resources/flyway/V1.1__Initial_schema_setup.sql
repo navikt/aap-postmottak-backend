@@ -23,15 +23,14 @@ CREATE TABLE BEHANDLING
 (
     ID             BIGSERIAL                              NOT NULL PRIMARY KEY,
     SAK_ID         BIGINT                                 NULL,
-    JOURNALPOST_ID BIGINT                                 NULL,
-    REFERANSE      UUID UNIQUE                            NOT NULL,
+    JOURNALPOST_ID BIGINT                                 NOT NULL,
     STATUS         VARCHAR(100)                           NOT NULL,
     TYPE           VARCHAR(100)                           NOT NULL,
     VERSJON        BIGINT       DEFAULT 0                 NOT NULL,
     OPPRETTET_TID  TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE INDEX IDX_BEHANDLING_REFERANSE ON BEHANDLING (REFERANSE);
+CREATE INDEX IDX_BEHANDLING_JOURNALPOST_ID ON BEHANDLING (JOURNALPOST_ID);
 
 CREATE TABLE AVKLARINGSBEHOV
 (

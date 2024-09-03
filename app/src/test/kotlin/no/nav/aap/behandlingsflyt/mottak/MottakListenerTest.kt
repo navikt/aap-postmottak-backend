@@ -11,11 +11,9 @@ import libs.kafka.StreamsConfig
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.verdityper.dokument.JournalpostId
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 

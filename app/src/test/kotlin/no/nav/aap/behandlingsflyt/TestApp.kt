@@ -15,7 +15,7 @@ import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtf
 import no.nav.aap.behandlingsflyt.test.Fakes
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.verdityper.dokument.JournalpostId
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.testcontainers.containers.PostgreSQLContainer
@@ -57,7 +57,7 @@ fun main() {
 
         datasource.transaction {
             opprettBehanldingGrovKategorisering(it)
-            opprettBehanldingGrovKategorisering(it)
+            opprettBehanldingKategoriser(it)
             opprettBehanldingDigitaliser(it)
         }
 
@@ -65,7 +65,7 @@ fun main() {
             route("/test/hentAlleBehandlinger") {
                 get<Unit, List<BehandlingsListe>>() {
                     val response = datasource.transaction {
-                        it.queryList("""SELECT REFERANSE as ref, steg  FROM BEHANDLING
+                        it.queryList("""SELECT journalpost_id as ref, steg  FROM BEHANDLING
                             LEFT JOIN STEG_HISTORIKK ON STEG_HISTORIKK.BEHANDLING_ID = BEHANDLING.ID AND aktiv = true
                         """.trimMargin()) {
                             setRowMapper { BehandlingsListe(
@@ -88,9 +88,8 @@ data class BehandlingsListe(
 )
 
 private fun opprettBehanldingGrovKategorisering(connection: DBConnection) {
-
     val behandling =
-        BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1L))
+        BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(behandling.id).medCallId()
@@ -98,11 +97,9 @@ private fun opprettBehanldingGrovKategorisering(connection: DBConnection) {
 }
 
 private fun opprettBehanldingKategoriser(connection: DBConnection) {
-
-
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val behandling =
-        behandlingRepository.opprettBehandling(JournalpostId(1L))
+        behandlingRepository.opprettBehandling(JournalpostId(2))
     behandlingRepository.lagreGrovvurdeing(behandling.id, true)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
@@ -112,11 +109,9 @@ private fun opprettBehanldingKategoriser(connection: DBConnection) {
 }
 
 private fun opprettBehanldingDigitaliser(connection: DBConnection) {
-
-
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val behandling =
-        behandlingRepository.opprettBehandling(JournalpostId(1L))
+        behandlingRepository.opprettBehandling(JournalpostId(3))
     behandlingRepository.lagreGrovvurdeing(behandling.id, true)
     behandlingRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
@@ -125,9 +120,6 @@ private fun opprettBehanldingDigitaliser(connection: DBConnection) {
     )
 
 }
-
-
-
 
 private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
     val postgres = PostgreSQLContainer<Nothing>("postgres:15")

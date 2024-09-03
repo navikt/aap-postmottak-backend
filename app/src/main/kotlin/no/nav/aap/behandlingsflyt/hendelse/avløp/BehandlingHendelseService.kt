@@ -31,7 +31,7 @@ class BehandlingHendelseService(
 
         // TODO: Utvide med flere parametere for prioritering
         val hendelse = DokumentflytStoppetHendelse(
-            referanse = BehandlingReferanse(behandling.referanse.referanse),
+            referanse = behandling.referanse,
             behandlingType = behandling.typeBehandling,
             status = behandling.status(),
             avklaringsbehov = avklaringsbehovene.alle().map { avklaringsbehov ->

@@ -1,8 +1,7 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
-import no.nav.aap.verdityper.dokument.JournalpostId
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 interface VurderingRepository {
@@ -17,6 +16,6 @@ interface BehandlingRepository {
 
     fun hent(behandlingId: BehandlingId): Behandling
 
-    fun hent(referanse: BehandlingReferanse): Behandling
+    fun hent(journalpostId: JournalpostId): Behandling
 }
 

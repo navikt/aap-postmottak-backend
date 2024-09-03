@@ -1,16 +1,19 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 
-class KategoriserDokumentSteg private constructor(): BehandlingSteg {
+class KategoriserDokumentSteg private constructor(private val behandlingRepository: BehandlingRepository): BehandlingSteg {
     companion object: FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return KategoriserDokumentSteg()
+            return KategoriserDokumentSteg(BehandlingRepositoryImpl(connection))
         }
 
         override fun type(): StegType {
@@ -27,6 +30,8 @@ class KategoriserDokumentSteg private constructor(): BehandlingSteg {
         * Dersom manuell vurdering er gjort og digitalisering er nødvendig -> digitaliser
         * Derosm manuell vurdeiring er gjort og digitalisering ikke er nødvendig -> sent til B-Flow
         */
-        return StegResultat()
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        return if (!behandling.harBlittKategorisert()) StegResultat(listOf(Definisjon.KATEGORISER_DOKUMENT))
+            else StegResultat()
     }
 }

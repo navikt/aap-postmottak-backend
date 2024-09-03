@@ -1,8 +1,7 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
-import no.nav.aap.verdityper.dokument.JournalpostId
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.flyt.StegType
@@ -24,7 +23,6 @@ class Vurderinger(
 class Behandling(
     val id: BehandlingId,
     val journalpostId: JournalpostId,
-    val referanse: BehandlingReferanse = BehandlingReferanse(),
     val sakId: SakId? = null,
     private var status: Status = Status.OPPRETTET,
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
@@ -34,6 +32,8 @@ class Behandling(
 ) : Comparable<Behandling> {
 
     val typeBehandling = TypeBehandling.DokumentHåndtering
+    val referanse: JournalpostId = journalpostId
+
 
     fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
     fun harBlittgrovkategorisert() = vurderinger.grovkategorivurdering != null

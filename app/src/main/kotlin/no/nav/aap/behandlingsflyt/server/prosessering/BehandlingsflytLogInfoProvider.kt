@@ -14,7 +14,7 @@ object BehandlingsflytLogInfoProvider : JobbLogInfoProvider {
 
 
         val query = """
-            SELECT referanse
+            SELECT journalpost_id
             FROM BEHANDLING 
             WHERE id = ?
         """.trimIndent()
@@ -26,7 +26,7 @@ object BehandlingsflytLogInfoProvider : JobbLogInfoProvider {
             setRowMapper { row ->
                 LogInformasjon(
                     mapOf(
-                        "behandlingReferanse" to row.getString("referanse")
+                        "behandlingReferanse" to row.getString("journalpost_id")
                     )
                 )
             }

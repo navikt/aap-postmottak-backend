@@ -1,39 +1,35 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
-import no.nav.aap.verdityper.dokument.JournalpostId
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
 
-class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository, VurderingRepository {
+class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository,
+    VurderingRepository {
 
     override fun opprettBehandling(journalpostId: JournalpostId): Behandling {
 
         val query = """
-            INSERT INTO BEHANDLING (referanse, status, type, journalpost_id)
-                 VALUES (?, ?, ?, ?)
+            INSERT INTO BEHANDLING (status, type, journalpost_id)
+                 VALUES (?, ?, ?)
             """.trimIndent()
-        val behandlingsreferanse = BehandlingReferanse()
         val behandlingId = connection.executeReturnKey(query) {
             setParams {
-                setUUID(1, behandlingsreferanse.referanse)
-                setEnumName(2, Status.OPPRETTET)
-                setString(3, TypeBehandling.DokumentHåndtering.identifikator())
-                setLong(4, journalpostId.identifikator)
+                setEnumName(1, Status.OPPRETTET)
+                setString(2, TypeBehandling.DokumentHåndtering.identifikator())
+                setLong(3, journalpostId.identifikator)
             }
         }
-
 
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
             journalpostId = journalpostId,
-            referanse = behandlingsreferanse,
             sakId = SakId(1),
             versjon = 0,
             vurderinger = Vurderinger()
@@ -89,7 +85,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return Behandling(
             id = behandlingId,
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
-            referanse = BehandlingReferanse(row.getUUID("referanse")),
             sakId = row.getLongOrNull("sak_id")?.let { SakId(it) },
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
@@ -168,11 +163,12 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun hent(behandlingId: BehandlingId): Behandling {
 
         val query = """
-            SELECT * FROM BEHANDLING b
+            SELECT * FROM BEHANDLING b 
             ${vurderingJoinQuery("SKAL_TIL_AAP_AVKLARING")}
             ${vurderingJoinQuery("KATEGORIAVKLARING")}
             ${vurderingJoinQuery("DIGITALISERINGSAVKLARING")}
             WHERE b.id = ?
+            FOR UPDATE OF B
             """.trimIndent()
 
         return connection.queryFirst(query) {
@@ -200,18 +196,19 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    override fun hent(referanse: BehandlingReferanse): Behandling {
+    override fun hent(journalpostId: JournalpostId): Behandling {
         val query = """
             SELECT * FROM BEHANDLING b
             ${vurderingJoinQuery("SKAL_TIL_AAP_AVKLARING")}
             ${vurderingJoinQuery("KATEGORIAVKLARING")}
             ${vurderingJoinQuery("DIGITALISERINGSAVKLARING")}
-            WHERE referanse = ?
+            WHERE journalpost_id = ?
+            FOR UPDATE OF b
             """.trimIndent()
 
         return connection.queryFirst(query) {
             setParams {
-                setUUID(1, referanse.referanse)
+                setLong(1, journalpostId.identifikator)
             }
             setRowMapper {
                 mapBehandling(it)
@@ -220,6 +217,9 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     }
 
     private fun vurderingJoinQuery(tableName: String) =
-        "LEFT JOIN (SELECT * FROM $tableName ORDER BY TIDSSTEMPEL DESC LIMIT 1) as $tableName ON $tableName.BEHANDLING_ID = b.ID "
+        """LEFT JOIN $tableName ON $tableName.id = 
+            (SELECT id FROM $tableName 
+            |WHERE $tableName.behandling_id = b.id 
+            |ORDER BY TIDSSTEMPEL DESC LIMIT 1 FOR UPDATE)""".trimMargin()
 
 }

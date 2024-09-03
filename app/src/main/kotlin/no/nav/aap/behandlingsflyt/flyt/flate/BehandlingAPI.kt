@@ -13,6 +13,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.flyt.utledType
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
@@ -26,12 +27,12 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}") {
-            get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
+            get<JournalpostId, DetaljertBehandlingDTO> { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = behandling(connection, req)
                     val flyt = utledType(behandling.typeBehandling).flyt()
                     DetaljertBehandlingDTO(
-                        referanse = behandling.referanse.referanse,
+                        referanse = behandling.referanse,
                         type = behandling.typeBehandling.name,
                         status = behandling.status(),
                         opprettet = behandling.opprettetTidspunkt,
@@ -65,10 +66,8 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             }
         }
         route("/{referanse}/forbered") {
-            get<BehandlingReferanse, DetaljertBehandlingDTO> { req ->
+            get<JournalpostId, DetaljertBehandlingDTO> { req ->
                 dataSource.transaction { connection ->
-                    val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
-                    val lås = taSkriveLåsRepository.lås(req.referanse)
                     val behandling = behandling(connection, req)
                     val flytJobbRepository = FlytJobbRepository(connection)
                     if (flytJobbRepository.hentJobberForBehandling(behandling.id).isEmpty()) {
@@ -78,7 +77,6 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                             )
                         )
                     }
-                    taSkriveLåsRepository.verifiserSkrivelås(lås)
                 }
                 respondWithStatus(HttpStatusCode.Accepted)
             }
@@ -86,8 +84,8 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
     }
 }
 
-private fun behandling(connection: DBConnection, req: BehandlingReferanse): Behandling {
-    return BehandlingReferanseService(BehandlingRepositoryImpl(connection)).behandling(req)
+private fun behandling(connection: DBConnection, req: JournalpostId): Behandling {
+    return BehandlingRepositoryImpl(connection).hent(req)
 }
 
 private fun avklaringsbehov(connection: DBConnection, behandlingId: BehandlingId): Avklaringsbehovene {

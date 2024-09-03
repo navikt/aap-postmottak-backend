@@ -1,6 +1,5 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter
 
-import no.nav.aap.verdityper.dokument.JournalpostId
 import java.time.LocalDateTime
 
 class Dokument(private val id: Long,
