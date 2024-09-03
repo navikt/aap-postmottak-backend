@@ -67,3 +67,10 @@ spec:
         - application: tilgang
         - application: oppgavestyring
         - application: statistikk
+  env:
+    - name: INTEGRASJON_SAF_URL_GRAPHQL
+      value: https://saf-q2.dev-fss-pub.nais.io/graphql
+    - name: INTEGRASJON_SAF_URL_REST
+      value: https://saf-q2.dev-fss-pub.nais.io/rest
+    - name: INTEGRASJON_SAF_SCOPE
+      value: api://dev-fss.teamdokumenthandtering.saf/.default
