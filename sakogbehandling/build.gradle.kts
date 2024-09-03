@@ -1,15 +1,16 @@
 val ktorVersion = "2.3.12"
-val komponenterVersjon = "0.0.19"
+val komponenterVersjon = "0.0.23"
 
 
 dependencies {
-    implementation("dev.forst:ktor-openapi-generator:0.6.1")
+    implementation("no.nav:ktor-openapi-generator:1.0.18")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
 
     implementation(project(":verdityper"))
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
     implementation(project(":dbflyway"))
 
 
