@@ -41,6 +41,19 @@ class BehandlingRepositoryImplTest {
     }
 
     @Test
+    fun `når to grovvurdering blir lagret forventer jeg å finne den siste på behandlingen`() {
+        val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
+        transactionMedBehandlingRepository { it.lagreGrovvurdeing(behandlingId, false) }
+        Thread.sleep(100)
+        transactionMedBehandlingRepository { it.lagreGrovvurdeing(behandlingId, true) }
+        transactionMedBehandlingRepository {
+            val behandlingMedGrovvurdering = it.hent(behandlingId)
+
+            assertThat(behandlingMedGrovvurdering.vurderinger.grovkategorivurdering?.vurdering).isTrue()
+        }
+    }
+
+    @Test
     fun `når kategoriseringvurdering blir lagret forventer jeg å finne den på behandlingen`() {
         InitTestDatabase.dataSource.transaction {
             val repository = BehandlingRepositoryImpl(it)
@@ -58,6 +71,19 @@ class BehandlingRepositoryImplTest {
     }
 
     @Test
+    fun `når to kategoriseringvurderinger blir lagret forventer jeg å finne den siste på behandlingen`() {
+        val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
+        transactionMedBehandlingRepository { it.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD) }
+        Thread.sleep(100)
+        transactionMedBehandlingRepository { it.lagreKategoriseringVurdering(behandlingId, Brevkode.PLIKTKORT) }
+        transactionMedBehandlingRepository {
+            val behandlingMedGrovvurdering = it.hent(behandlingId)
+
+            assertThat(behandlingMedGrovvurdering.vurderinger.kategorivurdering?.vurdering).isEqualTo(Brevkode.PLIKTKORT)
+        }
+    }
+
+    @Test
     fun `når struktureringsvurdering blir lagret forventer jeg å finne den på behandlingen`() {
         InitTestDatabase.dataSource.transaction {
             val repository = BehandlingRepositoryImpl(it)
@@ -67,23 +93,77 @@ class BehandlingRepositoryImplTest {
             val json = """{"Test: Dokument"}"""
             repository.lagreStrukturertDokument(behandlingId, json)
 
-            val behandlingMedGrovvurdering = repository.hent(behandlingId)
+            val strukturertBehandling = repository.hent(behandlingId)
 
-            assertThat(behandlingMedGrovvurdering.harBlittStrukturert()).isTrue()
-            assertThat(behandlingMedGrovvurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
+            assertThat(strukturertBehandling.harBlittStrukturert()).isTrue()
+            assertThat(strukturertBehandling.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
 
         }
     }
 
     @Test
-    fun hent() {
+    fun `når to struktureringsvurderinger blir lagret forventer jeg å finne den siste på behandlingen`() {
+        val json = """{"Test: Dokument"}"""
+
+        val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
+        transactionMedBehandlingRepository { it.lagreStrukturertDokument(behandlingId, """{"Test: Plakat"}""") }
+        Thread.sleep(100)
+        transactionMedBehandlingRepository { it.lagreStrukturertDokument(behandlingId, json) }
+        transactionMedBehandlingRepository {
+            val behandlingMedGrovvurdering = it.hent(behandlingId)
+
+            assertThat(behandlingMedGrovvurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
+        }
     }
 
     @Test
-    fun hentBehandlingType() {
+    fun `hent behandling med id returnerer behandling og alle vurderinger`() {
+        InitTestDatabase.dataSource.transaction {
+            val repository = BehandlingRepositoryImpl(it)
+
+            val behandlingId = repository.opprettBehandling(JournalpostId(11111)).id
+            repository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
+            repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            repository.lagreGrovvurdeing(behandlingId, false)
+
+
+            repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+
+            val behandling = repository.hent(behandlingId)
+
+            assertThat(behandling.harBlittStrukturert()).isTrue()
+            assertThat(behandling.harBlittKategorisert()).isTrue()
+            assertThat(behandling.harBlittgrovkategorisert()).isTrue()
+
+        }
     }
 
     @Test
-    fun testHent() {
+    fun `hent behandling referanse returnerer behandling og alle vurderinger`() {
+        InitTestDatabase.dataSource.transaction {
+            val repository = BehandlingRepositoryImpl(it)
+
+            val behandling = repository.opprettBehandling(JournalpostId(11111))
+            val behandlingId = behandling.id
+            repository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
+            repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            repository.lagreGrovvurdeing(behandlingId, false)
+
+
+            val hentetBehandling = repository.hent(behandling.referanse)
+
+            assertThat(hentetBehandling.harBlittStrukturert()).isTrue()
+            assertThat(hentetBehandling.harBlittKategorisert()).isTrue()
+            assertThat(hentetBehandling.harBlittgrovkategorisert()).isTrue()
+
+        }
     }
+
+    fun <T> transactionMedBehandlingRepository(fn: (behandlingRepository: BehandlingRepositoryImpl) -> T): T =
+        InitTestDatabase.dataSource.transaction {
+            val behandlingRepository = BehandlingRepositoryImpl(it)
+            fn(behandlingRepository)
+        }
+
+
 }
