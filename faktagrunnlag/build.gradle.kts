@@ -4,7 +4,6 @@ val komponenterVersjon = "0.0.19"
 dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":verdityper"))
-    implementation(project(":tidslinje"))
     implementation(project(":dbflyway"))
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")

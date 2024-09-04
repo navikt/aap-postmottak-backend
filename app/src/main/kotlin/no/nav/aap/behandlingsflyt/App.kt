@@ -31,6 +31,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubty
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.dbflyway.Migrering
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.grovvurdering.flate.grovvurderingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.DefinisjonDTO
 import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
@@ -125,6 +126,8 @@ internal fun Application.server(dbConfig: DbConfig) {
                 flytApi(dataSource)
                 dokumentApi(dataSource)
                 avklaringsbehovApi(dataSource)
+                dokumentApi(dataSource)
+                grovvurderingApi(dataSource)
                 motorApi(dataSource)
             }
         }

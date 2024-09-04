@@ -5,7 +5,6 @@ include(
     "sakogbehandling",
     "faktagrunnlag",
     "verdityper",
-    "tidslinje",
     "dbflyway",
     "dbtest",
     "dbtestdata",
