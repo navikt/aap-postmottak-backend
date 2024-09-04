@@ -80,7 +80,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                         status = ProsesseringStatus.FERDIG,
                         ventendeOppgaver = emptyList()
                     ),
-                    behandlingVersjon = 1
+                    behandlingVersjon = behandling.versjon
                 )}
                 respond(dto)
             }
