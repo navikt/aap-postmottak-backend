@@ -27,7 +27,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.behandlingsflyt.dbflyway.Migrering
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.grovvurdering.flate.grovkategoriseringApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.strukturering.flate.struktureringApi
@@ -44,10 +44,11 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
-import no.nav.aap.komponenter.httpklient.requiredConfigForKey
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
+import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.dbflyway.Migrering
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -126,6 +127,7 @@ internal fun Application.server(dbConfig: DbConfig) {
                 behandlingApi(dataSource)
                 flytApi(dataSource)
                 avklaringsbehovApi(dataSource)
+                dokumentApi()
                 grovkategoriseringApi(dataSource)
                 kategoriseringApi(dataSource)
                 struktureringApi(dataSource)
