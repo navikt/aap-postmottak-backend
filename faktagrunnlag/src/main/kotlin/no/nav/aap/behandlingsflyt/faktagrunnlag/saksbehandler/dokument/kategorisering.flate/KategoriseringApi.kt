@@ -10,15 +10,15 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositor
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
 
-fun NormalOpenAPIRoute.grovvurderingApi(dataSource: HikariDataSource) {
-    route("/api/behandling/{referanse}/grovvurdering") {
-        get<JournalpostId, GrovvurderingDto> { req ->
+fun NormalOpenAPIRoute.kategoriseringApi(dataSource: HikariDataSource) {
+    route("/api/behandling/{referanse}/kategorisering") {
+        get<JournalpostId, KategoriseringVurderingDto> { req ->
             val vurdering = dataSource.transaction {
                 BehandlingRepositoryImpl(it).hent(req)
             }
             respond(
-                GrovvurderingDto(
-                    vurdering.vurderinger.grovkategorivurdering?.vurdering,
+                KategoriseringVurderingDto(
+                    vurdering.vurderinger.kategorivurdering?.vurdering,
                     listOf(1,2)
                 )
             )
