@@ -13,12 +13,16 @@ import no.nav.aap.komponenter.dbconnect.transaction
 fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/strukturering") {
         get<JournalpostId, StruktureringVurderingDto> { req ->
-            val vurdering = dataSource.transaction {
+            val behandling = dataSource.transaction {
                 BehandlingRepositoryImpl(it).hent(req)
             }
+
+            check(behandling.harBlittKategorisert()) { "Behandlingen mangler kategorisering" }
+
             respond(
                 StruktureringVurderingDto(
-                    vurdering.vurderinger.struktureringsvurdering?.vurdering,
+                    behandling.vurderinger.struktureringsvurdering?.vurdering,
+                    behandling.vurderinger.kategorivurdering!!.vurdering,
                     listOf(1,2)
                 )
             )
