@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.kategorisering.flate
+package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.strukturering.flate
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
@@ -10,15 +10,15 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositor
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
 
-fun NormalOpenAPIRoute.kategoriseringApi(dataSource: HikariDataSource) {
-    route("/api/behandling/{referanse}/kategorisering") {
-        get<JournalpostId, KategoriseringVurderingDto> { req ->
+fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
+    route("/api/behandling/{referanse}/strukturering") {
+        get<JournalpostId, StruktureringVurderingDto> { req ->
             val vurdering = dataSource.transaction {
                 BehandlingRepositoryImpl(it).hent(req)
             }
             respond(
-                KategoriseringVurderingDto(
-                    vurdering.vurderinger.kategorivurdering?.vurdering,
+                StruktureringVurderingDto(
+                    vurdering.vurderinger.struktureringsvurdering?.vurdering,
                     listOf(1,2)
                 )
             )

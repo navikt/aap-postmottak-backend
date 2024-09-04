@@ -2,7 +2,6 @@ package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning
 
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.KATEGORISER_DOKUMENT_KODE
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.KategoriserDokumentLøser
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.KategoriavklaringDto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeName
