@@ -23,7 +23,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             setParams {
                 setEnumName(1, Status.OPPRETTET)
                 setString(2, TypeBehandling.DokumentHåndtering.identifikator())
-                setLong(3, journalpostId.identifikator)
+                setLong(3, journalpostId.referanse)
             }
         }
 
@@ -208,7 +208,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
 
         return connection.queryFirst(query) {
             setParams {
-                setLong(1, journalpostId.identifikator)
+                setLong(1, journalpostId.referanse)
             }
             setRowMapper {
                 mapBehandling(it)

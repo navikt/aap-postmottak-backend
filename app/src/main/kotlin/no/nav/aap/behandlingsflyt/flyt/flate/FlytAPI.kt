@@ -12,11 +12,9 @@ import no.nav.aap.behandlingsflyt.flyt.flate.visning.DynamiskStegGruppeVisningSe
 import no.nav.aap.behandlingsflyt.flyt.flate.visning.Prosessering
 import no.nav.aap.behandlingsflyt.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.behandlingsflyt.flyt.utledType
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
@@ -30,7 +28,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
             get<JournalpostId, BehandlingFlytOgTilstandDto> { req ->
-                val dto = dataSource.transaction(readOnly = true) { connection ->
+                val dto = dataSource.transaction { connection ->
                 val behandling = BehandlingRepositoryImpl(connection).hent(req)
                 val flytJobbRepository = FlytJobbRepository(connection)
                 val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
