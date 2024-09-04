@@ -38,4 +38,5 @@ object InitTestDatabase {
             .load()
             .migrate()
     }
+
 }

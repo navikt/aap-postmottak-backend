@@ -23,7 +23,7 @@ CREATE TABLE BEHANDLING
 (
     ID             BIGSERIAL                              NOT NULL PRIMARY KEY,
     SAK_ID         BIGINT                                 NULL,
-    JOURNALPOST_ID BIGINT                                 NOT NULL,
+    JOURNALPOST_ID BIGINT                                 NOT NULL UNIQUE,
     STATUS         VARCHAR(100)                           NOT NULL,
     TYPE           VARCHAR(100)                           NOT NULL,
     VERSJON        BIGINT       DEFAULT 0                 NOT NULL,

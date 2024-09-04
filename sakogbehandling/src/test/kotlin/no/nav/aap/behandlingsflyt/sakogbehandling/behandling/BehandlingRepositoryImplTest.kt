@@ -1,20 +1,25 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.concurrent.thread
 
 class BehandlingRepositoryImplTest {
+
+
+    @BeforeEach
+    fun clean() {
+        InitTestDatabase.dataSource.transaction {
+            it.execute("""TRUNCATE BEHANDLING CASCADE""")
+        }
+    }
 
     @Test
     fun opprettBehandling() {
@@ -167,23 +172,23 @@ class BehandlingRepositoryImplTest {
 
     @Test
     fun `forventer at vurderingstabeller blir låst når behandlingen er låst`() {
-        transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
         thread {
             transactionMedBehandlingRepositorySuspend {
                 it.hent(BehandlingId(1))
                 Thread.sleep(500)
-                it.lagreGrovvurdeing(BehandlingId(1), false)
+                it.lagreGrovvurdeing(behandlingId, false)
             }
         }
         thread {
             Thread.sleep(100)
             transactionMedBehandlingRepositorySuspend {
-                it.lagreGrovvurdeing(BehandlingId(1), true)
+                it.lagreGrovvurdeing(behandlingId, true)
             }
         }.join()
 
         transactionMedBehandlingRepository {
-            val grovvurdering = it.hent(JournalpostId(1)).vurderinger.grovkategorivurdering?.vurdering
+            val grovvurdering = it.hent(behandlingId).vurderinger.grovkategorivurdering?.vurdering
             assertThat(grovvurdering).isNotNull().isEqualTo(true)
         }
 
