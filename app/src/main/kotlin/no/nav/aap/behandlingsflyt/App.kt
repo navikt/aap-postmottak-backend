@@ -28,7 +28,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.grovvurdering.flate.grovkategoriseringApi
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.avklarteam.flate.avklarTemaVurderingApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.strukturering.flate.struktureringApi
 import no.nav.aap.behandlingsflyt.flyt.flate.DefinisjonDTO
@@ -128,7 +128,7 @@ internal fun Application.server(dbConfig: DbConfig) {
                 flytApi(dataSource)
                 avklaringsbehovApi(dataSource)
                 dokumentApi()
-                grovkategoriseringApi(dataSource)
+                avklarTemaVurderingApi(dataSource)
                 kategoriseringApi(dataSource)
                 struktureringApi(dataSource)
                 motorApi(dataSource)

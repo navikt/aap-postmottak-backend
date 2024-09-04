@@ -35,32 +35,32 @@ class BehandlingRepositoryImplTest {
     }
 
     @Test
-    fun `når grovvurdering blir lagret forventer jeg å finne den på behandlingen`() {
+    fun `når teamavklaring blir lagret forventer jeg å finne den på behandlingen`() {
         InitTestDatabase.dataSource.transaction {
             val repository = BehandlingRepositoryImpl(it)
 
             val behandlingId = repository.opprettBehandling(JournalpostId(11111)).id
 
-            repository.lagreGrovvurdeing(behandlingId, false)
+            repository.lagreTeamAvklaring(behandlingId, false)
 
-            val behandlingMedGrovvurdering = repository.hent(behandlingId)
+            val behandlingMedTemaavklaring = repository.hent(behandlingId)
 
-            assertThat(behandlingMedGrovvurdering.harBlittgrovkategorisert()).isTrue()
-            assertThat(behandlingMedGrovvurdering.vurderinger.grovkategorivurdering?.vurdering).isFalse()
+            assertThat(behandlingMedTemaavklaring.temaErAvklart()).isTrue()
+            assertThat(behandlingMedTemaavklaring.vurderinger.avklarTemaVurdering?.vurdering).isFalse()
 
         }
     }
 
     @Test
-    fun `når to grovvurdering blir lagret forventer jeg å finne den siste på behandlingen`() {
+    fun `når to temaavklaringer blir lagret forventer jeg å finne den siste på behandlingen`() {
         val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
-        transactionMedBehandlingRepository { it.lagreGrovvurdeing(behandlingId, false) }
+        transactionMedBehandlingRepository { it.lagreTeamAvklaring(behandlingId, false) }
         Thread.sleep(100)
-        transactionMedBehandlingRepository { it.lagreGrovvurdeing(behandlingId, true) }
+        transactionMedBehandlingRepository { it.lagreTeamAvklaring(behandlingId, true) }
         transactionMedBehandlingRepository {
-            val behandlingMedGrovvurdering = it.hent(behandlingId)
+            val behandlingMedTemavurdering = it.hent(behandlingId)
 
-            assertThat(behandlingMedGrovvurdering.vurderinger.grovkategorivurdering?.vurdering).isTrue()
+            assertThat(behandlingMedTemavurdering.vurderinger.avklarTemaVurdering?.vurdering).isTrue()
         }
     }
 
@@ -88,9 +88,9 @@ class BehandlingRepositoryImplTest {
         Thread.sleep(100)
         transactionMedBehandlingRepository { it.lagreKategoriseringVurdering(behandlingId, Brevkode.PLIKTKORT) }
         transactionMedBehandlingRepository {
-            val behandlingMedGrovvurdering = it.hent(behandlingId)
+            val behandlingMedTemavurdering = it.hent(behandlingId)
 
-            assertThat(behandlingMedGrovvurdering.vurderinger.kategorivurdering?.vurdering).isEqualTo(Brevkode.PLIKTKORT)
+            assertThat(behandlingMedTemavurdering.vurderinger.kategorivurdering?.vurdering).isEqualTo(Brevkode.PLIKTKORT)
         }
     }
 
@@ -121,9 +121,9 @@ class BehandlingRepositoryImplTest {
         Thread.sleep(100)
         transactionMedBehandlingRepository { it.lagreStrukturertDokument(behandlingId, json) }
         transactionMedBehandlingRepository {
-            val behandlingMedGrovvurdering = it.hent(behandlingId)
+            val behandlingMedTemavurdering = it.hent(behandlingId)
 
-            assertThat(behandlingMedGrovvurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
+            assertThat(behandlingMedTemavurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
         }
     }
 
@@ -135,7 +135,7 @@ class BehandlingRepositoryImplTest {
             val behandlingId = repository.opprettBehandling(JournalpostId(11111)).id
             repository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
             repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-            repository.lagreGrovvurdeing(behandlingId, false)
+            repository.lagreTeamAvklaring(behandlingId, false)
 
 
             repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
@@ -144,7 +144,7 @@ class BehandlingRepositoryImplTest {
 
             assertThat(behandling.harBlittStrukturert()).isTrue()
             assertThat(behandling.harBlittKategorisert()).isTrue()
-            assertThat(behandling.harBlittgrovkategorisert()).isTrue()
+            assertThat(behandling.temaErAvklart()).isTrue()
 
         }
     }
@@ -158,14 +158,14 @@ class BehandlingRepositoryImplTest {
             val behandlingId = behandling.id
             repository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
             repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-            repository.lagreGrovvurdeing(behandlingId, false)
+            repository.lagreTeamAvklaring(behandlingId, false)
 
 
             val hentetBehandling = repository.hent(behandling.referanse)
 
             assertThat(hentetBehandling.harBlittStrukturert()).isTrue()
             assertThat(hentetBehandling.harBlittKategorisert()).isTrue()
-            assertThat(hentetBehandling.harBlittgrovkategorisert()).isTrue()
+            assertThat(hentetBehandling.temaErAvklart()).isTrue()
 
         }
     }
@@ -177,19 +177,19 @@ class BehandlingRepositoryImplTest {
             transactionMedBehandlingRepositorySuspend {
                 it.hent(BehandlingId(1))
                 Thread.sleep(500)
-                it.lagreGrovvurdeing(behandlingId, false)
+                it.lagreTeamAvklaring(behandlingId, false)
             }
         }
         thread {
             Thread.sleep(100)
             transactionMedBehandlingRepositorySuspend {
-                it.lagreGrovvurdeing(behandlingId, true)
+                it.lagreTeamAvklaring(behandlingId, true)
             }
         }.join()
 
         transactionMedBehandlingRepository {
-            val grovvurdering = it.hent(behandlingId).vurderinger.grovkategorivurdering?.vurdering
-            assertThat(grovvurdering).isNotNull().isEqualTo(true)
+            val temavurdering = it.hent(behandlingId).vurderinger.avklarTemaVurdering?.vurdering
+            assertThat(temavurdering).isNotNull().isEqualTo(true)
         }
 
     }

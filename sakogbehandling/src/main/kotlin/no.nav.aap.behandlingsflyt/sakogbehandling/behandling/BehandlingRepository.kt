@@ -5,7 +5,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Journalp
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 interface VurderingRepository {
-    fun lagreGrovvurdeing(behandlingId: BehandlingId, vurdering: Boolean)
+    fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean)
     fun lagreKategoriseringVurdering(behandlingId: BehandlingId, kategori: Brevkode)
     fun lagreStrukturertDokument(behandlingId: BehandlingId, strukturertDokument: String)
 }

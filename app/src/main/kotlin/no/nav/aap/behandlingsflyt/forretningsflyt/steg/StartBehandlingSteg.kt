@@ -26,7 +26,7 @@ class StartBehandlingSteg private constructor() : BehandlingSteg {
         log.info("Treffer Start behandling steg")
         /* TODO forsøk å automatisk utrede dokument type
         *  Hvis vi automatisk kan si at brevet skal til AAP til FinnSak
-        *  Hvis ikke send til Grovkategorisering
+        *  Hvis ikke send til Avklar tema
         */
         return StegResultat()
     }

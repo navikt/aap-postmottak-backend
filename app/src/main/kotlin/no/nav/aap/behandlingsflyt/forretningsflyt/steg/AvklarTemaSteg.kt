@@ -11,30 +11,30 @@ import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(GrovkategoriseringSteg::class.java)
+private val log = LoggerFactory.getLogger(AvklarTemaSteg::class.java)
 
-class GrovkategoriseringSteg(private val behandlingRepository: BehandlingRepository) : BehandlingSteg {
+class AvklarTemaSteg(private val behandlingRepository: BehandlingRepository) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return GrovkategoriseringSteg(BehandlingRepositoryImpl(connection))
+            return AvklarTemaSteg(BehandlingRepositoryImpl(connection))
         }
 
         override fun type(): StegType {
-            return StegType.GROVKATEGORTISER_DOKUMENT
+            return StegType.AVKLAR_TEMA
         }
 
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        log.info("Treffer Grovkategoriseringssteg")
+        log.info("Treffer avklartema utfører")
         /* TODO finn avklaring om dokument faktisk skal til AAP eller skal returneres
         *  Hvis dokument er avklart med ja: Stegresultat()
         *  Hvis avklart med nei: Returner avklaringsbehov for returnering av dokument
-        *  Hvis ikke avklart enda: returner Definisjon.GROVKATEGORISER_DOKUMENT
+        *  Hvis ikke avklart enda: returner Definisjon.AVKLAR_TEMA
         */
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        return if (!behandling.harBlittgrovkategorisert()) StegResultat(listOf(Definisjon.GROVKATEGORISER_DOKUMENT))
-            else if (behandling.vurderinger.grovkategorivurdering!!.vurdering) StegResultat()
+        return if (!behandling.temaErAvklart()) StegResultat(listOf(Definisjon.AVKLAR_TEMA))
+            else if (behandling.vurderinger.avklarTemaVurdering!!.vurdering) StegResultat()
             else StegResultat(listOf(/*Definisjon.RETURNERINGSPROSEDYRE*/))
     }
 }

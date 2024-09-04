@@ -34,11 +34,5 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     FINN_SAK(
         gruppe = StegGruppe.FINN_SAK,
         status = Status.UTREDES,
-    ),
-    GROVKATEGORTISER_DOKUMENT(
-        gruppe = StegGruppe.GROVKATEGORISERING,
-        status = Status.UTREDES,
-    ),
-
-
+    )
 }

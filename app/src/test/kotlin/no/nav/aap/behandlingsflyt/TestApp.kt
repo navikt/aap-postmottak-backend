@@ -56,7 +56,7 @@ fun main() {
         val datasource = initDatasource(dbConfig)
 
         datasource.transaction {
-            opprettBehanldingGrovKategorisering(it)
+            opprettBehanldingAvklarTeam(it)
             opprettBehanldingKategoriser(it)
             opprettBehanldingDigitaliser(it)
         }
@@ -87,7 +87,7 @@ data class BehandlingsListe(
     val status: String
 )
 
-private fun opprettBehanldingGrovKategorisering(connection: DBConnection) {
+private fun opprettBehanldingAvklarTeam(connection: DBConnection) {
     val behandling =
         BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1))
     FlytJobbRepository(connection).leggTil(
@@ -100,7 +100,7 @@ private fun opprettBehanldingKategoriser(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val behandling =
         behandlingRepository.opprettBehandling(JournalpostId(2))
-    behandlingRepository.lagreGrovvurdeing(behandling.id, true)
+    behandlingRepository.lagreTeamAvklaring(behandling.id, true)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(behandling.id).medCallId()
@@ -112,7 +112,7 @@ private fun opprettBehanldingDigitaliser(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val behandling =
         behandlingRepository.opprettBehandling(JournalpostId(3))
-    behandlingRepository.lagreGrovvurdeing(behandling.id, true)
+    behandlingRepository.lagreTeamAvklaring(behandling.id, true)
     behandlingRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)

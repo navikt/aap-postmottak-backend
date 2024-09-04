@@ -37,7 +37,7 @@ class SafRestClient(private val restClient: RestClient<InputStream>) {
         currentToken: OidcToken,
     ): SafDocumentResponse {
         val url = konstruerSafRestURL(restUrl, journalpostId, dokumentId, arkivtype)
-        val response = restClient.get(url,             request = GetRequest(currentToken = currentToken),
+        val response = restClient.get(url,request = GetRequest(currentToken = currentToken),
             mapper = { body, headers ->
                 val contentType = headers.map()["Content-Type"]?.firstOrNull()
                 val filnavn: String? = extractFileNameFromHeaders(headers)

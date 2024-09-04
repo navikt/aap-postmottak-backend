@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 class Vurdering<T>(val vurdering: T)
 
 class Vurderinger(
-    val grovkategorivurdering: Vurdering<Boolean>? = null,
+    val avklarTemaVurdering: Vurdering<Boolean>? = null,
     val kategorivurdering: Vurdering<Brevkode>? = null,
     val struktureringsvurdering: Vurdering<String>? = null
 )
@@ -36,7 +36,7 @@ class Behandling(
 
 
     fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
-    fun harBlittgrovkategorisert() = vurderinger.grovkategorivurdering != null
+    fun temaErAvklart() = vurderinger.avklarTemaVurdering != null
     fun harBlittKategorisert() = vurderinger.kategorivurdering != null
 
     fun flytKontekst(): FlytKontekst {

@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.grovvurdering.flate
+package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.avklarteam.flate
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
@@ -10,15 +10,15 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositor
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
 
-fun NormalOpenAPIRoute.grovkategoriseringApi(dataSource: HikariDataSource) {
-    route("/api/behandling/{referanse}/grovvurdering") {
-        get<JournalpostId, GrovvurderingDto> { req ->
+fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
+    route("/api/behandling/{referanse}/avklarTemaVurdering") {
+        get<JournalpostId, AvklarTemaVurderingDto> { req ->
             val vurdering = dataSource.transaction {
                 BehandlingRepositoryImpl(it).hent(req)
             }
             respond(
-                GrovvurderingDto(
-                    vurdering.vurderinger.grovkategorivurdering?.vurdering,
+                AvklarTemaVurderingDto(
+                    vurdering.vurderinger.avklarTemaVurdering?.vurdering,
                     listOf(1,2)
                 )
             )

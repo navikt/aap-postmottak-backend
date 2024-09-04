@@ -38,7 +38,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return behandling
     }
 
-    override fun lagreGrovvurdeing(behandlingId: BehandlingId, vurdering: Boolean) {
+    override fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean) {
         connection.execute(
             """
             INSERT INTO SKAL_TIL_AAP_AVKLARING (BEHANDLING_ID, SKAL_TIL_AAP) VALUES (
