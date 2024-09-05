@@ -14,6 +14,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
+import no.nav.aap.behandlingsflyt.joark.FerdigstillRequest
+import no.nav.aap.behandlingsflyt.joark.OppdaterJournalpostRequest
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.intellij.lang.annotations.Language
@@ -30,6 +32,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
     private val medl = embeddedServer(Netty, port = 0, module = { medlFake() }).apply { start() }
+    private val joark = embeddedServer(Netty, port = 0, module = { joarkFake() }).apply { start() }
     private val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() }).apply { start() }
 
 
@@ -59,6 +62,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Pesys
         System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
         System.setProperty("integrasjon.pesys.scope", "scope")
+
+        // Joark
+        System.setProperty("integrasjon.joark.url", "http://localhost:${joark.port()}")
+        System.setProperty("integrasjon.joark.scope", "scope")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -91,6 +98,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         oppgavestyring.stop(0L, 0L)
         saf.stop(0L, 0L)
         medl.stop(0L, 0L)
+        joark.stop(0, 0)
     }
 
     fun leggTil(person: TestPerson) {
@@ -142,6 +150,22 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 val uføregrad = fakePersoner[ident]?.uføre?.prosentverdi() ?: 0
 
                 call.respond(HttpStatusCode.OK, uføregrad)
+            }
+        }
+    }
+
+    private fun Application.joarkFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        routing {
+            put("/rest/journalpostapi/v1/journalpost/{journalpostId}") {
+                call.receive<OppdaterJournalpostRequest>()
+                call.respond(HttpStatusCode.NoContent)
+            }
+            patch("/rest/journalpostapi/v1/journalpost/{journalpostId}/ferdigstill") {
+                call.receive<FerdigstillRequest>()
+                call.respond(HttpStatusCode.NoContent)
             }
         }
     }

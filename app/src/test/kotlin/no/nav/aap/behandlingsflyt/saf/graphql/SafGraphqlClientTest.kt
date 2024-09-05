@@ -1,15 +1,13 @@
 package no.nav.aap.behandlingsflyt.saf.graphql
 
 import mottak.saf.SafGraphqlClient
+import no.nav.aap.WithFakes
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.behandlingsflyt.test.Fakes
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 
-class SafGraphqlClientTest {
-
-    val fakes = Fakes(azurePort = 8081)
+class SafGraphqlClientTest: WithFakes() {
 
     @Test
     fun hentJournalpost() {

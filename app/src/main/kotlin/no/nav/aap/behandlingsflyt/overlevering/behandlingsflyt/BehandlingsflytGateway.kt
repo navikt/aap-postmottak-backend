@@ -26,9 +26,9 @@ interface BehandlingsflytGateway {
 
 class BehandlingsflytClient() : BehandlingsflytGateway {
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))
+    private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
     val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.behandlingsflyt.scope"),
+        scope = requiredConfigForKey("integrasjon.joark.scope"),
     )
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
@@ -48,7 +48,7 @@ class BehandlingsflytClient() : BehandlingsflytGateway {
                 Header("Accept", "application/json")
             )
         )
-        return client.post(url.resolve("/api/sak/finnEllerOpprett"), request = request)
+        return client.post(url.resolve("/api/sak/finnEllerOpprett"), request)
             ?: throw UnknownError("Fikk uforventet respons fra behandlingsflyt")
 
     }
