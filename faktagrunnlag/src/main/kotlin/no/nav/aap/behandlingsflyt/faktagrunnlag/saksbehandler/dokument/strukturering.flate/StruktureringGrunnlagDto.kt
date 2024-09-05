@@ -3,7 +3,11 @@ package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.struktur
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 
 data class StruktureringVurderingDto(
-    val vurdering: String?,
+    val strukturertDokumentJson: String,
+)
+
+data class StruktureringGrunnlagDto(
+    val vurdering: StruktureringVurderingDto?,
     val kategori: Brevkode,
     val dokumenter: List<Long>
 )

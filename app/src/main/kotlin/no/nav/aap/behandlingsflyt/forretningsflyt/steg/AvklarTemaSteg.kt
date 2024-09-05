@@ -33,7 +33,7 @@ class AvklarTemaSteg(private val behandlingRepository: BehandlingRepository) : B
         *  Hvis ikke avklart enda: returner Definisjon.AVKLAR_TEMA
         */
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        return if (!behandling.temaErAvklart()) StegResultat(listOf(Definisjon.AVKLAR_TEMA))
+        return if (!behandling.harTemaBlittAvklart()) StegResultat(listOf(Definisjon.AVKLAR_TEMA))
             else if (behandling.vurderinger.avklarTemaVurdering!!.vurdering) StegResultat()
             else StegResultat(listOf(/*Definisjon.RETURNERINGSPROSEDYRE*/))
     }

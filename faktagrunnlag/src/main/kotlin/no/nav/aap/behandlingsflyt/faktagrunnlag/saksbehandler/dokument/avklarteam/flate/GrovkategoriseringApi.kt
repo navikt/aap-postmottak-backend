@@ -12,14 +12,15 @@ import no.nav.aap.komponenter.dbconnect.transaction
 
 fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/avklarTemaVurdering") {
-        get<JournalpostId, AvklarTemaVurderingDto> { req ->
+        get<JournalpostId, AvklarTemaGrunnlagDto> { req ->
             val vurdering = dataSource.transaction {
                 BehandlingRepositoryImpl(it).hent(req)
             }
             respond(
-                AvklarTemaVurderingDto(
-                    vurdering.vurderinger.avklarTemaVurdering?.vurdering,
-                    listOf(1,2)
+                AvklarTemaGrunnlagDto(
+                    vurdering.vurderinger.avklarTemaVurdering
+                        ?.vurdering?.let(::AvklarTemaVurderingDto),
+                    listOf(1, 2)
                 )
             )
         }

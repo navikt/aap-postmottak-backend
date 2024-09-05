@@ -12,14 +12,15 @@ import no.nav.aap.komponenter.dbconnect.transaction
 
 fun NormalOpenAPIRoute.kategoriseringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/kategorisering") {
-        get<JournalpostId, KategoriseringVurderingDto> { req ->
+        get<JournalpostId, KategoriseringGrunnlagDto> { req ->
             val vurdering = dataSource.transaction {
                 BehandlingRepositoryImpl(it).hent(req)
             }
             respond(
-                KategoriseringVurderingDto(
-                    vurdering.vurderinger.kategorivurdering?.vurdering,
-                    listOf(1,2)
+                KategoriseringGrunnlagDto(
+                    vurdering.vurderinger.kategorivurdering
+                        ?.vurdering?.let(::KategoriseringVurderingDto),
+                    listOf(1, 2)
                 )
             )
         }

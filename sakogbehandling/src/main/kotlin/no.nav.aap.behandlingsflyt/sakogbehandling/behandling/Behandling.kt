@@ -36,7 +36,7 @@ class Behandling(
 
 
     fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
-    fun temaErAvklart() = vurderinger.avklarTemaVurdering != null
+    fun harTemaBlittAvklart() = vurderinger.avklarTemaVurdering != null
     fun harBlittKategorisert() = vurderinger.kategorivurdering != null
 
     fun flytKontekst(): FlytKontekst {

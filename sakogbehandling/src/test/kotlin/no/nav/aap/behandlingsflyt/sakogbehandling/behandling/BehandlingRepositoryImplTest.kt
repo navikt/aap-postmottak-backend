@@ -45,7 +45,7 @@ class BehandlingRepositoryImplTest {
 
             val behandlingMedTemaavklaring = repository.hent(behandlingId)
 
-            assertThat(behandlingMedTemaavklaring.temaErAvklart()).isTrue()
+            assertThat(behandlingMedTemaavklaring.harTemaBlittAvklart()).isTrue()
             assertThat(behandlingMedTemaavklaring.vurderinger.avklarTemaVurdering?.vurdering).isFalse()
 
         }
@@ -144,7 +144,7 @@ class BehandlingRepositoryImplTest {
 
             assertThat(behandling.harBlittStrukturert()).isTrue()
             assertThat(behandling.harBlittKategorisert()).isTrue()
-            assertThat(behandling.temaErAvklart()).isTrue()
+            assertThat(behandling.harTemaBlittAvklart()).isTrue()
 
         }
     }
@@ -165,7 +165,7 @@ class BehandlingRepositoryImplTest {
 
             assertThat(hentetBehandling.harBlittStrukturert()).isTrue()
             assertThat(hentetBehandling.harBlittKategorisert()).isTrue()
-            assertThat(hentetBehandling.temaErAvklart()).isTrue()
+            assertThat(hentetBehandling.harTemaBlittAvklart()).isTrue()
 
         }
     }
