@@ -175,109 +175,39 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             post("/graphql") {
                 val body = call.receive<String>()
 
-                if ("dokumentoversiktFagsak" in body) {
-                    call.respondText(
-                        """
+                call.respondText(
+                    """
+                    { "data":
+                    {"journalpost":
+                        {
+                          "journalpostId": "1",
+                          "personident": "3",
+                          "status": "MOTTATT",
+                          "journalførendeEnhet": {"nr": 3001},
+                          "mottattDato": "2021-12-01",
+                          "relevanteDatoer": [
                             {
-                              "data": {
-                                "dokumentoversiktFagsak": {
-                                  "journalposter": [
-                                    {
-                                      "journalpostId": "453877977",
-                                      "behandlingstema": null,
-                                      "antallRetur": null,
-                                      "kanal": "NAV_NO",
-                                      "innsynsregelBeskrivelse": "Standardreglene avgjør om dokumentet vises",
-                                      "dokumenter": [
-                                        {
-                                          "dokumentInfoId": "454273798",
-                                          "tittel": "Søknad om Arbeidsavklaringspenger",
-                                          "brevkode": "NAV 11-13.05",
-                                          "dokumentstatus": null,
-                                          "datoFerdigstilt": null,
-                                          "originalJournalpostId": "453877977",
-                                          "skjerming": null,
-                                          "logiskeVedlegg": [],
-                                          "dokumentvarianter": [
-                                            {
-                                              "variantformat": "ARKIV",
-                                              "saksbehandlerHarTilgang": true,
-                                              "skjerming": null
-                                            },
-                                            {
-                                              "variantformat": "ORIGINAL",
-                                              "saksbehandlerHarTilgang": true,
-                                              "skjerming": null
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "dokumentInfoId": "454273829",
-                                          "tittel": "Annen dokumentasjon",
-                                          "brevkode": null,
-                                          "dokumentstatus": null,
-                                          "datoFerdigstilt": null,
-                                          "originalJournalpostId": "453877977",
-                                          "skjerming": null,
-                                          "logiskeVedlegg": [],
-                                          "dokumentvarianter": [
-                                            {
-                                              "variantformat": "ARKIV",
-                                              "saksbehandlerHarTilgang": true,
-                                              "skjerming": null
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "journalpostId": "453873496",
-                                      "behandlingstema": null,
-                                      "antallRetur": null,
-                                      "kanal": "NAV_NO",
-                                      "innsynsregelBeskrivelse": "Standardreglene avgjør om dokumentet vises",
-                                      "dokumenter": [
-                                        {
-                                          "dokumentInfoId": "454268545",
-                                          "tittel": "Søknad om Arbeidsavklaringspenger",
-                                          "brevkode": "NAV 11-13.05",
-                                          "dokumentstatus": null,
-                                          "datoFerdigstilt": null,
-                                          "originalJournalpostId": "453873496",
-                                          "skjerming": null,
-                                          "logiskeVedlegg": [],
-                                          "dokumentvarianter": [
-                                            {
-                                              "variantformat": "ARKIV",
-                                              "saksbehandlerHarTilgang": true,
-                                              "skjerming": null
-                                            },
-                                            {
-                                              "variantformat": "ORIGINAL",
-                                              "saksbehandlerHarTilgang": true,
-                                              "skjerming": null
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    }
-                                  ],
-                                  "sideInfo": {
-                                    "sluttpeker": "NDUzODczNDk2",
-                                    "finnesNesteSide": false,
-                                    "antall": 2,
-                                    "totaltAntall": 2
-                                  }
-                                }
-                              }
+                            "dato": "2020-12-01T10:00:00",
+                            "datotype": "DATO_REGISTRERT"
                             }
+                          ], 
+                          "dokumenter": [
+                            {
+                              "dokumentInfoId": "454268545",
+                              "brevkode": "NAV 11-13.05",
+                              "dokumentvarianter": [
+                                {
+                                "variantformat": "ARKIV",
+                                "filtype": "string"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                    }}
                 """.trimIndent(),
-                        contentType = ContentType.Application.Json
-                    )
-                } else {
-                    print("FEIL KALL")
-                    call.respond(HttpStatusCode.BadRequest)
-                }
+                    contentType = ContentType.Application.Json
+                )
             }
         }
     }
@@ -331,7 +261,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     }
 
 
-
     private fun hentEllerGenererTestPerson(forespurtIdent: String): TestPerson {
         val person = fakePersoner[forespurtIdent]
         if (person == null) {
@@ -343,7 +272,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
         return fakePersoner[forespurtIdent]!!
     }
-
 
 
     private fun Application.azureFake() {

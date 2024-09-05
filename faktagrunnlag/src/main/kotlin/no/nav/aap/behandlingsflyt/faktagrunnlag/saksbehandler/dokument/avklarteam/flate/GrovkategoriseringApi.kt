@@ -24,5 +24,4 @@ fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
             )
         }
     }
-
 }
