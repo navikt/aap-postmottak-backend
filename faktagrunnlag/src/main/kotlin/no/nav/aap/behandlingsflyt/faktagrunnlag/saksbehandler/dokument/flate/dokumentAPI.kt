@@ -15,7 +15,7 @@ import no.nav.aap.verdityper.dokument.DokumentInfoId
 
 fun NormalOpenAPIRoute.dokumentApi() {
     route("/api/dokumenter") {
-        route("/{journalpostId}/{dokumentinfoId") {
+        route("/{journalpostId}/{dokumentinfoId}") {
             get<HentDokumentDTO, DokumentResponsDTO> { req ->
                 val journalpostId = req.journalpostId
                 val dokumentInfoId = req.dokumentinfoId
