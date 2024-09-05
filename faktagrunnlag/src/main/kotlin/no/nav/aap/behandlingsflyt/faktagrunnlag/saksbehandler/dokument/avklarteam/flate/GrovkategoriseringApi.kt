@@ -11,7 +11,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Journalp
 import no.nav.aap.komponenter.dbconnect.transaction
 
 fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
-    route("/api/behandling/{referanse}/avklarTemaVurdering") {
+    route("/api/behandling/{referanse}/grunnlag/avklarTemaVurdering") {
         get<JournalpostId, AvklarTemaGrunnlagDto> { req ->
             val vurdering = dataSource.transaction {
                 BehandlingRepositoryImpl(it).hent(req)

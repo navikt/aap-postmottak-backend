@@ -11,7 +11,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Journalp
 import no.nav.aap.komponenter.dbconnect.transaction
 
 fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
-    route("/api/behandling/{referanse}/strukturering") {
+    route("/api/behandling/{referanse}/grunnlag/strukturering") {
         get<JournalpostId, StruktureringGrunnlagDto> { req ->
             val behandling = dataSource.transaction {
                 BehandlingRepositoryImpl(it).hent(req)
