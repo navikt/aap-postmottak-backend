@@ -3,9 +3,11 @@ package mottak.saf
 import SafResponseHandler
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.saf.Dokument
+import no.nav.aap.behandlingsflyt.saf.Filtype
 import no.nav.aap.behandlingsflyt.saf.Ident
 import no.nav.aap.behandlingsflyt.saf.Journalpost
 import no.nav.aap.behandlingsflyt.saf.JournalpostStatus
+import no.nav.aap.behandlingsflyt.saf.Variantformat
 import no.nav.aap.behandlingsflyt.saf.graphql.BrukerIdType
 import no.nav.aap.behandlingsflyt.saf.graphql.Journalstatus
 import no.nav.aap.behandlingsflyt.saf.graphql.SafDatoType
@@ -60,7 +62,8 @@ object SafGraphqlClient {
             dokument.dokumentvarianter.filterNotNull().map { variant ->
                 Dokument(
                     dokument.dokumentInfoId,
-                    variant.variantformat.name,
+                    Variantformat.valueOf(variant.variantformat.name),
+                    Filtype.valueOf(variant.filtype),
                     dokument.brevkode
                 )
             }

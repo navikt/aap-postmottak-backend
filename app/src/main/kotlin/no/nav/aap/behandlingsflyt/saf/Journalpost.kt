@@ -24,8 +24,10 @@ sealed class Journalpost(
     fun mottattDato() = mottattDato
 
     fun finnOriginal(): Dokument? = dokumenter.find {
-        it.variantFormat == "ORIGINAL"
+        it.variantFormat == Variantformat.ORIGINAL
     }
+
+    fun erDigital(): Boolean = finnOriginal()?.filtype == Filtype.JSON
 
     data class UtenIdent(
         override val journalpostId: Long,
@@ -58,6 +60,15 @@ enum class JournalpostStatus {
 
 data class Dokument(
     val dokumentInfoId: String,
-    val variantFormat: String,
+    val variantFormat: Variantformat,
+    val filtype: Filtype,
     val brevkode: String?
 )
+
+enum class Filtype {
+    PDF, JPEG, PNG, TIFF, XLSX, JSON, XML, AXML, DXML, RTF
+}
+
+enum class Variantformat {
+    ARKIV, FULLVERSJON, PRODUKSJON, PRODUKSJON_DLF, SLADDET, ORIGINAL
+}

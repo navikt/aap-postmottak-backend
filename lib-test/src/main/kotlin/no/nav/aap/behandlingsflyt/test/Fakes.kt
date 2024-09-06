@@ -222,7 +222,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                               "dokumentvarianter": [
                                 {
                                 "variantformat": "ARKIV",
-                                "filtype": "string"
+                                "filtype": "JSON"
                                 }
                               ]
                             }
