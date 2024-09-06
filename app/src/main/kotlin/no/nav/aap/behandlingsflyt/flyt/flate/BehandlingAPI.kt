@@ -1,7 +1,9 @@
 package no.nav.aap.behandlingsflyt.flyt.flate
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
+import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
@@ -14,9 +16,6 @@ import no.nav.aap.behandlingsflyt.flyt.utledType
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanseService
-import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.behandlingsflyt.server.respondWithStatus
 import no.nav.aap.motor.FlytJobbRepository
@@ -81,6 +80,18 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                 respondWithStatus(HttpStatusCode.Accepted)
             }
         }
+        // TODO: Kun for test
+        post<Unit, JournalpostDto, JournalpostDto> { _, body ->
+            dataSource.transaction { connection ->
+                val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId((body.referanse)))
+                FlytJobbRepository(connection).leggTil(
+                    JobbInput(ProsesserBehandlingJobbUtfører)
+                        .forBehandling(behandling.id).medCallId()
+                )
+
+            }
+            respond(JournalpostDto(body.referanse))
+        }
     }
 }
 
@@ -91,3 +102,10 @@ private fun behandling(connection: DBConnection, req: JournalpostId): Behandling
 private fun avklaringsbehov(connection: DBConnection, behandlingId: BehandlingId): Avklaringsbehovene {
     return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
 }
+
+class JournalpostDto(
+    @JsonProperty(
+        "referanse", required = true,
+        defaultValue = "0"
+    ) val referanse: Long
+)
