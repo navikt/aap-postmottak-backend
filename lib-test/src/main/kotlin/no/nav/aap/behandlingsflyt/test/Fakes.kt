@@ -24,6 +24,7 @@ import org.intellij.lang.annotations.Language
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
+import java.nio.file.Files
 import java.time.LocalDate
 import java.util.*
 
@@ -215,11 +216,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
                 // Smallest possible PDF
                 // https://stackoverflow.com/a/17280876/1013553
-                val base64Pdf =
-                    "JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=="
+                val samplePdf = this.javaClass.classLoader.getResourceAsStream("sample.pdf")
                 call.respondOutputStream {
-                    val decode = Base64.getDecoder().decode(base64Pdf)
-                    ByteArrayInputStream(decode).copyTo(this)
+                    samplePdf.copyTo(this)
                 }
             }
             post("/graphql") {
