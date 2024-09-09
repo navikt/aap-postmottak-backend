@@ -26,9 +26,9 @@ interface BehandlingsflytGateway {
 
 class BehandlingsflytClient() : BehandlingsflytGateway {
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
+    private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))
     val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.joark.scope"),
+        scope = requiredConfigForKey("integrasjon.behandlingsflyt.scope"),
     )
     private val client = RestClient.withDefaultResponseHandler(
         config = config,

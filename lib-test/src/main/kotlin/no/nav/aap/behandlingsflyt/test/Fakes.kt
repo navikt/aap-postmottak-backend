@@ -16,6 +16,8 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.joark.FerdigstillRequest
 import no.nav.aap.behandlingsflyt.joark.OppdaterJournalpostRequest
+import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.Periode
+import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.Saksinfo
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.intellij.lang.annotations.Language
@@ -34,6 +36,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val medl = embeddedServer(Netty, port = 0, module = { medlFake() }).apply { start() }
     private val joark = embeddedServer(Netty, port = 0, module = { joarkFake() }).apply { start() }
     private val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() }).apply { start() }
+    private val behandlkingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() }).apply { start() }
 
 
     init {
@@ -48,6 +51,11 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Oppgavestyring
         System.setProperty("integrasjon.oppgavestyring.scope", "oppgavestyring")
         System.setProperty("integrasjon.oppgavestyring.url", "http://localhost:${oppgavestyring.port()}")
+
+        // Behandlingsflyt
+        System.setProperty("integrasjon.behandlingsflyt.scope", "behandlingsflyt")
+        System.setProperty("integrasjon.behandlingsflyt.url", "http://localhost:${behandlkingsflyt.port()}")
+
 
         // Saf
         System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}/graphql")
@@ -170,6 +178,24 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
     }
 
+    private fun Application.behandlingsflytFake() {
+        install(ContentNegotiation) {
+            jackson {
+                registerModule(JavaTimeModule())
+            }
+        }
+
+        routing {
+            post("/api/sak/finnEllerOpprett") {
+                call.respond(Saksinfo(
+                    (Math.random() * 9999999999).toLong().toString(),
+                    Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
+                ))
+            }
+        }
+
+    }
+
     private fun Application.safFake() {
 
         install(ContentNegotiation) {
@@ -206,6 +232,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                         {
                           "journalpostId": "1",
                           "personident": "3",
+                          "bruker": {
+                            "id": "213453452",
+                            "type": "FNR"
+                          },
                           "status": "MOTTATT",
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
