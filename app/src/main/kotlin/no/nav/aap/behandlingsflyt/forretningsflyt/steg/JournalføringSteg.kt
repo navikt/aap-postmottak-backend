@@ -6,40 +6,47 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.behandlingsflyt.joark.Joark
+import no.nav.aap.behandlingsflyt.joark.JoarkClient
 import no.nav.aap.behandlingsflyt.saf.Journalpost
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
-import no.nav.aap.verdityper.sakogbehandling.Ident
+import org.slf4j.LoggerFactory
 
+private val log = LoggerFactory.getLogger(JournalføringSteg::class.java)
 
-class FinnSakSteg(
+class JournalføringSteg(
     private val behandlingRepository: BehandlingRepository,
-    private val behandlingsflytClient: BehandlingsflytGateway,
-    private val safGraphQlClient: SafGraphqlGateway
+    private val safGraphqlGateway: SafGraphqlGateway,
+    private val joarkKlient: Joark
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return FinnSakSteg(BehandlingRepositoryImpl(connection), BehandlingsflytClient(), SafGraphqlClient)
+            return JournalføringSteg(
+                BehandlingRepositoryImpl(connection),
+                SafGraphqlClient,
+                JoarkClient()
+            )
         }
 
         override fun type(): StegType {
-            return StegType.FINN_SAK
+            return StegType.ENDERLIG_JOURNALFØRING
         }
 
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val behndling = behandlingRepository.hent(kontekst.behandlingId)
-        val journalpost = safGraphQlClient.hentJournalpost(behndling.journalpostId)
-        require(journalpost is Journalpost.MedIdent)
-        val saksnummer = behandlingsflytClient
-            .finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato())
+        log.info("Treffer JournalføringsstegSteg")
 
-        behandlingRepository.lagreSaksnummer(behndling.id, saksnummer.saksnummer)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val journalpost = safGraphqlGateway.hentJournalpost(behandling.journalpostId)
+
+        require(journalpost is Journalpost.MedIdent)
+
+        joarkKlient.oppdaterJournalpost(journalpost, behandling.saksnummer.toString())
+        joarkKlient.ferdigstillJournalpost(journalpost)
 
         return StegResultat()
     }
