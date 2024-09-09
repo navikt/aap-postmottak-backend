@@ -1,6 +1,7 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
 import mottak.saf.SafGraphqlClient
+import mottak.saf.SafGraphqlGateway
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
@@ -15,10 +16,10 @@ import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
 
-class FinnSakSteg private constructor(
+class FinnSakSteg constructor(
     private val behandlingRepository: BehandlingRepository,
     private val behandlingsflytClient: BehandlingsflytGateway,
-    private val safGraphQlClient: SafGraphqlClient
+    private val safGraphQlClient: SafGraphqlGateway
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {

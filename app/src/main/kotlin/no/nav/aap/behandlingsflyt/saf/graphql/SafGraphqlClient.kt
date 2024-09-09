@@ -24,7 +24,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import org.slf4j.LoggerFactory
 import java.net.URI
 
-object SafGraphqlClient {
+interface SafGraphqlGateway {
+    fun hentJournalpost(journalpostId: JournalpostId): Journalpost
+}
+
+object SafGraphqlClient : SafGraphqlGateway {
     private val log = LoggerFactory.getLogger(SafGraphqlClient::class.java)
 
     val config = ClientConfig(
@@ -39,7 +43,7 @@ object SafGraphqlClient {
         responseHandler = SafResponseHandler()
     )
 
-    fun hentJournalpost(journalpostId: JournalpostId): Journalpost {
+    override fun hentJournalpost(journalpostId: JournalpostId): Journalpost {
         val request = SafRequest.hentJournalpost(journalpostId)
         val response = runBlocking { graphqlQuery(request) }
 

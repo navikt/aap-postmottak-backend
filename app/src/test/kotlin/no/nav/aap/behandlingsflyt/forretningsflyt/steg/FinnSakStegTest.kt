@@ -1,0 +1,31 @@
+package no.nav.aap.behandlingsflyt.forretningsflyt.steg
+
+import io.mockk.mockk
+import io.mockk.verify
+import mottak.saf.SafGraphqlClient
+import mottak.saf.SafGraphqlGateway
+import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import org.junit.jupiter.api.Test
+
+import org.junit.jupiter.api.Assertions.*
+
+class FinnSakStegTest {
+
+    val behandlingRepository = mockk<BehandlingRepository>(relaxed = true)
+    val behandlingsflytClient = mockk<BehandlingsflytClient>(relaxed = true)
+    val safGraphqlClient = mockk<SafGraphqlGateway>(relaxed = true)
+
+    val finnSakSteg = FinnSakSteg(behandlingRepository, behandlingsflytClient, safGraphqlClient)
+
+    @Test
+    fun utfør() {
+
+        finnSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 1) { behandlingRepository.hent(any() as BehandlingId) }
+        verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
+        verify(exactly = 1) { safGraphqlClient.hentJournalpost(any()) }
+    }
+}
