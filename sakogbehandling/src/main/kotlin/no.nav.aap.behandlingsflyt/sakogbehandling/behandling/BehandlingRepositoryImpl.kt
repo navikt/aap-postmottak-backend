@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.Status
@@ -30,12 +31,24 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
             journalpostId = journalpostId,
-            sakId = SakId(1),
+            saksnummer = null,
             versjon = 0,
             vurderinger = Vurderinger()
         )
 
         return behandling
+    }
+
+    override fun lagreSaksnummer(behandlingId: BehandlingId, saksnummer: String) {
+        connection.execute("""UPDATE BEHANDLING
+            SET SAKSNUMMER = ?
+            WHERE ID = ?
+        """.trimMargin()) {
+            setParams {
+                setString(1, saksnummer)
+                setLong(2, behandlingId.id)
+            }
+        }
     }
 
     override fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean) {
@@ -85,7 +98,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return Behandling(
             id = behandlingId,
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
-            sakId = row.getLongOrNull("sak_id")?.let { SakId(it) },
+            saksnummer = row.getStringOrNull("saksnummer")?.let(::Saksnummer),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             versjon = row.getLong("versjon"),

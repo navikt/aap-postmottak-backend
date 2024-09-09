@@ -1,17 +1,28 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
+import mottak.saf.SafGraphqlClient
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.behandlingsflyt.saf.Journalpost
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.verdityper.sakogbehandling.Ident
 
 
-class FinnSakSteg private constructor(): BehandlingSteg {
-    companion object: FlytSteg {
+class FinnSakSteg private constructor(
+    private val behandlingRepository: BehandlingRepository,
+    private val behandlingsflytClient: BehandlingsflytGateway,
+    private val safGraphQlClient: SafGraphqlClient
+) : BehandlingSteg {
+    companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return FinnSakSteg()
+            return FinnSakSteg(BehandlingRepositoryImpl(connection), BehandlingsflytClient(), SafGraphqlClient)
         }
 
         override fun type(): StegType {
@@ -21,9 +32,13 @@ class FinnSakSteg private constructor(): BehandlingSteg {
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        /* TODO Finn/Opprett sak i arena/B-flyt  og legg til behandling
-        *   Fortsett til journalføring
-        */
+        val behndling = behandlingRepository.hent(kontekst.behandlingId)
+        val journalpost = safGraphQlClient.hentJournalpost(behndling.journalpostId)
+        require(journalpost is Journalpost.MedIdent)
+        val saksnummer = behandlingsflytClient
+            .finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato())
+        behandlingRepository.lagreSaksnummer(behndling.id, saksnummer.saksnummer)
+
         return StegResultat()
     }
 }

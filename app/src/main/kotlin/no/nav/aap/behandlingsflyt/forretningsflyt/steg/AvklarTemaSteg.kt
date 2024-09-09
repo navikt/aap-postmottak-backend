@@ -1,10 +1,12 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
+import mottak.saf.SafGraphqlClient
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.saf.Journalpost
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -13,10 +15,13 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(AvklarTemaSteg::class.java)
 
-class AvklarTemaSteg(private val behandlingRepository: BehandlingRepository) : BehandlingSteg {
+class AvklarTemaSteg(
+    private val behandlingRepository: BehandlingRepository,
+    private val safGraphQlClient: SafGraphqlClient
+) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return AvklarTemaSteg(BehandlingRepositoryImpl(connection))
+            return AvklarTemaSteg(BehandlingRepositoryImpl(connection), SafGraphqlClient)
         }
 
         override fun type(): StegType {
@@ -33,8 +38,16 @@ class AvklarTemaSteg(private val behandlingRepository: BehandlingRepository) : B
         *  Hvis ikke avklart enda: returner Definisjon.AVKLAR_TEMA
         */
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        return if (!behandling.harTemaBlittAvklart()) StegResultat(listOf(Definisjon.AVKLAR_TEMA))
-            else if (behandling.vurderinger.avklarTemaVurdering!!.vurdering) StegResultat()
-            else StegResultat(listOf(/*Definisjon.RETURNERINGSPROSEDYRE*/))
+        val journalpost = safGraphQlClient.hentJournalpost(behandling.journalpostId)
+
+
+        return if (måBehandlesManuelt(journalpost) && !behandling.harTemaBlittAvklart()) {
+            StegResultat(listOf(Definisjon.AVKLAR_TEMA))
+        } else StegResultat()
     }
+
+    private fun måBehandlesManuelt(journalpost: Journalpost): Boolean {
+        return !(journalpost.erSøknad() && journalpost.erDigital())
+    }
+
 }

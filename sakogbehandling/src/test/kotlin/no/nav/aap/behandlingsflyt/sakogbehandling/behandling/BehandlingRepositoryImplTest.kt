@@ -194,6 +194,18 @@ class BehandlingRepositoryImplTest {
 
     }
 
+    @Test
+    fun `lagrer saksnummer på behandling`() {
+        val saksnummer = "234234"
+        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
+        transactionMedBehandlingRepository { it.lagreSaksnummer(behandling.id, saksnummer) }
+        transactionMedBehandlingRepository {
+            val actual = it.hent(behandling.id)
+            assertThat(actual.saksnummer.toString()).isEqualTo(saksnummer)
+        }
+
+    }
+
     fun <T> transactionMedBehandlingRepository(fn: (behandlingRepository: BehandlingRepositoryImpl) -> T): T =
         InitTestDatabase.dataSource.transaction {
             val behandlingRepository = BehandlingRepositoryImpl(it)

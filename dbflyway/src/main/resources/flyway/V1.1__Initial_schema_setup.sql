@@ -22,7 +22,7 @@ CREATE INDEX IDX_PERSON_IDENT_IDENT ON PERSON_IDENT (IDENT);
 CREATE TABLE BEHANDLING
 (
     ID             BIGSERIAL                              NOT NULL PRIMARY KEY,
-    SAK_ID         BIGINT                                 NULL,
+    SAKSNUMMER     VARCHAR(19) UNIQUE NULLS NOT DISTINCT,
     JOURNALPOST_ID BIGINT                                 NOT NULL UNIQUE,
     STATUS         VARCHAR(100)                           NOT NULL,
     TYPE           VARCHAR(100)                           NOT NULL,
