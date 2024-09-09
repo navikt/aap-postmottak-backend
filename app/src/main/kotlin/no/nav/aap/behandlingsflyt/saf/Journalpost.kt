@@ -27,6 +27,10 @@ sealed class Journalpost(
         it.variantFormat == Variantformat.ORIGINAL
     }
 
+    fun kanBehandlesAutomatisk(): Boolean {
+        return !(erSøknad() && erDigital())
+    }
+
     fun erDigital(): Boolean = finnOriginal()?.filtype == Filtype.JSON
 
     data class UtenIdent(

@@ -6,7 +6,6 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
-import no.nav.aap.behandlingsflyt.saf.Journalpost
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -41,13 +40,10 @@ class AvklarTemaSteg(
         val journalpost = safGraphQlClient.hentJournalpost(behandling.journalpostId)
 
 
-        return if (måBehandlesManuelt(journalpost) && !behandling.harTemaBlittAvklart()) {
+        return if (!journalpost.kanBehandlesAutomatisk() && !behandling.harTemaBlittAvklart()) {
             StegResultat(listOf(Definisjon.AVKLAR_TEMA))
         } else StegResultat()
     }
 
-    private fun måBehandlesManuelt(journalpost: Journalpost): Boolean {
-        return !(journalpost.erSøknad() && journalpost.erDigital())
-    }
 
 }

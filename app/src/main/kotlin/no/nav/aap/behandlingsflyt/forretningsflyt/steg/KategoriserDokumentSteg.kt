@@ -1,19 +1,25 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
+import mottak.saf.SafGraphqlClient
+import mottak.saf.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
+import no.nav.aap.behandlingsflyt.saf.Journalpost
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 
-class KategoriserDokumentSteg private constructor(private val behandlingRepository: BehandlingRepository): BehandlingSteg {
+class KategoriserDokumentSteg(
+    private val behandlingRepository: BehandlingRepository,
+    private val safGraphqlGateway: SafGraphqlGateway
+    ): BehandlingSteg {
     companion object: FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return KategoriserDokumentSteg(BehandlingRepositoryImpl(connection))
+            return KategoriserDokumentSteg(BehandlingRepositoryImpl(connection), SafGraphqlClient)
         }
 
         override fun type(): StegType {
@@ -23,15 +29,11 @@ class KategoriserDokumentSteg private constructor(private val behandlingReposito
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        /* TODO præv å automatisk kategorisere
-        * Dersom automatisk kategorisering er mulig og digitalisering ikke er nødvendig -> send til B-Flow
-        * Dersom automatisk kategorisering er mulig og dokumentet må digitaliseres -> send til digitalisering
-        * Dersom automatisk kategorisering ikke er mulig  -> avvent kategoriseringsvurdering
-        * Dersom manuell vurdering er gjort og digitalisering er nødvendig -> digitaliser
-        * Derosm manuell vurdeiring er gjort og digitalisering ikke er nødvendig -> sent til B-Flow
-        */
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        return if (!behandling.harBlittKategorisert()) StegResultat(listOf(Definisjon.KATEGORISER_DOKUMENT))
+        val journalpost = safGraphqlGateway.hentJournalpost(behandling.journalpostId)
+        require(journalpost is Journalpost.MedIdent)
+
+        return if (!journalpost.kanBehandlesAutomatisk() && !behandling.harBlittKategorisert()) StegResultat(listOf(Definisjon.KATEGORISER_DOKUMENT))
             else StegResultat()
     }
 }
