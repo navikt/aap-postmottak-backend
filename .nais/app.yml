@@ -67,6 +67,7 @@ spec:
         - application: tilgang
         - application: oppgavestyring
         - application: statistikk
+        - application: behandlingsflyt
   env:
     - name: INTEGRASJON_SAF_URL_GRAPHQL
       value: https://saf-q2.dev-fss-pub.nais.io/graphql
