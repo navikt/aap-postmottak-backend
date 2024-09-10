@@ -2,8 +2,8 @@ package no.nav.aap.behandlingsflyt.saf
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.SafDocumentResponse
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.SafRestClient
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafDocumentResponse
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken

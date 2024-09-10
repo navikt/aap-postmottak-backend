@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters
+package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.config.requiredConfigForKey
@@ -6,6 +6,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import java.io.InputStream
@@ -18,7 +19,7 @@ class SafRestClient(private val restClient: RestClient<InputStream>) {
     private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
 
     companion object {
-        fun withDefaultRestClient(): SafRestClient {
+        fun withOboRestClient(): SafRestClient {
             val config = ClientConfig(
                 scope = requiredConfigForKey("integrasjon.saf.scope"),
             )
@@ -26,6 +27,17 @@ class SafRestClient(private val restClient: RestClient<InputStream>) {
                 RestClient.withDefaultResponseHandler(
                     config = config,
                     tokenProvider = OnBehalfOfTokenProvider
+                )
+            )
+        }
+        fun withClientCredentialsRestClient(): SafRestClient {
+            val config = ClientConfig(
+                scope = requiredConfigForKey("integrasjon.saf.scope"),
+            )
+            return SafRestClient(
+                RestClient.withDefaultResponseHandler(
+                    config = config,
+                    tokenProvider = ClientCredentialsTokenProvider
                 )
             )
         }

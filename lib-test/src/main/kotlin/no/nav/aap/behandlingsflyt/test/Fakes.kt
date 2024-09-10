@@ -230,6 +230,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                     {"journalpost":
                         {
                           "journalpostId": "1",
+                          "tittel": "Overordnet tittel",
                           "personident": "3",
                           "bruker": {
                             "id": "213453452",
@@ -246,11 +247,12 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                           ], 
                           "dokumenter": [
                             {
+                              "tittel": "Dokumenttittel",
                               "dokumentInfoId": "454268545",
                               "brevkode": "NAV 11-13.05",
                               "dokumentvarianter": [
                                 {
-                                "variantformat": "ARKIV",
+                                "variantformat": "ORIGINAL",
                                 "filtype": "JSON"
                                 }
                               ]
