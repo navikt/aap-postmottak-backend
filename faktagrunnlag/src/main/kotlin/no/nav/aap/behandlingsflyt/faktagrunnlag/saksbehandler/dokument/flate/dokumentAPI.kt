@@ -40,5 +40,21 @@ fun NormalOpenAPIRoute.dokumentApi() {
                 respond(DokumentResponsDTO(stream = dokumentRespons.dokument))
             }
         }
+        route("/{journalpostId}/info") {
+            get<HentJournalpostDTO, DokumentInfoResponsDTO> { req ->
+                val journalpostId = req.journalpostId
+
+                val token = token()
+                val journalpost = SafGraphqlClient.withOboRestClient().hentJournalpost(JournalpostId(journalpostId), token)
+                check(journalpost is Journalpost.MedIdent)
+
+                respond(
+                    DokumentInfoResponsDTO(
+                        DokumentIdent(navn = "Navn Navnesen", ident = journalpost.personident.id),
+                        tittel = journalpost.getDokumentNavn()
+                    )
+                )
+            }
+        }
     }
 }
