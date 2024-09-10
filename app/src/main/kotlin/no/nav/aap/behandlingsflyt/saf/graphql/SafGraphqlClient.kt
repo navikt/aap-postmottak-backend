@@ -21,6 +21,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.verdityper.dokument.DokumentInfoId
 import org.slf4j.LoggerFactory
 import java.net.URI
 
@@ -65,7 +66,7 @@ object SafGraphqlClient : SafGraphqlGateway {
         val dokumenter = journalpost.dokumenter?.filterNotNull()?.flatMap { dokument ->
             dokument.dokumentvarianter.filterNotNull().map { variant ->
                 Dokument(
-                    dokument.dokumentInfoId,
+                    dokument.dokumentInfoId.let(::DokumentInfoId),
                     Variantformat.valueOf(variant.variantformat.name),
                     Filtype.valueOf(variant.filtype),
                     dokument.brevkode
@@ -75,7 +76,7 @@ object SafGraphqlClient : SafGraphqlGateway {
 
         return if (ident == null) {
             Journalpost.UtenIdent(
-                journalpostId = journalpost.journalpostId,
+                journalpostId = journalpost.journalpostId.let(::JournalpostId),
                 status = finnJournalpostStatus(journalpost.journalstatus),
                 journalførendeEnhet = journalpost.journalfoerendeEnhet,
                 mottattDato = mottattDato,
@@ -84,7 +85,7 @@ object SafGraphqlClient : SafGraphqlGateway {
         } else {
             Journalpost.MedIdent(
                 personident = ident,
-                journalpostId = journalpost.journalpostId,
+                journalpostId = journalpost.journalpostId.let(::JournalpostId),
                 status = finnJournalpostStatus(journalpost.journalstatus),
                 journalførendeEnhet = journalpost.journalfoerendeEnhet,
                 mottattDato = mottattDato,

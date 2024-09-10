@@ -12,15 +12,16 @@ import java.io.InputStream
 import java.net.URI
 import java.net.http.HttpHeaders
 
+
 class SafRestClient(private val restClient: RestClient<InputStream>) {
 
     private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
-    
+
     companion object {
-        val config = ClientConfig(
-            scope = requiredConfigForKey("integrasjon.saf.scope"),
-        )
         fun withDefaultRestClient(): SafRestClient {
+            val config = ClientConfig(
+                scope = requiredConfigForKey("integrasjon.saf.scope"),
+            )
             return SafRestClient(
                 RestClient.withDefaultResponseHandler(
                     config = config,
@@ -34,7 +35,7 @@ class SafRestClient(private val restClient: RestClient<InputStream>) {
         journalpostId: JournalpostId,
         dokumentId: DokumentInfoId,
         arkivtype: String = "ORIGINAL",
-        currentToken: OidcToken,
+        currentToken: OidcToken? = null,
     ): SafDocumentResponse {
         val url = konstruerSafRestURL(restUrl, journalpostId, dokumentId, arkivtype)
         val response = restClient.get(url,request = GetRequest(currentToken = currentToken),
@@ -58,7 +59,7 @@ class SafRestClient(private val restClient: RestClient<InputStream>) {
     ): URI {
         return URI.create("$baseUrl/hentdokument/${journalpostId.referanse}/${dokumentInfoId.dokumentInfoId}/${variantFormat}")
     }
-    
+
     private fun extractFileNameFromHeaders(headers: HttpHeaders): String? {
         val value = headers.map()["Content-Disposition"]?.firstOrNull()
         if (value.isNullOrBlank()) {

@@ -1,11 +1,13 @@
 package no.nav.aap.behandlingsflyt.saf
 
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.verdityper.dokument.DokumentInfoId
 import java.time.LocalDate
 
 const val SKJEMANUMMER_SØKNAD = "NAV 11-13.05"
 
 sealed class Journalpost(
-    open val journalpostId: Long,
+    open val journalpostId: JournalpostId,
     open val journalførendeEnhet: String?,
     private val status: JournalpostStatus,
     private val mottattDato: LocalDate,
@@ -34,7 +36,7 @@ sealed class Journalpost(
     fun erDigital(): Boolean = finnOriginal()?.filtype == Filtype.JSON
 
     data class UtenIdent(
-        override val journalpostId: Long,
+        override val journalpostId: JournalpostId,
         override val journalførendeEnhet: String?,
         private val status: JournalpostStatus,
         private val mottattDato: LocalDate,
@@ -43,7 +45,7 @@ sealed class Journalpost(
 
     data class MedIdent(
         val personident: Ident,
-        override val journalpostId: Long,
+        override val journalpostId: JournalpostId,
         override val journalførendeEnhet: String?,
         private val status: JournalpostStatus,
         private val mottattDato: LocalDate,
@@ -65,7 +67,7 @@ enum class JournalpostStatus {
 }
 
 data class Dokument(
-    val dokumentInfoId: String,
+    val dokumentInfoId: DokumentInfoId,
     val variantFormat: Variantformat,
     val filtype: Filtype,
     val brevkode: String?

@@ -5,7 +5,7 @@ import io.mockk.mockk
 import no.nav.aap.WithFakes
 import no.nav.aap.behandlingsflyt.saf.Ident
 import no.nav.aap.behandlingsflyt.saf.Journalpost
-import no.nav.aap.behandlingsflyt.test.Fakes
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import org.junit.jupiter.api.Test
 
 class JoarkClientTest : WithFakes() {
@@ -17,7 +17,7 @@ class JoarkClientTest : WithFakes() {
 
         val journalpost: Journalpost.MedIdent = mockk(relaxed = true)
         every { journalpost.personident } returns Ident.Personident("123")
-        every { journalpost.journalpostId } returns 1
+        every { journalpost.journalpostId } returns JournalpostId(1)
 
         joarkClient.oppdaterJournalpost(journalpost, "213412")
     }
@@ -28,7 +28,7 @@ class JoarkClientTest : WithFakes() {
 
         val journalpost: Journalpost.MedIdent = mockk(relaxed = true)
         every { journalpost.personident } returns Ident.Personident("123")
-        every { journalpost.journalpostId } returns 1
+        every { journalpost.journalpostId } returns JournalpostId(1)
 
         joarkClient.ferdigstillJournalpost(journalpost)
     }
