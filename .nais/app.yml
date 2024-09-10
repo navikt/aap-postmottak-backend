@@ -65,8 +65,6 @@ spec:
     outbound:
       rules:
         - application: tilgang
-        - application: oppgavestyring
-        - application: statistikk
         - application: behandlingsflyt
   env:
     - name: INTEGRASJON_SAF_URL_GRAPHQL

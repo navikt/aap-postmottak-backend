@@ -13,6 +13,6 @@ class SafGraphqlClientTest: WithFakes() {
     fun hentJournalpost() {
         val test = SafGraphqlClient.hentJournalpost(JournalpostId(1))
 
-        assertThat(test.journalpostId).isEqualTo(1L)
+        assertThat(test.journalpostId).isEqualTo(JournalpostId(1))
     }
 }
