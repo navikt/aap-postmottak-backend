@@ -18,6 +18,7 @@ tasks {
         destinationFile = layout.buildDirectory.file("version.properties")
         // Define property.
         property("project.version", getCheckedOutGitCommitHash())
+        property("swagger-ui.version", "5.17.14")
     }
 
     processResources {
