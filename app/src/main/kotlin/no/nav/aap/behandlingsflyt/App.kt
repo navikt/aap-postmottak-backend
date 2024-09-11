@@ -24,6 +24,10 @@ import io.ktor.server.routing.*
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import libs.kafka.KafkaStreams
+import libs.kafka.SchemaRegistryConfig
+import libs.kafka.Streams
+import libs.kafka.StreamsConfig
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
@@ -34,6 +38,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.strukture
 import no.nav.aap.behandlingsflyt.flyt.flate.DefinisjonDTO
 import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
+import no.nav.aap.behandlingsflyt.mottak.MottakListener
 import no.nav.aap.behandlingsflyt.server.apiRoute
 import no.nav.aap.behandlingsflyt.server.authenticate.AZURE
 import no.nav.aap.behandlingsflyt.server.authenticate.authentication
@@ -68,7 +73,8 @@ fun main() {
     embeddedServer(Netty, port = 8080) { server(DbConfig()) }.start(wait = true)
 }
 
-internal fun Application.server(dbConfig: DbConfig) {
+internal fun Application.server(dbConfig: DbConfig,
+                                kafka: Streams = KafkaStreams()) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     DefaultJsonMapper.objectMapper()
         .registerSubtypes(utledSubtypes())
@@ -119,6 +125,15 @@ internal fun Application.server(dbConfig: DbConfig) {
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
     val motor = module(dataSource)
+
+    val config = StreamsConfig(schemaRegistry = SchemaRegistryConfig())
+    val topology = MottakListener(config, dataSource)
+
+    kafka.connect(
+        topology = topology(),
+        config = config,
+        registry = prometheus,
+    )
 
     routing {
         authenticate(AZURE) {

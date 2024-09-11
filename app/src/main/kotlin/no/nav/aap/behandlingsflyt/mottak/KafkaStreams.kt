@@ -4,21 +4,26 @@ import libs.kafka.StreamsConfig
 import libs.kafka.Topology
 import libs.kafka.topology
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.slf4j.LoggerFactory
+import javax.sql.DataSource
 
 
 private val log = LoggerFactory.getLogger(MottakListener::class.java)
 
+private typealias TransactionalFuntion = (BehandlingRepository, FlytJobbRepository) -> Unit
+private typealias TransactionWithResources = (DataSource, TransactionalFuntion) -> Unit
 
 class MottakListener(
     config: StreamsConfig,
-    private val behandlingRepository: BehandlingRepository,
-    private val flytJobbRepository: FlytJobbRepository
+    private val dataSource: DataSource,
+    private val getTransactionWithResources: TransactionWithResources = {dataSource, fn -> dataSource.transaction { fn(BehandlingRepositoryImpl(it), FlytJobbRepository(it)) }} // TODO :poop: vanskelig å teste, vurder å flytte Håndter journalpost til egen klasse
 ) {
     private val topics = Topics(config)
 
@@ -34,13 +39,14 @@ class MottakListener(
         journalpost: JournalfoeringHendelseRecord,
     ) {
         log.info("Mottatt ${journalpost.journalpostId}")
-        val journalpostId = JournalpostId(journalpost.journalpostId)
-        val behandling =
-            behandlingRepository.opprettBehandling(journalpostId)
-        flytJobbRepository.leggTil(
-            JobbInput(ProsesserBehandlingJobbUtfører)
-                .forBehandling(behandling.id).medCallId()
-        )
+        getTransactionWithResources(dataSource) { behandlingRepository, flytJobbRepository ->
+            val journalpostId = JournalpostId(journalpost.journalpostId)
+            val behandling = behandlingRepository.opprettBehandling(journalpostId)
+            flytJobbRepository.leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(behandling.id).medCallId()
+            )
+        }
     }
 
 }
