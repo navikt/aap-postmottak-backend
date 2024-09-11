@@ -1,12 +1,12 @@
 val ktorVersion = "2.3.12"
-val komponenterVersjon = "0.0.23"
+val komponenterVersjon = "0.0.46"
 
 dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":faktagrunnlag"))
     implementation(project(":verdityper"))
-    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation(project(":app"))
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
@@ -21,7 +21,6 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.40")
-
     api(project(":dbtestdata"))
     api(project(":dbtest"))
 }

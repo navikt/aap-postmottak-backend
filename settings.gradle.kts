@@ -10,5 +10,4 @@ include(
     "dbtestdata",
     "motor",
     "lib-test",
-    "infrastructure"
 )

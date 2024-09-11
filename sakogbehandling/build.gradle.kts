@@ -1,5 +1,5 @@
 val ktorVersion = "2.3.12"
-val komponenterVersjon = "0.0.23"
+val komponenterVersjon = "0.0.46"
 
 
 dependencies {
@@ -11,6 +11,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     implementation(project(":dbflyway"))
 
 

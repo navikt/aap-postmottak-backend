@@ -48,7 +48,7 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.dbflyway.Migrering
+import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

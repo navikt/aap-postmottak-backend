@@ -5,8 +5,8 @@ import no.nav.aap.behandlingsflyt.saf.Journalpost
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.patch
 import no.nav.aap.komponenter.httpklient.httpclient.put
+import no.nav.aap.komponenter.httpklient.httpclient.patch
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
