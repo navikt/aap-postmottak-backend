@@ -32,7 +32,7 @@ sealed class Journalpost(
     fun getDokumentNavn(): String = finnOriginal()?.tittel ?: "Ukjent"
 
     fun kanBehandlesAutomatisk(): Boolean {
-        return !(erSøknad() && erDigital())
+        return erSøknad() && erDigital()
     }
 
     fun erDigital(): Boolean = finnOriginal()?.filtype == Filtype.JSON
