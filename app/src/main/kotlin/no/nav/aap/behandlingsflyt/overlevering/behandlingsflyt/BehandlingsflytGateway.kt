@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -58,9 +59,10 @@ class BehandlingsflytClient() : BehandlingsflytGateway {
         journalpostId: JournalpostId,
         søknad: ByteArray,
     ) {
+        val søknadMap = objectMapper.readValue<Map<Any, Any>>(søknad)
         val url = url.resolve("/api/soknad/send")
         val request = PostRequest(
-            SendSøknad(sakId, journalpostId.toString(), søknad),
+            SendSøknad(sakId, journalpostId.toString(), søknadMap),
             additionalHeaders = listOf(
                 Header("Accept", "application/json")
             )
