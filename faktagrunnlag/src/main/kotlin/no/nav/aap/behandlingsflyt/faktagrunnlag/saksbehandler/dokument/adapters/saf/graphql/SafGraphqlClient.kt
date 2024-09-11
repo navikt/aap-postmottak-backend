@@ -1,4 +1,4 @@
-package mottak.saf
+package no.nav.aap.behandlingsflyt.saf.graphql
 
 import SafResponseHandler
 import kotlinx.coroutines.runBlocking
@@ -8,45 +8,56 @@ import no.nav.aap.behandlingsflyt.saf.Ident
 import no.nav.aap.behandlingsflyt.saf.Journalpost
 import no.nav.aap.behandlingsflyt.saf.JournalpostStatus
 import no.nav.aap.behandlingsflyt.saf.Variantformat
-import no.nav.aap.behandlingsflyt.saf.graphql.BrukerIdType
-import no.nav.aap.behandlingsflyt.saf.graphql.Journalstatus
-import no.nav.aap.behandlingsflyt.saf.graphql.SafDatoType
-import no.nav.aap.behandlingsflyt.saf.graphql.SafJournalpost
-import no.nav.aap.behandlingsflyt.saf.graphql.SafRequest
-import no.nav.aap.behandlingsflyt.saf.graphql.SafRespons
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import org.slf4j.LoggerFactory
+import java.io.InputStream
 import java.net.URI
 
 interface SafGraphqlGateway {
-    fun hentJournalpost(journalpostId: JournalpostId): Journalpost
+    fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken? = null): Journalpost
 }
 
-object SafGraphqlClient : SafGraphqlGateway {
+class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGraphqlGateway {
     private val log = LoggerFactory.getLogger(SafGraphqlClient::class.java)
-
-    val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.saf.scope"),
-    )
 
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
 
-    private val client = RestClient(
-        config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
-        responseHandler = SafResponseHandler()
-    )
+    companion object {
+        private fun getClientConfig() = ClientConfig(
+            scope = requiredConfigForKey("integrasjon.saf.scope"),
+        )
 
-    override fun hentJournalpost(journalpostId: JournalpostId): Journalpost {
+        fun withClientCredentialsRestClient() =
+            SafGraphqlClient(
+                RestClient(
+                    config = getClientConfig(),
+                    tokenProvider = ClientCredentialsTokenProvider,
+                    responseHandler = SafResponseHandler()
+                )
+            )
+
+        fun withOboRestClient() =
+            SafGraphqlClient(
+                RestClient(
+                    config = getClientConfig(),
+                    tokenProvider = OnBehalfOfTokenProvider,
+                    responseHandler = SafResponseHandler()
+                )
+            )
+    }
+
+    override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken?): Journalpost {
         val request = SafRequest.hentJournalpost(journalpostId)
-        val response = runBlocking { graphqlQuery(request) }
+        val response = runBlocking { graphqlQuery(request, currentToken) }
 
         val journalpost: SafJournalpost = response.data?.journalpost
             ?: error("Fant ikke journalpost for $journalpostId")
@@ -55,7 +66,7 @@ object SafGraphqlClient : SafGraphqlGateway {
             BrukerIdType.AKTOERID -> null //Ident.Aktørid(journalpost.bruker.id!!) //TODO: Må håndtere aktørid bittelitt mer fornuftig
             BrukerIdType.FNR -> Ident.Personident(journalpost.bruker.id!!)
             else -> null.also {
-                log.warn("mottok noe annet enn personnr: ${journalpost.bruker?.type}")
+                log.warn("mottok noe annet enn a: ${journalpost.bruker?.type}")
             }
         }
 
@@ -69,7 +80,8 @@ object SafGraphqlClient : SafGraphqlGateway {
                     dokument.dokumentInfoId.let(::DokumentInfoId),
                     Variantformat.valueOf(variant.variantformat.name),
                     Filtype.valueOf(variant.filtype),
-                    dokument.brevkode
+                    dokument.brevkode,
+                    dokument.tittel
                 )
             }
         } ?: emptyList()
@@ -94,9 +106,9 @@ object SafGraphqlClient : SafGraphqlGateway {
         }
     }
 
-    private fun graphqlQuery(query: SafRequest): SafRespons {
-        val request = PostRequest(query)
-        return requireNotNull(client.post(uri = graphqlUrl, request))
+    private fun graphqlQuery(query: SafRequest, currentToken: OidcToken?): SafRespons {
+        val request = PostRequest(query, currentToken = currentToken)
+        return requireNotNull(restClient.post(uri = graphqlUrl, request))
     }
 
     private fun finnJournalpostStatus(status: Journalstatus?): JournalpostStatus {

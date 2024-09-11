@@ -1,5 +1,5 @@
 import no.nav.aap.behandlingsflyt.graphql.GraphQLError
-import no.nav.aap.behandlingsflyt.saf.graphql.SafResponse
+import no.nav.aap.behandlingsflyt.saf.graphql.SafRespons
 import no.nav.aap.komponenter.httpklient.httpclient.error.DefaultResponseHandler
 import no.nav.aap.komponenter.httpklient.httpclient.error.RestResponseHandler
 import java.io.InputStream
@@ -18,7 +18,7 @@ class SafResponseHandler : RestResponseHandler<InputStream> {
     ): R? {
         val respons = defaultResponseHandler.håndter(request, response, mapper)
 
-        if (respons != null && respons is SafResponse) {
+        if (respons != null && respons is SafRespons) {
             if (respons.errors?.isNotEmpty() == true) {
                 throw SafQueryException(
                     String.format(

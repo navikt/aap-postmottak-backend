@@ -3,9 +3,9 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import mottak.saf.SafGraphqlGateway
-import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.SafRestClient
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder

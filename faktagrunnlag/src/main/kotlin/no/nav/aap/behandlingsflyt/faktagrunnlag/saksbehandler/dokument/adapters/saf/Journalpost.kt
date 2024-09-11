@@ -28,6 +28,8 @@ sealed class Journalpost(
     fun finnOriginal(): Dokument? = dokumenter.find {
         it.variantFormat == Variantformat.ORIGINAL
     }
+    
+    fun getDokumentNavn(): String = finnOriginal()?.tittel ?: "Ukjent"
 
     fun kanBehandlesAutomatisk(): Boolean {
         return !(erSøknad() && erDigital())
@@ -70,7 +72,8 @@ data class Dokument(
     val dokumentInfoId: DokumentInfoId,
     val variantFormat: Variantformat,
     val filtype: Filtype,
-    val brevkode: String?
+    val brevkode: String?,
+    val tittel: String?,
 )
 
 enum class Filtype {

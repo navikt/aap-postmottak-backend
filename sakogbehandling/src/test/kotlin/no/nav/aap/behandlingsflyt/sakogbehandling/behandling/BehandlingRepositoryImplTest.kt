@@ -1,9 +1,9 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
-import no.nav.aap.behandlingsflyt.dbtest.InitTestDatabase
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.assertj.core.api.Assertions.assertThat

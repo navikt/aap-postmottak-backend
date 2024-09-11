@@ -1,16 +1,16 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
-import mottak.saf.SafGraphqlClient
-import mottak.saf.SafGraphqlGateway
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.behandlingsflyt.saf.Journalpost
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.Ident
@@ -23,7 +23,7 @@ class FinnSakSteg(
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return FinnSakSteg(BehandlingRepositoryImpl(connection), BehandlingsflytClient(), SafGraphqlClient)
+            return FinnSakSteg(BehandlingRepositoryImpl(connection), BehandlingsflytClient(), SafGraphqlClient.withClientCredentialsRestClient())
         }
 
         override fun type(): StegType {

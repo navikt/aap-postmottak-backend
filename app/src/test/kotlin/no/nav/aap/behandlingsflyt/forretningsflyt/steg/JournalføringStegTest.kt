@@ -3,9 +3,9 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import mottak.saf.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.joark.Joark
 import no.nav.aap.behandlingsflyt.saf.Journalpost
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import org.junit.jupiter.api.Test
 

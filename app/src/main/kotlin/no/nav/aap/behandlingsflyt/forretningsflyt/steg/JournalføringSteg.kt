@@ -1,7 +1,5 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
-import mottak.saf.SafGraphqlClient
-import mottak.saf.SafGraphqlGateway
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
@@ -9,6 +7,8 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.joark.Joark
 import no.nav.aap.behandlingsflyt.joark.JoarkClient
 import no.nav.aap.behandlingsflyt.saf.Journalpost
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -26,7 +26,7 @@ class JournalføringSteg(
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return JournalføringSteg(
                 BehandlingRepositoryImpl(connection),
-                SafGraphqlClient,
+                SafGraphqlClient.withClientCredentialsRestClient(),
                 JoarkClient()
             )
         }

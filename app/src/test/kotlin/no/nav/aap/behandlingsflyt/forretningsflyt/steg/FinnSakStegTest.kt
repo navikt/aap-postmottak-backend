@@ -2,8 +2,8 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
 import io.mockk.mockk
 import io.mockk.verify
-import mottak.saf.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.junit.jupiter.api.Test

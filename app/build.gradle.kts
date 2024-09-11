@@ -2,7 +2,7 @@ import java.io.ByteArrayOutputStream
 
 val ktorVersion = "2.3.12"
 val aapLibVersion = "5.0.23"
-val komponenterVersjon = "0.0.27"
+val komponenterVersjon = "0.0.46"
 
 
 plugins {
@@ -18,6 +18,7 @@ tasks {
         destinationFile = layout.buildDirectory.file("version.properties")
         // Define property.
         property("project.version", getCheckedOutGitCommitHash())
+        property("swagger-ui.version", "5.17.14")
     }
 
     processResources {
@@ -71,9 +72,10 @@ dependencies {
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     implementation(project(":faktagrunnlag"))
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("org.flywaydb:flyway-database-postgresql:10.17.0")
+    implementation("org.flywaydb:flyway-database-postgresql:10.17.3")
     runtimeOnly("org.postgresql:postgresql:42.7.3")
 
     // kafka
