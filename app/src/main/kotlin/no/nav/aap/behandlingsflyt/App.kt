@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt
 
+import com.papsign.ktor.openapigen.route.apiRouting
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
@@ -34,7 +35,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.strukture
 import no.nav.aap.behandlingsflyt.flyt.flate.DefinisjonDTO
 import no.nav.aap.behandlingsflyt.flyt.flate.behandlingApi
 import no.nav.aap.behandlingsflyt.flyt.flate.flytApi
-import no.nav.aap.behandlingsflyt.server.apiRoute
 import no.nav.aap.behandlingsflyt.server.authenticate.AZURE
 import no.nav.aap.behandlingsflyt.server.authenticate.authentication
 import no.nav.aap.behandlingsflyt.server.exception.FlytOperasjonException
@@ -122,7 +122,7 @@ internal fun Application.server(dbConfig: DbConfig) {
 
     routing {
         authenticate(AZURE) {
-            apiRoute {
+            apiRouting {
                 configApi()
                 behandlingApi(dataSource)
                 flytApi(dataSource)

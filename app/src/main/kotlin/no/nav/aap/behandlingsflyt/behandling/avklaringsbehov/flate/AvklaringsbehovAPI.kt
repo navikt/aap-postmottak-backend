@@ -2,13 +2,13 @@ package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovHendelseHåndterer
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.behandlingsflyt.server.respondWithStatus
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.bruker
 import org.slf4j.MDC
