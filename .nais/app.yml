@@ -63,6 +63,8 @@ spec:
     enabled: true
   accessPolicy:
     outbound:
+      external:
+        - host: saf.dev-fss-pub.nais.io
       rules:
         - application: tilgang
         - application: behandlingsflyt
