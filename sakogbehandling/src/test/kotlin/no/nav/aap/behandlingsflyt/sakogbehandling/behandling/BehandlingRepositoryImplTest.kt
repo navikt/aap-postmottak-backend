@@ -206,6 +206,42 @@ class BehandlingRepositoryImplTest {
 
     }
 
+    @Test
+    fun `behandlingsversjon blir bumpet når behanlding blir endret`() {
+        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
+        transactionMedBehandlingRepository { it.lagreSaksnummer(behandling.id, "wdfgsdfgbs") }
+        val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
+
+        assertThat(versjon).isEqualTo(1)
+    }
+
+    @Test
+    fun `behandlingsversjon blir bumpet når teamvurdering blir gjort`() {
+        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
+        transactionMedBehandlingRepository { it.lagreTeamAvklaring(behandling.id, false) }
+        val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
+
+        assertThat(versjon).isEqualTo(1)
+    }
+
+    @Test
+    fun `behandlingsversjon blir bumpet når kategorivurdering blir gjort`() {
+        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
+        transactionMedBehandlingRepository { it.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD) }
+        val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
+
+        assertThat(versjon).isEqualTo(1)
+    }
+
+    @Test
+    fun `behandlingsversjon blir bumpet når struktureringvurdering blir gjort`() {
+        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
+        transactionMedBehandlingRepository { it.lagreStrukturertDokument(behandling.id, """{"YOLO": true}""") }
+        val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
+
+        assertThat(versjon).isEqualTo(1)
+    }
+
     fun <T> transactionMedBehandlingRepository(fn: (behandlingRepository: BehandlingRepositoryImpl) -> T): T =
         InitTestDatabase.dataSource.transaction {
             val behandlingRepository = BehandlingRepositoryImpl(it)
