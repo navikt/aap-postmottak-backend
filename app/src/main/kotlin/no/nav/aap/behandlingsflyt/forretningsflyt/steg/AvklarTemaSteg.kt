@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
+import no.nav.aap.behandlingsflyt.SECURE_LOGGER
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
@@ -39,6 +40,8 @@ class AvklarTemaSteg(
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val journalpost = safGraphQlClient.hentJournalpost(behandling.journalpostId)
 
+        SECURE_LOGGER.info(behandling.toString())
+        SECURE_LOGGER.info(journalpost.toString())
 
         return if (!journalpost.kanBehandlesAutomatisk() && !behandling.harTemaBlittAvklart()) {
             StegResultat(listOf(Definisjon.AVKLAR_TEMA))

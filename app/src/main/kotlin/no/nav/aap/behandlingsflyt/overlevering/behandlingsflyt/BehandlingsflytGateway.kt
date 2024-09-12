@@ -7,7 +7,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.papsign.ktor.openapigen.route.info
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
@@ -17,6 +19,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.Ident
+import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDate
 
@@ -27,6 +30,7 @@ interface BehandlingsflytGateway {
 }
 
 class BehandlingsflytClient() : BehandlingsflytGateway {
+    private val log = LoggerFactory.getLogger(SafGraphqlClient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))
     val config = ClientConfig(
@@ -37,9 +41,8 @@ class BehandlingsflytClient() : BehandlingsflytGateway {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-
     override fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): Saksinfo {
-
+        log.info("Finn eller opprett sak på person i behandlingsflyt")
         return runBlocking { finnEllerOpprett(ident.identifikator, mottattDato) }
     }
 
@@ -56,6 +59,7 @@ class BehandlingsflytClient() : BehandlingsflytGateway {
     }
     
     override fun finnSaker(ident: Ident): List<Saksinfo> {
+        log.info("Finn saker for person i behandlingsflyt")
         return runBlocking { finn(ident) }
     }
     

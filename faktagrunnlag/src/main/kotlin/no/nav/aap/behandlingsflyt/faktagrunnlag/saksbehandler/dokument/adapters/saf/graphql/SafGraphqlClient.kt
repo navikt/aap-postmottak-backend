@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
 
+
 interface SafGraphqlGateway {
     fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken? = null): Journalpost
 }
@@ -56,6 +57,7 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
     }
 
     override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken?): Journalpost {
+        log.info("Henter journalpost: $journalpostId")
         val request = SafRequest.hentJournalpost(journalpostId)
         val response = runBlocking { graphqlQuery(request, currentToken) }
 

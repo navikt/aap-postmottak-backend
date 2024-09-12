@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
 
-private val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
+internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 
 class App
 
@@ -231,7 +231,6 @@ data class DbConfig(
 )
 
 fun initDatasource(dbConfig: DbConfig): HikariDataSource {
-    SECURE_LOGGER.info(dbConfig.toString())
     return HikariDataSource(HikariConfig().apply {
         jdbcUrl = dbConfig.url
         username = dbConfig.username
