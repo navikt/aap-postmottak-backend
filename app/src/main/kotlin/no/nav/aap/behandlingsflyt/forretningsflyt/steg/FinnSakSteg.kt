@@ -33,13 +33,13 @@ class FinnSakSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val behndling = behandlingRepository.hent(kontekst.behandlingId)
-        val journalpost = safGraphQlClient.hentJournalpost(behndling.journalpostId)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val journalpost = safGraphQlClient.hentJournalpost(behandling.journalpostId)
         require(journalpost is Journalpost.MedIdent)
         val saksnummer = behandlingsflytClient
             .finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato())
 
-        behandlingRepository.lagreSaksnummer(behndling.id, saksnummer.saksnummer)
+        behandlingRepository.lagreSaksnummer(behandling.id, saksnummer.saksnummer)
 
         return StegResultat()
     }
