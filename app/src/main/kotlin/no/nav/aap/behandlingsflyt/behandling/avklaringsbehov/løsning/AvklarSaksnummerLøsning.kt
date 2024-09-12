@@ -1,0 +1,26 @@
+package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonTypeName
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AVKLAR_SAKSNUMMER_KODE
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovKontekst
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.AvklarSaksnummerLøser
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.LøsningsResultat
+import no.nav.aap.komponenter.dbconnect.DBConnection
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeName(value = AVKLAR_SAKSNUMMER_KODE)
+class AvklarSaksnummerLøsning(
+    @JsonProperty("dokumentkategori", required = true)
+    val saksnummer: String,
+    @JsonProperty(
+        "behovstype",
+        required = true,
+        defaultValue = AVKLAR_SAKSNUMMER_KODE
+    ) val behovstype: String = AVKLAR_SAKSNUMMER_KODE
+) : AvklaringsbehovLøsning {
+    override fun løs(connection: DBConnection, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
+        return AvklarSaksnummerLøser(connection).løs(kontekst, this)
+    }
+}

@@ -22,6 +22,7 @@ import java.time.LocalDate
 
 interface BehandlingsflytGateway {
     fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): Saksinfo
+    fun finnSaker(ident: Ident): List<Saksinfo>
     fun sendSøknad(sakId: String, journalpostId: JournalpostId, søknad: ByteArray)
 }
 
@@ -52,6 +53,18 @@ class BehandlingsflytClient() : BehandlingsflytGateway {
         return client.post(url.resolve("/api/sak/finnEllerOpprett"), request)
             ?: throw UnknownError("Fikk uforventet respons fra behandlingsflyt")
 
+    }
+    
+    override fun finnSaker(ident: Ident): List<Saksinfo> {
+        return runBlocking { finn(ident) }
+    }
+    
+    private fun finn(ident: Ident): List<Saksinfo> {
+        val request = PostRequest(
+            FinnSaker(ident.identifikator)
+        )
+        return client.post(url.resolve("/api/sak/finn"), request)
+            ?: throw UnknownError("Fikk uforventet respons fra behandlingsflyt")
     }
 
     override fun sendSøknad(

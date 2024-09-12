@@ -10,6 +10,7 @@ import java.util.stream.Collectors
 const val KATEGORISER_DOKUMENT_KODE = "1337"
 const val DIGITALISER_DOKUMENT_KODE = "1338"
 const val AVKLAR_TEMA_KODE = "1339"
+const val AVKLAR_SAKSNUMMER_KODE = "1340"
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
@@ -32,6 +33,11 @@ enum class Definisjon(
         kode = DIGITALISER_DOKUMENT_KODE,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.DIGITALISER_DOKUMENT
+    ),
+    AVKLAR_SAKSNUMMER(
+        kode = AVKLAR_SAKSNUMMER_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.FINN_SAK
     );
 
     companion object {

@@ -7,6 +7,8 @@ data class FinnEllerOpprettSak(
     val søknadsdato: LocalDate,
 )
 
+data class FinnSaker(val ident: String)
+
 data class SendSøknad(
     val saksnummer: String,
     val journalpostId: String,
