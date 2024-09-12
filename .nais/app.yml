@@ -62,6 +62,9 @@ spec:
   secureLogs:
     enabled: true
   accessPolicy:
+    inbound:
+        rules:
+            - application: postmottak
     outbound:
       external:
         - host: saf.dev-fss-pub.nais.io
