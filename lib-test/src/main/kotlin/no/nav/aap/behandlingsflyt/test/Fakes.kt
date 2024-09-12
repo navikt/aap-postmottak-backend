@@ -230,15 +230,15 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                           ], 
                           "dokumenter": [
                             {
-                              "tittel": "Dokumenttittel",
-                              "dokumentInfoId": "454268545",
+                            "tittel": "Dokumenttittel",
+                              "dokumentInfoId": "4542685451",
                               "brevkode": "NAV 11-13.05",
                               "dokumentvarianter": [
                                 {
-                                "variantformat": "ORIGINAL",
+                                "variantformat": "ARKIV",
                                 "filtype": "PDF"
                                 }
-                              ]
+                                ]
                             }
                           ]
                         }

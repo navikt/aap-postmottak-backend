@@ -30,6 +30,10 @@ sealed class Journalpost(
     fun finnOriginal(): Dokument? = dokumenter.find {
         it.variantFormat == Variantformat.ORIGINAL
     }
+
+    fun finnArkivVarianter(): List<Dokument> = dokumenter.filter {
+         it.variantFormat == Variantformat.ARKIV
+    }
     
     fun getDokumentNavn(): String = finnOriginal()?.tittel ?: "Ukjent"
 

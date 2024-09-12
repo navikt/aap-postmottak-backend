@@ -7,5 +7,5 @@ data class AvklarTemaVurderingDto(
 
 data class AvklarTemaGrunnlagDto(
     val vurdering: AvklarTemaVurderingDto?,
-    val dokumenter: List<Long>
+    val dokumenter: List<String>
 )
