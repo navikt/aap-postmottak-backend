@@ -5,7 +5,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fød
 import no.nav.aap.behandlingsflyt.test.FiktivtNavnGenerator
 import no.nav.aap.behandlingsflyt.test.FødselsnummerGenerator
 import no.nav.aap.behandlingsflyt.test.PersonNavn
-import no.nav.aap.verdityper.Prosent
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.time.LocalDate
 
@@ -19,12 +18,10 @@ class TestPerson(
     val dødsdato: Dødsdato? = null,
     val barn: List<TestPerson> = emptyList(),
     val navn: PersonNavn = FiktivtNavnGenerator.genererNavn(),
-    val yrkesskade: List<TestYrkesskade> = emptyList(),
-    val uføre: Prosent = Prosent(0),
 ) {
 
 
     override fun toString(): String {
-        return "TestPerson(fødselsdato=$fødselsdato, identer=$identer, dødsdato=$dødsdato, barn=$barn, navn=$navn, yrkesskade=$yrkesskade"
+        return "TestPerson(fødselsdato=$fødselsdato, identer=$identer, dødsdato=$dødsdato, barn=$barn, navn=$navn"
     }
 }

@@ -34,9 +34,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val oppgavestyring = embeddedServer(Netty, port = 0, module = { oppgavestyringFake() }).start()
     private val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
-    private val medl = embeddedServer(Netty, port = 0, module = { medlFake() }).apply { start() }
     private val joark = embeddedServer(Netty, port = 0, module = { joarkFake() }).apply { start() }
-    private val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() }).apply { start() }
     private val behandlkingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() }).apply { start() }
 
 
@@ -62,15 +60,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}/graphql")
         System.setProperty("integrasjon.saf.scope", "saf")
         System.setProperty("integrasjon.saf.url.rest", "http://localhost:${saf.port()}/rest")
-
-        // MEDL
-        System.setProperty("integrasjon.medl.url", "http://localhost:${medl.port()}")
-        System.setProperty("integrasjon.medl.scope", "medl")
-
-
-        // Pesys
-        System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
-        System.setProperty("integrasjon.pesys.scope", "scope")
 
         // Joark
         System.setProperty("integrasjon.joark.url", "http://localhost:${joark.port()}")
@@ -106,7 +95,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         azure.stop(0L, 0L)
         oppgavestyring.stop(0L, 0L)
         saf.stop(0L, 0L)
-        medl.stop(0L, 0L)
         joark.stop(0, 0)
     }
 
@@ -139,26 +127,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         routing {
             post("/behandling") {
                 call.respond(HttpStatusCode.NoContent)
-            }
-        }
-    }
-
-    private fun Application.pesysFake() {
-        install(ContentNegotiation) {
-            jackson()
-        }
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@pesysFake.log.info("Inntekt :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
-            }
-        }
-        routing() {
-            get("/vedtak/gradalderellerufore?fom={ting1}&sakstype={ting2}") {
-                val ident = requireNotNull(call.request.header("Nav-Personident"))
-                val uføregrad = fakePersoner[ident]?.uføre?.prosentverdi() ?: 0
-
-                call.respond(HttpStatusCode.OK, uføregrad)
             }
         }
     }
@@ -266,68 +234,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
         }
     }
-
-    private fun Application.medlFake() {
-        install(ContentNegotiation) {
-            jackson()
-        }
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@medlFake.log.info("MEDL :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
-            }
-        }
-
-        routing {
-            get {
-                call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-
-                @Language("JSON") val respons =
-                    """[
-  {
-    "unntakId": 100087727,
-    "ident": "02429118789",
-    "fraOgMed": "2021-07-08",
-    "tilOgMed": "2022-07-07",
-    "status": "GYLD",
-    "statusaarsak": null,
-    "medlem": true,
-    "grunnlag": "grunnlag",
-    "lovvalg": "lovvalg"
-  },
-  {
-    "unntakId": 100087729,
-    "ident": "02429118789",
-    "fraOgMed": "2014-07-10",
-    "tilOgMed": "2016-07-14",
-    "status": "GYLD",
-    "statusaarsak": null,
-    "medlem": false,
-    "grunnlag": "grunnlag",
-    "lovvalg": "lovvalg"
-  }
-]"""
-
-                call.respond(
-                    respons
-                )
-            }
-        }
-    }
-
-
-    private fun hentEllerGenererTestPerson(forespurtIdent: String): TestPerson {
-        val person = fakePersoner[forespurtIdent]
-        if (person == null) {
-            fakePersoner[forespurtIdent] = TestPerson(
-                identer = setOf(Ident(forespurtIdent)),
-                fødselsdato = Fødselsdato(LocalDate.now().minusYears(30)),
-            )
-        }
-
-        return fakePersoner[forespurtIdent]!!
-    }
-
 
     private fun Application.azureFake() {
         install(ContentNegotiation) {
