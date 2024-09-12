@@ -9,8 +9,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.
 import no.nav.aap.behandlingsflyt.saf.Journalpost
 import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.DokumentIdent
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.DokumentInfoResponsDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.DokumentResponsDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.HentDokumentDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.HentJournalpostDTO
@@ -51,7 +49,8 @@ fun NormalOpenAPIRoute.dokumentApi() {
                 respond(
                     DokumentInfoResponsDTO(
                         DokumentIdent(navn = "Navn Navnesen", ident = journalpost.personident.id),
-                        tittel = journalpost.getDokumentNavn()
+                        tittel = journalpost.getDokumentNavn(),
+                        dokumenter = journalpost.getDokumenter()
                     )
                 )
             }

@@ -22,7 +22,9 @@ sealed class Journalpost(
             it.brevkode == SKJEMANUMMER_SØKNAD
         }
     }
-
+    
+    fun getDokumenter(): List<Dokument> = dokumenter
+    
     fun mottattDato() = mottattDato
 
     fun finnOriginal(): Dokument? = dokumenter.find {
