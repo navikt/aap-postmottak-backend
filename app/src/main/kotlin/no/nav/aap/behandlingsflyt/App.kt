@@ -45,6 +45,7 @@ import no.nav.aap.behandlingsflyt.server.authenticate.authentication
 import no.nav.aap.behandlingsflyt.server.exception.FlytOperasjonException
 import no.nav.aap.behandlingsflyt.server.prosessering.BehandlingsflytLogInfoProvider
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesseringsJobber
+import no.nav.aap.behandlingsflyt.test.testApi
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
@@ -54,6 +55,8 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbmigrering.Migrering
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -73,8 +76,10 @@ fun main() {
     embeddedServer(Netty, port = 8080) { server(DbConfig()) }.start(wait = true)
 }
 
-internal fun Application.server(dbConfig: DbConfig,
-                                kafka: Streams = KafkaStreams()) {
+internal fun Application.server(
+    dbConfig: DbConfig,
+    kafka: Streams = KafkaStreams()
+) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     DefaultJsonMapper.objectMapper()
         .registerSubtypes(utledSubtypes())
@@ -126,14 +131,16 @@ internal fun Application.server(dbConfig: DbConfig,
     Migrering.migrate(dataSource)
     val motor = module(dataSource)
 
-    val config = StreamsConfig(schemaRegistry = SchemaRegistryConfig())
-    val topology = MottakListener(config, dataSource)
+    if (Miljø.er() != MiljøKode.LOKALT) {
+        val config = StreamsConfig(schemaRegistry = SchemaRegistryConfig())
+        val topology = MottakListener(config, dataSource)
 
-    kafka.connect(
-        topology = topology(),
-        config = config,
-        registry = prometheus,
-    )
+        kafka.connect(
+            topology = topology(),
+            config = config,
+            registry = prometheus,
+        )
+    }
 
     routing {
         authenticate(AZURE) {
@@ -147,6 +154,7 @@ internal fun Application.server(dbConfig: DbConfig,
                 kategoriseringApi(dataSource)
                 struktureringApi(dataSource)
                 motorApi(dataSource)
+                testApi(dataSource)
             }
         }
         actuator(prometheus, motor)
@@ -225,12 +233,13 @@ data class DbConfig(
 fun initDatasource(dbConfig: DbConfig): HikariDataSource {
     SECURE_LOGGER.info(dbConfig.toString())
     return HikariDataSource(HikariConfig().apply {
-    jdbcUrl = dbConfig.url
-    username = dbConfig.username
-    password = dbConfig.password
-    maximumPoolSize = 10 + ANTALL_WORKERS
-    minimumIdle = 1
-    driverClassName = "org.postgresql.Driver"
-    connectionTestQuery = "SELECT 1"
+        jdbcUrl = dbConfig.url
+        username = dbConfig.username
+        password = dbConfig.password
+        maximumPoolSize = 10 + ANTALL_WORKERS
+        minimumIdle = 1
+        driverClassName = "org.postgresql.Driver"
+        connectionTestQuery = "SELECT 1"
 
-})}
+    })
+}

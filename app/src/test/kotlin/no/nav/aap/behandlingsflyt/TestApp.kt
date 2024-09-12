@@ -35,6 +35,8 @@ class TestApp {
 
 // Kjøres opp for å få logback i console uten json
 fun main() {
+    System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+
     val postgres = postgreSQLContainer()
     val fakes = Fakes(azurePort = 8081)
 
@@ -61,31 +63,8 @@ fun main() {
             opprettBehanldingDigitaliser(it)
         }
 
-        apiRouting {
-            route("/test/hentAlleBehandlinger") {
-                get<Unit, List<BehandlingsListe>>() {
-                    val response = datasource.transaction {
-                        it.queryList("""SELECT journalpost_id as ref, steg  FROM BEHANDLING
-                            LEFT JOIN STEG_HISTORIKK ON STEG_HISTORIKK.BEHANDLING_ID = BEHANDLING.ID AND aktiv = true
-                        """.trimMargin()) {
-                            setRowMapper { BehandlingsListe(
-                                it.getString("ref"),
-                                it.getString("steg")
-                            ) }
-                        }
-                    }
-                    respond(response)
-                }
-            }
-        }
-
     }.start(wait = true)
 }
-
-data class BehandlingsListe(
-    val id: String,
-    val status: String
-)
 
 private fun opprettBehanldingAvklarTeam(connection: DBConnection) {
     val behandling =
