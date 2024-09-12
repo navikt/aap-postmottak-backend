@@ -7,7 +7,9 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.behandlingsflyt.saf.Journalpost
+import no.nav.aap.behandlingsflyt.saf.graphql.SafDokumentvariant
 import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
+import no.nav.aap.behandlingsflyt.saf.graphql.SafVariantformat
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.DokumentResponsDTO
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.HentDokumentDTO
@@ -29,6 +31,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
                     gateway.hentDokument(
                         JournalpostId(journalpostId),
                         DokumentInfoId(dokumentInfoId),
+                        SafVariantformat.ARKIV.name,
                         currentToken = token
                     )
                 pipeline.context.response.headers.append(
