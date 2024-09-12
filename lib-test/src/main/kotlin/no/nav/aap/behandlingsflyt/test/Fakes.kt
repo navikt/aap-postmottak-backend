@@ -156,10 +156,27 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
         routing {
             post("/api/sak/finnEllerOpprett") {
-                call.respond(Saksinfo(
-                    (Math.random() * 9999999999).toLong().toString(),
-                    Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
-                ))
+                call.respond(
+                    Saksinfo(
+                        (Math.random() * 9999999999).toLong().toString(),
+                        Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
+                    )
+                )
+            }
+
+            post("/api/sak/finn") {
+                call.respond(
+                    listOf(
+                        Saksinfo(
+                            (Math.random() * 9999999999).toLong().toString(),
+                            Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
+                        )
+                    )
+                )
+            }
+
+            post("/api/soknad/send") {
+                call.respond(HttpStatusCode.NoContent)
             }
         }
 
@@ -182,8 +199,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                         .toString()
                 )
                 call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
-                // Smallest possible PDF
-                // https://stackoverflow.com/a/17280876/1013553
                 val samplePdf = this.javaClass.classLoader.getResourceAsStream("sample.pdf")
                 call.respondOutputStream {
                     samplePdf.copyTo(this)
@@ -221,7 +236,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                               "dokumentvarianter": [
                                 {
                                 "variantformat": "ORIGINAL",
-                                "filtype": "JSON"
+                                "filtype": "PDF"
                                 }
                               ]
                             }
