@@ -239,6 +239,17 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                                 "filtype": "PDF"
                                 }
                                 ]
+                            },
+                            {
+                            "tittel": "Dokument2",
+                              "dokumentInfoId": "45426854351",
+                              "brevkode": "Ukjent",
+                              "dokumentvarianter": [
+                                {
+                                "variantformat": "ARKIV",
+                                "filtype": "PDF"
+                                }
+                                ]
                             }
                           ]
                         }
