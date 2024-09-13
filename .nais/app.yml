@@ -83,3 +83,7 @@ spec:
       value: http://behandlingsflyt
     - name: INTEGRASJON_BEHANDLINGSFLYT_SCOPE
       value: api://dev-gcp.aap.behandlingsflyt/.default
+    - name: INTEGRASJON_OPPGAVE_URL
+      value: http://oppgave
+    - name: INTEGRASJON_OPPGAVE_SCOPE
+      value: api://dev-gcp.aap.oppgave/.default

@@ -31,7 +31,7 @@ import java.util.*
 class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
     private val azure = embeddedServer(Netty, port = azurePort, module = { azureFake() }).start()
-    private val oppgavestyring = embeddedServer(Netty, port = 0, module = { oppgavestyringFake() }).start()
+    private val oppgave = embeddedServer(Netty, port = 0, module = { oppgaveFake() }).start()
     private val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
     private val joark = embeddedServer(Netty, port = 0, module = { joarkFake() }).apply { start() }
@@ -48,8 +48,8 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("azure.openid.config.issuer", "postmottak-backend")
 
         // Oppgavestyring
-        System.setProperty("integrasjon.oppgavestyring.scope", "oppgavestyring")
-        System.setProperty("integrasjon.oppgavestyring.url", "http://localhost:${oppgavestyring.port()}")
+        System.setProperty("integrasjon.oppgave.scope", "oppgave")
+        System.setProperty("integrasjon.oppgave.url", "http://localhost:${oppgave.port()}")
 
         // Behandlingsflyt
         System.setProperty("integrasjon.behandlingsflyt.scope", "behandlingsflyt")
@@ -93,7 +93,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
     override fun close() {
         azure.stop(0L, 0L)
-        oppgavestyring.stop(0L, 0L)
+        oppgave.stop(0L, 0L)
         saf.stop(0L, 0L)
         joark.stop(0, 0)
     }
@@ -108,7 +108,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             .first { it.type == ConnectorType.HTTP }
             .port
 
-    private fun Application.oppgavestyringFake() {
+    private fun Application.oppgaveFake() {
         install(ContentNegotiation) {
             jackson {
                 registerModule(JavaTimeModule())
@@ -116,7 +116,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                this@oppgavestyringFake.log.info(
+                this@oppgaveFake.log.info(
                     "Inntekt :: Ukjent feil ved kall til '{}'",
                     call.request.local.uri,
                     cause

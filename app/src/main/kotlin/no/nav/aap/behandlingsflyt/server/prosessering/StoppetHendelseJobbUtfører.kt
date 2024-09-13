@@ -2,7 +2,7 @@ package no.nav.aap.behandlingsflyt.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.hendelse.avløp.DokumentflytStoppetHendelse
-import no.nav.aap.behandlingsflyt.hendelse.oppgavestyring.BehandlingsFlytStoppetHendelseDTO
+import no.nav.aap.behandlingsflyt.hendelse.oppgave.BehandlingsFlytStoppetHendelseDTO
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -18,7 +18,7 @@ class StoppetHendelseJobbUtfører private constructor() : JobbUtfører {
 
         val hendelse = DefaultJsonMapper.fromJson<DokumentflytStoppetHendelse>(payload)
 
-        val hendelseTilOppgaveStyring = BehandlingsFlytStoppetHendelseDTO(
+        val hendelseTilOppgave = BehandlingsFlytStoppetHendelseDTO(
             avklaringsbehov = hendelse.avklaringsbehov,
             behandlingType = hendelse.behandlingType,
             opprettetTidspunkt = hendelse.opprettetTidspunkt,
@@ -26,7 +26,9 @@ class StoppetHendelseJobbUtfører private constructor() : JobbUtfører {
             status = hendelse.status,
         )
 
-        log.info("Varsler hendelse til OppgaveStyring. Saksnummer: ${hendelseTilOppgaveStyring.referanse}")
+        log.info("Varsler hendelse til Oppgave. Journalpost: ${hendelseTilOppgave.referanse}")
+        // TODO: Uncomment når oppgave er klar
+        //  OppgaveGateway.varsleHendelse(hendelseTilOppgave)
     }
 
     companion object : Jobb {
@@ -39,11 +41,11 @@ class StoppetHendelseJobbUtfører private constructor() : JobbUtfører {
         }
 
         override fun navn(): String {
-            return "Oppgavestyrings hendelse"
+            return "Oppgavehendelse"
         }
 
         override fun beskrivelse(): String {
-            return "Produsere hendelse til oppgavestyring"
+            return "Produsere hendelse til oppgave"
         }
     }
 }

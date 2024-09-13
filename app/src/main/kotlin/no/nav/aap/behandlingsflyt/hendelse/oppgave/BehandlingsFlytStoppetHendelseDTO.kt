@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.hendelse.oppgavestyring
+package no.nav.aap.behandlingsflyt.hendelse.oppgave
 
 import no.nav.aap.behandlingsflyt.hendelse.avløp.AvklaringsbehovHendelseDto
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
