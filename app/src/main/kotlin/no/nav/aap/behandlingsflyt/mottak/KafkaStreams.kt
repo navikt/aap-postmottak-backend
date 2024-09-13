@@ -44,7 +44,7 @@ class MottakListener(
             val behandling = behandlingRepository.opprettBehandling(journalpostId)
             flytJobbRepository.leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(behandling.id).medCallId()
+                    .forBehandling(null, behandling.id.toLong()).medCallId()
             )
         }
     }

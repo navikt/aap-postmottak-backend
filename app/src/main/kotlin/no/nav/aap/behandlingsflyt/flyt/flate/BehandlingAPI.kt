@@ -69,10 +69,11 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                 dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
                     val flytJobbRepository = FlytJobbRepository(connection)
-                    if (flytJobbRepository.hentJobberForBehandling(behandling.id).isEmpty()) {
+                    if (flytJobbRepository.hentJobberForBehandling(behandling.id.toLong()).isEmpty()) {
                         flytJobbRepository.leggTil(
                             JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(
-                                behandling.id
+                                null,
+                                behandling.id.toLong()
                             )
                         )
                     }
@@ -86,7 +87,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                 val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId((body.referanse)))
                 FlytJobbRepository(connection).leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
-                        .forBehandling(behandling.id).medCallId()
+                        .forBehandling(null, behandling.id.toLong()).medCallId()
                 )
 
             }

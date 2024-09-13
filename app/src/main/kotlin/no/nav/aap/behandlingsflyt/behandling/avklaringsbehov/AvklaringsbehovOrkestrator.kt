@@ -56,7 +56,8 @@ class AvklaringsbehovOrkestrator(
     private fun fortsettProsessering(kontekst: FlytKontekst) {
         flytJobbRepository.leggTil(
             JobbInput(jobb = ProsesserBehandlingJobbUtfører).forBehandling(
-                 kontekst.behandlingId
+                null,
+                 behandlingId = kontekst.behandlingId.toLong()
             ).medCallId()
         )
     }

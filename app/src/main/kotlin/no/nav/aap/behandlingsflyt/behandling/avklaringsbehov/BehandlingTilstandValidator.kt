@@ -14,7 +14,7 @@ class BehandlingTilstandValidator(connection: DBConnection) {
         val behandling = behandlingReferanseService.behandling(journalpostId)
         ValiderBehandlingTilstand.validerTilstandBehandling(behandling, behandlingVersjon)
 
-        val jobberForBehandling = flytJobbRepository.hentJobberForBehandling(behandling.id)
+        val jobberForBehandling = flytJobbRepository.hentJobberForBehandling(behandling.id.toLong())
         if (jobberForBehandling.isNotEmpty()) {
             throw BehandlingUnderProsesseringException()
         }
