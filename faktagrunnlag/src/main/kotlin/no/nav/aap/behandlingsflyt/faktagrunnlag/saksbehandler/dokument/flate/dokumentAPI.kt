@@ -53,7 +53,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
                     DokumentInfoResponsDTO(
                         DokumentIdent(navn = "Navn Navnesen", ident = journalpost.personident.id),
                         tittel = journalpost.getDokumentNavn(),
-                        dokumenter = journalpost.getDokumenter()
+                        dokumenter = journalpost.getDokumenter().map { DokumentDto.fromDokumne(it) }
                     )
                 )
             }
