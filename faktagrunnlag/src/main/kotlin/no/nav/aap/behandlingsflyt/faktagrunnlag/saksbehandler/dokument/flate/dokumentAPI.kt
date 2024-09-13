@@ -45,14 +45,19 @@ fun NormalOpenAPIRoute.dokumentApi() {
                 val journalpostId = req.journalpostId
 
                 val token = token()
-                val journalpost = SafGraphqlClient.withOboRestClient().hentJournalpost(JournalpostId(journalpostId), token)
-                check(journalpost is Journalpost.MedIdent)
+                val journalpost =
+                    SafGraphqlClient.withOboRestClient().hentJournalpost(JournalpostId(journalpostId), token)
+
+                val ident = if (journalpost is Journalpost.MedIdent) DokumentIdent(
+                    navn = "Navn Navnesen",
+                    ident = journalpost.personident.id
+                ) else null
 
                 respond(
                     DokumentInfoResponsDTO(
-                        DokumentIdent(navn = "Navn Navnesen", ident = journalpost.personident.id),
+                        ident,
                         tittel = journalpost.getDokumentNavn(),
-                        dokumenter = journalpost.getDokumenter().map { DokumentDto.fromDokumne(it) }
+                        dokumenter = journalpost.getDokumenter().map { DokumentDto.fromDokument(it) }
                     )
                 )
             }
