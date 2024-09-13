@@ -2,12 +2,12 @@ package no.nav.aap.behandlingsflyt.saf.graphql
 
 import SafResponseHandler
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.behandlingsflyt.saf.Dokument
-import no.nav.aap.behandlingsflyt.saf.Filtype
-import no.nav.aap.behandlingsflyt.saf.Ident
-import no.nav.aap.behandlingsflyt.saf.Journalpost
-import no.nav.aap.behandlingsflyt.saf.JournalpostStatus
-import no.nav.aap.behandlingsflyt.saf.Variantformat
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Filtype
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.JournalpostStatus
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Variantformat
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig

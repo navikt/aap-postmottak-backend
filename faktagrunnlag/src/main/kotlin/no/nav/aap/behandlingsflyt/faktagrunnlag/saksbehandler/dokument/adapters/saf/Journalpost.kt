@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.saf
+package no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.dokument.DokumentInfoId
