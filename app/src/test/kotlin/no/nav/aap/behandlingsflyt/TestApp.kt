@@ -71,7 +71,7 @@ private fun opprettBehanldingAvklarTeam(connection: DBConnection) {
         BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(behandling.id).medCallId()
+            .forBehandling(null, behandling.id.toLong()).medCallId()
     )
 }
 
@@ -82,7 +82,7 @@ private fun opprettBehanldingKategoriser(connection: DBConnection) {
     behandlingRepository.lagreTeamAvklaring(behandling.id, true)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(behandling.id).medCallId()
+            .forBehandling(null, behandling.id.toLong()).medCallId()
     )
 
 }
@@ -95,7 +95,7 @@ private fun opprettBehanldingDigitaliser(connection: DBConnection) {
     behandlingRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(behandling.id).medCallId()
+            .forBehandling(null, behandling.id.toLong()).medCallId()
     )
 
 }

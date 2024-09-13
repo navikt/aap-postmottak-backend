@@ -8,6 +8,5 @@ include(
     "dbflyway",
     "dbtest",
     "dbtestdata",
-    "motor",
     "lib-test",
 )

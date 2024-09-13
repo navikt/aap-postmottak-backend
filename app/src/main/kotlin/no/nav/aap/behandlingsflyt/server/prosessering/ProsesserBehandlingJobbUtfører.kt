@@ -6,6 +6,7 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class ProsesserBehandlingJobbUtfører(
     private val låsRepository: TaSkriveLåsRepository,
@@ -14,7 +15,7 @@ class ProsesserBehandlingJobbUtfører(
 
     override fun utfør(input: JobbInput) {
 
-        val kontekst = kontroller.opprettKontekst(input.behandlingId())
+        val kontekst = kontroller.opprettKontekst(BehandlingId(input.behandlingId()))
 
         kontroller.forberedBehandling(kontekst)
         kontroller.prosesserBehandling(kontekst)
