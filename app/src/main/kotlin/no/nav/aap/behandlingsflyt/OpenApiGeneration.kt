@@ -48,7 +48,7 @@ internal fun Application.generateOpenAPI() {
         // this serves Swagger UI on /swagger-ui/index.html
         serveSwaggerUi = true
         info {
-            title = "AAP - Saksbehandling"
+            title = "AAP - Postmottak"
         }
         addModules(JwtProvider())
     }

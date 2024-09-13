@@ -9,7 +9,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.18")
+    implementation("no.nav:ktor-openapi-generator:1.0.31")
     implementation("io.ktor:ktor-http-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("com.zaxxer:HikariCP:5.1.0")

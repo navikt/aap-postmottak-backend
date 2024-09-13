@@ -18,7 +18,6 @@ tasks {
         destinationFile = layout.buildDirectory.file("version.properties")
         // Define property.
         property("project.version", getCheckedOutGitCommitHash())
-        property("swagger-ui.version", "5.17.14")
     }
 
     processResources {
@@ -57,7 +56,7 @@ dependencies {
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
-    implementation("no.nav:ktor-openapi-generator:1.0.18")
+    implementation("no.nav:ktor-openapi-generator:1.0.31")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.2")
