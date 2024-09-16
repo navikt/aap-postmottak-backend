@@ -1,0 +1,78 @@
+package no.nav.aap.behandlingsflyt.forretningsflyt.steg
+
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.mockk
+import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
+
+class AvklarTemaStegTest {
+
+    val behandlingRepository : BehandlingRepository = mockk()
+    val safGraphqlClient : SafGraphqlClient = mockk()
+
+    val avklarTemaSteg = AvklarTemaSteg(behandlingRepository, safGraphqlClient)
+
+
+    val behandling: Behandling = mockk()
+    val journalpost: Journalpost = mockk()
+    val behandlingId = BehandlingId(10)
+    val journalpostId = JournalpostId(11)
+    val kontekst = FlytKontekstMedPerioder(behandlingId = behandlingId, TypeBehandling.DokumentHåndtering)
+
+
+    @BeforeEach
+    fun before() {
+        every { behandlingRepository.hent(behandlingId) } returns behandling
+        every { behandling.journalpostId } returns journalpostId
+        every { safGraphqlClient.hentJournalpost(journalpostId) } returns journalpost
+    }
+
+    @AfterEach
+    fun after() {
+        clearAllMocks()
+    }
+
+
+    @Test
+    fun `når automatisk saksbehandling er mulig skal ingen avklaringsbehov bli opprettet`() {
+        every { journalpost.kanBehandlesAutomatisk() } returns true
+
+        val actual = avklarTemaSteg.utfør(kontekst)
+
+        assertThat(actual.avklaringsbehov).isEmpty()
+    }
+
+    @Test
+    fun `når vi ikke kan behandle automatisk og mauell avklaring er utført forventer vi at steget ikke returnerer avklaringsbehov`() {
+        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { behandling.harTemaBlittAvklart() } returns true
+
+        val actual = avklarTemaSteg.utfør(kontekst)
+
+        assertThat(actual.avklaringsbehov).isEmpty()
+    }
+
+    @Test
+    fun `når vi ikke kan behandle automatisk og manuell avklaring mangler forventer vi avklaringsbehov AVKLAR_TEMA`() {
+        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { behandling.harTemaBlittAvklart() } returns false
+
+        val actual = avklarTemaSteg.utfør(kontekst)
+
+        assertThat(actual.avklaringsbehov).contains(Definisjon.AVKLAR_TEMA)
+    }
+
+}
