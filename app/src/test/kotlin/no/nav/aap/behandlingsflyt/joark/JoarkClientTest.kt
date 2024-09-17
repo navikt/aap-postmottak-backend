@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import org.junit.jupiter.api.Test
 
-class JoarkClientTest : WithFakes() {
+class JoarkClientTest : WithFakes {
 
 
     @Test

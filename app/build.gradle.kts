@@ -13,6 +13,8 @@ application {
     mainClass.set("no.nav.aap.behandlingsflyt.AppKt")
 }
 
+kotlin.sourceSets["test"].kotlin.srcDirs("src/systemtest/kotlin")
+
 tasks {
     val projectProps by registering(WriteProperties::class) {
         destinationFile = layout.buildDirectory.file("version.properties")

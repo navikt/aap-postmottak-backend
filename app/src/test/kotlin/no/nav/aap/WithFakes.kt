@@ -4,7 +4,7 @@ import no.nav.aap.behandlingsflyt.test.Fakes
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 
-abstract class WithFakes {
+interface WithFakes {
     companion object {
         lateinit var fakes: Fakes
 

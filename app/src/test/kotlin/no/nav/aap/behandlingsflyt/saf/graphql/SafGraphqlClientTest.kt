@@ -6,7 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 
-class SafGraphqlClientTest: WithFakes() {
+class SafGraphqlClientTest: WithFakes {
 
     @Test
     fun hentJournalpost() {
