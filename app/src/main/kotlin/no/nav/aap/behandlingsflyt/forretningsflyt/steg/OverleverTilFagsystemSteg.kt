@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
@@ -43,14 +44,18 @@ class OverleverTilFagsystemSteg(
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val journalpost = safGraphqlGateway.hentJournalpost(behandling.journalpostId)
 
-        check(journalpost.finnOriginal() != null) { "Kan ikke finne originaldoument for journalpost" }
-
         // TODO :poop: bør kanskje gjøres på journalpost
         val dokumentJson = if (behandling.harBlittStrukturert()) behandling.vurderinger.struktureringsvurdering!!.vurdering.toByteArray()
-            else safRestClient.hentDokument(behandling.journalpostId, journalpost.finnOriginal()!!.dokumentInfoId).dokument.readBytes()
+            else hentDokumentFraSaf(journalpost)
 
         behandlingsflytGateway.sendSøknad(behandling.saksnummer.toString(), journalpost.journalpostId ,dokumentJson)
 
         return StegResultat()
+    }
+
+    private fun hentDokumentFraSaf(journalpost: Journalpost): ByteArray {
+        val strukturertDokument = journalpost.finnOriginal()
+        requireNotNull(strukturertDokument) { "Finner ikke strukturert dokument" }
+        return safRestClient.hentDokument(journalpost.journalpostId, strukturertDokument.dokumentInfoId).dokument.readBytes()
     }
 }
