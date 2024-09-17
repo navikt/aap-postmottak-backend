@@ -1,4 +1,4 @@
-val komponenterVersjon = "0.0.53"
+val komponenterVersjon = "0.0.54"
 val ktorVersion = "2.3.12"
 
 dependencies {

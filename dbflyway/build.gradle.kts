@@ -1,4 +1,4 @@
-val komponenterVersjon = "0.0.53"
+val komponenterVersjon = "0.0.54"
 dependencies {
     implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
     implementation("org.flywaydb:flyway-database-postgresql:10.17.3")
