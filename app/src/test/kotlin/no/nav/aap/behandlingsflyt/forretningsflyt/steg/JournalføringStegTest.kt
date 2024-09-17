@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.joark.Joark
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.junit.jupiter.api.Test
 
 class JournalføringStegTest {
@@ -20,14 +21,16 @@ class JournalføringStegTest {
     )
 
     @Test
-    fun utfør() {
-        val journalpost: Journalpost = mockk()
+    fun `verifiser at journalpost blir oppdatert med saksnummer og endelig journalført`() {
+        val journalpost: Journalpost.MedIdent = mockk()
         every { safGraphqlGateway.hentJournalpost(any()) } returns journalpost
+
+        val saksnummer = "saksnummer"
+        every { behandlingRepository.hent(any() as BehandlingId ).saksnummer.toString() } returns saksnummer
 
         journalføringSteg.utfør(mockk(relaxed = true))
 
-        verify(exactly = 1) { joark.oppdaterJournalpost(journalpost as Journalpost.MedIdent, any()) }
+        verify(exactly = 1) { joark.oppdaterJournalpost(journalpost, saksnummer) }
         verify(exactly = 1) { joark.ferdigstillJournalpost(journalpost) }
-
     }
 }

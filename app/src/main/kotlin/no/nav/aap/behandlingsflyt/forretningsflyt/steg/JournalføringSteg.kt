@@ -15,7 +15,6 @@ import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(JournalføringSteg::class.java)
 
 class JournalføringSteg(
     private val behandlingRepository: BehandlingRepository,
@@ -38,8 +37,6 @@ class JournalføringSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        log.info("Treffer JournalføringsstegSteg")
-
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val journalpost = safGraphqlGateway.hentJournalpost(behandling.journalpostId)
 
