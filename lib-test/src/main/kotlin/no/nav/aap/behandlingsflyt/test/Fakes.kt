@@ -20,13 +20,9 @@ import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.Saksinfo
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
 import no.nav.aap.verdityper.sakogbehandling.Ident
-import org.intellij.lang.annotations.Language
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.ByteArrayInputStream
-import java.nio.file.Files
 import java.time.LocalDate
-import java.util.*
 
 class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
