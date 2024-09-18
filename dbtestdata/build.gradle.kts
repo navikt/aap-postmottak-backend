@@ -1,5 +1,5 @@
 
-val komponenterVersjon = "0.0.54"
+val komponenterVersjon = "0.0.63"
 
 
 dependencies {
