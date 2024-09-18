@@ -16,9 +16,9 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.behandlingsflyt.joark.FerdigstillRequest
 import no.nav.aap.behandlingsflyt.joark.OppdaterJournalpostRequest
-import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.Periode
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.Saksinfo
 import no.nav.aap.behandlingsflyt.test.modell.TestPerson
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
