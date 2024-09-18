@@ -1,13 +1,11 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.informasjonskrav.saksnummer
 
-import no.nav.aap.behandlingsflyt.flyt.Informasjonskrav
-import no.nav.aap.behandlingsflyt.flyt.Informasjonskravkonstruktør
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Informasjonskrav
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.verdityper.flyt.FlytKontekst
-import no.nav.aap.verdityper.sakogbehandling.Ident
 
 class SaksnummerInfoKrav(
     private val saksnummerRepository: SaksnummerRepository,
@@ -16,18 +14,18 @@ class SaksnummerInfoKrav(
     companion object: Informasjonskravkonstruktør {
         override fun konstruer(connection: DBConnection): Informasjonskrav {
             return SaksnummerInfoKrav(
-                SaksnummerRepository(),
+                SaksnummerRepository(connection),
                 BehandlingsflytClient()
             )
         }
-
     }
 
     override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
-        val saksnummre = behandlingsflytGateway.finnSaker(Ident("yolo", true))
+        // TODO Venter på endrigner i journalpost
+        //val saksnummre = behandlingsflytGateway.finnSaker(Ident("PLACEHOLDER", true))
 
-        saksnummerRepository.lagreSaksnummer(kontekst.behandlingId, saksnummre.map { Saksnummer(it.saksnummer)})
-        return false
+        //saksnummerRepository.lagreSaksnummer(kontekst.behandlingId, saksnummre)
+        return true
     }
 
 }
