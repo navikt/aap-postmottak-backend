@@ -16,8 +16,8 @@ interface JournalpostRepository {
 }
 class JournalpostRepositoryImpl(private val connection: DBConnection): JournalpostRepository {
     override fun lagre(journalpost: Journalpost, behandlingId: BehandlingId) {
-        val personIdent = if (journalpost is Journalpost.MedIdent) journalpost.personident.id else null
-        val aktørIdent = if (journalpost is Journalpost.MedIdent) journalpost.personident.id else null
+        val personIdent = if (journalpost is Journalpost.MedIdent && journalpost.personident is Ident.Personident) journalpost.personident.id else null
+        val aktørIdent = if (journalpost is Journalpost.MedIdent && journalpost.personident is Ident.Aktørid) journalpost.personident.id else null
         val query = """
             INSERT INTO JOURNALPOST (JOURNALPOST_ID, BEHANDLING_ID, JOURNALFORENDE_ENHET, PERSON_IDENT, AKTOER_IDENT, STATUS, MOTTATT_DATO) VALUES (?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
