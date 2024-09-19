@@ -27,7 +27,7 @@ class AvklarTemaStegTest {
 
 
     val behandling: Behandling = mockk()
-    val journalpost: Journalpost = mockk()
+    val journalpost: Journalpost = mockk(relaxed = true)
     val behandlingId = BehandlingId(10)
     val journalpostId = JournalpostId(11)
     val kontekst = FlytKontekstMedPerioder(behandlingId = behandlingId, TypeBehandling.DokumentHåndtering)
