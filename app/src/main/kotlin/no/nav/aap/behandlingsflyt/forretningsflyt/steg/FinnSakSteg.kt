@@ -43,12 +43,15 @@ class FinnSakSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val sakerPåBruker = saksnummerRepository.hentSaksnummre(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
         requireNotNull(journalpost) { "Journalpost kna ikke være null" }
         check(journalpost is Journalpost.MedIdent)
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
             val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
             behandlingRepository.lagreSaksnummer(kontekst.behandlingId, saksnummer)
+            StegResultat()
+        } else if (behandling.saksnummer != null) {
             StegResultat()
         } else {
             return StegResultat(

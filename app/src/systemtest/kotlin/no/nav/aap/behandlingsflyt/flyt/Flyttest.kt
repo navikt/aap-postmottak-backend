@@ -41,17 +41,18 @@ class Flyttest: WithFakes {
     fun `kjører en manuell søknad igjennom hele flyten`() {
         val behandlingId = dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.opprettBehandling(JournalpostId(1))
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1)).id
 
-            behandlingRepository.lagreTeamAvklaring(behandling.id, true)
-            behandlingRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD)
-            behandlingRepository.lagreStrukturertDokument(behandling.id, """{"yolo": "swag"}""")
+            behandlingRepository.lagreTeamAvklaring(behandlingId, true)
+            behandlingRepository.lagreSaksnummer(behandlingId, "23452345")
+            behandlingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            behandlingRepository.lagreStrukturertDokument(behandlingId, """{"yolo": "swag"}""")
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(null, behandling.id.toLong()).medCallId()
+                    .forBehandling(null, behandlingId.toLong()).medCallId()
             )
-            behandling.id
+            behandlingId
         }
 
         Thread.sleep(500)
