@@ -3,6 +3,7 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.informasjonskrav.saksnummer
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.Saksinfo
 import org.junit.jupiter.api.Test
@@ -12,10 +13,10 @@ class SaksnummerInfoKravTest {
 
     val sakRepository: SaksnummerRepository = mockk(relaxed = true)
     val behandlingsflytGateway: BehandlingsflytGateway = mockk()
+    val journalpostRepository: JournalpostRepository = mockk(relaxed = true)
 
-    val saksnummerInfoKrav = SaksnummerInfoKrav(sakRepository, behandlingsflytGateway)
+    val saksnummerInfoKrav = SaksnummerInfoKrav(sakRepository, behandlingsflytGateway, journalpostRepository)
 
-    @Ignore
     @Test
     fun `finn saksnummer for saker for borger og lagre på behandling`() {
         val saksnummre: List<Saksinfo> = listOf(mockk(), mockk())
