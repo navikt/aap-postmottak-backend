@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.behandlingstyper
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlyt
 import no.nav.aap.behandlingsflyt.flyt.BehandlingFlytBuilder
 import no.nav.aap.behandlingsflyt.flyt.BehandlingType
@@ -13,7 +14,7 @@ import no.nav.aap.behandlingsflyt.forretningsflyt.steg.StartBehandlingSteg
 object Dokumentflyt: BehandlingType {
     override fun flyt(): BehandlingFlyt = BehandlingFlytBuilder()
         .medSteg(steg = StartBehandlingSteg)
-        .medSteg(steg = AvklarTemaSteg)
+        .medSteg(steg = AvklarTemaSteg, informasjonskrav = listOf(JournalpostService))
         .medSteg(steg = FinnSakSteg)
         .medSteg(steg = KategoriserDokumentSteg)
         .medSteg(steg = DigitaliserDokumentSteg)

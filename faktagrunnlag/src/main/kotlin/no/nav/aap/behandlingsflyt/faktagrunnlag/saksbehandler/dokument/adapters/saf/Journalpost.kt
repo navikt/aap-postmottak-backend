@@ -6,6 +6,7 @@ import java.time.LocalDate
 
 const val SKJEMANUMMER_SØKNAD = "NAV 11-13.05"
 
+// TODO: Bør skille SAF-respons fra domenemodell
 sealed class Journalpost(
     open val journalpostId: JournalpostId,
     open val journalførendeEnhet: String?,
@@ -23,7 +24,9 @@ sealed class Journalpost(
         }
     }
     
-    fun getDokumenter(): List<Dokument> = dokumenter
+    fun status(): JournalpostStatus = status
+    
+    fun dokumenter(): List<Dokument> = dokumenter
     
     fun mottattDato() = mottattDato
 
@@ -66,6 +69,17 @@ sealed class Ident(
 ) {
     class Personident(id: String) : Ident(id)
     class Aktørid(id: String) : Ident(id)
+    
+    override fun equals (other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Ident
+
+        if (id != other.id) return false
+
+        return true
+    }
 }
 
 enum class JournalpostStatus {

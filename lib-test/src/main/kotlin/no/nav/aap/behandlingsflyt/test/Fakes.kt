@@ -206,13 +206,15 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
             post("/graphql") {
                 val body = call.receive<String>()
+                val journalpostId = body.substringAfter("\"journalpostId\" :").substringBefore("}").trim()
+                this@safFake.log.info("Henter dokumenter for journalpost {}", journalpostId)
 
                 call.respondText(
                     """
                     { "data":
                     {"journalpost":
                         {
-                          "journalpostId": "1",
+                          "journalpostId": $journalpostId,
                           "tittel": "Overordnet tittel",
                           "personident": "3",
                           "bruker": {

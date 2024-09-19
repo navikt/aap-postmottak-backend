@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.flyt
 
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.EndringType
 import no.nav.aap.verdityper.flyt.StegType
