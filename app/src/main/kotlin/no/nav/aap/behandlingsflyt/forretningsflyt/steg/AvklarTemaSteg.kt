@@ -11,11 +11,14 @@ import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositor
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
+import org.slf4j.LoggerFactory
 
 class AvklarTemaSteg(
     private val behandlingRepository: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
 ) : BehandlingSteg {
+    private val log = LoggerFactory.getLogger(AvklarTemaSteg::class.java)
+
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return AvklarTemaSteg(BehandlingRepositoryImpl(connection), JournalpostRepositoryImpl(connection))
@@ -33,6 +36,7 @@ class AvklarTemaSteg(
         require(journalpost != null)
 
         return if (!journalpost.kanBehandlesAutomatisk() && !behandling.harTemaBlittAvklart()) {
+            log.info("Journalpost ${journalpost.journalpostId} - Er digital: ${journalpost.erDigital()} - Er søknad: ${journalpost.erSøknad()} $journalpost")
             StegResultat(listOf(Definisjon.AVKLAR_TEMA))
         } else StegResultat()
     }
