@@ -8,6 +8,7 @@ import no.nav.aap.behandlingsflyt.forretningsflyt.informasjonskrav.saksnummer.Sa
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.AvklarTemaSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.DigitaliserDokumentSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.FinnSakSteg
+import no.nav.aap.behandlingsflyt.forretningsflyt.steg.JournalføringSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.KategoriserDokumentSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.OverleverTilFagsystemSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.StartBehandlingSteg
@@ -17,6 +18,7 @@ object Dokumentflyt: BehandlingType {
         .medSteg(steg = StartBehandlingSteg)
         .medSteg(steg = AvklarTemaSteg, informasjonskrav = listOf(JournalpostService))
         .medSteg(steg = FinnSakSteg, informasjonskrav = listOf(SaksnummerInfoKrav))
+        .medSteg(steg = JournalføringSteg)
         .medSteg(steg = KategoriserDokumentSteg)
         .medSteg(steg = DigitaliserDokumentSteg)
         .medSteg(steg = OverleverTilFagsystemSteg)
