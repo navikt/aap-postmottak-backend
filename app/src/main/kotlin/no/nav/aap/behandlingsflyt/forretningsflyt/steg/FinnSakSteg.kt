@@ -1,14 +1,14 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
-import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -20,14 +20,14 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 class FinnSakSteg(
     private val behandlingRepository: BehandlingRepository,
     private val behandlingsflytClient: BehandlingsflytGateway,
-    private val safGraphQlClient: SafGraphqlGateway
+    private val journalpostRepository: JournalpostRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return FinnSakSteg(
                 BehandlingRepositoryImpl(connection),
                 BehandlingsflytClient(),
-                SafGraphqlClient.withClientCredentialsRestClient()
+                JournalpostRepositoryImpl(connection)
             )
         }
 
@@ -39,7 +39,7 @@ class FinnSakSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        val journalpost = safGraphQlClient.hentJournalpost(behandling.journalpostId)
+        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost is Journalpost.MedIdent)
 
         if (journalpost.kanBehandlesAutomatisk()) {

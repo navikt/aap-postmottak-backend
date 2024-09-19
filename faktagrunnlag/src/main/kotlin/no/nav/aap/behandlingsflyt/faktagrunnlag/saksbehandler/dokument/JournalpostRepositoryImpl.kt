@@ -10,8 +10,12 @@ import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
-class JournalpostRepository(private val connection: DBConnection) {
-    fun lagre(journalpost: Journalpost, behandlingId: BehandlingId) {
+interface JournalpostRepository {
+    fun hentHvisEksisterer(behandlingId: BehandlingId): Journalpost?
+    fun lagre(journalpost: Journalpost, behandlingId: BehandlingId)
+}
+class JournalpostRepositoryImpl(private val connection: DBConnection): JournalpostRepository {
+    override fun lagre(journalpost: Journalpost, behandlingId: BehandlingId) {
         val personIdent = if (journalpost is Journalpost.MedIdent) journalpost.personident.id else null
         val aktørIdent = if (journalpost is Journalpost.MedIdent) journalpost.personident.id else null
         val query = """
@@ -45,7 +49,7 @@ class JournalpostRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentHvisEksisterer(behandlingId: BehandlingId): Journalpost? {
+    override fun hentHvisEksisterer(behandlingId: BehandlingId): Journalpost? {
         val query = """
             SELECT * FROM JOURNALPOST WHERE BEHANDLING_ID = ?
         """.trimIndent()
@@ -66,7 +70,7 @@ class JournalpostRepository(private val connection: DBConnection) {
             return Journalpost.MedIdent(
                 personident = if (personIdent != null) Ident.Personident(personIdent) else Ident.Aktørid(aktørIdent!!),
                 journalpostId = JournalpostId(row.getLong("JOURNALPOST_ID")),
-                journalførendeEnhet = row.getString("JOURNALFORENDE_ENHET"),
+                journalførendeEnhet = row.getStringOrNull("JOURNALFORENDE_ENHET"),
                 status = JournalpostStatus.valueOf(row.getString("STATUS")),
                 mottattDato = row.getLocalDate("MOTTATT_DATO"),
                 dokumenter = hentDokumenter(row.getLong("JOURNALPOST_ID"))
@@ -74,7 +78,7 @@ class JournalpostRepository(private val connection: DBConnection) {
         } else {
             return Journalpost.UtenIdent(
                 journalpostId = JournalpostId(row.getLong("JOURNALPOST_ID")),
-                journalførendeEnhet = row.getString("JOURNALFORENDE_ENHET"),
+                journalførendeEnhet = row.getStringOrNull("JOURNALFORENDE_ENHET"),
                 status = JournalpostStatus.valueOf(row.getString("STATUS")),
                 mottattDato = row.getLocalDate("MOTTATT_DATO"),
                 dokumenter = hentDokumenter(row.getLong("JOURNALPOST_ID"))

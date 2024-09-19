@@ -20,7 +20,7 @@ class JournalpostService private constructor(
     companion object : Informasjonskravkonstruktør {
         override fun konstruer(connection: DBConnection): JournalpostService {
             return JournalpostService(
-                JournalpostRepository(connection),
+                JournalpostRepositoryImpl(connection),
                 SafGraphqlClient.withClientCredentialsRestClient(),
                 BehandlingRepositoryImpl(connection)
             )

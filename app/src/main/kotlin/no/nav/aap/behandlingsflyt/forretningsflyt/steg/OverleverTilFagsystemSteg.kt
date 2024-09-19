@@ -1,5 +1,7 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -8,8 +10,6 @@ import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
-import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -21,7 +21,7 @@ private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
 class OverleverTilFagsystemSteg(
     private val behandlingRepository: BehandlingRepository,
     private val behandlingsflytGateway: BehandlingsflytGateway,
-    private val safGraphqlGateway: SafGraphqlGateway,
+    private val journalpostRepository: JournalpostRepository,
     private val safRestClient: SafRestClient
 ) : BehandlingSteg {
     companion object : FlytSteg {
@@ -29,7 +29,7 @@ class OverleverTilFagsystemSteg(
             return OverleverTilFagsystemSteg(
                 BehandlingRepositoryImpl(connection),
                 BehandlingsflytClient(),
-                SafGraphqlClient.withClientCredentialsRestClient(),
+                JournalpostRepositoryImpl(connection),
                 SafRestClient.withClientCredentialsRestClient()
             )
         }
@@ -42,7 +42,8 @@ class OverleverTilFagsystemSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
 
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        val journalpost = safGraphqlGateway.hentJournalpost(behandling.journalpostId)
+        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+        require(journalpost != null)
 
         // TODO :poop: bør kanskje gjøres på journalpost
         val dokumentJson = if (behandling.harBlittStrukturert()) behandling.vurderinger.struktureringsvurdering!!.vurdering.toByteArray()

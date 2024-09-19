@@ -1,10 +1,10 @@
 package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.JournalpostStatus
 import no.nav.aap.behandlingsflyt.joark.Joark
-import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
@@ -42,12 +42,16 @@ class BehandlingRepositoryTestDouble: BehandlingRepository {
 
 }
 
-class SafGraphqlGatewayTestDouble: SafGraphqlGateway {
+class JournalpostRepositoryTestDouble: JournalpostRepository {
 
     lateinit var journalpostStub: Journalpost
 
-    override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken?): Journalpost {
+    override fun hentHvisEksisterer(behandlingId: BehandlingId): Journalpost? {
         return journalpostStub
+    }
+
+    override fun lagre(journalpost: Journalpost, behandlingId: BehandlingId) {
+        TODO("Not yet implemented")
     }
 }
 
@@ -90,11 +94,11 @@ fun generateJournalpost() = Journalpost.MedIdent(
 class JournalføringStegTestWithoutLib {
 
     val behandlingRepository: BehandlingRepositoryTestDouble = BehandlingRepositoryTestDouble()
-    val safGraphqlGateway: SafGraphqlGatewayTestDouble = SafGraphqlGatewayTestDouble()
+    val journalpostRepository: JournalpostRepositoryTestDouble = JournalpostRepositoryTestDouble()
     val joark: JoarkTestDouble = JoarkTestDouble()
 
     val journalføringSteg = JournalføringSteg(
-        behandlingRepository, safGraphqlGateway, joark
+        behandlingRepository, journalpostRepository, joark
     )
 
     @Test
@@ -105,7 +109,7 @@ class JournalføringStegTestWithoutLib {
         val behandling = generateBehandling(saksnummer = saksnummer)
 
         behandlingRepository.behandlingStub = behandling
-        safGraphqlGateway.journalpostStub = journalpost
+        journalpostRepository.journalpostStub = journalpost
 
         journalføringSteg.utfør(FlytKontekstMedPerioder(BehandlingId(1), TypeBehandling.DokumentHåndtering))
 

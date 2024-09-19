@@ -3,8 +3,8 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -14,10 +14,10 @@ import org.junit.jupiter.api.Test
 class DigitaliserDokumentStegTest {
 
     val behandlingRepository: BehandlingRepository = mockk()
-    val safGraphqlGateway: SafGraphqlGateway = mockk()
+    val journalpostRepo: JournalpostRepositoryImpl = mockk()
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        behandlingRepository, safGraphqlGateway
+        behandlingRepository, journalpostRepo
     )
 
     @Test
@@ -28,7 +28,7 @@ class DigitaliserDokumentStegTest {
 
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { behandling.harBlittStrukturert() } returns false
-        every { safGraphqlGateway.hentJournalpost(any()) } returns journalpost
+        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
         every { behandlingRepository.hent(any()as BehandlingId) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
@@ -45,7 +45,7 @@ class DigitaliserDokumentStegTest {
 
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { behandling.harBlittStrukturert() } returns true
-        every { safGraphqlGateway.hentJournalpost(any()) } returns journalpost
+        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
         every { behandlingRepository.hent(any()as BehandlingId) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
@@ -62,7 +62,7 @@ class DigitaliserDokumentStegTest {
 
         every { journalpost.kanBehandlesAutomatisk() } returns true
         every { behandling.harBlittStrukturert() } returns false
-        every { safGraphqlGateway.hentJournalpost(any()) } returns journalpost
+        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
         every { behandlingRepository.hent(any()as BehandlingId) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))

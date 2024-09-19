@@ -4,6 +4,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
@@ -25,13 +26,13 @@ class OverleverTilFagsystemStegTest {
 
     val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
     val behandlingsflytGateway: BehandlingsflytGateway = mockk(relaxed = true)
-    val safGraphqlGateway: SafGraphqlGateway = mockk()
+    val journalpostRepository: JournalpostRepository = mockk()
     val safRestClient: SafRestClient = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         behandlingRepository,
         behandlingsflytGateway,
-        safGraphqlGateway,
+        journalpostRepository,
         safRestClient
     )
 
@@ -44,7 +45,7 @@ class OverleverTilFagsystemStegTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { safGraphqlGateway.hentJournalpost(any()) } returns journalpost
+        every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
         every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId

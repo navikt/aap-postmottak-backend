@@ -3,9 +3,9 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.behandlingsflyt.joark.Joark
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.junit.jupiter.api.Test
@@ -13,17 +13,17 @@ import org.junit.jupiter.api.Test
 class JournalføringStegTest {
 
     val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
-    val safGraphqlGateway: SafGraphqlGateway = mockk()
+    val journalpostRepository: JournalpostRepositoryImpl = mockk()
     val joark: Joark = mockk(relaxed = true)
 
     val journalføringSteg = JournalføringSteg(
-        behandlingRepository, safGraphqlGateway, joark
+        behandlingRepository, journalpostRepository, joark
     )
 
     @Test
     fun `verifiser at journalpost blir oppdatert med saksnummer og endelig journalført`() {
         val journalpost: Journalpost.MedIdent = mockk()
-        every { safGraphqlGateway.hentJournalpost(any()) } returns journalpost
+        every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
 
         val saksnummer = "saksnummer"
         every { behandlingRepository.hent(any() as BehandlingId ).saksnummer.toString() } returns saksnummer

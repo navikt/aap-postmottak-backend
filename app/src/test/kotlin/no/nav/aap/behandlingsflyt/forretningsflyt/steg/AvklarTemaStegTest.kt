@@ -4,8 +4,8 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.behandlingsflyt.saf.graphql.SafGraphqlClient
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Test
 class AvklarTemaStegTest {
 
     val behandlingRepository : BehandlingRepository = mockk()
-    val safGraphqlClient : SafGraphqlClient = mockk()
+    val journalpostRepo : JournalpostRepositoryImpl = mockk()
 
-    val avklarTemaSteg = AvklarTemaSteg(behandlingRepository, safGraphqlClient)
+    val avklarTemaSteg = AvklarTemaSteg(behandlingRepository, journalpostRepo)
 
 
     val behandling: Behandling = mockk()
@@ -37,7 +37,7 @@ class AvklarTemaStegTest {
     fun before() {
         every { behandlingRepository.hent(behandlingId) } returns behandling
         every { behandling.journalpostId } returns journalpostId
-        every { safGraphqlClient.hentJournalpost(journalpostId) } returns journalpost
+        every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
     }
 
     @AfterEach

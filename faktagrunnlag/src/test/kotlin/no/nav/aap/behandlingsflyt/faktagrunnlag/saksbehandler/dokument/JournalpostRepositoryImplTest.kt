@@ -6,7 +6,6 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.JournalpostStatus
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Variantformat
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -16,7 +15,7 @@ import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import java.time.LocalDate
 
-class JournalpostRepositoryTest {
+class JournalpostRepositoryImplTest {
     @Test
     fun `Kan lagre og hente journalpost`() {
         val behandlingId = InitTestDatabase.dataSource.transaction { connection ->
@@ -25,7 +24,7 @@ class JournalpostRepositoryTest {
 
             val journalpost = genererJournalpost()
             val behandling = behandlingRepository.opprettBehandling(journalpost.journalpostId)
-            val journalpostRepository = JournalpostRepository(connection)
+            val journalpostRepository = JournalpostRepositoryImpl(connection)
             
             // Act
             journalpostRepository.lagre(journalpost, behandling.id)
