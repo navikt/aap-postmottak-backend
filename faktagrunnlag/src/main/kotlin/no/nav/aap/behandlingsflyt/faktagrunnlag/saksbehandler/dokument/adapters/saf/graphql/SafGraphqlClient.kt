@@ -65,7 +65,7 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
             ?: error("Fant ikke journalpost for $journalpostId")
 
         val ident = when (journalpost.bruker?.type) {
-            BrukerIdType.AKTOERID -> null //Ident.Aktørid(journalpost.bruker.id!!) //TODO: Må håndtere aktørid bittelitt mer fornuftig
+            BrukerIdType.AKTOERID -> Ident.Aktørid(journalpost.bruker.id!!)
             BrukerIdType.FNR -> Ident.Personident(journalpost.bruker.id!!)
             else -> null.also {
                 log.warn("mottok noe annet enn a: ${journalpost.bruker?.type}")
