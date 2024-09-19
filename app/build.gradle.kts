@@ -2,7 +2,7 @@ import java.io.ByteArrayOutputStream
 
 val ktorVersion = "2.3.12"
 val aapLibVersion = "5.0.23"
-val komponenterVersjon = "0.0.63"
+val komponenterVersjon = "0.0.65"
 
 
 plugins {
