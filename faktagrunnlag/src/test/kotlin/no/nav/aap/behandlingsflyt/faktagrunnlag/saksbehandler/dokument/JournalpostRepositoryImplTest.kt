@@ -32,6 +32,9 @@ class JournalpostRepositoryImplTest {
             val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandling.id)
 
             assertThat(hentetJournalpost).isEqualTo(journalpost)
+            assertThat(hentetJournalpost?.dokumenter()?.size).isGreaterThan(0)
+            assertThat(hentetJournalpost?.erSøknad()).isTrue()
+            assertThat(hentetJournalpost?.erDigital()).isTrue()
         }
     }
     
@@ -39,21 +42,21 @@ class JournalpostRepositoryImplTest {
         dokumenter: List<Dokument>? = null
     ) = Journalpost.MedIdent(
         personident = Ident.Personident("1123123"),
-        journalpostId =  JournalpostId(1),
+        journalpostId =  JournalpostId(10),
         status = JournalpostStatus.MOTTATT,
         mottattDato = LocalDate.of(2021, 1, 1),
         journalførendeEnhet = "YOLO",
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 tittel = "Søknad",
-                brevkode = "Brev",
+                brevkode = "NAV 11-13.05",
                 filtype = Filtype.JSON,
                 variantFormat = Variantformat.ORIGINAL,
                 dokumentInfoId = DokumentInfoId("1")
             ),
             Dokument(
                 tittel = "Søknad",
-                brevkode = "Brev",
+                brevkode = "NAV 11-13.05",
                 filtype = Filtype.PDF,
                 variantFormat = Variantformat.SLADDET,
                 dokumentInfoId = DokumentInfoId("1")

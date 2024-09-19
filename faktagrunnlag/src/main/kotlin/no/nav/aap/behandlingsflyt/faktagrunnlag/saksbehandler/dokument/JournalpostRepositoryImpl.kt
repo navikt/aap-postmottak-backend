@@ -73,7 +73,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection): Journalpo
                 journalførendeEnhet = row.getStringOrNull("JOURNALFORENDE_ENHET"),
                 status = JournalpostStatus.valueOf(row.getString("STATUS")),
                 mottattDato = row.getLocalDate("MOTTATT_DATO"),
-                dokumenter = hentDokumenter(row.getLong("JOURNALPOST_ID"))
+                dokumenter = hentDokumenter(row.getLong("ID"))
             )
         } else {
             return Journalpost.UtenIdent(
@@ -81,7 +81,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection): Journalpo
                 journalførendeEnhet = row.getStringOrNull("JOURNALFORENDE_ENHET"),
                 status = JournalpostStatus.valueOf(row.getString("STATUS")),
                 mottattDato = row.getLocalDate("MOTTATT_DATO"),
-                dokumenter = hentDokumenter(row.getLong("JOURNALPOST_ID"))
+                dokumenter = hentDokumenter(row.getLong("ID"))
             )
         }
     }
