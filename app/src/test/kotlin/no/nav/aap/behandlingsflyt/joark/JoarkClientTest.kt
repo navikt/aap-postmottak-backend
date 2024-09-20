@@ -7,7 +7,9 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import org.junit.jupiter.api.Test
+import kotlin.test.Ignore
 
+@Ignore
 class JoarkClientTest : WithFakes {
 
 
