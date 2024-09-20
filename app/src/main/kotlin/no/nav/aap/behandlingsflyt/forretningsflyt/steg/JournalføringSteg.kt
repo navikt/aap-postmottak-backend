@@ -45,7 +45,8 @@ class JournalføringSteg(
 
         require(journalpost is Journalpost.MedIdent)
 
-        joarkKlient.oppdaterJournalpost(journalpost, behandling.vurderinger.saksvurdering?.vurdering!!)
+        joarkKlient.oppdaterJournalpost(journalpost, behandling
+            .vurderinger.saksvurdering?.vurdering?.saksnummer!!)
 
         try {
             joarkKlient.ferdigstillJournalpost(journalpost)

@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.
 import no.nav.aap.behandlingsflyt.joark.Joark
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Saksvurdering
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Vurdering
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Vurderinger
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
@@ -76,7 +77,7 @@ class JoarkTestDouble() : Joark {
 fun generateBehandling(saksnummer: Saksnummer? = null) = Behandling(
     id = BehandlingId(1234),
     journalpostId = JournalpostId(1234),
-    vurderinger = Vurderinger(saksvurdering = saksnummer?.let { Vurdering(saksnummer.toString()) })
+    vurderinger = Vurderinger(saksvurdering = saksnummer?.let { Vurdering(Saksvurdering(saksnummer.toString(), false)) })
 )
 
 fun generateJournalpost() = Journalpost.MedIdent(

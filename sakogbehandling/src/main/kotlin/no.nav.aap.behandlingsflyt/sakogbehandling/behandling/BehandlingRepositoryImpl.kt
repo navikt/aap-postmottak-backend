@@ -83,13 +83,14 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun lagreSakVurdeirng(behandlingId: BehandlingId, saksnummer: Saksnummer?) {
         connection.execute(
             """
-            INSERT INTO SAKSNUMMER_AVKLARING (BEHANDLING_ID, SAKSNUMMER) VALUES (
-            ?, ?)
+            INSERT INTO SAKSNUMMER_AVKLARING (BEHANDLING_ID, SAKSNUMMER, OPPRETT_NY) VALUES (
+            ?, ?, ?)
         """.trimIndent()
         ) {
             setParams {
                 setLong(1, behandlingId.toLong())
                 setString(2, saksnummer?.toString())
+                setBoolean(3, saksnummer == null)
             }
         }
     }
@@ -106,7 +107,10 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
                 row.getBooleanOrNull("skal_til_aap")?.let(::Vurdering),
                 row.getEnumOrNull<Brevkode, _>("kategori")?.let(::Vurdering),
                 row.getStringOrNull("strukturert_dokument")?.let(::Vurdering),
-                row.getStringOrNull("SAKSNUMMER").let(::Vurdering),
+                row.getBooleanOrNull("OPPRETT_NY")?.let {Saksvurdering(
+                    row.getStringOrNull("SAKSNUMMER"),
+                    it
+                ).let(::Vurdering) }
             )
         )
     }

@@ -49,7 +49,7 @@ class OverleverTilFagsystemSteg(
         val dokumentJson = if (behandling.harBlittStrukturert()) behandling.vurderinger.struktureringsvurdering!!.vurdering.toByteArray()
             else hentDokumentFraSaf(journalpost)
 
-        behandlingsflytGateway.sendSøknad(behandling.vurderinger.saksvurdering?.vurdering!!, journalpost.journalpostId ,dokumentJson)
+        behandlingsflytGateway.sendSøknad(behandling.vurderinger.saksvurdering?.vurdering?.saksnummer!!, journalpost.journalpostId ,dokumentJson)
 
         return StegResultat()
     }

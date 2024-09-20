@@ -11,13 +11,18 @@ import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
 
 
+data class Saksvurdering(
+    val saksnummer: String?,
+    val opprettNySak: Boolean,
+)
+
 class Vurdering<T>(val vurdering: T)
 
 class Vurderinger(
     val avklarTemaVurdering: Vurdering<Boolean>? = null,
     val kategorivurdering: Vurdering<Brevkode>? = null,
     val struktureringsvurdering: Vurdering<String>? = null,
-    val saksvurdering: Vurdering<String?>?  = null
+    val saksvurdering: Vurdering<Saksvurdering>?  = null
 )
 
 class Behandling(

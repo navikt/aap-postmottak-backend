@@ -49,7 +49,7 @@ class OverleverTilFagsystemStegTest {
         every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
-        every { behandling.vurderinger.saksvurdering?.vurdering } returns saksnummer
+        every { behandling.vurderinger.saksvurdering?.vurdering?.saksnummer } returns saksnummer
     }
 
     @AfterEach
