@@ -2,12 +2,10 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.verdityper.sakogbehandling.SakId
 import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
@@ -18,13 +16,13 @@ class Vurdering<T>(val vurdering: T)
 class Vurderinger(
     val avklarTemaVurdering: Vurdering<Boolean>? = null,
     val kategorivurdering: Vurdering<Brevkode>? = null,
-    val struktureringsvurdering: Vurdering<String>? = null
+    val struktureringsvurdering: Vurdering<String>? = null,
+    val saksvurdering: Vurdering<String?>?  = null
 )
 
 class Behandling(
     val id: BehandlingId,
     val journalpostId: JournalpostId,
-    val saksnummer: Saksnummer? = null,
     private var status: Status = Status.OPPRETTET,
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
@@ -39,6 +37,7 @@ class Behandling(
     fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
     fun harTemaBlittAvklart() = vurderinger.avklarTemaVurdering != null
     fun harBlittKategorisert() = vurderinger.kategorivurdering != null
+    fun harGjortSaksvurdering() = vurderinger.saksvurdering != null
 
     fun flytKontekst(): FlytKontekst {
         return FlytKontekst(id, typeBehandling)
@@ -95,6 +94,6 @@ class Behandling(
     }
 
     override fun toString(): String {
-        return "Behandling(id=$id, referanse=$referanse, sakId=$saksnummer, typeBehandling=$typeBehandling, status=$status, opprettetTidspunkt=$opprettetTidspunkt, versjon=$versjon)"
+        return "Behandling(id=$id, referanse=$referanse, typeBehandling=$typeBehandling, status=$status, opprettetTidspunkt=$opprettetTidspunkt, versjon=$versjon)"
     }
 }

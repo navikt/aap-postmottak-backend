@@ -26,7 +26,7 @@ class JournalføringStegTest {
         every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
 
         val saksnummer = "saksnummer"
-        every { behandlingRepository.hent(any() as BehandlingId ).saksnummer.toString() } returns saksnummer
+        every { behandlingRepository.hent(any() as BehandlingId ).vurderinger.saksvurdering?.vurdering } returns saksnummer
 
         journalføringSteg.utfør(mockk(relaxed = true))
 

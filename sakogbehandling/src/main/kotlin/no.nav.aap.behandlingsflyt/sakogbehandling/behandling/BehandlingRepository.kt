@@ -9,13 +9,12 @@ interface VurderingRepository {
     fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean)
     fun lagreKategoriseringVurdering(behandlingId: BehandlingId, kategori: Brevkode)
     fun lagreStrukturertDokument(behandlingId: BehandlingId, strukturertDokument: String)
+    fun lagreSakVurdeirng(behandlingId: BehandlingId, saksnummer: Saksnummer?)
 }
 
 interface BehandlingRepository {
 
     fun opprettBehandling(journalpostId: JournalpostId): Behandling
-
-    fun lagreSaksnummer(behandlingId: BehandlingId, saksnummer: String)
 
     fun hent(behandlingId: BehandlingId): Behandling
 
