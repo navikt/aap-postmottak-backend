@@ -6,7 +6,6 @@ include(
     "faktagrunnlag",
     "verdityper",
     "dbflyway",
-    "dbtest",
     "dbtestdata",
     "lib-test",
 )
