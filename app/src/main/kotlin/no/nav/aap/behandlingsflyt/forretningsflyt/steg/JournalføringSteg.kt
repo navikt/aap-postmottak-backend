@@ -11,8 +11,10 @@ import no.nav.aap.behandlingsflyt.joark.JoarkClient
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
+import org.slf4j.LoggerFactory
 
 
 class JournalføringSteg(
@@ -20,6 +22,8 @@ class JournalføringSteg(
     private val journalpostRepository: JournalpostRepository,
     private val joarkKlient: Joark
 ) : BehandlingSteg {
+    private val log = LoggerFactory.getLogger(JournalføringSteg::class.java)
+
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return JournalføringSteg(
@@ -42,7 +46,13 @@ class JournalføringSteg(
         require(journalpost is Journalpost.MedIdent)
 
         joarkKlient.oppdaterJournalpost(journalpost, behandling.saksnummer.toString())
-        joarkKlient.ferdigstillJournalpost(journalpost)
+
+        try {
+            joarkKlient.ferdigstillJournalpost(journalpost)
+        } catch (e: UhåndtertHttpResponsException) {
+            log.warn("Kunne ikke ferdigstille ${journalpost.journalpostId}: ${e.message}")
+            throw e
+        }
 
         return StegResultat()
     }
