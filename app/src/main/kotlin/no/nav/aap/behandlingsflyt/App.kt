@@ -34,6 +34,7 @@ import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbeh
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.avklarteam.flate.avklarTemaVurderingApi
+import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.finnsak.flate.finnSakApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.strukturering.flate.struktureringApi
 import no.nav.aap.behandlingsflyt.flyt.flate.DefinisjonDTO
@@ -152,6 +153,7 @@ internal fun Application.server(
                 dokumentApi()
                 avklarTemaVurderingApi(dataSource)
                 kategoriseringApi(dataSource)
+                finnSakApi(dataSource)
                 struktureringApi(dataSource)
                 motorApi(dataSource)
                 testApi(dataSource)
