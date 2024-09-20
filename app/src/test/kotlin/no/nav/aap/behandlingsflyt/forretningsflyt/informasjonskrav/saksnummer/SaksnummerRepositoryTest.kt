@@ -65,7 +65,8 @@ class SaksnummerRepositoryTest {
 
             saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo)
 
-            val actual = connection.queryFirst<Int>("""SELECT COUNT(*) as count FROM SAKER_PAA_BEHANDLING""") {
+            val actual = connection.queryFirst("""
+                SELECT COUNT(*) as count FROM SAKER_PAA_BEHANDLING""".trimIndent()) {
                 setRowMapper { it.getInt("count") }
             }
 

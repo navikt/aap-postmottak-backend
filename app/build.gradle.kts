@@ -88,8 +88,6 @@ dependencies {
     testImplementation("com.github.navikt.aap-libs:kafka-streams-test:$aapLibVersion")
 
 
-    testImplementation(project(":dbtestdata"))
-    testImplementation(project(":dbtest"))
     testImplementation(project(":lib-test"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
