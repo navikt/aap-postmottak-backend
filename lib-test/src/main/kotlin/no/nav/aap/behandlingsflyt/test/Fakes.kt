@@ -134,11 +134,13 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         routing {
             put("/rest/journalpostapi/v1/journalpost/{journalpostId}") {
                 call.receive<OppdaterJournalpostRequest>()
-                call.respond(HttpStatusCode.NoContent)
+                call.respondText { """{"journalpostId": "467011764"}""" }
             }
             patch("/rest/journalpostapi/v1/journalpost/{journalpostId}/ferdigstill") {
                 call.receive<FerdigstillRequest>()
-                call.respond(HttpStatusCode.NoContent)
+                call.respondText {
+                    """{"journalfoerendeEnhet": "9999"}"""
+                }
             }
         }
     }
