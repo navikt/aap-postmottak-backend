@@ -50,14 +50,14 @@ class JoarkClient: Joark {
                 id = ident
             )
         ))
-        client.put<OppdaterJournalpostRequest,Map<String, String>>(path, request = request)
+        client.put(path, request) { _,_ -> }
 
     }
 
     override fun ferdigstillJournalpost(journalpost: Journalpost) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}/ferdigstill")
         val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET))
-        client.patch<FerdigstillRequest, Map<String, String>>(path, request)
+        client.patch(path, request) { _,_ -> }
     }
 }
 

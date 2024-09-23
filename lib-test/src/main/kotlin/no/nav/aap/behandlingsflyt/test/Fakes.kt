@@ -138,8 +138,8 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
             patch("/rest/journalpostapi/v1/journalpost/{journalpostId}/ferdigstill") {
                 call.receive<FerdigstillRequest>()
-                call.respondText {
-                    """{"journalfoerendeEnhet": "9999"}"""
+                call.respondText(ContentType.Text.Plain) {
+                    "I'm just a string"
                 }
             }
         }
