@@ -49,7 +49,7 @@ class OverleverTilFagsystemStegTest {
         every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
-        every { behandling.saksnummer } returns Saksnummer(saksnummer)
+        every { behandling.vurderinger.saksvurdering?.vurdering?.saksnummer } returns saksnummer
     }
 
     @AfterEach
@@ -68,7 +68,7 @@ class OverleverTilFagsystemStegTest {
 
         overførTilFagsystemSteg.utfør(kontekst)
 
-        verify(exactly = 1) { behandling.vurderinger.struktureringsvurdering }
+        verify(exactly = 1, inverse = true) { behandling.vurderinger.struktureringsvurdering }
         verify(exactly = 0) { safRestClient.hentDokument(any(), any()) }
         verify(exactly = 1) { behandlingsflytGateway.sendSøknad(saksnummer, journalpostId, any()) }
     }
@@ -85,7 +85,7 @@ class OverleverTilFagsystemStegTest {
 
         overførTilFagsystemSteg.utfør(kontekst)
 
-        verify(exactly = 0) { behandling.vurderinger.struktureringsvurdering }
+        verify(exactly = 0, inverse = true) { behandling.vurderinger.struktureringsvurdering }
         verify(exactly = 1) { safRestClient.hentDokument(journalpostId, dokumentInfoId) }
         verify(exactly = 1) { behandlingsflytGateway.sendSøknad(saksnummer, journalpostId, any()) }
     }

@@ -31,24 +31,11 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         val behandling = Behandling(
             id = BehandlingId(behandlingId),
             journalpostId = journalpostId,
-            saksnummer = null,
             versjon = 0,
             vurderinger = Vurderinger()
         )
 
         return behandling
-    }
-
-    override fun lagreSaksnummer(behandlingId: BehandlingId, saksnummer: String) {
-        connection.execute("""UPDATE BEHANDLING
-            SET SAKSNUMMER = ?
-            WHERE ID = ?
-        """.trimMargin()) {
-            setParams {
-                setString(1, saksnummer)
-                setLong(2, behandlingId.id)
-            }
-        }
     }
 
     override fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean) {
@@ -93,12 +80,26 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
+    override fun lagreSakVurdeirng(behandlingId: BehandlingId, saksnummer: Saksnummer?) {
+        connection.execute(
+            """
+            INSERT INTO SAKSNUMMER_AVKLARING (BEHANDLING_ID, SAKSNUMMER, OPPRETT_NY) VALUES (
+            ?, ?, ?)
+        """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId.toLong())
+                setString(2, saksnummer?.toString())
+                setBoolean(3, saksnummer == null)
+            }
+        }
+    }
+
     private fun mapBehandling(row: Row): Behandling {
         val behandlingId = BehandlingId(row.getLong("id"))
         return Behandling(
             id = behandlingId,
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
-            saksnummer = row.getStringOrNull("saksnummer")?.let(::Saksnummer),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             versjon = row.getLong("versjon"),
@@ -106,6 +107,10 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
                 row.getBooleanOrNull("skal_til_aap")?.let(::Vurdering),
                 row.getEnumOrNull<Brevkode, _>("kategori")?.let(::Vurdering),
                 row.getStringOrNull("strukturert_dokument")?.let(::Vurdering),
+                row.getBooleanOrNull("OPPRETT_NY")?.let {Saksvurdering(
+                    row.getStringOrNull("SAKSNUMMER"),
+                    it
+                ).let(::Vurdering) }
             )
         )
     }
@@ -180,6 +185,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             ${vurderingJoinQuery("SKAL_TIL_AAP_AVKLARING")}
             ${vurderingJoinQuery("KATEGORIAVKLARING")}
             ${vurderingJoinQuery("DIGITALISERINGSAVKLARING")}
+            ${vurderingJoinQuery("SAKSNUMMER_AVKLARING")}
             WHERE b.id = ?
             FOR UPDATE OF B
             """.trimIndent()
@@ -215,6 +221,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             ${vurderingJoinQuery("SKAL_TIL_AAP_AVKLARING")}
             ${vurderingJoinQuery("KATEGORIAVKLARING")}
             ${vurderingJoinQuery("DIGITALISERINGSAVKLARING")}
+            ${vurderingJoinQuery("SAKSNUMMER_AVKLARING")}
             WHERE journalpost_id = ?
             FOR UPDATE OF b
             """.trimIndent()

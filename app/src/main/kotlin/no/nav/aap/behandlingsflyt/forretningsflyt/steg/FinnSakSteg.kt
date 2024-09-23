@@ -12,6 +12,7 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.
 import no.nav.aap.behandlingsflyt.forretningsflyt.informasjonskrav.saksnummer.SaksnummerRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegType
@@ -19,7 +20,7 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 
 
 class FinnSakSteg(
-    private val behandlingRepository: BehandlingRepository,
+    private val behandlingRepository: BehandlingRepositoryImpl,
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytClient: BehandlingsflytGateway
@@ -49,9 +50,13 @@ class FinnSakSteg(
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
             val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-            behandlingRepository.lagreSaksnummer(kontekst.behandlingId, saksnummer)
+            behandlingRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
             StegResultat()
-        } else if (behandling.saksnummer != null) {
+        } else if (behandling.harGjortSaksvurdering()) {
+            if (behandling.vurderinger.saksvurdering == null) {
+                val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
+                behandlingRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
+            }
             StegResultat()
         } else {
             return StegResultat(

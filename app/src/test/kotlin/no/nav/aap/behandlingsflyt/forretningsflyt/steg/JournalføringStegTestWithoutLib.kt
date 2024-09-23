@@ -7,6 +7,9 @@ import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.
 import no.nav.aap.behandlingsflyt.joark.Joark
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Saksvurdering
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Vurdering
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Vurderinger
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -25,10 +28,6 @@ class BehandlingRepositoryTestDouble: BehandlingRepository {
     lateinit var behandlingStub: Behandling
 
     override fun opprettBehandling(journalpostId: JournalpostId): Behandling {
-        TODO("Not yet implemented")
-    }
-
-    override fun lagreSaksnummer(behandlingId: BehandlingId, saksnummer: String) {
         TODO("Not yet implemented")
     }
 
@@ -78,7 +77,7 @@ class JoarkTestDouble() : Joark {
 fun generateBehandling(saksnummer: Saksnummer? = null) = Behandling(
     id = BehandlingId(1234),
     journalpostId = JournalpostId(1234),
-    saksnummer = saksnummer
+    vurderinger = Vurderinger(saksvurdering = saksnummer?.let { Vurdering(Saksvurdering(saksnummer.toString(), false)) })
 )
 
 fun generateJournalpost() = Journalpost.MedIdent(

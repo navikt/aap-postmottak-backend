@@ -2,6 +2,7 @@ package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -198,10 +199,10 @@ class BehandlingRepositoryImplTest {
     fun `lagrer saksnummer på behandling`() {
         val saksnummer = "234234"
         val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
-        transactionMedBehandlingRepository { it.lagreSaksnummer(behandling.id, saksnummer) }
+        transactionMedBehandlingRepository { it.lagreSakVurdeirng(behandling.id, Saksnummer(saksnummer)) }
         transactionMedBehandlingRepository {
             val actual = it.hent(behandling.id)
-            assertThat(actual.saksnummer.toString()).isEqualTo(saksnummer)
+            assertThat(actual.vurderinger.saksvurdering?.vurdering?.saksnummer).isEqualTo(saksnummer)
         }
 
     }
@@ -209,7 +210,7 @@ class BehandlingRepositoryImplTest {
     @Test
     fun `behandlingsversjon blir bumpet når behanlding blir endret`() {
         val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
-        transactionMedBehandlingRepository { it.lagreSaksnummer(behandling.id, "wdfgsdfgbs") }
+        transactionMedBehandlingRepository { it.lagreSakVurdeirng(behandling.id, Saksnummer("wdfgsdfgbs")) }
         val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
 
         assertThat(versjon).isEqualTo(1)

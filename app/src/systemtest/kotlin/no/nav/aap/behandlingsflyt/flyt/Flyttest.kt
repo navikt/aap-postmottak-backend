@@ -4,6 +4,7 @@ import no.nav.aap.WithFakes
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.behandlingsflyt.server.prosessering.ProsesseringsJobber
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -44,7 +45,7 @@ class Flyttest: WithFakes {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1)).id
 
             behandlingRepository.lagreTeamAvklaring(behandlingId, true)
-            behandlingRepository.lagreSaksnummer(behandlingId, "23452345")
+            behandlingRepository.lagreSakVurdeirng(behandlingId, Saksnummer("23452345"))
             behandlingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
             behandlingRepository.lagreStrukturertDokument(behandlingId, """{"yolo": "swag"}""")
 
