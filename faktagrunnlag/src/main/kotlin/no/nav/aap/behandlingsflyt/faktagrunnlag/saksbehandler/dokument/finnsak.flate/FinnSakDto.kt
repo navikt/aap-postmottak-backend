@@ -4,7 +4,7 @@ import no.nav.aap.komponenter.type.Periode
 
 data class SaksInfoDto(
     val saksnummer: String,
-    val perioder: Periode
+    val periode: Periode
 )
 
 data class FinnSakVurderingDto(
