@@ -18,7 +18,8 @@ object Dokumentflyt: BehandlingType {
         .medSteg(steg = StartBehandlingSteg)
         .medSteg(steg = AvklarTemaSteg, informasjonskrav = listOf(JournalpostService))
         .medSteg(steg = FinnSakSteg, informasjonskrav = listOf(SaksnummerInfoKrav))
-        //.medSteg(steg = JournalføringSteg) TODO fix bug hov jounalposter alt er endelig journalført
+        .medSteg(steg = JournalføringSteg)
+        .sluttÅOppdatereFaktagrunnlag()
         .medSteg(steg = KategoriserDokumentSteg)
         .medSteg(steg = DigitaliserDokumentSteg)
         .medSteg(steg = OverleverTilFagsystemSteg)
