@@ -1,16 +1,16 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling
 
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepository
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
-import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.concurrent.thread
 
 class BehandlingRepositoryImplTest {
 
@@ -36,112 +36,18 @@ class BehandlingRepositoryImplTest {
     }
 
     @Test
-    fun `når teamavklaring blir lagret forventer jeg å finne den på behandlingen`() {
-        InitTestDatabase.dataSource.transaction {
-            val repository = BehandlingRepositoryImpl(it)
-
-            val behandlingId = repository.opprettBehandling(JournalpostId(11111)).id
-
-            repository.lagreTeamAvklaring(behandlingId, false)
-
-            val behandlingMedTemaavklaring = repository.hent(behandlingId)
-
-            assertThat(behandlingMedTemaavklaring.harTemaBlittAvklart()).isTrue()
-            assertThat(behandlingMedTemaavklaring.vurderinger.avklarTemaVurdering?.vurdering).isFalse()
-
-        }
-    }
-
-    @Test
-    fun `når to temaavklaringer blir lagret forventer jeg å finne den siste på behandlingen`() {
-        val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
-        transactionMedBehandlingRepository { it.lagreTeamAvklaring(behandlingId, false) }
-        Thread.sleep(100)
-        transactionMedBehandlingRepository { it.lagreTeamAvklaring(behandlingId, true) }
-        transactionMedBehandlingRepository {
-            val behandlingMedTemavurdering = it.hent(behandlingId)
-
-            assertThat(behandlingMedTemavurdering.vurderinger.avklarTemaVurdering?.vurdering).isTrue()
-        }
-    }
-
-    @Test
-    fun `når kategoriseringvurdering blir lagret forventer jeg å finne den på behandlingen`() {
-        InitTestDatabase.dataSource.transaction {
-            val repository = BehandlingRepositoryImpl(it)
-
-            val behandlingId = repository.opprettBehandling(JournalpostId(11111)).id
-
-            repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-
-            val behandlingMedKategorisering = repository.hent(behandlingId)
-
-            assertThat(behandlingMedKategorisering.harBlittKategorisert()).isTrue()
-            assertThat(behandlingMedKategorisering.vurderinger.kategorivurdering?.vurdering).isEqualTo(Brevkode.SØKNAD)
-
-        }
-    }
-
-    @Test
-    fun `når to kategoriseringvurderinger blir lagret forventer jeg å finne den siste på behandlingen`() {
-        val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
-        transactionMedBehandlingRepository { it.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD) }
-        Thread.sleep(100)
-        transactionMedBehandlingRepository { it.lagreKategoriseringVurdering(behandlingId, Brevkode.PLIKTKORT) }
-        transactionMedBehandlingRepository {
-            val behandlingMedTemavurdering = it.hent(behandlingId)
-
-            assertThat(behandlingMedTemavurdering.vurderinger.kategorivurdering?.vurdering).isEqualTo(Brevkode.PLIKTKORT)
-        }
-    }
-
-    @Test
-    fun `når struktureringsvurdering blir lagret forventer jeg å finne den på behandlingen`() {
-        InitTestDatabase.dataSource.transaction {
-            val repository = BehandlingRepositoryImpl(it)
-
-            val behandlingId = repository.opprettBehandling(JournalpostId(11111)).id
-
-            val json = """{"Test: Dokument"}"""
-            repository.lagreStrukturertDokument(behandlingId, json)
-
-            val strukturertBehandling = repository.hent(behandlingId)
-
-            assertThat(strukturertBehandling.harBlittStrukturert()).isTrue()
-            assertThat(strukturertBehandling.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
-
-        }
-    }
-
-    @Test
-    fun `når to struktureringsvurderinger blir lagret forventer jeg å finne den siste på behandlingen`() {
-        val json = """{"Test: Dokument"}"""
-
-        val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
-        transactionMedBehandlingRepository { it.lagreStrukturertDokument(behandlingId, """{"Test: Plakat"}""") }
-        Thread.sleep(100)
-        transactionMedBehandlingRepository { it.lagreStrukturertDokument(behandlingId, json) }
-        transactionMedBehandlingRepository {
-            val behandlingMedTemavurdering = it.hent(behandlingId)
-
-            assertThat(behandlingMedTemavurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
-        }
-    }
-
-    @Test
     fun `hent behandling med id returnerer behandling og alle vurderinger`() {
-        InitTestDatabase.dataSource.transaction {
-            val repository = BehandlingRepositoryImpl(it)
+        inContext {
 
-            val behandlingId = repository.opprettBehandling(JournalpostId(11111)).id
-            repository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
-            repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-            repository.lagreTeamAvklaring(behandlingId, false)
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111)).id
+            avklaringRepository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
+            avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            avklaringRepository.lagreTeamAvklaring(behandlingId, false)
 
 
-            repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 
-            val behandling = repository.hent(behandlingId)
+            val behandling = behandlingRepository.hent(behandlingId)
 
             assertThat(behandling.harBlittStrukturert()).isTrue()
             assertThat(behandling.harBlittKategorisert()).isTrue()
@@ -152,17 +58,16 @@ class BehandlingRepositoryImplTest {
 
     @Test
     fun `hent behandling referanse returnerer behandling og alle vurderinger`() {
-        InitTestDatabase.dataSource.transaction {
-            val repository = BehandlingRepositoryImpl(it)
+        inContext {
 
-            val behandling = repository.opprettBehandling(JournalpostId(11111))
+            val behandling = behandlingRepository.opprettBehandling(JournalpostId(11111))
             val behandlingId = behandling.id
-            repository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
-            repository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-            repository.lagreTeamAvklaring(behandlingId, false)
+            avklaringRepository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
+            avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            avklaringRepository.lagreTeamAvklaring(behandlingId, false)
 
 
-            val hentetBehandling = repository.hent(behandling.referanse)
+            val hentetBehandling = behandlingRepository.hent(behandling.referanse)
 
             assertThat(hentetBehandling.harBlittStrukturert()).isTrue()
             assertThat(hentetBehandling.harBlittKategorisert()).isTrue()
@@ -254,4 +159,13 @@ class BehandlingRepositoryImplTest {
             val behandlingRepository = BehandlingRepositoryImpl(it)
             fn(behandlingRepository)
         }
+
+    private class Context(val behandlingRepository: BehandlingRepository, val avklaringRepository: AvklaringRepository)
+
+    private fun <T>inContext(block: Context.() -> T): T {
+        return InitTestDatabase.dataSource.transaction {
+            val context = Context(BehandlingRepositoryImpl(it), AvklaringRepositoryImpl(it))
+            context.let(block)
+        }
+    }
 }

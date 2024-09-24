@@ -1,16 +1,8 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling
 
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-
-interface VurderingRepository {
-    fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean)
-    fun lagreKategoriseringVurdering(behandlingId: BehandlingId, kategori: Brevkode)
-    fun lagreStrukturertDokument(behandlingId: BehandlingId, strukturertDokument: String)
-    fun lagreSakVurdeirng(behandlingId: BehandlingId, saksnummer: Saksnummer?)
-}
 
 interface BehandlingRepository {
 

@@ -4,12 +4,12 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.dokument.DokumentInfoId
@@ -47,7 +47,7 @@ class OverleverTilFagsystemStegTest {
         every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
-        every { behandling.vurderinger.saksvurdering?.vurdering?.saksnummer } returns saksnummer
+        every { behandling.vurderinger.saksvurdering?.saksnummer } returns saksnummer
     }
 
     @AfterEach
@@ -62,7 +62,7 @@ class OverleverTilFagsystemStegTest {
         val kontekst: FlytKontekstMedPerioder = mockk(relaxed = true)
 
         every { behandling.harBlittStrukturert() } returns true
-        every { behandling.vurderinger.struktureringsvurdering!!.vurdering } returns "String"
+        every { behandling.vurderinger.struktureringsvurdering?.vurdering } returns "String"
 
         overførTilFagsystemSteg.utfør(kontekst)
 

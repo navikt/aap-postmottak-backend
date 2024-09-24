@@ -19,7 +19,7 @@ fun NormalOpenAPIRoute.kategoriseringApi(dataSource: HikariDataSource) {
             respond(
                 KategoriseringGrunnlagDto(
                     vurdering.vurderinger.kategorivurdering
-                        ?.vurdering?.let(::KategoriseringVurderingDto),
+                        ?.avklaring?.let(::KategoriseringVurderingDto),
                     listOf(1, 2)
                 )
             )

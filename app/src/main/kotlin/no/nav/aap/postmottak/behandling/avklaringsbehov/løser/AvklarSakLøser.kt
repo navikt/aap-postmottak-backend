@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.behandling.avklaringsbehov.løser
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
@@ -11,7 +11,7 @@ class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Avk
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarSaksnummerLøsning): LøsningsResultat {
 
-        BehandlingRepositoryImpl(connection).lagreSakVurdeirng(kontekst.kontekst.behandlingId,
+        AvklaringRepositoryImpl(connection).lagreSakVurdeirng(kontekst.kontekst.behandlingId,
             løsning.saksnummer?.let(::Saksnummer)
         )
 

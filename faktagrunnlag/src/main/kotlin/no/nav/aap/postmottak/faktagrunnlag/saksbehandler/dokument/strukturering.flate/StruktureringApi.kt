@@ -23,7 +23,7 @@ fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
                 StruktureringGrunnlagDto(
                     behandling.vurderinger.struktureringsvurdering
                         ?.vurdering?.let(::StruktureringVurderingDto),
-                    behandling.vurderinger.kategorivurdering!!.vurdering,
+                    behandling.vurderinger.kategorivurdering!!.avklaring,
                     listOf(1,2)
                 )
             )

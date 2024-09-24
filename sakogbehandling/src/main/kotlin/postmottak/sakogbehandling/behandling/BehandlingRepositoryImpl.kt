@@ -1,17 +1,21 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling
 
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Vurderinger
+import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.postmottak.kontrakt.journalpost.Status
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.sak.Status
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
 
-class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository,
-    VurderingRepository {
+class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
+
+    private val vurderingRepository = AvklaringRepositoryImpl(connection)
 
     override fun opprettBehandling(journalpostId: JournalpostId): Behandling {
 
@@ -37,63 +41,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return behandling
     }
 
-    override fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean) {
-        connection.execute(
-            """
-            INSERT INTO SKAL_TIL_AAP_AVKLARING (BEHANDLING_ID, SKAL_TIL_AAP) VALUES (
-            ?, ?)
-        """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-                setBoolean(2, vurdering)
-            }
-        }
-    }
-
-    override fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: Brevkode) {
-        connection.execute(
-            """
-            INSERT INTO KATEGORIAVKLARING (BEHANDLING_ID, KATEGORI) VALUES (
-            ?, ?)
-        """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-                setEnumName(2, brevkode)
-            }
-        }
-    }
-
-    override fun lagreStrukturertDokument(behandlingId: BehandlingId, strukturertDokument: String) {
-        connection.execute(
-            """
-            INSERT INTO DIGITALISERINGSAVKLARING (BEHANDLING_ID, STRUKTURERT_DOKUMENT) VALUES (
-            ?, ?)
-        """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-                setString(2, strukturertDokument)
-            }
-        }
-    }
-
-    override fun lagreSakVurdeirng(behandlingId: BehandlingId, saksnummer: Saksnummer?) {
-        connection.execute(
-            """
-            INSERT INTO SAKSNUMMER_AVKLARING (BEHANDLING_ID, SAKSNUMMER, OPPRETT_NY) VALUES (
-            ?, ?, ?)
-        """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-                setString(2, saksnummer?.toString())
-                setBoolean(3, saksnummer == null)
-            }
-        }
-    }
-
     private fun mapBehandling(row: Row): Behandling {
         val behandlingId = BehandlingId(row.getLong("id"))
         return Behandling(
@@ -102,15 +49,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             versjon = row.getLong("versjon"),
-            vurderinger = Vurderinger(
-                row.getBooleanOrNull("skal_til_aap")?.let(::Vurdering),
-                row.getEnumOrNull<Brevkode, _>("kategori")?.let(::Vurdering),
-                row.getStringOrNull("strukturert_dokument")?.let(::Vurdering),
-                row.getBooleanOrNull("OPPRETT_NY")?.let {Saksvurdering(
-                    row.getStringOrNull("SAKSNUMMER"),
-                    it
-                ).let(::Vurdering) }
-            )
+            vurderinger = hentVurderingerForBehandling(behandlingId)
         )
     }
 
@@ -180,11 +119,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun hent(behandlingId: BehandlingId): Behandling {
 
         val query = """
-            SELECT * FROM BEHANDLING b 
-            ${vurderingJoinQuery("SKAL_TIL_AAP_AVKLARING")}
-            ${vurderingJoinQuery("KATEGORIAVKLARING")}
-            ${vurderingJoinQuery("DIGITALISERINGSAVKLARING")}
-            ${vurderingJoinQuery("SAKSNUMMER_AVKLARING")}
+            SELECT * FROM BEHANDLING b
             WHERE b.id = ?
             FOR UPDATE OF B
             """.trimIndent()
@@ -217,10 +152,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun hent(journalpostId: JournalpostId): Behandling {
         val query = """
             SELECT * FROM BEHANDLING b
-            ${vurderingJoinQuery("SKAL_TIL_AAP_AVKLARING")}
-            ${vurderingJoinQuery("KATEGORIAVKLARING")}
-            ${vurderingJoinQuery("DIGITALISERINGSAVKLARING")}
-            ${vurderingJoinQuery("SAKSNUMMER_AVKLARING")}
             WHERE journalpost_id = ?
             FOR UPDATE OF b
             """.trimIndent()
@@ -235,10 +166,11 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    private fun vurderingJoinQuery(tableName: String) =
-        """LEFT JOIN $tableName ON $tableName.id = 
-            (SELECT id FROM $tableName 
-            |WHERE $tableName.behandling_id = b.id 
-            |ORDER BY TIDSSTEMPEL DESC LIMIT 1 FOR UPDATE)""".trimMargin()
+    private fun hentVurderingerForBehandling(behandlingId: BehandlingId) = Vurderinger(
+        saksvurdering = vurderingRepository.hentSakAvklaring(behandlingId),
+        avklarTemaVurdering = vurderingRepository.hentTemaAvklaring(behandlingId),
+        kategorivurdering = vurderingRepository.hentKategoriAvklaring(behandlingId),
+        struktureringsvurdering = vurderingRepository.hentStruktureringsavklaring(behandlingId)
+    )
 
 }

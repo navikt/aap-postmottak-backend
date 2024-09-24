@@ -22,7 +22,7 @@ fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
                 val arkivDokumenter = journalpost.finnArkivVarianter()
                 AvklarTemaGrunnlagDto(
                     behandling.vurderinger.avklarTemaVurdering
-                        ?.vurdering?.let(::AvklarTemaVurderingDto),
+                        ?.avklaring?.let(::AvklarTemaVurderingDto),
                     arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId }
                 )
             }
