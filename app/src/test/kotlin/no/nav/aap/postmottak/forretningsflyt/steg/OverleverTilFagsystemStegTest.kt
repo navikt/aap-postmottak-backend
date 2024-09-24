@@ -47,7 +47,7 @@ class OverleverTilFagsystemStegTest {
         every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
-        every { behandling.vurderinger.saksvurdering?.vurdering?.saksnummer } returns saksnummer
+        every { behandling.vurderinger.saksvurdering?.saksnummer } returns saksnummer
     }
 
     @AfterEach
@@ -62,7 +62,7 @@ class OverleverTilFagsystemStegTest {
         val kontekst: FlytKontekstMedPerioder = mockk(relaxed = true)
 
         every { behandling.harBlittStrukturert() } returns true
-        every { behandling.vurderinger.struktureringsvurdering!!.vurdering } returns "String"
+        every { behandling.vurderinger.struktureringsvurdering?.vurdering } returns "String"
 
         overførTilFagsystemSteg.utfør(kontekst)
 

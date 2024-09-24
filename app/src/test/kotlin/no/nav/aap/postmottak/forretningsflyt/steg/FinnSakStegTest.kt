@@ -6,17 +6,20 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.forretningsflyt.informasjonskrav.saksnummer.SaksnummerRepository
 import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import org.junit.jupiter.api.Test
 
 class FinnSakStegTest {
 
     val behandlingRepository = mockk<BehandlingRepositoryImpl>(relaxed = true)
+    val avklaringRepository = mockk<AvklaringRepositoryImpl>(relaxed = true)
     val behandlingsflytClient = mockk<BehandlingsflytClient>(relaxed = true)
     val journalpostRepository = mockk<JournalpostRepositoryImpl>(relaxed = true)
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
 
     val finnSakSteg = FinnSakSteg(
         behandlingRepository,
+        avklaringRepository,
         saksnummerRepository,
         journalpostRepository,
         behandlingsflytClient)

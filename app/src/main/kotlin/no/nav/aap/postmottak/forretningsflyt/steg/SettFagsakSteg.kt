@@ -41,7 +41,7 @@ class SettFagsakSteg(
 
         joarkKlient.oppdaterJournalpost(
             journalpost, behandling
-                .vurderinger.saksvurdering?.vurdering?.saksnummer!!
+                .vurderinger.saksvurdering?.saksnummer!!
         )
 
         return StegResultat()

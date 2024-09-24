@@ -1,25 +1,28 @@
 package no.nav.aap.postmottak.forretningsflyt.steg
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.forretningsflyt.informasjonskrav.saksnummer.SaksnummerRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
 
 class FinnSakSteg(
     private val behandlingRepository: BehandlingRepositoryImpl,
+    private val avklaringRepository: AvklaringRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytClient: BehandlingsflytGateway
@@ -28,6 +31,7 @@ class FinnSakSteg(
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return FinnSakSteg(
                 BehandlingRepositoryImpl(connection),
+                AvklaringRepositoryImpl(connection),
                 SaksnummerRepository(connection),
                 JournalpostRepositoryImpl(connection),
                 BehandlingsflytClient()
@@ -49,12 +53,12 @@ class FinnSakSteg(
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
             val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-            behandlingRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
+            avklaringRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
             StegResultat()
         } else if (behandling.harGjortSaksvurdering()) {
             if (behandling.vurderinger.saksvurdering == null) {
                 val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-                behandlingRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
+                avklaringRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
             }
             StegResultat()
         } else {

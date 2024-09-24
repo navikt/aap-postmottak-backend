@@ -1,18 +1,19 @@
 package no.nav.aap.postmottak.flyt
 
 import no.nav.aap.WithFakes
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
-import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.postmottak.kontrakt.journalpost.Status
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
+import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -42,12 +43,13 @@ class Flyttest: WithFakes {
     fun `kjører en manuell søknad igjennom hele flyten`() {
         val behandlingId = dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
+            val avklaringRepository = AvklaringRepositoryImpl(connection)
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1)).id
 
-            behandlingRepository.lagreTeamAvklaring(behandlingId, true)
-            behandlingRepository.lagreSakVurdeirng(behandlingId, Saksnummer("23452345"))
-            behandlingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-            behandlingRepository.lagreStrukturertDokument(behandlingId, """{"yolo": "swag"}""")
+            avklaringRepository.lagreTeamAvklaring(behandlingId, true)
+            avklaringRepository.lagreSakVurdeirng(behandlingId, Saksnummer("23452345"))
+            avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            avklaringRepository.lagreStrukturertDokument(behandlingId, """{"yolo": "swag"}""")
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
