@@ -29,7 +29,6 @@ import libs.kafka.KafkaStreams
 import libs.kafka.SchemaRegistryConfig
 import libs.kafka.Streams
 import libs.kafka.StreamsConfig
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
@@ -58,6 +57,7 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

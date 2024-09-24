@@ -1,12 +1,11 @@
 package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser
 
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovKontekst
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.AvklarSaksnummerLøsning
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
 class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
 

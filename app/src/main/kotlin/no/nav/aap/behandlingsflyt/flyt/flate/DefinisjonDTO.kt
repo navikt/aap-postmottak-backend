@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.flyt.flate
 
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
-import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 data class DefinisjonDTO(
     val navn: String,

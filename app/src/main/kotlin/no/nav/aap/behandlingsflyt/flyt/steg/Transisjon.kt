@@ -1,6 +1,6 @@
 package no.nav.aap.behandlingsflyt.flyt.steg
 
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
 interface Transisjon {
     fun funnetAvklaringsbehov(): List<Definisjon> = listOf()

@@ -12,8 +12,8 @@ import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytCl
 import no.nav.aap.behandlingsflyt.overlevering.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
-import no.nav.aap.verdityper.flyt.StegType
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)

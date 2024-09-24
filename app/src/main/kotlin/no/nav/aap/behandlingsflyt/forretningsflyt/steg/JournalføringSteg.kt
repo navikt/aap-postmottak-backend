@@ -9,8 +9,8 @@ import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.behandlingsflyt.joark.Joark
 import no.nav.aap.behandlingsflyt.joark.JoarkClient
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
-import no.nav.aap.verdityper.flyt.StegType
 
 class JournalføringSteg(
     private val journalpostRepository: JournalpostRepository,

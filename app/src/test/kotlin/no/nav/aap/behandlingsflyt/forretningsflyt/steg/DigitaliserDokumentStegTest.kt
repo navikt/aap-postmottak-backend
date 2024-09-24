@@ -2,11 +2,11 @@ package no.nav.aap.behandlingsflyt.forretningsflyt.steg
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Definisjon
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.behandlingsflyt.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

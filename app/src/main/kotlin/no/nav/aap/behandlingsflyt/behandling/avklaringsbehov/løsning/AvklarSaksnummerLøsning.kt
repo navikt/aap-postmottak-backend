@@ -3,11 +3,11 @@ package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løsning
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeName
-import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AVKLAR_SAKSNUMMER_KODE
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.AvklarSakLøser
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AVKLAR_SAKSNUMMER_KODE
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = AVKLAR_SAKSNUMMER_KODE)

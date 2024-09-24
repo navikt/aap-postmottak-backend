@@ -1,4 +1,4 @@
-package no.nav.aap.verdityper.flyt
+package no.nav.aap.postmottak.kontrakt.steg
 
 enum class StegGruppe(val skalVises: Boolean, val obligatoriskVisning: Boolean) {
     KATEGORISER(true, true),

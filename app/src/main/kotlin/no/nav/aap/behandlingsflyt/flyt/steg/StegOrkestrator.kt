@@ -5,10 +5,10 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.StegTilstand
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.flyt.StegStatus
-import no.nav.aap.verdityper.flyt.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory
 

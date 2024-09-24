@@ -1,7 +1,7 @@
 package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.verdityper.sakogbehandling.Status
+import no.nav.aap.postmottak.kontrakt.journalpost.Status
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 interface BehandlingFlytRepository {

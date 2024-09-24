@@ -1,8 +1,8 @@
-package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
+package no.nav.aap.postmottak.kontrakt.avklaringsbehov
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.util.*
 import java.util.stream.Collectors
 

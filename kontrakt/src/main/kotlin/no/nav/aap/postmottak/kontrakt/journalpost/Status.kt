@@ -1,4 +1,4 @@
-package no.nav.aap.verdityper.sakogbehandling
+package no.nav.aap.postmottak.kontrakt.journalpost
 
 enum class Status {
     OPPRETTET,

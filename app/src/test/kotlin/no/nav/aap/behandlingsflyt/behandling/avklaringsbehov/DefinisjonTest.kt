@@ -1,5 +1,6 @@
 package no.nav.aap.behandlingsflyt.behandling.avklaringsbehov
 
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 

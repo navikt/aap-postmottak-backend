@@ -20,8 +20,8 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbStatus
-import no.nav.aap.verdityper.flyt.StegGruppe
-import no.nav.aap.verdityper.flyt.StegType
+import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {

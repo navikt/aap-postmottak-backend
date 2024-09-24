@@ -1,6 +1,6 @@
-package no.nav.aap.verdityper.flyt
+package no.nav.aap.postmottak.kontrakt.steg
 
-import no.nav.aap.verdityper.sakogbehandling.Status
+import no.nav.aap.postmottak.kontrakt.journalpost.Status
 
 enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg: Boolean = false) {
     KATEGORISER_DOKUMENT(

@@ -4,8 +4,8 @@ import no.nav.aap.behandlingsflyt.flyt.steg.BehandlingSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.FlytSteg
 import no.nav.aap.behandlingsflyt.flyt.steg.StegResultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
-import no.nav.aap.verdityper.flyt.StegType
 
 
 class StartBehandlingSteg private constructor() : BehandlingSteg {

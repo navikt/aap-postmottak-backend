@@ -11,8 +11,8 @@ import no.nav.aap.behandlingsflyt.joark.JoarkClient
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
-import no.nav.aap.verdityper.flyt.StegType
 
 class SettFagsakSteg(
     private val behandlingRepository: BehandlingRepository,

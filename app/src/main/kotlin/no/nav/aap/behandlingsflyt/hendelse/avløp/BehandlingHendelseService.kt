@@ -3,7 +3,6 @@ package no.nav.aap.behandlingsflyt.hendelse.avløp
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.behandlingsflyt.behandling.avklaringsbehov.Status
 import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.flate.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.server.prosessering.StoppetHendelseJobbUtfører
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
