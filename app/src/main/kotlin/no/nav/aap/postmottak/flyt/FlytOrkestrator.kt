@@ -1,0 +1,238 @@
+package no.nav.aap.postmottak.flyt
+
+import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.flyt.steg.FlytSteg
+import no.nav.aap.postmottak.flyt.steg.StegOrkestrator
+import no.nav.aap.postmottak.flyt.steg.TilbakeførtFraBeslutter
+import no.nav.aap.postmottak.flyt.steg.TilbakeførtFraKvalitetssikrer
+import no.nav.aap.postmottak.flyt.steg.Transisjon
+import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseService
+import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.verdityper.flyt.FlytKontekst
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger(FlytOrkestrator::class.java)
+
+/**
+ * Har ansvar for å drive flyten til en gitt behandling. Typen behandling styrer hvilke steg som skal utføres.
+ *
+ * ## Forbered Behandling
+ * Har ansvar for å sette behandlingen i en oppdatert tilstand i form av å innhente opplysninger for stegene man allerede
+ * har prosessert og vurdere om man er nødt til å behandle steget på nytt hvis det er oppdaterte opplysninger.
+ *
+ * ## Prosesser Behandling
+ * Har ansvar for å drive prosessen fremover, stoppe opp ved behov for besluttningsstøtte av et menneske og sørge for at
+ * at stegene traverseres i den definerte rekkefølgen i flyten. Flytene defineres i typen behandlingen.
+ *
+ */
+class FlytOrkestrator(
+    private val connection: DBConnection
+) {
+    private val informasjonskravGrunnlag = InformasjonskravGrunnlag(connection)
+    private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
+    private val behandlingRepository = BehandlingRepositoryImpl(connection)
+    private val behandlingHendelseService = BehandlingHendelseService(
+        FlytJobbRepository(connection)
+    )
+
+    fun opprettKontekst(behandlingId: BehandlingId): FlytKontekst {
+        val typeBehandling = behandlingRepository.hentBehandlingType(behandlingId)
+
+        return FlytKontekst(behandlingId = behandlingId, behandlingType = typeBehandling)
+    }
+
+    fun forberedBehandling(kontekst: FlytKontekst) {
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+
+        val behandlingFlyt = utledFlytFra(behandling)
+
+        behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
+
+        val oppdaterFaktagrunnlagForKravliste =
+            informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
+                kravliste = behandlingFlyt.faktagrunnlagFremTilOgMedGjeldendeSteg(),
+                kontekst = kontekst
+            )
+
+        val tilbakeføringsflyt = behandlingFlyt.tilbakeflytEtterEndringer(oppdaterFaktagrunnlagForKravliste)
+
+        if (!tilbakeføringsflyt.erTom()) {
+            log.info(
+                "Tilbakeført etter oppdatering av registeropplysninger fra '{}' til '{}'",
+                behandling.aktivtSteg(),
+                tilbakeføringsflyt.stegene().last()
+            )
+        }
+        tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene)
+    }
+
+    private fun starterOppBehandling(behandling: Behandling): Boolean {
+        return behandling.stegHistorikk().isEmpty()
+    }
+
+    fun prosesserBehandling(kontekst: FlytKontekst) {
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+
+        val behandlingFlyt = utledFlytFra(behandling)
+
+        var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
+
+        while (true) {
+            connection.markerSavepoint()
+
+            informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
+                behandlingFlyt.faktagrunnlagForGjeldendeSteg(),
+                kontekst
+            )
+
+            val result = StegOrkestrator(connection, gjeldendeSteg).utfør(kontekst, behandling)
+
+            val avklaringsbehov = avklaringsbehovene.åpne()
+            if (result.erTilbakeføring()) {
+                val tilbakeføringsflyt = when (result) {
+                    is TilbakeførtFraBeslutter -> behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraBeslutter())
+                    is TilbakeførtFraKvalitetssikrer -> behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraKvalitetssikrer())
+                    else -> {
+                        throw IllegalStateException("Uhåndter transisjon ved tilbakeføring. Faktisk type: ${result.javaClass}.")
+                    }
+                }
+                log.info(
+                    "Tilbakeført fra '{}' til '{}'",
+                    gjeldendeSteg.type(),
+                    tilbakeføringsflyt.stegene().last()
+                )
+                tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene, false)
+            }
+            validerPlassering(behandlingFlyt, avklaringsbehov)
+
+            val neste = utledNesteSteg(result, behandlingFlyt)
+
+            if (!result.kanFortsette() || neste == null) {
+                if (neste == null) {
+                    // Avslutter behandling
+                    validerAtAvklaringsBehovErLukkede(avklaringsbehovene)
+                    log.info("Behandlingen har nådd slutten, avslutter behandling")
+                    behandlingHendelseService.avsluttet(behandling)
+                } else {
+                    // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
+                    loggStopp(behandling, avklaringsbehovene)
+                }
+                behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
+                return
+            }
+            gjeldendeSteg = neste
+        }
+    }
+
+    private fun validerAtAvklaringsBehovErLukkede(avklaringsbehovene: Avklaringsbehovene) {
+        assert(
+            avklaringsbehovene.åpne().isEmpty()
+        ) { "Behandlingen er avsluttet, men det finnes åpne avklaringsbehov." }
+    }
+
+    private fun utledNesteSteg(
+        result: Transisjon,
+        behandlingFlyt: BehandlingFlyt
+    ): FlytSteg? {
+        val neste = if (result.erTilbakeføring()) {
+            behandlingFlyt.aktivtSteg()
+        } else {
+            behandlingFlyt.neste()
+        }
+        return neste
+    }
+
+    internal fun forberedLøsingAvBehov(definisjoner: Definisjon, behandling: Behandling, kontekst: FlytKontekst) {
+        val flyt = utledFlytFra(behandling)
+        flyt.forberedFlyt(behandling.aktivtSteg())
+
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+        val behovForLøsninger = avklaringsbehovene.hentBehovForDefinisjon(definisjoner)
+        val tilbakeføringsflyt = flyt.tilbakeflyt(behovForLøsninger)
+
+        tilbakefør(
+            kontekst,
+            behandling,
+            tilbakeføringsflyt,
+            avklaringsbehovene,
+            harHeltStoppet = false
+        ) // Setter til false for å ikke trigge unødvendig event
+
+        val skulleVærtISteg = flyt.skalTilStegForBehov(behovForLøsninger)
+        if (skulleVærtISteg != null) {
+            flyt.validerPlassering(skulleVærtISteg)
+        }
+    }
+
+    private fun tilbakefør(
+        kontekst: FlytKontekst,
+        behandling: Behandling,
+        behandlingFlyt: BehandlingFlyt,
+        avklaringsbehovene: Avklaringsbehovene,
+        harHeltStoppet: Boolean = true
+    ) {
+        if (behandlingFlyt.erTom()) {
+            return
+        }
+
+        while (true) {
+            val neste = behandlingFlyt.neste()
+
+            if (neste == null) {
+                loggStopp(behandling, avklaringsbehovene)
+                if (harHeltStoppet) {
+                    behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
+                }
+                return
+            }
+            StegOrkestrator(connection, neste).utførTilbakefør(
+                kontekst = kontekst,
+                behandling = behandling
+            )
+        }
+    }
+
+    private fun loggStopp(
+        behandling: Behandling,
+        avklaringsbehovene: Avklaringsbehovene
+    ) {
+        log.info(
+            "Stopper opp ved {} med {}",
+            behandling.aktivtSteg(),
+            avklaringsbehovene.åpne()
+        )
+    }
+
+    private fun validerPlassering(
+        behandlingFlyt: BehandlingFlyt,
+        åpneAvklaringsbehov: List<no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehov>
+    ) {
+        val nesteSteg = behandlingFlyt.aktivtStegType()
+        val uhåndterteBehov = åpneAvklaringsbehov
+            .filter { definisjon ->
+                behandlingFlyt.erStegFør(
+                    definisjon.løsesISteg(),
+                    nesteSteg
+                )
+            }
+        if (uhåndterteBehov.isNotEmpty()) {
+            throw IllegalStateException("Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg'")
+        }
+    }
+
+    private fun utledFlytFra(behandling: Behandling) = utledType(behandling.typeBehandling).flyt()
+
+}

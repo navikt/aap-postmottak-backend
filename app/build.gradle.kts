@@ -12,7 +12,7 @@ plugins {
 }
 
 application {
-    mainClass.set("no.nav.aap.behandlingsflyt.AppKt")
+    mainClass.set("no.nav.aap.postmottak.AppKt")
 }
 
 kotlin.sourceSets["test"].kotlin.srcDirs("src/systemtest/kotlin")

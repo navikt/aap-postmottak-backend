@@ -1,0 +1,14 @@
+package no.nav.aap.postmottak.sakogbehandling.sak.flate
+
+import no.nav.aap.postmottak.sakogbehandling.sak.Status
+import no.nav.aap.verdityper.Periode
+import java.time.LocalDateTime
+
+data class UtvidetSaksinfoDTO(
+    val saksnummer: String,
+    val opprettetTidspunkt: LocalDateTime,
+    val status: Status,
+    val periode: Periode,
+    val behandlinger: List<BehandlinginfoDTO>,
+    val ident: String
+)

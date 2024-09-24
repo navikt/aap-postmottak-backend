@@ -1,6 +1,6 @@
 package no.nav.aap
 
-import no.nav.aap.behandlingsflyt.test.Fakes
+import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 
