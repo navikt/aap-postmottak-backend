@@ -20,8 +20,12 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
         gruppe = StegGruppe.AVKLAR_TEMA,
         status = Status.UTREDES
     ),
-    ENDERLIG_JOURNALFØRING(
-        gruppe = StegGruppe.ENDERLIG_JOURNALFØRING,
+    SETT_FAGSAK(
+        gruppe = StegGruppe.SETT_FAGSAK,
+        status = Status.UTREDES
+    ),
+    ENDELIG_JOURNALFØRING(
+        gruppe = StegGruppe.ENDELIG_JOURNALFØRING,
         status = Status.UTREDES,
     ),
     OVERLEVER_TIL_FAGSYSTEM(

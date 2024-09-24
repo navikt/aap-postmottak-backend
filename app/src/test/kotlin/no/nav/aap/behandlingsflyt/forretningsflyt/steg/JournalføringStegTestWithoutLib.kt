@@ -74,12 +74,6 @@ class JoarkTestDouble() : Joark {
     }
 }
 
-fun generateBehandling(saksnummer: Saksnummer? = null) = Behandling(
-    id = BehandlingId(1234),
-    journalpostId = JournalpostId(1234),
-    vurderinger = Vurderinger(saksvurdering = saksnummer?.let { Vurdering(Saksvurdering(saksnummer.toString(), false)) })
-)
-
 fun generateJournalpost() = Journalpost.MedIdent(
     personident = Ident.Personident("24234"),
     journalpostId = JournalpostId(1234),
@@ -92,28 +86,20 @@ fun generateJournalpost() = Journalpost.MedIdent(
 
 class JournalføringStegTestWithoutLib {
 
-    val behandlingRepository: BehandlingRepositoryTestDouble = BehandlingRepositoryTestDouble()
     val journalpostRepository: JournalpostRepositoryTestDouble = JournalpostRepositoryTestDouble()
     val joark: JoarkTestDouble = JoarkTestDouble()
 
     val journalføringSteg = JournalføringSteg(
-        behandlingRepository, journalpostRepository, joark
+        journalpostRepository, joark
     )
 
     @Test
     fun `verifiser at journalpost blir oppdatert med saksnummer og endelig journalført`() {
         val journalpost = generateJournalpost()
 
-        val saksnummer = Saksnummer("123")
-        val behandling = generateBehandling(saksnummer = saksnummer)
-
-        behandlingRepository.behandlingStub = behandling
         journalpostRepository.journalpostStub = journalpost
 
         journalføringSteg.utfør(FlytKontekstMedPerioder(BehandlingId(1), TypeBehandling.DokumentHåndtering))
-
-        assertThat(joark.oppdaterCounter).isOne()
-        assertThat(joark.oppdaterCalls.first()).isEqualTo(Pair(journalpost, saksnummer.toString()))
 
         assertThat(joark.ferdigstillCounter).isOne()
         assertThat(joark.ferdigstillCalls.first()).isEqualTo(journalpost)

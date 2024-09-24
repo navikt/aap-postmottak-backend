@@ -11,6 +11,7 @@ import no.nav.aap.behandlingsflyt.forretningsflyt.steg.FinnSakSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.JournalføringSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.KategoriserDokumentSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.OverleverTilFagsystemSteg
+import no.nav.aap.behandlingsflyt.forretningsflyt.steg.SettFagsakSteg
 import no.nav.aap.behandlingsflyt.forretningsflyt.steg.StartBehandlingSteg
 
 object Dokumentflyt: BehandlingType {
@@ -19,6 +20,7 @@ object Dokumentflyt: BehandlingType {
         .medSteg(steg = AvklarTemaSteg, informasjonskrav = listOf(JournalpostService))
         .medSteg(steg = FinnSakSteg, informasjonskrav = listOf(SaksnummerInfoKrav))
         .sluttÅOppdatereFaktagrunnlag()
+        .medSteg(steg = SettFagsakSteg)
         .medSteg(steg = JournalføringSteg)
         .medSteg(steg = KategoriserDokumentSteg)
         .medSteg(steg = DigitaliserDokumentSteg)
