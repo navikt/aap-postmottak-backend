@@ -12,7 +12,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.26.3")
 }
 
-group = "no.nav.aap.behandlingsflyt"
+group = "no.nav.aap.postmottak"
 
 apply(plugin = "maven-publish")
 apply(plugin = "java-library")
