@@ -1,6 +1,9 @@
 val ktorVersion = "2.3.12"
 val komponenterVersjon = "0.0.69"
 
+plugins {
+    id("postmottak.conventions")
+}
 dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":faktagrunnlag"))

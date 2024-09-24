@@ -1,7 +1,9 @@
 val ktorVersion = "2.3.12"
 val komponenterVersjon = "0.0.69"
 
-
+plugins {
+    id("postmottak.conventions")
+}
 dependencies {
     implementation("no.nav:ktor-openapi-generator:1.0.31")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")

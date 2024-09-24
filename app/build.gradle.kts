@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.ByteArrayOutputStream
 
 val ktorVersion = "2.3.12"
@@ -6,7 +7,8 @@ val komponenterVersjon = "0.0.69"
 
 
 plugins {
-    id("io.ktor.plugin")
+    id("postmottak.conventions")
+    id("io.ktor.plugin") version "2.3.12"
 }
 
 application {
@@ -26,6 +28,10 @@ tasks {
         // Depend on output of the task to create properties,
         // so the properties file will be part of the Java resources.
         from(projectProps)
+    }
+
+    withType<ShadowJar> {
+        mergeServiceFiles()
     }
 }
 
