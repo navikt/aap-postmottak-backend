@@ -1,12 +1,14 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering
+package no.nav.aap.postmottak.vurdering
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -183,7 +185,6 @@ class AvklaringRepositoryImplTest {
         }
 
     }
-
 
     private class Context(val behandlingRepository: BehandlingRepository, val avklaringRepository: AvklaringRepository)
 

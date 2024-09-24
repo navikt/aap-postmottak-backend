@@ -1,7 +1,8 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering
+package no.nav.aap.postmottak.sakogbehandling.behandling.vurdering
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
+
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 interface AvklaringRepository {

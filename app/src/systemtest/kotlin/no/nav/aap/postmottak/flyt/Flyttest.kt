@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.flyt
 
 import no.nav.aap.WithFakes
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.motor.FlytJobbRepository
@@ -11,6 +10,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.Status
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber

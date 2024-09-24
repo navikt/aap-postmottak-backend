@@ -1,16 +1,20 @@
-package no.nav.aap.postmottak.sakogbehandling.behandling
+package no.nav.aap.postmottak
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepository
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.concurrent.thread
 
 class BehandlingRepositoryImplTest {
 
@@ -78,23 +82,21 @@ class BehandlingRepositoryImplTest {
 
     @Test
     fun `forventer at vurderingstabeller blir låst når behandlingen er låst`() {
-        val behandlingId = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)).id }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)).id }
         thread {
-            transactionMedBehandlingRepositorySuspend {
-                it.hent(BehandlingId(1))
+            inContext {
+                behandlingRepository.hent(BehandlingId(1))
                 Thread.sleep(500)
-                it.lagreTeamAvklaring(behandlingId, false)
+                avklaringRepository.lagreTeamAvklaring(behandlingId, false)
             }
         }
         thread {
             Thread.sleep(100)
-            transactionMedBehandlingRepositorySuspend {
-                it.lagreTeamAvklaring(behandlingId, true)
-            }
+            inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, true) }
         }.join()
 
-        transactionMedBehandlingRepository {
-            val temavurdering = it.hent(behandlingId).vurderinger.avklarTemaVurdering?.vurdering
+        inContext {
+            val temavurdering = behandlingRepository.hent(behandlingId).vurderinger.avklarTemaVurdering?.avklaring
             assertThat(temavurdering).isNotNull().isEqualTo(true)
         }
 
@@ -103,66 +105,54 @@ class BehandlingRepositoryImplTest {
     @Test
     fun `lagrer saksnummer på behandling`() {
         val saksnummer = "234234"
-        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
-        transactionMedBehandlingRepository { it.lagreSakVurdeirng(behandling.id, Saksnummer(saksnummer)) }
-        transactionMedBehandlingRepository {
-            val actual = it.hent(behandling.id)
-            assertThat(actual.vurderinger.saksvurdering?.vurdering?.saksnummer).isEqualTo(saksnummer)
+        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreSakVurdeirng(behandling.id, Saksnummer(saksnummer)) }
+        inContext {
+            val actual = behandlingRepository.hent(behandling.id)
+            assertThat(actual.vurderinger.saksvurdering?.saksnummer).isEqualTo(saksnummer)
         }
 
     }
 
     @Test
     fun `behandlingsversjon blir bumpet når behanlding blir endret`() {
-        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
-        transactionMedBehandlingRepository { it.lagreSakVurdeirng(behandling.id, Saksnummer("wdfgsdfgbs")) }
-        val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
+        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreSakVurdeirng(behandling.id, Saksnummer("wdfgsdfgbs")) }
+        val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
 
     @Test
     fun `behandlingsversjon blir bumpet når teamvurdering blir gjort`() {
-        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
-        transactionMedBehandlingRepository { it.lagreTeamAvklaring(behandling.id, false) }
-        val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
+        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreTeamAvklaring(behandling.id, false) }
+        val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
 
     @Test
     fun `behandlingsversjon blir bumpet når kategorivurdering blir gjort`() {
-        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
-        transactionMedBehandlingRepository { it.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD) }
-        val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
+        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD) }
+        val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
 
     @Test
     fun `behandlingsversjon blir bumpet når struktureringvurdering blir gjort`() {
-        val behandling = transactionMedBehandlingRepository { it.opprettBehandling(JournalpostId(1)) }
-        transactionMedBehandlingRepository { it.lagreStrukturertDokument(behandling.id, """{"YOLO": true}""") }
-        val versjon = transactionMedBehandlingRepository { it.hent(behandling.id).versjon }
+        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreStrukturertDokument(behandling.id, """{"YOLO": true}""") }
+        val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
 
-    fun <T> transactionMedBehandlingRepository(fn: (behandlingRepository: BehandlingRepositoryImpl) -> T): T =
-        InitTestDatabase.dataSource.transaction {
-            val behandlingRepository = BehandlingRepositoryImpl(it)
-            fn(behandlingRepository)
-        }
-
-    fun <T> transactionMedBehandlingRepositorySuspend(fn: (behandlingRepository: BehandlingRepositoryImpl) -> T): T =
-        InitTestDatabase.dataSource.transaction {
-            val behandlingRepository = BehandlingRepositoryImpl(it)
-            fn(behandlingRepository)
-        }
-
     private class Context(val behandlingRepository: BehandlingRepository, val avklaringRepository: AvklaringRepository)
 
-    private fun <T>inContext(block: Context.() -> T): T {
+    private fun <T> inContext(block: Context.() -> T): T {
         return InitTestDatabase.dataSource.transaction {
             val context = Context(BehandlingRepositoryImpl(it), AvklaringRepositoryImpl(it))
             context.let(block)

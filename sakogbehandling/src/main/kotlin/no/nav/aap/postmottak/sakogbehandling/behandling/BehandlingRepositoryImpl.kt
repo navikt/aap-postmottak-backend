@@ -1,21 +1,19 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Vurderinger
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.postmottak.kontrakt.journalpost.Status
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.sak.Status
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.verdityper.sakogbehandling.Status
 import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
 import java.time.LocalDateTime
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    private val vurderingRepository = AvklaringRepositoryImpl(connection)
+    private val vurderingRepository = AvklaringRepositoryImpl(
+            connection
+        )
 
     override fun opprettBehandling(journalpostId: JournalpostId): Behandling {
 

@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 

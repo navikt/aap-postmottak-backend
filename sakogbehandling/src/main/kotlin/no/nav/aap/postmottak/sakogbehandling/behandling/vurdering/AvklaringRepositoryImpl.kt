@@ -1,8 +1,9 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering
+package no.nav.aap.postmottak.sakogbehandling.behandling.vurdering
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.behandlingsflyt.sakogbehandling.sak.Saksnummer
+
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringRepository {
@@ -66,8 +67,11 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
     override fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdeirng? {
         return connection.queryFirstOrNull(vurderingQuery("SKAL_TIL_AAP_AVKLARING")) {
             setParams { setLong(1, behandlingId.toLong()) }
-            setRowMapper { row ->
-                TemaVurdeirng(row.getBoolean("skal_til_aap"))
+            setRowMapper { row -> TemaVurdeirng (
+                    row.getBoolean(
+                        "skal_til_aap"
+                    )
+                )
             }
         }
     }
@@ -76,7 +80,9 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
         return connection.queryFirstOrNull(vurderingQuery("KATEGORIAVKLARING")) {
             setParams { setLong(1, behandlingId.toLong()) }
             setRowMapper { row ->
-                KategoriVurdering(row.getEnum("kategori"))
+                KategoriVurdering(
+                    row.getEnum("kategori")
+                )
             }
         }
     }
@@ -97,7 +103,9 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
         return connection.queryFirstOrNull(vurderingQuery("DIGITALISERINGSAVKLARING")) {
             setParams { setLong(1, behandlingId.toLong()) }
             setRowMapper { row ->
-                Struktureringsvurdering(row.getString("strukturert_dokument"))
+                Struktureringsvurdering(
+                    row.getString("strukturert_dokument")
+                )
             }
         }
     }

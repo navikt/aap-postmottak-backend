@@ -4,7 +4,7 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 
 class AvklarTemaLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarTemaLøsning> {
 

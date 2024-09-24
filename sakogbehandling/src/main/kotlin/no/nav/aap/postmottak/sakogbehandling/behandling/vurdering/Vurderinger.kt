@@ -1,6 +1,7 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering
+package no.nav.aap.postmottak.sakogbehandling.behandling.vurdering
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+
 
 data class TemaVurdeirng(val avklaring: Boolean)
 

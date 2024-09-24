@@ -1,14 +1,12 @@
-package no.nav.aap.behandlingsflyt.sakogbehandling.behandling
+package no.nav.aap.postmottak.sakogbehandling.behandling
 
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.KategoriVurdering
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.Saksvurdering
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.Struktureringsvurdering
-import no.nav.aap.behandlingsflyt.sakogbehandling.behandling.vurdering.TemaVurdeirng
 import no.nav.aap.postmottak.kontrakt.journalpost.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.behandling.StegTilstand
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.sak.Status
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.KategoriVurdering
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Struktureringsvurdering
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.TemaVurdeirng
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
