@@ -4,7 +4,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.flyt.BehandlingFlyt
 import no.nav.aap.postmottak.flyt.BehandlingFlytBuilder
 import no.nav.aap.postmottak.flyt.BehandlingType
-import no.nav.aap.postmottak.forretningsflyt.informasjonskrav.saksnummer.SaksnummerInfoKrav
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerInfoKrav
 import no.nav.aap.postmottak.forretningsflyt.steg.AvklarTemaSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.DigitaliserDokumentSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.FinnSakSteg

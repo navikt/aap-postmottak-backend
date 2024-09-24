@@ -1,13 +1,13 @@
-package no.nav.aap.postmottak.forretningsflyt.informasjonskrav.saksnummer
+package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.Ident
 

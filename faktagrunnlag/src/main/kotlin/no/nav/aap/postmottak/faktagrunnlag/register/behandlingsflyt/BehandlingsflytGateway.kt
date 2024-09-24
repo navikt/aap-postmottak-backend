@@ -1,14 +1,6 @@
-package no.nav.aap.postmottak.overlevering.behandlingsflyt
+package no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinFeature
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
@@ -16,6 +8,8 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksinfo
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.LoggerFactory
@@ -75,10 +69,10 @@ class BehandlingsflytClient() : BehandlingsflytGateway {
         journalpostId: JournalpostId,
         søknad: ByteArray,
     ) {
-        val søknadMap = objectMapper.readValue<Map<Any, Any>>(søknad)
+        val søknadStirng = String(søknad)
         val url = url.resolve("/api/soknad/send")
         val request = PostRequest(
-            SendSøknad(sakId, journalpostId.toString(), søknadMap),
+            SendSøknad(sakId, journalpostId.toString(), søknadStirng),
             additionalHeaders = listOf(
                 Header("Accept", "application/json")
             )
@@ -86,18 +80,3 @@ class BehandlingsflytClient() : BehandlingsflytGateway {
         client.post<SendSøknad, Unit>(url, request)
     }
 }
-
-private val objectMapper = ObjectMapper()
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    .registerModule(JavaTimeModule())
-    .registerModule(
-        KotlinModule.Builder()
-            .withReflectionCacheSize(512)
-            .configure(KotlinFeature.NullToEmptyCollection, false)
-            .configure(KotlinFeature.NullToEmptyMap, false)
-            .configure(KotlinFeature.NullIsSameAsDefault, false)
-            .configure(KotlinFeature.SingletonSupport, true)
-            .configure(KotlinFeature.StrictNullChecks, false)
-            .build()
-    )

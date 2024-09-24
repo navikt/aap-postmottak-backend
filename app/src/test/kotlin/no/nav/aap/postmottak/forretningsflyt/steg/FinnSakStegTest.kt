@@ -3,8 +3,8 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.forretningsflyt.informasjonskrav.saksnummer.SaksnummerRepository
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import org.junit.jupiter.api.Test

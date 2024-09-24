@@ -1,5 +1,6 @@
-package no.nav.aap.postmottak.overlevering.behandlingsflyt
+package no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt
 
+import com.fasterxml.jackson.annotation.JsonRawValue
 import java.time.LocalDate
 
 data class FinnEllerOpprettSak(
@@ -12,5 +13,6 @@ data class FinnSaker(val ident: String)
 data class SendSøknad(
     val saksnummer: String,
     val journalpostId: String,
+    @JsonRawValue
     val søknad: Any
 )

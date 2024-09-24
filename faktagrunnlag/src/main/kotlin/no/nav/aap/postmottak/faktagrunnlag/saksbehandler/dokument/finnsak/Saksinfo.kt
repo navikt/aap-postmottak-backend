@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.overlevering.behandlingsflyt
+package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak
 
 import no.nav.aap.komponenter.type.Periode
 

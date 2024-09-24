@@ -1,6 +1,5 @@
-package no.nav.aap.postmottak.forretningsflyt.informasjonskrav.saksnummer
+package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak
 
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.Saksinfo
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId

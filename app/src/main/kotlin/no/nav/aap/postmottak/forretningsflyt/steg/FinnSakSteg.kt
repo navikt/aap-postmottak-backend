@@ -7,11 +7,11 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.J
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.forretningsflyt.informasjonskrav.saksnummer.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl

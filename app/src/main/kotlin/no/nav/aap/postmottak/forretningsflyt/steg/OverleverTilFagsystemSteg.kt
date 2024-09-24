@@ -8,8 +8,8 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.overlevering.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.steg.StegType
