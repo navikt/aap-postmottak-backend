@@ -12,7 +12,7 @@ class AvklarTemaLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Av
 
         AvklaringRepositoryImpl(connection).lagreTeamAvklaring(kontekst.kontekst.behandlingId, løsning.skalTilAap)
 
-        return LøsningsResultat("Dokumnent er ${if (løsning.skalTilAap) "" else "ikke"} ment for AAP")
+        return LøsningsResultat("Dokument er ${if (løsning.skalTilAap) "" else "ikke"} ment for AAP")
     }
 
     override fun forBehov(): Definisjon {

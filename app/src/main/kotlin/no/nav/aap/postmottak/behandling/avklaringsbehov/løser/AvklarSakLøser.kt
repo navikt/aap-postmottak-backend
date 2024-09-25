@@ -17,7 +17,7 @@ class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Avk
             løsning.saksnummer?.let(::Saksnummer)
         )
 
-        return LøsningsResultat("Dokumnent er tildelt sak ${løsning.saksnummer}")
+        return LøsningsResultat("Dokument er tildelt sak ${løsning.saksnummer}")
     }
 
     override fun forBehov(): Definisjon {
