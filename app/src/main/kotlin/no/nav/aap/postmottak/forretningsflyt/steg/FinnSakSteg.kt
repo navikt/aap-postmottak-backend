@@ -48,7 +48,7 @@ class FinnSakSteg(
         val sakerPåBruker = saksnummerRepository.hentSaksnummre(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
-        requireNotNull(journalpost) { "Journalpost kna ikke være null" }
+        requireNotNull(journalpost) { "Journalpost kan ikke være null" }
         check(journalpost is Journalpost.MedIdent)
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
