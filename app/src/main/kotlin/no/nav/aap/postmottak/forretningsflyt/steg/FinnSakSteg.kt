@@ -53,12 +53,12 @@ class FinnSakSteg(
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
             val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-            avklaringRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
+            avklaringRepository.lagreSakVurdering(kontekst.behandlingId, Saksnummer(saksnummer))
             StegResultat()
         } else if (behandling.harGjortSaksvurdering()) {
             if (behandling.vurderinger.saksvurdering?.opprettNySak == true) {
                 val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-                avklaringRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
+                avklaringRepository.lagreSakVurdering(kontekst.behandlingId, Saksnummer(saksnummer))
             }
             StegResultat()
         } else {

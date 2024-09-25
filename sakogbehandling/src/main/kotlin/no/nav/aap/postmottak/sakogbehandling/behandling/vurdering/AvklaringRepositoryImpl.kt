@@ -49,7 +49,7 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
         }
     }
 
-    override fun lagreSakVurdeirng(behandlingId: BehandlingId, saksnummer: Saksnummer?) {
+    override fun lagreSakVurdering(behandlingId: BehandlingId, saksnummer: Saksnummer?) {
         connection.execute(
             """
             INSERT INTO SAKSNUMMER_AVKLARING (BEHANDLING_ID, SAKSNUMMER, OPPRETT_NY) VALUES (

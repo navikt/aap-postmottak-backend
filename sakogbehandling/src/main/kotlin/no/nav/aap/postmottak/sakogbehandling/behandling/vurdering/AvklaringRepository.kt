@@ -9,7 +9,7 @@ interface AvklaringRepository {
     fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean)
     fun lagreKategoriseringVurdering(behandlingId: BehandlingId, kategori: Brevkode)
     fun lagreStrukturertDokument(behandlingId: BehandlingId, strukturertDokument: String)
-    fun lagreSakVurdeirng(behandlingId: BehandlingId, saksnummer: Saksnummer?)
+    fun lagreSakVurdering(behandlingId: BehandlingId, saksnummer: Saksnummer?)
 
     fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdeirng?
     fun hentKategoriAvklaring(behandlingId: BehandlingId): KategoriVurdering?

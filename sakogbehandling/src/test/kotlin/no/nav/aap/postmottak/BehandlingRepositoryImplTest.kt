@@ -106,7 +106,7 @@ class BehandlingRepositoryImplTest {
     fun `lagrer saksnummer på behandling`() {
         val saksnummer = "234234"
         val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreSakVurdeirng(behandling.id, Saksnummer(saksnummer)) }
+        inContext { avklaringRepository.lagreSakVurdering(behandling.id, Saksnummer(saksnummer)) }
         inContext {
             val actual = behandlingRepository.hent(behandling.id)
             assertThat(actual.vurderinger.saksvurdering?.saksnummer).isEqualTo(saksnummer)
@@ -117,7 +117,7 @@ class BehandlingRepositoryImplTest {
     @Test
     fun `behandlingsversjon blir bumpet når behanlding blir endret`() {
         val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreSakVurdeirng(behandling.id, Saksnummer("wdfgsdfgbs")) }
+        inContext { avklaringRepository.lagreSakVurdering(behandling.id, Saksnummer("wdfgsdfgbs")) }
         val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
 
         assertThat(versjon).isEqualTo(1)

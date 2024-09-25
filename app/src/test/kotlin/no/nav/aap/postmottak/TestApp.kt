@@ -94,7 +94,7 @@ private fun opprettBehanldingKategoriser(connection: DBConnection) {
 
     val behandling = behandlingRepository.opprettBehandling(JournalpostId(3))
     vurderingRepository.lagreTeamAvklaring(behandling.id, true)
-    vurderingRepository.lagreSakVurdeirng(behandling.id, Saksnummer("1010"))
+    vurderingRepository.lagreSakVurdering(behandling.id, Saksnummer("1010"))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(null, behandling.id.toLong()).medCallId()
@@ -109,7 +109,7 @@ private fun opprettBehanldingDigitaliser(connection: DBConnection) {
     val behandling =
         behandlingRepository.opprettBehandling(JournalpostId(4))
     vurderingRepository.lagreTeamAvklaring(behandling.id, true)
-    vurderingRepository.lagreSakVurdeirng(behandling.id, Saksnummer("1010"))
+    vurderingRepository.lagreSakVurdering(behandling.id, Saksnummer("1010"))
     vurderingRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)

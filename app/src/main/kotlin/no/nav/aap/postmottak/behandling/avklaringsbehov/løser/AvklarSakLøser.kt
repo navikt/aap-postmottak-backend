@@ -13,7 +13,7 @@ class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Avk
 
         AvklaringRepositoryImpl(
             connection
-        ).lagreSakVurdeirng(kontekst.kontekst.behandlingId,
+        ).lagreSakVurdering(kontekst.kontekst.behandlingId,
             løsning.saksnummer?.let(::Saksnummer)
         )
 

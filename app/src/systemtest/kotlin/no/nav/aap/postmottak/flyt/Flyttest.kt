@@ -47,7 +47,7 @@ class Flyttest: WithFakes {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1)).id
 
             avklaringRepository.lagreTeamAvklaring(behandlingId, true)
-            avklaringRepository.lagreSakVurdeirng(behandlingId, Saksnummer("23452345"))
+            avklaringRepository.lagreSakVurdering(behandlingId, Saksnummer("23452345"))
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
             avklaringRepository.lagreStrukturertDokument(behandlingId, """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}""")
 
