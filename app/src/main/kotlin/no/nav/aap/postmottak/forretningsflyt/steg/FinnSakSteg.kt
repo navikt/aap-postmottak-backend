@@ -56,7 +56,7 @@ class FinnSakSteg(
             avklaringRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
             StegResultat()
         } else if (behandling.harGjortSaksvurdering()) {
-            if (behandling.vurderinger.saksvurdering == null) {
+            if (behandling.vurderinger.saksvurdering?.opprettNySak == true) {
                 val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
                 avklaringRepository.lagreSakVurdeirng(kontekst.behandlingId, Saksnummer(saksnummer))
             }
