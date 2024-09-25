@@ -122,7 +122,7 @@ class FinnSakStegTest {
         val resultat = finnSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { avklaringRepository.lagreTeamAvklaring(any(), any()) }
+        verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
 
