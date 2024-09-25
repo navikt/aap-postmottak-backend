@@ -53,7 +53,7 @@ class FinnSakStegTest {
         val resultat = finnSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { avklaringRepository.lagreSakVurdeirng(any(), any()) }
+        verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
     }
@@ -66,7 +66,7 @@ class FinnSakStegTest {
         val resultat = finnSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { avklaringRepository.lagreSakVurdeirng(any(), any()) }
+        verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
     }
@@ -81,7 +81,7 @@ class FinnSakStegTest {
         val resultat = finnSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 0) { avklaringRepository.lagreSakVurdeirng(any(), any()) }
+        verify(exactly = 0) { avklaringRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).contains(Definisjon.AVKLAR_SAKSNUMMER)
     }
@@ -101,7 +101,7 @@ class FinnSakStegTest {
         val resultat = finnSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 0) { avklaringRepository.lagreSakVurdeirng(any(), any()) }
+        verify(exactly = 0) { avklaringRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
 
@@ -122,7 +122,7 @@ class FinnSakStegTest {
         val resultat = finnSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { avklaringRepository.lagreSakVurdeirng(any(), any()) }
+        verify(exactly = 1) { avklaringRepository.lagreTeamAvklaring(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
 
