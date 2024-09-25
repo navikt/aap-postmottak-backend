@@ -49,7 +49,7 @@ class Flyttest: WithFakes {
             avklaringRepository.lagreTeamAvklaring(behandlingId, true)
             avklaringRepository.lagreSakVurdeirng(behandlingId, Saksnummer("23452345"))
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-            avklaringRepository.lagreStrukturertDokument(behandlingId, """{"yolo": "swag"}""")
+            avklaringRepository.lagreStrukturertDokument(behandlingId, """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}""")
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
