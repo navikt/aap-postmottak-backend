@@ -2,6 +2,8 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
+import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.ENDRET
+import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
@@ -26,7 +28,7 @@ class SaksnummerInfoKrav(
         }
     }
 
-    override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
+    override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost) { "Forventer journalpost" }
         check(journalpost is Journalpost.MedIdent) { "journalpost må ha ident" }
@@ -38,7 +40,7 @@ class SaksnummerInfoKrav(
         } // TODO utbedre exception handling!!!
 
         saksnummerRepository.lagreSaksnummer(kontekst.behandlingId, saksnummre)
-        return true
+        return IKKE_ENDRET
     }
 
 }

@@ -21,7 +21,7 @@ class SaksnummerInfoKravTest {
 
         every { behandlingsflytGateway.finnSaker(any()) } returns saksnummre
 
-        saksnummerInfoKrav.harIkkeGjortOppdateringNå(mockk(relaxed = true))
+        saksnummerInfoKrav.oppdater(mockk(relaxed = true))
 
         verify(exactly = 1) { sakRepository.lagreSaksnummer(any(), saksnummre) }
     }

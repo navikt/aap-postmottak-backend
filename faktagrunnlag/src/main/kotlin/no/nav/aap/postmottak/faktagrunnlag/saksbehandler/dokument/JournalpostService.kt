@@ -1,6 +1,8 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
+import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.ENDRET
+import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -27,7 +29,7 @@ class JournalpostService private constructor(
         }
     }
 
-    override fun harIkkeGjortOppdateringNå(kontekst: FlytKontekst): Boolean {
+    override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
         val persistertJournalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         
         val journalpostId =
@@ -37,7 +39,7 @@ class JournalpostService private constructor(
         
         if (persistertJournalpost == null) {
             journalpostRepository.lagre(journalpost, kontekst.behandlingId)
-            return false
+            return ENDRET
         }
         
         if (persistertJournalpost != journalpost) {
@@ -45,7 +47,7 @@ class JournalpostService private constructor(
             // TODO: Finn ut hvordan man håndterer endringer - gjør ingenting akkurat nå
         }
 
-        return true
+        return IKKE_ENDRET
     }
 
 }
