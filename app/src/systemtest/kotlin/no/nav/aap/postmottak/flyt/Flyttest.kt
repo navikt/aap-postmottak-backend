@@ -45,6 +45,9 @@ class Flyttest: WithFakes {
     @AfterEach
     fun afterEach() {
         WithFakes.fakes.behandlkingsflyt.clean()
+        dataSource.transaction { it.execute("""
+            TRUNCATE BEHANDLING CASCADE
+        """.trimIndent()) }
     }
 
     @Test
