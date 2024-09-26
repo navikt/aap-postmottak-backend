@@ -24,15 +24,56 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
+
+class FakeServer(port: Int = 0, module: Application.() -> Unit) {
+    private val server: NettyApplicationEngine = embeddedServer(Netty, port = port, module = module).start()
+
+    private var throwOnNextCall: HttpStatusCode? = null
+    private var exceptionPath: String? = null
+
+    init {
+        server.application.install(createApplicationPlugin("exceptionThrower") {
+            onCall { call ->
+                val status = throwOnNextCall
+                val path  = exceptionPath
+                if (status != null && (path == null || call.request.path().contains(path))) {
+                    call.respond(status)
+                }
+            }
+        })
+    }
+
+    fun stop() {
+        server.stop()
+    }
+
+    fun clean() {
+        throwOnNextCall = null
+        exceptionPath = null
+    }
+
+    fun port(): Int = server.port()
+
+    fun throwException(status: HttpStatusCode = HttpStatusCode.BadRequest, path: String) {
+        throwOnNextCall = status
+        exceptionPath = path
+    }
+
+    private fun NettyApplicationEngine.port(): Int =
+        runBlocking { resolvedConnectors() }
+            .first { it.type == ConnectorType.HTTP }
+            .port
+
+}
+
 class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
-    private val azure = embeddedServer(Netty, port = azurePort, module = { azureFake() }).start()
-    private val oppgave = embeddedServer(Netty, port = 0, module = { oppgaveFake() }).start()
-    private val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
-    private val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
-    private val joark = embeddedServer(Netty, port = 0, module = { joarkFake() }).apply { start() }
-    private val behandlkingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() }).apply { start() }
-
+    val azure = FakeServer(azurePort, { azureFake() })
+    private val oppgave = FakeServer(module = { oppgaveFake() })
+    val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
+    val saf = FakeServer(module = { safFake() })
+    val joark = FakeServer(module = { joarkFake() })
+    val behandlkingsflyt = FakeServer(module = { behandlingsflytFake() })
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -88,10 +129,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     }
 
     override fun close() {
-        azure.stop(0L, 0L)
-        oppgave.stop(0L, 0L)
-        saf.stop(0L, 0L)
-        joark.stop(0, 0)
+        azure.stop()
+        oppgave.stop()
+        saf.stop()
+        joark.stop()
     }
 
     fun leggTil(person: TestPerson) {
@@ -99,10 +140,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         person.barn.forEach { leggTil(it) }
     }
 
-    private fun NettyApplicationEngine.port(): Int =
-        runBlocking { resolvedConnectors() }
-            .first { it.type == ConnectorType.HTTP }
-            .port
 
     private fun Application.oppgaveFake() {
         install(ContentNegotiation) {
