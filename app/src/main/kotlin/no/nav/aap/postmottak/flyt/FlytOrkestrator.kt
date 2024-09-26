@@ -61,7 +61,7 @@ class FlytOrkestrator(
 
         val oppdaterFaktagrunnlagForKravliste =
             informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
-                kravliste = behandlingFlyt.faktagrunnlagFremTilOgMedGjeldendeSteg(),
+                kravliste = behandlingFlyt.alleFaktagrunnlagFørGjeldendeSteg(),
                 kontekst = kontekst
             )
 
@@ -92,14 +92,11 @@ class FlytOrkestrator(
         var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
         while (true) {
-            connection.markerSavepoint()
-
-            informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
-                behandlingFlyt.faktagrunnlagForGjeldendeSteg(),
-                kontekst
+            val result = StegOrkestrator(connection, gjeldendeSteg).utfør(
+                kontekst,
+                behandling,
+                behandlingFlyt.faktagrunnlagForGjeldendeSteg()
             )
-
-            val result = StegOrkestrator(connection, gjeldendeSteg).utfør(kontekst, behandling)
 
             val avklaringsbehov = avklaringsbehovene.åpne()
             if (result.erTilbakeføring()) {
@@ -128,7 +125,7 @@ class FlytOrkestrator(
                         behandlingId = behandling.id,
                         status = Status.AVSLUTTET
                     )
-                    
+
                     validerAtAvklaringsBehovErLukkede(avklaringsbehovene)
                     log.info("Behandlingen har nådd slutten, avslutter behandling")
                     behandlingHendelseService.avsluttet(behandling)

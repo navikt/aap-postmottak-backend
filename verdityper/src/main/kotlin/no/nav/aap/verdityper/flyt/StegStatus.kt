@@ -5,7 +5,12 @@ enum class StegStatus {
      * Teknisk status
      */
     START,
-
+    
+    /**
+    * Teknisk status
+    */
+    OPPDATER_FAKTAGRUNNLAG,
+    
     /**
      * Utfører forettningslogikken i steget
      */
@@ -43,7 +48,7 @@ enum class StegStatus {
 
     companion object {
         fun rekkefølge(): List<StegStatus> {
-            return listOf(START, UTFØRER, AVKLARINGSPUNKT, AVSLUTTER)
+            return listOf(START, OPPDATER_FAKTAGRUNNLAG, UTFØRER, AVKLARINGSPUNKT, AVSLUTTER)
         }
     }
 }

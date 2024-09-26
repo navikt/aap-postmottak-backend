@@ -2,6 +2,8 @@ package no.nav.aap.postmottak.flyt.steg
 
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
+import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.StegTilstand
@@ -32,12 +34,14 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
 
     private val behandlingRepository = BehandlingFlytRepository(connection)
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
+    private val informasjonskravGrunnlag = InformasjonskravGrunnlag(connection)
 
     private val behandlingSteg = aktivtSteg.konstruer(connection)
 
     fun utfør(
         kontekst: FlytKontekst,
-        behandling: Behandling
+        behandling: Behandling,
+        faktagrunnlagForGjeldendeSteg: List<Informasjonskravkonstruktør>
     ): Transisjon {
         var gjeldendeStegStatus = StegStatus.START
         log.info("Behandler steg '{}'", aktivtSteg.type())
@@ -46,9 +50,10 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
             val resultat = utførTilstandsEndring(
                 kontekst,
                 gjeldendeStegStatus,
-                behandling
+                behandling,
+                faktagrunnlagForGjeldendeSteg
             )
-            if (gjeldendeStegStatus == StegStatus.START) {
+            if (gjeldendeStegStatus in setOf(StegStatus.START, StegStatus.OPPDATER_FAKTAGRUNNLAG)) {
                 // Legger denne her slik at vi får savepoint på at vi har byttet steg, slik at vi starter opp igjen på rett sted når prosessen dras i gang igjen
                 connection.markerSavepoint()
             }
@@ -68,13 +73,14 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
         kontekst: FlytKontekst,
         behandling: Behandling
     ): Transisjon {
-        return utførTilstandsEndring(kontekst, StegStatus.TILBAKEFØRT, behandling)
+        return utførTilstandsEndring(kontekst, StegStatus.TILBAKEFØRT, behandling, listOf())
     }
 
     private fun utførTilstandsEndring(
         kontekst: FlytKontekst,
         nesteStegStatus: StegStatus,
-        behandling: Behandling
+        behandling: Behandling,
+        faktagrunnlagForGjeldendeSteg: List<Informasjonskravkonstruktør>
     ): Transisjon {
         log.debug(
             "Behandler steg({}) med status({})",
@@ -83,6 +89,7 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
         )
         val transisjon = when (nesteStegStatus) {
             StegStatus.UTFØRER -> behandleSteg(kontekst)
+            StegStatus.OPPDATER_FAKTAGRUNNLAG -> oppdaterFaktagrunnlag(kontekst, faktagrunnlagForGjeldendeSteg)
             StegStatus.AVKLARINGSPUNKT -> harAvklaringspunkt(aktivtSteg.type(), kontekst.behandlingId)
             StegStatus.AVSLUTTER -> Fortsett
             StegStatus.TILBAKEFØRT -> behandleStegBakover(kontekst)
@@ -95,6 +102,17 @@ class StegOrkestrator(private val connection: DBConnection, private val aktivtSt
         return transisjon
     }
 
+    private fun oppdaterFaktagrunnlag(
+        kontekst: FlytKontekst,
+        faktagrunnlagForGjeldendeSteg: List<Informasjonskravkonstruktør>
+    ): Fortsett {
+        informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
+            faktagrunnlagForGjeldendeSteg,
+            kontekst
+        )
+        return Fortsett
+    }
+    
     private fun behandleSteg(kontekst: FlytKontekst): Transisjon {
         val kontekstMedPerioder = FlytKontekstMedPerioder(
             behandlingId = kontekst.behandlingId,
