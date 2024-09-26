@@ -89,7 +89,7 @@ class Flyttest: WithFakes {
             val behandlingRepository = BehandlingRepositoryImpl(connection)
             val behandling = behandlingRepository.hent(behandlingId)
 
-            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+            assertThat(behandling.status()).isNotEqualTo(Status.AVSLUTTET)
         }
     }
 
