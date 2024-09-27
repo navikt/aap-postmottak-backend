@@ -62,7 +62,7 @@ class JoarkTestDouble() : Joark {
         oppdaterCalls += Pair(journalpost, fagsakId)
     }
 
-    override fun ferdigstillJournalpost(journalpost: Journalpost) {
+    override fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost) {
         ferdigstillCounter++
         ferdigstillCalls += journalpost
 

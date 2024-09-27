@@ -32,6 +32,6 @@ class JoarkClientTest : WithFakes {
         every { journalpost.personident } returns Ident.Personident("123")
         every { journalpost.journalpostId } returns JournalpostId(1)
 
-        joarkClient.ferdigstillJournalpost(journalpost)
+        joarkClient.ferdigstillJournalpostMaskinelt(journalpost)
     }
 }

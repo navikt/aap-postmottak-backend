@@ -34,7 +34,8 @@ class JournalføringSteg(
 
         require(journalpost is Journalpost.MedIdent)
 
-        joarkKlient.ferdigstillJournalpost(journalpost)
+        // TODO: Skill mellom maskinell og manuell journalføring
+        joarkKlient.ferdigstillJournalpostMaskinelt(journalpost)
 
         return StegResultat()
     }

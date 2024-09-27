@@ -12,12 +12,9 @@ import java.net.URI
 
 interface Joark {
     fun oppdaterJournalpost(journalpost: Journalpost.MedIdent, fagsakId: String)
-
-    fun ferdigstillJournalpost(journalpost: Journalpost)
+    fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost)
+    fun ferdigstillJournalpost(journalpost: Journalpost, journalfoerendeEnhet: String)
 }
-
-const val FORDELINGSOPPGAVE = "FDR"
-const val JOURNALFORINGSOPPGAVE = "JFR"
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
@@ -52,9 +49,13 @@ class JoarkClient: Joark {
 
     }
 
-    override fun ferdigstillJournalpost(journalpost: Journalpost) {
+    override fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost) {
+        ferdigstillJournalpost(journalpost, MASKINELL_JOURNALFØRING_ENHET)
+    }
+
+    override fun ferdigstillJournalpost(journalpost: Journalpost, journalfoerendeEnhet: String) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}/ferdigstill")
-        val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET))
+        val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet))
         client.patch(path, request) { _,_ -> }
     }
 }

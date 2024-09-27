@@ -30,6 +30,6 @@ class JournalføringStegTest {
 
         journalføringSteg.utfør(mockk(relaxed = true))
 
-        verify(exactly = 1) { joark.ferdigstillJournalpost(journalpost) }
+        verify(exactly = 1) { joark.ferdigstillJournalpostMaskinelt(journalpost) }
     }
 }

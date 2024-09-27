@@ -39,6 +39,7 @@ class SettFagsakSteg(
 
         require(journalpost is Journalpost.MedIdent)
 
+        // TODO: Skill mellom maskinell og manuell journalføring
         joarkKlient.oppdaterJournalpost(
             journalpost, behandling
                 .vurderinger.saksvurdering?.saksnummer!!
