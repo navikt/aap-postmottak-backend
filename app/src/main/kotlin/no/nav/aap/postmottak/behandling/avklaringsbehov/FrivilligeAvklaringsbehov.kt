@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.behandling.avklaringsbehov
 
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.flyt.BehandlingFlyt
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.time.LocalDateTime
 

@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.behandling.avklaringsbehov
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.journalpost.Status
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 
 
 internal object ValiderBehandlingTilstand {

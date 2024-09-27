@@ -9,7 +9,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.S
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.saf.graphql.SafVariantformat
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.DokumentResponsDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentDokumentDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentJournalpostDTO

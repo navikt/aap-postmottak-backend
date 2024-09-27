@@ -4,6 +4,7 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.ÅrsakTilSettPåV
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDate

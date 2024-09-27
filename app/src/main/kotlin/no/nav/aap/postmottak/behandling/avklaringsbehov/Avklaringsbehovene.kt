@@ -6,6 +6,7 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.ÅrsakTilSettPåV
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory

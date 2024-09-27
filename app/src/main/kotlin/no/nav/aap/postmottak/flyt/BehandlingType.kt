@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.flyt
 
 import no.nav.aap.postmottak.forretningsflyt.behandlingstyper.Dokumentflyt
-import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 
 interface BehandlingType {
     fun flyt(): BehandlingFlyt

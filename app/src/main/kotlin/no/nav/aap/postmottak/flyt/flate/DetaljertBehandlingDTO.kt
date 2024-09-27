@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.flyt.flate
 
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
-import no.nav.aap.postmottak.kontrakt.journalpost.Status
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.time.LocalDateTime
 

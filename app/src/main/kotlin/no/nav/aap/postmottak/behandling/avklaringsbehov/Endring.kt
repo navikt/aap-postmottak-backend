@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.behandling.avklaringsbehov
 
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.ÅrsakTilSettPåVent
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import java.time.LocalDate
 import java.time.LocalDateTime
 

@@ -1,4 +1,4 @@
-package no.nav.aap.verdityper.sakogbehandling
+package no.nav.aap.postmottak.kontrakt.behandling
 
 enum class TypeBehandling(private var identifikator: String) {
 

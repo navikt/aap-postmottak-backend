@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf
 
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient

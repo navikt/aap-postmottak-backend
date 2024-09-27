@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling
 
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 interface BehandlingRepository {

@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.behandling.avklaringsbehov
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.time.LocalDate
 

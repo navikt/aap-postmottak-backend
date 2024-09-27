@@ -7,11 +7,11 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach

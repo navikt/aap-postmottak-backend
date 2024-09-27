@@ -5,7 +5,7 @@ import io.mockk.mockk
 import no.nav.aap.WithFakes
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.Test
 import kotlin.test.Ignore
 

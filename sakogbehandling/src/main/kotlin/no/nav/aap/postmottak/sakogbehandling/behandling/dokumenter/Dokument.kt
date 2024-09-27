@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter
 
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDateTime
 
 class Dokument(private val id: Long,

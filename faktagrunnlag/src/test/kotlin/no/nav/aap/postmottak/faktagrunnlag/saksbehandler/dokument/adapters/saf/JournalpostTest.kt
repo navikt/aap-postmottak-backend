@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf
 
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

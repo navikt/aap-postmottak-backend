@@ -1,6 +1,6 @@
-package no.nav.aap.postmottak.hendelse.avløp
+package no.nav.aap.postmottak.kontrakt.hendelse
 
-import no.nav.aap.postmottak.behandling.avklaringsbehov.Status
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.time.LocalDate

@@ -14,7 +14,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.journalpost.Status
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory

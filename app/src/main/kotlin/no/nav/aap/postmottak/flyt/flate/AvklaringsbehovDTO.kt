@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.flyt.flate
 
-import no.nav.aap.postmottak.behandling.avklaringsbehov.Status
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import java.time.LocalDateTime
 

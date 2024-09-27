@@ -11,7 +11,7 @@ import libs.kafka.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord

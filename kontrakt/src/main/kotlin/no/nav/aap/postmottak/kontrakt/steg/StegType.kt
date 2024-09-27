@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.kontrakt.steg
 
-import no.nav.aap.postmottak.kontrakt.journalpost.Status
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 
 enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg: Boolean = false) {
     KATEGORISER_DOKUMENT(

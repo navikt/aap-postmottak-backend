@@ -10,7 +10,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksinfo
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.LoggerFactory
 import java.net.URI

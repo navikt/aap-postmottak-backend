@@ -11,7 +11,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.S
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId

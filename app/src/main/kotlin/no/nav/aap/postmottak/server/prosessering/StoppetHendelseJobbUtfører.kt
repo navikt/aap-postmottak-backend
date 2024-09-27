@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.hendelse.avløp.DokumentflytStoppetHendelse
+import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import no.nav.aap.postmottak.hendelse.oppgave.BehandlingsFlytStoppetHendelseDTO
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb

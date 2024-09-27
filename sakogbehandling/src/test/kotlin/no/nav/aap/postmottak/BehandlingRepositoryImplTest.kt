@@ -5,12 +5,12 @@ import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.verdityper.sakogbehandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

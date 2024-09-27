@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.saf.graphql
 
 import no.nav.aap.WithFakes
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

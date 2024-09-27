@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter
+package no.nav.aap.postmottak.kontrakt.journalpost
 
 import com.fasterxml.jackson.annotation.JsonValue
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
