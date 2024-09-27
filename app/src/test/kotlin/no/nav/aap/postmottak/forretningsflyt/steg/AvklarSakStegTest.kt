@@ -12,13 +12,12 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
-class FinnSakStegTest {
+class AvklarSakStegTest {
 
     @AfterEach
     fun tearDown() {
@@ -31,7 +30,7 @@ class FinnSakStegTest {
     val journalpostRepository = mockk<JournalpostRepositoryImpl>(relaxed = true)
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
 
-    val finnSakSteg = FinnSakSteg(
+    val avklarSakSteg = AvklarSakSteg(
         behandlingRepository,
         avklaringRepository,
         saksnummerRepository,
@@ -40,7 +39,7 @@ class FinnSakStegTest {
 
     @Test
     fun utfør() {
-        finnSakSteg.utfør(mockk(relaxed = true))
+        avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { journalpostRepository.hentHvisEksisterer(any()) }
@@ -50,7 +49,7 @@ class FinnSakStegTest {
     fun `når det ikke finnes relaterte saker til behandlingen etterspørres ny sak uten avklaringsbehov`() {
         every { saksnummerRepository.hentSaksnummre(any()) } returns emptyList()
 
-        val resultat = finnSakSteg.utfør(mockk(relaxed = true))
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }
@@ -63,7 +62,7 @@ class FinnSakStegTest {
         val journalpost: Journalpost.MedIdent = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns true
 
-        val resultat = finnSakSteg.utfør(mockk(relaxed = true))
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }
@@ -78,12 +77,12 @@ class FinnSakStegTest {
 
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
-        val resultat = finnSakSteg.utfør(mockk(relaxed = true))
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 0) { avklaringRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat.avklaringsbehov).contains(Definisjon.AVKLAR_SAKSNUMMER)
+        assertThat(resultat.avklaringsbehov).contains(Definisjon.AVKLAR_SAK)
     }
 
     @Test
@@ -98,7 +97,7 @@ class FinnSakStegTest {
         every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
-        val resultat = finnSakSteg.utfør(mockk(relaxed = true))
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 0) { avklaringRepository.lagreSakVurdering(any(), any()) }
@@ -119,7 +118,7 @@ class FinnSakStegTest {
         every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
-        val resultat = finnSakSteg.utfør(mockk(relaxed = true))
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }

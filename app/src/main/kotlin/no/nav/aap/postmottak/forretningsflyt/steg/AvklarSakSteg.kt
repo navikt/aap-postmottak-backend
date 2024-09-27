@@ -20,7 +20,7 @@ import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
 
-class FinnSakSteg(
+class AvklarSakSteg(
     private val behandlingRepository: BehandlingRepositoryImpl,
     private val avklaringRepository: AvklaringRepository,
     private val saksnummerRepository: SaksnummerRepository,
@@ -29,7 +29,7 @@ class FinnSakSteg(
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return FinnSakSteg(
+            return AvklarSakSteg(
                 BehandlingRepositoryImpl(connection),
                 AvklaringRepositoryImpl(connection),
                 SaksnummerRepository(connection),
@@ -39,7 +39,7 @@ class FinnSakSteg(
         }
 
         override fun type(): StegType {
-            return StegType.FINN_SAK
+            return StegType.AVKLAR_SAK
         }
 
     }
@@ -64,7 +64,7 @@ class FinnSakSteg(
         } else {
             return StegResultat(
                 listOf(
-                    Definisjon.AVKLAR_SAKSNUMMER
+                    Definisjon.AVKLAR_SAK
                 )
             )
         }

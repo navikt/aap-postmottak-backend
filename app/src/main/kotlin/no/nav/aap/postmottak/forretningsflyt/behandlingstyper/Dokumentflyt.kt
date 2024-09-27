@@ -7,7 +7,7 @@ import no.nav.aap.postmottak.flyt.BehandlingType
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerInfoKrav
 import no.nav.aap.postmottak.forretningsflyt.steg.AvklarTemaSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.DigitaliserDokumentSteg
-import no.nav.aap.postmottak.forretningsflyt.steg.FinnSakSteg
+import no.nav.aap.postmottak.forretningsflyt.steg.AvklarSakSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.JournalføringSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.KategoriserDokumentSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.OverleverTilFagsystemSteg
@@ -18,7 +18,7 @@ object Dokumentflyt: BehandlingType {
     override fun flyt(): BehandlingFlyt = BehandlingFlytBuilder()
         .medSteg(steg = StartBehandlingSteg)
         .medSteg(steg = AvklarTemaSteg, informasjonskrav = listOf(JournalpostService))
-        .medSteg(steg = FinnSakSteg, informasjonskrav = listOf(SaksnummerInfoKrav))
+        .medSteg(steg = AvklarSakSteg, informasjonskrav = listOf(SaksnummerInfoKrav))
         .sluttÅOppdatereFaktagrunnlag()
         .medSteg(steg = SettFagsakSteg)
         .medSteg(steg = JournalføringSteg)

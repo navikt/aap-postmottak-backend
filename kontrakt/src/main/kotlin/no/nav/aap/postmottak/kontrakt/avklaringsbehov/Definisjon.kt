@@ -34,10 +34,10 @@ enum class Definisjon(
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.DIGITALISER_DOKUMENT
     ),
-    AVKLAR_SAKSNUMMER(
+    AVKLAR_SAK(
         kode = AVKLAR_SAKSNUMMER_KODE,
         type = BehovType.MANUELT_PÅKREVD,
-        løsesISteg = StegType.FINN_SAK
+        løsesISteg = StegType.AVKLAR_SAK
     );
 
     companion object {

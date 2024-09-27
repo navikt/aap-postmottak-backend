@@ -1,0 +1,1 @@
+UPDATE steg_historikk SET steg = 'AVKLAR_SAK' WHERE steg = 'FINN_SAK'

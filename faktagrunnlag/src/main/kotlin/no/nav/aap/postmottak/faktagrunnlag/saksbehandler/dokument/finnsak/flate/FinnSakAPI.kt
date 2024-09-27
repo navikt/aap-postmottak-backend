@@ -9,20 +9,18 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
-import java.time.LocalDate
 
 fun NormalOpenAPIRoute.finnSakApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/finnSak") {
-        get<JournalpostId, FinnSakGrunnlagDto> { req ->
+        get<JournalpostId, AvklarSakGrunnlagDto> { req ->
             val response = dataSource.transaction {
                 val behandling = BehandlingRepositoryImpl(it).hent(req)
                 val saksvurdering = behandling.vurderinger.saksvurdering
                 val relaterteSaker = SaksnummerRepository(it).hentSaksnummre(behandling.id)
 
-                FinnSakGrunnlagDto(
-                    vurdering = saksvurdering?.let { FinnSakVurderingDto(saksvurdering.toString()) },
+                AvklarSakGrunnlagDto(
+                    vurdering = saksvurdering?.let { AvklarSakVurderingDto(saksvurdering.toString()) },
                     saksinfo = relaterteSaker.map { SaksInfoDto(it.saksnummer, it.periode) }
                 )
             }

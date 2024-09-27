@@ -7,11 +7,11 @@ data class SaksInfoDto(
     val periode: Periode
 )
 
-data class FinnSakVurderingDto(
+data class AvklarSakVurderingDto(
     val saksnummer: String,
 )
 
-data class FinnSakGrunnlagDto(
-    val vurdering: FinnSakVurderingDto?,
+data class AvklarSakGrunnlagDto(
+    val vurdering: AvklarSakVurderingDto?,
     val saksinfo: List<SaksInfoDto>
 )

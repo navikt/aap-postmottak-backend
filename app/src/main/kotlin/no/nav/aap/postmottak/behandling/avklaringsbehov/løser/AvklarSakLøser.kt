@@ -21,6 +21,6 @@ class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Avk
     }
 
     override fun forBehov(): Definisjon {
-        return Definisjon.AVKLAR_SAKSNUMMER
+        return Definisjon.AVKLAR_SAK
     }
 }
