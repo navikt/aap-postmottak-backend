@@ -52,9 +52,11 @@ class JournalpostRepositoryTestDouble: JournalpostRepository {
 class JoarkTestDouble() : Joark {
 
     var oppdaterCounter = 0
+    var ferdigstillMaskineltCounter = 0
     var ferdigstillCounter = 0
 
     var oppdaterCalls: List<Pair<Any, Any>> = mutableListOf()
+    var ferdigstillMaskineltCalls: List<Any> = mutableListOf()
     var ferdigstillCalls: List<Any> = mutableListOf()
 
     override fun oppdaterJournalpost(journalpost: Journalpost.MedIdent, fagsakId: String) {
@@ -63,10 +65,15 @@ class JoarkTestDouble() : Joark {
     }
 
     override fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost) {
+        ferdigstillMaskineltCounter++
+        ferdigstillMaskineltCalls += journalpost
+    }
+
+    override fun ferdigstillJournalpost(journalpost: Journalpost, journalfoerendeEnhet: String) {
         ferdigstillCounter++
         ferdigstillCalls += journalpost
-
     }
+    
 }
 
 fun generateJournalpost() = Journalpost.MedIdent(
@@ -96,8 +103,8 @@ class JournalføringStegTestWithoutLib {
 
         journalføringSteg.utfør(FlytKontekstMedPerioder(BehandlingId(1), TypeBehandling.DokumentHåndtering))
 
-        assertThat(joark.ferdigstillCounter).isOne()
-        assertThat(joark.ferdigstillCalls.first()).isEqualTo(journalpost)
+        assertThat(joark.ferdigstillMaskineltCounter).isOne()
+        assertThat(joark.ferdigstillMaskineltCalls.first()).isEqualTo(journalpost)
 
     }
 }
