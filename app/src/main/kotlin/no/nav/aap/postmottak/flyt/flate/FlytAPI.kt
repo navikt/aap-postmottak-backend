@@ -50,6 +50,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                         avklaringsbehovene,
                         flyt, aktivtSteg
                     )
+                    val alleAvklaringsbehov = alleAvklaringsbehovInkludertFrivillige.alle()
 
                 BehandlingFlytOgTilstandDto(
                     flyt = stegGrupper.map { (gruppe, steg) ->
@@ -61,7 +62,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                             steg = steg.map { stegType ->
                                 FlytSteg(
                                     stegType = stegType,
-                                    avklaringsbehov = alleAvklaringsbehovInkludertFrivillige.alle()
+                                    avklaringsbehov = alleAvklaringsbehov
                                         .filter { avklaringsbehov -> avklaringsbehov.skalLøsesISteg(stegType) }
                                         .map { behov ->
                                             AvklaringsbehovDTO(
