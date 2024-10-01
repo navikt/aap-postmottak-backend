@@ -160,7 +160,7 @@ fun Application.mottakStream(dataSource: DataSource, registry: MeterRegistry): S
     if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
     val config = StreamsConfig()
     val stream = MottakStream(MottakListener(config, dataSource).topology, config, registry)
-
+    stream.start()
     environment.monitor.subscribe(ApplicationStopped) {
         stream.close()
     }
