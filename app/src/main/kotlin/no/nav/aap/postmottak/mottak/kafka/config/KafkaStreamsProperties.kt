@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.mottak.config
+package no.nav.aap.postmottak.mottak.kafka.config
 
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import org.apache.kafka.clients.CommonClientConfigs

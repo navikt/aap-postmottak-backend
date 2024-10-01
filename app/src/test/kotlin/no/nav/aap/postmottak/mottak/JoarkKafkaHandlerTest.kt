@@ -5,9 +5,9 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.mottak.config.SchemaRegistryConfig
-import no.nav.aap.postmottak.mottak.config.SslConfig
-import no.nav.aap.postmottak.mottak.config.StreamsConfig
+import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
+import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
+import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -18,7 +18,7 @@ import org.apache.kafka.streams.TopologyTestDriver
 import org.junit.jupiter.api.Test
 
 
-class MottakListenerTest {
+class JoarkKafkaHandlerTest {
 
     val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
@@ -51,9 +51,9 @@ class MottakListenerTest {
     }
 
     private fun setUpStreamsMock(config: StreamsConfig, block: TestInputTopic<String, JournalfoeringHendelseRecord>.() -> Unit) {
-        val mottakListener = MottakListener(config, mockk(relaxed = true), {_, fn -> fn(behandlingRepository, flytJobbRepository)})
-        val topologyTestDriver = TopologyTestDriver(mottakListener.topology, config.streamsProperties())
-        topologyTestDriver.createInputTopic(JOARK_TOPIC, Serdes.String().serializer(), mottakListener.avroserde.serializer())
+        val joarkKafkaHandler = JoarkKafkaHandler(config, mockk(relaxed = true), { _, fn -> fn(behandlingRepository, flytJobbRepository)})
+        val topologyTestDriver = TopologyTestDriver(joarkKafkaHandler.topology, config.streamsProperties())
+        topologyTestDriver.createInputTopic(JOARK_TOPIC, Serdes.String().serializer(), joarkKafkaHandler.avroserde.serializer())
             .apply(block)
         topologyTestDriver.close()
     }

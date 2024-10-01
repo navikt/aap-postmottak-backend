@@ -48,12 +48,11 @@ import no.nav.aap.postmottak.flyt.flate.DefinisjonDTO
 import no.nav.aap.postmottak.flyt.flate.behandlingApi
 import no.nav.aap.postmottak.flyt.flate.flytApi
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.mottak.MottakListener
-import no.nav.aap.postmottak.mottak.MottakStream
-import no.nav.aap.postmottak.mottak.NoopStream
-import no.nav.aap.postmottak.mottak.Stream
-import no.nav.aap.postmottak.mottak.config.SchemaRegistryConfig
-import no.nav.aap.postmottak.mottak.config.StreamsConfig
+import no.nav.aap.postmottak.mottak.JoarkKafkaHandler
+import no.nav.aap.postmottak.mottak.kafka.MottakStream
+import no.nav.aap.postmottak.mottak.kafka.NoopStream
+import no.nav.aap.postmottak.mottak.kafka.Stream
+import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.server.authenticate.AZURE
 import no.nav.aap.postmottak.server.authenticate.authentication
 import no.nav.aap.postmottak.server.exception.FlytOperasjonException
@@ -159,7 +158,7 @@ internal fun Application.server(
 fun Application.mottakStream(dataSource: DataSource, registry: MeterRegistry): Stream {
     if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
     val config = StreamsConfig()
-    val stream = MottakStream(MottakListener(config, dataSource).topology, config, registry)
+    val stream = MottakStream(JoarkKafkaHandler(config, dataSource).topology, config, registry)
     stream.start()
     environment.monitor.subscribe(ApplicationStopped) {
         stream.close()

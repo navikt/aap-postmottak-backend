@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.mottak.config
+package no.nav.aap.postmottak.mottak.kafka.config
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
