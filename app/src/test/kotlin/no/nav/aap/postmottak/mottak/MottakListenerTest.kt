@@ -1,22 +1,21 @@
 package no.nav.aap.postmottak.mottak
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import lib.kafka.StreamsMock
-import libs.kafka.SchemaRegistryConfig
-import libs.kafka.SslConfig
-import libs.kafka.StreamsConfig
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.postmottak.mottak.config.SchemaRegistryConfig
+import no.nav.aap.postmottak.mottak.config.SslConfig
+import no.nav.aap.postmottak.mottak.config.StreamsConfig
+import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
+import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.streams.TestInputTopic
+import org.apache.kafka.streams.TopologyTestDriver
 import org.junit.jupiter.api.Test
-import javax.sql.DataSource
 
 
 class MottakListenerTest {
@@ -27,46 +26,36 @@ class MottakListenerTest {
     @Test
     fun `veridiser mottagelse av joark event og oppretting av behandling og jobb`() {
         val config = config()
-        val kafka = setUpStreamsMock(config)
-        val topics = Topics(config)
+        setUpStreamsMock(config) {
+            val hendelseRecord = lagHendelseRecord()
 
-        val hendelseRecord = lagHendelseRecord()
-
-        val behandling = Behandling(
-            BehandlingId(1),
-            JournalpostId(hendelseRecord.journalpostId)
-        )
-        every { behandlingRepository.opprettBehandling(any()) } returns behandling
-
-        val journalføringstopic = kafka.testTopic(topics.journalfoering)
-        journalføringstopic.produce("1") {
-            hendelseRecord
-        }
-
-        verify(exactly = 1) {
-            behandlingRepository.opprettBehandling(
+            val behandling = Behandling(
+                BehandlingId(1),
                 JournalpostId(hendelseRecord.journalpostId)
             )
+            every { behandlingRepository.opprettBehandling(any()) } returns behandling
+
+            pipeInput("yolo", hendelseRecord)
+
+            Thread.sleep(100)
+
+            verify(exactly = 1) {
+                behandlingRepository.opprettBehandling(
+                    JournalpostId(hendelseRecord.journalpostId)
+                )
+            }
+            verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
         }
-        verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
+
+
     }
 
-    private fun setUpStreamsMock(config: StreamsConfig): StreamsMock {
-        val kafka = StreamsMock()
-        val registry = SimpleMeterRegistry()
-        val topology = MottakListener(
-            config,
-            mockk<DataSource>(relaxed = true),
-            {dataSource, fn -> dataSource.transaction { fn(behandlingRepository, flytJobbRepository) }}
-        )
-
-        kafka.connect(
-            topology = topology(),
-            config = config,
-            registry = registry,
-        )
-
-        return kafka
+    private fun setUpStreamsMock(config: StreamsConfig, block: TestInputTopic<String, JournalfoeringHendelseRecord>.() -> Unit) {
+        val mottakListener = MottakListener(config, mockk(relaxed = true), {_, fn -> fn(behandlingRepository, flytJobbRepository)})
+        val topologyTestDriver = TopologyTestDriver(mottakListener.topology, config.streamsProperties())
+        topologyTestDriver.createInputTopic(JOARK_TOPIC, Serdes.String().serializer(), mottakListener.avroserde.serializer())
+            .apply(block)
+        topologyTestDriver.close()
     }
 
     private fun lagHendelseRecord(

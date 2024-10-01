@@ -22,42 +22,44 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import libs.kafka.KafkaStreams
-import libs.kafka.SchemaRegistryConfig
-import libs.kafka.Streams
-import libs.kafka.StreamsConfig
+import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbmigrering.Migrering
+import no.nav.aap.komponenter.httpklient.auth.Bruker
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.api.motorApi
+import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.postmottak.behandling.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.flate.avklarTemaVurderingApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.flate.finnSakApi
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.flate.struktureringApi
 import no.nav.aap.postmottak.flyt.flate.DefinisjonDTO
 import no.nav.aap.postmottak.flyt.flate.behandlingApi
 import no.nav.aap.postmottak.flyt.flate.flytApi
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.mottak.MottakListener
+import no.nav.aap.postmottak.mottak.MottakStream
+import no.nav.aap.postmottak.mottak.NoopStream
+import no.nav.aap.postmottak.mottak.Stream
+import no.nav.aap.postmottak.mottak.config.SchemaRegistryConfig
+import no.nav.aap.postmottak.mottak.config.StreamsConfig
 import no.nav.aap.postmottak.server.authenticate.AZURE
 import no.nav.aap.postmottak.server.authenticate.authentication
 import no.nav.aap.postmottak.server.exception.FlytOperasjonException
 import no.nav.aap.postmottak.server.prosessering.BehandlingsflytLogInfoProvider
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.test.testApi
-import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.httpklient.auth.Bruker
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
-import no.nav.aap.motor.Motor
-import no.nav.aap.motor.api.motorApi
-import no.nav.aap.motor.retry.RetryService
-import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.dbmigrering.Migrering
-import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.miljo.MiljøKode
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -78,8 +80,7 @@ fun main() {
 }
 
 internal fun Application.server(
-    dbConfig: DbConfig,
-    kafka: Streams = KafkaStreams()
+    dbConfig: DbConfig
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     DefaultJsonMapper.objectMapper()
@@ -132,16 +133,7 @@ internal fun Application.server(
     Migrering.migrate(dataSource)
     val motor = module(dataSource)
 
-    if (Miljø.er() != MiljøKode.LOKALT) {
-        val config = StreamsConfig(schemaRegistry = SchemaRegistryConfig())
-        val topology = MottakListener(config, dataSource)
-
-        kafka.connect(
-            topology = topology(),
-            config = config,
-            registry = prometheus,
-        )
-    }
+    val mottakStream = mottakStream(dataSource, prometheus)
 
     routing {
         authenticate(AZURE) {
@@ -159,9 +151,20 @@ internal fun Application.server(
                 testApi(dataSource)
             }
         }
-        actuator(prometheus, motor)
+        actuator(prometheus, motor, mottakStream)
     }
 
+}
+
+fun Application.mottakStream(dataSource: DataSource, registry: MeterRegistry): Stream {
+    if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
+    val config = StreamsConfig()
+    val stream = MottakStream(MottakListener(config, dataSource).topology, config, registry)
+
+    environment.monitor.subscribe(ApplicationStopped) {
+        stream.close()
+    }
+    return stream
 }
 
 fun Application.module(dataSource: DataSource): Motor {
@@ -204,19 +207,19 @@ fun NormalOpenAPIRoute.configApi() {
     }
 }
 
-private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) {
+private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor, stream: Stream) {
     route("/actuator") {
         get("/metrics") {
             call.respond(prometheus.scrape())
         }
 
         get("/live") {
-            val status = HttpStatusCode.OK
-            call.respond(status, "Oppe!")
+            if (stream.live()) call.respond(HttpStatusCode.OK, "Oppe!")
+            else call.respond(HttpStatusCode.ServiceUnavailable)
         }
 
         get("/ready") {
-            if (motor.kjører()) {
+            if (motor.kjører() && stream.ready()) {
                 val status = HttpStatusCode.OK
                 call.respond(status, "Oppe!")
             } else {
