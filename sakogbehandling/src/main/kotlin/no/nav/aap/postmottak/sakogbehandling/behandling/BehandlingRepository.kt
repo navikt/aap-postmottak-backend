@@ -5,7 +5,7 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 interface BehandlingRepository {
 
-    fun opprettBehandling(journalpostId: JournalpostId): Behandling
+    fun opprettBehandling(journalpostId: JournalpostId): BehandlingId
 
     fun hentMedLås(behandlingId: BehandlingId, versjon: Long? = null): Behandling
 

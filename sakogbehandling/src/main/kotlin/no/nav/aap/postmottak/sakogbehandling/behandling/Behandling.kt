@@ -14,31 +14,18 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import java.time.LocalDateTime
 
 
-class Vurderinger(
-    val avklarTemaVurdering: TemaVurdeirng? = null,
-    val kategorivurdering: KategoriVurdering? = null,
-    val struktureringsvurdering: Struktureringsvurdering? = null,
-    val saksvurdering: Saksvurdering?  = null
-)
 
 class Behandling(
     val id: BehandlingId,
     val journalpostId: JournalpostId,
     private var status: Status = Status.OPPRETTET,
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
-    val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
-    val versjon: Long = 1,
-    val vurderinger: Vurderinger = Vurderinger()
+    val opprettetTidspunkt: LocalDateTime,
+    val versjon: Long = 0,
 ) : Comparable<Behandling> {
 
     val typeBehandling = TypeBehandling.DokumentHåndtering
     val referanse: JournalpostId = journalpostId
-
-
-    fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
-    fun harTemaBlittAvklart() = vurderinger.avklarTemaVurdering != null
-    fun harBlittKategorisert() = vurderinger.kategorivurdering != null
-    fun harGjortSaksvurdering() = vurderinger.saksvurdering != null
 
     fun flytKontekst(): FlytKontekst {
         return FlytKontekst(id, typeBehandling)

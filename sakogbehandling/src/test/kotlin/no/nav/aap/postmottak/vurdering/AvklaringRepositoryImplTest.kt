@@ -2,10 +2,11 @@ package no.nav.aap.postmottak.vurdering
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
@@ -27,27 +28,25 @@ class AvklaringRepositoryImplTest {
     @Test
     fun `når kategoriseringvurdering blir lagret forventer jeg å finne den på behandlingen`() {
         inContext {
-
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111)).id
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
 
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 
-            val behandlingMedKategorisering = behandlingRepository.hentMedLås(behandlingId, null)
+            val behandlingMedKategorisering = dokumentbehandlingRepository.hentMedLås(behandlingId)
 
             assertThat(behandlingMedKategorisering.harBlittKategorisert()).isTrue()
             assertThat(behandlingMedKategorisering.vurderinger.kategorivurdering?.avklaring).isEqualTo(Brevkode.SØKNAD)
-
         }
     }
 
     @Test
     fun `når to kategoriseringvurderinger blir lagret forventer jeg å finne den siste på behandlingen`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)).id }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD) }
         Thread.sleep(100)
         inContext { avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.PLIKTKORT) }
         inContext {
-            val behandlingMedTemavurdering = behandlingRepository.hentMedLås(behandlingId, null)
+            val behandlingMedTemavurdering = dokumentbehandlingRepository.hentMedLås(behandlingId)
 
             assertThat(behandlingMedTemavurdering.vurderinger.kategorivurdering?.avklaring).isEqualTo(Brevkode.PLIKTKORT)
         }
@@ -56,10 +55,10 @@ class AvklaringRepositoryImplTest {
     @Test
     fun `lagrer saksnummer på behandling`() {
         val saksnummer = "234234"
-        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreSakVurdering(behandling.id, Saksnummer(saksnummer)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksnummer(saksnummer)) }
         inContext{
-            val actual = behandlingRepository.hentMedLås(behandling.id, null)
+            val actual = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
             assertThat(actual.vurderinger.saksvurdering?.saksnummer).isEqualTo(saksnummer)
         }
 
@@ -69,12 +68,12 @@ class AvklaringRepositoryImplTest {
     fun `når struktureringsvurdering blir lagret forventer jeg å finne den på behandlingen`() {
         inContext {
 
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111)).id
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
 
             val json = """{"Test: Dokument"}"""
             avklaringRepository.lagreStrukturertDokument(behandlingId, json)
 
-            val strukturertBehandling = behandlingRepository.hentMedLås(behandlingId, null)
+            val strukturertBehandling = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(strukturertBehandling.harBlittStrukturert()).isTrue()
             assertThat(strukturertBehandling.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
@@ -86,12 +85,12 @@ class AvklaringRepositoryImplTest {
     fun `når to struktureringsvurderinger blir lagret forventer jeg å finne den siste på behandlingen`() {
         val json = """{"Test: Dokument"}"""
 
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)).id }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreStrukturertDokument(behandlingId, """{"Test: Plakat"}""") }
         Thread.sleep(100)
         inContext { avklaringRepository.lagreStrukturertDokument(behandlingId, json) }
         inContext {
-            val behandlingMedTemavurdering = behandlingRepository.hentMedLås(behandlingId, null)
+            val behandlingMedTemavurdering = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandlingMedTemavurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
         }
@@ -100,11 +99,11 @@ class AvklaringRepositoryImplTest {
     @Test
     fun `når teamavklaring blir lagret forventer jeg å finne den på behandlingen`() {
         inContext {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111)).id
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
 
             avklaringRepository.lagreTeamAvklaring(behandlingId, false)
 
-            val behandlingMedTemaavklaring = behandlingRepository.hentMedLås(behandlingId, null)
+            val behandlingMedTemaavklaring = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandlingMedTemaavklaring.harTemaBlittAvklart()).isTrue()
             assertThat(behandlingMedTemaavklaring.vurderinger.avklarTemaVurdering?.avklaring).isFalse()
@@ -114,12 +113,12 @@ class AvklaringRepositoryImplTest {
 
     @Test
     fun `når to temaavklaringer blir lagret forventer jeg å finne den siste på behandlingen`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)).id }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, false) }
         Thread.sleep(100)
         inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, true) }
         inContext {
-            val behandlingMedTemavurdering = behandlingRepository.hentMedLås(behandlingId, null)
+            val behandlingMedTemavurdering = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandlingMedTemavurdering.vurderinger.avklarTemaVurdering?.avklaring).isTrue()
         }
@@ -127,18 +126,18 @@ class AvklaringRepositoryImplTest {
 
     @Test
     fun `behandlingsversjon blir bumpet når struktureringvurdering blir gjort`() {
-        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext{ avklaringRepository.lagreStrukturertDokument(behandling.id, """{"YOLO": true}""") }
-        val versjon = inContext { behandlingRepository.hentMedLås(behandling.id, null).versjon }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext{ avklaringRepository.lagreStrukturertDokument(behandlingId, """{"YOLO": true}""") }
+        val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
 
     @Test
     fun `behandlingsversjon blir bumpet når kategorivurdering blir gjort`() {
-        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD) }
-        val versjon = inContext { behandlingRepository.hentMedLås(behandling.id, null).versjon }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD) }
+        val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
@@ -146,28 +145,28 @@ class AvklaringRepositoryImplTest {
 
     @Test
     fun `behandlingsversjon blir bumpet når teamvurdering blir gjort`() {
-        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreTeamAvklaring(behandling.id, false) }
-        val versjon = inContext { behandlingRepository.hentMedLås(behandling.id, null).versjon }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, false) }
+        val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
 
     @Test
     fun `behandlingsversjon blir bumpet når saksvurdering blir utført`() {
-        val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreSakVurdering(behandling.id, Saksnummer("wdfgsdfgbs")) }
-        val versjon = inContext { behandlingRepository.hentMedLås(behandling.id, null).versjon }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksnummer("wdfgsdfgbs")) }
+        val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
 
     @Test
     fun `forventer at vurderingstabeller blir låst når behandlingen er låst`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)).id }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         thread {
             inContext {
-                behandlingRepository.hentMedLås(BehandlingId(1), null)
+                dokumentbehandlingRepository.hentMedLås(BehandlingId(1), null)
                 Thread.sleep(500)
                 avklaringRepository.lagreTeamAvklaring(behandlingId, false)
             }
@@ -180,17 +179,21 @@ class AvklaringRepositoryImplTest {
         }.join()
 
         inContext {
-            val temavurdering = behandlingRepository.hentMedLås(behandlingId, null).vurderinger.avklarTemaVurdering?.avklaring
+            val temavurdering = dokumentbehandlingRepository.hentMedLås(behandlingId, null).vurderinger.avklarTemaVurdering?.avklaring
             assertThat(temavurdering).isNotNull().isEqualTo(true)
         }
 
     }
 
-    private class Context(val behandlingRepository: BehandlingRepository, val avklaringRepository: AvklaringRepository)
+    private class Context(
+        val dokumentbehandlingRepository: DokumentbehandlingRepository,
+        val avklaringRepository: AvklaringRepository,
+        val behandlingRepository: BehandlingRepository
+    )
 
     private fun <T>inContext(block: Context.() -> T): T {
         return InitTestDatabase.dataSource.transaction {
-            val context = Context(BehandlingRepositoryImpl(it), AvklaringRepositoryImpl(it))
+            val context = Context(DokumentbehandlingRepository(it), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
             context.let(block)
         }
     }

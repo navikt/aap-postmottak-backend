@@ -34,7 +34,7 @@ class SaksnummerRepositoryTest {
     @Test
     fun hentSaksnummre() {
         withContext(dataSource) {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1)).id
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
             saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo)
 
             val actual = saksnummerRepository.hentSaksnummre(behandlingId)
@@ -45,7 +45,7 @@ class SaksnummerRepositoryTest {
 
     @Test
     fun `hent siste saksnummre for behandling`() {
-        val behandlingId = withContext(dataSource) { behandlingRepository.opprettBehandling(JournalpostId(1)).id }
+        val behandlingId = withContext(dataSource) { behandlingRepository.opprettBehandling(JournalpostId(1)) }
 
         withContext(dataSource) { saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo) }
 
@@ -60,7 +60,7 @@ class SaksnummerRepositoryTest {
     @Test
     fun lagreSaksnummer() {
         withContext(dataSource) {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1)).id
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
             saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo)
 

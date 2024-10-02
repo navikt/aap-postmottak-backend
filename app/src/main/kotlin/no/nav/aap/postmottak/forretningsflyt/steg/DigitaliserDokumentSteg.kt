@@ -11,15 +11,16 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
 class DigitaliserDokumentSteg(
-    private val behandlingRepository: BehandlingRepository,
+    private val dokumentbehandlingRepository: DokumentbehandlingRepository,
     private val journalpostRepository: JournalpostRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return DigitaliserDokumentSteg(BehandlingRepositoryImpl(connection), JournalpostRepositoryImpl(connection))
+            return DigitaliserDokumentSteg(DokumentbehandlingRepository(connection), JournalpostRepositoryImpl(connection))
         }
 
         override fun type(): StegType {
@@ -30,7 +31,7 @@ class DigitaliserDokumentSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
 
-        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
+        val behandling = dokumentbehandlingRepository.hentMedLås(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         require(journalpost is Journalpost.MedIdent)

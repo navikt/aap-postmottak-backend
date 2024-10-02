@@ -11,13 +11,14 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.token
+import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 
 fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/avklarTemaVurdering") {
         get<JournalpostId, AvklarTemaGrunnlagDto> { req ->
             val token = token()
             val grunnlag = dataSource.transaction(readOnly = true) {
-                val behandling = BehandlingRepositoryImpl(it).hent(req, null)
+                val behandling = DokumentbehandlingRepository(it).hent(req, null)
                 val journalpost = SafGraphqlClient.withOboRestClient().hentJournalpost(behandling.journalpostId, token)
                 val arkivDokumenter = journalpost.finnArkivVarianter()
                 AvklarTemaGrunnlagDto(

@@ -4,20 +4,15 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Params
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.postmottak.kontrakt.behandling.Status
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDateTime
 
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    private val vurderingRepository = AvklaringRepositoryImpl(
-            connection
-        )
-
-    override fun opprettBehandling(journalpostId: JournalpostId): Behandling {
+    override fun opprettBehandling(journalpostId: JournalpostId): BehandlingId {
 
         val query = """
             INSERT INTO BEHANDLING (status, type, journalpost_id)
@@ -31,14 +26,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             }
         }
 
-        val behandling = Behandling(
-            id = BehandlingId(behandlingId),
-            journalpostId = journalpostId,
-            versjon = 0,
-            vurderinger = Vurderinger()
-        )
-
-        return behandling
+        return BehandlingId(behandlingId)
     }
 
     private fun mapBehandling(row: Row): Behandling {
@@ -48,8 +36,8 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
-            versjon = row.getLong("versjon"),
-            vurderinger = hentVurderingerForBehandling(behandlingId)
+            opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
+            versjon = row.getLong("versjon")
         )
     }
 
@@ -177,12 +165,5 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             }
         }
     }
-
-    private fun hentVurderingerForBehandling(behandlingId: BehandlingId) = Vurderinger(
-        saksvurdering = vurderingRepository.hentSakAvklaring(behandlingId),
-        avklarTemaVurdering = vurderingRepository.hentTemaAvklaring(behandlingId),
-        kategorivurdering = vurderingRepository.hentKategoriAvklaring(behandlingId),
-        struktureringsvurdering = vurderingRepository.hentStruktureringsavklaring(behandlingId)
-    )
 
 }

@@ -12,17 +12,19 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.postmottak.sakogbehandling.behandling.Dokumentbehandling
+import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
 class SettFagsakSteg(
-    private val behandlingRepository: BehandlingRepository,
+    private val dokumentbehandling: DokumentbehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
     private val joarkKlient: Joark
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return SettFagsakSteg(
-                BehandlingRepositoryImpl(connection),
+                DokumentbehandlingRepository(connection),
                 JournalpostRepositoryImpl(connection),
                 JoarkClient()
             )
@@ -34,7 +36,7 @@ class SettFagsakSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
+        val behandling = dokumentbehandling.hentMedLås(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         require(journalpost is Journalpost.MedIdent)

@@ -6,12 +6,13 @@ import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.sakogbehandling.behandling.Dokumentbehandling
+import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -20,13 +21,13 @@ import org.junit.jupiter.api.Test
 
 class AvklarTemaStegTest {
 
-    val behandlingRepository : BehandlingRepository = mockk()
+    val dokumentbehandlingRepository : DokumentbehandlingRepository = mockk()
     val journalpostRepo : JournalpostRepositoryImpl = mockk()
 
-    val avklarTemaSteg = AvklarTemaSteg(behandlingRepository, journalpostRepo)
+    val avklarTemaSteg = AvklarTemaSteg(dokumentbehandlingRepository, journalpostRepo)
 
 
-    val behandling: Behandling = mockk()
+    val behandling: Dokumentbehandling = mockk()
     val journalpost: Journalpost = mockk(relaxed = true)
     val behandlingId = BehandlingId(10)
     val journalpostId = JournalpostId(11)
@@ -35,7 +36,7 @@ class AvklarTemaStegTest {
 
     @BeforeEach
     fun before() {
-        every { behandlingRepository.hentMedLås(behandlingId, null) } returns behandling
+        every { dokumentbehandlingRepository.hentMedLås(behandlingId, null) } returns behandling
         every { behandling.journalpostId } returns journalpostId
         every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
     }

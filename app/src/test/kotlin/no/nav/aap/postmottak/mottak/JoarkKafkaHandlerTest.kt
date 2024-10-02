@@ -8,7 +8,6 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
@@ -29,11 +28,7 @@ class JoarkKafkaHandlerTest {
         setUpStreamsMock(config) {
             val hendelseRecord = lagHendelseRecord()
 
-            val behandling = Behandling(
-                BehandlingId(1),
-                JournalpostId(hendelseRecord.journalpostId)
-            )
-            every { behandlingRepository.opprettBehandling(any()) } returns behandling
+            every { behandlingRepository.opprettBehandling(any()) } returns mockk<BehandlingId>(relaxed = true)
 
             pipeInput("yolo", hendelseRecord)
 

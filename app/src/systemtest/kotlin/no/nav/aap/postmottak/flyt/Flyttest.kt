@@ -99,7 +99,7 @@ class Flyttest: WithFakes {
     private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection): BehandlingId {
         val behandlingRepository = BehandlingRepositoryImpl(connection)
         val avklaringRepository = AvklaringRepositoryImpl(connection)
-        val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1)).id
+        val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
         avklaringRepository.lagreTeamAvklaring(behandlingId, true)
         avklaringRepository.lagreSakVurdering(behandlingId, Saksnummer("23452345"))

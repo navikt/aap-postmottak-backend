@@ -22,7 +22,7 @@ class BehandlingRepositoryTestDouble: BehandlingRepository {
 
     lateinit var behandlingStub: Behandling
 
-    override fun opprettBehandling(journalpostId: JournalpostId): Behandling {
+    override fun opprettBehandling(journalpostId: JournalpostId): BehandlingId {
         TODO("Not yet implemented")
     }
 

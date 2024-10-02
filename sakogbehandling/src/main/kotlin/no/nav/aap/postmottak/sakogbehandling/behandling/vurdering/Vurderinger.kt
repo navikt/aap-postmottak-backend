@@ -13,3 +13,10 @@ data class Saksvurdering(
 )
 
 data class Struktureringsvurdering(val vurdering: String)
+
+class Vurderinger(
+    val avklarTemaVurdering: TemaVurdeirng? = null,
+    val kategorivurdering: KategoriVurdering? = null,
+    val struktureringsvurdering: Struktureringsvurdering? = null,
+    val saksvurdering: Saksvurdering?  = null
+)

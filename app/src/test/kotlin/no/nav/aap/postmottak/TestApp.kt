@@ -78,11 +78,11 @@ private fun opprettBehanldingFinnSak(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val vurderingRepository = AvklaringRepositoryImpl(connection)
 
-    val behandling = behandlingRepository.opprettBehandling(JournalpostId(2))
-    vurderingRepository.lagreTeamAvklaring(behandling.id, true)
+    val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(2))
+    vurderingRepository.lagreTeamAvklaring(behandlingId, true)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(null, behandling.id.toLong()).medCallId()
+            .forBehandling(null, behandlingId.toLong()).medCallId()
     )
 
 }
@@ -92,12 +92,12 @@ private fun opprettBehanldingKategoriser(connection: DBConnection) {
     val vurderingRepository =
         AvklaringRepositoryImpl(connection)
 
-    val behandling = behandlingRepository.opprettBehandling(JournalpostId(3))
-    vurderingRepository.lagreTeamAvklaring(behandling.id, true)
-    vurderingRepository.lagreSakVurdering(behandling.id, Saksnummer("1010"))
+    val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(3))
+    vurderingRepository.lagreTeamAvklaring(behandlingId, true)
+    vurderingRepository.lagreSakVurdering(behandlingId, Saksnummer("1010"))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(null, behandling.id.toLong()).medCallId()
+            .forBehandling(null, behandlingId.toLong()).medCallId()
     )
 
 }
@@ -106,14 +106,14 @@ private fun opprettBehanldingDigitaliser(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val vurderingRepository = AvklaringRepositoryImpl(connection)
 
-    val behandling =
+    val behandlingId =
         behandlingRepository.opprettBehandling(JournalpostId(4))
-    vurderingRepository.lagreTeamAvklaring(behandling.id, true)
-    vurderingRepository.lagreSakVurdering(behandling.id, Saksnummer("1010"))
-    vurderingRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD)
+    vurderingRepository.lagreTeamAvklaring(behandlingId, true)
+    vurderingRepository.lagreSakVurdering(behandlingId, Saksnummer("1010"))
+    vurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(null, behandling.id.toLong()).medCallId()
+            .forBehandling(null, behandlingId.toLong()).medCallId()
     )
 
 }

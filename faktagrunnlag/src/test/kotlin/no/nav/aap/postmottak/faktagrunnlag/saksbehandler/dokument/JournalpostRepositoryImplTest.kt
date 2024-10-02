@@ -23,13 +23,13 @@ class JournalpostRepositoryImplTest {
             val behandlingRepository = BehandlingRepositoryImpl(connection)
 
             val journalpost = genererJournalpost()
-            val behandling = behandlingRepository.opprettBehandling(journalpost.journalpostId)
+            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId)
             val journalpostRepository = JournalpostRepositoryImpl(connection)
             
             // Act
-            journalpostRepository.lagre(journalpost, behandling.id)
+            journalpostRepository.lagre(journalpost, behandlingid)
 
-            val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandling.id)
+            val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandlingid)
 
             assertThat(hentetJournalpost).isEqualTo(journalpost)
             assertThat(hentetJournalpost?.dokumenter()?.size).isGreaterThan(0)

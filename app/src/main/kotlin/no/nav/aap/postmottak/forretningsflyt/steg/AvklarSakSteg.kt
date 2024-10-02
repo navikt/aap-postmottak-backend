@@ -12,7 +12,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
@@ -21,7 +21,7 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 
 
 class AvklarSakSteg(
-    private val behandlingRepository: BehandlingRepositoryImpl,
+    private val dokumentbehandlingRepository: DokumentbehandlingRepository,
     private val avklaringRepository: AvklaringRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
@@ -30,7 +30,7 @@ class AvklarSakSteg(
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return AvklarSakSteg(
-                BehandlingRepositoryImpl(connection),
+                DokumentbehandlingRepository(connection),
                 AvklaringRepositoryImpl(connection),
                 SaksnummerRepository(connection),
                 JournalpostRepositoryImpl(connection),
@@ -47,7 +47,7 @@ class AvklarSakSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val sakerPåBruker = saksnummerRepository.hentSaksnummre(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
+        val behandling = dokumentbehandlingRepository.hentMedLås(kontekst.behandlingId, null)
         requireNotNull(journalpost) { "Journalpost kan ikke være null" }
         check(journalpost is Journalpost.MedIdent)
 
