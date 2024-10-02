@@ -22,7 +22,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -32,8 +31,6 @@ import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
-import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
@@ -48,11 +45,8 @@ import no.nav.aap.postmottak.flyt.flate.DefinisjonDTO
 import no.nav.aap.postmottak.flyt.flate.behandlingApi
 import no.nav.aap.postmottak.flyt.flate.flytApi
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.mottak.JoarkKafkaHandler
-import no.nav.aap.postmottak.mottak.kafka.MottakStream
-import no.nav.aap.postmottak.mottak.kafka.NoopStream
 import no.nav.aap.postmottak.mottak.kafka.Stream
-import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
+import no.nav.aap.postmottak.mottak.mottakStream
 import no.nav.aap.postmottak.server.authenticate.AZURE
 import no.nav.aap.postmottak.server.authenticate.authentication
 import no.nav.aap.postmottak.server.exception.FlytOperasjonException
@@ -153,17 +147,6 @@ internal fun Application.server(
         actuator(prometheus, motor, mottakStream)
     }
 
-}
-
-fun Application.mottakStream(dataSource: DataSource, registry: MeterRegistry): Stream {
-    if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
-    val config = StreamsConfig()
-    val stream = MottakStream(JoarkKafkaHandler(config, dataSource).topology, config, registry)
-    stream.start()
-    environment.monitor.subscribe(ApplicationStopped) {
-        stream.close()
-    }
-    return stream
 }
 
 fun Application.module(dataSource: DataSource): Motor {

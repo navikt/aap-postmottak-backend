@@ -51,9 +51,12 @@ class JoarkKafkaHandlerTest {
     }
 
     private fun setUpStreamsMock(config: StreamsConfig, block: TestInputTopic<String, JournalfoeringHendelseRecord>.() -> Unit) {
-        val joarkKafkaHandler = JoarkKafkaHandler(config, mockk(relaxed = true), { _, fn -> fn(behandlingRepository, flytJobbRepository)})
+        val transactionProvider: TransactionProvider = mockk(relaxed = true)
+        every { transactionProvider.inTransaction(any()) } answers { TransactionContext(behandlingRepository, flytJobbRepository).let(firstArg()) }
+
+        val joarkKafkaHandler = JoarkKafkaHandler(config, mockk(), transactionProvider)
         val topologyTestDriver = TopologyTestDriver(joarkKafkaHandler.topology, config.streamsProperties())
-        topologyTestDriver.createInputTopic(JOARK_TOPIC, Serdes.String().serializer(), joarkKafkaHandler.avroserde.serializer())
+        topologyTestDriver.createInputTopic(JOARK_TOPIC, Serdes.String().serializer(), JournalfoeringHendelseAvro(config).avroserdes.serializer())
             .apply(block)
         topologyTestDriver.close()
     }
