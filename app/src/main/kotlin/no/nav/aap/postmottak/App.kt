@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak
 
+import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
@@ -8,23 +9,18 @@ import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
-import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.callid.*
-import io.ktor.server.plugins.callloging.*
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.behandlingsflyt.server.authenticate.AZURE
+import no.nav.aap.komponenter.commonKtorModule
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -47,8 +43,6 @@ import no.nav.aap.postmottak.flyt.flate.flytApi
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.mottakStream
-import no.nav.aap.postmottak.server.authenticate.AZURE
-import no.nav.aap.postmottak.server.authenticate.authentication
 import no.nav.aap.postmottak.server.exception.FlytOperasjonException
 import no.nav.aap.postmottak.server.prosessering.BehandlingsflytLogInfoProvider
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
@@ -56,7 +50,6 @@ import no.nav.aap.postmottak.test.testApi
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
 import javax.sql.DataSource
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
@@ -76,25 +69,12 @@ internal fun Application.server(
     dbConfig: DbConfig
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
     DefaultJsonMapper.objectMapper()
         .registerSubtypes(utledSubtypes())
 
-    install(MicrometerMetrics) {
-        registry = prometheus
-        meterBinders += LogbackMetrics()
-    }
-    generateOpenAPI()
-    install(ContentNegotiation) {
-        register(ContentType.Application.Json, JacksonConverter(objectMapper = DefaultJsonMapper.objectMapper(), true))
-    }
-    install(CallId) {
-        retrieveFromHeader(HttpHeaders.XCorrelationId)
-        generate { UUID.randomUUID().toString() }
-    }
-    install(CallLogging) {
-        callIdMdc("callId")
-        filter { call -> call.request.path().startsWith("/actuator").not() }
-    }
+    commonKtorModule(prometheus, azureConfig = AzureConfig(), InfoModel(title = "AAP - Postmottak"))
+
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             when (cause) {
@@ -119,8 +99,6 @@ internal fun Application.server(
         anyHost()
         allowHeader(HttpHeaders.ContentType)
     }
-
-    authentication(AzureConfig())
 
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)

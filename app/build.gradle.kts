@@ -3,7 +3,7 @@ import java.io.ByteArrayOutputStream
 
 val ktorVersion = "2.3.12"
 val aapLibVersion = "5.0.23"
-val komponenterVersjon = "0.0.77"
+val komponenterVersjon = "0.0.89"
 val kafkaVersion = "3.7.0"
 
 plugins {
@@ -52,16 +52,6 @@ fun getCheckedOutGitCommitHash(): String {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-auth:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-id:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-cors:$ktorVersion")
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
     implementation("no.nav:ktor-openapi-generator:1.0.31")
@@ -81,6 +71,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation(project(":faktagrunnlag"))
     implementation("com.zaxxer:HikariCP:6.0.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.17.3")
