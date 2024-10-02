@@ -29,7 +29,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
         route("/{referanse}/flyt") {
             get<JournalpostId, BehandlingFlytOgTilstandDto> { req ->
                 val dto = dataSource.transaction { connection ->
-                val behandling = BehandlingRepositoryImpl(connection).hent(req)
+                val behandling = BehandlingRepositoryImpl(connection).hentMedLås(req, null)
                 val flytJobbRepository = FlytJobbRepository(connection)
                 val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
                 val flyt = utledType(behandling.typeBehandling).flyt()

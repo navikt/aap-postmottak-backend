@@ -50,7 +50,7 @@ class FlytOrkestrator(
     }
 
     fun forberedBehandling(kontekst: FlytKontekst) {
-        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
         avklaringsbehovene.validateTilstand(behandling = behandling)
@@ -82,7 +82,7 @@ class FlytOrkestrator(
     }
 
     fun prosesserBehandling(kontekst: FlytKontekst) {
-        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
         avklaringsbehovene.validateTilstand(behandling = behandling)

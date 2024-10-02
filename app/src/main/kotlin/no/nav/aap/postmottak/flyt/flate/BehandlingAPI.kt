@@ -97,7 +97,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
 }
 
 private fun behandling(connection: DBConnection, req: JournalpostId): Behandling {
-    return BehandlingRepositoryImpl(connection).hent(req)
+    return BehandlingRepositoryImpl(connection).hent(req, null)
 }
 
 private fun avklaringsbehov(connection: DBConnection, behandlingId: BehandlingId): Avklaringsbehovene {

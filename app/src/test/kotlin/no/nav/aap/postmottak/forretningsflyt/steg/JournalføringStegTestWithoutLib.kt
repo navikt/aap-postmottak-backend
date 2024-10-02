@@ -26,11 +26,15 @@ class BehandlingRepositoryTestDouble: BehandlingRepository {
         TODO("Not yet implemented")
     }
 
-    override fun hent(behandlingId: BehandlingId): Behandling {
+    override fun hentMedLås(behandlingId: BehandlingId, versjon: Long?): Behandling {
         return behandlingStub
     }
 
-    override fun hent(journalpostId: JournalpostId): Behandling {
+    override fun hentMedLås(journalpostId: JournalpostId, versjon: Long?): Behandling {
+        TODO("Not yet implemented")
+    }
+
+    override fun hent(journalpostId: JournalpostId, versjon: Long?): Behandling {
         TODO("Not yet implemented")
     }
 

@@ -35,7 +35,7 @@ class AvklarTemaStegTest {
 
     @BeforeEach
     fun before() {
-        every { behandlingRepository.hent(behandlingId) } returns behandling
+        every { behandlingRepository.hentMedLås(behandlingId, null) } returns behandling
         every { behandling.journalpostId } returns journalpostId
         every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
     }

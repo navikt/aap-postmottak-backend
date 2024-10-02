@@ -26,7 +26,7 @@ class AvklaringsbehovOrkestrator(
     private val log = LoggerFactory.getLogger(AvklaringsbehovOrkestrator::class.java)
 
     fun taAvVentHvisPåVentOgFortsettProsessering(behandlingId: BehandlingId) {
-        val behandling = behandlingRepository.hent(behandlingId)
+        val behandling = behandlingRepository.hentMedLås(behandlingId, null)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
@@ -42,7 +42,7 @@ class AvklaringsbehovOrkestrator(
         bruker: Bruker
     ) {
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
-        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
         løsAvklaringsbehov(
             kontekst, avklaringsbehovene, avklaringsbehov, bruker, behandling
         )
@@ -65,7 +65,7 @@ class AvklaringsbehovOrkestrator(
     private fun markerAvklaringsbehovISammeGruppeForLøst(
         kontekst: FlytKontekst, ingenEndringIGruppe: Boolean, avklaringsbehovene: Avklaringsbehovene, bruker: Bruker
     ) {
-        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
 
         if (ingenEndringIGruppe && avklaringsbehovene.harVærtSendtTilbakeFraBeslutterTidligere()) {
             val typeBehandling = behandling.typeBehandling

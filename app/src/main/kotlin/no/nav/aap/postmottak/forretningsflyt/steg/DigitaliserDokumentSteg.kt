@@ -30,7 +30,7 @@ class DigitaliserDokumentSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
 
-        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         require(journalpost is Journalpost.MedIdent)

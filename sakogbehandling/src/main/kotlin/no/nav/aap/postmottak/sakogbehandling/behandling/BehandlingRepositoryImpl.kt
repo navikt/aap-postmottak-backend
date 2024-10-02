@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.Params
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -8,6 +9,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepos
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import java.time.LocalDateTime
+
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
@@ -113,25 +115,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             }
         }
     }
-
-    override fun hent(behandlingId: BehandlingId): Behandling {
-
-        val query = """
-            SELECT * FROM BEHANDLING b
-            WHERE b.id = ?
-            FOR UPDATE OF B
-            """.trimIndent()
-
-        return connection.queryFirst(query) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-            }
-            setRowMapper {
-                mapBehandling(it)
-            }
-        }
-    }
-
+    
     fun hentBehandlingType(behandlingId: BehandlingId): TypeBehandling {
         val query = """
             SELECT type FROM BEHANDLING WHERE id = ?
@@ -147,17 +131,47 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    override fun hent(journalpostId: JournalpostId): Behandling {
+
+
+    override fun hentMedLås(behandlingId: BehandlingId, versjon: Long?): Behandling {
         val query = """
-            SELECT * FROM BEHANDLING b
-            WHERE journalpost_id = ?
+            WITH params (pId, pVersjon) as (values(?, ?))
+            SELECT * FROM BEHANDLING b, params
+            WHERE b.id = pId
+            AND (b.versjon = pVersjon OR pVersjon is null)
             FOR UPDATE OF b
             """.trimIndent()
 
+        return utførHentQuery(query) { setLong(1, behandlingId.toLong()); setLong(2, versjon) }
+    }
+
+    override fun hentMedLås(journalpostId: JournalpostId, versjon: Long?): Behandling {
+        val query = """
+            WITH params (pId, pVersjon) as (values(?, ?))
+            SELECT * FROM BEHANDLING b, params
+            WHERE journalpost_id = pId
+            AND (b.versjon = pVersjon OR pVersjon is null)
+            FOR UPDATE OF b
+            """.trimIndent()
+
+        return utførHentQuery(query) { setLong(1, journalpostId.referanse); setLong(2, versjon) }
+
+    }
+
+    override fun hent(journalpostId: JournalpostId, versjon: Long?): Behandling {
+        val query = """
+            WITH params (pId, pVersjon) as (values(?, ?))
+            SELECT * FROM BEHANDLING b, params
+            WHERE journalpost_id = pId
+            AND (b.versjon = pVersjon OR pVersjon is null)
+            """.trimIndent()
+
+        return utførHentQuery(query) { setLong(1, journalpostId.referanse); setLong(2, versjon) }
+    }
+
+    private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {
         return connection.queryFirst(query) {
-            setParams {
-                setLong(1, journalpostId.referanse)
-            }
+            setParams(params)
             setRowMapper {
                 mapBehandling(it)
             }

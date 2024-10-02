@@ -32,7 +32,7 @@ class AvklaringRepositoryImplTest {
 
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 
-            val behandlingMedKategorisering = behandlingRepository.hent(behandlingId)
+            val behandlingMedKategorisering = behandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandlingMedKategorisering.harBlittKategorisert()).isTrue()
             assertThat(behandlingMedKategorisering.vurderinger.kategorivurdering?.avklaring).isEqualTo(Brevkode.SØKNAD)
@@ -47,7 +47,7 @@ class AvklaringRepositoryImplTest {
         Thread.sleep(100)
         inContext { avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.PLIKTKORT) }
         inContext {
-            val behandlingMedTemavurdering = behandlingRepository.hent(behandlingId)
+            val behandlingMedTemavurdering = behandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandlingMedTemavurdering.vurderinger.kategorivurdering?.avklaring).isEqualTo(Brevkode.PLIKTKORT)
         }
@@ -59,7 +59,7 @@ class AvklaringRepositoryImplTest {
         val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreSakVurdering(behandling.id, Saksnummer(saksnummer)) }
         inContext{
-            val actual = behandlingRepository.hent(behandling.id)
+            val actual = behandlingRepository.hentMedLås(behandling.id, null)
             assertThat(actual.vurderinger.saksvurdering?.saksnummer).isEqualTo(saksnummer)
         }
 
@@ -74,7 +74,7 @@ class AvklaringRepositoryImplTest {
             val json = """{"Test: Dokument"}"""
             avklaringRepository.lagreStrukturertDokument(behandlingId, json)
 
-            val strukturertBehandling = behandlingRepository.hent(behandlingId)
+            val strukturertBehandling = behandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(strukturertBehandling.harBlittStrukturert()).isTrue()
             assertThat(strukturertBehandling.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
@@ -91,7 +91,7 @@ class AvklaringRepositoryImplTest {
         Thread.sleep(100)
         inContext { avklaringRepository.lagreStrukturertDokument(behandlingId, json) }
         inContext {
-            val behandlingMedTemavurdering = behandlingRepository.hent(behandlingId)
+            val behandlingMedTemavurdering = behandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandlingMedTemavurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
         }
@@ -104,7 +104,7 @@ class AvklaringRepositoryImplTest {
 
             avklaringRepository.lagreTeamAvklaring(behandlingId, false)
 
-            val behandlingMedTemaavklaring = behandlingRepository.hent(behandlingId)
+            val behandlingMedTemaavklaring = behandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandlingMedTemaavklaring.harTemaBlittAvklart()).isTrue()
             assertThat(behandlingMedTemaavklaring.vurderinger.avklarTemaVurdering?.avklaring).isFalse()
@@ -119,7 +119,7 @@ class AvklaringRepositoryImplTest {
         Thread.sleep(100)
         inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, true) }
         inContext {
-            val behandlingMedTemavurdering = behandlingRepository.hent(behandlingId)
+            val behandlingMedTemavurdering = behandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandlingMedTemavurdering.vurderinger.avklarTemaVurdering?.avklaring).isTrue()
         }
@@ -129,7 +129,7 @@ class AvklaringRepositoryImplTest {
     fun `behandlingsversjon blir bumpet når struktureringvurdering blir gjort`() {
         val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext{ avklaringRepository.lagreStrukturertDokument(behandling.id, """{"YOLO": true}""") }
-        val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
+        val versjon = inContext { behandlingRepository.hentMedLås(behandling.id, null).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
@@ -138,7 +138,7 @@ class AvklaringRepositoryImplTest {
     fun `behandlingsversjon blir bumpet når kategorivurdering blir gjort`() {
         val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreKategoriseringVurdering(behandling.id, Brevkode.SØKNAD) }
-        val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
+        val versjon = inContext { behandlingRepository.hentMedLås(behandling.id, null).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
@@ -148,7 +148,7 @@ class AvklaringRepositoryImplTest {
     fun `behandlingsversjon blir bumpet når teamvurdering blir gjort`() {
         val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreTeamAvklaring(behandling.id, false) }
-        val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
+        val versjon = inContext { behandlingRepository.hentMedLås(behandling.id, null).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
@@ -157,7 +157,7 @@ class AvklaringRepositoryImplTest {
     fun `behandlingsversjon blir bumpet når saksvurdering blir utført`() {
         val behandling = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreSakVurdering(behandling.id, Saksnummer("wdfgsdfgbs")) }
-        val versjon = inContext { behandlingRepository.hent(behandling.id).versjon }
+        val versjon = inContext { behandlingRepository.hentMedLås(behandling.id, null).versjon }
 
         assertThat(versjon).isEqualTo(1)
     }
@@ -167,7 +167,7 @@ class AvklaringRepositoryImplTest {
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)).id }
         thread {
             inContext {
-                behandlingRepository.hent(BehandlingId(1))
+                behandlingRepository.hentMedLås(BehandlingId(1), null)
                 Thread.sleep(500)
                 avklaringRepository.lagreTeamAvklaring(behandlingId, false)
             }
@@ -180,7 +180,7 @@ class AvklaringRepositoryImplTest {
         }.join()
 
         inContext {
-            val temavurdering = behandlingRepository.hent(behandlingId).vurderinger.avklarTemaVurdering?.avklaring
+            val temavurdering = behandlingRepository.hentMedLås(behandlingId, null).vurderinger.avklarTemaVurdering?.avklaring
             assertThat(temavurdering).isNotNull().isEqualTo(true)
         }
 

@@ -66,7 +66,7 @@ class Flyttest: WithFakes {
 
         dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.hent(behandlingId)
+            val behandling = behandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
         }
@@ -90,7 +90,7 @@ class Flyttest: WithFakes {
 
         dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.hent(behandlingId)
+            val behandling = behandlingRepository.hentMedLås(behandlingId, null)
 
             assertThat(behandling.status()).isNotEqualTo(Status.AVSLUTTET)
         }

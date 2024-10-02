@@ -94,7 +94,7 @@ class AvklarSakStegTest {
         every { behandling.harGjortSaksvurdering() } returns true
         every { behandling.vurderinger.saksvurdering?.opprettNySak } returns false
 
-        every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
+        every { behandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
@@ -115,7 +115,7 @@ class AvklarSakStegTest {
         every { behandling.harGjortSaksvurdering() } returns true
         every { behandling.vurderinger.saksvurdering?.opprettNySak } returns true
 
-        every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
+        every { behandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
