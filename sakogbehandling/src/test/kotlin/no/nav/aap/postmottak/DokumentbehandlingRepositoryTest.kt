@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingReposi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
@@ -139,6 +140,7 @@ class DokumentbehandlingRepositoryTest {
         assertThat(versjon).isEqualTo(1)
     }
 
+
     @Test
     fun `når en behandling blir endret, vil ikke samme behandling med tidligere verjon bli endret`() {
         val behandling = inContext {
@@ -164,6 +166,36 @@ class DokumentbehandlingRepositoryTest {
         t.setUncaughtExceptionHandler { _, throwable -> exception = throwable }
         t.join()
         assertThat(exception).isInstanceOf(NoSuchElementException::class.java)
+    }
+
+    @Test
+    fun `når en behandling blir endret kan endringer bli gjort i samme transaksjon`() {
+        val behandling = inContext {
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
+            dokumentbehandlingRepository.hentMedLås(behandlingId)
+        }
+        assertDoesNotThrow {
+            inContext {
+                val b1 = dokumentbehandlingRepository.hentMedLås(behandling.journalpostId, behandling.versjon)
+                avklaringRepository.lagreTeamAvklaring(b1.id, true)
+
+                val b2 = dokumentbehandlingRepository.hentMedLås(behandling.journalpostId, behandling.versjon)
+                avklaringRepository.lagreKategoriseringVurdering(b2.id, Brevkode.SØKNAD)
+            }
+        }
+    }
+
+    @Test
+    fun `behandlingsversjon blir kun inkrementert en gang per transaksjon`() {
+        val behandlingId = inContext {
+            behandlingRepository.opprettBehandling(JournalpostId(1))
+        }
+        inContext {
+            avklaringRepository.lagreTeamAvklaring(behandlingId, true)
+            avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+        }
+        val behandlingVersjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId).versjon }
+        assertThat(behandlingVersjon).isEqualTo(1)
     }
 
     private class Context(

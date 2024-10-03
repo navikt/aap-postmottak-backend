@@ -1,15 +1,13 @@
 package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.flyt.FlytOrkestrator
-import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.flyt.FlytOrkestrator
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class ProsesserBehandlingJobbUtfører(
-    private val låsRepository: TaSkriveLåsRepository,
     private val kontroller: FlytOrkestrator
 ) : JobbUtfører {
 
@@ -24,7 +22,7 @@ class ProsesserBehandlingJobbUtfører(
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return ProsesserBehandlingJobbUtfører(TaSkriveLåsRepository(connection), FlytOrkestrator(connection), )
+            return ProsesserBehandlingJobbUtfører(FlytOrkestrator(connection), )
         }
 
         override fun type(): String {
