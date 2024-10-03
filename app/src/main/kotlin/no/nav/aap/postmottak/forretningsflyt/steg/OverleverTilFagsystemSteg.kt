@@ -10,9 +10,11 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import org.slf4j.LoggerFactory
 
@@ -45,11 +47,23 @@ class OverleverTilFagsystemSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost != null)
 
-        // TODO :poop: bør kanskje gjøres på journalpost
-        val dokumentJson = if (behandling.harBlittStrukturert()) behandling.vurderinger.struktureringsvurdering!!.vurdering.toByteArray()
-            else hentDokumentFraSaf(journalpost)
+        if (!journalpost.erSøknad() && behandling.vurderinger.kategorivurdering?.avklaring != Brevkode.SØKNAD) {
+            log.info("Dokument er ikke en søknad, og skal ikke sendes til fagsystem")
+            return StegResultat()
+        }
 
-        behandlingsflytGateway.sendSøknad(behandling.vurderinger.saksvurdering?.saksnummer!!, journalpost.journalpostId ,dokumentJson)
+        // TODO :poop: bør kanskje gjøres på journalpost
+        val dokumentJson =
+            if (behandling.harBlittStrukturert())
+                behandling.vurderinger.struktureringsvurdering!!.vurdering.parseDigitalSøknad().berik()
+            else
+                hentDokumentFraSaf(journalpost).parseDigitalSøknad().berik()
+
+        behandlingsflytGateway.sendSøknad(
+            behandling.vurderinger.saksvurdering?.saksnummer!!,
+            journalpost.journalpostId,
+            dokumentJson
+        )
 
         return StegResultat()
     }
@@ -57,6 +71,9 @@ class OverleverTilFagsystemSteg(
     private fun hentDokumentFraSaf(journalpost: Journalpost): ByteArray {
         val strukturertDokument = journalpost.finnOriginal()
         requireNotNull(strukturertDokument) { "Finner ikke strukturert dokument" }
-        return safRestClient.hentDokument(journalpost.journalpostId, strukturertDokument.dokumentInfoId).dokument.readBytes()
+        return safRestClient.hentDokument(
+            journalpost.journalpostId,
+            strukturertDokument.dokumentInfoId
+        ).dokument.readBytes()
     }
 }

@@ -19,7 +19,7 @@ import java.time.LocalDate
 interface BehandlingsflytGateway {
     fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): Saksinfo
     fun finnSaker(ident: Ident): List<Saksinfo>
-    fun sendSøknad(sakId: String, journalpostId: JournalpostId, søknad: ByteArray)
+    fun sendSøknad(sakId: String, journalpostId: JournalpostId, søknad: Søknad)
 }
 
 class BehandlingsflytClient() : BehandlingsflytGateway {
@@ -67,12 +67,11 @@ class BehandlingsflytClient() : BehandlingsflytGateway {
     override fun sendSøknad(
         sakId: String,
         journalpostId: JournalpostId,
-        søknad: ByteArray,
+        søknad: Søknad,
     ) {
-        val søknadStirng = String(søknad)
         val url = url.resolve("/api/soknad/send")
         val request = PostRequest(
-            SendSøknad(sakId, journalpostId.toString(), søknadStirng),
+            SendSøknad(sakId, journalpostId.toString(), søknad),
             additionalHeaders = listOf(
                 Header("Accept", "application/json")
             )
