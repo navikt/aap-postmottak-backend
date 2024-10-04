@@ -63,12 +63,12 @@ class JoarkTestDouble() : Joark {
     var ferdigstillMaskineltCalls: List<Any> = mutableListOf()
     var ferdigstillCalls: List<Any> = mutableListOf()
 
-    override fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String) {
+    override fun førJournalpostPåFagsak(journalpost: Journalpost.MedIdent, fagsakId: String) {
         oppdaterCounter++
         oppdaterCalls += Pair(journalpost, fagsakId)
     }
 
-    override fun førJournalpostPåGenerellSak(journalpost: Journalpost) {
+    override fun førJournalpostPåGenerellSak(journalpost: Journalpost.MedIdent) {
         TODO("Not yet implemented")
     }
 

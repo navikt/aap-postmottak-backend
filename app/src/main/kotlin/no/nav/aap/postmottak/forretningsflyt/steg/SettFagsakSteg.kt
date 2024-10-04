@@ -39,10 +39,14 @@ class SettFagsakSteg(
         require(journalpost is Journalpost.MedIdent)
 
         // TODO: Skill mellom maskinell og manuell journalføring
-        joarkKlient.førJournalpostPåFagsak(
-            journalpost, behandling
-                .vurderinger.saksvurdering?.saksnummer!!
-        )
+        if (behandling.vurderinger.saksvurdering?.generellSak == true){
+            joarkKlient.førJournalpostPåGenerellSak(journalpost)
+        } else {
+            joarkKlient.førJournalpostPåFagsak(
+                journalpost, behandling
+                    .vurderinger.saksvurdering?.saksnummer!!
+            )
+        }
 
         return StegResultat()
     }
