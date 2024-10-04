@@ -8,11 +8,8 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.joark.Joark
 import no.nav.aap.postmottak.joark.JoarkClient
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.behandling.Dokumentbehandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
@@ -42,7 +39,7 @@ class SettFagsakSteg(
         require(journalpost is Journalpost.MedIdent)
 
         // TODO: Skill mellom maskinell og manuell journalføring
-        joarkKlient.oppdaterJournalpost(
+        joarkKlient.førJournalpostPåFagsak(
             journalpost, behandling
                 .vurderinger.saksvurdering?.saksnummer!!
         )

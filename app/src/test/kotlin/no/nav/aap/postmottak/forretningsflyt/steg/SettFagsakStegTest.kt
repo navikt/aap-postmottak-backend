@@ -30,6 +30,6 @@ class SettFagsakStegTest {
 
         journalføringSteg.utfør(mockk(relaxed = true))
 
-        verify(exactly = 1) { joark.oppdaterJournalpost(journalpost, saksnummer) }
+        verify(exactly = 1) { joark.førJournalpostPåFagsak(journalpost, saksnummer) }
     }
 }

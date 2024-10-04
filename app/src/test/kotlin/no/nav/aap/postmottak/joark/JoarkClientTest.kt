@@ -9,19 +9,30 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.Test
 import kotlin.test.Ignore
 
-@Ignore
+
 class JoarkClientTest : WithFakes {
 
 
     @Test
-    fun `oppdaterJournalpost happy path`() {
+    fun `før journalpost på fagsak`() {
         val joarkClient = JoarkClient()
 
         val journalpost: Journalpost.MedIdent = mockk(relaxed = true)
         every { journalpost.personident } returns Ident.Personident("123")
         every { journalpost.journalpostId } returns JournalpostId(1)
 
-        joarkClient.oppdaterJournalpost(journalpost, "213412")
+        joarkClient.førJournalpostPåFagsak(journalpost, "213412")
+    }
+
+    @Test
+    fun `før journalpost på generell sak`() {
+        val joarkClient = JoarkClient()
+
+        val journalpost: Journalpost.MedIdent = mockk(relaxed = true)
+        every { journalpost.personident } returns Ident.Personident("123")
+        every { journalpost.journalpostId } returns JournalpostId(1)
+
+        joarkClient.førJournalpostPåGenerellSak(journalpost)
     }
 
     @Test

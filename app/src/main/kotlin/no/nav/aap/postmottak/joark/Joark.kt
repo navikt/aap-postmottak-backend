@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.joark
 
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -11,7 +10,8 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import java.net.URI
 
 interface Joark {
-    fun oppdaterJournalpost(journalpost: Journalpost.MedIdent, fagsakId: String)
+    fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String)
+    fun førJournalpostPåGenerellSak(journalpost: Journalpost)
     fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost)
     fun ferdigstillJournalpost(journalpost: Journalpost, journalfoerendeEnhet: String)
 }
@@ -29,24 +29,26 @@ class JoarkClient: Joark {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    override fun oppdaterJournalpost(journalpost: Journalpost.MedIdent, fagsakId: String) {
-        val ident = when (journalpost.personident) {
-            is Ident.Personident -> journalpost.personident.id
-            is Ident.Aktørid -> error("AktørID skal være byttet ut med folkeregisteridentifikator på dette tidspunktet")
-        }
-
+    override fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
         val request = PutRequest(OppdaterJournalpostRequest(
             journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
             sak = JournalpostSak(
                 fagsakId = fagsakId
-            ),
-            bruker = JournalpostBruker(
-                id = ident
             )
         ))
         client.put(path, request) { _,_ -> }
+    }
 
+    override fun førJournalpostPåGenerellSak(journalpost: Journalpost) {
+        val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
+        val request = PutRequest(OppdaterJournalpostRequest(
+            journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
+            sak = JournalpostSak(
+                sakstype = Sakstype.GENERELL_SAK
+            )
+        ))
+        client.put(path, request) { _,_ -> }
     }
 
     override fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost) {
@@ -68,14 +70,22 @@ data class OppdaterJournalpostRequest(
     val behandlingstema: String? = null,
     val journalfoerendeEnhet: String,
     val sak: JournalpostSak,
-    val tema: String = "AAP",
-    val bruker: JournalpostBruker
 )
 
+enum class  Fagsystem {
+    KELVIN,
+    AO01 // Arena
+}
+
+enum class Sakstype {
+    FAGSAK,
+    GENERELL_SAK
+}
+
 data class JournalpostSak(
-    val sakstype: String = "FAGSAK",
-    val fagsakId: String,
-    val fagsaksystem: String = "KELVIN"
+    val sakstype: Sakstype = Sakstype.FAGSAK,
+    val fagsakId: String? = null,
+    val fagsaksystem: Fagsystem = Fagsystem.KELVIN
 )
 
 data class JournalpostBruker(
