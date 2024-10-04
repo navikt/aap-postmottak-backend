@@ -36,6 +36,7 @@ class TestApp {
 // Kjøres opp for å få logback i console uten json
 fun main() {
     System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+    System.setProperty("gosys.url", "http://localhost:3000/")
 
     val postgres = postgreSQLContainer()
     val fakes = Fakes(azurePort = 8081)

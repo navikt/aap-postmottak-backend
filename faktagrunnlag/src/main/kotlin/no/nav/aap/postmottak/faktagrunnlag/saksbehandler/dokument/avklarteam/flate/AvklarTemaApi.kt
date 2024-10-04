@@ -40,11 +40,16 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: HikariDataSource) {
         }
         route("/endre-tema") {
             @Suppress("UnauthorizedPost")
-            post<JournalpostId, Unit, Unit> { req, _ ->
+            post<JournalpostId, EndreTemaResponse, Unit> { req, _ ->
                 Oppgaveklient().opprettOppgave(req)
                 val url = URI.create(requiredConfigForKey("gosys.url"))
-                pipeline.call.respondRedirect(url.path)
+                respond(EndreTemaResponse(url.toString()))
             }
         }
     }
 }
+
+
+data class EndreTemaResponse(
+    val redirectUrl: String
+)
