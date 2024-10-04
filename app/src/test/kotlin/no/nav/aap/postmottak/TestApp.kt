@@ -11,6 +11,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
@@ -94,7 +95,7 @@ private fun opprettBehanldingKategoriser(connection: DBConnection) {
 
     val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(3))
     vurderingRepository.lagreTeamAvklaring(behandlingId, true)
-    vurderingRepository.lagreSakVurdering(behandlingId, Saksnummer("1010"))
+    vurderingRepository.lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(null, behandlingId.toLong()).medCallId()
@@ -109,7 +110,7 @@ private fun opprettBehanldingDigitaliser(connection: DBConnection) {
     val behandlingId =
         behandlingRepository.opprettBehandling(JournalpostId(4))
     vurderingRepository.lagreTeamAvklaring(behandlingId, true)
-    vurderingRepository.lagreSakVurdering(behandlingId, Saksnummer("1010"))
+    vurderingRepository.lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     vurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)

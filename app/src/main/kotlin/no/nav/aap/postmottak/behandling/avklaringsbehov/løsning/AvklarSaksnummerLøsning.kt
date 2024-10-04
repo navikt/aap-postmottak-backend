@@ -12,8 +12,9 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AVKLAR_SAKSNUMMER_KODE
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = AVKLAR_SAKSNUMMER_KODE)
 class AvklarSaksnummerLøsning(
-    @JsonProperty("saksnummer", required = true)
     val saksnummer: String?,
+    val opprettNySak: Boolean = false,
+    val førPåGenerellSak: Boolean = false,
     @JsonProperty(
         "behovstype",
         required = true,

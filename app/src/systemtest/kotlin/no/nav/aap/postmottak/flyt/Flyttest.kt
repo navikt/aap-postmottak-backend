@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
@@ -102,7 +103,7 @@ class Flyttest: WithFakes {
         val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
         avklaringRepository.lagreTeamAvklaring(behandlingId, true)
-        avklaringRepository.lagreSakVurdering(behandlingId, Saksnummer("23452345"))
+        avklaringRepository.lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
         avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
         avklaringRepository.lagreStrukturertDokument(behandlingId, """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}""")
         return behandlingId

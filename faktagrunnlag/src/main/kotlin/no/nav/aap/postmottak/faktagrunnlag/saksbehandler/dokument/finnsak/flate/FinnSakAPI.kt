@@ -21,7 +21,7 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: HikariDataSource) {
                 val relaterteSaker = SaksnummerRepository(it).hentSaksnummre(behandling.id)
 
                 AvklarSakGrunnlagDto(
-                    vurdering = saksvurdering?.let { AvklarSakVurderingDto(saksvurdering.toString()) },
+                    vurdering = saksvurdering?.let { AvklarSakVurderingDto.toDto(saksvurdering) },
                     saksinfo = relaterteSaker.map { SaksInfoDto(it.saksnummer, it.periode) }
                 )
             }

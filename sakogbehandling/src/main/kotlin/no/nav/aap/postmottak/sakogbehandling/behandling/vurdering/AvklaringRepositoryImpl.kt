@@ -49,17 +49,18 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
         }
     }
 
-    override fun lagreSakVurdering(behandlingId: BehandlingId, saksnummer: Saksnummer?) {
+    override fun lagreSakVurdering(behandlingId: BehandlingId, saksvurdering: Saksvurdering) {
         connection.execute(
             """
-            INSERT INTO SAKSNUMMER_AVKLARING (BEHANDLING_ID, SAKSNUMMER, OPPRETT_NY) VALUES (
-            ?, ?, ?)
+            INSERT INTO SAKSNUMMER_AVKLARING (BEHANDLING_ID, SAKSNUMMER, OPPRETT_NY, GENERELL_SAK) VALUES (
+            ?, ?, ?, ?)
         """.trimIndent()
         ) {
             setParams {
                 setLong(1, behandlingId.toLong())
-                setString(2, saksnummer?.toString())
-                setBoolean(3, saksnummer == null)
+                setString(2, saksvurdering.saksnummer)
+                setBoolean(3, saksvurdering.opprettNySak)
+                setBoolean(4, saksvurdering.generellSak)
             }
         }
     }
@@ -93,7 +94,8 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
             setRowMapper { row ->
                 Saksvurdering(
                     row.getStringOrNull("SAKSNUMMER"),
-                    row.getBoolean("OPPRETT_NY")
+                    row.getBoolean("OPPRETT_NY"),
+                    row.getBoolean("GENERELL_SAK"),
                 )
             }
         }

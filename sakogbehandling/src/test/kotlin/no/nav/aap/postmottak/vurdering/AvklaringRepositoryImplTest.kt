@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
@@ -56,7 +57,7 @@ class AvklaringRepositoryImplTest {
     fun `lagrer saksnummer på behandling`() {
         val saksnummer = "234234"
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksnummer(saksnummer)) }
+        inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
         inContext{
             val actual = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
             assertThat(actual.vurderinger.saksvurdering?.saksnummer).isEqualTo(saksnummer)
@@ -155,7 +156,7 @@ class AvklaringRepositoryImplTest {
     @Test
     fun `behandlingsversjon blir bumpet når saksvurdering blir utført`() {
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksnummer("wdfgsdfgbs")) }
+        inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksvurdering("wdfgsdfgbs")) }
         val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
 
         assertThat(versjon).isEqualTo(1)

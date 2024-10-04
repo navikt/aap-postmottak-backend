@@ -6,16 +6,15 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
 
 class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarSaksnummerLøsning): LøsningsResultat {
 
-        AvklaringRepositoryImpl(
-            connection
-        ).lagreSakVurdering(kontekst.kontekst.behandlingId,
-            løsning.saksnummer?.let(::Saksnummer)
-        )
+        val saksvurdering = Saksvurdering(løsning.saksnummer, løsning.opprettNySak, løsning.førPåGenerellSak)
+
+        AvklaringRepositoryImpl(connection).lagreSakVurdering(kontekst.kontekst.behandlingId, saksvurdering)
 
         return LøsningsResultat("Dokument er tildelt sak ${løsning.saksnummer}")
     }

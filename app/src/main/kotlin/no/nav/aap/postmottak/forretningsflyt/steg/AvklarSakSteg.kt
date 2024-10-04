@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.Behandlingsf
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
 import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.Ident
@@ -53,12 +54,12 @@ class AvklarSakSteg(
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
             val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-            avklaringRepository.lagreSakVurdering(kontekst.behandlingId, Saksnummer(saksnummer))
+            avklaringRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
             StegResultat()
         } else if (behandling.harGjortSaksvurdering()) {
             if (behandling.vurderinger.saksvurdering?.opprettNySak == true) {
                 val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-                avklaringRepository.lagreSakVurdering(kontekst.behandlingId, Saksnummer(saksnummer))
+                avklaringRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
             }
             StegResultat()
         } else {
