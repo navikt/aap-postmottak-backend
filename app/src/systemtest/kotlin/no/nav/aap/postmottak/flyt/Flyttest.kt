@@ -135,7 +135,7 @@ class Flyttest : WithFakes {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
             avklaringRepository.lagreTeamAvklaring(behandlingId, true)
-            avklaringRepository.lagreSakVurdering(behandlingId, Saksnummer("23452345"))
+            avklaringRepository.lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 
             FlytJobbRepository(connection).leggTil(

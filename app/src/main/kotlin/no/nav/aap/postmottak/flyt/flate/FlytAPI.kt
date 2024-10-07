@@ -28,7 +28,6 @@ import no.nav.aap.motor.JobbStatus
 import no.nav.aap.postmottak.behandling.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.MDC
 
@@ -109,16 +108,14 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             post<JournalpostId, BehandlingResultatDto, SettPåVentRequest> { request, body ->
                 dataSource.transaction { connection ->
                     val behandling = BehandlingRepositoryImpl(connection).hentMedLås(request, null)
-                    val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
-                    val lås = taSkriveLåsRepository.låsBehandling(behandling.id)
                     BehandlingTilstandValidator(connection).validerTilstand(
                         request,
                         body.behandlingVersjon
                     )
 
-                        MDC.putCloseable("behandlingId", lås.id.toString()).use {
+                        MDC.putCloseable("behandlingId", behandling.id.toString()).use {
                             BehandlingHendelseHåndterer(connection).håndtere(
-                                key = lås.id,
+                                key = behandling.id,
                                 hendelse = BehandlingSattPåVent(
                                     frist = body.frist,
                                     begrunnelse = body.begrunnelse,
@@ -127,7 +124,6 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                                     bruker = bruker()
                                 )
                             )
-                            taSkriveLåsRepository.verifiserSkrivelås(lås)
                         }
                 }
                 respondWithStatus(HttpStatusCode.NoContent)
