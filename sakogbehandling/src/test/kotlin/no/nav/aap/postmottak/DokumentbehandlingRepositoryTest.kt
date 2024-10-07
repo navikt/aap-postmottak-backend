@@ -106,7 +106,7 @@ class DokumentbehandlingRepositoryTest {
     }
 
     @Test
-    fun `behandlingsversjon blir bumpet når behanlding blir endret`() {
+    fun `behandlingsversjon blir bumpet når behandling blir endret`() {
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksvurdering("wdfgsdfgbs")) }
         val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }

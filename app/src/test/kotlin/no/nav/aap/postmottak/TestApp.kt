@@ -12,7 +12,6 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.Test
@@ -57,16 +56,16 @@ fun main() {
         val datasource = initDatasource(dbConfig)
 
         datasource.transaction {
-            opprettBehanldingAvklarTeam(it)
-            opprettBehanldingFinnSak(it)
-            opprettBehanldingKategoriser(it)
-            opprettBehanldingDigitaliser(it)
+            opprettBehandlingAvklarTeam(it)
+            opprettBehandlingFinnSak(it)
+            opprettBehandlingKategoriser(it)
+            opprettBehandlingDigitaliser(it)
         }
 
     }.start(wait = true)
 }
 
-private fun opprettBehanldingAvklarTeam(connection: DBConnection) {
+private fun opprettBehandlingAvklarTeam(connection: DBConnection) {
     val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1))
 
     FlytJobbRepository(connection).leggTil(
@@ -75,7 +74,7 @@ private fun opprettBehanldingAvklarTeam(connection: DBConnection) {
     )
 }
 
-private fun opprettBehanldingFinnSak(connection: DBConnection) {
+private fun opprettBehandlingFinnSak(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val vurderingRepository = AvklaringRepositoryImpl(connection)
 
@@ -88,7 +87,7 @@ private fun opprettBehanldingFinnSak(connection: DBConnection) {
 
 }
 
-private fun opprettBehanldingKategoriser(connection: DBConnection) {
+private fun opprettBehandlingKategoriser(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val vurderingRepository =
         AvklaringRepositoryImpl(connection)
@@ -103,7 +102,7 @@ private fun opprettBehanldingKategoriser(connection: DBConnection) {
 
 }
 
-private fun opprettBehanldingDigitaliser(connection: DBConnection) {
+private fun opprettBehandlingDigitaliser(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val vurderingRepository = AvklaringRepositoryImpl(connection)
 
