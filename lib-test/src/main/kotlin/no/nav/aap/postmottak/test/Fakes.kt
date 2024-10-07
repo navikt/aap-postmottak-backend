@@ -162,6 +162,11 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 call.respond(HttpStatusCode.NoContent)
             }
         }
+        routing {
+            post("/oppdater-postmottak-oppgaver") {
+                call.respond(HttpStatusCode.Companion.NoContent)
+            }
+        }
     }
 
     private fun Application.joarkFake() {

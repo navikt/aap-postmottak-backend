@@ -6,6 +6,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import java.net.URI
 
 object OppgaveGateway {
@@ -17,8 +18,7 @@ object OppgaveGateway {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    fun varsleHendelse(hendelse: BehandlingsFlytStoppetHendelseDTO) {
-        // TODO: Bruk riktig endepunkt
-        client.post<_, Unit>(url.resolve("/behandling"), PostRequest(body = hendelse))
+    fun varsleHendelse(hendelse: DokumentflytStoppetHendelse) {
+        client.post<_, Unit>(url.resolve("/oppdater-postmottak-oppgaver"), PostRequest(body = hendelse))
     }
 }

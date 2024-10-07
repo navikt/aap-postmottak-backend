@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.hendelse.oppgave.OppgaveGateway
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StoppetHendelseJobbUtfører::class.java)
@@ -17,18 +18,9 @@ class StoppetHendelseJobbUtfører private constructor() : JobbUtfører {
         val payload = input.payload()
 
         val hendelse = DefaultJsonMapper.fromJson<DokumentflytStoppetHendelse>(payload)
-
-        val hendelseTilOppgave = BehandlingsFlytStoppetHendelseDTO(
-            avklaringsbehov = hendelse.avklaringsbehov,
-            behandlingType = hendelse.behandlingType,
-            opprettetTidspunkt = hendelse.opprettetTidspunkt,
-            referanse = hendelse.referanse,
-            status = hendelse.status,
-        )
-
-        log.info("Varsler hendelse til Oppgave. Journalpost: ${hendelseTilOppgave.referanse}")
-        // TODO: Uncomment når oppgave er klar
-        //  OppgaveGateway.varsleHendelse(hendelseTilOppgave)
+        
+        log.info("Varsler hendelse til Oppgave. Journalpost: ${hendelse.referanse}")
+        OppgaveGateway.varsleHendelse(hendelse)
     }
 
     companion object : Jobb {
