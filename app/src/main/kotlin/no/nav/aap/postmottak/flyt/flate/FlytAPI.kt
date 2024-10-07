@@ -95,7 +95,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             }
         }
         route("/{referanse}/resultat") {
-            get<BehandlingId, BehandlingResultatDto> { req ->
+            get<JournalpostId, BehandlingResultatDto> { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
 
                     BehandlingResultatDto()
