@@ -66,6 +66,7 @@ class Avklaringsbehov(
     }
 
     fun begrunnelse(): String = historikk.maxOf { it }.begrunnelse
+    fun grunn(): ÅrsakTilSettPåVent = requireNotNull(historikk.maxOf { it }.grunn)
     fun endretAv(): String = historikk.maxOf { it }.endretAv
 
     fun skalLøsesISteg(type: StegType): Boolean {
@@ -83,8 +84,16 @@ class Avklaringsbehov(
         return definisjon.løsesISteg
     }
 
+    fun erVentepunkt(): Boolean {
+        return definisjon.type == Definisjon.BehovType.VENTEPUNKT
+    }
+
     fun frist(): LocalDate {
         return requireNotNull(historikk.last { it.status == Status.OPPRETTET }.frist)
+    }
+
+    fun fristUtløpt(): Boolean {
+        return frist().isBefore(LocalDate.now()) || frist().isEqual(LocalDate.now())
     }
 
     override fun toString(): String {

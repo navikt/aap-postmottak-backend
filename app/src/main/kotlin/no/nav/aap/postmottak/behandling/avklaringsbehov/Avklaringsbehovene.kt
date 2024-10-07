@@ -71,7 +71,12 @@ class Avklaringsbehovene(
             if (avklaringsbehov != null) {
                 if (avklaringsbehov.erAvsluttet() || avklaringsbehov.status() == Status.AVBRUTT) {
                     avklaringsbehov.reåpne(frist, begrunnelse, grunn)
+                    if (avklaringsbehov.erVentepunkt()) {
+                        // TODO: Vurdere om funnet steg bør ligge på endringen...
+                        repository.endreVentepunkt(avklaringsbehov.id, avklaringsbehov.historikk.last(), stegType)
+                    } else {
                         repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
+                    }
                 } else {
                     log.warn("Forsøkte å legge til et avklaringsbehov som allerede eksisterte")
                 }
@@ -80,12 +85,20 @@ class Avklaringsbehovene(
                     behandlingId = behandlingId,
                     definisjon = definisjon,
                     funnetISteg = stegType,
+                    frist = utledFrist(definisjon, frist),
                     begrunnelse = begrunnelse,
                     grunn = grunn,
                     endretAv = bruker.ident
                 )
             }
         }
+    }
+
+    private fun utledFrist(definisjon: Definisjon, frist: LocalDate?): LocalDate? {
+        if (definisjon.erVentepunkt()) {
+            return definisjon.utledFrist(frist)
+        }
+        return null
     }
 
     override fun alle(): List<Avklaringsbehov> {
@@ -139,6 +152,18 @@ class Avklaringsbehovene(
         if (uhåndterteBehov.isNotEmpty()) {
             throw IllegalStateException("Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg'")
         }
+    }
+
+    override fun erSattPåVent(): Boolean {
+        return alle().any { avklaringsbehov -> avklaringsbehov.erVentepunkt() && avklaringsbehov.erÅpent() }
+    }
+
+    fun hentVentepunkterMedUtløptFrist(): List<Avklaringsbehov> {
+        return alle().filter { it.erVentepunkt() && it.erÅpent() && it.fristUtløpt() }
+    }
+
+    fun hentVentepunkter(): List<Avklaringsbehov> {
+        return alle().filter { it.erVentepunkt() && it.erÅpent() }
     }
 
 }

@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.behandling.avklaringsbehov
 
+import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -11,6 +12,9 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.SYSTEMBRUKER
+import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.SattPåVentLøsning
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory
@@ -31,7 +35,15 @@ class AvklaringsbehovOrkestrator(
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
         val kontekst = behandling.flytKontekst()
-
+        if (avklaringsbehovene.erSattPåVent()) {
+            løsAvklaringsbehov(
+                kontekst = kontekst,
+                avklaringsbehovene = avklaringsbehovene,
+                avklaringsbehov = SattPåVentLøsning(),
+                bruker = SYSTEMBRUKER,
+                behandling = behandling
+            )
+        }
         fortsettProsessering(kontekst)
     }
 
@@ -57,7 +69,7 @@ class AvklaringsbehovOrkestrator(
         flytJobbRepository.leggTil(
             JobbInput(jobb = ProsesserBehandlingJobbUtfører).forBehandling(
                 null,
-                 behandlingId = kontekst.behandlingId.toLong()
+                behandlingId = kontekst.behandlingId.toLong()
             ).medCallId()
         )
     }
@@ -115,4 +127,23 @@ class AvklaringsbehovOrkestrator(
         )
     }
 
+    fun settBehandlingPåVent(behandlingId: BehandlingId, hendelse: BehandlingSattPåVent) {
+        val behandling = behandlingRepository.hentMedLås(behandlingId, null)
+
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+
+        avklaringsbehovene.leggTil(
+            definisjoner = listOf(Definisjon.MANUELT_SATT_PÅ_VENT),
+            stegType = behandling.aktivtSteg(),
+            frist = hendelse.frist,
+            begrunnelse = hendelse.begrunnelse,
+            grunn = hendelse.grunn,
+            bruker = hendelse.bruker
+        )
+
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+        avklaringsbehovene.validerPlassering(behandling = behandling)
+        behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
+    }
 }

@@ -9,6 +9,7 @@ object ProsesseringsJobber {
         return listOf(
             ProsesserBehandlingJobbUtfører,
             StoppetHendelseJobbUtfører,
+            GjenopptaBehandlingJobbUtfører
         )
     }
 }
