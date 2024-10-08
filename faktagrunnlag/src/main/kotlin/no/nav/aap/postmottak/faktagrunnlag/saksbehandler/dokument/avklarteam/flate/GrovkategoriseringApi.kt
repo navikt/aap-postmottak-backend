@@ -17,7 +17,7 @@ fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
         get<JournalpostId, AvklarTemaGrunnlagDto> { req ->
             val token = token()
             val grunnlag = dataSource.transaction(readOnly = true) {
-                val behandling = BehandlingRepositoryImpl(it).hent(req, null)
+                val behandling = BehandlingRepositoryImpl(it).hent(req)
                 val journalpost = SafGraphqlClient.withOboRestClient().hentJournalpost(behandling.journalpostId, token)
                 val arkivDokumenter = journalpost.finnArkivVarianter()
                 AvklarTemaGrunnlagDto(

@@ -34,7 +34,7 @@ class SettFagsakSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val behandling = dokumentbehandling.hentMedLås(kontekst.behandlingId)
+        val behandling = dokumentbehandling.hent(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         require(journalpost is Journalpost.MedIdent)

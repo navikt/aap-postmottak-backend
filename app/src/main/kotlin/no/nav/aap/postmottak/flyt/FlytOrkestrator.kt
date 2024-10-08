@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.SYSTEMBRUKER
+import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.verdityper.flyt.FlytKontekst
@@ -45,13 +46,13 @@ class FlytOrkestrator(
     )
 
     fun opprettKontekst(behandlingId: BehandlingId): FlytKontekst {
-        val behandling = behandlingRepository.hentMedLås(behandlingId)
+        val behandling = behandlingRepository.hent(behandlingId)
 
         return FlytKontekst(behandlingId = behandling.id, behandlingType = behandling.typeBehandling)
     }
 
     fun forberedBehandling(kontekst: FlytKontekst) {
-        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
         avklaringsbehovene.validateTilstand(behandling = behandling)
@@ -104,7 +105,7 @@ class FlytOrkestrator(
     }
 
     fun prosesserBehandling(kontekst: FlytKontekst) {
-        val behandling = behandlingRepository.hentMedLås(kontekst.behandlingId, null)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
         avklaringsbehovene.validateTilstand(behandling = behandling)
@@ -257,7 +258,7 @@ class FlytOrkestrator(
 
     private fun validerPlassering(
         behandlingFlyt: BehandlingFlyt,
-        åpneAvklaringsbehov: List<no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehov>
+        åpneAvklaringsbehov: List<Avklaringsbehov>
     ) {
         val nesteSteg = behandlingFlyt.aktivtStegType()
         val uhåndterteBehov = åpneAvklaringsbehov

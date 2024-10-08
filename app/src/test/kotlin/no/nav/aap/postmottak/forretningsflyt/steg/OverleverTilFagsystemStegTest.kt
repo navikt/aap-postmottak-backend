@@ -45,7 +45,7 @@ class OverleverTilFagsystemStegTest {
     @BeforeEach
     fun beforeEach() {
         every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
-        every { behandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
+        every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
         every { behandling.vurderinger.saksvurdering?.saksnummer } returns saksnummer

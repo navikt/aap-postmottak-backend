@@ -10,24 +10,25 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingHendelseHåndterer
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
-import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
-import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
-import no.nav.aap.postmottak.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
-import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
-import no.nav.aap.postmottak.flyt.flate.visning.Prosessering
-import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
-import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbStatus
+import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.behandling.avklaringsbehov.BehandlingTilstandValidator
+import no.nav.aap.postmottak.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
+import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
+import no.nav.aap.postmottak.flyt.flate.visning.Prosessering
+import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
+import no.nav.aap.postmottak.flyt.utledType
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.MDC
 
@@ -36,7 +37,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
         route("/{referanse}/flyt") {
             get<JournalpostId, BehandlingFlytOgTilstandDto> { req ->
                 val dto = dataSource.transaction { connection ->
-                    val behandling = BehandlingRepositoryImpl(connection).hentMedLås(req, null)
+                    val behandling = BehandlingRepositoryImpl(connection).hent(req)
                     val flytJobbRepository = FlytJobbRepository(connection)
                     val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
                     val flyt = utledType(behandling.typeBehandling).flyt()
@@ -107,24 +108,27 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
         route("/{referanse}/sett-på-vent") {
             post<JournalpostId, BehandlingResultatDto, SettPåVentRequest> { request, body ->
                 dataSource.transaction { connection ->
-                    val behandling = BehandlingRepositoryImpl(connection).hentMedLås(request, null)
+                    val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
+                    val lås = taSkriveLåsRepository.lås(request.referanse)
                     BehandlingTilstandValidator(connection).validerTilstand(
                         request,
                         body.behandlingVersjon
                     )
 
-                        MDC.putCloseable("behandlingId", behandling.id.toString()).use {
-                            BehandlingHendelseHåndterer(connection).håndtere(
-                                key = behandling.id,
-                                hendelse = BehandlingSattPåVent(
-                                    frist = body.frist,
-                                    begrunnelse = body.begrunnelse,
-                                    behandlingVersjon = body.behandlingVersjon,
-                                    grunn = body.grunn,
-                                    bruker = bruker()
-                                )
+
+                    MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
+                        BehandlingHendelseHåndterer(connection).håndtere(
+                            key = lås.behandlingSkrivelås.id,
+                            hendelse = BehandlingSattPåVent(
+                                frist = body.frist,
+                                begrunnelse = body.begrunnelse,
+                                behandlingVersjon = body.behandlingVersjon,
+                                grunn = body.grunn,
+                                bruker = bruker()
                             )
-                        }
+                        )
+                        taSkriveLåsRepository.verifiserSkrivelås(lås)
+                    }
                 }
                 respondWithStatus(HttpStatusCode.NoContent)
             }
@@ -132,7 +136,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
         route("/{referanse}/vente-informasjon") {
             get<JournalpostId, Venteinformasjon> { request ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
-                    val behandling = BehandlingRepositoryImpl(connection).hentMedLås(request, null)
+                    val behandling = BehandlingRepositoryImpl(connection).hent(request)
 
                     val avklaringsbehovene = avklaringsbehov(connection, behandling.id)
 

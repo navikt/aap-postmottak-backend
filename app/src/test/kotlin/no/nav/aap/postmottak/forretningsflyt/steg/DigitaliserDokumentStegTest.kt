@@ -29,7 +29,7 @@ class DigitaliserDokumentStegTest {
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { behandling.harBlittStrukturert() } returns false
         every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
-        every { behandlingRepository.hentMedLås(any()as BehandlingId, null) } returns behandling
+        every { behandlingRepository.hent(any()as BehandlingId) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -46,7 +46,7 @@ class DigitaliserDokumentStegTest {
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { behandling.harBlittStrukturert() } returns true
         every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
-        every { behandlingRepository.hentMedLås(any()as BehandlingId, null) } returns behandling
+        every { behandlingRepository.hent(any()as BehandlingId) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -63,7 +63,7 @@ class DigitaliserDokumentStegTest {
         every { journalpost.kanBehandlesAutomatisk() } returns true
         every { behandling.harBlittStrukturert() } returns false
         every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
-        every { behandlingRepository.hentMedLås(any()as BehandlingId, null) } returns behandling
+        every { behandlingRepository.hent(any()as BehandlingId) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 

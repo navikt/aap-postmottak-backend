@@ -28,7 +28,7 @@ class AvklarTemaSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val behandling = dokumentbehandlingRepository.hentMedLås(kontekst.behandlingId, null)
+        val behandling = dokumentbehandlingRepository.hent(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost != null)
 

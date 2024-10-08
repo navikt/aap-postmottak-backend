@@ -7,10 +7,9 @@ interface BehandlingRepository {
 
     fun opprettBehandling(journalpostId: JournalpostId): BehandlingId
 
-    fun hentMedLås(behandlingId: BehandlingId, versjon: Long? = null): Behandling
+    fun hent(behandlingId: BehandlingId): Behandling
 
-    fun hentMedLås(journalpostId: JournalpostId, versjon: Long? = null): Behandling
+    fun hent(journalpostId: JournalpostId): Behandling
 
-    fun hent(journalpostId: JournalpostId, versjon: Long? = null): Behandling
 }
 

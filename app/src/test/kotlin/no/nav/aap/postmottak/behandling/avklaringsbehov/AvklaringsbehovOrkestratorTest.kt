@@ -33,7 +33,7 @@ class AvklaringsbehovOrkestratorTest {
 
             val behandlingRepository = BehandlingRepositoryImpl(connection)
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
-            val behandling = behandlingRepository.hentMedLås(behandlingId, null)
+            val behandling = behandlingRepository.hent(behandlingId)
 
             // Act
             avklaringsbehovOrkestrator.settBehandlingPåVent(

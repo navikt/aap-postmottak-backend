@@ -20,7 +20,7 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
         route("/løs-behov") {
             authorizedJournalpostPost<Unit, LøsAvklaringsbehovPåBehandling, LøsAvklaringsbehovPåBehandling>(Operasjon.SAKSBEHANDLE) { _, request ->
                 dataSource.transaction { connection ->
-                        val behandling = BehandlingRepositoryImpl(connection).hentMedLås(request.referanse, request.behandlingVersjon)
+                        val behandling = BehandlingRepositoryImpl(connection).hent(request.referanse)
                         MDC.putCloseable("behandlingId", behandling.id.toString()).use {
                             BehandlingTilstandValidator(connection).validerTilstand(
                                 request.referanse,

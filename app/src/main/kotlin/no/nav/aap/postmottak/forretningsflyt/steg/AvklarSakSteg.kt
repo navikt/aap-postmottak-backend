@@ -17,7 +17,6 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
@@ -49,7 +48,7 @@ class AvklarSakSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val sakerPåBruker = saksnummerRepository.hentSaksnummre(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        val behandling = dokumentbehandlingRepository.hentMedLås(kontekst.behandlingId, null)
+        val behandling = dokumentbehandlingRepository.hent(kontekst.behandlingId)
         requireNotNull(journalpost) { "Journalpost kan ikke være null" }
         check(journalpost is Journalpost.MedIdent)
 

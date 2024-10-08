@@ -33,7 +33,7 @@ class JournalpostService private constructor(
         val persistertJournalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         
         val journalpostId =
-            persistertJournalpost?.journalpostId ?: behandlingRepository.hentMedLås(kontekst.behandlingId, null).journalpostId
+            persistertJournalpost?.journalpostId ?: behandlingRepository.hent(kontekst.behandlingId).journalpostId
         
         val journalpost = safGraphqlClient.hentJournalpost(journalpostId)
         

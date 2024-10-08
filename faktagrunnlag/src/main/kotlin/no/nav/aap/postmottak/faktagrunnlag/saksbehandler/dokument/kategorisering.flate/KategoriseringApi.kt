@@ -14,7 +14,7 @@ fun NormalOpenAPIRoute.kategoriseringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/kategorisering") {
         get<JournalpostId, KategoriseringGrunnlagDto> { req ->
             val vurdering = dataSource.transaction(readOnly = true) {
-                BehandlingRepositoryImpl(it).hent(req, null)
+                BehandlingRepositoryImpl(it).hent(req)
             }
             respond(
                 KategoriseringGrunnlagDto(

@@ -16,7 +16,7 @@ class AvklaringsbehovHendelseHåndterer(connection: DBConnection) {
     )
 
     fun håndtere(key: BehandlingId, hendelse: LøsAvklaringsbehovBehandlingHendelse) {
-        val behandling = behandlingRepository.hentMedLås(key, null)
+        val behandling = behandlingRepository.hent(key)
 
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
 

@@ -5,24 +5,27 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.flyt.FlytOrkestrator
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
 
 class ProsesserBehandlingJobbUtfører(
+    private val låsRepository: TaSkriveLåsRepository,
     private val kontroller: FlytOrkestrator
 ) : JobbUtfører {
 
     override fun utfør(input: JobbInput) {
+        val skrivelås = låsRepository.lås(input.behandlingId())
 
-        val kontekst = kontroller.opprettKontekst(BehandlingId(input.behandlingId()))
+        val kontekst = kontroller.opprettKontekst(skrivelås.behandlingSkrivelås.id)
 
         kontroller.forberedBehandling(kontekst)
         kontroller.prosesserBehandling(kontekst)
 
+        låsRepository.verifiserSkrivelås(skrivelås)
     }
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return ProsesserBehandlingJobbUtfører(FlytOrkestrator(connection), )
+            return ProsesserBehandlingJobbUtfører(TaSkriveLåsRepository(connection), FlytOrkestrator(connection), )
         }
 
         override fun type(): String {

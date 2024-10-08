@@ -29,7 +29,7 @@ class KategoriserDokumentSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val behandling = dokumentbehandlingRepository.hentMedLås(kontekst.behandlingId)
+        val behandling = dokumentbehandlingRepository.hent(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost is Journalpost.MedIdent)
 

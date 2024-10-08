@@ -124,40 +124,23 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    override fun hentMedLås(behandlingId: BehandlingId, versjon: Long?): Behandling {
+    override fun hent(behandlingId: BehandlingId): Behandling {
         val query = """
-            WITH params (pId, pVersjon) as (values(?, ?))
-            SELECT * FROM BEHANDLING b, params
-            WHERE b.id = pId
-            AND (b.versjon = pVersjon OR pVersjon is null)
-            FOR UPDATE OF b
+            SELECT * FROM BEHANDLING b
+            WHERE b.id = ?
             """.trimIndent()
 
-        return utførHentQuery(query) { setLong(1, behandlingId.toLong()); setLong(2, versjon) }
+        return utførHentQuery(query) { setLong(1, behandlingId.toLong()) }
     }
 
-    override fun hentMedLås(journalpostId: JournalpostId, versjon: Long?): Behandling {
+    override fun hent(journalpostId: JournalpostId): Behandling {
         val query = """
-            WITH params (pId, pVersjon) as (values(?, ?))
-            SELECT * FROM BEHANDLING b, params
-            WHERE journalpost_id = pId
-            AND (b.versjon = pVersjon OR pVersjon is null)
-            FOR UPDATE OF b
+            SELECT * FROM BEHANDLING b
+            WHERE journalpost_id = ?
             """.trimIndent()
 
-        return utførHentQuery(query) { setLong(1, journalpostId.referanse); setLong(2, versjon) }
+        return utførHentQuery(query) { setLong(1, journalpostId.referanse) }
 
-    }
-
-    override fun hent(journalpostId: JournalpostId, versjon: Long?): Behandling {
-        val query = """
-            WITH params (pId, pVersjon) as (values(?, ?))
-            SELECT * FROM BEHANDLING b, params
-            WHERE journalpost_id = pId
-            AND (b.versjon = pVersjon OR pVersjon is null)
-            """.trimIndent()
-
-        return utførHentQuery(query) { setLong(1, journalpostId.referanse); setLong(2, versjon) }
     }
 
     private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {

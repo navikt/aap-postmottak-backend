@@ -15,7 +15,7 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/finnSak") {
         get<JournalpostId, AvklarSakGrunnlagDto> { req ->
             val response = dataSource.transaction(readOnly = true) {
-                val behandling = BehandlingRepositoryImpl(it).hent(req, null)
+                val behandling = BehandlingRepositoryImpl(it).hent(req)
                 val saksvurdering = behandling.vurderinger.saksvurdering
                 val relaterteSaker = SaksnummerRepository(it).hentSaksnummre(behandling.id)
 

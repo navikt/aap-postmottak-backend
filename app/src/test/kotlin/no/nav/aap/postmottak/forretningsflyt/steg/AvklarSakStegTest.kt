@@ -11,7 +11,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.J
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
@@ -95,7 +94,7 @@ class AvklarSakStegTest {
         every { behandling.harGjortSaksvurdering() } returns true
         every { behandling.vurderinger.saksvurdering?.opprettNySak } returns false
 
-        every { dokumentbehandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
+        every { dokumentbehandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
@@ -116,7 +115,7 @@ class AvklarSakStegTest {
         every { behandling.harGjortSaksvurdering() } returns true
         every { behandling.vurderinger.saksvurdering?.opprettNySak } returns true
 
-        every { dokumentbehandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
+        every { dokumentbehandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))

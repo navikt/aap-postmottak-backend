@@ -11,7 +11,7 @@ private val logger = LoggerFactory.getLogger(BehandlingReferanseService::class.j
 class BehandlingReferanseService(private val behandlingRepositoryImpl: BehandlingRepository) {
     fun behandling(journalpostId: JournalpostId): Behandling {
         try {
-            return behandlingRepositoryImpl.hentMedLås(journalpostId, null)
+            return behandlingRepositoryImpl.hent(journalpostId)
         } catch (e: NoSuchElementException) {
             logger.info("Fant ikke behandling med ref $journalpostId. Stacktrace: ${e.stackTraceToString()}")
             throw ElementNotFoundException()

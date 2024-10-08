@@ -16,12 +16,11 @@ import no.nav.aap.postmottak.flyt.flate.Venteinformasjon
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -77,13 +76,11 @@ class Flyttest : WithFakes {
             behandlingId
         }
 
-        Thread.sleep(500)
-
         dataSource.transaction { connection ->
-            val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.hentMedLås(behandlingId, null)
-
-            assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+            await(5000) {
+                val behandling = BehandlingRepositoryImpl(connection).hent(behandlingId)
+                assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+            }
         }
     }
 
@@ -105,7 +102,7 @@ class Flyttest : WithFakes {
 
         dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.hentMedLås(behandlingId, null)
+            val behandling = behandlingRepository.hent(behandlingId)
 
             assertThat(behandling.status()).isNotEqualTo(Status.AVSLUTTET)
         }
@@ -148,18 +145,20 @@ class Flyttest : WithFakes {
         Thread.sleep(500)
 
         val behandling = dataSource.transaction { connection ->
-            val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.hentMedLås(behandlingId, null)
+            await(5000) {
+                val behandlingRepository = BehandlingRepositoryImpl(connection)
+                val behandling = behandlingRepository.hent(behandlingId)
 
-            assertThat(behandling.status()).isEqualTo(Status.UTREDES)
-            behandling
+                assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+                behandling
+            }
         }
 
         dataSource.transaction { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandlingId, connection)
             assertThat(avklaringsbehov.alle()).anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.DIGITALISER_DOKUMENT) }
         }
-        
+
         hendelsesMottak.håndtere(
             behandling.id,
             BehandlingSattPåVent(
@@ -197,7 +196,7 @@ class Flyttest : WithFakes {
 
         dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.hentMedLås(behandlingId, null)
+            val behandling = behandlingRepository.hent(behandlingId)
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
@@ -215,5 +214,17 @@ class Flyttest : WithFakes {
 
     private fun hentAvklaringsbehov(behandlingId: BehandlingId, connection: DBConnection): Avklaringsbehovene {
         return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
+    }
+
+    private fun <T> await(duration: Long, block: () -> T): T {
+        val currentTime = System.currentTimeMillis()
+        while (System.currentTimeMillis() - currentTime <= duration) {
+            try {
+                return block()
+            } catch (_: Throwable) {
+            }
+            Thread.sleep(50)
+        }
+        return block()
     }
 }

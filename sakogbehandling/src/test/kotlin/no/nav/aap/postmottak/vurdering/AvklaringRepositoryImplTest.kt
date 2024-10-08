@@ -31,7 +31,7 @@ class AvklaringRepositoryImplTest {
 
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 
-            val behandlingMedKategorisering = dokumentbehandlingRepository.hentMedLås(behandlingId)
+            val behandlingMedKategorisering = dokumentbehandlingRepository.hent(behandlingId)
 
             assertThat(behandlingMedKategorisering.harBlittKategorisert()).isTrue()
             assertThat(behandlingMedKategorisering.vurderinger.kategorivurdering?.avklaring).isEqualTo(Brevkode.SØKNAD)
@@ -45,7 +45,7 @@ class AvklaringRepositoryImplTest {
         Thread.sleep(100)
         inContext { avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.PLIKTKORT) }
         inContext {
-            val behandlingMedTemavurdering = dokumentbehandlingRepository.hentMedLås(behandlingId)
+            val behandlingMedTemavurdering = dokumentbehandlingRepository.hent(behandlingId)
 
             assertThat(behandlingMedTemavurdering.vurderinger.kategorivurdering?.avklaring).isEqualTo(Brevkode.PLIKTKORT)
         }
@@ -57,7 +57,7 @@ class AvklaringRepositoryImplTest {
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
         inContext{
-            val actual = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
+            val actual = dokumentbehandlingRepository.hent(behandlingId)
             assertThat(actual.vurderinger.saksvurdering?.saksnummer).isEqualTo(saksnummer)
         }
 
@@ -72,7 +72,7 @@ class AvklaringRepositoryImplTest {
             val json = """{"Test: Dokument"}"""
             avklaringRepository.lagreStrukturertDokument(behandlingId, json)
 
-            val strukturertBehandling = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
+            val strukturertBehandling = dokumentbehandlingRepository.hent(behandlingId)
 
             assertThat(strukturertBehandling.harBlittStrukturert()).isTrue()
             assertThat(strukturertBehandling.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
@@ -89,7 +89,7 @@ class AvklaringRepositoryImplTest {
         Thread.sleep(100)
         inContext { avklaringRepository.lagreStrukturertDokument(behandlingId, json) }
         inContext {
-            val behandlingMedTemavurdering = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
+            val behandlingMedTemavurdering = dokumentbehandlingRepository.hent(behandlingId)
 
             assertThat(behandlingMedTemavurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
         }
@@ -102,7 +102,7 @@ class AvklaringRepositoryImplTest {
 
             avklaringRepository.lagreTeamAvklaring(behandlingId, false)
 
-            val behandlingMedTemaavklaring = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
+            val behandlingMedTemaavklaring = dokumentbehandlingRepository.hent(behandlingId)
 
             assertThat(behandlingMedTemaavklaring.harTemaBlittAvklart()).isTrue()
             assertThat(behandlingMedTemaavklaring.vurderinger.avklarTemaVurdering?.avklaring).isFalse()
@@ -117,71 +117,10 @@ class AvklaringRepositoryImplTest {
         Thread.sleep(100)
         inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, true) }
         inContext {
-            val behandlingMedTemavurdering = dokumentbehandlingRepository.hentMedLås(behandlingId, null)
+            val behandlingMedTemavurdering = dokumentbehandlingRepository.hent(behandlingId)
 
             assertThat(behandlingMedTemavurdering.vurderinger.avklarTemaVurdering?.avklaring).isTrue()
         }
-    }
-
-    @Test
-    fun `behandlingsversjon blir bumpet når struktureringvurdering blir gjort`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext{ avklaringRepository.lagreStrukturertDokument(behandlingId, """{"YOLO": true}""") }
-        val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
-
-        assertThat(versjon).isEqualTo(1)
-    }
-
-    @Test
-    fun `behandlingsversjon blir bumpet når kategorivurdering blir gjort`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD) }
-        val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
-
-        assertThat(versjon).isEqualTo(1)
-    }
-
-
-    @Test
-    fun `behandlingsversjon blir bumpet når teamvurdering blir gjort`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, false) }
-        val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
-
-        assertThat(versjon).isEqualTo(1)
-    }
-
-    @Test
-    fun `behandlingsversjon blir bumpet når saksvurdering blir utført`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksvurdering("wdfgsdfgbs")) }
-        val versjon = inContext { dokumentbehandlingRepository.hentMedLås(behandlingId, null).versjon }
-
-        assertThat(versjon).isEqualTo(1)
-    }
-
-    @Test
-    fun `forventer at vurderingstabeller blir låst når behandlingen er låst`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        thread {
-            inContext {
-                dokumentbehandlingRepository.hentMedLås(BehandlingId(1), null)
-                Thread.sleep(500)
-                avklaringRepository.lagreTeamAvklaring(behandlingId, false)
-            }
-        }
-        thread {
-            Thread.sleep(100)
-            inContext {
-                avklaringRepository.lagreTeamAvklaring(behandlingId, true)
-            }
-        }.join()
-
-        inContext {
-            val temavurdering = dokumentbehandlingRepository.hentMedLås(behandlingId, null).vurderinger.avklarTemaVurdering?.avklaring
-            assertThat(temavurdering).isNotNull().isEqualTo(true)
-        }
-
     }
 
     private class Context(

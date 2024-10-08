@@ -14,7 +14,7 @@ fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/strukturering") {
         get<JournalpostId, StruktureringGrunnlagDto> { req ->
             val behandling = dataSource.transaction(readOnly = true) {
-                BehandlingRepositoryImpl(it).hent(req, null)
+                BehandlingRepositoryImpl(it).hent(req)
             }
 
             check(behandling.harBlittKategorisert()) { "Behandlingen mangler kategorisering" }
