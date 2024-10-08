@@ -9,13 +9,12 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 
 fun NormalOpenAPIRoute.kategoriseringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/kategorisering") {
         get<JournalpostId, KategoriseringGrunnlagDto> { req ->
             val vurdering = dataSource.transaction(readOnly = true) {
-                DokumentbehandlingRepository(it).hent(req, null)
+                BehandlingRepositoryImpl(it).hent(req, null)
             }
             respond(
                 KategoriseringGrunnlagDto(

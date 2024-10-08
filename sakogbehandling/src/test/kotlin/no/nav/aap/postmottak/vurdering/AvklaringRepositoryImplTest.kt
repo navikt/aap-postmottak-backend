@@ -2,15 +2,13 @@ package no.nav.aap.postmottak.vurdering
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -187,14 +185,14 @@ class AvklaringRepositoryImplTest {
     }
 
     private class Context(
-        val dokumentbehandlingRepository: DokumentbehandlingRepository,
+        val dokumentbehandlingRepository: BehandlingRepository,
         val avklaringRepository: AvklaringRepository,
         val behandlingRepository: BehandlingRepository
     )
 
     private fun <T>inContext(block: Context.() -> T): T {
         return InitTestDatabase.dataSource.transaction {
-            val context = Context(DokumentbehandlingRepository(it), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
+            val context = Context(BehandlingRepositoryImpl(it), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
             context.let(block)
         }
     }

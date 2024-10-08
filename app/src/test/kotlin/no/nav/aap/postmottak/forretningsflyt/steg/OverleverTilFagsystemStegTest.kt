@@ -4,14 +4,14 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.behandling.Dokumentbehandling
-import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -23,13 +23,13 @@ import java.io.ByteArrayInputStream
 
 class OverleverTilFagsystemStegTest {
 
-    val dokumentbehandlingRepository: DokumentbehandlingRepository = mockk(relaxed = true)
+    val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
     val behandlingsflytGateway: BehandlingsflytGateway = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepository = mockk()
     val safRestClient: SafRestClient = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
-        dokumentbehandlingRepository,
+        behandlingRepository,
         behandlingsflytGateway,
         journalpostRepository,
         safRestClient
@@ -39,13 +39,13 @@ class OverleverTilFagsystemStegTest {
     val kontekst: FlytKontekstMedPerioder = mockk(relaxed = true)
     val journalpost: Journalpost = mockk()
     val journalpostId: JournalpostId = JournalpostId(123)
-    val behandling: Dokumentbehandling = mockk()
+    val behandling: Behandling = mockk()
     val saksnummer = "String"
 
     @BeforeEach
     fun beforeEach() {
         every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
-        every { dokumentbehandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
+        every { behandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
         every { behandling.vurderinger.saksvurdering?.saksnummer } returns saksnummer

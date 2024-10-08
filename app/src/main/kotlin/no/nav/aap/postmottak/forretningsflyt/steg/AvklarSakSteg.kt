@@ -12,7 +12,8 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
@@ -22,7 +23,7 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 
 
 class AvklarSakSteg(
-    private val dokumentbehandlingRepository: DokumentbehandlingRepository,
+    private val dokumentbehandlingRepository: BehandlingRepository,
     private val avklaringRepository: AvklaringRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
@@ -31,7 +32,7 @@ class AvklarSakSteg(
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return AvklarSakSteg(
-                DokumentbehandlingRepository(connection),
+                BehandlingRepositoryImpl(connection),
                 AvklaringRepositoryImpl(connection),
                 SaksnummerRepository(connection),
                 JournalpostRepositoryImpl(connection),

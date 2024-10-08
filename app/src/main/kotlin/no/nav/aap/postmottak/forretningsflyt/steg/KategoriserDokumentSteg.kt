@@ -10,16 +10,16 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.J
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
 class KategoriserDokumentSteg(
-    private val dokumentbehandlingRepository: DokumentbehandlingRepository,
+    private val dokumentbehandlingRepository: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository
     ): BehandlingSteg {
     companion object: FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return KategoriserDokumentSteg(DokumentbehandlingRepository(connection), JournalpostRepositoryImpl(connection))
+            return KategoriserDokumentSteg(BehandlingRepositoryImpl(connection), JournalpostRepositoryImpl(connection))
         }
 
         override fun type(): StegType {

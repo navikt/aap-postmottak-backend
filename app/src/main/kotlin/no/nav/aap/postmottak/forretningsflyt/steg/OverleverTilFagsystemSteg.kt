@@ -11,9 +11,10 @@ import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import org.slf4j.LoggerFactory
@@ -21,7 +22,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
 
 class OverleverTilFagsystemSteg(
-    private val dokumentbehandlingRepository: DokumentbehandlingRepository,
+    private val dokumentbehandlingRepository: BehandlingRepository,
     private val behandlingsflytGateway: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository,
     private val safRestClient: SafRestClient
@@ -29,7 +30,7 @@ class OverleverTilFagsystemSteg(
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return OverleverTilFagsystemSteg(
-                DokumentbehandlingRepository(connection),
+                BehandlingRepositoryImpl(connection),
                 BehandlingsflytClient(),
                 JournalpostRepositoryImpl(connection),
                 SafRestClient.withClientCredentialsRestClient()

@@ -10,18 +10,19 @@ import no.nav.aap.postmottak.joark.Joark
 import no.nav.aap.postmottak.joark.JoarkClient
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
 class SettFagsakSteg(
-    private val dokumentbehandling: DokumentbehandlingRepository,
+    private val dokumentbehandling: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
     private val joarkKlient: Joark
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return SettFagsakSteg(
-                DokumentbehandlingRepository(connection),
+                BehandlingRepositoryImpl(connection),
                 JournalpostRepositoryImpl(connection),
                 JoarkClient()
             )

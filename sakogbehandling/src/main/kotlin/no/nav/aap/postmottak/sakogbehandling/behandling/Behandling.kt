@@ -1,18 +1,14 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling
 
 import no.nav.aap.postmottak.kontrakt.behandling.Status
-import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.KategoriVurdering
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Struktureringsvurdering
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.TemaVurdeirng
+import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Vurderinger
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import java.time.LocalDateTime
-
 
 
 class Behandling(
@@ -21,8 +17,14 @@ class Behandling(
     private var status: Status = Status.OPPRETTET,
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     val opprettetTidspunkt: LocalDateTime,
+    val vurderinger: Vurderinger = Vurderinger(),
     val versjon: Long = 0,
 ) : Comparable<Behandling> {
+
+    fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
+    fun harTemaBlittAvklart() = vurderinger.avklarTemaVurdering != null
+    fun harBlittKategorisert() = vurderinger.kategorivurdering != null
+    fun harGjortSaksvurdering() = vurderinger.saksvurdering != null
 
     val typeBehandling = TypeBehandling.DokumentHåndtering
     val referanse: JournalpostId = journalpostId
