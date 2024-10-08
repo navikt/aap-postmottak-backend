@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak
 
+import io.mockk.mockk
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -159,7 +160,7 @@ class DokumentbehandlingRepositoryTest {
         val t = thread {
             inContext {
                 sleep(100)
-                val b = dokumentbehandlingRepository.hentMedLås(behandling.journalpostId, behandling.versjon)
+                val b = dokumentbehandlingRepository.hentMedLås(behandling.id, behandling.versjon)
                 avklaringRepository.lagreKategoriseringVurdering(b.id, Brevkode.SØKNAD)
             }
 
@@ -177,10 +178,10 @@ class DokumentbehandlingRepositoryTest {
         }
         assertDoesNotThrow {
             inContext {
-                val b1 = dokumentbehandlingRepository.hentMedLås(behandling.journalpostId, behandling.versjon)
+                val b1 = dokumentbehandlingRepository.hentMedLås(behandling.id, behandling.versjon)
                 avklaringRepository.lagreTeamAvklaring(b1.id, true)
 
-                val b2 = dokumentbehandlingRepository.hentMedLås(behandling.journalpostId, behandling.versjon)
+                val b2 = dokumentbehandlingRepository.hentMedLås(behandling.id, behandling.versjon)
                 avklaringRepository.lagreKategoriseringVurdering(b2.id, Brevkode.SØKNAD)
             }
         }
@@ -208,7 +209,7 @@ class DokumentbehandlingRepositoryTest {
     private fun <T> inContext(block: Context.() -> T): T {
         return InitTestDatabase.dataSource.transaction {
             val context =
-                Context(DokumentbehandlingRepository(it), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
+                Context(DokumentbehandlingRepository(it, mockk(relaxed = true)), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
             context.let(block)
         }
     }

@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.joark
 
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.behandling.Ident
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient

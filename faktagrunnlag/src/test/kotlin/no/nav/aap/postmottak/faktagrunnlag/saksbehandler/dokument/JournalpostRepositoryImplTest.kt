@@ -1,17 +1,18 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Filtype
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.JournalpostStatus
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Variantformat
+import no.nav.aap.postmottak.sakogbehandling.behandling.Dokument
+import no.nav.aap.postmottak.sakogbehandling.behandling.Filtype
+import no.nav.aap.postmottak.sakogbehandling.behandling.Ident
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostStatus
+import no.nav.aap.postmottak.sakogbehandling.behandling.Variantformat
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostRepositoryImpl
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import java.time.LocalDate
 

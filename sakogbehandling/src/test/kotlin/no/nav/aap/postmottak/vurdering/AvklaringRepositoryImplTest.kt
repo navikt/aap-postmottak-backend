@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.vurdering
 
+import io.mockk.mockk
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -194,7 +195,7 @@ class AvklaringRepositoryImplTest {
 
     private fun <T>inContext(block: Context.() -> T): T {
         return InitTestDatabase.dataSource.transaction {
-            val context = Context(DokumentbehandlingRepository(it), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
+            val context = Context(DokumentbehandlingRepository(it, mockk(relaxed = true)), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
             context.let(block)
         }
     }

@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf
+package no.nav.aap.postmottak.sakogbehandling.behandling
 
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.dokument.DokumentInfoId

@@ -9,7 +9,10 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Vurderinger
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 
-class DokumentbehandlingRepository(private val connection: DBConnection) {
+class DokumentbehandlingRepository(
+    private val connection: DBConnection,
+    private val journalpostRepository: JournalpostRepository = JournalpostRepositoryImpl(connection)
+    ) {
 
     private val vurderingRepository = AvklaringRepositoryImpl(connection)
 
@@ -62,7 +65,7 @@ class DokumentbehandlingRepository(private val connection: DBConnection) {
         val behandlingId = BehandlingId(row.getLong("id"))
         return Dokumentbehandling(
             id = behandlingId,
-            journalpostId = JournalpostId(row.getLong("journalpost_id")),
+            journalpost = journalpostRepository.hentHvisEksisterer(behandlingId) ?: throw IllegalStateException("Behandling mangler journalpost"),
             versjon = row.getLong("versjon"),
             vurderinger = hentVurderingerForBehandling(behandlingId)
         )

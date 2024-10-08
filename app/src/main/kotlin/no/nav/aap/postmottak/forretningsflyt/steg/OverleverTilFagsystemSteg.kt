@@ -1,20 +1,17 @@
 package no.nav.aap.postmottak.forretningsflyt.steg
 
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import org.slf4j.LoggerFactory
 
@@ -23,7 +20,6 @@ private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
 class OverleverTilFagsystemSteg(
     private val dokumentbehandlingRepository: DokumentbehandlingRepository,
     private val behandlingsflytGateway: BehandlingsflytGateway,
-    private val journalpostRepository: JournalpostRepository,
     private val safRestClient: SafRestClient
 ) : BehandlingSteg {
     companion object : FlytSteg {
@@ -31,7 +27,6 @@ class OverleverTilFagsystemSteg(
             return OverleverTilFagsystemSteg(
                 DokumentbehandlingRepository(connection),
                 BehandlingsflytClient(),
-                JournalpostRepositoryImpl(connection),
                 SafRestClient.withClientCredentialsRestClient()
             )
         }
@@ -42,12 +37,10 @@ class OverleverTilFagsystemSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-
         val behandling = dokumentbehandlingRepository.hentMedLås(kontekst.behandlingId, null)
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        require(journalpost != null)
 
-        if (!journalpost.erSøknad() && behandling.vurderinger.kategorivurdering?.avklaring != Brevkode.SØKNAD) {
+
+        if (!behandling.erSøknad()) {
             log.info("Dokument er ikke en søknad, og skal ikke sendes til fagsystem")
             return StegResultat()
         }
@@ -57,11 +50,11 @@ class OverleverTilFagsystemSteg(
             if (behandling.harBlittStrukturert())
                 behandling.vurderinger.struktureringsvurdering!!.vurdering.parseDigitalSøknad().berik()
             else
-                hentDokumentFraSaf(journalpost).parseDigitalSøknad().berik()
+                hentDokumentFraSaf(behandling.journalpost).parseDigitalSøknad().berik()
 
         behandlingsflytGateway.sendSøknad(
             behandling.vurderinger.saksvurdering?.saksnummer!!,
-            journalpost.journalpostId,
+            behandling.journalpost.journalpostId,
             dokumentJson
         )
 

@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import org.junit.jupiter.api.Test
 

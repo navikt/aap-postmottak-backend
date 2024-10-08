@@ -2,12 +2,11 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.sakogbehandling.behandling.Dokumentbehandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostRepositoryImpl
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -15,10 +14,9 @@ import org.junit.jupiter.api.Test
 class DigitaliserDokumentStegTest {
 
     val dokumentbehandlingRepository: DokumentbehandlingRepository = mockk()
-    val journalpostRepo: JournalpostRepositoryImpl = mockk()
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        dokumentbehandlingRepository, journalpostRepo
+        dokumentbehandlingRepository
     )
 
     @Test
@@ -29,7 +27,7 @@ class DigitaliserDokumentStegTest {
 
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { behandling.harBlittStrukturert() } returns false
-        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
+        every { behandling.kanBehandlesAutomatisk() } returns false
         every { dokumentbehandlingRepository.hentMedLås(any()as BehandlingId, null) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
@@ -46,7 +44,7 @@ class DigitaliserDokumentStegTest {
 
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { behandling.harBlittStrukturert() } returns true
-        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
+        every { behandling.kanBehandlesAutomatisk() } returns false
         every { dokumentbehandlingRepository.hentMedLås(any()as BehandlingId, null) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
@@ -63,8 +61,8 @@ class DigitaliserDokumentStegTest {
 
         every { journalpost.kanBehandlesAutomatisk() } returns true
         every { behandling.harBlittStrukturert() } returns false
-        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
-        every { dokumentbehandlingRepository.hentMedLås(any()as BehandlingId, null) } returns behandling
+        every { behandling.kanBehandlesAutomatisk() } returns true
+        every { dokumentbehandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 

@@ -3,9 +3,8 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -22,23 +21,20 @@ import org.junit.jupiter.api.Test
 class AvklarTemaStegTest {
 
     val dokumentbehandlingRepository : DokumentbehandlingRepository = mockk()
-    val journalpostRepo : JournalpostRepositoryImpl = mockk()
 
-    val avklarTemaSteg = AvklarTemaSteg(dokumentbehandlingRepository, journalpostRepo)
+    val avklarTemaSteg = AvklarTemaSteg(dokumentbehandlingRepository)
 
 
     val behandling: Dokumentbehandling = mockk()
     val journalpost: Journalpost = mockk(relaxed = true)
     val behandlingId = BehandlingId(10)
-    val journalpostId = JournalpostId(11)
     val kontekst = FlytKontekstMedPerioder(behandlingId = behandlingId, TypeBehandling.DokumentHåndtering)
 
 
     @BeforeEach
     fun before() {
         every { dokumentbehandlingRepository.hentMedLås(behandlingId, null) } returns behandling
-        every { behandling.journalpostId } returns journalpostId
-        every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
+        every { behandling.journalpost } returns mockk()
     }
 
     @AfterEach
@@ -49,7 +45,7 @@ class AvklarTemaStegTest {
 
     @Test
     fun `når automatisk saksbehandling er mulig skal ingen avklaringsbehov bli opprettet`() {
-        every { journalpost.kanBehandlesAutomatisk() } returns true
+        every { behandling.kanBehandlesAutomatisk() } returns true
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
@@ -58,7 +54,7 @@ class AvklarTemaStegTest {
 
     @Test
     fun `når vi ikke kan behandle automatisk og mauell avklaring er utført forventer vi at steget ikke returnerer avklaringsbehov`() {
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { behandling.kanBehandlesAutomatisk() } returns false
         every { behandling.harTemaBlittAvklart() } returns true
 
         val actual = avklarTemaSteg.utfør(kontekst)
@@ -68,7 +64,7 @@ class AvklarTemaStegTest {
 
     @Test
     fun `når vi ikke kan behandle automatisk og manuell avklaring mangler forventer vi avklaringsbehov AVKLAR_TEMA`() {
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { behandling.kanBehandlesAutomatisk() } returns false
         every { behandling.harTemaBlittAvklart() } returns false
 
         val actual = avklarTemaSteg.utfør(kontekst)

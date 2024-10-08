@@ -4,14 +4,13 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.Dokumentbehandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
@@ -35,7 +34,6 @@ class AvklarSakStegTest {
         dokumentbehandlingRepository,
         avklaringRepository,
         saksnummerRepository,
-        journalpostRepository,
         behandlingsflytClient)
 
     @Test
@@ -43,7 +41,6 @@ class AvklarSakStegTest {
         avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { journalpostRepository.hentHvisEksisterer(any()) }
     }
 
     @Test
@@ -60,8 +57,8 @@ class AvklarSakStegTest {
 
     @Test
     fun `når automatisk behandling er mulig etterspørres ny sak uten avklaringsbehov`() {
-        val journalpost: Journalpost.MedIdent = mockk()
-        every { journalpost.kanBehandlesAutomatisk() } returns true
+        val behandling: Dokumentbehandling = mockk()
+        every { behandling.kanBehandlesAutomatisk() } returns true
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
@@ -73,8 +70,8 @@ class AvklarSakStegTest {
 
     @Test
     fun `når det finnes relaterte saker til behandlingen kreves avklaring`() {
-        val journalpost: Journalpost.MedIdent = mockk()
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        val behandling: Dokumentbehandling = mockk()
+        every { behandling.kanBehandlesAutomatisk() } returns false
 
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
@@ -94,6 +91,8 @@ class AvklarSakStegTest {
         val behandling: Dokumentbehandling = mockk()
         every { behandling.harGjortSaksvurdering() } returns true
         every { behandling.vurderinger.saksvurdering?.opprettNySak } returns false
+        every { behandling.journalpost } returns journalpost
+        every { behandling.kanBehandlesAutomatisk() } returns false
 
         every { dokumentbehandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
@@ -109,12 +108,11 @@ class AvklarSakStegTest {
 
     @Test
     fun `når det finnes relaterte saker til behandlingen og avklaring vil opprette nytt saksnummer spør vi behandlingsflyt om saksnummer før vi går videre`() {
-        val journalpost: Journalpost.MedIdent = mockk()
-        every { journalpost.kanBehandlesAutomatisk() } returns false
-
         val behandling: Dokumentbehandling = mockk()
         every { behandling.harGjortSaksvurdering() } returns true
         every { behandling.vurderinger.saksvurdering?.opprettNySak } returns true
+        every { behandling.journalpost } returns mockk(relaxed = true)
+        every { behandling.kanBehandlesAutomatisk() } returns false
 
         every { dokumentbehandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())

@@ -8,6 +8,8 @@ import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import org.slf4j.LoggerFactory
 
@@ -31,9 +33,9 @@ class JournalpostService private constructor(
 
     override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
         val persistertJournalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        
+
         val journalpostId =
-            persistertJournalpost?.journalpostId ?: behandlingRepository.hentMedLås(kontekst.behandlingId, null).journalpostId
+            persistertJournalpost?.journalpostId ?: behandlingRepository.hentMedLås(kontekst.behandlingId).journalpostId
         
         val journalpost = safGraphqlClient.hentJournalpost(journalpostId)
         

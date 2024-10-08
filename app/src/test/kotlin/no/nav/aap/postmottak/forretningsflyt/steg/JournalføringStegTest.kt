@@ -3,9 +3,9 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.joark.Joark
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.junit.jupiter.api.Test

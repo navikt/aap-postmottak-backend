@@ -4,15 +4,13 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.Dokument
 import no.nav.aap.postmottak.sakogbehandling.behandling.Dokumentbehandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.DokumentbehandlingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -25,13 +23,11 @@ class OverleverTilFagsystemStegTest {
 
     val dokumentbehandlingRepository: DokumentbehandlingRepository = mockk(relaxed = true)
     val behandlingsflytGateway: BehandlingsflytGateway = mockk(relaxed = true)
-    val journalpostRepository: JournalpostRepository = mockk()
     val safRestClient: SafRestClient = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         dokumentbehandlingRepository,
         behandlingsflytGateway,
-        journalpostRepository,
         safRestClient
     )
 
@@ -44,10 +40,9 @@ class OverleverTilFagsystemStegTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
         every { dokumentbehandlingRepository.hentMedLås(any() as BehandlingId, null) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
-        every { behandling.journalpostId } returns journalpostId
+        every { behandling.journalpost } returns journalpost
         every { behandling.vurderinger.saksvurdering?.saksnummer } returns saksnummer
     }
 
@@ -69,7 +64,7 @@ class OverleverTilFagsystemStegTest {
             |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"},
             |"oppgitteBarn": []
             |}""".trimMargin()
-        every { behandling.vurderinger.kategorivurdering?.avklaring } returns Brevkode.SØKNAD
+        every { behandling.erSøknad() } returns true
 
         overførTilFagsystemSteg.utfør(kontekst)
 
@@ -92,7 +87,7 @@ class OverleverTilFagsystemStegTest {
         every { dokument.dokumentInfoId } returns dokumentInfoId
         every { behandling.harBlittStrukturert() } returns false
         every { journalpost.finnOriginal() } returns dokument
-        every { journalpost.erSøknad()} returns true
+        every { behandling.erSøknad()} returns true
         every {
             safRestClient.hentDokument(
                 journalpostId,

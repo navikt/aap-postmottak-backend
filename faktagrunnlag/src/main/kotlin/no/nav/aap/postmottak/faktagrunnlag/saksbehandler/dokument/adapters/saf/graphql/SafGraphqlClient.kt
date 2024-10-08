@@ -2,12 +2,12 @@ package no.nav.aap.postmottak.saf.graphql
 
 import SafResponseHandler
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Filtype
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.JournalpostStatus
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Variantformat
+import no.nav.aap.postmottak.sakogbehandling.behandling.Dokument
+import no.nav.aap.postmottak.sakogbehandling.behandling.Filtype
+import no.nav.aap.postmottak.sakogbehandling.behandling.Ident
+import no.nav.aap.postmottak.sakogbehandling.behandling.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.behandling.JournalpostStatus
+import no.nav.aap.postmottak.sakogbehandling.behandling.Variantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
