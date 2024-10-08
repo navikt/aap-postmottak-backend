@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.behandling.avklaringsbehov.flate
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
@@ -11,13 +10,15 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.LøsAvklaringsbehovBehan
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.bruker
+import no.nav.aap.tilgang.authorizedJournalpostPost
 import org.slf4j.MDC
+import tilgang.Operasjon
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/løs-behov") {
-            post<Unit, LøsAvklaringsbehovPåBehandling, LøsAvklaringsbehovPåBehandling> { _, request ->
+            authorizedJournalpostPost<Unit, LøsAvklaringsbehovPåBehandling, LøsAvklaringsbehovPåBehandling>(Operasjon.SAKSBEHANDLE) { _, request ->
                 dataSource.transaction { connection ->
                         val behandling = BehandlingRepositoryImpl(connection).hentMedLås(request.referanse, request.behandlingVersjon)
                         MDC.putCloseable("behandlingId", behandling.id.toString()).use {
