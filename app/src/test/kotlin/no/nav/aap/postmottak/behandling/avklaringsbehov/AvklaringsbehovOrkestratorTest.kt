@@ -13,11 +13,18 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.server.prosessering.StoppetHendelseJobbUtfører
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class AvklaringsbehovOrkestratorTest {
-    
+
+
+    @AfterEach
+    fun afterEach() {
+        InitTestDatabase.dataSource.transaction { it.execute("TRUNCATE behandling CASCADE ") }
+    }
+
     @Test
     fun `behandlingHendelseService dot stoppet blir kalt når en behandling er satt på vent`() {
         val uthentedeJobber = InitTestDatabase.dataSource.transaction { connection ->

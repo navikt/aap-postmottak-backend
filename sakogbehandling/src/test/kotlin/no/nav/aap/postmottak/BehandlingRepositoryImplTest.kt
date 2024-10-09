@@ -9,13 +9,13 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
 class BehandlingRepositoryImplTest {
 
 
-    @BeforeEach
+    @AfterEach
     fun clean() {
         InitTestDatabase.dataSource.transaction {
             it.execute("""TRUNCATE BEHANDLING CASCADE""")

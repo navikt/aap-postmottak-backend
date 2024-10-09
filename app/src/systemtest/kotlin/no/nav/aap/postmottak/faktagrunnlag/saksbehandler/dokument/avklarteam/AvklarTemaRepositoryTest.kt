@@ -26,9 +26,7 @@ class AvklarTemaRepositoryTest {
 
             avklarTemaRepository.lagreTeamAvklaring(behandlingId, false)
 
-
             assertThat(avklarTemaRepository.hentTemaAvklaring(behandlingId)?.skalTilAap).isFalse()
-
         }
     }
 
