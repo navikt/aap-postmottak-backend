@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.ÅrsakTilSettPåVent
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.flate.Venteinformasjon
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
@@ -114,7 +115,7 @@ class Flyttest : WithFakes {
         val avklaringRepository = AvklaringRepositoryImpl(connection)
         val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
-        avklaringRepository.lagreTeamAvklaring(behandlingId, true)
+        AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
         SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
         avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
         avklaringRepository.lagreStrukturertDokument(
@@ -132,7 +133,7 @@ class Flyttest : WithFakes {
             val avklaringRepository = AvklaringRepositoryImpl(connection)
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
-            avklaringRepository.lagreTeamAvklaring(behandlingId, true)
+            AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
             SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 

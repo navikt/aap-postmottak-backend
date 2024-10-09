@@ -6,19 +6,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringRepository {
-    override fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean) {
-        connection.execute(
-            """
-            INSERT INTO SKAL_TIL_AAP_AVKLARING (BEHANDLING_ID, SKAL_TIL_AAP) VALUES (
-            ?, ?)
-        """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-                setBoolean(2, vurdering)
-            }
-        }
-    }
+
 
     override fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: Brevkode) {
         connection.execute(
@@ -44,18 +32,6 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
             setParams {
                 setLong(1, behandlingId.toLong())
                 setString(2, strukturertDokument)
-            }
-        }
-    }
-
-    override fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdeirng? {
-        return connection.queryFirstOrNull(vurderingQuery("SKAL_TIL_AAP_AVKLARING")) {
-            setParams { setLong(1, behandlingId.toLong()) }
-            setRowMapper { row -> TemaVurdeirng (
-                    row.getBoolean(
-                        "skal_til_aap"
-                    )
-                )
             }
         }
     }

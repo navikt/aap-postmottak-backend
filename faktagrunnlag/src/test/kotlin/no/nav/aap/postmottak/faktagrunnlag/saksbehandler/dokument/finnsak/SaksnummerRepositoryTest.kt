@@ -93,7 +93,7 @@ class SaksnummerRepositoryTest {
     }
 
     @Test
-    fun `kan ikke ha to aktive vurderinger på saksnummergrunnlag`() {
+    fun `kan ikke ha to aktive vurderinger på samme behandling`() {
         val saksnummer = "234234"
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }

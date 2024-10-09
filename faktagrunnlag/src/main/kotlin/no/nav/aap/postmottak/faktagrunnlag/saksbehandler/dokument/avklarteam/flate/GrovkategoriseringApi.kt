@@ -8,6 +8,7 @@ import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.token
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -21,8 +22,7 @@ fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
                 val journalpost = SafGraphqlClient.withOboRestClient().hentJournalpost(behandling.journalpostId, token)
                 val arkivDokumenter = journalpost.finnArkivVarianter()
                 AvklarTemaGrunnlagDto(
-                    behandling.vurderinger.avklarTemaVurdering
-                        ?.avklaring?.let(::AvklarTemaVurderingDto),
+                    AvklarTemaRepository(it).hentTemaAvklaring(behandling.id)?.skalTilAap?.let(::AvklarTemaVurderingDto),
                     arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId }
                 )
             }

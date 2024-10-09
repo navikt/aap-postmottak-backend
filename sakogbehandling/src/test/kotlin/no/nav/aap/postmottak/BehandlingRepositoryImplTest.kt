@@ -8,11 +8,9 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.concurrent.thread
 
 class BehandlingRepositoryImplTest {
 
@@ -66,15 +64,13 @@ class BehandlingRepositoryImplTest {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
             avklaringRepository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-            avklaringRepository.lagreTeamAvklaring(behandlingId, false)
 
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 
-            val behandling = dokumentbehandlingRepository.hent(behandlingId)
+            val behandling = behandlingRepository.hent(behandlingId)
 
             assertThat(behandling.harBlittStrukturert()).isTrue()
             assertThat(behandling.harBlittKategorisert()).isTrue()
-            assertThat(behandling.harTemaBlittAvklart()).isTrue()
 
         }
     }
@@ -88,51 +84,25 @@ class BehandlingRepositoryImplTest {
 
             avklaringRepository.lagreStrukturertDokument(behandlingId, """{"Test: Dokument"}""")
             avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-            avklaringRepository.lagreTeamAvklaring(behandlingId, false)
 
 
-            val hentetBehandling = dokumentbehandlingRepository.hent(behandlingsreferanse)
+            val hentetBehandling = behandlingRepository.hent(behandlingsreferanse)
 
             assertThat(hentetBehandling.harBlittStrukturert()).isTrue()
             assertThat(hentetBehandling.harBlittKategorisert()).isTrue()
-            assertThat(hentetBehandling.harTemaBlittAvklart()).isTrue()
 
         }
-    }
-
-    @Test
-    fun `forventer at vurderingstabeller blir låst når behandlingen er låst`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        thread {
-            inContext {
-                dokumentbehandlingRepository.hent(BehandlingId(1))
-                Thread.sleep(500)
-                avklaringRepository.lagreTeamAvklaring(behandlingId, false)
-            }
-        }
-        thread {
-            Thread.sleep(100)
-            inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, true) }
-        }.join()
-
-        inContext {
-            val temavurdering =
-                dokumentbehandlingRepository.hent(behandlingId).vurderinger.avklarTemaVurdering?.avklaring
-            assertThat(temavurdering).isNotNull().isEqualTo(true)
-        }
-
     }
 
     private class Context(
-        val dokumentbehandlingRepository: BehandlingRepository,
-        val avklaringRepository: AvklaringRepository,
         val behandlingRepository: BehandlingRepository,
+        val avklaringRepository: AvklaringRepository,
     )
 
     private fun <T> inContext(block: Context.() -> T): T {
         return InitTestDatabase.dataSource.transaction {
             val context =
-                Context(BehandlingRepositoryImpl(it), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
+                Context(BehandlingRepositoryImpl(it), AvklaringRepositoryImpl(it))
             context.let(block)
         }
     }

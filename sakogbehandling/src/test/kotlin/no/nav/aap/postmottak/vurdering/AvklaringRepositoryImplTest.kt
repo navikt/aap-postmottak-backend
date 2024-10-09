@@ -81,33 +81,6 @@ class AvklaringRepositoryImplTest {
         }
     }
 
-    @Test
-    fun `når teamavklaring blir lagret forventer jeg å finne den på behandlingen`() {
-        inContext {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
-
-            avklaringRepository.lagreTeamAvklaring(behandlingId, false)
-
-            val behandlingMedTemaavklaring = dokumentbehandlingRepository.hent(behandlingId)
-
-            assertThat(behandlingMedTemaavklaring.harTemaBlittAvklart()).isTrue()
-            assertThat(behandlingMedTemaavklaring.vurderinger.avklarTemaVurdering?.avklaring).isFalse()
-
-        }
-    }
-
-    @Test
-    fun `når to temaavklaringer blir lagret forventer jeg å finne den siste på behandlingen`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, false) }
-        Thread.sleep(100)
-        inContext { avklaringRepository.lagreTeamAvklaring(behandlingId, true) }
-        inContext {
-            val behandlingMedTemavurdering = dokumentbehandlingRepository.hent(behandlingId)
-
-            assertThat(behandlingMedTemavurdering.vurderinger.avklarTemaVurdering?.avklaring).isTrue()
-        }
-    }
 
     private class Context(
         val dokumentbehandlingRepository: BehandlingRepository,

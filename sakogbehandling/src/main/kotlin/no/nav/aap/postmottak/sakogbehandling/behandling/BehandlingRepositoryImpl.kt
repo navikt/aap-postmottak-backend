@@ -153,7 +153,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     }
 
     private fun hentVurderingerForBehandling(behandlingId: BehandlingId) = Vurderinger(
-        avklarTemaVurdering = vurderingRepository.hentTemaAvklaring(behandlingId),
         kategorivurdering = vurderingRepository.hentKategoriAvklaring(behandlingId),
         struktureringsvurdering = vurderingRepository.hentStruktureringsavklaring(behandlingId)
     )
