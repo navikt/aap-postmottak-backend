@@ -22,6 +22,8 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import tilgang.JournalpostTilgangRequest
+import tilgang.TilgangResponse
 import java.time.LocalDate
 
 
@@ -74,6 +76,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val saf = FakeServer(module = { safFake() })
     val joark = FakeServer(module = { joarkFake() })
     val behandlkingsflyt = FakeServer(module = { behandlingsflytFake() })
+    val tilgang = FakeServer(module = { tilgangFake() })
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -84,15 +87,14 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.port()}/jwks")
         System.setProperty("azure.openid.config.issuer", "postmottak-backend")
 
-        // Oppgavestyring
+        // Oppgave
         System.setProperty("integrasjon.oppgave.scope", "oppgave")
         System.setProperty("integrasjon.oppgave.url", "http://localhost:${oppgave.port()}")
 
         // Behandlingsflyt
         System.setProperty("integrasjon.behandlingsflyt.scope", "behandlingsflyt")
         System.setProperty("integrasjon.behandlingsflyt.url", "http://localhost:${behandlkingsflyt.port()}")
-
-
+        
         // Saf
         System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}/graphql")
         System.setProperty("integrasjon.saf.scope", "saf")
@@ -101,6 +103,11 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Joark
         System.setProperty("integrasjon.joark.url", "http://localhost:${joark.port()}")
         System.setProperty("integrasjon.joark.scope", "scope")
+        
+        // Tilgang
+        System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.port()}")
+        System.setProperty("integrasjon.tilgang.scope", "scope")
+        
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -320,6 +327,31 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
             get("/jwks") {
                 call.respond(AZURE_JWKS)
+            }
+        }
+    }
+
+    private fun Application.tilgangFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@tilgangFake.log.info(
+                    "TILGANG :: Ukjent feil ved kall til '{}'",
+                    call.request.local.uri,
+                    cause
+                )
+                call.respond(
+                    status = HttpStatusCode.Companion.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
+            }
+        }
+        routing {
+            post("/tilgang/journalpost") {
+                call.receive<JournalpostTilgangRequest>()
+                call.respond(TilgangResponse(true))
             }
         }
     }
