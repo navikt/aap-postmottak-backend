@@ -58,7 +58,7 @@ class App
 
 val SYSTEMBRUKER = Bruker("Kelvin")
 
-private const val ANTALL_WORKERS = 5
+private const val ANTALL_WORKERS = 4
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
@@ -200,7 +200,7 @@ fun initDatasource(dbConfig: DbConfig): HikariDataSource {
         jdbcUrl = dbConfig.url
         username = dbConfig.username
         password = dbConfig.password
-        maximumPoolSize = 10 + ANTALL_WORKERS
+        maximumPoolSize = 10 + (ANTALL_WORKERS * 2)        
         minimumIdle = 1
         driverClassName = "org.postgresql.Driver"
         connectionTestQuery = "SELECT 1"
