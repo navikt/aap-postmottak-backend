@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -26,12 +27,14 @@ class OverleverTilFagsystemStegTest {
     val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
     val behandlingsflytGateway: BehandlingsflytGateway = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepository = mockk()
+    val saksnummerRepository: SaksnummerRepository = mockk()
     val safRestClient: SafRestClient = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         behandlingRepository,
         behandlingsflytGateway,
         journalpostRepository,
+        saksnummerRepository,
         safRestClient
     )
 
@@ -48,7 +51,7 @@ class OverleverTilFagsystemStegTest {
         every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
-        every { behandling.vurderinger.saksvurdering?.saksnummer } returns saksnummer
+        every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer
     }
 
     @AfterEach
@@ -102,7 +105,6 @@ class OverleverTilFagsystemStegTest {
 
         overførTilFagsystemSteg.utfør(kontekst)
 
-        verify(exactly = 0, inverse = true) { behandling.vurderinger.struktureringsvurdering }
         verify(exactly = 1) { safRestClient.hentDokument(journalpostId, dokumentInfoId) }
         verify(exactly = 1) { behandlingsflytGateway.sendSøknad(saksnummer, journalpostId, any()) }
     }

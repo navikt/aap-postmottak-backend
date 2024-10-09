@@ -9,21 +9,20 @@ import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.joark.Joark
 import no.nav.aap.postmottak.joark.JoarkClient
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
 class SettFagsakSteg(
-    private val dokumentbehandling: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
+    private val saksnummerRepository: SaksnummerRepository,
     private val joarkKlient: Joark
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return SettFagsakSteg(
-                BehandlingRepositoryImpl(connection),
                 JournalpostRepositoryImpl(connection),
+                SaksnummerRepository(connection),
                 JoarkClient()
             )
         }
@@ -34,18 +33,17 @@ class SettFagsakSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val behandling = dokumentbehandling.hent(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+        val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId) ?: error {"Mangler saksvurdering i journalføringssteg"}
 
         require(journalpost is Journalpost.MedIdent)
 
         // TODO: Skill mellom maskinell og manuell journalføring
-        if (behandling.vurderinger.saksvurdering?.generellSak == true){
+        if (saksvurdering.generellSak){
             joarkKlient.førJournalpostPåGenerellSak(journalpost)
         } else {
             joarkKlient.førJournalpostPåFagsak(
-                journalpost, behandling
-                    .vurderinger.saksvurdering?.saksnummer!!
+                journalpost, saksvurdering.saksnummer!!
             )
         }
 

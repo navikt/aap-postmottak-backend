@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.flate
 
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 
 data class SaksInfoDto(
     val saksnummer: String,

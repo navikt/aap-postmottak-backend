@@ -8,12 +8,9 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.concurrent.thread
 
 class AvklaringRepositoryImplTest {
 
@@ -51,17 +48,6 @@ class AvklaringRepositoryImplTest {
         }
     }
 
-    @Test
-    fun `lagrer saksnummer på behandling`() {
-        val saksnummer = "234234"
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
-        inContext{
-            val actual = dokumentbehandlingRepository.hent(behandlingId)
-            assertThat(actual.vurderinger.saksvurdering?.saksnummer).isEqualTo(saksnummer)
-        }
-
-    }
 
     @Test
     fun `når struktureringsvurdering blir lagret forventer jeg å finne den på behandlingen`() {

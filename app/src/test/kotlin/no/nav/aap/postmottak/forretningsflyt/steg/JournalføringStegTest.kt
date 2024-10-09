@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.joark.Joark
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test
 
 class JournalføringStegTest {
 
-    val dokumentbehandlingRepository: BehandlingRepository = mockk(relaxed = true)
+    val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepositoryImpl = mockk()
     val joark: Joark = mockk(relaxed = true)
 
@@ -26,7 +27,7 @@ class JournalføringStegTest {
         every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
 
         val saksnummer = "saksnummer"
-        every { dokumentbehandlingRepository.hent(any() as BehandlingId).vurderinger.saksvurdering?.saksnummer } returns saksnummer
+        every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer
 
         journalføringSteg.utfør(mockk(relaxed = true))
 

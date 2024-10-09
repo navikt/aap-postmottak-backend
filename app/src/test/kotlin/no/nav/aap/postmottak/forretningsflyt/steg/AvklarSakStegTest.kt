@@ -24,15 +24,11 @@ class AvklarSakStegTest {
         clearAllMocks()
     }
 
-    val dokumentbehandlingRepository = mockk<BehandlingRepository>(relaxed = true)
-    val avklaringRepository = mockk<AvklaringRepositoryImpl>(relaxed = true)
     val behandlingsflytClient = mockk<BehandlingsflytClient>(relaxed = true)
     val journalpostRepository = mockk<JournalpostRepositoryImpl>(relaxed = true)
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
 
     val avklarSakSteg = AvklarSakSteg(
-        dokumentbehandlingRepository,
-        avklaringRepository,
         saksnummerRepository,
         journalpostRepository,
         behandlingsflytClient)
@@ -52,7 +48,7 @@ class AvklarSakStegTest {
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }
+        verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
     }
@@ -65,7 +61,7 @@ class AvklarSakStegTest {
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }
+        verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
     }
@@ -76,11 +72,12 @@ class AvklarSakStegTest {
         every { journalpost.kanBehandlesAutomatisk() } returns false
 
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 0) { avklaringRepository.lagreSakVurdering(any(), any()) }
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).contains(Definisjon.AVKLAR_SAK)
     }
@@ -89,18 +86,14 @@ class AvklarSakStegTest {
     fun `når det finnes relaterte saker til behandlingen og saksnummer er gitt i avklaring går vi videre i flyten`() {
         val journalpost: Journalpost.MedIdent = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns false
 
-        val behandling: Behandling = mockk()
-        every { behandling.harGjortSaksvurdering() } returns true
-        every { behandling.vurderinger.saksvurdering?.opprettNySak } returns false
-
-        every { dokumentbehandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 0) { avklaringRepository.lagreSakVurdering(any(), any()) }
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
 
@@ -111,17 +104,14 @@ class AvklarSakStegTest {
         val journalpost: Journalpost.MedIdent = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns false
 
-        val behandling: Behandling = mockk()
-        every { behandling.harGjortSaksvurdering() } returns true
-        every { behandling.vurderinger.saksvurdering?.opprettNySak } returns true
+        every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns true
 
-        every { dokumentbehandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { avklaringRepository.lagreSakVurdering(any(), any()) }
+        verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
         assertThat(resultat.avklaringsbehov).isEmpty()
 

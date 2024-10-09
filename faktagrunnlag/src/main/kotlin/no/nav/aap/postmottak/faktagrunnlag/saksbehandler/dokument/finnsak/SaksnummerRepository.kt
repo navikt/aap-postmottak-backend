@@ -52,4 +52,46 @@ class SaksnummerRepository(private val connection: DBConnection) {
         }
     }
 
+    fun lagreSakVurdering(behandlingId: BehandlingId, saksvurdering: Saksvurdering) {
+        val avklaringId = connection.executeReturnKey(
+            """
+            INSERT INTO SAKSNUMMER_AVKLARING (SAKSNUMMER, OPPRETT_NY, GENERELL_SAK) VALUES (
+            ?, ?, ?)
+        """.trimIndent()
+        ) {
+            setParams {
+                setString(1, saksvurdering.saksnummer)
+                setBoolean(2, saksvurdering.opprettNySak)
+                setBoolean(3, saksvurdering.generellSak)
+            }
+        }
+        setVurderingInaktiv(behandlingId)
+
+        connection.execute("""INSERT INTO SAKSVURDERING_GRUNNLAG (BEHANDLING_ID, SAKSNUMMER_AVKLARING_ID) VALUES (?, ?)""")
+        { setParams { setLong(1, behandlingId.id); setLong(2, avklaringId)} }
+    }
+
+    fun hentSakVurdering(behandlingId: BehandlingId): Saksvurdering? {
+        return connection.queryFirstOrNull(
+            """SELECT * FROM SAKSVURDERING_GRUNNLAG
+            JOIN saksnummer_avklaring ON saksnummer_avklaring.id = SAKSVURDERING_GRUNNLAG.saksnummer_avklaring_id
+            WHERE BEHANDLING_ID = ?
+            ORDER BY TIDSSTEMPEL DESC LIMIT 1
+        """
+        ) {
+            setParams { setLong(1, behandlingId.toLong()) }
+            setRowMapper { row ->
+                Saksvurdering(
+                    row.getStringOrNull("SAKSNUMMER"),
+                    row.getBoolean("OPPRETT_NY"),
+                    row.getBoolean("GENERELL_SAK"),
+                )
+            }
+        }
+    }
+
+    private fun setVurderingInaktiv(behandlingId: BehandlingId) {
+        connection.execute("""UPDATE SAKSVURDERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND  AKTIV""") {setParams { setLong(1, behandlingId.id) }}
+    }
+
 }

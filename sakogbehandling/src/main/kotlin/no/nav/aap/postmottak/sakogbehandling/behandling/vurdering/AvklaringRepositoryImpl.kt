@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.sakogbehandling.behandling.vurdering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.postmottak.sakogbehandling.sak.Saksnummer
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringRepository {
@@ -49,22 +48,6 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
         }
     }
 
-    override fun lagreSakVurdering(behandlingId: BehandlingId, saksvurdering: Saksvurdering) {
-        connection.execute(
-            """
-            INSERT INTO SAKSNUMMER_AVKLARING (BEHANDLING_ID, SAKSNUMMER, OPPRETT_NY, GENERELL_SAK) VALUES (
-            ?, ?, ?, ?)
-        """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-                setString(2, saksvurdering.saksnummer)
-                setBoolean(3, saksvurdering.opprettNySak)
-                setBoolean(4, saksvurdering.generellSak)
-            }
-        }
-    }
-
     override fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdeirng? {
         return connection.queryFirstOrNull(vurderingQuery("SKAL_TIL_AAP_AVKLARING")) {
             setParams { setLong(1, behandlingId.toLong()) }
@@ -88,18 +71,7 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
         }
     }
 
-    override fun hentSakAvklaring(behandlingId: BehandlingId): Saksvurdering? {
-        return connection.queryFirstOrNull(vurderingQuery("SAKSNUMMER_AVKLARING")) {
-            setParams { setLong(1, behandlingId.toLong()) }
-            setRowMapper { row ->
-                Saksvurdering(
-                    row.getStringOrNull("SAKSNUMMER"),
-                    row.getBoolean("OPPRETT_NY"),
-                    row.getBoolean("GENERELL_SAK"),
-                )
-            }
-        }
-    }
+
 
     override fun hentStruktureringsavklaring(behandlingId: BehandlingId): Struktureringsvurdering? {
         return connection.queryFirstOrNull(vurderingQuery("DIGITALISERINGSAVKLARING")) {

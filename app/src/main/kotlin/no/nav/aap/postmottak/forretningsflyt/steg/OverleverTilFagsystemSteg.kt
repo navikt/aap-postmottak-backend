@@ -10,6 +10,7 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
@@ -25,6 +26,7 @@ class OverleverTilFagsystemSteg(
     private val dokumentbehandlingRepository: BehandlingRepository,
     private val behandlingsflytGateway: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository,
+    private val saksnummerRepository: SaksnummerRepository,
     private val safRestClient: SafRestClient
 ) : BehandlingSteg {
     companion object : FlytSteg {
@@ -33,6 +35,7 @@ class OverleverTilFagsystemSteg(
                 BehandlingRepositoryImpl(connection),
                 BehandlingsflytClient(),
                 JournalpostRepositoryImpl(connection),
+                saksnummerRepository = SaksnummerRepository(connection),
                 SafRestClient.withClientCredentialsRestClient()
             )
         }
@@ -61,7 +64,7 @@ class OverleverTilFagsystemSteg(
                 hentDokumentFraSaf(journalpost).parseDigitalSøknad().berik()
 
         behandlingsflytGateway.sendSøknad(
-            behandling.vurderinger.saksvurdering?.saksnummer!!,
+            saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
             journalpost.journalpostId,
             dokumentJson
         )

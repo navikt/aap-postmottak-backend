@@ -14,16 +14,12 @@ import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.Behandlingsf
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
 
 class AvklarSakSteg(
-    private val dokumentbehandlingRepository: BehandlingRepository,
-    private val avklaringRepository: AvklaringRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytClient: BehandlingsflytGateway
@@ -31,8 +27,6 @@ class AvklarSakSteg(
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return AvklarSakSteg(
-                BehandlingRepositoryImpl(connection),
-                AvklaringRepositoryImpl(connection),
                 SaksnummerRepository(connection),
                 JournalpostRepositoryImpl(connection),
                 BehandlingsflytClient()
@@ -47,19 +41,18 @@ class AvklarSakSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val sakerPåBruker = saksnummerRepository.hentSaksnummre(kontekst.behandlingId)
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        val behandling = dokumentbehandlingRepository.hent(kontekst.behandlingId)
-        requireNotNull(journalpost) { "Journalpost kan ikke være null" }
+        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost kan ikke være null")
+        val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         check(journalpost is Journalpost.MedIdent)
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
             val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-            avklaringRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
+            saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
             StegResultat()
-        } else if (behandling.harGjortSaksvurdering()) {
-            if (behandling.vurderinger.saksvurdering?.opprettNySak == true) {
+        } else if (saksnummerVurdering != null) {
+            if (saksnummerVurdering.opprettNySak) {
                 val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
-                avklaringRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
+                saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
             }
             StegResultat()
         } else {

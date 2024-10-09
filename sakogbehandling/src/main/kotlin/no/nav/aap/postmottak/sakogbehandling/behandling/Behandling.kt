@@ -24,7 +24,6 @@ class Behandling(
     fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
     fun harTemaBlittAvklart() = vurderinger.avklarTemaVurdering != null
     fun harBlittKategorisert() = vurderinger.kategorivurdering != null
-    fun harGjortSaksvurdering() = vurderinger.saksvurdering != null
 
     val typeBehandling = TypeBehandling.DokumentHåndtering
     val referanse: JournalpostId = journalpostId

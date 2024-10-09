@@ -7,12 +7,12 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.type.Periode
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
 import java.time.LocalDate
-import javax.sql.DataSource
 
 class SaksnummerRepositoryTest {
 
@@ -26,14 +26,18 @@ class SaksnummerRepositoryTest {
 
     @AfterEach
     fun tearDown() {
-        dataSource.transaction { it.execute("""
+        dataSource.transaction {
+            it.execute(
+                """
             TRUNCATE BEHANDLING CASCADE
-        """.trimIndent()) }
+        """.trimIndent()
+            )
+        }
     }
 
     @Test
     fun hentSaksnummre() {
-        withContext(dataSource) {
+        inContext {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
             saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo)
 
@@ -45,13 +49,13 @@ class SaksnummerRepositoryTest {
 
     @Test
     fun `hent siste saksnummre for behandling`() {
-        val behandlingId = withContext(dataSource) { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
 
-        withContext(dataSource) { saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo) }
+        inContext { saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo) }
 
-        withContext(dataSource) { saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo + Saksinfo("Sak: 3", getPeriode())) }
+        inContext { saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo + Saksinfo("Sak: 3", getPeriode())) }
 
-        withContext(dataSource) {
+        inContext {
             val saker = saksnummerRepository.hentSaksnummre(behandlingId)
             assertThat(saker).size().isEqualTo(3)
         }
@@ -59,13 +63,15 @@ class SaksnummerRepositoryTest {
 
     @Test
     fun lagreSaksnummer() {
-        withContext(dataSource) {
+        inContext {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
             saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo)
 
-            val actual = connection.queryFirst("""
-                SELECT COUNT(*) as count FROM SAKER_PAA_BEHANDLING""".trimIndent()) {
+            val actual = connection.queryFirst(
+                """
+                SELECT COUNT(*) as count FROM SAKER_PAA_BEHANDLING""".trimIndent()
+            ) {
                 setRowMapper { it.getInt("count") }
             }
 
@@ -74,12 +80,48 @@ class SaksnummerRepositoryTest {
 
     }
 
-    private  class TestContext(val connection: DBConnection) {
+    @Test
+    fun `lagrer saksnummeravklaring på behandling`() {
+        val saksnummer = "234234"
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
+        inContext {
+            val actual = saksnummerRepository.hentSakVurdering(behandlingId)
+            assertThat(actual?.saksnummer).isEqualTo(saksnummer)
+        }
+
+    }
+
+    @Test
+    fun `kan ikke ha to aktive vurderinger på saksnummergrunnlag`() {
+        val saksnummer = "234234"
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
+
+        catchThrowable {
+            dataSource.transaction {
+                it.execute(
+                    """insert INTO SAKSVURDERING_GRUNNLAG (behandling_Id, SAKSNUMMER_AVKLARING_ID) 
+             SELECT ?, id FROM SAKSNUMMER_AVKLARING LIMIT 1""".trimMargin()
+                ) { setParams { setLong(1, behandlingId.toLong()) } }
+            }
+        }
+    }
+
+    @Test
+    fun `hvis to vurderinger blir lagt på samme sak blir den første deaktivert`() {
+        val saksnummer = "234234"
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
+        inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
+    }
+
+    private class TestContext(val connection: DBConnection) {
         val saksnummerRepository: SaksnummerRepository = SaksnummerRepository(connection)
         val behandlingRepository: BehandlingRepository = BehandlingRepositoryImpl(connection)
     }
 
-    private fun <T>withContext(dataSource: DataSource, block: TestContext.() -> T): T {
+    private fun <T> inContext(block: TestContext.() -> T): T {
         return dataSource.transaction {
             TestContext(it).let(block)
         }

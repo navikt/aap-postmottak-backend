@@ -7,11 +7,12 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.Test
@@ -94,7 +95,7 @@ private fun opprettBehandlingKategoriser(connection: DBConnection) {
 
     val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(3))
     vurderingRepository.lagreTeamAvklaring(behandlingId, true)
-    vurderingRepository.lagreSakVurdering(behandlingId, Saksvurdering("1010"))
+    SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(null, behandlingId.toLong()).medCallId()
@@ -109,7 +110,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
     val behandlingId =
         behandlingRepository.opprettBehandling(JournalpostId(4))
     vurderingRepository.lagreTeamAvklaring(behandlingId, true)
-    vurderingRepository.lagreSakVurdering(behandlingId, Saksvurdering("1010"))
+    SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     vurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
