@@ -8,7 +8,7 @@ class GjenopptakRepository(private val connection: DBConnection) {
 
     fun finnBehandlingerForGjennopptak(): List<BehandlingId> {
         val query = """
-            SELECT b.id, b.sak_id 
+            SELECT b.id 
             FROM BEHANDLING b
              JOIN AVKLARINGSBEHOV a ON a.behandling_id = b.id
              JOIN (
