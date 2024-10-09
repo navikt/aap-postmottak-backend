@@ -14,9 +14,6 @@ sealed class Journalpost(
     private val mottattDato: LocalDate,
     private val dokumenter: List<Dokument> = emptyList()
 ) {
-    fun harFortsattTilstandMottatt(): Boolean {
-        return status == JournalpostStatus.MOTTATT
-    }
 
     fun erSøknad(): Boolean {
         return dokumenter.any {
@@ -37,8 +34,6 @@ sealed class Journalpost(
     fun finnArkivVarianter(): List<Dokument> = dokumenter.filter {
          it.variantFormat == Variantformat.ARKIV
     }
-    
-    fun getDokumentNavn(): String = finnOriginal()?.tittel ?: "Ukjent"
 
     fun kanBehandlesAutomatisk(): Boolean {
         return erSøknad() && erDigital()
@@ -93,7 +88,6 @@ data class Dokument(
     val variantFormat: Variantformat,
     val filtype: Filtype,
     val brevkode: String?,
-    val tittel: String?,
 )
 
 enum class Filtype {

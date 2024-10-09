@@ -35,7 +35,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection): Journalpo
 
 
         val dokumentQuery = """
-                INSERT INTO DOKUMENT (JOURNALPOST_ID, DOKUMENT_INFO_ID, BREVKODE, VARIANTFORMAT, TITTEL, FILTYPE) VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO DOKUMENT (JOURNALPOST_ID, DOKUMENT_INFO_ID, BREVKODE, VARIANTFORMAT, FILTYPE) VALUES (?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeBatch(dokumentQuery, journalpost.dokumenter()) {
             setParams { dokument ->
@@ -43,8 +43,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection): Journalpo
                 setString(2, dokument.dokumentInfoId.dokumentInfoId)
                 setString(3, dokument.brevkode)
                 setEnumName(4, dokument.variantFormat)
-                setString(5, dokument.tittel)
-                setEnumName(6, dokument.filtype)
+                setEnumName(5, dokument.filtype)
             }
         }
     }
@@ -100,7 +99,6 @@ class JournalpostRepositoryImpl(private val connection: DBConnection): Journalpo
                     variantFormat = it.getEnum("VARIANTFORMAT"),
                     filtype = it.getEnum("FILTYPE"),
                     brevkode = it.getStringOrNull("BREVKODE"),
-                    tittel = it.getString("TITTEL")
                 )
             }
         }

@@ -25,7 +25,6 @@ class DynamiskStegGruppeVisningServiceTest {
         status = JournalpostStatus.MOTTATT,
         dokumenter = listOf(
             Dokument(
-                tittel = "Søknad",
                 brevkode = "NAV 11-13.05",
                 filtype = Filtype.JSON,
                 variantFormat = Variantformat.ORIGINAL,

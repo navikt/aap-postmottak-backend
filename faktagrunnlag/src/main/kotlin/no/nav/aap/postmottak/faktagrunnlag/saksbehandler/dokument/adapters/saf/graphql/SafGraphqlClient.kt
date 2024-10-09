@@ -83,7 +83,6 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
                     Variantformat.valueOf(variant.variantformat.name),
                     Filtype.valueOf(variant.filtype),
                     dokument.brevkode,
-                    dokument.tittel
                 )
             }
         } ?: emptyList()

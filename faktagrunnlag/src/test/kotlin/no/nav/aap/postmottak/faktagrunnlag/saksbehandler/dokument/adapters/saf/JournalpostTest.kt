@@ -71,14 +71,12 @@ class JournalpostTest {
         journalførendeEnhet = "YOLO",
         dokumenter = dokumenter ?: listOf(
             Dokument(
-                tittel = "Søknad",
                 brevkode = "Brev",
                 filtype = Filtype.JSON,
                 variantFormat = Variantformat.ORIGINAL,
                 dokumentInfoId = DokumentInfoId("1")
             ),
             Dokument(
-                tittel = "Søknad",
                 brevkode = "Brev",
                 filtype = Filtype.PDF,
                 variantFormat = Variantformat.SLADDET,
@@ -92,7 +90,6 @@ class JournalpostTest {
         brevkode: String? = null,
     ) = Dokument(
         dokumentInfoId = DokumentInfoId("1"),
-        tittel = "Dokument tittel",
         brevkode = brevkode ?: "Brev",
         filtype = Filtype.JSON,
         variantFormat = variantformat ?: Variantformat.ORIGINAL

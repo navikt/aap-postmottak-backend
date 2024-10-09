@@ -46,38 +46,6 @@ class JournalpostRepositoryImplTest {
         }
     }
 
-    @Test
-    fun `Kan lagre og hente journalpost med lange dokumenttittler`() {
-        InitTestDatabase.dataSource.transaction { connection ->
-            // Setup
-            val behandlingRepository = BehandlingRepositoryImpl(connection)
-
-            val journalpost = genererJournalpost(
-                listOf(
-                    Dokument(
-                        tittel = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages",
-                        brevkode = "NAV 11-13.05",
-                        filtype = Filtype.JSON,
-                        variantFormat = Variantformat.ORIGINAL,
-                        dokumentInfoId = DokumentInfoId("1")
-                    ),
-                )
-            )
-            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId)
-            val journalpostRepository = JournalpostRepositoryImpl(connection)
-
-            // Act
-            journalpostRepository.lagre(journalpost, behandlingid)
-
-            val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandlingid)
-
-            assertThat(hentetJournalpost).isEqualTo(journalpost)
-            assertThat(hentetJournalpost?.dokumenter()?.size).isGreaterThan(0)
-            assertThat(hentetJournalpost?.erSøknad()).isTrue()
-            assertThat(hentetJournalpost?.erDigital()).isTrue()
-        }
-    }
-
     private fun genererJournalpost(
         dokumenter: List<Dokument>? = null
     ) = Journalpost.MedIdent(
@@ -88,14 +56,12 @@ class JournalpostRepositoryImplTest {
         journalførendeEnhet = "YOLO",
         dokumenter = dokumenter ?: listOf(
             Dokument(
-                tittel = "Søknad",
                 brevkode = "NAV 11-13.05",
                 filtype = Filtype.JSON,
                 variantFormat = Variantformat.ORIGINAL,
                 dokumentInfoId = DokumentInfoId("1")
             ),
             Dokument(
-                tittel = "Søknad",
                 brevkode = "NAV 11-13.05",
                 filtype = Filtype.PDF,
                 variantFormat = Variantformat.SLADDET,
