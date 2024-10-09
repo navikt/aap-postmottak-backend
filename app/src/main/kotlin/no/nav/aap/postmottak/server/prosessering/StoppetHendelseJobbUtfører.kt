@@ -19,7 +19,7 @@ class StoppetHendelseJobbUtfører private constructor() : JobbUtfører {
 
         val hendelse = DefaultJsonMapper.fromJson<DokumentflytStoppetHendelse>(payload)
         
-        log.info("Varsler hendelse til Oppgave. Journalpost: ${hendelse.referanse}")
+        log.info("Varsler hendelse til Oppgave: ${hendelse}")
         OppgaveGateway.varsleHendelse(hendelse)
     }
 
