@@ -1,16 +1,16 @@
 package no.nav.aap.postmottak.hendelse.avløp
 
-import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.server.prosessering.StoppetHendelseJobbUtfører
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.hendelse.AvklaringsbehovHendelseDto
 import no.nav.aap.postmottak.kontrakt.hendelse.DefinisjonDTO
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import no.nav.aap.postmottak.kontrakt.hendelse.EndringDTO
+import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
+import no.nav.aap.postmottak.server.prosessering.StoppetHendelseJobbUtfører
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
@@ -19,17 +19,6 @@ private val log = LoggerFactory.getLogger(BehandlingHendelseService::class.java)
 class BehandlingHendelseService(
     private val flytJobbRepository: FlytJobbRepository
 ) {
-
-    /**
-     * Kjøres når en behandling er avsluttet. For statistikkformål.
-     */
-    fun avsluttet(behandling: Behandling) {
-        val vilkårsResultatDTO =
-            AvsluttetBehandlingHendelseDTO(behandling.id)
-
-        val payload = DefaultJsonMapper.toJson(vilkårsResultatDTO)
-
-    }
 
     fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
 

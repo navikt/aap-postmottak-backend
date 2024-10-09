@@ -100,10 +100,6 @@ class FlytOrkestrator(
         tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene)
     }
 
-    private fun starterOppBehandling(behandling: Behandling): Boolean {
-        return behandling.stegHistorikk().isEmpty()
-    }
-
     fun prosesserBehandling(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
@@ -165,12 +161,12 @@ class FlytOrkestrator(
 
                     validerAtAvklaringsBehovErLukkede(avklaringsbehovene)
                     log.info("Behandlingen har nådd slutten, avslutter behandling")
-                    behandlingHendelseService.avsluttet(behandling)
                 } else {
                     // Prosessen har stoppet opp, slipp ut hendelse om at den har stoppet opp og hvorfor?
                     loggStopp(behandling, avklaringsbehovene)
                 }
-                behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
+                val oppdatertBehandling = behandlingRepository.hent(behandling.id)
+                behandlingHendelseService.stoppet(oppdatertBehandling, avklaringsbehovene)
                 return
             }
             gjeldendeSteg = neste
