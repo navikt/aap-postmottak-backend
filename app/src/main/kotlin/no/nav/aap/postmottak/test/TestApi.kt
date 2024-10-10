@@ -21,7 +21,8 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
     val miljø = Miljø.er()
     if (miljø == MiljøKode.DEV || miljø == MiljøKode.LOKALT) {
         route("/test/hentAlleBehandlinger") {
-            get<Unit, List<BehandlingsListe>>() {
+            @Suppress("UnauthorizedGet")
+            get<Unit, List<BehandlingsListe>> {
                 val response = datasource.transaction {
                     it.queryList(
                         """SELECT journalpost_id as ref, steg, behandling.OPPRETTET_TID FROM BEHANDLING

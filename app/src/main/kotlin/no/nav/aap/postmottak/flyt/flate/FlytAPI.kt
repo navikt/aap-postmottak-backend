@@ -29,13 +29,18 @@ import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
+import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.authorizedGet
+import no.nav.aap.tilgang.authorizedJournalpostPost
+import no.nav.aap.tilgang.authorizedSakPost
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.MDC
+import tilgang.Operasjon
 
 fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
-            get<JournalpostId, BehandlingFlytOgTilstandDto> { req ->
+            authorizedGet<JournalpostId, BehandlingFlytOgTilstandDto>(JournalpostPathParam("referanse")) { req ->
                 val dto = dataSource.transaction { connection ->
                     val behandling = BehandlingRepositoryImpl(connection).hent(req)
                     val flytJobbRepository = FlytJobbRepository(connection)
@@ -96,7 +101,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             }
         }
         route("/{referanse}/resultat") {
-            get<JournalpostId, BehandlingResultatDto> { req ->
+            authorizedGet<JournalpostId, BehandlingResultatDto>(JournalpostPathParam("referanse")) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
 
                     BehandlingResultatDto()
@@ -106,7 +111,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
         }
 
         route("/{referanse}/sett-på-vent") {
-            post<JournalpostId, BehandlingResultatDto, SettPåVentRequest> { request, body ->
+            authorizedJournalpostPost<JournalpostId, BehandlingResultatDto, SettPåVentRequest>(Operasjon.SAKSBEHANDLE) { request, body ->
                 dataSource.transaction { connection ->
                     val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
                     val lås = taSkriveLåsRepository.lås(request.referanse)
@@ -134,7 +139,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             }
         }
         route("/{referanse}/vente-informasjon") {
-            get<JournalpostId, Venteinformasjon> { request ->
+            authorizedGet<JournalpostId, Venteinformasjon>(JournalpostPathParam("referanse")) { request ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = BehandlingRepositoryImpl(connection).hent(request)
 

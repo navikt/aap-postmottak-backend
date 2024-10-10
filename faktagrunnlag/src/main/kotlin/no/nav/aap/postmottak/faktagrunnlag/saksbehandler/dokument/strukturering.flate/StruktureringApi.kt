@@ -9,10 +9,12 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.authorizedGet
 
 fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/strukturering") {
-        get<JournalpostId, StruktureringGrunnlagDto> { req ->
+        authorizedGet<JournalpostId, StruktureringGrunnlagDto>(JournalpostPathParam("referanse")) { req ->
             val behandling = dataSource.transaction(readOnly = true) {
                 BehandlingRepositoryImpl(it).hent(req)
             }
@@ -24,7 +26,7 @@ fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
                     behandling.vurderinger.struktureringsvurdering
                         ?.vurdering?.let(::StruktureringVurderingDto),
                     behandling.vurderinger.kategorivurdering!!.avklaring,
-                    listOf(1,2)
+                    listOf(1, 2)
                 )
             )
         }

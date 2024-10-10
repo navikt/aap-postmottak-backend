@@ -12,10 +12,12 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.Avk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.authorizedGet
 
 fun NormalOpenAPIRoute.avklarTemaVurderingApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/avklarTemaVurdering") {
-        get<JournalpostId, AvklarTemaGrunnlagDto> { req ->
+        authorizedGet<JournalpostId, AvklarTemaGrunnlagDto>(JournalpostPathParam("referanse")) { req ->
             val token = token()
             val grunnlag = dataSource.transaction(readOnly = true) {
                 val behandling = BehandlingRepositoryImpl(it).hent(req)

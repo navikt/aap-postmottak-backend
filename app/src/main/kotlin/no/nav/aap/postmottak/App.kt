@@ -160,6 +160,7 @@ fun Application.module(dataSource: DataSource): Motor {
 
 fun NormalOpenAPIRoute.configApi() {
     route("/config/definisjoner") {
+        @Suppress("UnauthorizedGet")
         get<Unit, List<DefinisjonDTO>> {
             respond(Definisjon.entries.map {
                 DefinisjonDTO(

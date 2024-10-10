@@ -2,7 +2,6 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
@@ -14,13 +13,15 @@ import no.nav.aap.postmottak.sakogbehandling.sak.flate.DokumentResponsDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentDokumentDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentJournalpostDTO
 import no.nav.aap.komponenter.httpklient.auth.token
+import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.verdityper.dokument.DokumentInfoId
 
 
 fun NormalOpenAPIRoute.dokumentApi() {
     route("/api/dokumenter") {
         route("/{journalpostId}/{dokumentinfoId}") {
-            get<HentDokumentDTO, DokumentResponsDTO> { req ->
+            authorizedGet<HentDokumentDTO, DokumentResponsDTO>(JournalpostPathParam("journalpostId")) { req ->
                 val journalpostId = req.journalpostId
                 val dokumentInfoId = req.dokumentinfoId
 
@@ -41,7 +42,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
             }
         }
         route("/{journalpostId}/info") {
-            get<HentJournalpostDTO, DokumentInfoResponsDTO> { req ->
+            authorizedGet<HentJournalpostDTO, DokumentInfoResponsDTO>(JournalpostPathParam("journalpostId")) { req ->
                 val journalpostId = req.journalpostId
 
                 val token = token()

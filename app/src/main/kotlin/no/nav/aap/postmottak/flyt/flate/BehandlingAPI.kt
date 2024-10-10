@@ -20,13 +20,15 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}") {
-            get<JournalpostId, DetaljertBehandlingDTO> { req ->
+            authorizedGet<JournalpostId, DetaljertBehandlingDTO>(JournalpostPathParam("referanse")) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = behandling(connection, req)
                     val flyt = utledType(behandling.typeBehandling).flyt()
@@ -65,7 +67,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             }
         }
         route("/{referanse}/forbered") {
-            get<JournalpostId, DetaljertBehandlingDTO> { req ->
+            authorizedGet<JournalpostId, DetaljertBehandlingDTO>(JournalpostPathParam("referanse")) { req ->
                 dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
                     val flytJobbRepository = FlytJobbRepository(connection)
@@ -82,6 +84,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             }
         }
         // TODO: Kun for test
+        @Suppress("UnauthorizedPost")
         post<Unit, JournalpostDto, JournalpostDto> { _, body ->
             dataSource.transaction { connection ->
                 val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId((body.referanse)))
