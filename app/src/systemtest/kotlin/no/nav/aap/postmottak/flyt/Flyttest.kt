@@ -21,9 +21,9 @@ import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -113,7 +113,7 @@ class Flyttest : WithFakes {
 
     private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection): BehandlingId {
         val behandlingRepository = BehandlingRepositoryImpl(connection)
-        val avklaringRepository = AvklaringRepositoryImpl(connection)
+        val avklaringRepository = StruktureringsvurderingRepository(connection)
         val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
         AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
@@ -131,7 +131,7 @@ class Flyttest : WithFakes {
 
         val behandlingId = dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val avklaringRepository = AvklaringRepositoryImpl(connection)
+            val avklaringRepository = StruktureringsvurderingRepository(connection)
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
             AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)

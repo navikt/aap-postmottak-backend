@@ -2,7 +2,6 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariDataSource
@@ -12,7 +11,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Struktureringsvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 
 fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/strukturering") {
@@ -20,7 +19,7 @@ fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
             val (kategorivurdering, struktureringsvurdering) = dataSource.transaction(readOnly = true) {
                 val behandling = BehandlingRepositoryImpl(it).hent(req)
                 val kategorivurdering = KategorivurderingRepository(it).hentKategoriAvklaring(behandling.id)
-                val struktureringsvurdering = behandling.vurderinger.struktureringsvurdering
+                val struktureringsvurdering = StruktureringsvurderingRepository(it).hentStruktureringsavklaring(behandling.id)
                 Pair(kategorivurdering, struktureringsvurdering)
             }
 

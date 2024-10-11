@@ -4,7 +4,6 @@ import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Vurderinger
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -17,11 +16,9 @@ class Behandling(
     private var status: Status = Status.OPPRETTET,
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     val opprettetTidspunkt: LocalDateTime,
-    val vurderinger: Vurderinger = Vurderinger(),
     val versjon: Long = 0,
 ) : Comparable<Behandling> {
 
-    fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
 
     val typeBehandling = TypeBehandling.DokumentHåndtering
     val referanse: JournalpostId = journalpostId

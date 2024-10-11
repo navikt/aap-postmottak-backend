@@ -11,6 +11,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.J
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -25,7 +26,7 @@ import java.io.ByteArrayInputStream
 
 class OverleverTilFagsystemStegTest {
 
-    val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
+    val struktureringsvurderingRepository: StruktureringsvurderingRepository = mockk(relaxed = true)
     val kategorivurderingRepository: KategorivurderingRepository = mockk(relaxed = true)
     val behandlingsflytGateway: BehandlingsflytGateway = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepository = mockk()
@@ -33,7 +34,7 @@ class OverleverTilFagsystemStegTest {
     val safRestClient: SafRestClient = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
-        behandlingRepository,
+        struktureringsvurderingRepository,
         kategorivurderingRepository,
         behandlingsflytGateway,
         journalpostRepository,
@@ -51,7 +52,6 @@ class OverleverTilFagsystemStegTest {
     @BeforeEach
     fun beforeEach() {
         every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
-        every { behandlingRepository.hent(any() as BehandlingId) } returns behandling
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
         every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer
@@ -69,8 +69,7 @@ class OverleverTilFagsystemStegTest {
         val kontekst: FlytKontekstMedPerioder = mockk(relaxed = true)
 
         every { journalpost.erSøknad() } returns false
-        every { behandling.harBlittStrukturert() } returns true
-        every { behandling.vurderinger.struktureringsvurdering?.vurdering } returns """{
+        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any())?.vurdering } returns """{
             |"yrkesskade": "Nei"},
             |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"},
             |"oppgitteBarn": []
@@ -95,7 +94,7 @@ class OverleverTilFagsystemStegTest {
             |}""".trimMargin()
 
         every { dokument.dokumentInfoId } returns dokumentInfoId
-        every { behandling.harBlittStrukturert() } returns false
+        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpost.finnOriginal() } returns dokument
         every { journalpost.erSøknad()} returns true
         every {

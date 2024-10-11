@@ -6,15 +6,11 @@ import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Vurderinger
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDateTime
 
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
-
-    private val vurderingRepository = AvklaringRepositoryImpl(connection)
 
     override fun opprettBehandling(journalpostId: JournalpostId): BehandlingId {
 
@@ -41,7 +37,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
-            vurderinger = hentVurderingerForBehandling(behandlingId),
             versjon = row.getLong("versjon")
         )
     }
@@ -108,21 +103,6 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             }
         }
     }
-    
-    fun hentBehandlingType(behandlingId: BehandlingId): TypeBehandling {
-        val query = """
-            SELECT type FROM BEHANDLING WHERE id = ?
-            """.trimIndent()
-
-        return connection.queryFirst(query) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-            }
-            setRowMapper { row ->
-                TypeBehandling.from(row.getString("type"))
-            }
-        }
-    }
 
     override fun hent(behandlingId: BehandlingId): Behandling {
         val query = """
@@ -151,9 +131,5 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             }
         }
     }
-
-    private fun hentVurderingerForBehandling(behandlingId: BehandlingId) = Vurderinger(
-        struktureringsvurdering = vurderingRepository.hentStruktureringsavklaring(behandlingId)
-    )
 
 }

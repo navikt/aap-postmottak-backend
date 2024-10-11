@@ -110,10 +110,11 @@ class SaksnummerRepositoryTest {
 
     @Test
     fun `hvis to vurderinger blir lagt på samme sak blir den første deaktivert`() {
-        val saksnummer = "234234"
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
-        inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
+        inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering("YOLO")) }
+        inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering("SWAG")) }
+
+        assertThat( inContext { saksnummerRepository.hentSakVurdering(behandlingId)?.saksnummer }).isEqualTo("SWAG")
     }
 
     private class TestContext(val connection: DBConnection) {

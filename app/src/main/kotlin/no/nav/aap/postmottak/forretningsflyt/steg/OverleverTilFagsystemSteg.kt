@@ -1,22 +1,21 @@
 package no.nav.aap.postmottak.forretningsflyt.steg
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import org.slf4j.LoggerFactory
@@ -24,7 +23,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
 
 class OverleverTilFagsystemSteg(
-    private val behandlingRepository: BehandlingRepository,
+    private val struktureringsvurderingRepository: StruktureringsvurderingRepository,
     private val kategorivurderingRepository: KategorivurderingRepository,
     private val behandlingsflytGateway: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository,
@@ -34,7 +33,7 @@ class OverleverTilFagsystemSteg(
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return OverleverTilFagsystemSteg(
-                BehandlingRepositoryImpl(connection),
+                StruktureringsvurderingRepository(connection),
                 KategorivurderingRepository(connection),
                 BehandlingsflytClient(),
                 JournalpostRepositoryImpl(connection),
@@ -50,7 +49,7 @@ class OverleverTilFagsystemSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
 
-        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        val struktureringsvurdering = struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
         val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost != null)
@@ -62,10 +61,8 @@ class OverleverTilFagsystemSteg(
 
         // TODO :poop: bør kanskje gjøres på journalpost
         val dokumentJson =
-            if (behandling.harBlittStrukturert())
-                behandling.vurderinger.struktureringsvurdering!!.vurdering.parseDigitalSøknad().berik()
-            else
-                hentDokumentFraSaf(journalpost).parseDigitalSøknad().berik()
+            struktureringsvurdering?.vurdering?.parseDigitalSøknad()?.berik()
+                ?: hentDokumentFraSaf(journalpost).parseDigitalSøknad().berik()
 
         behandlingsflytGateway.sendSøknad(
             saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
