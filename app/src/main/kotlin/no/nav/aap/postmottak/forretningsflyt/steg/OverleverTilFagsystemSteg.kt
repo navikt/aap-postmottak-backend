@@ -49,6 +49,7 @@ class OverleverTilFagsystemSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        if (saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.generellSak == true) { return StegResultat() }
 
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)

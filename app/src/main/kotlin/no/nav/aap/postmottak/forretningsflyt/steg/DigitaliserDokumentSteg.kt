@@ -7,6 +7,7 @@ import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -14,12 +15,16 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
 class DigitaliserDokumentSteg(
-    private val dokumentbehandlingRepository: BehandlingRepository,
+    private val behandlingRepository: BehandlingRepository,
+    private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return DigitaliserDokumentSteg(BehandlingRepositoryImpl(connection), JournalpostRepositoryImpl(connection))
+            return DigitaliserDokumentSteg(
+                BehandlingRepositoryImpl(connection),
+                SaksnummerRepository(connection),
+                JournalpostRepositoryImpl(connection))
         }
 
         override fun type(): StegType {
@@ -29,8 +34,9 @@ class DigitaliserDokumentSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        if (saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.generellSak == true) { return StegResultat() }
 
-        val behandling = dokumentbehandlingRepository.hent(kontekst.behandlingId)
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         require(journalpost is Journalpost.MedIdent)

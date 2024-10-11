@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -14,10 +15,11 @@ import org.junit.jupiter.api.Test
 class DigitaliserDokumentStegTest {
 
     val behandlingRepository: BehandlingRepository = mockk()
+    val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
     val journalpostRepo: JournalpostRepositoryImpl = mockk()
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        behandlingRepository, journalpostRepo
+        behandlingRepository, saksnummerRepository, journalpostRepo
     )
 
     @Test
