@@ -1,11 +1,11 @@
-val ktorVersion = "2.3.12"
-val komponenterVersjon = "0.0.92"
+val ktorVersion = "3.0.0"
+val komponenterVersjon = "1.0.16"
 
 plugins {
     id("postmottak.conventions")
 }
 dependencies {
-    implementation("no.nav:ktor-openapi-generator:1.0.42")
+    implementation("no.nav:ktor-openapi-generator:1.0.46")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
 

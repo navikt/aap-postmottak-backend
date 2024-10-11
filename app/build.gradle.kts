@@ -1,15 +1,15 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.ByteArrayOutputStream
 
-val ktorVersion = "2.3.12"
+val ktorVersion = "3.0.0"
 val aapLibVersion = "5.0.23"
-val komponenterVersjon = "0.0.92"
+val komponenterVersjon = "1.0.16"
 val kafkaVersion = "3.7.0"
-val tilgangVersjon = "0.0.16"
+val tilgangVersjon = "0.0.18"
 
 plugins {
     id("postmottak.conventions")
-    id("io.ktor.plugin") version "2.3.12"
+    id("io.ktor.plugin") version "3.0.0"
 }
 
 application {
@@ -55,7 +55,7 @@ fun getCheckedOutGitCommitHash(): String {
 dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
-    implementation("no.nav:ktor-openapi-generator:1.0.42")
+    implementation("no.nav:ktor-openapi-generator:1.0.46")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.4")

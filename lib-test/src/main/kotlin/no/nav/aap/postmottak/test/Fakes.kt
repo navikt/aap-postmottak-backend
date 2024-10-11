@@ -28,7 +28,8 @@ import java.time.LocalDate
 
 
 class FakeServer(port: Int = 0, module: Application.() -> Unit) {
-    private val server: NettyApplicationEngine = embeddedServer(Netty, port = port, module = module).start()
+    private val server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration> =
+        embeddedServer(Netty, port = port, module = module).start()
 
     private var throwOnNextCall: HttpStatusCode? = null
     private var exceptionPath: String? = null
@@ -37,7 +38,7 @@ class FakeServer(port: Int = 0, module: Application.() -> Unit) {
         server.application.install(createApplicationPlugin("exceptionThrower") {
             onCall { call ->
                 val status = throwOnNextCall
-                val path  = exceptionPath
+                val path = exceptionPath
                 if (status != null && (path == null || call.request.path().contains(path))) {
                     call.respond(status)
                 }
@@ -61,11 +62,11 @@ class FakeServer(port: Int = 0, module: Application.() -> Unit) {
         exceptionPath = path
     }
 
-    private fun NettyApplicationEngine.port(): Int =
-        runBlocking { resolvedConnectors() }
-            .first { it.type == ConnectorType.HTTP }
-            .port
-
+    private fun EmbeddedServer<*, *>.port(): Int {
+        return runBlocking {
+            this@port.engine.resolvedConnectors()
+        }.first { it.type == ConnectorType.HTTP }.port
+    }
 }
 
 class Fakes(azurePort: Int = 0) : AutoCloseable {
@@ -94,7 +95,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Behandlingsflyt
         System.setProperty("integrasjon.behandlingsflyt.scope", "behandlingsflyt")
         System.setProperty("integrasjon.behandlingsflyt.url", "http://localhost:${behandlkingsflyt.port()}")
-        
+
         // Saf
         System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}/graphql")
         System.setProperty("integrasjon.saf.scope", "saf")
@@ -103,11 +104,11 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Joark
         System.setProperty("integrasjon.joark.url", "http://localhost:${joark.port()}")
         System.setProperty("integrasjon.joark.scope", "scope")
-        
+
         // Tilgang
         System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.port()}")
         System.setProperty("integrasjon.tilgang.scope", "scope")
-        
+
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =

@@ -10,6 +10,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.utils.io.KtorDsl
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -19,8 +20,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.komponenter.AZURE
-import no.nav.aap.komponenter.commonKtorModule
+import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -62,12 +63,14 @@ private const val ANTALL_WORKERS = 4
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
-    embeddedServer(Netty, port = 8080,
-        configure = {
-            connectionGroupSize = 8
-            workerGroupSize = 8
-            callGroupSize = 16
-        }) { server(DbConfig()) }.start(wait = true)
+    embeddedServer(Netty, configure = {
+        connector {
+            port = 8080
+        }
+        connectionGroupSize = 8
+        workerGroupSize = 8
+        callGroupSize = 16
+    }) { server(DbConfig()) }.start(wait = true)
 }
 
 internal fun Application.server(

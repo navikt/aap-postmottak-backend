@@ -34,7 +34,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
                         SafVariantformat.ARKIV.name,
                         currentToken = token
                     )
-                pipeline.context.response.headers.append(
+                pipeline.call.response.headers.append(
                     name = "Content-Disposition", value = "inline; filename=${dokumentRespons.filnavn}"
                 )
 
