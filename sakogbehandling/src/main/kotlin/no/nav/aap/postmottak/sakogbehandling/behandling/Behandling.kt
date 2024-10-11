@@ -22,7 +22,6 @@ class Behandling(
 ) : Comparable<Behandling> {
 
     fun harBlittStrukturert() = vurderinger.struktureringsvurdering != null
-    fun harBlittKategorisert() = vurderinger.kategorivurdering != null
 
     val typeBehandling = TypeBehandling.DokumentHåndtering
     val referanse: JournalpostId = journalpostId

@@ -8,20 +8,6 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringRepository {
 
 
-    override fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: Brevkode) {
-        connection.execute(
-            """
-            INSERT INTO KATEGORIAVKLARING (BEHANDLING_ID, KATEGORI) VALUES (
-            ?, ?)
-        """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-                setEnumName(2, brevkode)
-            }
-        }
-    }
-
     override fun lagreStrukturertDokument(behandlingId: BehandlingId, strukturertDokument: String) {
         connection.execute(
             """
@@ -36,16 +22,6 @@ class AvklaringRepositoryImpl(private val connection: DBConnection) : AvklaringR
         }
     }
 
-    override fun hentKategoriAvklaring(behandlingId: BehandlingId): KategoriVurdering? {
-        return connection.queryFirstOrNull(vurderingQuery("KATEGORIAVKLARING")) {
-            setParams { setLong(1, behandlingId.toLong()) }
-            setRowMapper { row ->
-                KategoriVurdering(
-                    row.getEnum("kategori")
-                )
-            }
-        }
-    }
 
 
 

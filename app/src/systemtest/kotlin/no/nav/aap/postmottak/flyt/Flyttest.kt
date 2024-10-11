@@ -23,6 +23,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -117,7 +118,7 @@ class Flyttest : WithFakes {
 
         AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
         SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-        avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+        KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
         avklaringRepository.lagreStrukturertDokument(
             behandlingId,
             """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}"""
@@ -135,7 +136,7 @@ class Flyttest : WithFakes {
 
             AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
             SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-            avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)

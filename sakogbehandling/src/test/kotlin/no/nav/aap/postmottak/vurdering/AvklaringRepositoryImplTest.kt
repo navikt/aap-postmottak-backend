@@ -5,7 +5,6 @@ import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
@@ -22,34 +21,6 @@ class AvklaringRepositoryImplTest {
     }
 
     @Test
-    fun `når kategoriseringvurdering blir lagret forventer jeg å finne den på behandlingen`() {
-        inContext {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
-
-            avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-
-            val behandlingMedKategorisering = dokumentbehandlingRepository.hent(behandlingId)
-
-            assertThat(behandlingMedKategorisering.harBlittKategorisert()).isTrue()
-            assertThat(behandlingMedKategorisering.vurderinger.kategorivurdering?.avklaring).isEqualTo(Brevkode.SØKNAD)
-        }
-    }
-
-    @Test
-    fun `når to kategoriseringvurderinger blir lagret forventer jeg å finne den siste på behandlingen`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
-        inContext { avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD) }
-        Thread.sleep(100)
-        inContext { avklaringRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.PLIKTKORT) }
-        inContext {
-            val behandlingMedTemavurdering = dokumentbehandlingRepository.hent(behandlingId)
-
-            assertThat(behandlingMedTemavurdering.vurderinger.kategorivurdering?.avklaring).isEqualTo(Brevkode.PLIKTKORT)
-        }
-    }
-
-
-    @Test
     fun `når struktureringsvurdering blir lagret forventer jeg å finne den på behandlingen`() {
         inContext {
 
@@ -58,7 +29,7 @@ class AvklaringRepositoryImplTest {
             val json = """{"Test: Dokument"}"""
             avklaringRepository.lagreStrukturertDokument(behandlingId, json)
 
-            val strukturertBehandling = dokumentbehandlingRepository.hent(behandlingId)
+            val strukturertBehandling = behandlingRepository.hent(behandlingId)
 
             assertThat(strukturertBehandling.harBlittStrukturert()).isTrue()
             assertThat(strukturertBehandling.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
@@ -75,22 +46,20 @@ class AvklaringRepositoryImplTest {
         Thread.sleep(100)
         inContext { avklaringRepository.lagreStrukturertDokument(behandlingId, json) }
         inContext {
-            val behandlingMedTemavurdering = dokumentbehandlingRepository.hent(behandlingId)
+            val behandlingMedTemavurdering = behandlingRepository.hent(behandlingId)
 
             assertThat(behandlingMedTemavurdering.vurderinger.struktureringsvurdering?.vurdering).isEqualTo(json)
         }
     }
 
-
     private class Context(
-        val dokumentbehandlingRepository: BehandlingRepository,
         val avklaringRepository: AvklaringRepository,
         val behandlingRepository: BehandlingRepository
     )
 
     private fun <T>inContext(block: Context.() -> T): T {
         return InitTestDatabase.dataSource.transaction {
-            val context = Context(BehandlingRepositoryImpl(it), AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
+            val context = Context(AvklaringRepositoryImpl(it), BehandlingRepositoryImpl(it))
             context.let(block)
         }
     }

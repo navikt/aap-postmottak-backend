@@ -10,6 +10,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.D
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -25,6 +26,7 @@ import java.io.ByteArrayInputStream
 class OverleverTilFagsystemStegTest {
 
     val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
+    val kategorivurderingRepository: KategorivurderingRepository = mockk(relaxed = true)
     val behandlingsflytGateway: BehandlingsflytGateway = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepository = mockk()
     val saksnummerRepository: SaksnummerRepository = mockk()
@@ -32,6 +34,7 @@ class OverleverTilFagsystemStegTest {
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         behandlingRepository,
+        kategorivurderingRepository,
         behandlingsflytGateway,
         journalpostRepository,
         saksnummerRepository,
@@ -72,11 +75,10 @@ class OverleverTilFagsystemStegTest {
             |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"},
             |"oppgitteBarn": []
             |}""".trimMargin()
-        every { behandling.vurderinger.kategorivurdering?.avklaring } returns Brevkode.SØKNAD
+        every { kategorivurderingRepository.hentKategoriAvklaring(any())?.avklaring } returns Brevkode.SØKNAD
 
         overførTilFagsystemSteg.utfør(kontekst)
 
-        verify(exactly = 1, inverse = true) { behandling.vurderinger.struktureringsvurdering }
         verify(exactly = 0) { safRestClient.hentDokument(any(), any()) }
         verify(exactly = 1) { behandlingsflytGateway.sendSøknad(saksnummer, journalpostId, any()) }
     }

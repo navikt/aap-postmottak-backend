@@ -11,22 +11,27 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
+import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.Struktureringsvurdering
 
 fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/strukturering") {
         authorizedGet<JournalpostId, StruktureringGrunnlagDto>(JournalpostPathParam("referanse")) { req ->
-            val behandling = dataSource.transaction(readOnly = true) {
-                BehandlingRepositoryImpl(it).hent(req)
+            val (kategorivurdering, struktureringsvurdering) = dataSource.transaction(readOnly = true) {
+                val behandling = BehandlingRepositoryImpl(it).hent(req)
+                val kategorivurdering = KategorivurderingRepository(it).hentKategoriAvklaring(behandling.id)
+                val struktureringsvurdering = behandling.vurderinger.struktureringsvurdering
+                Pair(kategorivurdering, struktureringsvurdering)
             }
 
-            check(behandling.harBlittKategorisert()) { "Behandlingen mangler kategorisering" }
+            checkNotNull(kategorivurdering) { "Behandlingen mangler kategorisering" }
 
             respond(
                 StruktureringGrunnlagDto(
-                    behandling.vurderinger.struktureringsvurdering
+                    struktureringsvurdering
                         ?.vurdering?.let(::StruktureringVurderingDto),
-                    behandling.vurderinger.kategorivurdering!!.avklaring,
-                    listOf(1, 2)
+                    kategorivurdering.avklaring,
+                    listOf(1,2)
                 )
             )
         }

@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.vurdering.AvklaringRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.Test
@@ -109,7 +110,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
         behandlingRepository.opprettBehandling(JournalpostId(4))
     AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
     SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
-    vurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+    KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(null, behandlingId.toLong()).medCallId()
