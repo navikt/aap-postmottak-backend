@@ -40,7 +40,8 @@ class JoarkClient: Joark {
         val request = PutRequest(OppdaterJournalpostRequest(
             journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
             sak = JournalpostSak(
-                fagsakId = fagsakId
+                fagsakId = fagsakId,
+                fagsaksystem = null
             ),
             bruker = JournalpostBruker(
                 id = ident
@@ -104,7 +105,7 @@ enum class Sakstype {
 data class JournalpostSak(
     val sakstype: Sakstype = Sakstype.FAGSAK,
     val fagsakId: String? = null,
-    val fagsaksystem: Fagsystem = Fagsystem.KELVIN
+    val fagsaksystem: Fagsystem? = Fagsystem.KELVIN
 )
 
 data class JournalpostBruker(
