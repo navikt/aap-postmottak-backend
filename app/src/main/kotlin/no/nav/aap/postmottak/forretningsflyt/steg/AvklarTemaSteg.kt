@@ -4,6 +4,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.TemaVurdeirng
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
@@ -29,7 +30,8 @@ class AvklarTemaSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost mangler i AvklarTemaSteg")
 
-        return if (!journalpost.kanBehandlesAutomatisk() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) == null) {
+        // TODO vurder å sende til eget steg dersom tema er feil
+        return if (!journalpost.kanBehandlesAutomatisk() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)?.skalTilAap != true) {
             StegResultat(listOf(Definisjon.AVKLAR_TEMA))
         } else StegResultat()
     }
