@@ -1,4 +1,4 @@
-import no.nav.aap.postmottak.graphql.GraphQLError
+import no.nav.aap.postmottak.klient.saf.graphql.GraphQLError
 import no.nav.aap.postmottak.saf.graphql.SafRespons
 import no.nav.aap.komponenter.httpklient.httpclient.error.DefaultResponseHandler
 import no.nav.aap.komponenter.httpklient.httpclient.error.RestResponseHandler

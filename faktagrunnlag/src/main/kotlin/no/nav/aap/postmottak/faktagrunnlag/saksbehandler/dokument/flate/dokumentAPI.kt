@@ -4,7 +4,7 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
+import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.saf.graphql.SafVariantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId

@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.graphql
+package no.nav.aap.postmottak.klient.saf.graphql
 
 data class GraphQLError(
     val message: String,

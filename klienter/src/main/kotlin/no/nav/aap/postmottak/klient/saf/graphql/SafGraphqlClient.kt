@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.saf.graphql
 
 import SafResponseHandler
-import kotlinx.coroutines.runBlocking
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -21,6 +20,7 @@ import no.nav.aap.postmottak.klient.joark.Variantformat
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
+import kotlinx.coroutines.runBlocking
 
 
 interface SafGraphqlGateway {
