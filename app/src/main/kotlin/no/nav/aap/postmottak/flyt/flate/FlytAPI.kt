@@ -16,13 +16,16 @@ import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbStatus
+import no.nav.aap.motor.api.JobbInfoDto
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.behandling.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
+import no.nav.aap.postmottak.flyt.BehandlingFlyt
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.postmottak.flyt.flate.visning.Prosessering
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
+import no.nav.aap.postmottak.flyt.flate.visning.Visning
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
@@ -42,18 +45,39 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
         route("/{referanse}/flyt") {
             authorizedGet<JournalpostId, BehandlingFlytOgTilstandDto>(JournalpostPathParam("referanse")) { req ->
                 val dto = dataSource.transaction { connection ->
-                    val behandling = BehandlingRepositoryImpl(connection).hent(req)
+                    var behandling = BehandlingRepositoryImpl(connection).hent(req)
                     val flytJobbRepository = FlytJobbRepository(connection)
                     val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
+
+                    val jobber = flytJobbRepository.hentJobberForBehandling(behandling.id.toLong())
+                    val prosessering =
+                        Prosessering(
+                            utledStatus(jobber),
+                            jobber.map {
+                                JobbInfoDto(
+                                    id = it.jobbId(),
+                                    type = it.type(),
+                                    status = it.status(),
+                                    planlagtKjøretidspunkt = it.nesteKjøring(),
+                                    metadata = mapOf(),
+                                    antallFeilendeForsøk = it.antallRetriesForsøkt(),
+                                    feilmelding = hentFeilmeldingHvisBehov(
+                                        it.status(),
+                                        it.jobbId(),
+                                        flytJobbRepository
+                                    ),
+                                    beskrivelse = it.beskrivelse(),
+                                    navn = it.navn()
+                                )
+                            })
+                    // Henter denne ut etter status er utledet for å være sikker på at dataene er i rett tilstand
+                    behandling = BehandlingRepositoryImpl(connection).hent(req)
                     val flyt = utledType(behandling.typeBehandling).flyt()
-
-                    var erFullført = true
-
+                    
                     val stegGrupper: Map<StegGruppe, List<StegType>> =
                         flyt.stegene().groupBy { steg -> steg.gruppe }
-
                     val aktivtSteg = behandling.aktivtSteg()
-
+                    var erFullført = true
                     val avklaringsbehovene = avklaringsbehov(
                         connection,
                         behandling.id
@@ -90,11 +114,12 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
                         },
                         aktivtSteg = aktivtSteg,
                         aktivGruppe = aktivtSteg.gruppe,
-                        prosessering = Prosessering(
-                            status = ProsesseringStatus.FERDIG,
-                            ventendeOppgaver = emptyList()
-                        ),
-                        behandlingVersjon = behandling.versjon
+                        behandlingVersjon = behandling.versjon,
+                        prosessering = prosessering,
+                        visning = utledVisning(
+                            alleAvklaringsbehovInkludertFrivillige = alleAvklaringsbehovInkludertFrivillige,
+                            status = prosessering.status
+                        )
                     )
                 }
                 respond(dto)
@@ -186,6 +211,24 @@ private fun utledStatus(oppgaver: List<JobbInput>): ProsesseringStatus {
         return ProsesseringStatus.FEILET
     }
     return ProsesseringStatus.JOBBER
+}
+
+private fun utledVisning(
+    alleAvklaringsbehovInkludertFrivillige: FrivilligeAvklaringsbehov,
+    status: ProsesseringStatus
+): Visning {
+    val jobber = status in listOf(ProsesseringStatus.JOBBER, ProsesseringStatus.FEILET)
+    val påVent = alleAvklaringsbehovInkludertFrivillige.erSattPåVent()
+   
+    if (jobber) {
+        return Visning(
+            visVentekort = påVent
+        )
+    } else {
+        return Visning(
+            visVentekort = påVent
+        )
+    }
 }
 
 

@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.flyt.flate
 
 import no.nav.aap.postmottak.flyt.flate.visning.Prosessering
+import no.nav.aap.postmottak.flyt.flate.visning.Visning
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 
@@ -9,5 +10,6 @@ data class BehandlingFlytOgTilstandDto(
     val aktivtSteg: StegType,
     val aktivGruppe: StegGruppe,
     val behandlingVersjon: Long,
-    val prosessering: Prosessering
+    val prosessering: Prosessering,
+    val visning: Visning
 )
