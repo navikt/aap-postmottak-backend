@@ -8,7 +8,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import no.nav.aap.verdityper.dokument.DokumentInfoId
+import no.nav.aap.postmottak.klient.joark.DokumentInfoId
 import java.io.InputStream
 import java.net.URI
 import java.net.http.HttpHeaders

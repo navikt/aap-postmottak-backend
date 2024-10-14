@@ -3,11 +3,11 @@ package no.nav.aap.postmottak.joark
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.WithFakes
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.klient.joark.Ident
+import no.nav.aap.postmottak.klient.joark.JoarkClient
+import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.Test
-import kotlin.test.Ignore
 
 
 class JoarkClientTest : WithFakes {

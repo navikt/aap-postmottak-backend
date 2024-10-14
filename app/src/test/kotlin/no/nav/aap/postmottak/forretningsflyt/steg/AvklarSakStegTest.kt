@@ -7,7 +7,7 @@ import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
+import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach

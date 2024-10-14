@@ -10,6 +10,8 @@ dependencies {
     implementation(project(":faktagrunnlag"))
     implementation(project(":verdityper"))
     implementation(project(":app"))
+    implementation(project(":klienter"))
+
     implementation("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")

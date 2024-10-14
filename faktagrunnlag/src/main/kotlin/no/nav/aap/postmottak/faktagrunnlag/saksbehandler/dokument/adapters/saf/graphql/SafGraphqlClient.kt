@@ -2,12 +2,6 @@ package no.nav.aap.postmottak.saf.graphql
 
 import SafResponseHandler
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Filtype
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.JournalpostStatus
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Variantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -17,7 +11,13 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import no.nav.aap.verdityper.dokument.DokumentInfoId
+import no.nav.aap.postmottak.klient.joark.Dokument
+import no.nav.aap.postmottak.klient.joark.Filtype
+import no.nav.aap.postmottak.klient.joark.Ident
+import no.nav.aap.postmottak.klient.joark.Journalpost
+import no.nav.aap.postmottak.klient.joark.JournalpostStatus
+import no.nav.aap.postmottak.klient.joark.DokumentInfoId
+import no.nav.aap.postmottak.klient.joark.Variantformat
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI

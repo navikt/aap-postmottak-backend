@@ -1,13 +1,13 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.JournalpostStatus
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
-import no.nav.aap.verdityper.dokument.DokumentInfoId
+import no.nav.aap.postmottak.klient.joark.Dokument
+import no.nav.aap.postmottak.klient.joark.DokumentInfoId
+import no.nav.aap.postmottak.klient.joark.Ident
+import no.nav.aap.postmottak.klient.joark.Journalpost
+import no.nav.aap.postmottak.klient.joark.JournalpostStatus
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 interface JournalpostRepository {

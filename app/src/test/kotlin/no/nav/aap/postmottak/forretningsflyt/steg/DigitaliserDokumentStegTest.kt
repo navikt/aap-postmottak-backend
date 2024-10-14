@@ -3,11 +3,10 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
+import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

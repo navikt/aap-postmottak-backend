@@ -1,7 +1,6 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf
+package no.nav.aap.postmottak.klient.joark
 
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.verdityper.dokument.DokumentInfoId
 import java.time.LocalDate
 
 const val SKJEMANUMMER_SØKNAD = "NAV 11-13.05"

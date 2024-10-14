@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate
 
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Dokument
+import no.nav.aap.postmottak.klient.joark.Dokument
 
 
 data class DokumentInfoResponsDTO(val søker: DokumentIdent?, val dokumenter: List<DokumentDto>)

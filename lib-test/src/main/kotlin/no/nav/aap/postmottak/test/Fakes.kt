@@ -14,11 +14,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
-import no.nav.aap.postmottak.joark.FerdigstillRequest
-import no.nav.aap.postmottak.joark.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksinfo
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.postmottak.klient.joark.FerdigstillRequest
+import no.nav.aap.postmottak.klient.joark.OppdaterJournalpostRequest
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

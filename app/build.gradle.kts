@@ -65,6 +65,7 @@ dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":verdityper"))
     implementation(project(":dbflyway"))
+    implementation(project(":klienter"))
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")

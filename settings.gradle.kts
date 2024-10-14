@@ -7,5 +7,6 @@ include(
     "verdityper",
     "dbflyway",
     "lib-test",
-    "kontrakt"
+    "kontrakt",
+    "klienter"
 )

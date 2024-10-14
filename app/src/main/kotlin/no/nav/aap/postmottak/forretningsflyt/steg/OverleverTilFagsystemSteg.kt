@@ -5,7 +5,6 @@ import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.Behandlingsf
 import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.SafRestClient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
@@ -15,6 +14,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseD
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
+import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder

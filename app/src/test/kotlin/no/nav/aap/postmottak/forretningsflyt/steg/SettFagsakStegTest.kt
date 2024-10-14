@@ -4,11 +4,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
-import no.nav.aap.postmottak.joark.Joark
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.aap.postmottak.klient.joark.Joark
+import no.nav.aap.postmottak.klient.joark.Journalpost
 import org.junit.jupiter.api.Test
 
 class SettFagsakStegTest {

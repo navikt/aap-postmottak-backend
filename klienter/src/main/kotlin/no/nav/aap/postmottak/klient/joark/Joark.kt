@@ -1,7 +1,5 @@
-package no.nav.aap.postmottak.joark
+package no.nav.aap.postmottak.klient.joark
 
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Ident
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.adapters.saf.Journalpost
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -37,7 +35,8 @@ class JoarkClient: Joark {
         }
 
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
-        val request = PutRequest(OppdaterJournalpostRequest(
+        val request = PutRequest(
+            OppdaterJournalpostRequest(
             journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
             sak = JournalpostSak(
                 fagsakId = fagsakId,
@@ -45,7 +44,8 @@ class JoarkClient: Joark {
             bruker = JournalpostBruker(
                 id = ident
             )
-        ))
+        )
+        )
         client.put(path, request) { _,_ -> }
     }
 
@@ -56,7 +56,8 @@ class JoarkClient: Joark {
         }
 
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
-        val request = PutRequest(OppdaterJournalpostRequest(
+        val request = PutRequest(
+            OppdaterJournalpostRequest(
             journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
             sak = JournalpostSak(
                 sakstype = Sakstype.GENERELL_SAK,
@@ -65,7 +66,8 @@ class JoarkClient: Joark {
             bruker = JournalpostBruker(
                 id = ident
             )
-        ))
+        )
+        )
         client.put(path, request) { _,_ -> }
     }
 

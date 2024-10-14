@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":verdityper"))
     implementation(project(":dbflyway"))
+    implementation(project(":klienter"))
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
