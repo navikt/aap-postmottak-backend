@@ -41,7 +41,6 @@ class JoarkClient: Joark {
             journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
             sak = JournalpostSak(
                 fagsakId = fagsakId,
-                fagsaksystem = null
             ),
             bruker = JournalpostBruker(
                 id = ident
@@ -60,7 +59,8 @@ class JoarkClient: Joark {
         val request = PutRequest(OppdaterJournalpostRequest(
             journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
             sak = JournalpostSak(
-                sakstype = Sakstype.GENERELL_SAK
+                sakstype = Sakstype.GENERELL_SAK,
+                fagsaksystem = null
             ),
             bruker = JournalpostBruker(
                 id = ident
