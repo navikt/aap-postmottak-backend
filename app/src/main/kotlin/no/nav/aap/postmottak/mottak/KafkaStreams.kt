@@ -1,25 +1,32 @@
 package no.nav.aap.postmottak.mottak
 
 
+import io.ktor.server.sessions.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.hendelse.oppgave.OppgaveGateway
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
+import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.Consumed
+import org.apache.kafka.streams.kstream.KStream
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 
 class TransactionContext(
     val behandlingRepository: BehandlingRepository,
-    val flytJobbRepository: FlytJobbRepository,
+    val flytJobbRepository: FlytJobbRepository
 )
 
 class TransactionProvider(
@@ -50,30 +57,56 @@ class JoarkKafkaHandler(
     val topology: Topology
 
     init {
-        val journalfoeringHendelseAvro: JournalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
+        val journalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
         val streamBuilder = StreamsBuilder()
-        streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
-            .filter { _, record -> record.temaNytt == TEMA }
+        val stream = streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
             .filter { _, record -> record.journalpostStatus == MOTTATT }
             .filter { _, record -> record.mottaksKanal != EESSI }
-            .mapValues { record -> record.journalpostId }
-            .foreach { _, record -> håndterJournalpost(record) }
+
+        temaendringTopology(stream)
+        nyJournalpost(stream)
 
         topology = streamBuilder.build()
     }
 
-    private fun håndterJournalpost(
-        journalpostId: Long,
-    ) {
+    private fun temaendringTopology(stream: KStream<String, JournalfoeringHendelseRecord>) {
+        stream.filter { _, record -> record.temaGammelt == TEMA && record.temaNytt != TEMA}
+            .mapValues { record -> JournalpostId(record.journalpostId) }
+            .foreach{ _, record -> håndterTemaendring(record) }
+    }
+
+    private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
+        stream .filter { _, record -> record.temaNytt == TEMA }
+        .mapValues { record -> JournalpostId(record.journalpostId) }
+            .foreach { _, record -> håndterJournalpost(record) }
+    }
+
+    private fun håndterTemaendring(journalpostId: JournalpostId) {
+        transactionProvider.inTransaction {
+            val behandlingReferanseService = BehandlingReferanseService(behandlingRepository)
+            try {
+                val behandling = behandlingReferanseService.behandling(journalpostId)
+                flytJobbRepository.leggTil(
+                    JobbInput(ProsesserBehandlingJobbUtfører)
+                        .forBehandling(null, behandling.id.id).medCallId()
+                )
+            } catch (e: ElementNotFoundException) {
+                log.warn("Finner ikke behandling for mottatt melding om temaendring", e)
+            }
+
+        }
+    }
+
+    private fun håndterJournalpost(journalpostId: JournalpostId) {
         log.info("Mottatt $journalpostId")
         transactionProvider.inTransaction {
-            val journalpostId = JournalpostId(journalpostId)
             val behandling = behandlingRepository.opprettBehandling(journalpostId)
             flytJobbRepository.leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(null, behandling.id.toLong()).medCallId()
+                    .forBehandling(null, behandling.id).medCallId()
             )
         }
     }
+
 
 }

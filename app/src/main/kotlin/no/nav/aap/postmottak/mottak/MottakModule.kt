@@ -15,7 +15,7 @@ fun Application.mottakStream(dataSource: DataSource, registry: MeterRegistry): S
     val config = StreamsConfig()
     val stream = MottakStream(JoarkKafkaHandler(config, dataSource).topology, config, registry)
     stream.start()
-    environment.monitor.subscribe(ApplicationStopped) {
+    monitor.subscribe(ApplicationStopped) {
         stream.close()
     }
     return stream

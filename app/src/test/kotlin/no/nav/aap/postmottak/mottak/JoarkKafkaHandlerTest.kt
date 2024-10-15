@@ -23,7 +23,7 @@ class JoarkKafkaHandlerTest {
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
 
     @Test
-    fun `veridiser mottagelse av joark event og oppretting av behandling og jobb`() {
+    fun `verifiser mottagelse av joark event og oppretting av behandling og jobb`() {
         val config = config()
         setUpStreamsMock(config) {
             val hendelseRecord = lagHendelseRecord()
@@ -42,6 +42,22 @@ class JoarkKafkaHandlerTest {
             verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
         }
 
+    }
+
+    @Test
+    fun `verifiser mottak av temaendringer og avlevering`() {
+        val config = config()
+        setUpStreamsMock(config) {
+            val hendelseRecord = lagHendelseRecord(nyttTema = "IKKE AAP", gammeltTema = "AAP")
+
+            every { behandlingRepository.opprettBehandling(any()) } returns mockk<BehandlingId>(relaxed = true)
+
+            pipeInput("yolo", hendelseRecord)
+
+            Thread.sleep(100)
+
+            verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
+        }
 
     }
 
