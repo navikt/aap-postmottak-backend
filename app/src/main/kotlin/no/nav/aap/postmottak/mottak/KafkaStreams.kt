@@ -18,6 +18,7 @@ import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
+import org.apache.kafka.streams.kstream.Branched
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.KStream
 import org.slf4j.LoggerFactory
@@ -62,22 +63,20 @@ class JoarkKafkaHandler(
         val stream = streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
             .filter { _, record -> record.journalpostStatus == MOTTATT }
             .filter { _, record -> record.mottaksKanal != EESSI }
-
-        temaendringTopology(stream)
-        nyJournalpost(stream)
+            .split()
+            .branch({_, record -> record.temaGammelt == TEMA && record.temaNytt != TEMA}, Branched.withConsumer(::temaendringTopology))
+            .branch({ _, record -> record.temaNytt == TEMA}, Branched.withConsumer(::nyJournalpost))
 
         topology = streamBuilder.build()
     }
 
     private fun temaendringTopology(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream.filter { _, record -> record.temaGammelt == TEMA && record.temaNytt != TEMA}
-            .mapValues { record -> JournalpostId(record.journalpostId) }
+        stream.mapValues { record -> JournalpostId(record.journalpostId) }
             .foreach{ _, record -> håndterTemaendring(record) }
     }
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream .filter { _, record -> record.temaNytt == TEMA }
-        .mapValues { record -> JournalpostId(record.journalpostId) }
+        stream.mapValues { record -> JournalpostId(record.journalpostId) }
             .foreach { _, record -> håndterJournalpost(record) }
     }
 
