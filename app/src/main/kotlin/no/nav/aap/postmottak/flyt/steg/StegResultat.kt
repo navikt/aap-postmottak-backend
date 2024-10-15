@@ -5,7 +5,8 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 class StegResultat(
     val avklaringsbehov: List<Definisjon> = listOf(),
     val tilbakeførtFraBeslutter: Boolean = false,
-    val tilbakeførtFraKvalitetssikrer: Boolean = false
+    val tilbakeførtFraKvalitetssikrer: Boolean = false,
+    val avbrytFlyt: Boolean = false,
 ) {
 
     fun transisjon(): Transisjon {
@@ -18,6 +19,7 @@ class StegResultat(
         if (avklaringsbehov.isNotEmpty()) {
             return FunnetAvklaringsbehov(avklaringsbehov)
         }
+        if (avbrytFlyt) return AvbrytEtterAvklaring
         return Fortsett
     }
 }

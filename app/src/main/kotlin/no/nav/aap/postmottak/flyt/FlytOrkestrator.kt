@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.postmottak.flyt.steg.AvbrytEtterAvklaring
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.verdityper.flyt.FlytKontekst
@@ -136,9 +137,7 @@ class FlytOrkestrator(
                 val tilbakeføringsflyt = when (result) {
                     is TilbakeførtFraBeslutter -> behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraBeslutter())
                     is TilbakeførtFraKvalitetssikrer -> behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraKvalitetssikrer())
-                    else -> {
-                        throw IllegalStateException("Uhåndter transisjon ved tilbakeføring. Faktisk type: ${result.javaClass}.")
-                    }
+                    else -> error { "Uhåndter transisjon ved tilbakeføring. Faktisk type: ${result.javaClass}." }
                 }
                 log.info(
                     "Tilbakeført fra '{}' til '{}'",
@@ -152,7 +151,7 @@ class FlytOrkestrator(
             val neste = utledNesteSteg(result, behandlingFlyt)
 
             if (!result.kanFortsette() || neste == null) {
-                if (neste == null) {
+                if (neste == null || result is AvbrytEtterAvklaring) {
                     // Avslutter behandling
                     behandlingRepository.oppdaterBehandlingStatus(
                         behandlingId = behandling.id,
@@ -264,9 +263,7 @@ class FlytOrkestrator(
                     nesteSteg
                 )
             }
-        if (uhåndterteBehov.isNotEmpty()) {
-            throw IllegalStateException("Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg'")
-        }
+        check (uhåndterteBehov.isEmpty()) { "Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg'" }
     }
 
     private fun utledFlytFra(behandling: Behandling) = utledType(behandling.typeBehandling).flyt()

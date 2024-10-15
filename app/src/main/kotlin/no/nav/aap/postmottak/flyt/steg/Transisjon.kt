@@ -32,3 +32,6 @@ object TilbakeførtFraKvalitetssikrer : Transisjon {
         return true
     }
 }
+object AvbrytEtterAvklaring : Transisjon {
+    override fun kanFortsette() = false
+}
