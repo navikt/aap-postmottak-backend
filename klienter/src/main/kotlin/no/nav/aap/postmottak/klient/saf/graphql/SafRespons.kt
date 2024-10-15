@@ -49,7 +49,7 @@ data class SafJournalpost(
      *  For journalposter som enda ikke har fått sakstilknytning, returneres tema på journalposten.
      *  @example: AAP
      */
-    val tema: String? = null,
+    val tema: String,
 
     /**
      * Dekode av Tema, f.eks "Foreldrepenger"

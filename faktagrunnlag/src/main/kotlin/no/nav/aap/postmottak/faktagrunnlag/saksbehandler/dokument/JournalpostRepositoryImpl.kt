@@ -19,7 +19,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection): Journalpo
         val personIdent = if (journalpost is Journalpost.MedIdent && journalpost.personident is Ident.Personident) journalpost.personident.id else null
         val aktørIdent = if (journalpost is Journalpost.MedIdent && journalpost.personident is Ident.Aktørid) journalpost.personident.id else null
         val query = """
-            INSERT INTO JOURNALPOST (JOURNALPOST_ID, BEHANDLING_ID, JOURNALFORENDE_ENHET, PERSON_IDENT, AKTOER_IDENT, STATUS, MOTTATT_DATO) VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO JOURNALPOST (JOURNALPOST_ID, BEHANDLING_ID, JOURNALFORENDE_ENHET, PERSON_IDENT, AKTOER_IDENT, STATUS, MOTTATT_DATO, TEMA) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
@@ -30,6 +30,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection): Journalpo
                 setString(5, aktørIdent)
                 setString(6, journalpost.status().name)
                 setLocalDate(7, journalpost.mottattDato())
+                setString(8, journalpost.tema)
             }
         }
 
@@ -65,20 +66,22 @@ class JournalpostRepositoryImpl(private val connection: DBConnection): Journalpo
     private fun mapJournalpost(row: Row): Journalpost {
         val personIdent = row.getStringOrNull("PERSON_IDENT")
         val aktørIdent = row.getStringOrNull("AKTOER_IDENT")
-        if (personIdent != null || aktørIdent != null) {
-            return Journalpost.MedIdent(
+        return if (personIdent != null || aktørIdent != null) {
+            Journalpost.MedIdent(
                 personident = if (personIdent != null) Ident.Personident(personIdent) else Ident.Aktørid(aktørIdent!!),
                 journalpostId = JournalpostId(row.getLong("JOURNALPOST_ID")),
                 journalførendeEnhet = row.getStringOrNull("JOURNALFORENDE_ENHET"),
                 status = JournalpostStatus.valueOf(row.getString("STATUS")),
+                tema = row.getString("TEMA"),
                 mottattDato = row.getLocalDate("MOTTATT_DATO"),
                 dokumenter = hentDokumenter(row.getLong("ID"))
             )
         } else {
-            return Journalpost.UtenIdent(
+             Journalpost.UtenIdent(
                 journalpostId = JournalpostId(row.getLong("JOURNALPOST_ID")),
                 journalførendeEnhet = row.getStringOrNull("JOURNALFORENDE_ENHET"),
                 status = JournalpostStatus.valueOf(row.getString("STATUS")),
+                tema = row.getString("TEMA"),
                 mottattDato = row.getLocalDate("MOTTATT_DATO"),
                 dokumenter = hentDokumenter(row.getLong("ID"))
             )

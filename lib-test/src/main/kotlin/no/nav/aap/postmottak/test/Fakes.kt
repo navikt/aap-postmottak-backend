@@ -69,6 +69,8 @@ class FakeServer(port: Int = 0, module: Application.() -> Unit) {
     }
 }
 
+private const val POSTMOTTAK_BACKEND = "postmottak-backend"
+
 class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
     val azure = FakeServer(azurePort, { azureFake() })
@@ -83,10 +85,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
-        System.setProperty("azure.app.client.id", "postmottak-backend")
+        System.setProperty("azure.app.client.id", POSTMOTTAK_BACKEND)
         System.setProperty("azure.app.client.secret", "")
         System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.port()}/jwks")
-        System.setProperty("azure.openid.config.issuer", "postmottak-backend")
+        System.setProperty("azure.openid.config.issuer", POSTMOTTAK_BACKEND)
 
         // Oppgave
         System.setProperty("integrasjon.oppgave.scope", "oppgave")
@@ -272,6 +274,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                           "status": "MOTTATT",
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
+                          "tema": "NOT AAP",
                           "relevanteDatoer": [
                             {
                             "dato": "2020-12-01T10:00:00",
@@ -323,7 +326,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
         routing {
             post("/token") {
-                val token = AzureTokenGen("postmottak-backend", "postmottak-backend").generate()
+                val token = AzureTokenGen(POSTMOTTAK_BACKEND, POSTMOTTAK_BACKEND).generate()
                 call.respond(TestToken(access_token = token))
             }
             get("/jwks") {

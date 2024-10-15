@@ -51,6 +51,7 @@ class JournalpostRepositoryImplTest {
         personident = Ident.Personident("1123123"),
         journalpostId = JournalpostId(10),
         status = JournalpostStatus.MOTTATT,
+        tema = "AAP",
         mottattDato = LocalDate.of(2021, 1, 1),
         journalførendeEnhet = "YOLO",
         dokumenter = dokumenter ?: listOf(

@@ -63,7 +63,7 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
 
         val journalpost: SafJournalpost = response.data?.journalpost
             ?: error("Fant ikke journalpost for $journalpostId")
-        
+
         if (!listOf(BrukerIdType.FNR, BrukerIdType.AKTOERID).contains(journalpost.bruker?.type)) {
             log.warn("mottok noe annet enn aktør-id eller fnr: ${journalpost.bruker?.type}")
         }
@@ -85,11 +85,9 @@ fun SafJournalpost.tilJournalpost(): Journalpost {
         else -> null
     }
 
-    fun finnJournalpostStatus(status: Journalstatus?): JournalpostStatus {
-        return when (status) {
-            Journalstatus.MOTTATT -> JournalpostStatus.MOTTATT
-            else -> JournalpostStatus.UKJENT
-        }
+    fun finnJournalpostStatus(status: Journalstatus?) = when (status) {
+        Journalstatus.MOTTATT -> JournalpostStatus.MOTTATT
+        else -> JournalpostStatus.UKJENT
     }
 
     val mottattDato = journalpost.relevanteDatoer?.find { dato ->
@@ -111,6 +109,7 @@ fun SafJournalpost.tilJournalpost(): Journalpost {
         Journalpost.UtenIdent(
             journalpostId = journalpost.journalpostId.let(::JournalpostId),
             status = finnJournalpostStatus(journalpost.journalstatus),
+            tema = journalpost.tema,
             journalførendeEnhet = journalpost.journalfoerendeEnhet,
             mottattDato = mottattDato,
             dokumenter = dokumenter
@@ -120,6 +119,7 @@ fun SafJournalpost.tilJournalpost(): Journalpost {
             personident = ident,
             journalpostId = journalpost.journalpostId.let(::JournalpostId),
             status = finnJournalpostStatus(journalpost.journalstatus),
+            tema = journalpost.tema,
             journalførendeEnhet = journalpost.journalfoerendeEnhet,
             mottattDato = mottattDato,
             dokumenter = dokumenter

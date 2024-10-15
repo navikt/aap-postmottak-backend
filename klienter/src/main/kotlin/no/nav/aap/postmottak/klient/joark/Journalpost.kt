@@ -9,6 +9,7 @@ const val SKJEMANUMMER_SØKNAD = "NAV 11-13.05"
 sealed class Journalpost(
     open val journalpostId: JournalpostId,
     open val journalførendeEnhet: String?,
+    open val tema: String,
     private val status: JournalpostStatus,
     private val mottattDato: LocalDate,
     private val dokumenter: List<Dokument> = emptyList()
@@ -43,19 +44,21 @@ sealed class Journalpost(
     data class UtenIdent(
         override val journalpostId: JournalpostId,
         override val journalførendeEnhet: String?,
+        override val tema: String,
         private val status: JournalpostStatus,
         private val mottattDato: LocalDate,
         private val dokumenter: List<Dokument>
-    ) : Journalpost(journalpostId, journalførendeEnhet, status, mottattDato, dokumenter)
+    ) : Journalpost(journalpostId, journalførendeEnhet, tema, status, mottattDato, dokumenter)
 
     data class MedIdent(
         val personident: Ident,
         override val journalpostId: JournalpostId,
         override val journalførendeEnhet: String?,
+        override val tema: String,
         private val status: JournalpostStatus,
         private val mottattDato: LocalDate,
         private val dokumenter: List<Dokument>
-    ) : Journalpost(journalpostId, journalførendeEnhet, status, mottattDato, dokumenter)
+    ) : Journalpost(journalpostId, journalførendeEnhet, tema, status, mottattDato, dokumenter)
 }
 
 sealed class Ident(

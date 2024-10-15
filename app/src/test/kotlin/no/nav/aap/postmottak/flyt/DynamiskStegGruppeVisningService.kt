@@ -23,6 +23,7 @@ class DynamiskStegGruppeVisningServiceTest {
         journalpostId = JournalpostId(111),
         journalførendeEnhet = null,
         status = JournalpostStatus.MOTTATT,
+        tema = "AAP",
         dokumenter = listOf(
             Dokument(
                 brevkode = "NAV 11-13.05",
@@ -33,7 +34,6 @@ class DynamiskStegGruppeVisningServiceTest {
         ),
         personident = Ident.Personident("12345678901"),
         mottattDato = LocalDate.of(2021, 1, 1)
-
     )
 
     @Test
