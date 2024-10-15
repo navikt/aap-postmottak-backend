@@ -31,7 +31,7 @@ class AvklarTemaSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost mangler i AvklarTemaSteg")
 
         // TODO vurder å sende til eget steg dersom tema er feil
-        return if (!journalpost.kanBehandlesAutomatisk() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)?.skalTilAap != true) {
+        return if (!journalpost.kanBehandlesAutomatisk() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) == null) {
             StegResultat(listOf(Definisjon.AVKLAR_TEMA))
         } else StegResultat()
     }

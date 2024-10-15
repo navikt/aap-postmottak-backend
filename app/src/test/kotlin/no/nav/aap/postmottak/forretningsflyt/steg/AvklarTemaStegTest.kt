@@ -60,16 +60,6 @@ class AvklarTemaStegTest {
     }
 
     @Test
-    fun `når vi ikke kan behandle automatisk og mauell avklaring er avklart med "feil tema" forventer vi at steget returnerer avklaringsbehov`() {
-        every { journalpost.kanBehandlesAutomatisk() } returns false
-        every { avklarTemaRepository.hentTemaAvklaring(any())?.skalTilAap } returns false
-
-        val actual = avklarTemaSteg.utfør(kontekst)
-
-        assertThat(actual.avklaringsbehov).contains(Definisjon.AVKLAR_TEMA)
-    }
-
-    @Test
     fun `når vi ikke kan behandle automatisk og manuell avklaring mangler forventer vi avklaringsbehov AVKLAR_TEMA`() {
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null

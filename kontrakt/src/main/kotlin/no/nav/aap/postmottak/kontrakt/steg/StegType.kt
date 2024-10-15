@@ -38,5 +38,9 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     AVKLAR_SAK(
         gruppe = StegGruppe.AVKLAR_SAK,
         status = Status.UTREDES,
+    ),
+    ENDRE_TEMA(
+    gruppe = StegGruppe.ENDRE_TEMA,
+    status = Status.UTREDES,
     )
 }

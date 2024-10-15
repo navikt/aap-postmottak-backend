@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.ÅrsakTilSettPåVent
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.flate.Venteinformasjon
@@ -111,6 +112,30 @@ class Flyttest : WithFakes {
         }
     }
 
+    @Test
+    fun `når journalpost har feil tema `() {
+        val behandlingId = dataSource.transaction { connection ->
+            val behandlingId = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1))
+            AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, false)
+
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(null, behandlingId.toLong()).medCallId()
+            )
+            behandlingId
+        }
+
+        await(5000) {
+            dataSource.transaction { connection ->
+
+                val behandlingRepository = BehandlingRepositoryImpl(connection)
+                val behandling = behandlingRepository.hent(behandlingId)
+
+                assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+            }
+        }
+    }
+
     private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection): BehandlingId {
         val behandlingRepository = BehandlingRepositoryImpl(connection)
         val avklaringRepository = StruktureringsvurderingRepository(connection)
@@ -131,7 +156,6 @@ class Flyttest : WithFakes {
 
         val behandlingId = dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val avklaringRepository = StruktureringsvurderingRepository(connection)
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
 
             AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
@@ -224,8 +248,7 @@ class Flyttest : WithFakes {
         while (System.currentTimeMillis() - currentTime <= duration) {
             try {
                 return block()
-            } catch (_: Throwable) {
-            }
+            } catch (_: Throwable) { }
             Thread.sleep(50)
         }
         return block()

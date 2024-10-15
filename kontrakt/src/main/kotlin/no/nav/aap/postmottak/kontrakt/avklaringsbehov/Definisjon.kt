@@ -14,6 +14,7 @@ const val KATEGORISER_DOKUMENT_KODE = "1337"
 const val DIGITALISER_DOKUMENT_KODE = "1338"
 const val AVKLAR_TEMA_KODE = "1339"
 const val AVKLAR_SAKSNUMMER_KODE = "1340"
+const val ENDRE_TEMA_KODE = "1341"
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
@@ -47,6 +48,11 @@ enum class Definisjon(
         kode = AVKLAR_SAKSNUMMER_KODE,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_SAK
+    ),
+    ENDRE_TEMA(
+        kode = ENDRE_TEMA_KODE,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.ENDRE_TEMA
     );
 
     companion object {
@@ -59,10 +65,8 @@ enum class Definisjon(
                 Arrays.stream(entries.toTypedArray())
                     .map { it.kode }
                     .collect(Collectors.toSet())
-
-            if (unikeKoder.size != entries.size) {
-                throw IllegalStateException("Gjenbrukt koder for Avklaringsbehov")
-            }
+            // Burde dette vært en unit test?
+            check (unikeKoder.size == entries.size) { "Gjenbrukt koder for Avklaringsbehov" }
 
             for (value in entries) {
                 value.type.valideringsFunksjon(value)
@@ -120,9 +124,7 @@ enum class Definisjon(
     }
 
     fun utledFrist(frist: LocalDate?): LocalDate {
-        if (!erVentepunkt()) {
-            throw IllegalStateException("Forsøker utlede frist for et behov som ikke er ventepunkt")
-        }
+        check (erVentepunkt()) { "Forsøker utlede frist for et behov som ikke er ventepunkt" }
         if (frist != null) {
             return frist
         }
