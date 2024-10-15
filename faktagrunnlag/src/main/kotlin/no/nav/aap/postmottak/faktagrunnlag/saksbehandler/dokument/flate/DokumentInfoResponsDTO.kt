@@ -7,10 +7,12 @@ data class DokumentInfoResponsDTO(val søker: DokumentIdent?, val dokumenter: Li
 data class DokumentIdent(val ident: String?, val navn: String?)
 data class DokumentDto(
     val dokumentInfoId: String,
+    val tittel: String?
 ) {
     companion object {
         fun fromDokument(dokument: SafDokumentInfo) = DokumentDto(
             dokumentInfoId = dokument.dokumentInfoId,
+            tittel = dokument.tittel
         )
     }
 }
