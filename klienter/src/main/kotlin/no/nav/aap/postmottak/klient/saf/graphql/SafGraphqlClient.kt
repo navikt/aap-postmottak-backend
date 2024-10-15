@@ -24,7 +24,7 @@ import kotlinx.coroutines.runBlocking
 
 
 interface SafGraphqlGateway {
-    fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken? = null): Journalpost
+    fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken? = null): SafJournalpost
 }
 
 class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGraphqlGateway {
@@ -56,66 +56,73 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
             )
     }
 
-    override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken?): Journalpost {
+    override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken?): SafJournalpost {
         log.info("Henter journalpost: $journalpostId")
         val request = SafRequest.hentJournalpost(journalpostId)
         val response = runBlocking { graphqlQuery(request, currentToken) }
 
         val journalpost: SafJournalpost = response.data?.journalpost
             ?: error("Fant ikke journalpost for $journalpostId")
-
-        val ident = when (journalpost.bruker?.type) {
-            BrukerIdType.AKTOERID -> Ident.Aktørid(journalpost.bruker.id!!)
-            BrukerIdType.FNR -> Ident.Personident(journalpost.bruker.id!!)
-            else -> null.also {
-                log.warn("mottok noe annet enn a: ${journalpost.bruker?.type}")
-            }
+        
+        if (!listOf(BrukerIdType.FNR, BrukerIdType.AKTOERID).contains(journalpost.bruker?.type)) {
+            log.warn("mottok noe annet enn aktør-id eller fnr: ${journalpost.bruker?.type}")
         }
 
-        val mottattDato = journalpost.relevanteDatoer?.find { dato ->
-            dato?.datotype == SafDatoType.DATO_REGISTRERT
-        }?.dato?.toLocalDate() ?: error("Fant ikke dato")
-
-        val dokumenter = journalpost.dokumenter?.filterNotNull()?.flatMap { dokument ->
-            dokument.dokumentvarianter.filterNotNull().map { variant ->
-                Dokument(
-                    dokument.dokumentInfoId.let(::DokumentInfoId),
-                    Variantformat.valueOf(variant.variantformat.name),
-                    Filtype.valueOf(variant.filtype),
-                    dokument.brevkode,
-                )
-            }
-        } ?: emptyList()
-
-        return if (ident == null) {
-            Journalpost.UtenIdent(
-                journalpostId = journalpost.journalpostId.let(::JournalpostId),
-                status = finnJournalpostStatus(journalpost.journalstatus),
-                journalførendeEnhet = journalpost.journalfoerendeEnhet,
-                mottattDato = mottattDato,
-                dokumenter = dokumenter
-            )
-        } else {
-            Journalpost.MedIdent(
-                personident = ident,
-                journalpostId = journalpost.journalpostId.let(::JournalpostId),
-                status = finnJournalpostStatus(journalpost.journalstatus),
-                journalførendeEnhet = journalpost.journalfoerendeEnhet,
-                mottattDato = mottattDato,
-                dokumenter = dokumenter
-            )
-        }
+        return journalpost
     }
 
     private fun graphqlQuery(query: SafRequest, currentToken: OidcToken?): SafRespons {
         val request = PostRequest(query, currentToken = currentToken)
         return requireNotNull(restClient.post(uri = graphqlUrl, request))
     }
+}
 
-    private fun finnJournalpostStatus(status: Journalstatus?): JournalpostStatus {
+fun SafJournalpost.tilJournalpost(): Journalpost {
+    val journalpost = this
+    val ident = when (journalpost.bruker?.type) {
+        BrukerIdType.AKTOERID -> Ident.Aktørid(journalpost.bruker.id!!)
+        BrukerIdType.FNR -> Ident.Personident(journalpost.bruker.id!!)
+        else -> null
+    }
+
+    fun finnJournalpostStatus(status: Journalstatus?): JournalpostStatus {
         return when (status) {
             Journalstatus.MOTTATT -> JournalpostStatus.MOTTATT
             else -> JournalpostStatus.UKJENT
         }
+    }
+
+    val mottattDato = journalpost.relevanteDatoer?.find { dato ->
+        dato?.datotype == SafDatoType.DATO_REGISTRERT
+    }?.dato?.toLocalDate() ?: error("Fant ikke dato")
+
+    val dokumenter = journalpost.dokumenter?.filterNotNull()?.flatMap { dokument ->
+        dokument.dokumentvarianter.filterNotNull().map { variant ->
+            Dokument(
+                dokument.dokumentInfoId.let(::DokumentInfoId),
+                Variantformat.valueOf(variant.variantformat.name),
+                Filtype.valueOf(variant.filtype),
+                dokument.brevkode,
+            )
+        }
+    } ?: emptyList()
+
+    return if (ident == null) {
+        Journalpost.UtenIdent(
+            journalpostId = journalpost.journalpostId.let(::JournalpostId),
+            status = finnJournalpostStatus(journalpost.journalstatus),
+            journalførendeEnhet = journalpost.journalfoerendeEnhet,
+            mottattDato = mottattDato,
+            dokumenter = dokumenter
+        )
+    } else {
+        Journalpost.MedIdent(
+            personident = ident,
+            journalpostId = journalpost.journalpostId.let(::JournalpostId),
+            status = finnJournalpostStatus(journalpost.journalstatus),
+            journalførendeEnhet = journalpost.journalfoerendeEnhet,
+            mottattDato = mottattDato,
+            dokumenter = dokumenter
+        )
     }
 }

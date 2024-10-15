@@ -10,7 +10,7 @@ class SafGraphqlClientTest: WithFakes {
 
     @Test
     fun hentJournalpost() {
-        val test = SafGraphqlClient.withClientCredentialsRestClient().hentJournalpost(JournalpostId(1))
+        val test = SafGraphqlClient.withClientCredentialsRestClient().hentJournalpost(JournalpostId(1)).tilJournalpost()
 
         assertThat(test.journalpostId).isEqualTo(JournalpostId(1))
     }

@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.saf.graphql.tilJournalpost
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import org.slf4j.LoggerFactory
 
@@ -35,7 +36,7 @@ class JournalpostService private constructor(
         val journalpostId =
             persistertJournalpost?.journalpostId ?: behandlingRepository.hent(kontekst.behandlingId).journalpostId
         
-        val journalpost = safGraphqlClient.hentJournalpost(journalpostId)
+        val journalpost = safGraphqlClient.hentJournalpost(journalpostId).tilJournalpost()
         
         if (persistertJournalpost == null) {
             journalpostRepository.lagre(journalpost, kontekst.behandlingId)

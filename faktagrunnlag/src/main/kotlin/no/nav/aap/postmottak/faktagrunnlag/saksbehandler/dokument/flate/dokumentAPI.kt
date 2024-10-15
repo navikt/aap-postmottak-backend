@@ -13,7 +13,6 @@ import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentDokumentDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentJournalpostDTO
 import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.postmottak.klient.joark.DokumentInfoId
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 
@@ -49,15 +48,10 @@ fun NormalOpenAPIRoute.dokumentApi() {
                 val journalpost =
                     SafGraphqlClient.withOboRestClient().hentJournalpost(JournalpostId(journalpostId), token)
 
-                val ident = if (journalpost is Journalpost.MedIdent) DokumentIdent(
-                    navn = "Navn Navnesen",
-                    ident = journalpost.personident.id
-                ) else null
-
                 respond(
                     DokumentInfoResponsDTO(
-                        ident,
-                        dokumenter = journalpost.dokumenter().map { DokumentDto.fromDokument(it) }
+                        søker = DokumentIdent(journalpost.bruker?.id, null),
+                        dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) } ?: emptyList()
                     )
                 )
             }
