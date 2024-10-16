@@ -100,3 +100,7 @@ spec:
       value: http://tilgang
     - name: INTEGRASJON_TILGANG_SCOPE
       value: api://dev-gcp.aap.tilgang/.default
+    - name: integrasjon.oppgaveapi.url
+      value: https://oppgave.dev-fss-pub.nais.io
+    - name: integrasjon.oppgaveapi.scope
+      value: api://dev-fss.oppgavehandtering.oppgave/.default
