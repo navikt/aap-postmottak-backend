@@ -296,7 +296,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                           "status": "MOTTATT",
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
-                          "tema": "NOT AAP",
+                          "tema": "AAP",
                           "relevanteDatoer": [
                             {
                             "dato": "2020-12-01T10:00:00",

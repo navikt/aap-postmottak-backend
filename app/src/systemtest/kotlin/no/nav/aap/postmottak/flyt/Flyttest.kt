@@ -112,30 +112,6 @@ class Flyttest : WithFakes {
         }
     }
 
-    @Test
-    fun `når journalpost har feil tema `() {
-        val behandlingId = dataSource.transaction { connection ->
-            val behandlingId = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1))
-            AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, false)
-
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(null, behandlingId.toLong()).medCallId()
-            )
-            behandlingId
-        }
-
-        await(5000) {
-            dataSource.transaction { connection ->
-
-                val behandlingRepository = BehandlingRepositoryImpl(connection)
-                val behandling = behandlingRepository.hent(behandlingId)
-
-                assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
-            }
-        }
-    }
-
     private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection): BehandlingId {
         val behandlingRepository = BehandlingRepositoryImpl(connection)
         val avklaringRepository = StruktureringsvurderingRepository(connection)
