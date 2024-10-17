@@ -21,7 +21,7 @@ class AvklarTemaStegTest {
 
     val avklarTemaRepository : AvklarTemaRepository = mockk()
     val journalpostRepo : JournalpostRepositoryImpl = mockk()
-    val oppgaveklient : Oppgaveklient = mockk()
+    val oppgaveklient : Oppgaveklient = mockk(relaxed = true)
 
     val avklarTemaSteg = AvklarTemaSteg(journalpostRepo, avklarTemaRepository, oppgaveklient)
 
@@ -64,6 +64,7 @@ class AvklarTemaStegTest {
     @Test
     fun `når vi ikke kan behandle automatisk og manuell avklaring mangler forventer vi avklaringsbehov AVKLAR_TEMA`() {
         every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.tema } returns "AAP"
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null
 
         val actual = avklarTemaSteg.utfør(kontekst)
