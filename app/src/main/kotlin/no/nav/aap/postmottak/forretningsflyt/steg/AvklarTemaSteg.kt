@@ -8,17 +8,23 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.Tem
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
+import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
 class AvklarTemaSteg(
     private val journalpostRepository: JournalpostRepository,
-    private val avklarTemaRepository: AvklarTemaRepository
+    private val avklarTemaRepository: AvklarTemaRepository,
+    private val oppgaveklient: Oppgaveklient
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
-            return AvklarTemaSteg(JournalpostRepositoryImpl(connection), AvklarTemaRepository(connection))
+            return AvklarTemaSteg(
+                JournalpostRepositoryImpl(connection),
+                AvklarTemaRepository(connection),
+                Oppgaveklient()
+            )
         }
 
         override fun type(): StegType {
@@ -28,13 +34,16 @@ class AvklarTemaSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost mangler i AvklarTemaSteg")
+        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+            ?: error("Journalpost mangler i AvklarTemaSteg")
+        if (journalpost.tema != "AAP") {
+            // TODO: Lukk spesifikk oppgave/oppgavetype
+            oppgaveklient.ferdigstillOppgave(journalpost.journalpostId)
+            return StegResultat(avbrytFlyt = true)
+        }
 
-        // TODO vurder å sende til eget steg dersom tema er feil
         return if (!journalpost.kanBehandlesAutomatisk() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) == null) {
             StegResultat(listOf(Definisjon.AVKLAR_TEMA))
         } else StegResultat()
     }
-
-
 }

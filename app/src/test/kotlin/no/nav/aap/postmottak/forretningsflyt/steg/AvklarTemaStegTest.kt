@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
+import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
 import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -20,8 +21,9 @@ class AvklarTemaStegTest {
 
     val avklarTemaRepository : AvklarTemaRepository = mockk()
     val journalpostRepo : JournalpostRepositoryImpl = mockk()
+    val oppgaveklient : Oppgaveklient = mockk()
 
-    val avklarTemaSteg = AvklarTemaSteg(journalpostRepo, avklarTemaRepository)
+    val avklarTemaSteg = AvklarTemaSteg(journalpostRepo, avklarTemaRepository, oppgaveklient)
 
 
     val journalpost: Journalpost = mockk(relaxed = true)

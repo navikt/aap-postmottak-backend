@@ -17,6 +17,8 @@ import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsd
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksinfo
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.postmottak.klient.gosysoppgave.FerdigstillOppgaveRequest
+import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
 import no.nav.aap.postmottak.klient.joark.FerdigstillRequest
 import no.nav.aap.postmottak.klient.joark.OppdaterJournalpostRequest
 import no.nav.aap.verdityper.sakogbehandling.Ident
@@ -80,6 +82,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val joark = FakeServer(module = { joarkFake() })
     val behandlkingsflyt = FakeServer(module = { behandlingsflytFake() })
     val tilgang = FakeServer(module = { tilgangFake() })
+    val gosysOppgave = FakeServer(module = { gosysOppgaveFake() })
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -93,6 +96,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Oppgave
         System.setProperty("integrasjon.oppgave.scope", "oppgave")
         System.setProperty("integrasjon.oppgave.url", "http://localhost:${oppgave.port()}")
+
+        // Gosys-oppgave
+        System.setProperty("integrasjon.oppgaveapi.scope", "gosysOppgave")
+        System.setProperty("integrasjon.oppgaveapi.url", "http://localhost:${gosysOppgave.port()}")
 
         // Behandlingsflyt
         System.setProperty("integrasjon.behandlingsflyt.scope", "behandlingsflyt")
@@ -110,7 +117,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Tilgang
         System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.port()}")
         System.setProperty("integrasjon.tilgang.scope", "scope")
-
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -193,6 +199,22 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 call.respondText(ContentType.Text.Plain) {
                     "I'm just a string"
                 }
+            }
+        }
+    }
+
+    private fun Application.gosysOppgaveFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        routing {
+            post("/api/v1/oppgaver") {
+                call.receive<OpprettOppgaveRequest>()
+                call.respond(HttpStatusCode.NoContent)
+            }
+            patch("/api/v1/oppgaver/{journalpostId}") {
+                call.receive<FerdigstillOppgaveRequest>()
+                call.respond(HttpStatusCode.OK)
             }
         }
     }

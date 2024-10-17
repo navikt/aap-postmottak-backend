@@ -10,7 +10,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.utils.io.KtorDsl
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -33,7 +32,7 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.postmottak.behandling.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.flate.avklarTemaVurderingApi
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.flate.avklarTemaApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.flate.finnSakApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
@@ -122,7 +121,7 @@ internal fun Application.server(
                 flytApi(dataSource)
                 avklaringsbehovApi(dataSource)
                 dokumentApi()
-                avklarTemaVurderingApi(dataSource)
+                avklarTemaApi(dataSource)
                 kategoriseringApi(dataSource)
                 finnSakApi(dataSource)
                 struktureringApi(dataSource)
