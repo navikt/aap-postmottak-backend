@@ -100,9 +100,9 @@ spec:
       value: http://tilgang
     - name: INTEGRASJON_TILGANG_SCOPE
       value: api://dev-gcp.aap.tilgang/.default
-    - name: integrasjon_oppgaveapi_url
+    - name: INTEGRASJON_OPPGAVEAPI_URL
       value: https://oppgave.dev-fss-pub.nais.io
-    - name: integrasjon_oppgaveapi_scope
+    - name: INTEGRASJON_OPPGAVEAPI_SCOPE
       value: api://dev-fss.oppgavehandtering.oppgave/.default
     - name: GOSYS_URL
       value: https://gosys-q2.dev.intern.nav.no/gosys
