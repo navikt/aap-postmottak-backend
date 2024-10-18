@@ -12,6 +12,7 @@ import javax.sql.DataSource
 
 data class BehandlingsListe(
     val id: String,
+    val steg: String,
     val status: String,
     val opprettet: LocalDateTime
 )
@@ -25,7 +26,7 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
             get<Unit, List<BehandlingsListe>> {
                 val response = datasource.transaction {
                     it.queryList(
-                        """SELECT journalpost_id as ref, steg, behandling.OPPRETTET_TID FROM BEHANDLING
+                        """SELECT journalpost_id as ref, steg, behandling.OPPRETTET_TID, behandling.status as status FROM BEHANDLING
                             LEFT JOIN STEG_HISTORIKK ON STEG_HISTORIKK.BEHANDLING_ID = BEHANDLING.ID AND aktiv = true
                         """.trimMargin()
                     ) {
@@ -33,6 +34,7 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
                             BehandlingsListe(
                                 it.getString("ref"),
                                 it.getString("steg"),
+                                it.getString("status"),
                                 it.getLocalDateTime("OPPRETTET_TID")
                             )
                         }

@@ -45,13 +45,40 @@ class JournalpostRepositoryImplTest {
         }
     }
 
+    @Test
+    fun `Henter nyeste journalpost når det er flere på en behandling`() {
+        val behandlingid = InitTestDatabase.dataSource.transaction { connection ->
+            // Setup
+            val behandlingRepository = BehandlingRepositoryImpl(connection)
+
+            val journalpost = genererJournalpost()
+            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId)
+            val journalpostRepository = JournalpostRepositoryImpl(connection)
+
+            // Act
+            journalpostRepository.lagre(journalpost, behandlingid)
+
+            behandlingid
+        }
+        InitTestDatabase.dataSource.transaction { connection ->
+            val journalpostRepository = JournalpostRepositoryImpl(connection)
+            journalpostRepository.lagre(genererJournalpost(tema = "YOLO"), behandlingid)
+
+            val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandlingid)
+
+            assertThat(hentetJournalpost?.tema).isEqualTo("YOLO")
+        }
+    }
+
+
     private fun genererJournalpost(
-        dokumenter: List<Dokument>? = null
+        dokumenter: List<Dokument>? = null,
+        tema: String = "AAP"
     ) = Journalpost.MedIdent(
         personident = Ident.Personident("1123123"),
         journalpostId = JournalpostId(10),
         status = JournalpostStatus.MOTTATT,
-        tema = "AAP",
+        tema = tema,
         mottattDato = LocalDate.of(2021, 1, 1),
         journalførendeEnhet = "YOLO",
         dokumenter = dokumenter ?: listOf(

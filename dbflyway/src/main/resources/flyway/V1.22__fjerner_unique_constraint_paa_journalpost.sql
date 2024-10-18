@@ -1,0 +1,1 @@
+ALTER TABLE journalpost DROP CONSTRAINT journalpost_journalpost_id_key;
