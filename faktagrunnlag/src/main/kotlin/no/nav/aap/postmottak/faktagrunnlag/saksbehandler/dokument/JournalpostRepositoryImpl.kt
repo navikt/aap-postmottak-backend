@@ -15,6 +15,7 @@ interface JournalpostRepository {
     fun lagre(journalpost: Journalpost, behandlingId: BehandlingId)
 }
 class JournalpostRepositoryImpl(private val connection: DBConnection): JournalpostRepository {
+
     override fun lagre(journalpost: Journalpost, behandlingId: BehandlingId) {
         val personIdent = if (journalpost is Journalpost.MedIdent && journalpost.personident is Ident.Personident) journalpost.personident.id else null
         val aktørIdent = if (journalpost is Journalpost.MedIdent && journalpost.personident is Ident.Aktørid) journalpost.personident.id else null

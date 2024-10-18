@@ -1,11 +1,9 @@
 package no.nav.aap.postmottak.mottak
 
 
-import io.ktor.server.sessions.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.hendelse.oppgave.OppgaveGateway
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -13,7 +11,6 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
-import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
@@ -81,6 +78,7 @@ class JoarkKafkaHandler(
     }
 
     private fun håndterTemaendring(journalpostId: JournalpostId) {
+        log.info("Motatt temaendring på journalpost $journalpostId")
         transactionProvider.inTransaction {
             val behandlingReferanseService = BehandlingReferanseService(behandlingRepository)
             try {
@@ -97,7 +95,7 @@ class JoarkKafkaHandler(
     }
 
     private fun håndterJournalpost(journalpostId: JournalpostId) {
-        log.info("Mottatt $journalpostId")
+        log.info("Mottatt ny journalpost: $journalpostId")
         transactionProvider.inTransaction {
             val behandling = behandlingRepository.opprettBehandling(journalpostId)
             flytJobbRepository.leggTil(

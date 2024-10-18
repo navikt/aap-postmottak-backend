@@ -40,7 +40,7 @@ class AvklarTemaSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
             ?: error("Journalpost mangler i AvklarTemaSteg")
         if (journalpost.tema != "AAP") {
-            log.info("Journalpost har endret tema. Tytt tema er: ${journalpost.tema}")
+            log.info("Journalpost har endret tema. ytt tema er: ${journalpost.tema}")
             // TODO: Lukk spesifikk oppgave/oppgavetype
             oppgaveklient.ferdigstillOppgave(journalpost.journalpostId)
             return StegResultat(avbrytFlyt = true)

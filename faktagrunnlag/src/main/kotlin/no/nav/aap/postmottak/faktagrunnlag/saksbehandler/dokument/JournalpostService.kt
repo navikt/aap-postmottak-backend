@@ -38,7 +38,7 @@ class JournalpostService private constructor(
         
         val journalpost = safGraphqlClient.hentJournalpost(journalpostId).tilJournalpost()
         
-        if (persistertJournalpost == null) {
+        if (persistertJournalpost != journalpost) {
             journalpostRepository.lagre(journalpost, kontekst.behandlingId)
             return ENDRET
         }
