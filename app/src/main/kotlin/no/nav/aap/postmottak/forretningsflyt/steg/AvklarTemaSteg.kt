@@ -4,7 +4,6 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.TemaVurdeirng
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
@@ -12,6 +11,10 @@ import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
+import org.slf4j.LoggerFactory
+
+
+private val log = LoggerFactory.getLogger(AvklarTemaSteg::class.java)
 
 class AvklarTemaSteg(
     private val journalpostRepository: JournalpostRepository,
@@ -37,6 +40,7 @@ class AvklarTemaSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
             ?: error("Journalpost mangler i AvklarTemaSteg")
         if (journalpost.tema != "AAP") {
+            log.info("Journalpost har endret tema. Tytt tema er: ${journalpost.tema}")
             // TODO: Lukk spesifikk oppgave/oppgavetype
             oppgaveklient.ferdigstillOppgave(journalpost.journalpostId)
             return StegResultat(avbrytFlyt = true)

@@ -9,7 +9,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import org.slf4j.LoggerFactory
 import java.net.URI
+
+
+private val log = LoggerFactory.getLogger(Oppgaveklient::class.java)
 
 class Oppgaveklient {
 
@@ -27,7 +31,11 @@ class Oppgaveklient {
 
         val request = PostRequest(OpprettOppgaveRequest(journalpostId = journalpostId.toString()))
 
-        client.post(path, request) {_, _ -> Unit}
+        try {
+            client.post(path, request) {_, _ -> Unit}
+        } catch (e: Exception) {
+            log.warn("Feil mot oppgaveApi under opprettelse av oppgave: ${e.message}", e)
+        }
     }
 
     fun finnOppgaverForJournalpost(journalpostId: JournalpostId): List<Long> {
@@ -41,7 +49,11 @@ class Oppgaveklient {
 
         val request = PatchRequest(FerdigstillOppgaveRequest())
 
-        client.patch(path, request) { _, _ -> Unit }
+        try {
+            client.patch(path, request) {_, _ -> Unit}
+        } catch (e: Exception) {
+            log.warn("Feil mot oppgaveApi under lukking av oppgave: ${e.message}", e)
+        }
     }
 
 }
