@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.kontrakt.steg
 
 enum class StegGruppe(val skalVises: Boolean, val obligatoriskVisning: Boolean) {
+    ROUTING(false, false),
     KATEGORISER(true, true),
     DIGITALISER(true, false),
     AVKLAR_TEMA(true, true),

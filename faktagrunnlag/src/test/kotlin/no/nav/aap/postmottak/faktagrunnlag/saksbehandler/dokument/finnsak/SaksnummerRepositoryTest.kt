@@ -7,7 +7,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.type.Periode
-import org.assertj.core.api.Assertions
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -20,8 +20,8 @@ class SaksnummerRepositoryTest {
 
     fun getPeriode() = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31))
     val saksinfo: List<Saksinfo> = listOf(
-        Saksinfo("sak: 1", getPeriode()),
-        Saksinfo("sak: 2", getPeriode())
+        BehandlingsflytSak("sak: 1", getPeriode()).tilSaksinfo(),
+        BehandlingsflytSak("sak: 2", getPeriode()).tilSaksinfo()
     )
 
     @AfterEach
@@ -53,7 +53,12 @@ class SaksnummerRepositoryTest {
 
         inContext { saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo) }
 
-        inContext { saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo + Saksinfo("Sak: 3", getPeriode())) }
+        inContext {
+            saksnummerRepository.lagreSaksnummer(
+                behandlingId,
+                saksinfo + Saksinfo("Sak: 3", getPeriode())
+            )
+        }
 
         inContext {
             val saker = saksnummerRepository.hentSaksnummre(behandlingId)
@@ -114,7 +119,7 @@ class SaksnummerRepositoryTest {
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering("YOLO")) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering("SWAG")) }
 
-        assertThat( inContext { saksnummerRepository.hentSakVurdering(behandlingId)?.saksnummer }).isEqualTo("SWAG")
+        assertThat(inContext { saksnummerRepository.hentSakVurdering(behandlingId)?.saksnummer }).isEqualTo("SWAG")
     }
 
     private class TestContext(val connection: DBConnection) {

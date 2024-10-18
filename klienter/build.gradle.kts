@@ -14,6 +14,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
 
+    implementation(project(":verdityper"))
     implementation(project(":kontrakt"))
 
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")

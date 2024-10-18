@@ -14,11 +14,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksinfo
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.postmottak.klient.AapInternApiClient
+import no.nav.aap.postmottak.klient.ArenaSak
 import no.nav.aap.postmottak.klient.gosysoppgave.FerdigstillOppgaveRequest
 import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
 import no.nav.aap.postmottak.klient.joark.FerdigstillRequest
 import no.nav.aap.postmottak.klient.joark.OppdaterJournalpostRequest
 import no.nav.aap.verdityper.sakogbehandling.Ident
@@ -83,6 +85,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val behandlkingsflyt = FakeServer(module = { behandlingsflytFake() })
     val tilgang = FakeServer(module = { tilgangFake() })
     val gosysOppgave = FakeServer(module = { gosysOppgaveFake() })
+    val aapInternApi = FakeServer(module = { aapInternApiFake() })
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -117,6 +120,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Tilgang
         System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.port()}")
         System.setProperty("integrasjon.tilgang.scope", "scope")
+        
+        // AAP Intern API
+        System.setProperty("integrasjon.aap.intern.api.url", "http://localhost:${aapInternApi.port()}")
+        System.setProperty("integrasjon.aap.intern.api.scope", "scope")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -203,6 +210,17 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
     }
 
+    private fun Application.aapInternApiFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        routing {
+            post("/api/v1/sakerByFnr") {
+                call.respond<List<ArenaSak>>(emptyList())
+            }
+        }
+    }
+
     private fun Application.gosysOppgaveFake() {
         install(ContentNegotiation) {
             jackson()
@@ -229,7 +247,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         routing {
             post("/api/sak/finnEllerOpprett") {
                 call.respond(
-                    Saksinfo(
+                    BehandlingsflytSak(
                         (Math.random() * 9999999999).toLong().toString(),
                         Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
                     )
@@ -239,7 +257,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             post("/api/sak/finn") {
                 call.respond(
                     listOf(
-                        Saksinfo(
+                        BehandlingsflytSak(
                             (Math.random() * 9999999999).toLong().toString(),
                             Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
                         )

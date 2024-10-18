@@ -17,7 +17,7 @@ class AapInternApiClient {
     private val client =
         RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
 
-    fun hentSakerForIdent(ident: String): List<ArenaSak> {
+    fun hentArenaSakerForIdent(ident: String): List<ArenaSak> {
         val path = url.resolve("/api/v1/sakerByFnr")
         val reqbody = mapOf("personidentifikator" to ident)
         return client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
