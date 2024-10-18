@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt
+package no.nav.aap.postmottak.klient.behandlingsflyt
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import no.nav.aap.verdityper.sakogbehandling.Ident

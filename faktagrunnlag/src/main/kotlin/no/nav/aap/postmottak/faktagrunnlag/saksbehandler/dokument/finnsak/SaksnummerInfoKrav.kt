@@ -4,10 +4,11 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
 import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.Ident
@@ -32,14 +33,20 @@ class SaksnummerInfoKrav(
         requireNotNull(journalpost) { "Forventer journalpost" }
         check(journalpost is Journalpost.MedIdent) { "journalpost må ha ident" }
 
-        val saksnummre = try {
-            behandlingsflytGateway.finnSaker(Ident(journalpost.personident.id, true))
+        val saker = try {
+            behandlingsflytGateway.finnSaker(Ident(journalpost.personident.id, true)).map { it.tilSaksinfo() }
         } catch (e: Exception) {
             emptyList()
         } // TODO utbedre exception handling!!!
 
-        saksnummerRepository.lagreSaksnummer(kontekst.behandlingId, saksnummre)
+        saksnummerRepository.lagreSaksnummer(kontekst.behandlingId, saker)
         return IKKE_ENDRET
     }
 
+}
+
+fun BehandlingsflytSak.tilSaksinfo(): Saksinfo {
+    return Saksinfo(
+        saksnummer, periode
+    )
 }

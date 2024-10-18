@@ -1,8 +1,8 @@
 package no.nav.aap.postmottak.forretningsflyt.steg
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.klient.saf.SafRestClient

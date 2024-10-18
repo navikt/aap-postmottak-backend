@@ -1,10 +1,10 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad
 
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.ErStudentStatus
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.HarYrkesskadeStatus
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.SkalGjenopptaStudieStatus
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.Søknad
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.SøknadStudent
+import no.nav.aap.postmottak.klient.behandlingsflyt.ErStudentStatus
+import no.nav.aap.postmottak.klient.behandlingsflyt.HarYrkesskadeStatus
+import no.nav.aap.postmottak.klient.behandlingsflyt.SkalGjenopptaStudieStatus
+import no.nav.aap.postmottak.klient.behandlingsflyt.Søknad
+import no.nav.aap.postmottak.klient.behandlingsflyt.SøknadStudent
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

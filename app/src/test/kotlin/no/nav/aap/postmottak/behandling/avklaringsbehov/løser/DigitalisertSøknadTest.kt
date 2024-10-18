@@ -1,10 +1,10 @@
 package no.nav.aap.postmottak.behandling.avklaringsbehov.løser
 
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.ErStudentStatus
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.HarYrkesskadeStatus
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.SkalGjenopptaStudieStatus
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.Søknad
-import no.nav.aap.postmottak.faktagrunnlag.register.behandlingsflyt.SøknadStudent
+import no.nav.aap.postmottak.klient.behandlingsflyt.ErStudentStatus
+import no.nav.aap.postmottak.klient.behandlingsflyt.HarYrkesskadeStatus
+import no.nav.aap.postmottak.klient.behandlingsflyt.SkalGjenopptaStudieStatus
+import no.nav.aap.postmottak.klient.behandlingsflyt.Søknad
+import no.nav.aap.postmottak.klient.behandlingsflyt.SøknadStudent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
 import org.junit.jupiter.api.Assertions.*
@@ -19,7 +19,8 @@ class DigitalisertSøknadTest {
         
         val beriketSøknad = dokument.parseDigitalSøknad().berik()
         
-        assertEquals(Søknad(
+        assertEquals(
+            Søknad(
             student = SøknadStudent(ErStudentStatus.JA, SkalGjenopptaStudieStatus.IKKE_OPPGITT),
             yrkesskade = HarYrkesskadeStatus.IKKE_OPPGITT,
             oppgitteBarn = null
