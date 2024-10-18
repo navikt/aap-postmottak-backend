@@ -139,16 +139,16 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             authorizedJournalpostPost<JournalpostId, BehandlingResultatDto, SettPåVentRequest>(Operasjon.SAKSBEHANDLE) { request, body ->
                 dataSource.transaction { connection ->
                     val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
-                    val lås = taSkriveLåsRepository.lås(request.referanse)
+                    val lås = taSkriveLåsRepository.lås(JournalpostId(request.referanse))
                     BehandlingTilstandValidator(connection).validerTilstand(
                         request,
                         body.behandlingVersjon
                     )
 
 
-                    MDC.putCloseable("behandlingId", lås.behandlingSkrivelås.id.toString()).use {
+                    MDC.putCloseable("behandlingId", lås.id.toString()).use {
                         BehandlingHendelseHåndterer(connection).håndtere(
-                            key = lås.behandlingSkrivelås.id,
+                            key = lås.id,
                             hendelse = BehandlingSattPåVent(
                                 frist = body.frist,
                                 begrunnelse = body.begrunnelse,
