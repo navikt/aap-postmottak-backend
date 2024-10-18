@@ -37,15 +37,8 @@ class EndreTeamSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val temaavklaring = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) ?: error { "Temaavklaring mangler! " }
-
-        if (temaavklaring.skalTilAap) return StegResultat()
-        if (journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)?.tema != "AAP"){
-            // TODO lukk GOSYSOPPGAVE
-            return StegResultat(avbrytFlyt = true)
-        }
-
-        return StegResultat(listOf(Definisjon.ENDRE_TEMA))
+        // TODO slett steg
+        return StegResultat()
 
     }
 }
