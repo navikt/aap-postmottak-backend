@@ -215,7 +215,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             jackson()
         }
         routing {
-            post("/api/v1/sakerByFnr") {
+            post("/sakerByFnr") {
                 call.respond<List<ArenaSak>>(emptyList())
             }
         }
