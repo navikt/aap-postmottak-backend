@@ -19,11 +19,12 @@ class AapInternApiClient {
 
     fun hentArenaSakerForIdent(ident: String): List<ArenaSak> {
         val path = url.resolve("/sakerByFnr")
-        val reqbody = mapOf("personidentifikator" to ident)
+        val reqbody = SakerRequest(personidentifikator = ident)
         return client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
             DefaultJsonMapper.fromJson(body)
         })!!
     }
 }
 
+data class SakerRequest(val personidentifikator: String)
 data class ArenaSak(val saksnummer: String, val periode: Periode)
