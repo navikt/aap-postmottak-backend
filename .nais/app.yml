@@ -94,9 +94,9 @@ spec:
     - name: INTEGRASJON_BEHANDLINGSFLYT_SCOPE
       value: api://dev-gcp.aap.behandlingsflyt/.default
     - name: INTEGRASJON_AAP_INTERN_API_URL
-      value: http://intern-api
+      value: http://api-intern
     - name: INTEGRASJON_AAP_INTERN_API_SCOPE
-      value: api://dev-gcp.aap.intern-api/.default
+      value: api://dev-gcp.aap.api-intern/.default
     - name: INTEGRASJON_OPPGAVE_URL
       value: http://oppgave
     - name: INTEGRASJON_OPPGAVE_SCOPE
