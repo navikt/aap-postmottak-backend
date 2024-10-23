@@ -12,11 +12,13 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
+import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.server.AZURE
@@ -81,6 +83,11 @@ internal fun Application.server(
         .registerSubtypes(utledSubtypes())
 
     commonKtorModule(prometheus, azureConfig = AzureConfig(), InfoModel(title = "AAP - Postmottak"))
+
+    install(MicrometerMetrics) {
+        registry = prometheus
+        meterBinders += LogbackMetrics()
+    }
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
