@@ -35,6 +35,7 @@ class RoutingSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         check(journalpost is Journalpost.MedIdent) { "journalpost må ha ident" }
+        if (journalpost.kanBehandlesAutomatisk()) { return StegResultat() }
 
         if (!aapInternApiClient.hentArenaSakerForIdent(journalpost.personident.id).isEmpty()) {
             log.info("Fant saker i arena, avbryter flyt for journalpost ${journalpost.journalpostId}")
