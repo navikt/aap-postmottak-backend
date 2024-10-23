@@ -73,6 +73,7 @@ spec:
       external:
         - host: saf.dev-fss-pub.nais.io
         - host: dokarkiv.dev-fss-pub.nais.io
+        - host: oppgave.dev-fss-pub.nais.io
       rules:
         - application: tilgang
         - application: behandlingsflyt
