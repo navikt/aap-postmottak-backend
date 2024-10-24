@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentDokumentDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentJournalpostDTO
 import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.postmottak.klient.joark.DokumentInfoId
+import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 
@@ -47,11 +48,21 @@ fun NormalOpenAPIRoute.dokumentApi() {
                 val token = token()
                 val journalpost =
                     SafGraphqlClient.withOboRestClient().hentJournalpost(JournalpostId(journalpostId), token)
-
+                val identer =
+                    listOf(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).filterNotNull().distinct()
+                val personer = PdlGraphQLClient.withClientCredentialsRestClient().hentPersonBolk(identer)
                 respond(
                     DokumentInfoResponsDTO(
-                        søker = DokumentIdent(journalpost.bruker?.id, null),
-                        dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) } ?: emptyList()
+                        søker = DokumentIdent(
+                            journalpost.bruker?.id,
+                            personer?.find { it.ident == journalpost.bruker?.id }?.person?.navn?.fulltNavn()
+                        ),
+                        avsender = DokumentIdent(
+                            journalpost.avsenderMottaker?.id,
+                            personer?.find { it.ident == journalpost.avsenderMottaker?.id }?.person?.navn?.fulltNavn()
+                        ),
+                        dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) }
+                            ?: emptyList()
                     )
                 )
             }
