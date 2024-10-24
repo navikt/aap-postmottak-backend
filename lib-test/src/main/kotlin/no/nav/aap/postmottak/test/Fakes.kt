@@ -386,12 +386,13 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                             {
                               "ident": "${identer[0]}",
                               "person": {
-                                 "navn":
+                                 "navn": [
                                    {
                                      "fornavn": "Ola",
                                      "mellomnavn": null,
                                      "etternavn": "Normann"
                                    }
+                                 ]
                               },
                               "code": "ok"
                             },
@@ -413,12 +414,13 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                             {
                               "ident": "${if (identer.isEmpty()) "1234568" else identer[0]}",
                               "person": {
-                                 "navn":
+                                 "navn": [
                                    {
                                      "fornavn": "Ola",
                                      "mellomnavn": null,
                                      "etternavn": "Normann"
                                    }
+                                 ]
                               },
                               "code": "ok"
                             }

@@ -22,7 +22,7 @@ data class HentPersonBolkResult(
 )
 
 data class PdlPerson(
-    val navn: Navn, val code: Code?     //Denne er påkrevd ved hentPersonBolk
+    val navn: List<Navn>, val code: Code?     //Denne er påkrevd ved hentPersonBolk
 )
 
 enum class Code {
