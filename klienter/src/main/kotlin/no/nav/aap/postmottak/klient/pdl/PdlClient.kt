@@ -4,6 +4,7 @@ import PdlResponseHandler
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
+import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
@@ -30,6 +31,7 @@ class PdlGraphQLClient(
         private fun getClientConfig() = ClientConfig(
             scope = requiredConfigForKey("integrasjon.pdl.scope"),
         )
+        private const val BEHANDLINGSNUMMER_AAP_SAKSBEHANDLING = "B287"
 
         fun withClientCredentialsRestClient() =
             PdlGraphQLClient(
@@ -60,7 +62,13 @@ class PdlGraphQLClient(
     }
 
     private fun graphqlQuery(query: PdlRequest, currentToken: OidcToken?): PdlResponse {
-        val request = PostRequest(query, currentToken = currentToken)
+        val request = PostRequest(
+            query, currentToken = currentToken, additionalHeaders = listOf(
+                Header("Accept", "application/json"),
+                Header("TEMA", "AAP"),
+                Header("Behandlingsnummer", BEHANDLINGSNUMMER_AAP_SAKSBEHANDLING)
+            )
+        )
         return requireNotNull(restClient.post(uri = graphqlUrl, request))
     }
 }
