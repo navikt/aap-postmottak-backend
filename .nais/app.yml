@@ -113,7 +113,7 @@ spec:
       value: api://dev-fss.oppgavehandtering.oppgave/.default
     - name: GOSYS_URL
       value: https://gosys-q2.dev.intern.nav.no/gosys
-    - name: PDL_BASE_URL
+    - name: INTEGRASJON_PDL_URL
       value: https://pdl-api.dev-fss-pub.nais.io
-    - name: PDL_SCOPE
+    - name: INTEGRASJON_PDL_SCOPE
       value: api://dev-fss.pdl.pdl-api/.default
