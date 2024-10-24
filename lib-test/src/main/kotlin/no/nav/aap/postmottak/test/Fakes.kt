@@ -16,7 +16,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.postmottak.klient.AapInternApiClient
 import no.nav.aap.postmottak.klient.ArenaSak
 import no.nav.aap.postmottak.klient.gosysoppgave.FerdigstillOppgaveRequest
 import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
@@ -86,6 +85,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val tilgang = FakeServer(module = { tilgangFake() })
     val gosysOppgave = FakeServer(module = { gosysOppgaveFake() })
     val aapInternApi = FakeServer(module = { aapInternApiFake() })
+    val pdl = FakeServer(module = { pdlFake() })
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -120,10 +120,14 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Tilgang
         System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.port()}")
         System.setProperty("integrasjon.tilgang.scope", "scope")
-        
+
         // AAP Intern API
         System.setProperty("integrasjon.aap.intern.api.url", "http://localhost:${aapInternApi.port()}")
         System.setProperty("integrasjon.aap.intern.api.scope", "scope")
+
+        // PDL
+        System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
+        System.setProperty("integrasjon.pdl.scope", "scope")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -350,6 +354,80 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 """.trimIndent(),
                     contentType = ContentType.Application.Json
                 )
+            }
+        }
+    }
+
+    private fun Application.pdlFake() {
+        install(ContentNegotiation) {
+            jackson {
+                registerModule(JavaTimeModule())
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            }
+        }
+
+        routing {
+            post("/graphql") {
+                val body = call.receive<String>()
+                val identer = body.substringAfter("\"identer\" :")
+                    .substringBefore("}")
+                    .replace("[", "")
+                    .replace("]", "")
+                    .replace("\"", "")
+                    .split(",")
+                    .map { it.replace("\n", "").trim() }
+                this@pdlFake.log.info("Henter info for for identer {}", identer)
+
+                if (identer.size == 2) {
+                    call.respondText(
+                        """
+                    { "data":
+                    {"hentPersonBolk": [
+                            {
+                              "ident": "${identer[0]}",
+                              "person": {
+                                 "navn":
+                                   {
+                                     "fornavn": "Ola",
+                                     "mellomnavn": null,
+                                     "etternavn": "Normann"
+                                   }
+                              },
+                              "code": "ok"
+                            },
+                            {
+                              "ident": "${identer[1]}",
+                              "person": null,
+                              "code": "not_found"
+                            }
+                            ]
+                    }}
+                """.trimIndent(),
+                        contentType = ContentType.Application.Json
+                    )
+                } else {
+                    call.respondText(
+                        """
+                    { "data":
+                    {"hentPersonBolk": [
+                            {
+                              "ident": "${if (identer.isEmpty()) "1234568" else identer[0]}",
+                              "person": {
+                                 "navn":
+                                   {
+                                     "fornavn": "Ola",
+                                     "mellomnavn": null,
+                                     "etternavn": "Normann"
+                                   }
+                              },
+                              "code": "ok"
+                            }
+                            ]
+                    }}
+                """.trimIndent(),
+                        contentType = ContentType.Application.Json
+                    )
+                }
             }
         }
     }

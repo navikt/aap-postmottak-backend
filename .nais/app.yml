@@ -74,6 +74,7 @@ spec:
         - host: saf.dev-fss-pub.nais.io
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: oppgave.dev-fss-pub.nais.io
+        - host: pdl-api.dev-fss-pub.nais.io
       rules:
         - application: tilgang
         - application: behandlingsflyt
@@ -112,3 +113,7 @@ spec:
       value: api://dev-fss.oppgavehandtering.oppgave/.default
     - name: GOSYS_URL
       value: https://gosys-q2.dev.intern.nav.no/gosys
+    - name: PDL_BASE_URL
+      value: https://pdl-api.dev-fss-pub.nais.io
+    - name: PDL_SCOPE
+      value: api://dev-fss.pdl.pdl-api/.default

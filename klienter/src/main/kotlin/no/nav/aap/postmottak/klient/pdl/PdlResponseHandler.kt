@@ -1,13 +1,13 @@
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
-import no.nav.aap.postmottak.saf.graphql.SafRespons
 import no.nav.aap.komponenter.httpklient.httpclient.error.DefaultResponseHandler
 import no.nav.aap.komponenter.httpklient.httpclient.error.RestResponseHandler
+import no.nav.aap.postmottak.klient.pdl.PdlResponse
 import java.io.InputStream
 import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-class SafResponseHandler : RestResponseHandler<InputStream> {
+class PdlResponseHandler : RestResponseHandler<InputStream> {
 
     private val defaultResponseHandler = DefaultResponseHandler()
 
@@ -18,9 +18,9 @@ class SafResponseHandler : RestResponseHandler<InputStream> {
     ): R? {
         val respons = defaultResponseHandler.håndter(request, response, mapper)
 
-        if (respons != null && respons is SafRespons) {
+        if (respons != null && respons is PdlResponse) {
             if (respons.errors?.isNotEmpty() == true) {
-                throw SafQueryException(
+                throw PdlQueryException(
                     String.format(
                         "Feil %s ved GraphQL oppslag mot %s",
                         respons.errors.map(GraphQLError::message).joinToString(), request.uri()
@@ -37,4 +37,4 @@ class SafResponseHandler : RestResponseHandler<InputStream> {
     }
 }
 
-class SafQueryException(msg: String) : RuntimeException(msg)
+class PdlQueryException(msg: String) : RuntimeException(msg)

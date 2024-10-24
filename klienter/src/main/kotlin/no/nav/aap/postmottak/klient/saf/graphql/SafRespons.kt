@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.saf.graphql
 
-import no.nav.aap.postmottak.klient.saf.graphql.GraphQLError
-import no.nav.aap.postmottak.klient.saf.graphql.GraphQLExtensions
+import no.nav.aap.postmottak.klient.graphql.GraphQLError
+import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
 import java.time.LocalDateTime
 
 data class SafRespons(

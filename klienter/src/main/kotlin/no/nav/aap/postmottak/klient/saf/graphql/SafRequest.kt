@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.saf.graphql
 
-import no.nav.aap.postmottak.klient.saf.graphql.asQuery
+import no.nav.aap.postmottak.klient.graphql.asQuery
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 internal data class SafRequest(val query: String, val variables: Variables) {
