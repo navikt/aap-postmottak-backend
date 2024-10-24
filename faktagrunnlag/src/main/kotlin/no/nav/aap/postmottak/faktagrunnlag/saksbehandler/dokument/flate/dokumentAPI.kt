@@ -55,11 +55,12 @@ fun NormalOpenAPIRoute.dokumentApi() {
                     DokumentInfoResponsDTO(
                         søker = DokumentIdent(
                             journalpost.bruker?.id,
-                            personer?.find { it.ident == journalpost.bruker?.id }?.person?.navn?.fulltNavn()
+                            personer?.find { it.ident == journalpost.bruker?.id }?.person?.navn?.first()?.fulltNavn()
                         ),
                         avsender = DokumentIdent(
                             journalpost.avsenderMottaker?.id,
-                            personer?.find { it.ident == journalpost.avsenderMottaker?.id }?.person?.navn?.fulltNavn()
+                            personer?.find { it.ident == journalpost.avsenderMottaker?.id }?.person?.navn?.first()
+                                ?.fulltNavn()
                         ),
                         dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) }
                             ?: emptyList()
