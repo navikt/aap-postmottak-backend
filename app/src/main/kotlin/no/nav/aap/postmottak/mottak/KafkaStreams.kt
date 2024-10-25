@@ -58,7 +58,7 @@ class JoarkKafkaHandler(
     init {
         val journalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
         val streamBuilder = StreamsBuilder()
-        val stream = streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
+        streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
             .filter { _, record -> record.journalpostStatus == MOTTATT }
             .filter { _, record -> record.mottaksKanal != EESSI }
             .split()

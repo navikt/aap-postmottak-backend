@@ -74,7 +74,7 @@ private fun opprettBehandlingAvklarTeam(connection: DBConnection) {
 
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(1, behandling.id.toLong()).medCallId()
+            .forBehandling(1, behandling.id).medCallId()
     )
 }
 
