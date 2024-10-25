@@ -2,7 +2,6 @@ package no.nav.aap.postmottak.flyt.flate
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
@@ -20,6 +19,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -73,10 +73,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                     val flytJobbRepository = FlytJobbRepository(connection)
                     if (flytJobbRepository.hentJobberForBehandling(behandling.id.toLong()).isEmpty()) {
                         flytJobbRepository.leggTil(
-                            JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(
-                                null,
-                                behandling.id.toLong()
-                            )
+                            JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(behandling.id)
                         )
                     }
                 }
@@ -87,10 +84,10 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
         @Suppress("UnauthorizedPost")
         post<Unit, JournalpostDto, JournalpostDto> { _, body ->
             dataSource.transaction { connection ->
-                val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId((body.referanse)))
+                val behandlingId = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId((body.referanse)))
                 FlytJobbRepository(connection).leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
-                        .forBehandling(null, behandling.id.toLong()).medCallId()
+                        .forBehandling(behandlingId).medCallId()
                 )
 
             }

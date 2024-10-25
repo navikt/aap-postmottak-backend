@@ -3,7 +3,7 @@ import java.io.ByteArrayOutputStream
 
 val ktorVersion = "3.0.0"
 val aapLibVersion = "5.0.23"
-val komponenterVersjon = "1.0.16"
+val komponenterVersjon = "1.0.30"
 val kafkaVersion = "3.7.0"
 val tilgangVersjon = "0.0.18"
 

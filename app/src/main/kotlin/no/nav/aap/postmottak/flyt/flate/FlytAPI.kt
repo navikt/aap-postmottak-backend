@@ -1,8 +1,6 @@
 package no.nav.aap.postmottak.flyt.flate
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.get
-import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
@@ -21,7 +19,6 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.behandling.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
-import no.nav.aap.postmottak.flyt.BehandlingFlyt
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.postmottak.flyt.flate.visning.Prosessering
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
@@ -35,7 +32,6 @@ import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedJournalpostPost
-import no.nav.aap.tilgang.authorizedSakPost
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.MDC
 import tilgang.Operasjon

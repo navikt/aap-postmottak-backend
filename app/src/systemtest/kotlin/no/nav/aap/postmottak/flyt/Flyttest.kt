@@ -27,6 +27,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
+import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -75,7 +76,7 @@ class Flyttest : WithFakes {
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(null, behandlingId.toLong()).medCallId()
+                    .forBehandling(behandlingId).medCallId()
             )
             behandlingId
         }
@@ -97,7 +98,7 @@ class Flyttest : WithFakes {
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(null, behandlingId.toLong()).medCallId()
+                    .forBehandling(behandlingId).medCallId()
             )
             behandlingId
         }
@@ -140,7 +141,7 @@ class Flyttest : WithFakes {
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(null, behandlingId.toLong()).medCallId()
+                    .forBehandling(behandlingId).medCallId()
             )
             behandlingId
         }

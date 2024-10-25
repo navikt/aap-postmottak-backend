@@ -10,6 +10,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -85,7 +86,7 @@ class JoarkKafkaHandler(
                 val behandling = behandlingReferanseService.behandling(journalpostId)
                 flytJobbRepository.leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
-                        .forBehandling(null, behandling.id.id).medCallId()
+                        .forBehandling(behandling.id).medCallId()
                 )
             } catch (e: ElementNotFoundException) {
                 log.warn("Finner ikke behandling for mottatt melding om temaendring", e)
@@ -97,10 +98,10 @@ class JoarkKafkaHandler(
     private fun håndterJournalpost(journalpostId: JournalpostId) {
         log.info("Mottatt ny journalpost: $journalpostId")
         transactionProvider.inTransaction {
-            val behandling = behandlingRepository.opprettBehandling(journalpostId)
+            val behandlingId = behandlingRepository.opprettBehandling(journalpostId)
             flytJobbRepository.leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(null, behandling.id).medCallId()
+                    .forBehandling(behandlingId).medCallId()
             )
         }
     }

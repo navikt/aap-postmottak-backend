@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -73,7 +74,7 @@ private fun opprettBehandlingAvklarTeam(connection: DBConnection) {
 
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(null, behandling.id.toLong()).medCallId()
+            .forBehandling(1, behandling.id.toLong()).medCallId()
     )
 }
 
@@ -84,7 +85,7 @@ private fun opprettBehandlingFinnSak(connection: DBConnection) {
     AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(null, behandlingId.toLong()).medCallId()
+            .forBehandling(behandlingId).medCallId()
     )
 
 }
@@ -97,7 +98,7 @@ private fun opprettBehandlingKategoriser(connection: DBConnection) {
     SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(null, behandlingId.toLong()).medCallId()
+            .forBehandling(behandlingId).medCallId()
     )
 
 }
@@ -112,7 +113,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
     KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(null, behandlingId.toLong()).medCallId()
+            .forBehandling(behandlingId).medCallId()
     )
 
 }
