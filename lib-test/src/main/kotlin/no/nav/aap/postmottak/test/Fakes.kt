@@ -503,7 +503,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         return """
             { "data":
             {"hentPerson": {
-                    "fødselsdato": {
+                    "foedselsdato": {
                         "foedselsdato": "1990-01-01"
                     }
                 }

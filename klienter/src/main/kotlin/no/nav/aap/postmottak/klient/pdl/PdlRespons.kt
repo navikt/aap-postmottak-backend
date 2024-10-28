@@ -22,7 +22,7 @@ data class PdlPerson(
     val navn: List<Navn>, val code: Code?     //Denne er påkrevd ved hentPersonBolk
 )
 
-data class HentPersonResult(val fødselsdato: Fødselsdato)
+data class HentPersonResult(val foedselsdato: Fødselsdato)
 
 data class Fødselsdato(val foedselsdato: LocalDate)
 
