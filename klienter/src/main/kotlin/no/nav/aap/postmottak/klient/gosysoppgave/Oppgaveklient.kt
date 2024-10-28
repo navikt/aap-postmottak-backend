@@ -42,7 +42,7 @@ class Oppgaveklient {
 
     fun finnOppgaverForJournalpost(journalpostId: JournalpostId): List<Long> {
         log.info("Finn oppgaver for journalpost: $journalpostId")
-        val path = url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId&oppgavetype=$OPPGAVETYPE&tema=AAP")
+        val path = url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId&oppgavetype=$OPPGAVETYPE&tema=AAP&statuskategori=AAPEN")
 
         return client.get<FinnOppgaverResponse>(path, GetRequest())?.oppgaver?.map { it.id } ?: emptyList()
     }
