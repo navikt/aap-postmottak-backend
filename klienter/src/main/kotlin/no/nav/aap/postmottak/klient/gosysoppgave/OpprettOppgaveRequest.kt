@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.klient.gosysoppgave
 
 import java.time.LocalDate
 
-const val OPPGAVETYPE = "JOURNALFORINGSOPPGAVE"
+const val OPPGAVETYPE = "JFR"
 
 data class OpprettOppgaveRequest(
     val oppgavetype: String = OPPGAVETYPE, // se kodeverk
