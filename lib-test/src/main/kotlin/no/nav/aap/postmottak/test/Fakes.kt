@@ -376,59 +376,19 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                     .replace("\"", "")
                     .split(",")
                     .map { it.replace("\n", "").trim() }
-                this@pdlFake.log.info("Henter info for for identer {}", identer)
+                    .filter { it != "null" }
 
-                if (identer.size == 2) {
-                    call.respondText(
-                        """
-                    { "data":
-                    {"hentPersonBolk": [
-                            {
-                              "ident": "${identer[0]}",
-                              "person": {
-                                 "navn": [
-                                   {
-                                     "fornavn": "Ola",
-                                     "mellomnavn": null,
-                                     "etternavn": "Normann"
-                                   }
-                                 ]
-                              },
-                              "code": "ok"
-                            },
-                            {
-                              "ident": "${identer[1]}",
-                              "person": null,
-                              "code": "not_found"
-                            }
-                            ]
-                    }}
-                """.trimIndent(),
-                        contentType = ContentType.Application.Json
-                    )
+                if (!identer.isEmpty()) {
+                    this@pdlFake.log.info("Henter info for for identer {}", identer)
+                    call.respondText(genererHentPersonBolkRespons(identer), contentType = ContentType.Application.Json)
                 } else {
-                    call.respondText(
-                        """
-                    { "data":
-                    {"hentPersonBolk": [
-                            {
-                              "ident": "${if (identer.isEmpty()) "1234568" else identer[0]}",
-                              "person": {
-                                 "navn": [
-                                   {
-                                     "fornavn": "Ola",
-                                     "mellomnavn": null,
-                                     "etternavn": "Normann"
-                                   }
-                                 ]
-                              },
-                              "code": "ok"
-                            }
-                            ]
-                    }}
-                """.trimIndent(),
-                        contentType = ContentType.Application.Json
-                    )
+                    val ident = body.substringAfter("\"ident\" :")
+                        .substringBefore("}")
+                        .replace("\"", "")
+                        .trim()
+                    require(ident.isNotEmpty()) { "Klarte ikke finne gyldig request body til pdl-klient" }
+                    this@pdlFake.log.info("Henter info for for ident {}", ident)
+                    call.respondText(genererHentPersonRespons(ident), contentType = ContentType.Application.Json)
                 }
             }
         }
@@ -489,4 +449,66 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         val scope: String? = null,
         val expires_in: Int = 3599,
     )
+
+    private fun genererHentPersonBolkRespons(identer: List<String>): String {
+        if (identer.size == 2) {
+            return """
+                    { "data":
+                    {"hentPersonBolk": [
+                            {
+                              "ident": "${identer[0]}",
+                              "person": {
+                                 "navn": [
+                                   {
+                                     "fornavn": "Ola",
+                                     "mellomnavn": null,
+                                     "etternavn": "Normann"
+                                   }
+                                 ]
+                              },
+                              "code": "ok"
+                            },
+                            {
+                              "ident": "${identer[1]}",
+                              "person": null,
+                              "code": "not_found"
+                            }
+                            ]
+                    }}
+                """.trimIndent()
+        } else {
+            return """
+                    { "data":
+                    {"hentPersonBolk": [
+                            {
+                              "ident": "${if (identer.isEmpty()) "1234568" else identer[0]}",
+                              "person": {
+                                 "navn": [
+                                   {
+                                     "fornavn": "Ola",
+                                     "mellomnavn": null,
+                                     "etternavn": "Normann"
+                                   }
+                                 ]
+                              },
+                              "code": "ok"
+                            }
+                            ]
+                    }}
+                """.trimIndent()
+        }
+    }
+
+    private fun genererHentPersonRespons(ident: String): String {
+        return """
+            { "data":
+            {"hentPerson": {
+                    "fødselsdato": {
+                        "foedselsdato": "1990-01-01"
+                    }
+                }
+            }}
+        """.trimIndent()
+    }
+
 }

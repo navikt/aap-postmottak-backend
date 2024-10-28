@@ -10,6 +10,11 @@ internal data class PdlRequest(val query: String, val variables: Variables) {
             query = PERSON_BOLK_QUERY.asQuery(),
             variables = Variables(identer = personidenter),
         )
+        
+        fun hentPerson(personident: String) = PdlRequest(
+            query = PERSON_QUERY.asQuery(),
+            variables = Variables(ident = personident),
+        )
     }
 }
 
@@ -27,6 +32,17 @@ val PERSON_BOLK_QUERY = """
                     }
                 },
             code
+        }
+    }
+""".trimIndent()
+
+private const val ident = "\$ident"
+val PERSON_QUERY = """
+    query($ident: ID!) {
+        hentPerson(ident: $ident) {
+            foedseldato {
+                foedselsdato
+            }
         }
     }
 """.trimIndent()

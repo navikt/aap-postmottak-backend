@@ -60,7 +60,16 @@ class PdlGraphQLClient(
         val response = runBlocking { graphqlQuery(request, currentToken) }
         return response.data?.hentPersonBolk
     }
-
+    
+    fun hentPerson(
+        personident: String,
+        currentToken: OidcToken? = null
+    ): HentPersonResult? {
+        val request = PdlRequest.hentPerson(personident)
+        val response = runBlocking { graphqlQuery(request, currentToken) }
+        return response.data?.hentPerson
+    }
+    
     private fun graphqlQuery(query: PdlRequest, currentToken: OidcToken?): PdlResponse {
         val request = PostRequest(
             query, currentToken = currentToken, additionalHeaders = listOf(

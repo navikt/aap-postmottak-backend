@@ -2,17 +2,14 @@ package no.nav.aap.postmottak.klient.pdl
 
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
 import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
-
-data class PersonResultat(
-    val ident: String, val navn: List<Navn>, val code: String
-)
+import java.time.LocalDate
 
 internal data class PdlResponse(
     val data: PdlData?, val errors: List<GraphQLError>?, val extensions: GraphQLExtensions?
 )
 
 data class PdlData(
-    val hentPerson: PdlPerson?, val hentPersonBolk: List<HentPersonBolkResult>?
+    val hentPerson: HentPersonResult?, val hentPersonBolk: List<HentPersonBolkResult>?
 )
 
 data class HentPersonBolkResult(
@@ -24,6 +21,10 @@ data class HentPersonBolkResult(
 data class PdlPerson(
     val navn: List<Navn>, val code: Code?     //Denne er påkrevd ved hentPersonBolk
 )
+
+data class HentPersonResult(val fødselsdato: Fødselsdato)
+
+data class Fødselsdato(val foedselsdato: LocalDate)
 
 enum class Code {
     ok, not_found, bad_request //TODO: add more
