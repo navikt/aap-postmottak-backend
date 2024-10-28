@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":verdityper"))
     implementation(project(":dbflyway"))
     implementation(project(":klienter"))
+    implementation(project(":fordeler"))
 
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")

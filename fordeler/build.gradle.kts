@@ -8,7 +8,8 @@ plugins {
 dependencies {
     implementation(project(":klienter"))
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
-
+    implementation("ch.qos.logback:logback-classic:1.5.8")
+    
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.assertj:assertj-core:3.26.3")

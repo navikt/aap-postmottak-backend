@@ -5,11 +5,11 @@ sealed interface Regel<T> {
 }
 
 sealed interface InputGenerator<T> {
-    suspend fun generer(input: RegelInput): T
+    fun generer(input: RegelInput): T
 }
 
 class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGenerator<T>) {
-    suspend fun vurder(input: RegelInput): Boolean {
+    fun vurder(input: RegelInput): Boolean {
         val regelInput = inputGenerator.generer(input)
         return regel.vurder(regelInput)
     }
