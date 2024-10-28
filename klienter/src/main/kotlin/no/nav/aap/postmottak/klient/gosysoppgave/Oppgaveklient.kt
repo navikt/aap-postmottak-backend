@@ -26,10 +26,10 @@ class Oppgaveklient {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    fun opprettOppgave(journalpostId: JournalpostId) {
+    fun opprettOppgave(journalpostId: JournalpostId, ident: String) {
         val path = url.resolve("/api/v1/oppgaver")
 
-        val request = PostRequest(OpprettOppgaveRequest(journalpostId = journalpostId.toString()))
+        val request = PostRequest(OpprettOppgaveRequest(journalpostId = journalpostId.toString(), tilordnetRessurs = ident))
 
         try {
             client.post(path, request) {_, _ -> Unit}

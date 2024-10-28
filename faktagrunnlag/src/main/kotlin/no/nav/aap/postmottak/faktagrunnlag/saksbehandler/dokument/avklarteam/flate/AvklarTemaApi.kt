@@ -6,9 +6,9 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.response.*
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
@@ -41,7 +41,8 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: HikariDataSource) {
         route("/endre-tema") {
             @Suppress("UnauthorizedPost")
             post<JournalpostId, EndreTemaResponse, Unit> { req, _ ->
-                Oppgaveklient().opprettOppgave(req)
+                val ident = bruker().ident
+                Oppgaveklient().opprettOppgave(req, ident)
                 val url = URI.create(requiredConfigForKey("gosys.url"))
                 respond(EndreTemaResponse(url.toString()))
             }
