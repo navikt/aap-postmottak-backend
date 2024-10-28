@@ -503,9 +503,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         return """
             { "data":
             {"hentPerson": {
-                    "foedselsdato": {
-                        "foedselsdato": "1990-01-01"
-                    }
+                    "foedselsdato": [
+                        {"foedselsdato": "1990-01-01"}
+                    ]
                 }
             }}
         """.trimIndent()

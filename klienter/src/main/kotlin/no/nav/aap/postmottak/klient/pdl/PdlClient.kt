@@ -61,6 +61,7 @@ class PdlGraphQLClient(
         return response.data?.hentPersonBolk
     }
     
+    // TODO: Verifiser at vi henter ut up-to-date data (fødselsdato er en liste)
     fun hentPerson(
         personident: String,
         currentToken: OidcToken? = null

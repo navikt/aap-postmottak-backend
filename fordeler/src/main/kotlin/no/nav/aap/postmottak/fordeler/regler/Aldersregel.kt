@@ -18,7 +18,8 @@ class Aldersregel : Regel<AldersregelInput> {
 class AldersregelInputGenerator : InputGenerator<AldersregelInput> {
     override fun generer(input: RegelInput): AldersregelInput {
         val fødselsdato =
-            PdlGraphQLClient.withClientCredentialsRestClient().hentPerson(input.fnr)?.foedselsdato?.foedselsdato
+            PdlGraphQLClient.withClientCredentialsRestClient()
+                .hentPerson(input.fnr)?.foedselsdato?.first()?.foedselsdato
                 ?: throw RuntimeException("Fant ikke fødselsdato for person") // TODO: Håndter denne
         return AldersregelInput(fødselsdato, LocalDate.now())
     }
