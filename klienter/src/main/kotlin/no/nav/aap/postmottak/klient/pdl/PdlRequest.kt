@@ -40,7 +40,7 @@ private const val ident = "\$ident"
 val PERSON_QUERY = """
     query($ident: ID!) {
         hentPerson(ident: $ident) {
-            foedseldato {
+            foedselsdato {
                 foedselsdato
             }
         }
