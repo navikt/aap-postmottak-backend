@@ -26,10 +26,12 @@ class Oppgaveklient {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    fun opprettOppgave(journalpostId: JournalpostId, ident: String) {
+    fun opprettOppgave(journalpostId: JournalpostId, personident: String) {
+        log.info("Oppretter oppgave for journalpost $journalpostId")
+
         val path = url.resolve("/api/v1/oppgaver")
 
-        val request = PostRequest(OpprettOppgaveRequest(journalpostId = journalpostId.toString(), tilordnetRessurs = ident))
+        val request = PostRequest(OpprettOppgaveRequest(journalpostId = journalpostId.toString(), personident = personident))
 
         try {
             client.post(path, request) {_, _ -> Unit}
@@ -39,13 +41,15 @@ class Oppgaveklient {
     }
 
     fun finnOppgaverForJournalpost(journalpostId: JournalpostId): List<Long> {
-        val path = url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId&oppgavetype=$OPPGAVETYPE")
+        log.info("Finn oppgaver for journalpost: $journalpostId")
+        val path = url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId&oppgavetype=$OPPGAVETYPE&tema=AAP")
 
         return client.get<FinnOppgaverResponse>(path, GetRequest())?.oppgaver?.map { it.id } ?: emptyList()
     }
 
-    fun ferdigstillOppgave(journalpostId: JournalpostId) {
-        val path = url.resolve("/api/v1/oppgaver/$journalpostId")
+    fun ferdigstillOppgave(oppgaveId: Long) {
+        log.info("Ferdigstiller oppgave $oppgaveId")
+        val path = url.resolve("/api/v1/oppgaver/$oppgaveId")
 
         val request = PatchRequest(FerdigstillOppgaveRequest())
 

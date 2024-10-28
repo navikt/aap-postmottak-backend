@@ -41,8 +41,8 @@ class AvklarTemaSteg(
             ?: error("Journalpost mangler i AvklarTemaSteg")
         if (journalpost.tema != "AAP") {
             log.info("Journalpost har endret tema. ytt tema er: ${journalpost.tema}")
-            // TODO: Lukk spesifikk oppgave/oppgavetype
-            oppgaveklient.ferdigstillOppgave(journalpost.journalpostId)
+            oppgaveklient.finnOppgaverForJournalpost(journalpost.journalpostId)
+                .forEach {oppgaveklient.ferdigstillOppgave(it) }
             return StegResultat(avbrytFlyt = true)
         }
 
