@@ -8,5 +8,6 @@ include(
     "dbflyway",
     "lib-test",
     "kontrakt",
-    "klienter"
+    "klienter",
+    "fordeler"
 )
