@@ -19,4 +19,10 @@ class PdlTest: WithFakes {
         val test = PdlGraphQLClient.withClientCredentialsRestClient().hentPerson("1234")
         assertNotNull(test)
     }
+
+    @Test
+    fun `Kan parse hentIdenter`() {
+        val test = PdlGraphQLClient.withClientCredentialsRestClient().hentAlleIdenterForPerson("1234")
+        assertNotNull(test)
+    }
 }

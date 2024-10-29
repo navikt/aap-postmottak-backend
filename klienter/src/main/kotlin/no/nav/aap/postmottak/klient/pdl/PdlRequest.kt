@@ -15,6 +15,11 @@ internal data class PdlRequest(val query: String, val variables: Variables) {
             query = PERSON_QUERY.asQuery(),
             variables = Variables(ident = personident),
         )
+        
+        fun hentAlleIdenterForPerson(ident: String) = PdlRequest(
+            query = IDENT_QUERY.asQuery(),
+            variables = Variables(ident = ident),
+        )
     }
 }
 
@@ -42,6 +47,18 @@ val PERSON_QUERY = """
         hentPerson(ident: $ident) {
             foedselsdato {
                 foedselsdato
+            }
+        }
+    }
+""".trimIndent()
+
+val IDENT_QUERY = """
+    query($ident: ID!) {
+        hentIdenter(ident: $ident, historikk: true) {
+            identer {
+                ident,
+                historisk,
+                gruppe
             }
         }
     }

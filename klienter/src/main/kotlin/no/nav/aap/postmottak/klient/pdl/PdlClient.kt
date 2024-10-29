@@ -12,6 +12,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
+import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
@@ -69,6 +70,18 @@ class PdlGraphQLClient(
         val request = PdlRequest.hentPerson(personident)
         val response = runBlocking { graphqlQuery(request, currentToken) }
         return response.data?.hentPerson
+    }
+
+    fun hentAlleIdenterForPerson(ident: String, currentToken: OidcToken? = null): List<Ident> {
+        val request = PdlRequest.hentAlleIdenterForPerson(ident)
+        val response = runBlocking { graphqlQuery(request, currentToken) }
+        
+        return response.data
+            ?.hentIdenter
+            ?.identer
+            ?.filter { it.gruppe == PdlGruppe.FOLKEREGISTERIDENT }
+            ?.map { Ident(identifikator = it.ident, aktivIdent = it.historisk.not()) }
+            ?: emptyList()
     }
     
     private fun graphqlQuery(query: PdlRequest, currentToken: OidcToken?): PdlResponse {

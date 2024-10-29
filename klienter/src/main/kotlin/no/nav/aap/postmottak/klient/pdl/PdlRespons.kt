@@ -9,7 +9,7 @@ internal data class PdlResponse(
 )
 
 data class PdlData(
-    val hentPerson: HentPersonResult?, val hentPersonBolk: List<HentPersonBolkResult>?
+    val hentPerson: HentPersonResult?, val hentPersonBolk: List<HentPersonBolkResult>?, val hentIdenter: HentIdenterResult?
 )
 
 data class HentPersonBolkResult(
@@ -38,4 +38,18 @@ data class Navn(
     fun fulltNavn(): String {
         return "${fornavn ?: ""} ${mellomnavn ?: ""} ${etternavn ?: ""}".trim()
     }
+}
+
+data class HentIdenterResult(val identer: List<PdlIdent>)
+
+data class PdlIdent(
+    val ident: String,
+    val historisk: Boolean,
+    val gruppe: PdlGruppe
+)
+
+enum class PdlGruppe {
+    FOLKEREGISTERIDENT,
+    AKTORID,
+    NPID,
 }

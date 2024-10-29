@@ -369,26 +369,12 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         routing {
             post("/graphql") {
                 val body = call.receive<String>()
-                val identer = body.substringAfter("\"identer\" :")
-                    .substringBefore("}")
-                    .replace("[", "")
-                    .replace("]", "")
-                    .replace("\"", "")
-                    .split(",")
-                    .map { it.replace("\n", "").trim() }
-                    .filter { it != "null" }
-
-                if (!identer.isEmpty()) {
-                    this@pdlFake.log.info("Henter info for for identer {}", identer)
-                    call.respondText(genererHentPersonBolkRespons(identer), contentType = ContentType.Application.Json)
+                if (body.contains("hentIdenter")) {
+                    call.respondText(genererHentIdenterRespons(body))
+                } else if (body.contains("hentPersonBolk")) {
+                    call.respondText(genererHentPersonBolkRespons(body))
                 } else {
-                    val ident = body.substringAfter("\"ident\" :")
-                        .substringBefore("}")
-                        .replace("\"", "")
-                        .trim()
-                    require(ident.isNotEmpty()) { "Klarte ikke finne gyldig request body til pdl-klient" }
-                    this@pdlFake.log.info("Henter info for for ident {}", ident)
-                    call.respondText(genererHentPersonRespons(ident), contentType = ContentType.Application.Json)
+                    call.respondText(genererHentPersonRespons())
                 }
             }
         }
@@ -450,7 +436,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         val expires_in: Int = 3599,
     )
 
-    private fun genererHentPersonBolkRespons(identer: List<String>): String {
+    private fun genererHentPersonBolkRespons(body: String): String {
+        val identer = finnIdenterIBody(body)
+
         if (identer.size == 2) {
             return """
                     { "data":
@@ -499,7 +487,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
     }
 
-    private fun genererHentPersonRespons(ident: String): String {
+    private fun genererHentPersonRespons(): String {
         return """
             { "data":
             {"hentPerson": {
@@ -509,6 +497,48 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 }
             }}
         """.trimIndent()
+    }
+
+    private fun genererHentIdenterRespons(body: String): String {
+        val ident = finnIdentIBody(body)
+        return """
+            { "data":
+            {"hentIdenter": {
+                    "identer": [
+                        {
+                            "ident": "$ident",
+                            "historisk": false,
+                            "gruppe": "FOLKEREGISTERIDENT"
+                        },
+                        {
+                            "ident": "1234567898",
+                            "historisk": false,
+                            "gruppe": "AKTORID"
+                        }
+                    ]
+                }
+            }}
+        """.trimIndent()
+    }
+
+    private fun finnIdentIBody(body: String): String {
+        return body.substringAfter("\"ident\" :")
+            .substringBefore("}")
+            .substringBefore(",")
+            .replace("\"", "")
+            .trim()
+    }
+
+    private fun finnIdenterIBody(body: String): List<String> {
+        return body.substringAfter("\"identer\" :")
+            .substringBefore("}")
+            .substringBefore(",")
+            .replace("[", "")
+            .replace("]", "")
+            .replace("\"", "")
+            .split(",")
+            .map { it.replace("\n", "").trim() }
+            .filter { it != "null" }
     }
 
 }
