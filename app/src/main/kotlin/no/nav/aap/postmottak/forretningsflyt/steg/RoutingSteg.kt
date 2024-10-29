@@ -34,22 +34,19 @@ class RoutingSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         check(journalpost is Journalpost.MedIdent) { "journalpost må ha ident" }
-
-        // TODO: Fjern når bug er fikset
-        return StegResultat()
         
-//        val skalTilKelvin = FordelerRegelService().skalTilKelvin(
-//            RegelInput(
-//                journalpost.journalpostId.referanse,
-//                journalpost.personident.id
-//            )
-//        )
-//
-//        if (!skalTilKelvin) {
-//            log.info("Avbryter flyt for journalpost ${journalpost.journalpostId}")
-//            //TODO: Send til arena
-//            return StegResultat(avbrytFlyt = true)
-//        }
-//        return StegResultat()
+        val skalTilKelvin = FordelerRegelService().skalTilKelvin(
+            RegelInput(
+                journalpost.journalpostId.referanse,
+                journalpost.personident.id
+            )
+        )
+
+        if (!skalTilKelvin) {
+            log.info("Avbryter flyt for journalpost ${journalpost.journalpostId}")
+            //TODO: Send til arena
+            return StegResultat(avbrytFlyt = true)
+        }
+        return StegResultat()
     }
 }
