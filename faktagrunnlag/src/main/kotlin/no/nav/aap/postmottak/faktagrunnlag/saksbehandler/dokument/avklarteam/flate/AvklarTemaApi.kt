@@ -9,11 +9,10 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.token
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
-import no.nav.aap.postmottak.saf.graphql.tilJournalpost
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
@@ -27,8 +26,9 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: HikariDataSource) {
                 val grunnlag = dataSource.transaction(readOnly = true) {
                     val behandling = BehandlingRepositoryImpl(it).hent(req)
                     val journalpost =
-                        SafGraphqlClient.withOboRestClient().hentJournalpost(behandling.journalpostId, token)
-                    val arkivDokumenter = journalpost.tilJournalpost().finnArkivVarianter()
+                        JournalpostRepositoryImpl(it).hentHvisEksisterer(req)
+                    require(journalpost != null) { "Fant ikke journalpost" }
+                    val arkivDokumenter = journalpost.finnArkivVarianter()
                     AvklarTemaGrunnlagDto(
                         AvklarTemaRepository(it).hentTemaAvklaring(behandling.id)?.skalTilAap?.let(::AvklarTemaVurderingDto),
                         arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId }
@@ -40,9 +40,11 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: HikariDataSource) {
         route("/endre-tema") {
             @Suppress("UnauthorizedPost")
             post<JournalpostId, EndreTemaResponse, Unit> { req, _ ->
-                val personident = SafGraphqlClient.withOboRestClient().hentJournalpost(req).bruker?.id
-                    ?: error("Personnummer for journalpostbruker mangler")
-                Oppgaveklient().opprettOppgave(req, personident)
+                val aktivIdent = dataSource.transaction(readOnly = true) { connection ->
+                    JournalpostRepositoryImpl(connection).hentHvisEksisterer(req)?.person?.aktivIdent()
+                }
+                require(aktivIdent != null) { "Fant ikke personident for journalpost" }
+                Oppgaveklient().opprettOppgave(req, aktivIdent.identifikator)
 
                 val url = URI.create(requiredConfigForKey("gosys.url"))
                 respond(EndreTemaResponse(url.toString()))

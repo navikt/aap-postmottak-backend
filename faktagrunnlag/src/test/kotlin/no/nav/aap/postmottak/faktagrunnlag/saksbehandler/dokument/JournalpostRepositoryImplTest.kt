@@ -2,15 +2,16 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.postmottak.klient.joark.Dokument
-import no.nav.aap.postmottak.klient.joark.DokumentInfoId
-import no.nav.aap.postmottak.klient.joark.Filtype
-import no.nav.aap.postmottak.klient.joark.Ident
-import no.nav.aap.postmottak.klient.joark.Journalpost
-import no.nav.aap.postmottak.klient.joark.JournalpostStatus
-import no.nav.aap.postmottak.klient.joark.Variantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
+import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Filtype
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostStatus
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Variantformat
+import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -29,10 +30,11 @@ class JournalpostRepositoryImplTest {
             // Setup
             val behandlingRepository = BehandlingRepositoryImpl(connection)
 
-            val journalpost = genererJournalpost()
+            val person = PersonRepository(connection).finnEllerOpprett(listOf(Ident("12345678")))
+            val journalpost = genererJournalpost(person)
             val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId)
             val journalpostRepository = JournalpostRepositoryImpl(connection)
-
+            
             // Act
             journalpostRepository.lagre(journalpost, behandlingid)
 
@@ -51,7 +53,8 @@ class JournalpostRepositoryImplTest {
             // Setup
             val behandlingRepository = BehandlingRepositoryImpl(connection)
 
-            val journalpost = genererJournalpost()
+            val person = PersonRepository(connection).finnEllerOpprett(listOf(Ident("12345678")))
+            val journalpost = genererJournalpost(person)
             val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId)
             val journalpostRepository = JournalpostRepositoryImpl(connection)
 
@@ -62,7 +65,8 @@ class JournalpostRepositoryImplTest {
         }
         InitTestDatabase.dataSource.transaction { connection ->
             val journalpostRepository = JournalpostRepositoryImpl(connection)
-            journalpostRepository.lagre(genererJournalpost(tema = "YOLO"), behandlingid)
+            val person = PersonRepository(connection).finnEllerOpprett(listOf(Ident("12345678")))
+            journalpostRepository.lagre(genererJournalpost(person, tema = "YOLO"), behandlingid)
 
             val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandlingid)
 
@@ -72,15 +76,16 @@ class JournalpostRepositoryImplTest {
 
 
     private fun genererJournalpost(
+        person: Person,
         dokumenter: List<Dokument>? = null,
         tema: String = "AAP"
-    ) = Journalpost.MedIdent(
-        personident = Ident.Personident("1123123"),
+    ) = Journalpost(
         journalpostId = JournalpostId(10),
-        status = JournalpostStatus.MOTTATT,
-        tema = tema,
-        mottattDato = LocalDate.of(2021, 1, 1),
+        person = person,
         journalførendeEnhet = "YOLO",
+        tema = tema,
+        status = JournalpostStatus.MOTTATT,
+        mottattDato = LocalDate.of(2021, 1, 1),
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "NAV 11-13.05",

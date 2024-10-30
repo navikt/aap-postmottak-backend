@@ -10,7 +10,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvu
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -41,15 +40,15 @@ class AvklarSakSteg(
         val sakerPåBruker = saksnummerRepository.hentSaksnummre(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost kan ikke være null")
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
-        check(journalpost is Journalpost.MedIdent)
+        requireNotNull(journalpost)
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
-            val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
+            val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.person.aktivIdent().identifikator), journalpost.mottattDato()).saksnummer
             saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
             StegResultat()
         } else if (saksnummerVurdering != null) {
             if (saksnummerVurdering.opprettNySak) {
-                val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.personident.id), journalpost.mottattDato()).saksnummer
+                val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.person.aktivIdent().identifikator), journalpost.mottattDato()).saksnummer
                 saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
             }
             StegResultat()

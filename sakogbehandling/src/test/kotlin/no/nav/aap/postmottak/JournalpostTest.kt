@@ -1,11 +1,20 @@
-package no.nav.aap.postmottak.klient.joark
-
+package no.nav.aap.postmottak.klient.joark.no.nav.aap.postmottak
 
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
+import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Filtype
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostStatus
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
+import no.nav.aap.postmottak.sakogbehandling.journalpost.SKJEMANUMMER_SØKNAD
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Variantformat
+import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 import java.time.LocalDate
+import java.util.*
 
 class JournalpostTest {
 
@@ -62,8 +71,12 @@ class JournalpostTest {
 
     fun genererJournalpost(
         dokumenter: List<Dokument>? = null
-    ) = Journalpost.MedIdent(
-        personident = Ident.Personident("1123123"),
+    ) = Journalpost(
+        person = Person(
+            123,
+            identifikator = UUID.randomUUID(),
+            identer = listOf(Ident("12345678"))
+        ),
         journalpostId =  JournalpostId(1),
         status = JournalpostStatus.MOTTATT,
         tema = "AAP",

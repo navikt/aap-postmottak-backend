@@ -4,9 +4,10 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -21,11 +22,11 @@ class DigitaliserDokumentStegTest {
 
     @Test
     fun `når behandlingen må gjøres manuelt og strukturering ikke er gjort forventes et nytt avlaringsbehov for strukturering`() {
-        val journalpost: Journalpost.MedIdent = mockk(relaxed = true)
+        val journalpost: Journalpost = mockk(relaxed = true)
 
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
-        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -35,11 +36,11 @@ class DigitaliserDokumentStegTest {
 
     @Test
     fun `når behandlingen må gjøres manuelt og strukturering er utført forventes ingen avklaringsbehov`() {
-        val journalpost: Journalpost.MedIdent = mockk(relaxed = true)
+        val journalpost: Journalpost= mockk(relaxed = true)
 
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns mockk(relaxed = true)
-        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -50,11 +51,11 @@ class DigitaliserDokumentStegTest {
     fun `når behandling kan gjøres automatisk og strukturering ikke er gjort forventes ingen avklaringsbehov`() {
 
         val behandling: Behandling = mockk(relaxed = true)
-        val journalpost: Journalpost.MedIdent = mockk(relaxed = true)
+        val journalpost: Journalpost = mockk(relaxed = true)
 
         every { journalpost.kanBehandlesAutomatisk() } returns true
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
-        every { journalpostRepo.hentHvisEksisterer(any()) } returns journalpost
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
