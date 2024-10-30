@@ -1,12 +1,11 @@
-# aap-behandlingsflyt
-Behandlingsflyt for Arbeidsavklaringspenger (AAP). Definerer flyten for ulike behandlingstyper, og styrer prosessen med 
-å drive saksflyten fremover. 
+# aap-postmottak-backend
+Postmottak tar imot og håndterer journalposter på tema AAP
 
 ### API-dokumentasjon
 APIene er dokumentert med Swagger: http://localhost:8080/swagger-ui/index.html
 
 ### Lokalt utviklingsmiljø:
-AAP-Behandlingsflyt benytter test containers for integrasjonstester med databasen så et verktøy for å kjøre Docker 
+Test containers benyttes for integrasjonstester med databasen så et verktøy for å kjøre Docker 
 containers er nødvendig.<br>
 
 For macOS og Linux anbefaler vi Colima. Det kan være nødvendig med et par tilpasninger:</br>
