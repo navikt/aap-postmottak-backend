@@ -10,13 +10,14 @@ import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
-import no.nav.aap.postmottak.klient.joark.Dokument
-import no.nav.aap.postmottak.klient.joark.DokumentInfoId
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
+import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -49,7 +50,7 @@ class OverleverTilFagsystemStegTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { journalpost.journalpostId } returns journalpostId
         every { behandling.journalpostId } returns journalpostId
         every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer

@@ -10,13 +10,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import no.nav.aap.postmottak.klient.joark.Dokument
-import no.nav.aap.postmottak.klient.joark.Filtype
-import no.nav.aap.postmottak.klient.joark.Ident
-import no.nav.aap.postmottak.klient.joark.Journalpost
-import no.nav.aap.postmottak.klient.joark.JournalpostStatus
-import no.nav.aap.postmottak.klient.joark.DokumentInfoId
-import no.nav.aap.postmottak.klient.joark.Variantformat
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
@@ -74,55 +67,5 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
     private fun graphqlQuery(query: SafRequest, currentToken: OidcToken?): SafRespons {
         val request = PostRequest(query, currentToken = currentToken)
         return requireNotNull(restClient.post(uri = graphqlUrl, request))
-    }
-}
-
-fun SafJournalpost.tilJournalpost(): Journalpost {
-    val journalpost = this
-    val ident = when (journalpost.bruker?.type) {
-        BrukerIdType.AKTOERID -> Ident.Aktørid(journalpost.bruker.id!!)
-        BrukerIdType.FNR -> Ident.Personident(journalpost.bruker.id!!)
-        else -> null
-    }
-
-    fun finnJournalpostStatus(status: Journalstatus?) = when (status) {
-        Journalstatus.MOTTATT -> JournalpostStatus.MOTTATT
-        else -> JournalpostStatus.UKJENT
-    }
-
-    val mottattDato = journalpost.relevanteDatoer?.find { dato ->
-        dato?.datotype == SafDatoType.DATO_REGISTRERT
-    }?.dato?.toLocalDate() ?: error("Fant ikke dato")
-
-    val dokumenter = journalpost.dokumenter?.filterNotNull()?.flatMap { dokument ->
-        dokument.dokumentvarianter.filterNotNull().map { variant ->
-            Dokument(
-                dokument.dokumentInfoId.let(::DokumentInfoId),
-                Variantformat.valueOf(variant.variantformat.name),
-                Filtype.valueOf(variant.filtype),
-                dokument.brevkode,
-            )
-        }
-    } ?: emptyList()
-
-    return if (ident == null) {
-        Journalpost.UtenIdent(
-            journalpostId = journalpost.journalpostId.let(::JournalpostId),
-            status = finnJournalpostStatus(journalpost.journalstatus),
-            tema = journalpost.tema,
-            journalførendeEnhet = journalpost.journalfoerendeEnhet,
-            mottattDato = mottattDato,
-            dokumenter = dokumenter
-        )
-    } else {
-        Journalpost.MedIdent(
-            personident = ident,
-            journalpostId = journalpost.journalpostId.let(::JournalpostId),
-            status = finnJournalpostStatus(journalpost.journalstatus),
-            tema = journalpost.tema,
-            journalførendeEnhet = journalpost.journalfoerendeEnhet,
-            mottattDato = mottattDato,
-            dokumenter = dokumenter
-        )
     }
 }

@@ -7,7 +7,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -30,7 +29,7 @@ class KategoriserDokumentSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        require(journalpost is Journalpost.MedIdent)
+        requireNotNull(journalpost)
 
         return if (!journalpost.kanBehandlesAutomatisk() && kategorivurdering == null) StegResultat(listOf(
             Definisjon.KATEGORISER_DOKUMENT))

@@ -9,7 +9,6 @@ import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.Ident
 
@@ -31,10 +30,9 @@ class SaksnummerInfoKrav(
     override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost) { "Forventer journalpost" }
-        check(journalpost is Journalpost.MedIdent) { "journalpost må ha ident" }
 
         val saker = try {
-            behandlingsflytGateway.finnSaker(Ident(journalpost.personident.id, true)).map { it.tilSaksinfo() }
+            behandlingsflytGateway.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true)).map { it.tilSaksinfo() }
         } catch (e: Exception) {
             emptyList()
         } // TODO utbedre exception handling!!!

@@ -8,7 +8,6 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.fordeler.FordelerRegelService
 import no.nav.aap.postmottak.fordeler.regler.RegelInput
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import org.slf4j.LoggerFactory
@@ -33,12 +32,12 @@ class RoutingSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        check(journalpost is Journalpost.MedIdent) { "journalpost må ha ident" }
+        requireNotNull(journalpost)
         
         val skalTilKelvin = FordelerRegelService().skalTilKelvin(
             RegelInput(
                 journalpost.journalpostId.referanse,
-                journalpost.personident.id
+                journalpost.person.aktivIdent().identifikator
             )
         )
 

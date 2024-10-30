@@ -9,7 +9,6 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.klient.joark.Joark
 import no.nav.aap.postmottak.klient.joark.JoarkClient
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
@@ -36,7 +35,7 @@ class SettFagsakSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId) ?: error {"Mangler saksvurdering i journalføringssteg"}
 
-        require(journalpost is Journalpost.MedIdent)
+        requireNotNull(journalpost)
 
         // TODO: Skill mellom maskinell og manuell journalføring
         if (saksvurdering.generellSak){

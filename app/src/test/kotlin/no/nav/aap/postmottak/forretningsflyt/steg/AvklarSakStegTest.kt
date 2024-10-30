@@ -7,8 +7,9 @@ import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.klient.joark.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -34,7 +35,7 @@ class AvklarSakStegTest {
         avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { journalpostRepository.hentHvisEksisterer(any()) }
+        verify(exactly = 1) { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) }
     }
 
     @Test
@@ -51,7 +52,7 @@ class AvklarSakStegTest {
 
     @Test
     fun `når automatisk behandling er mulig etterspørres ny sak uten avklaringsbehov`() {
-        val journalpost: Journalpost.MedIdent = mockk()
+        val journalpost: Journalpost = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns true
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
@@ -64,7 +65,7 @@ class AvklarSakStegTest {
 
     @Test
     fun `når det finnes relaterte saker til behandlingen kreves avklaring`() {
-        val journalpost: Journalpost.MedIdent = mockk()
+        val journalpost: Journalpost = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns false
 
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
@@ -80,7 +81,7 @@ class AvklarSakStegTest {
 
     @Test
     fun `når det finnes relaterte saker til behandlingen og saksnummer er gitt i avklaring går vi videre i flyten`() {
-        val journalpost: Journalpost.MedIdent = mockk()
+        val journalpost: Journalpost = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns false
 
@@ -97,7 +98,7 @@ class AvklarSakStegTest {
 
     @Test
     fun `når det finnes relaterte saker til behandlingen og avklaring vil opprette nytt saksnummer spør vi behandlingsflyt om saksnummer før vi går videre`() {
-        val journalpost: Journalpost.MedIdent = mockk()
+        val journalpost: Journalpost = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns false
 
         every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns true

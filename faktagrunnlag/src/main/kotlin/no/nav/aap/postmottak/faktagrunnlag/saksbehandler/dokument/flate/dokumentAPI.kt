@@ -12,8 +12,8 @@ import no.nav.aap.postmottak.sakogbehandling.sak.flate.DokumentResponsDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentDokumentDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentJournalpostDTO
 import no.nav.aap.komponenter.httpklient.auth.token
-import no.nav.aap.postmottak.klient.joark.DokumentInfoId
 import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 

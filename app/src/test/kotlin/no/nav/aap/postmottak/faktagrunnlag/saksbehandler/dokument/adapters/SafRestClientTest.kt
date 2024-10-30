@@ -7,7 +7,7 @@ import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.postmottak.klient.joark.DokumentInfoId
+import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.InputStream

@@ -6,7 +6,8 @@ import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.klient.joark.Joark
-import no.nav.aap.postmottak.klient.joark.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
+import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.junit.jupiter.api.Test
 
 class JournalføringStegTest {
@@ -21,8 +22,8 @@ class JournalføringStegTest {
 
     @Test
     fun `verifiser at journalpost blir oppdatert med saksnummer og endelig journalført`() {
-        val journalpost: Journalpost.MedIdent = mockk()
-        every { journalpostRepository.hentHvisEksisterer(any()) } returns journalpost
+        val journalpost: Journalpost = mockk()
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val saksnummer = "saksnummer"
         every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer
