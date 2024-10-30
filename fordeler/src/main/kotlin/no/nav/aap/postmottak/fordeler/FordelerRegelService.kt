@@ -11,7 +11,7 @@ private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
 class FordelerRegelService {
     fun skalTilKelvin(input: RegelInput): Boolean {
         return listOf(
-            Aldersregel.medDataInnhenting(),
+            //TODO: Skru på aldersregel når dette er klart til å testes: Aldersregel.medDataInnhenting(),
             ArenaSakRegel.medDataInnhenting(),
         ).all {
             it.vurder(input).also { passed ->
