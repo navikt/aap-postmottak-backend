@@ -5,7 +5,8 @@ val ktorVersion = "3.0.0"
 val aapLibVersion = "5.0.23"
 val komponenterVersjon = "1.0.30"
 val kafkaVersion = "3.7.0"
-val tilgangVersjon = "0.0.18"
+val tilgangVersjon = "1.0-SNAPSHOT"
+
 
 plugins {
     id("postmottak.conventions")
@@ -54,6 +55,8 @@ fun getCheckedOutGitCommitHash(): String {
 
 dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-server-double-receive-jvm:2.3.5")
+
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
     implementation("no.nav:ktor-openapi-generator:1.0.46")
 

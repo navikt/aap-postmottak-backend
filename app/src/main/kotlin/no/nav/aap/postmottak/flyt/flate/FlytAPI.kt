@@ -4,7 +4,6 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingHendelseHåndterer
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
@@ -24,23 +23,26 @@ import no.nav.aap.postmottak.flyt.flate.visning.Prosessering
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.postmottak.flyt.flate.visning.Visning
 import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.journalPostResolverFactory
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
-import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedJournalpostPost
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.MDC
 import tilgang.Operasjon
+import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
+
+fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
-            authorizedGet<Behandlingsreferanse, BehandlingFlytOgTilstandDto>(JournalpostPathParam("referanse")) { req ->
+            authorizedGet<Behandlingsreferanse, BehandlingFlytOgTilstandDto>(
+                journalPostResolverFactory(dataSource)
+            ) { req ->
                 val dto = dataSource.transaction { connection ->
                     var behandling = BehandlingRepositoryImpl(connection).hent(req)
                     val flytJobbRepository = FlytJobbRepository(connection)
@@ -123,7 +125,9 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             }
         }
         route("/{referanse}/resultat") {
-            authorizedGet<JournalpostId, BehandlingResultatDto>(JournalpostPathParam("referanse")) { req ->
+            authorizedGet<Behandlingsreferanse, BehandlingResultatDto>(
+                journalPostResolverFactory(dataSource)
+            ) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
 
                     BehandlingResultatDto()
@@ -161,7 +165,9 @@ fun NormalOpenAPIRoute.flytApi(dataSource: HikariDataSource) {
             }
         }
         route("/{referanse}/vente-informasjon") {
-            authorizedGet<Behandlingsreferanse, Venteinformasjon>(JournalpostPathParam("referanse")) { request ->
+            authorizedGet<Behandlingsreferanse, Venteinformasjon>(
+                journalPostResolverFactory(dataSource)
+            ) { request ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = BehandlingRepositoryImpl(connection).hent(request)
 

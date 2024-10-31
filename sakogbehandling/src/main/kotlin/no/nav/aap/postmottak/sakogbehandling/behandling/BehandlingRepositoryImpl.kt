@@ -119,7 +119,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun hent(referanse: Behandlingsreferanse): Behandling {
         val query = """
             SELECT * FROM BEHANDLING b
-            WHERE journalpost_id = ?
+            WHERE referanse = ?
             """.trimIndent()
 
         return utførHentQuery(query) { setUUID(1, referanse.referanse) }

@@ -5,11 +5,8 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import com.zaxxer.hikari.HikariDataSource
-import io.ktor.http.*
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.journalPostResolverFactory
@@ -17,15 +14,17 @@ import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
-import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import java.net.URI
+import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.avklarTemaApi(dataSource: HikariDataSource) {
+
+fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
     route("/api/behandling/{referanse}") {
         route("/grunnlag/avklarTemaVurdering") {
-            authorizedGet<Behandlingsreferanse, AvklarTemaGrunnlagDto>(JournalpostPathParam("referanse")) { req ->
-                val token = token()
+            authorizedGet<Behandlingsreferanse, AvklarTemaGrunnlagDto>(
+                journalPostResolverFactory(dataSource)
+            ) { req ->
                 val grunnlag = dataSource.transaction(readOnly = true) {
                     val behandling = BehandlingRepositoryImpl(it).hent(req)
                     val journalpost =

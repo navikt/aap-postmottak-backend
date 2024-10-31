@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.postmottak.flyt.utledType
+import no.nav.aap.postmottak.journalPostResolverFactory
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -29,7 +30,9 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}") {
-            authorizedGet<Behandlingsreferanse, DetaljertBehandlingDTO>(JournalpostPathParam("referanse")) { req ->
+            authorizedGet<Behandlingsreferanse, DetaljertBehandlingDTO>(
+                journalPostResolverFactory(dataSource)
+            ) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = behandling(connection, req)
                     val flyt = utledType(behandling.typeBehandling).flyt()
