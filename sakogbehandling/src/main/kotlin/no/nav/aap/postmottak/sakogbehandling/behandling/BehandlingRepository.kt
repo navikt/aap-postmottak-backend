@@ -9,7 +9,7 @@ interface BehandlingRepository {
 
     fun hent(behandlingId: BehandlingId): Behandling
 
-    fun hent(journalpostId: JournalpostId): Behandling
+    fun hent(referanse: Behandlingsreferanse): Behandling
 
 }
 

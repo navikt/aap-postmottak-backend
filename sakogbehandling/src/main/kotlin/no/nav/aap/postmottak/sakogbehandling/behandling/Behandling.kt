@@ -8,6 +8,7 @@ import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.flyt.StegStatus
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDateTime
+import java.util.*
 
 
 class Behandling(
@@ -17,11 +18,10 @@ class Behandling(
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     val opprettetTidspunkt: LocalDateTime,
     val versjon: Long = 0,
+    val referanse: Behandlingsreferanse
 ) : Comparable<Behandling> {
 
-
     val typeBehandling = TypeBehandling.DokumentHåndtering
-    val referanse: JournalpostId = journalpostId
 
     fun flytKontekst(): FlytKontekst {
         return FlytKontekst(id, typeBehandling)

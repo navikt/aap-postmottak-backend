@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import java.time.LocalDateTime
+import java.util.*
 
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
@@ -15,14 +16,15 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun opprettBehandling(journalpostId: JournalpostId): BehandlingId {
 
         val query = """
-            INSERT INTO BEHANDLING (status, type, journalpost_id)
-                 VALUES (?, ?, ?)
+            INSERT INTO BEHANDLING (status, type, referanse, journalpost_id)
+                 VALUES (?, ?, ?, ?)
             """.trimIndent()
         val behandlingId = connection.executeReturnKey(query) {
             setParams {
                 setEnumName(1, Status.OPPRETTET)
                 setString(2, TypeBehandling.DokumentHåndtering.identifikator())
-                setLong(3, journalpostId.referanse)
+                setUUID(3, UUID.randomUUID())
+                setLong(4, journalpostId.referanse)
             }
         }
 
@@ -34,6 +36,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return Behandling(
             id = behandlingId,
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
+            referanse = row.getUUID("referanse").let(::Behandlingsreferanse),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
@@ -113,13 +116,13 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return utførHentQuery(query) { setLong(1, behandlingId.toLong()) }
     }
 
-    override fun hent(journalpostId: JournalpostId): Behandling {
+    override fun hent(referanse: Behandlingsreferanse): Behandling {
         val query = """
             SELECT * FROM BEHANDLING b
             WHERE journalpost_id = ?
             """.trimIndent()
 
-        return utførHentQuery(query) { setLong(1, journalpostId.referanse) }
+        return utførHentQuery(query) { setUUID(1, referanse.referanse) }
 
     }
 

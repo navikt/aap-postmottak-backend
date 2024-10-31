@@ -45,10 +45,10 @@ class BehandlingRepositoryImplTest {
     @Test
     fun `hent behandling med journalpostId returnerer behandling`() {
         inContext {
-            val journalpostId = JournalpostId(11111)
-            behandlingRepository.opprettBehandling(journalpostId)
+            val behandlingsreferanse = JournalpostId(11111)
+            val behandlingId = behandlingRepository.opprettBehandling(behandlingsreferanse)
 
-            val hentetBehandling = behandlingRepository.hent(journalpostId)
+            val hentetBehandling = behandlingRepository.hent(behandlingId)
 
             assertThat(hentetBehandling).isNotNull()
         }

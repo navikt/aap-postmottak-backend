@@ -83,11 +83,13 @@ class JoarkKafkaHandler(
         transactionProvider.inTransaction {
             val behandlingReferanseService = BehandlingReferanseService(behandlingRepository)
             try {
+                TODO("Map fra journalpostId til behandlings Id, muligens i sak")
+                /*
                 val behandling = behandlingReferanseService.behandling(journalpostId)
                 flytJobbRepository.leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
                         .forBehandling(behandling.id).medCallId()
-                )
+                )*/
             } catch (e: ElementNotFoundException) {
                 log.warn("Finner ikke behandling for mottatt melding om temaendring", e)
             }
