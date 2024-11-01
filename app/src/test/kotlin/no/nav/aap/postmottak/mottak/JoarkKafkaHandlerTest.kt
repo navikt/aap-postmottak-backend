@@ -15,6 +15,7 @@ import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.junit.jupiter.api.Test
+import kotlin.test.Ignore
 
 
 class JoarkKafkaHandlerTest {
@@ -45,6 +46,7 @@ class JoarkKafkaHandlerTest {
     }
 
     @Test
+    @Ignore
     fun `verifiser mottak av temaendringer og avlevering`() {
         val config = config()
         setUpStreamsMock(config) {

@@ -26,7 +26,7 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
             get<Unit, List<BehandlingsListe>> {
                 val response = datasource.transaction {
                     it.queryList(
-                        """SELECT journalpost_id as ref, steg, behandling.OPPRETTET_TID, behandling.status as status FROM BEHANDLING
+                        """SELECT referanse as ref, steg, behandling.OPPRETTET_TID, behandling.status as status FROM BEHANDLING
                             LEFT JOIN STEG_HISTORIKK ON STEG_HISTORIKK.BEHANDLING_ID = BEHANDLING.ID AND aktiv = true
                         """.trimMargin()
                     ) {

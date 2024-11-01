@@ -120,7 +120,7 @@ internal fun Application.server(
                 behandlingApi(dataSource)
                 flytApi(dataSource)
                 avklaringsbehovApi(dataSource)
-                dokumentApi()
+                dokumentApi(dataSource)
                 avklarTemaApi(dataSource)
                 kategoriseringApi(dataSource)
                 finnSakApi(dataSource)

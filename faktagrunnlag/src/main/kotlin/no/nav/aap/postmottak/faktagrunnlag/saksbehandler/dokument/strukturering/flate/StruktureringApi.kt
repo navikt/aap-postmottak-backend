@@ -5,17 +5,19 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.tilgang.JournalpostPathParam
-import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
+import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.tilgang.authorizedGet
 
 fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/strukturering") {
-        authorizedGet<JournalpostId, StruktureringGrunnlagDto>(JournalpostPathParam("referanse")) { req ->
+        authorizedGet<Behandlingsreferanse, StruktureringGrunnlagDto>(
+            journalPostResolverFactory(dataSource)
+        ) { req ->
             val (kategorivurdering, struktureringsvurdering) = dataSource.transaction(readOnly = true) {
                 val behandling = BehandlingRepositoryImpl(it).hent(req)
                 val kategorivurdering = KategorivurderingRepository(it).hentKategoriAvklaring(behandling.id)
