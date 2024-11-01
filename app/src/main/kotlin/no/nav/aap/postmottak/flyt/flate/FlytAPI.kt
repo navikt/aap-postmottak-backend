@@ -24,13 +24,15 @@ import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.postmottak.flyt.flate.visning.Visning
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
+import no.nav.aap.tilgang.JournalpostIdResolver
 import no.nav.aap.tilgang.authorizedGet
-import no.nav.aap.tilgang.authorizedJournalpostPost
+import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.MDC
 import tilgang.Operasjon
@@ -72,7 +74,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                     // Henter denne ut etter status er utledet for å være sikker på at dataene er i rett tilstand
                     behandling = BehandlingRepositoryImpl(connection).hent(req)
                     val flyt = utledType(behandling.typeBehandling).flyt()
-                    
+
                     val stegGrupper: Map<StegGruppe, List<StegType>> =
                         flyt.stegene().groupBy { steg -> steg.gruppe }
                     val aktivtSteg = behandling.aktivtSteg()
@@ -137,7 +139,11 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
         }
 
         route("/{referanse}/sett-på-vent") {
-            authorizedJournalpostPost<Behandlingsreferanse, BehandlingResultatDto, SettPåVentRequest>(Operasjon.SAKSBEHANDLE) { request, body ->
+            authorizedPost<Behandlingsreferanse, BehandlingResultatDto, SettPåVentRequest>(
+                settPåVentResolver(dataSource),
+                { Definisjon.MANUELT_SATT_PÅ_VENT.kode },
+                Operasjon.SAKSBEHANDLE
+            ) { request, body ->
                 dataSource.transaction { connection ->
                     val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
                     val lås = taSkriveLåsRepository.lås(request)
@@ -222,7 +228,7 @@ private fun utledVisning(
 ): Visning {
     val jobber = status in listOf(ProsesseringStatus.JOBBER, ProsesseringStatus.FEILET)
     val påVent = alleAvklaringsbehovInkludertFrivillige.erSattPåVent()
-   
+
     if (jobber) {
         return Visning(
             visVentekort = påVent
@@ -237,4 +243,14 @@ private fun utledVisning(
 
 private fun avklaringsbehov(connection: DBConnection, behandlingId: BehandlingId): Avklaringsbehovene {
     return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
+}
+
+
+private fun settPåVentResolver(dataSource: DataSource): JournalpostIdResolver<Behandlingsreferanse, SettPåVentRequest> {
+    return JournalpostIdResolver { _, body ->
+        dataSource.transaction(readOnly = true) { connection ->
+            val behandlingRepository = BehandlingRepositoryImpl(connection)
+            behandlingRepository.hent(body.referanse).journalpostId.referanse
+        }
+    }
 }

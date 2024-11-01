@@ -50,7 +50,7 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
     }
 }
 
-fun journalPostResolverFactory(dataSource: DataSource): JournalpostIdResolver<Unit, LøsAvklaringsbehovPåBehandling> {
+private fun journalPostResolverFactory(dataSource: DataSource): JournalpostIdResolver<Unit, LøsAvklaringsbehovPåBehandling> {
     return JournalpostIdResolver { _, body ->
         dataSource.transaction(readOnly = true) { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
