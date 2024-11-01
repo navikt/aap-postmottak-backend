@@ -61,6 +61,7 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
                 val personer = PdlGraphQLClient.withClientCredentialsRestClient().hentPersonBolk(identer)
                 respond(
                     DokumentInfoResponsDTO(
+                        journalpostId = journalpostId.referanse,
                         søker = DokumentIdent(
                             journalpost.bruker?.id,
                             personer?.find { it.ident == journalpost.bruker?.id }?.person?.navn?.first()?.fulltNavn()
