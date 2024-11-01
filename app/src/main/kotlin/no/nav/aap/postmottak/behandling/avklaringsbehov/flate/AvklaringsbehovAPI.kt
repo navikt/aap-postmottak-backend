@@ -9,9 +9,9 @@ import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovHendelseHåndterer
 import no.nav.aap.postmottak.behandling.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.behandling.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
+import no.nav.aap.postmottak.journalpostIdMapper
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.tilgang.AvklaringsbehovResolver
-import no.nav.aap.tilgang.JournalpostIdResolver
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.MDC
 import tilgang.Operasjon
@@ -21,7 +21,7 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/løs-behov") {
             authorizedPost<Unit, LøsAvklaringsbehovPåBehandling, LøsAvklaringsbehovPåBehandling>(
-                journalPostResolverFactory(dataSource),
+                { _, body -> journalpostIdMapper(body.referanse, dataSource) },
                 avklaringResolver,
                 Operasjon.SE
             ) { _, request ->
@@ -50,14 +50,4 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
     }
 }
 
-private fun journalPostResolverFactory(dataSource: DataSource): JournalpostIdResolver<Unit, LøsAvklaringsbehovPåBehandling> {
-    return JournalpostIdResolver { _, body ->
-        dataSource.transaction(readOnly = true) { connection ->
-            val behandlingRepository = BehandlingRepositoryImpl(connection)
-            behandlingRepository.hent(body?.referanse!!).journalpostId.referanse
-        }
-    }
-}
-
-val avklaringResolver =
-    AvklaringsbehovResolver<LøsAvklaringsbehovPåBehandling> { body -> body?.behov?.definisjon()?.kode!! }
+val avklaringResolver = AvklaringsbehovResolver<LøsAvklaringsbehovPåBehandling> { body -> body.behov.definisjon().kode }

@@ -24,13 +24,13 @@ import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.postmottak.flyt.flate.visning.Visning
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.journalpostIdMapper
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
-import no.nav.aap.tilgang.JournalpostIdResolver
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -140,7 +140,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
 
         route("/{referanse}/sett-på-vent") {
             authorizedPost<Behandlingsreferanse, BehandlingResultatDto, SettPåVentRequest>(
-                settPåVentResolver(dataSource),
+                { _, body -> journalpostIdMapper(body.referanse, dataSource) },
                 { Definisjon.MANUELT_SATT_PÅ_VENT.kode },
                 Operasjon.SAKSBEHANDLE
             ) { request, body ->
@@ -240,17 +240,6 @@ private fun utledVisning(
     }
 }
 
-
 private fun avklaringsbehov(connection: DBConnection, behandlingId: BehandlingId): Avklaringsbehovene {
     return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
-}
-
-
-private fun settPåVentResolver(dataSource: DataSource): JournalpostIdResolver<Behandlingsreferanse, SettPåVentRequest> {
-    return JournalpostIdResolver { _, body ->
-        dataSource.transaction(readOnly = true) { connection ->
-            val behandlingRepository = BehandlingRepositoryImpl(connection)
-            behandlingRepository.hent(body.referanse).journalpostId.referanse
-        }
-    }
 }
