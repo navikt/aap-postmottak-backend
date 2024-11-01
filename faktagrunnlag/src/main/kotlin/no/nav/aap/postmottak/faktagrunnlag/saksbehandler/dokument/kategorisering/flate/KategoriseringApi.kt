@@ -8,14 +8,14 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.journalPostResolverFactory
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
 
 fun NormalOpenAPIRoute.kategoriseringApi(dataSource: DataSource) {
     route("/api/behandling/{referanse}/grunnlag/kategorisering") {
-        authorizedGet<Behandlingsreferanse, KategoriseringGrunnlagDto>(
+        authorizedGet<BehandlingsreferansePathParam, KategoriseringGrunnlagDto>(
             journalPostResolverFactory(dataSource)
         ) { req ->
             val vurdering = dataSource.transaction(readOnly = true) {

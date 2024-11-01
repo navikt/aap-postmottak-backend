@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.sakogbehandling.lås
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class TaSkriveLåsRepository(private val connection: DBConnection) {
@@ -19,7 +19,7 @@ class TaSkriveLåsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun lås(referanse: Behandlingsreferanse): BehandlingSkrivelås {
+    fun lås(referanse: BehandlingsreferansePathParam): BehandlingSkrivelås {
         val query = """SELECT id, versjon FROM BEHANDLING WHERE referanse = ? FOR UPDATE"""
 
         return connection.queryFirst(query) {

@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.sakogbehandling.behandling.flate
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import org.slf4j.LoggerFactory
 
@@ -18,6 +19,6 @@ class BehandlingReferanseService(private val behandlingRepositoryImpl: Behandlin
         }
     }
 
-    fun finnJournalpostId(behandlingsreferanse: Behandlingsreferanse) = behandlingRepositoryImpl
+    fun finnJournalpostId(behandlingsreferanse: BehandlingsreferansePathParam) = behandlingRepositoryImpl
         .hent(behandlingsreferanse).journalpostId
 }

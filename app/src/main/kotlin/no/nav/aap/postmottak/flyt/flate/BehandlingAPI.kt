@@ -19,7 +19,7 @@ import no.nav.aap.postmottak.journalPostResolverFactory
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.tilgang.JournalpostPathParam
@@ -30,7 +30,7 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}") {
-            authorizedGet<Behandlingsreferanse, DetaljertBehandlingDTO>(
+            authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(
                 journalPostResolverFactory(dataSource)
             ) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
@@ -71,7 +71,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             }
         }
         route("/{referanse}/forbered") {
-            authorizedGet<Behandlingsreferanse, DetaljertBehandlingDTO>(JournalpostPathParam("referanse")) { req ->
+            authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(JournalpostPathParam("referanse")) { req ->
                 dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
                     val flytJobbRepository = FlytJobbRepository(connection)
@@ -86,7 +86,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
         }
         // TODO: Kun for test
         @Suppress("UnauthorizedPost")
-        post<Unit, Behandlingsreferanse, JournalpostDto> { _, body ->
+        post<Unit, BehandlingsreferansePathParam, JournalpostDto> { _, body ->
             val referanse = dataSource.transaction { connection ->
                 val behandlingRepository = BehandlingRepositoryImpl(connection)
                 val behandlingId = behandlingRepository.opprettBehandling(JournalpostId((body.referanse)))
@@ -101,7 +101,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
     }
 }
 
-private fun behandling(connection: DBConnection, req: Behandlingsreferanse): Behandling {
+private fun behandling(connection: DBConnection, req: BehandlingsreferansePathParam): Behandling {
     return BehandlingRepositoryImpl(connection).hent(req)
 }
 

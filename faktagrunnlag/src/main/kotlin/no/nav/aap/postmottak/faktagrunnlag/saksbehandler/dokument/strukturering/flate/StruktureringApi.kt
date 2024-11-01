@@ -10,12 +10,12 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.journalPostResolverFactory
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.tilgang.authorizedGet
 
 fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/strukturering") {
-        authorizedGet<Behandlingsreferanse, StruktureringGrunnlagDto>(
+        authorizedGet<BehandlingsreferansePathParam, StruktureringGrunnlagDto>(
             journalPostResolverFactory(dataSource)
         ) { req ->
             val (kategorivurdering, struktureringsvurdering) = dataSource.transaction(readOnly = true) {

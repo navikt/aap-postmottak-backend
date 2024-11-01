@@ -13,7 +13,7 @@ import no.nav.aap.postmottak.journalPostResolverFactory
 import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.tilgang.authorizedGet
 import java.net.URI
 import javax.sql.DataSource
@@ -22,7 +22,7 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
     route("/api/behandling/{referanse}") {
         route("/grunnlag/avklarTemaVurdering") {
-            authorizedGet<Behandlingsreferanse, AvklarTemaGrunnlagDto>(
+            authorizedGet<BehandlingsreferansePathParam, AvklarTemaGrunnlagDto>(
                 journalPostResolverFactory(dataSource)
             ) { req ->
                 val grunnlag = dataSource.transaction(readOnly = true) {

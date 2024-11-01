@@ -8,14 +8,14 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.journalPostResolverFactory
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
 
 fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource) {
     route("/api/behandling/{referanse}/grunnlag/finnSak") {
-        authorizedGet<Behandlingsreferanse, AvklarSakGrunnlagDto>(
+        authorizedGet<BehandlingsreferansePathParam, AvklarSakGrunnlagDto>(
             journalPostResolverFactory(dataSource)
         ) { req ->
             val response = dataSource.transaction(readOnly = true) {

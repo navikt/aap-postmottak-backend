@@ -29,7 +29,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
@@ -42,7 +42,7 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
-            authorizedGet<Behandlingsreferanse, BehandlingFlytOgTilstandDto>(
+            authorizedGet<BehandlingsreferansePathParam, BehandlingFlytOgTilstandDto>(
                 journalPostResolverFactory(dataSource)
             ) { req ->
                 val dto = dataSource.transaction { connection ->
@@ -127,7 +127,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
             }
         }
         route("/{referanse}/resultat") {
-            authorizedGet<Behandlingsreferanse, BehandlingResultatDto>(
+            authorizedGet<BehandlingsreferansePathParam, BehandlingResultatDto>(
                 journalPostResolverFactory(dataSource)
             ) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
@@ -139,7 +139,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
         }
 
         route("/{referanse}/sett-på-vent") {
-            authorizedPost<Behandlingsreferanse, BehandlingResultatDto, SettPåVentRequest>(
+            authorizedPost<BehandlingsreferansePathParam, BehandlingResultatDto, SettPåVentRequest>(
                 { _, body -> journalpostIdMapper(body.referanse, dataSource) },
                 { Definisjon.MANUELT_SATT_PÅ_VENT.kode },
                 Operasjon.SAKSBEHANDLE
@@ -171,7 +171,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
             }
         }
         route("/{referanse}/vente-informasjon") {
-            authorizedGet<Behandlingsreferanse, Venteinformasjon>(
+            authorizedGet<BehandlingsreferansePathParam, Venteinformasjon>(
                 journalPostResolverFactory(dataSource)
             ) { request ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->

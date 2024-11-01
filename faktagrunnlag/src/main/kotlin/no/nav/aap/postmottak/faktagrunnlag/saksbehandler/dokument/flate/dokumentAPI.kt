@@ -13,7 +13,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.saf.graphql.SafVariantformat
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.DokumentResponsDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentDokumentDTO
@@ -46,7 +46,7 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
         }
 
         route("/{referanse}/info") {
-            authorizedGet<Behandlingsreferanse, DokumentInfoResponsDTO>(
+            authorizedGet<BehandlingsreferansePathParam, DokumentInfoResponsDTO>(
                 journalPostResolverFactory(dataSource)
             ) { req ->
                 val journalpostId = dataSource.transaction(readOnly = true) { connection ->

@@ -36,7 +36,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return Behandling(
             id = behandlingId,
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
-            referanse = row.getUUID("referanse").let(::Behandlingsreferanse),
+            referanse = row.getUUID("referanse").let(::BehandlingsreferansePathParam),
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
