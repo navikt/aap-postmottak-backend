@@ -24,6 +24,7 @@ class BehandlingHendelseService(
 
         // TODO: Utvide med flere parametere for prioritering
         val hendelse = DokumentflytStoppetHendelse(
+            journalpostId = behandling.journalpostId,
             referanse = behandling.referanse.referanse, // TODO må håndtere referanseendring i oppgave
             behandlingType = behandling.typeBehandling,
             status = behandling.status(),

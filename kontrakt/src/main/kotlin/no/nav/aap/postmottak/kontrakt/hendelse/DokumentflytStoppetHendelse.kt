@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class DokumentflytStoppetHendelse(
+    val journalpostId: JournalpostId,
     val referanse: UUID,
     val behandlingType: TypeBehandling,
     val status: Status,
