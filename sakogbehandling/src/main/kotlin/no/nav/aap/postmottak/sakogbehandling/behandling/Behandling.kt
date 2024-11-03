@@ -17,10 +17,9 @@ class Behandling(
     private var stegHistorikk: List<StegTilstand> = mutableListOf(),
     val opprettetTidspunkt: LocalDateTime,
     val versjon: Long = 0,
-    val referanse: BehandlingsreferansePathParam
+    val referanse: BehandlingsreferansePathParam,
+    val typeBehandling: TypeBehandling
 ) : Comparable<Behandling> {
-
-    val typeBehandling = TypeBehandling.DokumentHåndtering
 
     fun flytKontekst(): FlytKontekst {
         return FlytKontekst(id, typeBehandling)

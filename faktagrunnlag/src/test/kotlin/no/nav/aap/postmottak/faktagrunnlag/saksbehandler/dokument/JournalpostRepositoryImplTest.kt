@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
@@ -32,7 +33,7 @@ class JournalpostRepositoryImplTest {
 
             val person = PersonRepository(connection).finnEllerOpprett(listOf(Ident("12345678")))
             val journalpost = genererJournalpost(person)
-            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId)
+            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
             val journalpostRepository = JournalpostRepositoryImpl(connection)
             
             // Act
@@ -55,7 +56,7 @@ class JournalpostRepositoryImplTest {
 
             val person = PersonRepository(connection).finnEllerOpprett(listOf(Ident("12345678")))
             val journalpost = genererJournalpost(person)
-            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId)
+            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
             val journalpostRepository = JournalpostRepositoryImpl(connection)
 
             // Act

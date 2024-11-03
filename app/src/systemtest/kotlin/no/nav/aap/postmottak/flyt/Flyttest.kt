@@ -21,6 +21,7 @@ import no.nav.aap.postmottak.flyt.flate.Venteinformasjon
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
@@ -115,7 +116,7 @@ class Flyttest : WithFakes {
     private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection): BehandlingId {
         val behandlingRepository = BehandlingRepositoryImpl(connection)
         val avklaringRepository = StruktureringsvurderingRepository(connection)
-        val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
+        val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
 
         AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
         SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
@@ -132,7 +133,7 @@ class Flyttest : WithFakes {
 
         val behandlingId = dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
 
             AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
             SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
