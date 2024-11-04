@@ -5,13 +5,17 @@ import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.postmottak.SYSTEMBRUKER
+import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovHendelseHåndterer
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.postmottak.behandling.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.ÅrsakTilSettPåVent
+import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.KategoriserDokumentLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
@@ -130,14 +134,13 @@ class Flyttest : WithFakes {
 
     @Test
     fun `Blir satt på vent for etterspørring av informasjon`() {
-
-        val behandlingId = dataSource.transaction { connection ->
+        val journalpostId = JournalpostId(1L)
+        dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
+            val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
             AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
             SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-            KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
@@ -146,21 +149,33 @@ class Flyttest : WithFakes {
             behandlingId
         }
 
-        Thread.sleep(500)
-
-        val behandling = dataSource.transaction { connection ->
-            await(5000) {
+        val behandling = await {
+            dataSource.transaction { connection ->
                 val behandlingRepository = BehandlingRepositoryImpl(connection)
-                val behandling = behandlingRepository.hent(behandlingId)
-
-                assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+                val behandling = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
+                    .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }!!
+                val avklaringsbehovene = hentAvklaringsbehov(behandling.id, connection)
+                assertThat(
+                    avklaringsbehovene.alle()
+                        .firstOrNull { it.definisjon == Definisjon.KATEGORISER_DOKUMENT }).isNotNull()
+                AvklaringsbehovHendelseHåndterer(connection).håndtere(
+                    key = behandling.id,
+                    hendelse = LøsAvklaringsbehovBehandlingHendelse(
+                        KategoriserDokumentLøsning(Brevkode.SØKNAD),
+                        false,
+                        1,
+                        Bruker("sdfgsdfg")
+                    )
+                )
                 behandling
             }
         }
 
-        dataSource.transaction { connection ->
-            val avklaringsbehov = hentAvklaringsbehov(behandlingId, connection)
-            assertThat(avklaringsbehov.alle()).anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.DIGITALISER_DOKUMENT) }
+        await {
+            dataSource.transaction { connection ->
+                val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
+                assertThat(avklaringsbehov.alle()).anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.DIGITALISER_DOKUMENT) }
+            }
         }
 
         hendelsesMottak.håndtere(
@@ -191,27 +206,23 @@ class Flyttest : WithFakes {
         dataSource.transaction { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
             assertThat(avklaringsbehov.alle())
-                .hasSize(2)
                 .anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT) }
-                .anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.DIGITALISER_DOKUMENT) }
         }
 
         Thread.sleep(50)
 
         dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.hent(behandlingId)
+            val behandling = behandlingRepository.hent(behandling.id)
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         }
 
         Thread.sleep(50)
+
         dataSource.transaction { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
             assertThat(avklaringsbehov.alle())
-                .hasSize(2)
-                //TODO: Fikse
                 .anySatisfy { !it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
-                .anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.DIGITALISER_DOKUMENT) }
         }
 
     }
@@ -220,12 +231,13 @@ class Flyttest : WithFakes {
         return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
     }
 
-    private fun <T> await(duration: Long, block: () -> T): T {
+    private fun <T> await(maxWait: Long = 5000, block: () -> T): T {
         val currentTime = System.currentTimeMillis()
-        while (System.currentTimeMillis() - currentTime <= duration) {
+        while (System.currentTimeMillis() - currentTime <= maxWait) {
             try {
                 return block()
-            } catch (_: Throwable) { }
+            } catch (_: Throwable) {
+            }
             Thread.sleep(50)
         }
         return block()

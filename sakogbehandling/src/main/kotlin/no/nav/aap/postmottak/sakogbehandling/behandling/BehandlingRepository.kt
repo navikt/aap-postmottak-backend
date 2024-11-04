@@ -12,5 +12,6 @@ interface BehandlingRepository {
 
     fun hent(referanse: Behandlingsreferanse): Behandling
 
+    fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling>
 }
 

@@ -51,7 +51,9 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
 
     override fun hentHvisEksisterer(behandlingId: BehandlingId): Journalpost? {
         val query = """
-            SELECT * FROM JOURNALPOST WHERE BEHANDLING_ID = ? ORDER BY OPPRETTET_TID DESC LIMIT 1
+            SELECT journalpost.* FROM JOURNALPOST 
+            JOIN behandling on behandling.journalpost_id = journalpost.journalpost_id 
+            WHERE behandling.id = ? ORDER BY OPPRETTET_TID DESC LIMIT 1
         """.trimIndent()
         return connection.queryFirstOrNull(query) {
             setParams {

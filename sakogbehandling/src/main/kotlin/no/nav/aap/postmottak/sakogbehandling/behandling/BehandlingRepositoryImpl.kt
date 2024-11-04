@@ -14,7 +14,6 @@ import java.util.*
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
     override fun opprettBehandling(journalpostId: JournalpostId, typeBehandling: TypeBehandling): BehandlingId {
-
         val query = """
             INSERT INTO BEHANDLING (status, type, referanse, journalpost_id)
                  VALUES (?, ?, ?, ?)
@@ -125,6 +124,18 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
 
         return utførHentQuery(query) { setUUID(1, referanse.referanse) }
 
+    }
+
+    override fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling> {
+        val query = """
+            SELECT * FROM BEHANDLING
+            WHERE journalpost_id = ?
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams { setLong(1, saksnummer.referanse) }
+            setRowMapper(::mapBehandling)
+        }
     }
 
     private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {
