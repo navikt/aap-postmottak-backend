@@ -69,6 +69,7 @@ spec:
     inbound:
       rules:
         - application: postmottak
+        - application: paw-patrol
     outbound:
       external:
         - host: saf.dev-fss-pub.nais.io
