@@ -40,5 +40,17 @@ class AvklarTemaRepository(private val connection: DBConnection) {
         }
     }
 
+    fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+        connection.execute("""
+            INSERT INTO TEMAVURDERING_GRUNNLAG (TEMAVURDERING_ID, BEHANDLING_ID) 
+            SELECT TEMAVURDERING_ID, ? FROM TEMAVURDERING_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV 
+        """.trimIndent()) {
+            setParams {
+                setLong(2, fraBehandlingId.id)
+                setLong(1, tilBehandlingId.id)
+            }
+        }
+    }
+
 
 }

@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
@@ -21,7 +22,8 @@ class VideresendSteg(
     val saksnummerRepository: SaksnummerRepository,
     val avklarTemaRepository: AvklarTemaRepository,
     val behandlingRepository: BehandlingRepository,
-    val flytJobbRepository: FlytJobbRepository
+    val flytJobbRepository: FlytJobbRepository,
+    val kopierer: GrunnlagKopierer
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
@@ -30,6 +32,7 @@ class VideresendSteg(
                 AvklarTemaRepository(connection),
                 BehandlingRepositoryImpl(connection),
                 FlytJobbRepository(connection),
+                GrunnlagKopierer(connection)
             )
         }
 
@@ -48,10 +51,11 @@ class VideresendSteg(
             return StegResultat()
         }
 
-        val behandlingId = behandlingRepository.opprettBehandling(behandling.journalpostId, TypeBehandling.DokumentHåndtering)
+        val dokumentbehandlingId = behandlingRepository.opprettBehandling(behandling.journalpostId, TypeBehandling.DokumentHåndtering)
+        kopierer.overfør(kontekst.behandlingId, dokumentbehandlingId)
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
-                .forBehandling(behandlingId).medCallId()
+                .forBehandling(dokumentbehandlingId).medCallId()
         )
 
         return StegResultat()

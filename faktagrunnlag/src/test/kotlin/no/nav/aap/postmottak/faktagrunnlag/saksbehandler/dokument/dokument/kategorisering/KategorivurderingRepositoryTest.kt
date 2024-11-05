@@ -48,6 +48,19 @@ class KategorivurderingRepositoryTest {
         }
     }
 
+    @Test
+    fun `kan kopiere vurdering fra en behnadling til en annen`() {
+        val journalpostId = JournalpostId(1)
+        inContext {
+            val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
+            kategorivurderingRepository.lagreKategoriseringVurdering(fraBehandling, Brevkode.SØKNAD)
+            kategorivurderingRepository.kopier(fraBehandling, tilBehandling)
+
+            assertThat(kategorivurderingRepository.hentKategoriAvklaring(tilBehandling)?.avklaring).isEqualTo(Brevkode.SØKNAD)
+        }
+    }
+
     private class Context(
         val kategorivurderingRepository: KategorivurderingRepository,
         val behandlingRepository: BehandlingRepository

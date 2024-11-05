@@ -123,6 +123,19 @@ class SaksnummerRepositoryTest {
         assertThat(inContext { saksnummerRepository.hentSakVurdering(behandlingId)?.saksnummer }).isEqualTo("SWAG")
     }
 
+    @Test
+    fun `kan kopiere vurdering fra en behnadling til en annen`() {
+        val journalpostId = JournalpostId(1)
+        inContext {
+            val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
+            saksnummerRepository.lagreSakVurdering(fraBehandling, Saksvurdering(generellSak = true))
+            saksnummerRepository.kopier(fraBehandling, tilBehandling)
+
+            assertThat(saksnummerRepository.hentSakVurdering(tilBehandling)?.generellSak).isTrue()
+        }
+    }
+
     private class TestContext(val connection: DBConnection) {
         val saksnummerRepository: SaksnummerRepository = SaksnummerRepository(connection)
         val behandlingRepository: BehandlingRepository = BehandlingRepositoryImpl(connection)

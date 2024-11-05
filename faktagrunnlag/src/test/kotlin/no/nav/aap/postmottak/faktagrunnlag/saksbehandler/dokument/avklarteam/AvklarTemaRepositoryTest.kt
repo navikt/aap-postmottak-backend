@@ -2,7 +2,6 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -65,6 +64,18 @@ class AvklarTemaRepositoryTest {
         inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, true) }
     }
 
+    @Test
+    fun `kan kopiere vurdering fra en behnadling til en annen`() {
+        val journalpostId = JournalpostId(1)
+        inContext {
+            val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
+            avklarTemaRepository.lagreTeamAvklaring(fraBehandling, true)
+            avklarTemaRepository.kopier(fraBehandling, tilBehandling)
+
+            assertThat(avklarTemaRepository.hentTemaAvklaring(tilBehandling)?.skalTilAap).isTrue()
+        }
+    }
 
     private class Context(
         val behandlingRepository: BehandlingRepository,

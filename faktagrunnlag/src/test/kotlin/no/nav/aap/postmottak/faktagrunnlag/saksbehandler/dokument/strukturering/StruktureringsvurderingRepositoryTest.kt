@@ -78,6 +78,20 @@ class StruktureringsvurderingRepositoryTest {
         assertThat(inContext { struktureringsvurderingRepository.hentStruktureringsavklaring(behandlingId)?.vurdering }).isEqualTo("SWAG")
     }
 
+    @Test
+    fun `kan kopiere vurdering fra en behnadling til en annen`() {
+        val journalpostId = JournalpostId(1)
+        val vurdeirng = "YOLO"
+        inContext {
+            val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
+            struktureringsvurderingRepository.lagreStrukturertDokument(fraBehandling, vurdeirng)
+            struktureringsvurderingRepository.kopier(fraBehandling, tilBehandling)
+
+            assertThat(struktureringsvurderingRepository.hentStruktureringsavklaring(tilBehandling)?.vurdering).isEqualTo(vurdeirng)
+        }
+    }
+
     private class Context(
         val struktureringsvurderingRepository: StruktureringsvurderingRepository,
         val behandlingRepository: BehandlingRepository
