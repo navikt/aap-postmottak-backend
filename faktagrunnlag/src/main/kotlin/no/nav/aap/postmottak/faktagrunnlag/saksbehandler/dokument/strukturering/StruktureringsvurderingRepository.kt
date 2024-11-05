@@ -42,4 +42,16 @@ class StruktureringsvurderingRepository(private val connection: DBConnection) {
         }
     }
 
+    fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+        connection.execute("""
+            INSERT INTO STRUKTURERINGAVKLARING_GRUNNLAG (DIGITALISERINGSAVKLARING_ID, BEHANDLING_ID)
+            SELECT DIGITALISERINGSAVKLARING_ID, ? FROM STRUKTURERINGAVKLARING_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV
+        """.trimIndent()) {
+            setParams {
+                setLong(1, tilBehandlingId.id)
+                setLong(2, fraBehandlingId.id)
+            }
+        }
+    }
+
 }

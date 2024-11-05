@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -23,7 +23,7 @@ class AvklarTemaRepositoryTest {
     @Test
     fun `når teamavklaring blir lagret forventer jeg å finne den på behandlingen`() {
         inContext {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111), TypeBehandling.Journalføring)
 
             avklarTemaRepository.lagreTeamAvklaring(behandlingId, false)
 
@@ -33,7 +33,7 @@ class AvklarTemaRepositoryTest {
 
     @Test
     fun `når to temaavklaringer blir lagret forventer jeg å finne den siste på behandlingen`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, false) }
         inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, true) }
         inContext {
@@ -43,7 +43,7 @@ class AvklarTemaRepositoryTest {
 
     @Test
     fun `kan ikke ha to aktive vurderinger på samme behandling`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, false) }
 
         catchThrowable {
@@ -59,11 +59,23 @@ class AvklarTemaRepositoryTest {
     @Test
     fun `hvis to vurderinger blir lagt på samme sak blir den første deaktivert`() {
         val saksnummer = "234234"
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, false) }
         inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, true) }
     }
 
+    @Test
+    fun `kan kopiere vurdering fra en behnadling til en annen`() {
+        val journalpostId = JournalpostId(1)
+        inContext {
+            val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
+            avklarTemaRepository.lagreTeamAvklaring(fraBehandling, true)
+            avklarTemaRepository.kopier(fraBehandling, tilBehandling)
+
+            assertThat(avklarTemaRepository.hentTemaAvklaring(tilBehandling)?.skalTilAap).isTrue()
+        }
+    }
 
     private class Context(
         val behandlingRepository: BehandlingRepository,

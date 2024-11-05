@@ -5,6 +5,7 @@ import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.PersonRepository
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -45,7 +46,7 @@ class DynamiskStegGruppeVisningServiceTest {
                 mottattDato = LocalDate.of(2021, 1, 1)
             )
             
-            val behandlingId = behandlingRepository.opprettBehandling(journalpost.journalpostId)
+            val behandlingId = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
             journalpostRepository.lagre(journalpost, behandlingId)
 
             val service = DynamiskStegGruppeVisningService(connection)

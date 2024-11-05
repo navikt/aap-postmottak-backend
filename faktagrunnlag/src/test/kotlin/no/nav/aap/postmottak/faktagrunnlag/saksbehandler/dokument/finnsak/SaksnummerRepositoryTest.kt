@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -38,7 +39,7 @@ class SaksnummerRepositoryTest {
     @Test
     fun hentSaksnummre() {
         inContext {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
             saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo)
 
             val actual = saksnummerRepository.hentSaksnummre(behandlingId)
@@ -49,7 +50,7 @@ class SaksnummerRepositoryTest {
 
     @Test
     fun `hent siste saksnummre for behandling`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
 
         inContext { saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo) }
 
@@ -69,7 +70,7 @@ class SaksnummerRepositoryTest {
     @Test
     fun lagreSaksnummer() {
         inContext {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1))
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
 
             saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo)
 
@@ -88,7 +89,7 @@ class SaksnummerRepositoryTest {
     @Test
     fun `lagrer saksnummeravklaring på behandling`() {
         val saksnummer = "234234"
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
         inContext {
             val actual = saksnummerRepository.hentSakVurdering(behandlingId)
@@ -100,7 +101,7 @@ class SaksnummerRepositoryTest {
     @Test
     fun `kan ikke ha to aktive vurderinger på samme behandling`() {
         val saksnummer = "234234"
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
 
         catchThrowable {
@@ -115,11 +116,24 @@ class SaksnummerRepositoryTest {
 
     @Test
     fun `hvis to vurderinger blir lagt på samme sak blir den første deaktivert`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1)) }
+        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering("YOLO")) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering("SWAG")) }
 
         assertThat(inContext { saksnummerRepository.hentSakVurdering(behandlingId)?.saksnummer }).isEqualTo("SWAG")
+    }
+
+    @Test
+    fun `kan kopiere vurdering fra en behnadling til en annen`() {
+        val journalpostId = JournalpostId(1)
+        inContext {
+            val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
+            saksnummerRepository.lagreSakVurdering(fraBehandling, Saksvurdering(generellSak = true))
+            saksnummerRepository.kopier(fraBehandling, tilBehandling)
+
+            assertThat(saksnummerRepository.hentSakVurdering(tilBehandling)?.generellSak).isTrue()
+        }
     }
 
     private class TestContext(val connection: DBConnection) {

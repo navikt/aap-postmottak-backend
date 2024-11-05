@@ -13,8 +13,7 @@ import java.util.*
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
 
-    override fun opprettBehandling(journalpostId: JournalpostId): BehandlingId {
-
+    override fun opprettBehandling(journalpostId: JournalpostId, typeBehandling: TypeBehandling): BehandlingId {
         val query = """
             INSERT INTO BEHANDLING (status, type, referanse, journalpost_id)
                  VALUES (?, ?, ?, ?)
@@ -22,7 +21,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         val behandlingId = connection.executeReturnKey(query) {
             setParams {
                 setEnumName(1, Status.OPPRETTET)
-                setString(2, TypeBehandling.DokumentHåndtering.identifikator())
+                setEnumName(2, typeBehandling)
                 setUUID(3, UUID.randomUUID())
                 setLong(4, journalpostId.referanse)
             }
@@ -40,7 +39,8 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             status = row.getEnum("status"),
             stegHistorikk = hentStegHistorikk(behandlingId),
             opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
-            versjon = row.getLong("versjon")
+            versjon = row.getLong("versjon"),
+            typeBehandling = row.getEnum("type")
         )
     }
 
@@ -124,6 +124,18 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
 
         return utførHentQuery(query) { setUUID(1, referanse.referanse) }
 
+    }
+
+    override fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling> {
+        val query = """
+            SELECT * FROM BEHANDLING
+            WHERE journalpost_id = ?
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams { setLong(1, saksnummer.referanse) }
+            setRowMapper(::mapBehandling)
+        }
     }
 
     private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {

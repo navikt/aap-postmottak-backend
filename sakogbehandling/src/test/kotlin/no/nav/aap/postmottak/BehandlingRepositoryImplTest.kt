@@ -2,6 +2,7 @@ package no.nav.aap.postmottak
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -25,7 +26,7 @@ class BehandlingRepositoryImplTest {
             val repository = BehandlingRepositoryImpl(it)
 
             val journalpostId = JournalpostId(11111)
-            val behandlingId = repository.opprettBehandling(journalpostId)
+            val behandlingId = repository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
             assertThat(behandlingId).isNotNull
         }
@@ -34,7 +35,7 @@ class BehandlingRepositoryImplTest {
     @Test
     fun `hent behandling med id returnerer behandling`() {
         inContext {
-            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111))
+            val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111), TypeBehandling.Journalføring)
 
             val hentetBehandling = behandlingRepository.hent(behandlingId)
 
@@ -46,7 +47,7 @@ class BehandlingRepositoryImplTest {
     fun `hent behandling med journalpostId returnerer behandling`() {
         inContext {
             val behandlingsreferanse = JournalpostId(11111)
-            val behandlingId = behandlingRepository.opprettBehandling(behandlingsreferanse)
+            val behandlingId = behandlingRepository.opprettBehandling(behandlingsreferanse, TypeBehandling.Journalføring)
 
             val hentetBehandling = behandlingRepository.hent(behandlingId)
 

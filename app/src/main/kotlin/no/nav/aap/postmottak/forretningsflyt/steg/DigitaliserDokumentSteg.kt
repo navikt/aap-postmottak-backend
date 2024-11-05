@@ -27,7 +27,6 @@ class DigitaliserDokumentSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-
         val struktureringsvurdering = struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 

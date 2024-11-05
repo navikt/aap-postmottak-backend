@@ -8,22 +8,33 @@ class KategorivurderingRepository(private val connection: DBConnection) {
 
 
     fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: Brevkode) {
-        connection.execute(
+        val vurdeirngId = connection.executeReturnKey(
             """
-            INSERT INTO KATEGORIAVKLARING (BEHANDLING_ID, KATEGORI) VALUES (
-            ?, ?)
+            INSERT INTO KATEGORIAVKLARING (KATEGORI) VALUES (
+            ?)
         """.trimIndent()
         ) {
             setParams {
-                setLong(1, behandlingId.toLong())
-                setEnumName(2, brevkode)
+                setEnumName(1, brevkode)
             }
         }
+
+        connection.execute("""UPDATE KATEGORIAVKLARING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ?""") {
+            setParams { setLong(1, behandlingId.id) }
+        }
+
+        connection.execute("""
+            INSERT INTO KATEGORIAVKLARING_GRUNNLAG (BEHANDLING_ID, KATEGORIAVKLARING_ID) VALUES (?, ?)
+        """.trimIndent()) {
+            setParams { setLong(1, behandlingId.id); setLong(2, vurdeirngId) }
+        }
+
     }
 
     fun hentKategoriAvklaring(behandlingId: BehandlingId): no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurdering? {
-        return connection.queryFirstOrNull("""SELECT * FROM KATEGORIAVKLARING 
-            WHERE BEHANDLING_ID = ?
+        return connection.queryFirstOrNull("""SELECT KATEGORIAVKLARING.* FROM KATEGORIAVKLARING
+            JOIN KATEGORIAVKLARING_GRUNNLAG ON KATEGORIAVKLARING_ID = KATEGORIAVKLARING.ID
+            WHERE BEHANDLING_ID = ? AND AKTIV 
             ORDER BY TIDSSTEMPEL DESC LIMIT 1
         """) {
             setParams { setLong(1, behandlingId.toLong()) }
@@ -31,6 +42,18 @@ class KategorivurderingRepository(private val connection: DBConnection) {
                 no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurdering(
                     row.getEnum("kategori")
                 )
+            }
+        }
+    }
+
+    fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+        connection.execute("""
+            INSERT INTO KATEGORIAVKLARING_GRUNNLAG (KATEGORIAVKLARING_ID, BEHANDLING_ID)
+            SELECT KATEGORIAVKLARING_ID, ? FROM KATEGORIAVKLARING_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV
+        """.trimIndent()) {
+            setParams {
+                setLong(1, tilBehandlingId.id)
+                setLong(2, fraBehandlingId.id)
             }
         }
     }

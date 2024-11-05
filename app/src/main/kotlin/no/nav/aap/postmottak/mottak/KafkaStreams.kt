@@ -4,6 +4,7 @@ package no.nav.aap.postmottak.mottak
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -100,7 +101,7 @@ class JoarkKafkaHandler(
     private fun håndterJournalpost(journalpostId: JournalpostId) {
         log.info("Mottatt ny journalpost: $journalpostId")
         transactionProvider.inTransaction {
-            val behandlingId = behandlingRepository.opprettBehandling(journalpostId)
+            val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             flytJobbRepository.leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
                     .forBehandling(behandlingId).medCallId()

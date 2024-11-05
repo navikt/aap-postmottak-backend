@@ -16,6 +16,7 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -89,7 +90,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
         post<Unit, BehandlingsreferansePathParam, JournalpostDto> { _, body ->
             val referanse = dataSource.transaction { connection ->
                 val behandlingRepository = BehandlingRepositoryImpl(connection)
-                val behandlingId = behandlingRepository.opprettBehandling(JournalpostId((body.referanse)))
+                val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(body.referanse), TypeBehandling.Journalføring)
                 FlytJobbRepository(connection).leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
                         .forBehandling(behandlingId).medCallId()

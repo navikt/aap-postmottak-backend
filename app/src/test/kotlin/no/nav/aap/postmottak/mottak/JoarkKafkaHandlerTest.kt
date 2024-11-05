@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
@@ -29,7 +30,7 @@ class JoarkKafkaHandlerTest {
         setUpStreamsMock(config) {
             val hendelseRecord = lagHendelseRecord()
 
-            every { behandlingRepository.opprettBehandling(any()) } returns mockk<BehandlingId>(relaxed = true)
+            every { behandlingRepository.opprettBehandling(any(), any()) } returns mockk<BehandlingId>(relaxed = true)
 
             pipeInput("yolo", hendelseRecord)
 
@@ -37,7 +38,7 @@ class JoarkKafkaHandlerTest {
 
             verify(exactly = 1) {
                 behandlingRepository.opprettBehandling(
-                    JournalpostId(hendelseRecord.journalpostId)
+                    JournalpostId(hendelseRecord.journalpostId), TypeBehandling.Journalføring
                 )
             }
             verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
@@ -52,7 +53,7 @@ class JoarkKafkaHandlerTest {
         setUpStreamsMock(config) {
             val hendelseRecord = lagHendelseRecord(nyttTema = "IKKE AAP", gammeltTema = "AAP")
 
-            every { behandlingRepository.opprettBehandling(any()) } returns mockk<BehandlingId>(relaxed = true)
+            every { behandlingRepository.opprettBehandling(any(), any()) } returns mockk<BehandlingId>(relaxed = true)
 
             pipeInput("yolo", hendelseRecord)
 

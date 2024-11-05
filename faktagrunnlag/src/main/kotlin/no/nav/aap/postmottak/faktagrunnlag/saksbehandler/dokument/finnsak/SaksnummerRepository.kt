@@ -94,4 +94,16 @@ class SaksnummerRepository(private val connection: DBConnection) {
         connection.execute("""UPDATE SAKSVURDERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND  AKTIV""") {setParams { setLong(1, behandlingId.id) }}
     }
 
+    fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+        connection.execute("""
+            INSERT INTO SAKSVURDERING_GRUNNLAG (SAKSNUMMER_AVKLARING_ID, BEHANDLING_ID)
+            SELECT SAKSNUMMER_AVKLARING_ID, ? FROM SAKSVURDERING_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV
+        """.trimIndent()) {
+            setParams {
+                setLong(1, tilBehandlingId.id)
+                setLong(2, fraBehandlingId.id)
+            }
+        }
+    }
+
 }
