@@ -138,6 +138,18 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
+    override fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling {
+        return connection.queryFirst("""
+            SELECT * FROM behandling
+            WHERE journalpost_id = ? AND
+            type = 'Journalføring' AND
+            (status = 'OPPRETTET' OR status = 'UTREDES') 
+        """.trimIndent()) {
+            setParams { setLong(1, journalpostId.referanse) }
+            setRowMapper(::mapBehandling)
+        }
+    }
+
     private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {
         return connection.queryFirst(query) {
             setParams(params)

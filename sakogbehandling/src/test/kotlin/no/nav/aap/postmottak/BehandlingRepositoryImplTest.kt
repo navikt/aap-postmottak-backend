@@ -55,6 +55,16 @@ class BehandlingRepositoryImplTest {
         }
     }
 
+    @Test
+    fun `hent hent åpen journalføringsehandling`() {
+        val journalpostId = JournalpostId(1)
+        inContext {
+            behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val actual = behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
+            assertThat(actual).isNotNull
+        }
+    }
+
 
     private class Context(
         val behandlingRepository: BehandlingRepository,
