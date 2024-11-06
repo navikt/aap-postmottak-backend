@@ -5,6 +5,8 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
+import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -19,9 +21,9 @@ import org.junit.jupiter.api.Test
 
 class AvklarTemaStegTest {
 
-    val avklarTemaRepository : AvklarTemaRepository = mockk()
-    val journalpostRepo : JournalpostRepositoryImpl = mockk()
-    val oppgaveklient : Oppgaveklient = mockk(relaxed = true)
+    val avklarTemaRepository: AvklarTemaRepository = mockk()
+    val journalpostRepo: JournalpostRepositoryImpl = mockk()
+    val oppgaveklient: Oppgaveklient = mockk(relaxed = true)
 
     val avklarTemaSteg = AvklarTemaSteg(journalpostRepo, avklarTemaRepository, oppgaveklient)
 
@@ -45,10 +47,11 @@ class AvklarTemaStegTest {
     @Test
     fun `når automatisk saksbehandling er mulig skal ingen avklaringsbehov bli opprettet`() {
         every { journalpost.kanBehandlesAutomatisk() } returns true
+        every { journalpost.tema } returns "AAP"
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
-        assertThat(actual.avklaringsbehov).isEmpty()
+        assertThat(actual is Fullført)
     }
 
     @Test
@@ -58,7 +61,7 @@ class AvklarTemaStegTest {
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
-        assertThat(actual.avklaringsbehov).isEmpty()
+        assertThat(actual is Fullført)
     }
 
     @Test
@@ -69,7 +72,8 @@ class AvklarTemaStegTest {
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
-        assertThat(actual.avklaringsbehov).contains(Definisjon.AVKLAR_TEMA)
+        val funnetAvklaringsbehov = actual.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_TEMA)
     }
 
 }

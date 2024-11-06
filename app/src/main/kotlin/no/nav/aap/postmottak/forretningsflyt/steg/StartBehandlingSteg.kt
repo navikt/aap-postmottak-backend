@@ -4,6 +4,7 @@ import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
@@ -21,7 +22,7 @@ class StartBehandlingSteg private constructor() : BehandlingSteg {
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         // Obligatorisk startsteg for alle flyter
-        return StegResultat()
+        return Fullført
     }
 
 

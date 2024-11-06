@@ -6,6 +6,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
+import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
@@ -47,7 +49,7 @@ class AvklarSakStegTest {
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat.avklaringsbehov).isEmpty()
+        assertThat(resultat is Fullført)
     }
 
     @Test
@@ -60,7 +62,7 @@ class AvklarSakStegTest {
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat.avklaringsbehov).isEmpty()
+        assertThat(resultat is Fullført)
     }
 
     @Test
@@ -76,7 +78,8 @@ class AvklarSakStegTest {
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat.avklaringsbehov).contains(Definisjon.AVKLAR_SAK)
+        val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_SAK)
     }
 
     @Test
@@ -92,7 +95,7 @@ class AvklarSakStegTest {
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat.avklaringsbehov).isEmpty()
+        assertThat(resultat is Fullført)
 
     }
 
@@ -110,7 +113,7 @@ class AvklarSakStegTest {
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat.avklaringsbehov).isEmpty()
+        assertThat(resultat is Fullført)
 
     }
 }

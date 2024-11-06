@@ -2,10 +2,7 @@ package no.nav.aap.postmottak.flyt.steg
 
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
-interface Transisjon {
-    fun funnetAvklaringsbehov(): List<Definisjon> = listOf()
-
-    fun erTilbakeføring(): Boolean = false
+sealed interface Transisjon {
     fun kanFortsette(): Boolean = true
 }
 
@@ -16,22 +13,17 @@ object Stopp : Transisjon {
     }
 }
 
-class FunnetAvklaringsbehov(var avklaringsbehov: List<Definisjon>) : Transisjon {
-    override fun funnetAvklaringsbehov(): List<Definisjon> {
+class FunnetAvklaringsbehov(private val avklaringsbehov: List<Definisjon>) : Transisjon {
+    fun avklaringsbehov(): List<Definisjon> {
         return avklaringsbehov
     }
 }
 
-object TilbakeførtFraBeslutter : Transisjon {
-    override fun erTilbakeføring(): Boolean {
-        return true
+class FunnetVentebehov(private val ventebehov: List<Ventebehov>) : Transisjon {
+    fun ventebehov(): List<Ventebehov> {
+        return ventebehov
     }
 }
-object TilbakeførtFraKvalitetssikrer : Transisjon {
-    override fun erTilbakeføring(): Boolean {
-        return true
-    }
-}
-object AvbrytEtterAvklaring : Transisjon {
+class AvbrytEtterAvklaring : Transisjon {
     override fun kanFortsette() = false
 }

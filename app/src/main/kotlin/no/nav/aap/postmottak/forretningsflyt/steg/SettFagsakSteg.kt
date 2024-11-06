@@ -7,6 +7,7 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
+import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.klient.joark.Joark
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.kontrakt.steg.StegType
@@ -46,7 +47,7 @@ class SettFagsakSteg(
             )
         }
 
-        return StegResultat()
+        return Fullført
     }
 
 }

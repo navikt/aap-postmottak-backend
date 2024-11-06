@@ -4,8 +4,11 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
+import no.nav.aap.postmottak.flyt.steg.Avbrutt
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
+import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
+import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -43,11 +46,11 @@ class AvklarTemaSteg(
             log.info("Journalpost har endret tema. ytt tema er: ${journalpost.tema}")
             oppgaveklient.finnOppgaverForJournalpost(journalpost.journalpostId)
                 .forEach {oppgaveklient.ferdigstillOppgave(it) }
-            return StegResultat(avbrytFlyt = true)
+            return Avbrutt
         }
 
         return if (!journalpost.kanBehandlesAutomatisk() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) == null) {
-            StegResultat(listOf(Definisjon.AVKLAR_TEMA))
-        } else StegResultat()
+            FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
+        } else Fullført
     }
 }

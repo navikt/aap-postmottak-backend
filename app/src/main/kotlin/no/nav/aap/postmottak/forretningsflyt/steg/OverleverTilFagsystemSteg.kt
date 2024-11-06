@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
+import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
@@ -56,7 +57,7 @@ class OverleverTilFagsystemSteg(
 
         if (!journalpost.erSøknad() && kategorivurdering?.avklaring != Brevkode.SØKNAD) {
             log.info("Dokument er ikke en søknad, og skal ikke sendes til fagsystem")
-            return StegResultat()
+            return Fullført
         }
 
         // TODO :poop: bør kanskje gjøres på journalpost
@@ -70,7 +71,7 @@ class OverleverTilFagsystemSteg(
             dokumentJson
         )
 
-        return StegResultat()
+        return Fullført
     }
 
     private fun hentDokumentFraSaf(journalpost: Journalpost): ByteArray {

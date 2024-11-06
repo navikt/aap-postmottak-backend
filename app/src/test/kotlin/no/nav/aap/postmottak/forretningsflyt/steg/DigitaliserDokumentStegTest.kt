@@ -4,8 +4,9 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
+import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
@@ -30,7 +31,8 @@ class DigitaliserDokumentStegTest {
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
-        assertThat(stegresultat.avklaringsbehov).contains(Definisjon.DIGITALISER_DOKUMENT)
+        val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.DIGITALISER_DOKUMENT)
 
     }
 
@@ -44,13 +46,11 @@ class DigitaliserDokumentStegTest {
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
-        assertThat(stegresultat.avklaringsbehov).isEmpty()
+        assertThat(stegresultat is Fullført)
     }
 
     @Test
     fun `når behandling kan gjøres automatisk og strukturering ikke er gjort forventes ingen avklaringsbehov`() {
-
-        val behandling: Behandling = mockk(relaxed = true)
         val journalpost: Journalpost = mockk(relaxed = true)
 
         every { journalpost.kanBehandlesAutomatisk() } returns true
@@ -59,7 +59,7 @@ class DigitaliserDokumentStegTest {
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
-        assertThat(stegresultat.avklaringsbehov).isEmpty()
+        assertThat(stegresultat is Fullført)
 
     }
 
