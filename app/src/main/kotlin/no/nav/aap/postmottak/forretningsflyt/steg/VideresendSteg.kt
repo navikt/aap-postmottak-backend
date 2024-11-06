@@ -15,7 +15,6 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 
 
@@ -56,7 +55,7 @@ class VideresendSteg(
         kopierer.overfør(kontekst.behandlingId, dokumentbehandlingId)
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
-                .forBehandling(dokumentbehandlingId).medCallId()
+                .forBehandling(behandling.journalpostId.referanse, dokumentbehandlingId.id).medCallId()
         )
 
         return Fullført

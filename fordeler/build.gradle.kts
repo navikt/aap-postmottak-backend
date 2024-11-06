@@ -1,5 +1,5 @@
 val junitVersion = "5.10.3"
-val komponenterVersjon = "0.0.92"
+val komponenterVersjon = "1.0.50"
 
 plugins {
     id("postmottak.conventions")

@@ -22,7 +22,6 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -78,7 +77,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                     val flytJobbRepository = FlytJobbRepository(connection)
                     if (flytJobbRepository.hentJobberForBehandling(behandling.id.toLong()).isEmpty()) {
                         flytJobbRepository.leggTil(
-                            JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(behandling.id)
+                            JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(behandling.journalpostId.referanse, behandling.id.id)
                         )
                     }
                 }
@@ -93,7 +92,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                 val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(body.referanse), TypeBehandling.Journalføring)
                 FlytJobbRepository(connection).leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
-                        .forBehandling(behandlingId).medCallId()
+                        .forBehandling(body.referanse, behandlingId.id).medCallId()
                 )
                 behandlingRepository.hent(behandlingId).referanse
             }

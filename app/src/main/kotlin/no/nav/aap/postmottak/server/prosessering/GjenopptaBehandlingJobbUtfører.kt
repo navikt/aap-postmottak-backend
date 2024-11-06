@@ -16,14 +16,14 @@ class GjenopptaBehandlingJobbUtfører(
     override fun utfør(input: JobbInput) {
         val behandlingerForGjennopptak = gjenopptakRepository.finnBehandlingerForGjennopptak()
 
-        behandlingerForGjennopptak.forEach { behandlingId ->
-            val jobberPåBehandling = flytJobbRepository.hentJobberForBehandling(behandlingId.toLong())
+        behandlingerForGjennopptak.forEach { journalpostOgBehandling ->
+            val jobberPåBehandling = flytJobbRepository.hentJobberForBehandling(journalpostOgBehandling.behandlingId.id)
 
             if (jobberPåBehandling.none { it.type() == ProsesserBehandlingJobbUtfører.type() }) {
                 flytJobbRepository.leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(
-                        sakID = null,
-                        behandlingId = behandlingId.toLong()
+                        sakID = journalpostOgBehandling.journalpostId.referanse,
+                        behandlingId = journalpostOgBehandling.behandlingId.id
                     )
                 )
             }

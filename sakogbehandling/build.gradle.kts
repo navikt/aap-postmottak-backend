@@ -1,5 +1,5 @@
 val ktorVersion = "3.0.0"
-val komponenterVersjon = "1.0.30"
+val komponenterVersjon = "1.0.50"
 
 plugins {
     id("postmottak.conventions")

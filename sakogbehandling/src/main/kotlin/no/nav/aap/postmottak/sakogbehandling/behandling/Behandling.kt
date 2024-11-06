@@ -22,7 +22,7 @@ class Behandling(
 ) : Comparable<Behandling> {
 
     fun flytKontekst(): FlytKontekst {
-        return FlytKontekst(id, typeBehandling)
+        return FlytKontekst(journalpostId, id, typeBehandling)
     }
 
     fun visit(stegTilstand: StegTilstand) {

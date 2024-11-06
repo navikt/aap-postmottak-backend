@@ -27,7 +27,6 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
-import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -72,11 +71,12 @@ class Flyttest : WithFakes {
     @Test
     fun `kjører en manuell søknad igjennom hele flyten`() {
         val behandlingId = dataSource.transaction { connection ->
-            val behandlingId = opprettManuellBehandlingMedAlleAvklaringer(connection)
+            val journalpostId = JournalpostId(1)
+            val behandlingId = opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId)
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(behandlingId).medCallId()
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
             )
             behandlingId
         }
@@ -92,13 +92,14 @@ class Flyttest : WithFakes {
     @Test
     fun `når det avsluttende steget feiler skal behandlingen fortsatt være åpen`() {
         val behandlingId = dataSource.transaction { connection ->
-            val behandlingId = opprettManuellBehandlingMedAlleAvklaringer(connection)
+            val journalpostId = JournalpostId(1)
+            val behandlingId = opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId)
 
             WithFakes.fakes.behandlkingsflyt.throwException(path = "soknad/send")
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(behandlingId).medCallId()
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
             )
             behandlingId
         }
@@ -113,10 +114,10 @@ class Flyttest : WithFakes {
         }
     }
 
-    private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection): BehandlingId {
+    private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection, journalpostId: JournalpostId): BehandlingId {
         val behandlingRepository = BehandlingRepositoryImpl(connection)
         val avklaringRepository = StruktureringsvurderingRepository(connection)
-        val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
+        val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
         AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
         SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
@@ -141,7 +142,7 @@ class Flyttest : WithFakes {
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(behandlingId).medCallId()
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
             )
             behandlingId
         }

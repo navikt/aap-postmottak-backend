@@ -11,7 +11,6 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -104,7 +103,7 @@ class JoarkKafkaHandler(
             val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             flytJobbRepository.leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(behandlingId).medCallId()
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
             )
         }
     }

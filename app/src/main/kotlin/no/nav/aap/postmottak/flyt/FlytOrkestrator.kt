@@ -47,7 +47,7 @@ class FlytOrkestrator(
     fun opprettKontekst(behandlingId: BehandlingId): FlytKontekst {
         val behandling = behandlingRepository.hent(behandlingId)
 
-        return FlytKontekst(behandlingId = behandling.id, behandlingType = behandling.typeBehandling)
+        return FlytKontekst(journalpostId = behandling.journalpostId, behandlingId = behandling.id, behandlingType = behandling.typeBehandling)
     }
 
     fun forberedBehandling(kontekst: FlytKontekst) {

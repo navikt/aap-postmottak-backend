@@ -15,7 +15,6 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.SattPåVentLøsning
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.server.prosessering.forBehandling
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.LoggerFactory
@@ -68,7 +67,10 @@ class AvklaringsbehovOrkestrator(
 
     private fun fortsettProsessering(kontekst: FlytKontekst) {
         flytJobbRepository.leggTil(
-            JobbInput(jobb = ProsesserBehandlingJobbUtfører).forBehandling(kontekst.behandlingId).medCallId()
+            JobbInput(jobb = ProsesserBehandlingJobbUtfører).forBehandling(
+                kontekst.journalpostId.referanse,
+                kontekst.behandlingId.id
+            ).medCallId()
         )
     }
 
