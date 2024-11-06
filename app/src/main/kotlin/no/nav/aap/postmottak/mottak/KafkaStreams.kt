@@ -84,7 +84,7 @@ class JoarkKafkaHandler(
                 val behandling = behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
                 flytJobbRepository.leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
-                        .forBehandling(behandling.id).medCallId()
+                        .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id.id).medCallId()
                 )
             } catch (e: ElementNotFoundException) {
                 log.warn("Finner ikke behandling for mottatt melding om temaendring", e)
