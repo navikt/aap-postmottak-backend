@@ -8,7 +8,9 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
+import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
+import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
@@ -38,25 +40,30 @@ class AvklarSakSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val sakerPåBruker = saksnummerRepository.hentSaksnummre(kontekst.behandlingId)
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost kan ikke være null")
+        val journalpost =
+            journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost kan ikke være null")
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         requireNotNull(journalpost)
 
         return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
-            val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.person.aktivIdent().identifikator), journalpost.mottattDato()).saksnummer
+            val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
+                Ident(journalpost.person.aktivIdent().identifikator),
+                journalpost.mottattDato()
+            ).saksnummer
             saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
-            StegResultat()
+            Fullført
         } else if (saksnummerVurdering != null) {
             if (saksnummerVurdering.opprettNySak) {
-                val saksnummer = behandlingsflytClient.finnEllerOpprettSak(Ident(journalpost.person.aktivIdent().identifikator), journalpost.mottattDato()).saksnummer
+                val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
+                    Ident(journalpost.person.aktivIdent().identifikator),
+                    journalpost.mottattDato()
+                ).saksnummer
                 saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
             }
-            StegResultat()
+            Fullført
         } else {
-            return StegResultat(
-                listOf(
-                    Definisjon.AVKLAR_SAK
-                )
+            return FantAvklaringsbehov(
+                Definisjon.AVKLAR_SAK
             )
         }
     }

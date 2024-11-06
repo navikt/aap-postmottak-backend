@@ -6,8 +6,6 @@ import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegOrkestrator
-import no.nav.aap.postmottak.flyt.steg.TilbakeførtFraBeslutter
-import no.nav.aap.postmottak.flyt.steg.TilbakeførtFraKvalitetssikrer
 import no.nav.aap.postmottak.flyt.steg.Transisjon
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseService
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
@@ -120,7 +118,7 @@ class FlytOrkestrator(
         if (avklaringsbehovene.erSattPåVent()) {
             return // Bail out
         }
-        
+
         val behandlingFlyt = utledFlytFra(behandling)
 
         var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
@@ -133,19 +131,6 @@ class FlytOrkestrator(
             )
 
             val avklaringsbehov = avklaringsbehovene.åpne()
-            if (result.erTilbakeføring()) {
-                val tilbakeføringsflyt = when (result) {
-                    is TilbakeførtFraBeslutter -> behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraBeslutter())
-                    is TilbakeførtFraKvalitetssikrer -> behandlingFlyt.tilbakeflyt(avklaringsbehovene.tilbakeførtFraKvalitetssikrer())
-                    else -> error { "Uhåndter transisjon ved tilbakeføring. Faktisk type: ${result.javaClass}." }
-                }
-                log.info(
-                    "Tilbakeført fra '{}' til '{}'",
-                    gjeldendeSteg.type(),
-                    tilbakeføringsflyt.stegene().last()
-                )
-                tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene, false)
-            }
             validerPlassering(behandlingFlyt, avklaringsbehov)
 
             val neste = utledNesteSteg(result, behandlingFlyt)
@@ -182,12 +167,7 @@ class FlytOrkestrator(
         result: Transisjon,
         behandlingFlyt: BehandlingFlyt
     ): FlytSteg? {
-        val neste = if (result.erTilbakeføring()) {
-            behandlingFlyt.aktivtSteg()
-        } else {
-            behandlingFlyt.neste()
-        }
-        return neste
+        return behandlingFlyt.neste()
     }
 
     internal fun forberedLøsingAvBehov(definisjoner: Definisjon, behandling: Behandling, kontekst: FlytKontekst) {
@@ -263,7 +243,7 @@ class FlytOrkestrator(
                     nesteSteg
                 )
             }
-        check (uhåndterteBehov.isEmpty()) { "Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg'" }
+        check(uhåndterteBehov.isEmpty()) { "Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg'" }
     }
 
     private fun utledFlytFra(behandling: Behandling) = utledType(behandling.typeBehandling).flyt()

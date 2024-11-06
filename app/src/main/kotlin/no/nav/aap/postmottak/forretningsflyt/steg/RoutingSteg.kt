@@ -3,8 +3,10 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.flyt.steg.Avbrutt
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
+import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.fordeler.FordelerRegelService
 import no.nav.aap.postmottak.fordeler.regler.RegelInput
@@ -44,8 +46,8 @@ class RoutingSteg(
         if (!skalTilKelvin) {
             log.info("Avbryter flyt for journalpost ${journalpost.journalpostId}")
             //TODO: Send til arena
-            return StegResultat(avbrytFlyt = true)
+            return Avbrutt
         }
-        return StegResultat()
+        return Fullført
     }
 }

@@ -4,8 +4,10 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
+import no.nav.aap.postmottak.flyt.steg.Avbrutt
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
+import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.klient.joark.Joark
 import no.nav.aap.postmottak.klient.joark.JoarkClient
@@ -40,9 +42,9 @@ class JournalføringSteg(
         joarkKlient.ferdigstillJournalpostMaskinelt(journalpost)
 
         if (saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.generellSak == true) {
-            return StegResultat(avbrytFlyt = true)
+            return Avbrutt
         }
 
-        return StegResultat()
+        return Fullført
     }
 }
