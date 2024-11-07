@@ -9,56 +9,54 @@ import java.time.Period
 import java.util.*
 import java.util.stream.Collectors
 
-const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
-const val KATEGORISER_DOKUMENT_KODE = "1337"
-const val DIGITALISER_DOKUMENT_KODE = "1338"
-const val AVKLAR_TEMA_KODE = "1339"
-const val AVKLAR_SAKSNUMMER_KODE = "1340"
-const val ENDRE_TEMA_KODE = "1341"
-
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
-    @JsonProperty("kode") val kode: String,
+    @JsonProperty("kode") val kode: AvklaringsbehovKode,
     val type: BehovType,
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
     val kreverToTrinn: Boolean = false
 ) {
     MANUELT_SATT_PÅ_VENT(
-        kode = MANUELT_SATT_PÅ_VENT_KODE,
+        kode = AvklaringsbehovKode.`9001`,
         type = BehovType.VENTEPUNKT,
         defaultFrist = Period.ofWeeks(3),
     ),
     AVKLAR_TEMA(
-        kode = AVKLAR_TEMA_KODE,
+        kode = AvklaringsbehovKode.`1339`,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_TEMA
     ),
     KATEGORISER_DOKUMENT(
-        kode =  KATEGORISER_DOKUMENT_KODE,
+        kode = AvklaringsbehovKode.`1337`,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.KATEGORISER_DOKUMENT
     ),
     DIGITALISER_DOKUMENT(
-        kode = DIGITALISER_DOKUMENT_KODE,
+        kode = AvklaringsbehovKode.`1338`,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.DIGITALISER_DOKUMENT
     ),
     AVKLAR_SAK(
-        kode = AVKLAR_SAKSNUMMER_KODE,
+        kode = AvklaringsbehovKode.`1340`,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_SAK
     ),
     ENDRE_TEMA(
-        kode = ENDRE_TEMA_KODE,
+        kode = AvklaringsbehovKode.`1341`,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.ENDRE_TEMA
     );
 
     companion object {
         fun forKode(definisjon: String): Definisjon {
+            return entries.single { it.kode == AvklaringsbehovKode.valueOf(definisjon) }
+        }
+        
+        fun forKode(definisjon: AvklaringsbehovKode): Definisjon {
             return entries.single { it.kode == definisjon }
         }
+
 
         init {
             val unikeKoder =

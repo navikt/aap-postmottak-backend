@@ -5,13 +5,14 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "behovstype", visible = true)
 sealed interface AvklaringsbehovLøsning {
     fun definisjon(): Definisjon {
         if (this.javaClass.isAnnotationPresent(JsonTypeName::class.java)) {
-            return Definisjon.entries.first { it.kode == this.javaClass.getDeclaredAnnotation(JsonTypeName::class.java).value }
+            return Definisjon.entries.first { it.kode == AvklaringsbehovKode.valueOf(this.javaClass.getDeclaredAnnotation(JsonTypeName::class.java).value) }
         }
         throw IllegalStateException("Utvikler-feil:" + this.javaClass.getSimpleName() + " er uten JsonTypeName annotation.")
     }

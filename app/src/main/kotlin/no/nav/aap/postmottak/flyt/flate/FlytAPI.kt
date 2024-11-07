@@ -141,7 +141,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
         route("/{referanse}/sett-på-vent") {
             authorizedPost<BehandlingsreferansePathParam, BehandlingResultatDto, SettPåVentRequest>(
                 { _, body -> journalpostIdMapper(body.referanse, dataSource) },
-                { Definisjon.MANUELT_SATT_PÅ_VENT.kode },
+                { Definisjon.MANUELT_SATT_PÅ_VENT.kode.name },
                 Operasjon.SAKSBEHANDLE
             ) { request, body ->
                 dataSource.transaction { connection ->

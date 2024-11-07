@@ -37,9 +37,9 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.flate.
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.flate.struktureringApi
-import no.nav.aap.postmottak.flyt.flate.DefinisjonDTO
 import no.nav.aap.postmottak.flyt.flate.behandlingApi
 import no.nav.aap.postmottak.flyt.flate.flytApi
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.mottakStream
@@ -163,14 +163,12 @@ fun Application.module(dataSource: DataSource): Motor {
 fun NormalOpenAPIRoute.configApi() {
     route("/config/definisjoner") {
         @Suppress("UnauthorizedGet")
-        get<Unit, List<DefinisjonDTO>> {
-            respond(Definisjon.entries.map {
-                DefinisjonDTO(
-                    navn = it.name, type = it.kode,
-                    behovType = it.type,
-                    løsesISteg = it.løsesISteg
-                )
-            }.toList())
+        get<Unit, Map<AvklaringsbehovKode, Definisjon>> {
+            val response = HashMap<AvklaringsbehovKode, Definisjon>()
+            Definisjon.entries.forEach{
+                response[it.kode] = it
+            }
+            respond(response)
         }
     }
 }

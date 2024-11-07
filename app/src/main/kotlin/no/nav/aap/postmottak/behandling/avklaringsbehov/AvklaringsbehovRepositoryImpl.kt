@@ -72,7 +72,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         return connection.queryFirstOrNull<Long>(selectQuery) {
             setParams {
                 setLong(1, behandlingId.toLong())
-                setString(2, definisjon.kode)
+                setEnumName(2, definisjon.kode)
             }
             setRowMapper {
                 it.getLong("id")
@@ -93,7 +93,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         return connection.executeReturnKey(query) {
             setParams {
                 setLong(1, behandlingId.toLong())
-                setString(2, definisjon.kode)
+                setEnumName(2, definisjon.kode)
                 setEnumName(3, funnetISteg)
             }
         }
