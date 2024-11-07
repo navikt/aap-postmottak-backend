@@ -8,6 +8,7 @@ plugins {
 dependencies {
     implementation(project(":klienter"))
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("ch.qos.logback:logback-classic:1.5.8")
     
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
