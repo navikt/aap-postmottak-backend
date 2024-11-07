@@ -12,28 +12,26 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 interface JournalpostRepository {
     fun hentHvisEksisterer(behandlingId: BehandlingId): Journalpost?
     fun hentHvisEksisterer(journalpostId: JournalpostId): Journalpost?
-    fun lagre(journalpost: Journalpost, behandlingId: BehandlingId)
+    fun lagre(journalpost: Journalpost)
 }
 
 class JournalpostRepositoryImpl(private val connection: DBConnection) : JournalpostRepository {
     private val personRepository = PersonRepository(connection)
-    
-    override fun lagre(journalpost: Journalpost, behandlingId: BehandlingId) {
+
+    override fun lagre(journalpost: Journalpost) {
         val query = """
-            INSERT INTO JOURNALPOST (JOURNALPOST_ID, BEHANDLING_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA) VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA) VALUES (?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
                 setLong(1, journalpost.journalpostId.referanse)
-                setLong(2, behandlingId.toLong())
-                setString(3, journalpost.journalførendeEnhet)
-                setLong(4, journalpost.person.id)
-                setString(5, journalpost.status().name)
-                setLocalDate(6, journalpost.mottattDato())
-                setString(7, journalpost.tema)
+                setString(2, journalpost.journalførendeEnhet)
+                setLong(3, journalpost.person.id)
+                setString(4, journalpost.status().name)
+                setLocalDate(5, journalpost.mottattDato())
+                setString(6, journalpost.tema)
             }
         }
-
 
         val dokumentQuery = """
                 INSERT INTO DOKUMENT (JOURNALPOST_ID, DOKUMENT_INFO_ID, BREVKODE, VARIANTFORMAT, FILTYPE) VALUES (?, ?, ?, ?, ?)

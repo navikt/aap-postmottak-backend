@@ -63,12 +63,12 @@ class JournalpostService private constructor(
         
         val internJournalpost = journalpost.tilJournalpost(person)
         if (persistertJournalpost != internJournalpost) {
-            journalpostRepository.lagre(internJournalpost, kontekst.behandlingId)
+            journalpostRepository.lagre(internJournalpost)
             return ENDRET
         }
 
         if (persistertJournalpost != internJournalpost) {
-            log.info("Fant endringer i journalposten for behandling ${kontekst.behandlingId}")
+            log.info("Fant endringer i journalpost")
             // TODO: Finn ut hvordan man håndterer endringer - gjør ingenting akkurat nå
         }
 

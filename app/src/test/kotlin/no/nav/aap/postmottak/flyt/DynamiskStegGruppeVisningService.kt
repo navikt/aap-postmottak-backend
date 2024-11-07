@@ -47,7 +47,7 @@ class DynamiskStegGruppeVisningServiceTest {
             )
             
             val behandlingId = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
-            journalpostRepository.lagre(journalpost, behandlingId)
+            journalpostRepository.lagre(journalpost)
 
             val service = DynamiskStegGruppeVisningService(connection)
             

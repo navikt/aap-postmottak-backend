@@ -37,7 +37,7 @@ class JournalpostRepositoryImplTest {
             val journalpostRepository = JournalpostRepositoryImpl(connection)
             
             // Act
-            journalpostRepository.lagre(journalpost, behandlingid)
+            journalpostRepository.lagre(journalpost)
 
             val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandlingid)
 
@@ -60,14 +60,14 @@ class JournalpostRepositoryImplTest {
             val journalpostRepository = JournalpostRepositoryImpl(connection)
 
             // Act
-            journalpostRepository.lagre(journalpost, behandlingid)
+            journalpostRepository.lagre(journalpost)
 
             behandlingid
         }
         InitTestDatabase.dataSource.transaction { connection ->
             val journalpostRepository = JournalpostRepositoryImpl(connection)
             val person = PersonRepository(connection).finnEllerOpprett(listOf(Ident("12345678")))
-            journalpostRepository.lagre(genererJournalpost(person, tema = "YOLO"), behandlingid)
+            journalpostRepository.lagre(genererJournalpost(person, tema = "YOLO"))
 
             val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandlingid)
 
