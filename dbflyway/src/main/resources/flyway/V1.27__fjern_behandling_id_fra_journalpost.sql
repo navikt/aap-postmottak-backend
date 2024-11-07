@@ -1,0 +1,1 @@
+ALTER TABLE journalpost DROP COLUMN behandling_id;
