@@ -22,6 +22,7 @@ import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
 import no.nav.aap.postmottak.klient.joark.FerdigstillRequest
 import no.nav.aap.postmottak.klient.joark.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.test.fakes.safFake
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -76,7 +77,7 @@ private const val POSTMOTTAK_BACKEND = "postmottak-backend"
 
 class Fakes(azurePort: Int = 0) : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
-    val azure = FakeServer(azurePort, { azureFake() })
+    val azure = FakeServer(azurePort) { azureFake() }
     private val oppgave = FakeServer(module = { oppgaveFake() })
     val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
     val saf = FakeServer(module = { safFake() })
@@ -274,88 +275,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
         }
 
-    }
-
-    private fun Application.safFake() {
-
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            }
-        }
-
-        routing {
-            get("/rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}") {
-                call.response.header(
-                    HttpHeaders.ContentDisposition,
-                    ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, "ktor_logo.pdf")
-                        .toString()
-                )
-                call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
-                val samplePdf = this.javaClass.classLoader.getResourceAsStream("sample.pdf")
-                call.respondOutputStream {
-                    samplePdf.copyTo(this)
-                }
-            }
-            post("/graphql") {
-                val body = call.receive<String>()
-                val journalpostId = body.substringAfter("\"journalpostId\" :").substringBefore("}").trim()
-                this@safFake.log.info("Henter dokumenter for journalpost {}", journalpostId)
-
-                call.respondText(
-                    """
-                    { "data":
-                    {"journalpost":
-                        {
-                          "journalpostId": $journalpostId,
-                          "tittel": "Overordnet tittel",
-                          "personident": "3",
-                          "bruker": {
-                            "id": "213453452",
-                            "type": "FNR"
-                          },
-                          "status": "MOTTATT",
-                          "journalførendeEnhet": {"nr": 3001},
-                          "mottattDato": "2021-12-01",
-                          "tema": "AAP",
-                          "relevanteDatoer": [
-                            {
-                            "dato": "2020-12-01T10:00:00",
-                            "datotype": "DATO_REGISTRERT"
-                            }
-                          ], 
-                          "dokumenter": [
-                            {
-                            "tittel": "Dokumenttittel",
-                              "dokumentInfoId": "4542685451",
-                              "brevkode": "NAV 11-13.05",
-                              "dokumentvarianter": [
-                                {
-                                "variantformat": "ARKIV",
-                                "filtype": "PDF"
-                                }
-                                ]
-                            },
-                            {
-                            "tittel": "Dokument2",
-                              "dokumentInfoId": "45426854351",
-                              "brevkode": "Ukjent",
-                              "dokumentvarianter": [
-                                {
-                                "variantformat": "ARKIV",
-                                "filtype": "PDF"
-                                }
-                                ]
-                            }
-                          ]
-                        }
-                    }}
-                """.trimIndent(),
-                    contentType = ContentType.Application.Json
-                )
-            }
-        }
     }
 
     private fun Application.pdlFake() {

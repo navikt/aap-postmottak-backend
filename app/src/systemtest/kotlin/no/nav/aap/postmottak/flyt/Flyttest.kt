@@ -1,7 +1,17 @@
 package no.nav.aap.postmottak.flyt
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import no.nav.aap.WithFakes
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
+import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
@@ -27,6 +37,8 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
+import no.nav.aap.postmottak.test.FakeServer
+import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -65,6 +77,26 @@ class Flyttest : WithFakes {
             TRUNCATE BEHANDLING CASCADE
         """.trimIndent()
             )
+        }
+    }
+
+    @Test
+    fun `Full helautomatisk flyt`() {
+        val journalpostId = DIGITAL_SØKNAD_ID
+        dataSource.transaction {
+            val behandlingId = BehandlingRepositoryImpl(it).opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            FlytJobbRepository(it).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+            )
+            behandlingId
+        }
+
+        await(10000) {
+            dataSource.transaction {
+                val behandlinger = BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
+                assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
+            }
         }
     }
 
@@ -116,13 +148,12 @@ class Flyttest : WithFakes {
 
     private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection, journalpostId: JournalpostId): BehandlingId {
         val behandlingRepository = BehandlingRepositoryImpl(connection)
-        val avklaringRepository = StruktureringsvurderingRepository(connection)
         val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
         AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
         SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
         KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-        avklaringRepository.lagreStrukturertDokument(
+        StruktureringsvurderingRepository(connection).lagreStrukturertDokument(
             behandlingId,
             """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}"""
         )
