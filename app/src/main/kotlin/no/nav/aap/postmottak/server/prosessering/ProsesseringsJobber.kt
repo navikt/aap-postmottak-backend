@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.motor.Jobb
+import no.nav.aap.postmottak.fordeler.FordelingJobbUtfører
 
 object ProsesseringsJobber {
 
@@ -9,7 +10,8 @@ object ProsesseringsJobber {
         return listOf(
             ProsesserBehandlingJobbUtfører,
             StoppetHendelseJobbUtfører,
-            GjenopptaBehandlingJobbUtfører
+            GjenopptaBehandlingJobbUtfører,
+            FordelingJobbUtfører
         )
     }
 }

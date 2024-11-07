@@ -27,7 +27,6 @@ class JournalpostService private constructor(
     private val journalpostRepository: JournalpostRepository,
     private val safGraphqlClient: SafGraphqlClient,
     private val pdlGraphQLClient: PdlGraphQLClient,
-    private val behandlingRepository: BehandlingRepository,
     private val personRepository: PersonRepository
 ) : Informasjonskrav {
     private val log = LoggerFactory.getLogger(JournalpostService::class.java)
@@ -39,7 +38,6 @@ class JournalpostService private constructor(
                 JournalpostRepositoryImpl(connection),
                 SafGraphqlClient.withClientCredentialsRestClient(),
                 PdlGraphQLClient.withClientCredentialsRestClient(),
-                BehandlingRepositoryImpl(connection),
                 PersonRepository(connection)
             )
         }
@@ -48,9 +46,19 @@ class JournalpostService private constructor(
     override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
         val persistertJournalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
-        val journalpostId =
-            persistertJournalpost?.journalpostId ?: behandlingRepository.hent(kontekst.behandlingId).journalpostId
+        val journalpostId = kontekst.journalpostId
+        val internJournalpost = hentjournalpost(journalpostId)
 
+        if (persistertJournalpost != internJournalpost) {
+            log.info("Fant endringer i journalpost")
+            journalpostRepository.lagre(internJournalpost)
+            return ENDRET
+        }
+
+        return IKKE_ENDRET
+    }
+
+    fun hentjournalpost(journalpostId: JournalpostId): Journalpost {
         val journalpost = safGraphqlClient.hentJournalpost(journalpostId)
 
         require(journalpost.bruker?.id != null) { "journalpost må ha ident" }
@@ -60,19 +68,9 @@ class JournalpostService private constructor(
         }
 
         val person = personRepository.finnEllerOpprett(identliste)
-        
-        val internJournalpost = journalpost.tilJournalpost(person)
-        if (persistertJournalpost != internJournalpost) {
-            journalpostRepository.lagre(internJournalpost)
-            return ENDRET
-        }
 
-        if (persistertJournalpost != internJournalpost) {
-            log.info("Fant endringer i journalpost")
-            // TODO: Finn ut hvordan man håndterer endringer - gjør ingenting akkurat nå
-        }
+        return journalpost.tilJournalpost(person)
 
-        return IKKE_ENDRET
     }
 
 }
