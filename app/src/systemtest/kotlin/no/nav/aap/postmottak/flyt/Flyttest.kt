@@ -1,17 +1,9 @@
 package no.nav.aap.postmottak.flyt
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import no.nav.aap.WithFakes
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
-import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
@@ -37,8 +29,8 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
-import no.nav.aap.postmottak.test.FakeServer
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
+import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -123,11 +115,11 @@ class Flyttest : WithFakes {
 
     @Test
     fun `når det avsluttende steget feiler skal behandlingen fortsatt være åpen`() {
-        val behandlingId = dataSource.transaction { connection ->
-            val journalpostId = JournalpostId(1)
+        val journalpostId = JournalpostId(1)
+        dataSource.transaction { connection ->
             val behandlingId = opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId)
 
-            WithFakes.fakes.behandlkingsflyt.throwException(path = "soknad/send")
+            WithFakes.fakes.behandlkingsflyt.setCustomModule { behandlingsflytFake(send = { suspend {call.respond(HttpStatusCode.BadRequest, "NOPE")}}) }
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
@@ -136,13 +128,13 @@ class Flyttest : WithFakes {
             behandlingId
         }
 
-        Thread.sleep(50)
+        Thread.sleep(5000)
 
         dataSource.transaction { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandling = behandlingRepository.hent(behandlingId)
+            val behandlinger = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
 
-            assertThat(behandling.status()).isNotEqualTo(Status.AVSLUTTET)
+            assertThat(behandlinger).anyMatch { it.typeBehandling == TypeBehandling.DokumentHåndtering && it.status() == Status.IVERKSETTES }
         }
     }
 

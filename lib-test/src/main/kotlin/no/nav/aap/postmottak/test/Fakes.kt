@@ -14,15 +14,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
-import no.nav.aap.postmottak.test.modell.TestPerson
-import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.klient.ArenaSak
 import no.nav.aap.postmottak.klient.gosysoppgave.FerdigstillOppgaveRequest
 import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
 import no.nav.aap.postmottak.klient.joark.FerdigstillRequest
 import no.nav.aap.postmottak.klient.joark.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.safFake
+import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -31,40 +30,27 @@ import tilgang.TilgangResponse
 import java.time.LocalDate
 
 
-class FakeServer(port: Int = 0, module: Application.() -> Unit) {
-    private val server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration> =
+class FakeServer(port: Int = 0, private val module: Application.() -> Unit) {
+    private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration> =
         embeddedServer(Netty, port = port, module = module).start()
-
-    private var throwOnNextCall: HttpStatusCode? = null
-    private var exceptionPath: String? = null
-
-    init {
-        server.application.install(createApplicationPlugin("exceptionThrower") {
-            onCall { call ->
-                val status = throwOnNextCall
-                val path = exceptionPath
-                if (status != null && (path == null || call.request.path().contains(path))) {
-                    call.respond(status)
-                }
-            }
-        })
-    }
 
     fun stop() {
         server.stop()
     }
 
     fun clean() {
-        throwOnNextCall = null
-        exceptionPath = null
+        val port = server.port()
+        server.stop(0, 0)
+        server = embeddedServer(Netty, port = port, module = module).start()
+    }
+
+    fun setCustomModule(module: Application.() -> Unit) {
+        val port = server.port()
+        server.stop(0, 0)
+        server = embeddedServer(Netty, port = port, module = module).start()
     }
 
     fun port(): Int = server.port()
-
-    fun throwException(status: HttpStatusCode = HttpStatusCode.BadRequest, path: String) {
-        throwOnNextCall = status
-        exceptionPath = path
-    }
 
     private fun EmbeddedServer<*, *>.port(): Int {
         return runBlocking {
@@ -242,40 +228,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
     }
 
-    private fun Application.behandlingsflytFake() {
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-            }
-        }
 
-        routing {
-            post("/api/sak/finnEllerOpprett") {
-                call.respond(
-                    BehandlingsflytSak(
-                        (Math.random() * 9999999999).toLong().toString(),
-                        Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
-                    )
-                )
-            }
-
-            post("/api/sak/finn") {
-                call.respond(
-                    listOf(
-                        BehandlingsflytSak(
-                            (Math.random() * 9999999999).toLong().toString(),
-                            Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
-                        )
-                    )
-                )
-            }
-
-            post("/api/soknad/send") {
-                call.respond(HttpStatusCode.NoContent)
-            }
-        }
-
-    }
 
     private fun Application.pdlFake() {
         install(ContentNegotiation) {
