@@ -36,14 +36,14 @@ class RoutingSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
         
-        val skalTilKelvin = FordelerRegelService().skalTilKelvin(
+        val regelresultat = FordelerRegelService().evaluer(
             RegelInput(
                 journalpost.journalpostId.referanse,
                 journalpost.person.aktivIdent().identifikator
             )
         )
 
-        if (!skalTilKelvin) {
+        if (!regelresultat.skalTilKelvin()) {
             log.info("Avbryter flyt for journalpost ${journalpost.journalpostId}")
             //TODO: Send til arena
             return Avbrutt
