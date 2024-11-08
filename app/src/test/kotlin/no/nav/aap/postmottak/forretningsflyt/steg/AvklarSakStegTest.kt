@@ -24,7 +24,7 @@ class AvklarSakStegTest {
     }
 
     val behandlingsflytClient = mockk<BehandlingsflytClient>(relaxed = true)
-    val journalpostRepository = mockk<JournalpostRepositoryImpl>(relaxed = true)
+    val journalpostRepository = mockk<JournalpostRepositoryImpl>()
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
 
     val avklarSakSteg = AvklarSakSteg(
@@ -32,30 +32,12 @@ class AvklarSakStegTest {
         journalpostRepository,
         behandlingsflytClient)
 
-    @Test
-    fun utfør() {
-        avklarSakSteg.utfør(mockk(relaxed = true))
-
-        verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) }
-    }
-
-    @Test
-    fun `når det ikke finnes relaterte saker til behandlingen etterspørres ny sak uten avklaringsbehov`() {
-        every { saksnummerRepository.hentSaksnummre(any()) } returns emptyList()
-
-        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
-
-        verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
-
-        assertThat(resultat is Fullført)
-    }
 
     @Test
     fun `når automatisk behandling er mulig etterspørres ny sak uten avklaringsbehov`() {
-        val journalpost: Journalpost = mockk()
+        val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.kanBehandlesAutomatisk() } returns true
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
@@ -66,9 +48,10 @@ class AvklarSakStegTest {
     }
 
     @Test
-    fun `når det finnes relaterte saker til behandlingen kreves avklaring`() {
+    fun `når vi ikke kan behandle journalposten automatisk kreves avklaring`() {
         val journalpost: Journalpost = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
@@ -83,10 +66,12 @@ class AvklarSakStegTest {
     }
 
     @Test
-    fun `når det finnes relaterte saker til behandlingen og saksnummer er gitt i avklaring går vi videre i flyten`() {
+    fun `når saksnummer er gitt i avklaring går vi videre i flyten`() {
         val journalpost: Journalpost = mockk()
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns false
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+
 
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
 
@@ -101,8 +86,10 @@ class AvklarSakStegTest {
 
     @Test
     fun `når det finnes relaterte saker til behandlingen og avklaring vil opprette nytt saksnummer spør vi behandlingsflyt om saksnummer før vi går videre`() {
-        val journalpost: Journalpost = mockk()
+        val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+
 
         every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns true
 
