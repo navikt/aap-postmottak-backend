@@ -1,7 +1,8 @@
 package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.motor.Jobb
-import no.nav.aap.postmottak.fordeler.FordelingJobbUtfører
+import no.nav.aap.postmottak.fordeler.FordelingVideresendJobbUtfører
+import no.nav.aap.postmottak.fordeler.FordelingRegelJobbUtfører
 
 object ProsesseringsJobber {
 
@@ -11,7 +12,8 @@ object ProsesseringsJobber {
             ProsesserBehandlingJobbUtfører,
             StoppetHendelseJobbUtfører,
             GjenopptaBehandlingJobbUtfører,
-            FordelingJobbUtfører
+            FordelingRegelJobbUtfører,
+            FordelingVideresendJobbUtfører
         )
     }
 }
