@@ -10,5 +10,5 @@ enum class InnkommendeJournalpostStatus{
 data class InnkommendeJournalpost(
     val journalpostId: JournalpostId,
     val status: InnkommendeJournalpostStatus,
-    val regelresultat: RegelMap,
+    val regelresultat: Regelresultat,
 )

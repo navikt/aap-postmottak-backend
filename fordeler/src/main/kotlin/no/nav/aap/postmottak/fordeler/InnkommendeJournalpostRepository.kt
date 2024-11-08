@@ -19,5 +19,19 @@ class InnkommendeJournalpostRepository(
             ) }
         }
     }
+    
+    fun lagre(innkommendeJournalpost: InnkommendeJournalpost) {
+        val query = """
+            INSERT INTO innkommende_journalpost (journalpost_id, status) VALUES (?, ?)
+        """.trimIndent()
+        val journalpostId = connection.executeReturnKey(query) {
+            setParams {
+                setLong(1, innkommendeJournalpost.journalpostId.referanse)
+                setEnumName(2, innkommendeJournalpost.status)
+            }
+        }
+        
+        regelRepository.lagre(journalpostId, innkommendeJournalpost.regelresultat)
+    }
 
 }

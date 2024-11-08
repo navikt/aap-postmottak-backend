@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.joark
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.aap.WithFakes
+import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost

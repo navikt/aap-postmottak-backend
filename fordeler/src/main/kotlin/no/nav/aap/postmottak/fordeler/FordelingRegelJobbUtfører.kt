@@ -5,13 +5,15 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.fordeler.regler.RegelInput
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 
 
 class FordelingRegelJobbUtfører(
     val safClient: SafGraphqlClient,
     val journalpostService: JournalpostService,
-    val regelService: FordelerRegelService
+    val regelService: FordelerRegelService,
+    val innkommendeJournalpostRepository: InnkommendeJournalpostRepository
 ): JobbUtfører {
 
 
@@ -20,7 +22,8 @@ class FordelingRegelJobbUtfører(
             return FordelingRegelJobbUtfører(
                 SafGraphqlClient.withClientCredentialsRestClient(),
                 JournalpostService.konstruer(connection),
-                FordelerRegelService()
+                FordelerRegelService(),
+                InnkommendeJournalpostRepository(connection)
             )
         }
 
@@ -37,22 +40,19 @@ class FordelingRegelJobbUtfører(
         val mottattTid = input.getMottattTid()
 
         val journalpost = journalpostService.hentjournalpost(journalpostId)
-
-        /*
-        regelService.skalTilKelvin(
+        
+        val res = regelService.evaluer(
             RegelInput(journalpostId.referanse,
                 journalpost.person.aktivIdent().identifikator)
         )
-*/
-        /*
-        val skalTilKelvin = FordelerRegelService().skalTilKelvin(
-            RegelInput(
-                journalpost.journalpostId.referanse,
-                journalpost.person.aktivIdent().identifikator
-            )
+        
+        val innkommendeJournalpost = InnkommendeJournalpost(
+            journalpostId = journalpostId,
+            status = InnkommendeJournalpostStatus.EVALUERT,
+            regelresultat = res
         )
-*/
+        
+        innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
     }
-
-
+    
 }

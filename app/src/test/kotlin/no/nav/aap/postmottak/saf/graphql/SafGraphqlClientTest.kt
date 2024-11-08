@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.saf.graphql
 
-import no.nav.aap.WithFakes
+import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tilJournalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person

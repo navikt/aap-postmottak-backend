@@ -19,7 +19,7 @@ class FordelerRegelService {
             ArenaSakRegel.medDataInnhenting(),
         ).associate { regel ->
             regel::class.simpleName!! to regel.vurder(input)
-                .also {  if (it) log.info("Validering av regel ${regel::class.simpleName} ga false: journalpost ${input.journalpostId} skal ikke til Kelvin") }
+                .also { if (it) log.info("Validering av regel ${regel::class.simpleName} ga false: journalpost ${input.journalpostId} skal ikke til Kelvin") }
         }.let(::Regelresultat)
     }
 }

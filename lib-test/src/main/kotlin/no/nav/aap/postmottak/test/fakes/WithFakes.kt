@@ -1,3 +1,5 @@
+package no.nav.aap.postmottak.test.fakes
+
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll

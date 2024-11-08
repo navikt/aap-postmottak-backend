@@ -7,6 +7,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
@@ -24,7 +25,7 @@ object ProsesseringsJobber {
     }
 }
 
-class FordelingRegelJobbUtførerTest {
+class FordelingRegelJobbUtførerTest: WithFakes {
 
     companion object {
         private val dataSource = InitTestDatabase.dataSource
@@ -69,12 +70,26 @@ class FordelingRegelJobbUtførerTest {
             )
         }
 
-        dataSource.transaction { connection ->
-            val innkommendeJournalpostRepository = InnkommendeJournalpostRepository(connection)
+        await(5000) {
+            dataSource.transaction { connection ->
+                val innkommendeJournalpostRepository = InnkommendeJournalpostRepository(connection)
 
-            val regler = innkommendeJournalpostRepository.hent(journalpostId).regelresultat
+                val regler = innkommendeJournalpostRepository.hent(journalpostId).regelresultat
 
-            assertThat(regler).isNotNull()
+                assertThat(regler).isNotNull()
+            }
         }
+    }
+
+    private fun <T> await(maxWait: Long = 5000, block: () -> T): T {
+        val currentTime = System.currentTimeMillis()
+        while (System.currentTimeMillis() - currentTime <= maxWait) {
+            try {
+                return block()
+            } catch (_: Throwable) {
+            }
+            Thread.sleep(50)
+        }
+        return block()
     }
 }

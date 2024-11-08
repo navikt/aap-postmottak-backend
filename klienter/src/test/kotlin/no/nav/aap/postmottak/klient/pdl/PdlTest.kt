@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.klient.pdl
 
-import WithFakes
+import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
