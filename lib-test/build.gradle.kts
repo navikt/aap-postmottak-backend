@@ -1,6 +1,7 @@
 val ktorVersion = "3.0.0"
 val komponenterVersjon = "1.0.50"
 val tilgangVersjon = "0.0.29"
+val junitVersion = "5.10.3"
 
 plugins {
     id("postmottak.conventions")
@@ -28,6 +29,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
+    implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
 }

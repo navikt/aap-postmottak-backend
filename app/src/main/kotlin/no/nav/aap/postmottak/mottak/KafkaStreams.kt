@@ -74,7 +74,7 @@ class JoarkKafkaHandler(
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.mapValues { record -> JournalpostId(record.journalpostId) }
-            .foreach { _, record -> håndterJournalpost(record) }
+            .foreach { _, record -> opprettBehandling(record) }
     }
 
     private fun håndterTemaendring(journalpostId: JournalpostId) {
@@ -92,8 +92,8 @@ class JoarkKafkaHandler(
 
         }
     }
-
-    private fun håndterJournalpost(journalpostId: JournalpostId) {
+    
+    private fun opprettBehandling(journalpostId: JournalpostId) {
         log.info("Mottatt ny journalpost: $journalpostId")
         transactionProvider.inTransaction {
             val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)

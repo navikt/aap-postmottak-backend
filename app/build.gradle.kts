@@ -77,7 +77,6 @@ dependencies {
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
@@ -97,6 +96,7 @@ dependencies {
 
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
 
+    testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation(project(":lib-test"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")

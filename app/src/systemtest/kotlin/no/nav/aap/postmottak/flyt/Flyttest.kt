@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.flyt
 
 import io.ktor.http.*
 import io.ktor.server.response.*
-import no.nav.aap.WithFakes
+import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction

@@ -50,9 +50,9 @@ fun Application.behandlingsflytFake(
     }
 
     routing {
-        post("/api/sak/finnEllerOpprett") { finnEllerOpprett() }
+        post("/api/sak/finnEllerOpprett", finnEllerOpprett)
 
-        post("/api/sak/finn") { finn() }
+        post("/api/sak/finn", finn)
 
         post("/api/soknad/send", send)
     }
