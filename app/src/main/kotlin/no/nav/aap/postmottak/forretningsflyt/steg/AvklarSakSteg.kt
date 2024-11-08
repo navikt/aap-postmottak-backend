@@ -39,13 +39,12 @@ class AvklarSakSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val sakerPåBruker = saksnummerRepository.hentSaksnummre(kontekst.behandlingId)
         val journalpost =
             journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost kan ikke være null")
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         requireNotNull(journalpost)
 
-        return if (journalpost.kanBehandlesAutomatisk() || sakerPåBruker.isEmpty()) {
+        return if (journalpost.kanBehandlesAutomatisk()) {
             val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
                 Ident(journalpost.person.aktivIdent().identifikator),
                 journalpost.mottattDato()
