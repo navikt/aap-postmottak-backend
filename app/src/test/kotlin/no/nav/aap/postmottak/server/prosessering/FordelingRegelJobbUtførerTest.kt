@@ -1,38 +1,30 @@
 package no.nav.aap.postmottak.server.prosessering
 
-import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.motor.Motor
+import no.nav.aap.postmottak.fordeler.FordelerRegelService
 import no.nav.aap.postmottak.fordeler.InnkommendeJournalpostRepository
+import no.nav.aap.postmottak.fordeler.Regelresultat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.BeforeAll
 import java.time.LocalDateTime
 
-class FordelingRegelJobbUtførerTest: WithFakes {
+class FordelingRegelJobbUtførerTest {
 
-    companion object {
-        private val dataSource = InitTestDatabase.dataSource
-        private val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle())
+    val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
+    val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepository>(relaxed = true)
+    val regelService = mockk<FordelerRegelService>(relaxed = true)
 
-        @BeforeAll
-        @JvmStatic
-        internal fun beforeAll() {
-            motor.start()
-        }
-
-        @AfterAll
-        @JvmStatic
-        internal fun afterAll() {
-            motor.stop()
-        }
-    }
+    val fordelingRegelJobbUtfører = FordelingRegelJobbUtfører(
+        flytJobbRepository,
+        journalpostService = mockk(relaxed = true),
+        regelService = regelService,
+        innkommendeJournalpostRepository = innkommendeJournalpostRepository
+    )
 
     @Test
     fun `Vi kan sette og hente parametere for jobben`() {
@@ -52,34 +44,23 @@ class FordelingRegelJobbUtførerTest: WithFakes {
     @Test
     fun `når joben er utført finnes det et regel resultat for journalposten`() {
         val journalpostId = JournalpostId(1L)
-        dataSource.transaction {
-            FlytJobbRepository(it).leggTil(
-                JobbInput(FordelingRegelJobbUtfører)
-                    .medJournalpostId(journalpostId)
-                    .medMottattdato(LocalDateTime.now())
-            )
-        }
 
-        await(10000) {
-            dataSource.transaction(readOnly = true) { connection ->
-                val innkommendeJournalpostRepository = InnkommendeJournalpostRepository(connection)
+        val regelResultat = Regelresultat(mapOf("yolo" to true))
 
-                val regler = innkommendeJournalpostRepository.hent(journalpostId).regelresultat
+        every { regelService.evaluer(any()) } returns regelResultat
 
-                assertThat(regler).isNotNull()
-            }
-        }
+        fordelingRegelJobbUtfører.utfør(JobbInput(FordelingRegelJobbUtfører)
+            .medJournalpostId(journalpostId)
+            .medMottattdato(LocalDateTime.now()))
+
+        verify { innkommendeJournalpostRepository.lagre(withArg {
+            assertThat(it.journalpostId).isEqualTo(journalpostId)
+            assertThat(it.regelresultat).isEqualTo(regelResultat)
+        }) }
+
+        verify { flytJobbRepository.leggTil(withArg {
+            assertThat(it.getJournalpostId()).isEqualTo(journalpostId)
+        }) }
     }
 
-    private fun <T> await(maxWait: Long = 5000, block: () -> T): T {
-        val currentTime = System.currentTimeMillis()
-        while (System.currentTimeMillis() - currentTime <= maxWait) {
-            try {
-                return block()
-            } catch (_: Throwable) {
-            }
-            Thread.sleep(50)
-        }
-        return block()
-    }
 }

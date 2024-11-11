@@ -6,24 +6,24 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
-import no.nav.aap.postmottak.fordeler.*
+import no.nav.aap.postmottak.fordeler.FordelerRegelService
+import no.nav.aap.postmottak.fordeler.InnkommendeJournalpost
+import no.nav.aap.postmottak.fordeler.InnkommendeJournalpostRepository
+import no.nav.aap.postmottak.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.postmottak.fordeler.regler.RegelInput
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 
 class FordelingRegelJobbUtfører(
-    val flytJobbRepository: FlytJobbRepository,
-    val safClient: SafGraphqlClient,
-    val journalpostService: JournalpostService,
-    val regelService: FordelerRegelService,
-    val innkommendeJournalpostRepository: InnkommendeJournalpostRepository
+    private val flytJobbRepository: FlytJobbRepository,
+    private val journalpostService: JournalpostService,
+    private val regelService: FordelerRegelService,
+    private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository
 ) : JobbUtfører {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return FordelingRegelJobbUtfører(
                 FlytJobbRepository(connection),
-                SafGraphqlClient.withClientCredentialsRestClient(),
                 JournalpostService.konstruer(connection),
                 FordelerRegelService(),
                 InnkommendeJournalpostRepository(connection)
