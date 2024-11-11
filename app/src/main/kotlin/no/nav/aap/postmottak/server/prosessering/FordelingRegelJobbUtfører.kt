@@ -40,7 +40,8 @@ class FordelingRegelJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
-        val mottattTid = input.getMottattTid()
+        //TODO: Håndter mottatt tid
+        //val mottattTid = input.getMottattTid()
 
         val journalpost = journalpostService.hentjournalpost(journalpostId)
 

@@ -27,14 +27,17 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
+import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
+import no.nav.aap.postmottak.server.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -163,6 +166,29 @@ class Flyttest : WithFakes {
             """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}"""
         )
         return behandlingId
+    }
+
+    @Test
+    fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
+        val journalpostId = JournalpostId(1L)
+
+        dataSource.transaction { connection ->
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(FordelingRegelJobbUtfører)
+                    .medJournalpostId(journalpostId).medCallId()
+            )
+        }
+        
+        val behandling = await {
+            dataSource.transaction { connection ->
+                val behandlingRepository = BehandlingRepositoryImpl(connection)
+                behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
+                    .find { it.typeBehandling == TypeBehandling.Journalføring }!!
+                
+            }
+        }
+        
+        assertNotNull(behandling)
     }
 
     @Test
