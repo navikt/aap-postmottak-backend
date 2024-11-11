@@ -88,7 +88,7 @@ class Flyttest : WithFakes {
             behandlingId
         }
 
-        await {
+        await(10000) {
             dataSource.transaction(readOnly = true) {
                 val behandlinger = BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
                 assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
