@@ -76,7 +76,8 @@ class Flyttest : WithFakes {
     fun `Full helautomatisk flyt`() {
         val journalpostId = DIGITAL_SØKNAD_ID
         dataSource.transaction {
-            val behandlingId = BehandlingRepositoryImpl(it).opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val behandlingId =
+                BehandlingRepositoryImpl(it).opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             FlytJobbRepository(it).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
                     .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
@@ -84,8 +85,8 @@ class Flyttest : WithFakes {
             behandlingId
         }
 
-        await(10000) {
-            dataSource.transaction {
+        dataSource.transaction {
+            await(10000) {
                 val behandlinger = BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
                 assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
             }
@@ -119,7 +120,16 @@ class Flyttest : WithFakes {
         dataSource.transaction { connection ->
             val behandlingId = opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId)
 
-            WithFakes.fakes.behandlkingsflyt.setCustomModule { behandlingsflytFake(send = { suspend {call.respond(HttpStatusCode.BadRequest, "NOPE")}}) }
+            WithFakes.fakes.behandlkingsflyt.setCustomModule {
+                behandlingsflytFake(send = {
+                    suspend {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            "NOPE"
+                        )
+                    }
+                })
+            }
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
@@ -138,7 +148,10 @@ class Flyttest : WithFakes {
         }
     }
 
-    private fun opprettManuellBehandlingMedAlleAvklaringer(connection: DBConnection, journalpostId: JournalpostId): BehandlingId {
+    private fun opprettManuellBehandlingMedAlleAvklaringer(
+        connection: DBConnection,
+        journalpostId: JournalpostId
+    ): BehandlingId {
         val behandlingRepository = BehandlingRepositoryImpl(connection)
         val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 

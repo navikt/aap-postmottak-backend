@@ -4,12 +4,13 @@ package no.nav.aap.postmottak.mottak
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.server.prosessering.medJournalpostId
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -74,7 +75,7 @@ class JoarkKafkaHandler(
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.mapValues { record -> JournalpostId(record.journalpostId) }
-            .foreach { _, record -> opprettBehandling(record) }
+            .foreach { _, record -> opprettFordelingRegelJobb(record) }
     }
 
     private fun håndterTemaendring(journalpostId: JournalpostId) {
@@ -93,16 +94,14 @@ class JoarkKafkaHandler(
         }
     }
     
-    private fun opprettBehandling(journalpostId: JournalpostId) {
+    private fun opprettFordelingRegelJobb(journalpostId: JournalpostId) {
         log.info("Mottatt ny journalpost: $journalpostId")
         transactionProvider.inTransaction {
-            val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             flytJobbRepository.leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+                JobbInput(FordelingRegelJobbUtfører)
+                    .medJournalpostId(journalpostId).medCallId()
             )
         }
     }
-
-
+    
 }
