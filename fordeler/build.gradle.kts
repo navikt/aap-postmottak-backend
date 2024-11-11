@@ -22,4 +22,5 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.26.3")
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation(project(":lib-test"))
+    implementation(kotlin("reflect"))
 }

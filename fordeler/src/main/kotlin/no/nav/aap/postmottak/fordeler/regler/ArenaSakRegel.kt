@@ -4,9 +4,10 @@ import no.nav.aap.postmottak.klient.AapInternApiClient
 import no.nav.aap.postmottak.klient.ArenaSak
 
 class ArenaSakRegel: Regel<ArenaSakRegelInput> {
-    companion object {
-        fun medDataInnhenting() =
-            RegelMedInputgenerator(ArenaSakRegel(), ArenaSakRegelMedInputGenerator())
+    companion object: RegelFactory<ArenaSakRegelInput> {
+        override val erAktiv = true
+        override fun medDataInnhenting() =
+            RegelMedInputgenerator(ArenaSakRegel(), ArenaSakRegelInputGenerator())
     }
 
     override fun vurder(input: ArenaSakRegelInput): Boolean {
@@ -14,7 +15,7 @@ class ArenaSakRegel: Regel<ArenaSakRegelInput> {
     }
 }
 
-class ArenaSakRegelMedInputGenerator: InputGenerator<ArenaSakRegelInput> {
+class ArenaSakRegelInputGenerator: InputGenerator<ArenaSakRegelInput> {
     override fun generer(input: RegelInput): ArenaSakRegelInput {
         val saker = AapInternApiClient().hentArenaSakerForIdent(input.fnr)
         return ArenaSakRegelInput(saker)

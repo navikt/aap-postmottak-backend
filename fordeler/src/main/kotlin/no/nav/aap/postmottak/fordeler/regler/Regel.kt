@@ -14,3 +14,8 @@ class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGe
         return regel.vurder(regelInput)
     }
 }
+
+sealed interface RegelFactory<T> {
+    val erAktiv: Boolean
+    fun medDataInnhenting(): RegelMedInputgenerator<T>
+}

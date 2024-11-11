@@ -5,8 +5,9 @@ import java.time.LocalDate
 import java.time.Period
 
 class Aldersregel : Regel<AldersregelInput> {
-    companion object {
-        fun medDataInnhenting() =
+    companion object: RegelFactory<AldersregelInput> {
+        override val erAktiv = false
+        override fun medDataInnhenting() =
             RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator())
     }
 
