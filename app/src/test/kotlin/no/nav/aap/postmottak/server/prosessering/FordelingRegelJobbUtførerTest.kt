@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.fordeler
+package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
@@ -6,6 +6,7 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
+import no.nav.aap.postmottak.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat

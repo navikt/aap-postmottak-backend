@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.fordeler
+package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId

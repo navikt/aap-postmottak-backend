@@ -1,13 +1,13 @@
-package no.nav.aap.postmottak.fordeler
+package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.fordeler.*
 import no.nav.aap.postmottak.fordeler.regler.RegelInput
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
-
 
 class FordelingRegelJobbUtfører(
     val safClient: SafGraphqlClient,
@@ -42,8 +42,10 @@ class FordelingRegelJobbUtfører(
         val journalpost = journalpostService.hentjournalpost(journalpostId)
         
         val res = regelService.evaluer(
-            RegelInput(journalpostId.referanse,
-                journalpost.person.aktivIdent().identifikator)
+            RegelInput(
+                journalpostId.referanse,
+                journalpost.person.aktivIdent().identifikator
+            )
         )
         
         val innkommendeJournalpost = InnkommendeJournalpost(

@@ -4,15 +4,16 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 
 class RegelRepository(private val connection: DBConnection) {
 
-    fun hentRegelresultat(regelId: Long): Regelresultat {
+    fun hentRegelresultat(journalpostId: Long): Regelresultat {
         return connection.queryList(
             """
             SELECT * FROM REGELSETT_RESULTAT rr
             JOIN REGEL_EVALUERING re ON re.REGEL_RESULTAT_ID = rr.ID
-            WHERE rr.INNKOMMENDE_JOURNALPOST = ?
+            JOIN INNKOMMENDE_JOURNALPOST ijp ON ijp.ID = rr.INNKOMMENDE_JOURNALPOST
+            WHERE ijp.JOURNALPOST_ID = ?
         """.trimIndent()
         ) {
-            setParams { setLong(1, regelId) }
+            setParams { setLong(1, journalpostId) }
             setRowMapper { row ->
                 row.getString("REGEL_NAVN") to row.getBoolean("RESULTAT")
             }
