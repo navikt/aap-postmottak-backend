@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.server.prosessering
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.postmottak.fordeler.InnkommendeJournalpostRepository
@@ -15,16 +14,6 @@ import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.BeforeAll
 import java.time.LocalDateTime
-
-object ProsesseringsJobber {
-
-    fun alle(): List<Jobb> {
-        // Legger her alle oppgavene som skal utføres i systemet
-        return listOf(
-            FordelingRegelJobbUtfører
-        )
-    }
-}
 
 class FordelingRegelJobbUtførerTest: WithFakes {
 
