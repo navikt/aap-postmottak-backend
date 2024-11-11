@@ -18,5 +18,6 @@
     <logger name="io.netty" level="INFO" />
     <logger name="no.nav" level="INFO" />
     <logger name="io.confluent" level="WARN" />
+    <logger name="no.nav.aap.komponenter.dbconnect" level="ERROR" />
 
 </configuration>

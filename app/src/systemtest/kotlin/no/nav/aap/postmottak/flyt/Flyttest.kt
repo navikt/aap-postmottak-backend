@@ -88,8 +88,8 @@ class Flyttest : WithFakes {
             behandlingId
         }
 
-        dataSource.transaction {
-            await(10000) {
+        await {
+            dataSource.transaction(readOnly = true) {
                 val behandlinger = BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
                 assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
             }
@@ -109,8 +109,8 @@ class Flyttest : WithFakes {
             behandlingId
         }
 
-        dataSource.transaction { connection ->
-            await(5000) {
+        await {
+            dataSource.transaction(readOnly = true) { connection ->
                 val behandling = BehandlingRepositoryImpl(connection).hent(behandlingId)
                 assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
             }
@@ -141,13 +141,13 @@ class Flyttest : WithFakes {
             behandlingId
         }
 
-        Thread.sleep(5000)
+        await {
+            dataSource.transaction(readOnly = true) { connection ->
+                val behandlingRepository = BehandlingRepositoryImpl(connection)
+                val behandlinger = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
 
-        dataSource.transaction { connection ->
-            val behandlingRepository = BehandlingRepositoryImpl(connection)
-            val behandlinger = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
-
-            assertThat(behandlinger).anyMatch { it.typeBehandling == TypeBehandling.DokumentHåndtering && it.status() == Status.IVERKSETTES }
+                assertThat(behandlinger).anyMatch { it.typeBehandling == TypeBehandling.DokumentHåndtering && it.status() == Status.IVERKSETTES }
+            }
         }
     }
 
@@ -178,16 +178,16 @@ class Flyttest : WithFakes {
                     .medJournalpostId(journalpostId).medCallId()
             )
         }
-        
+
         val behandling = await {
-            dataSource.transaction { connection ->
+            dataSource.transaction(readOnly = true) { connection ->
                 val behandlingRepository = BehandlingRepositoryImpl(connection)
                 behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
                     .find { it.typeBehandling == TypeBehandling.Journalføring }!!
-                
+
             }
         }
-        
+
         assertNotNull(behandling)
     }
 
@@ -210,7 +210,7 @@ class Flyttest : WithFakes {
         }
 
         val behandling = await {
-            dataSource.transaction { connection ->
+            dataSource.transaction(readOnly = true) { connection ->
                 val behandlingRepository = BehandlingRepositoryImpl(connection)
                 val behandling = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
                     .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }!!
@@ -219,7 +219,7 @@ class Flyttest : WithFakes {
         }
 
         await {
-            dataSource.transaction { connection ->
+            dataSource.transaction(readOnly = true) { connection ->
                 val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
                 assertThat(avklaringsbehov.alle()).anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.DIGITALISER_DOKUMENT) }
             }
@@ -250,7 +250,7 @@ class Flyttest : WithFakes {
         assertThat(dto?.frist).isNotNull
 
 
-        dataSource.transaction { connection ->
+        dataSource.transaction(readOnly = true) { connection ->
             val avklaringsbehov = hentAvklaringsbehov(behandling.id, connection)
             assertThat(avklaringsbehov.alle())
                 .anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT) }
@@ -258,7 +258,7 @@ class Flyttest : WithFakes {
 
         Thread.sleep(50)
 
-        dataSource.transaction { connection ->
+        dataSource.transaction(readOnly = true) { connection ->
             val behandlingRepository = BehandlingRepositoryImpl(connection)
             val behandling = behandlingRepository.hent(behandling.id)
             assertThat(behandling.status()).isEqualTo(Status.UTREDES)
