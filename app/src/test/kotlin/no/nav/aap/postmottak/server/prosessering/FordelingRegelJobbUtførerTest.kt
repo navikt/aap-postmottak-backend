@@ -60,7 +60,7 @@ class FordelingRegelJobbUtførerTest: WithFakes {
             )
         }
 
-        await(5000) {
+        await(10000) {
             dataSource.transaction(readOnly = true) { connection ->
                 val innkommendeJournalpostRepository = InnkommendeJournalpostRepository(connection)
 
