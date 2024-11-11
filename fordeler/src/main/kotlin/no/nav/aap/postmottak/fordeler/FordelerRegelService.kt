@@ -14,14 +14,16 @@ data class Regelresultat(val regelMap: RegelMap) {
 
 class FordelerRegelService {
     fun evaluer(input: RegelInput): Regelresultat {
-        return RegelFactory::class.sealedSubclasses
-            .map { it.objectInstance }
-            .filterNotNull()
-            .filter { it.erAktiv }
-            .map { it.medDataInnhenting() }
+        return hentAktiveRegler()
             .associate { regel ->
                 regel::class.simpleName!! to regel.vurder(input)
-                    .also { if (it) log.info("Validering av regel ${regel::class.simpleName} ga false: journalpost ${input.journalpostId} skal ikke til Kelvin") }
+                    .also { if (!it) log.info("Validering av regel ${regel::class.simpleName} ga false: journalpost ${input.journalpostId} skal ikke til Kelvin") }
             }.let(::Regelresultat)
     }
+
+    private fun hentAktiveRegler() = RegelFactory::class.sealedSubclasses
+        .mapNotNull { it.objectInstance }
+        .filter { it.erAktiv }
+        .map { it.medDataInnhenting() }
+
 }

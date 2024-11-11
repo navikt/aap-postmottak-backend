@@ -151,23 +151,6 @@ class Flyttest : WithFakes {
         }
     }
 
-    private fun opprettManuellBehandlingMedAlleAvklaringer(
-        connection: DBConnection,
-        journalpostId: JournalpostId
-    ): BehandlingId {
-        val behandlingRepository = BehandlingRepositoryImpl(connection)
-        val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-
-        AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
-        SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-        KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
-        StruktureringsvurderingRepository(connection).lagreStrukturertDokument(
-            behandlingId,
-            """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}"""
-        )
-        return behandlingId
-    }
-
     @Test
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
         val journalpostId = JournalpostId(1L)
@@ -272,6 +255,23 @@ class Flyttest : WithFakes {
                 .anySatisfy { !it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
         }
 
+    }
+
+    private fun opprettManuellBehandlingMedAlleAvklaringer(
+        connection: DBConnection,
+        journalpostId: JournalpostId
+    ): BehandlingId {
+        val behandlingRepository = BehandlingRepositoryImpl(connection)
+        val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+
+        AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
+        SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
+        KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+        StruktureringsvurderingRepository(connection).lagreStrukturertDokument(
+            behandlingId,
+            """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}"""
+        )
+        return behandlingId
     }
 
     private fun hentAvklaringsbehov(behandlingId: BehandlingId, connection: DBConnection): Avklaringsbehovene {
