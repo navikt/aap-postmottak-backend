@@ -3,8 +3,8 @@ package no.nav.aap.postmottak.fordeler
 import no.nav.aap.komponenter.dbconnect.DBConnection
 
 data class JoarkHendelse(
-    val key: String,
-    val value: String
+    val hendelsesid: HendelsesId,
+    val hendelse: String
 )
 
 class HendelsesRepository(private val connection: DBConnection) {
@@ -12,14 +12,25 @@ class HendelsesRepository(private val connection: DBConnection) {
     fun hentHendelse(hendelsesId: HendelsesId): JoarkHendelse {
         return connection.queryFirst("""
            SELECT * FROM JOARK_HENDELSE
-           WHERE KEY = ?
+           WHERE HENDELSESID = ?
         """.trimIndent()) {
             setParams { setString(1, hendelsesId) }
             setRowMapper { row ->
                 JoarkHendelse(
-                    row.getString("key"),
-                    row.getString("value")
+                    row.getString("HENDELSESID"),
+                    row.getString("HENDELSE")
                 )
+            }
+        }
+    }
+
+    fun lagreHendelse(joarkHendelse: JoarkHendelse) {
+        connection.execute("""
+            INSERT INTO JOARK_HENDELSE(HENDELSESID, HENDELSE) VALUES (?, ?)
+        """.trimIndent()) {
+            setParams {
+                setString(1, joarkHendelse.hendelsesid)
+                setString(2, joarkHendelse.hendelse)
             }
         }
     }

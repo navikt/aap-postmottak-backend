@@ -13,7 +13,7 @@ class ArenaVideresender(
 
     fun sendJournalpostTilArena(hendelsesId: HendelsesId) {
         val hendelse = hendelsesRepository.hentHendelse(hendelsesId)
-        val record = ProducerRecord(topic, hendelse.key, hendelse.value)
+        val record = ProducerRecord(topic, hendelse.hendelsesid, hendelse.hendelse)
         producer.send(record)
     }
 }
