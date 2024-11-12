@@ -1,0 +1,16 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+    name: journalpost-til-arena
+    namespace: aap
+    labels:
+        team: aap
+spec:
+    pool: nav-dev
+    acl:
+        - team: aap
+          application: aap-postmottak-backend
+          access: write
+        - team: aap
+          application: aap-jfr-arena
+          access: read

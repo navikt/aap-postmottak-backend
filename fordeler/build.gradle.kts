@@ -14,6 +14,8 @@ dependencies {
     implementation(project(":verdityper"))
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
+
     implementation("ch.qos.logback:logback-classic:1.5.8")
 
     // kafka

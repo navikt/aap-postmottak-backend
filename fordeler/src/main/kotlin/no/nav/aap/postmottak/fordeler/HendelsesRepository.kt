@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.fordeler
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.postmottak.fordeler.arena.HendelsesId
 
 data class JoarkHendelse(
     val hendelsesid: HendelsesId,

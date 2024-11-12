@@ -1,5 +1,6 @@
-package no.nav.aap.postmottak.fordeler
+package no.nav.aap.postmottak.fordeler.arena
 
+import no.nav.aap.postmottak.fordeler.HendelsesRepository
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 

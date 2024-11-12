@@ -1,7 +1,9 @@
-package no.nav.aap.postmottak.fordeler
+package no.nav.aap.postmottak.fordeler.arena
 
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.aap.postmottak.fordeler.HendelsesRepository
+import no.nav.aap.postmottak.fordeler.JoarkHendelse
 import org.apache.kafka.clients.producer.MockProducer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.assertj.core.api.Assertions.assertThat
@@ -18,7 +20,7 @@ class ArenaVideresenderTest {
         val key = "key"
         val value = "value"
 
-        val mockProducer = MockProducer<String, String>(true, StringSerializer(), StringSerializer())
+        val mockProducer = MockProducer(true, StringSerializer(), StringSerializer())
         val arenaVideresneder = ArenaVideresender(mockProducer, hendelsesRepository)
 
         every { hendelsesRepository.hentHendelse(key) } returns JoarkHendelse(key, value)
