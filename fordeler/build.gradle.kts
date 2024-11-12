@@ -1,5 +1,6 @@
 val junitVersion = "5.10.3"
 val komponenterVersjon = "1.0.50"
+val kafkaVersion = "3.7.0"
 
 plugins {
     id("postmottak.conventions")
@@ -14,6 +15,17 @@ dependencies {
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("ch.qos.logback:logback-classic:1.5.8")
+
+    // kafka
+    implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
+    implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
+    implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
+    implementation("org.apache.avro:avro:1.12.0")
+
+    implementation("io.confluent:kafka-streams-avro-serde:7.7.1")
+    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
+
+    testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation(project(":lib-test"))
