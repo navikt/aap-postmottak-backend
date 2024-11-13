@@ -84,13 +84,11 @@ class JoarkKafkaHandler(
     }
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        transactionProvider.inTransaction {
-            stream.peek { key, value -> hendelsesRepository.lagreHendelse(
-                JoarkHendelse(key, value.toString())
-            ) }
-                .mapValues { record -> JournalpostId(record.journalpostId) }
-                .foreach { _, record -> opprettFordelingRegelJobb(record, flytJobbRepository) }
-
+        stream.foreach { key, record ->
+            transactionProvider.inTransaction {
+                opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId), flytJobbRepository)
+                hendelsesRepository.lagreHendelse(JoarkHendelse(key, record.toString()))
+            }
         }
     }
 
