@@ -12,7 +12,7 @@ class HendelsesRepositoryTest {
     @Test
     fun `kan lagre og hente joarkhendelser`() {
 
-        val joarkHendelse = JoarkHendelse("NØKKEL", "VERDI")
+        val joarkHendelse = JoarkHendelse("NØKKEL", "VERDI".toByteArray())
 
         dataSource.transaction { connection ->
             val hendelsesRepository = HendelsesRepository(connection)

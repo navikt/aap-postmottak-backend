@@ -4,6 +4,8 @@ package no.nav.aap.postmottak.mottak
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.fordeler.HendelsesRepository
+import no.nav.aap.postmottak.fordeler.JoarkHendelse
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -25,7 +27,8 @@ import javax.sql.DataSource
 
 class TransactionContext(
     val behandlingRepository: BehandlingRepository,
-    val flytJobbRepository: FlytJobbRepository
+    val flytJobbRepository: FlytJobbRepository,
+    val hendelsesRepository: HendelsesRepository,
 )
 
 class TransactionProvider(
@@ -33,7 +36,11 @@ class TransactionProvider(
 ) {
     fun inTransaction(block: TransactionContext.() -> Unit) {
         datasource.transaction {
-            TransactionContext(BehandlingRepositoryImpl(it), FlytJobbRepository(it)).let(block)
+            TransactionContext(
+                BehandlingRepositoryImpl(it),
+                FlytJobbRepository(it),
+                HendelsesRepository(it)
+            ).let(block)
         }
     }
 }
@@ -62,20 +69,29 @@ class JoarkKafkaHandler(
             .filter { _, record -> record.journalpostStatus == MOTTATT }
             .filter { _, record -> record.mottaksKanal != EESSI }
             .split()
-            .branch({_, record -> record.temaGammelt == TEMA && record.temaNytt != TEMA}, Branched.withConsumer(::temaendringTopology))
-            .branch({ _, record -> record.temaNytt == TEMA}, Branched.withConsumer(::nyJournalpost))
+            .branch(
+                { _, record -> record.temaGammelt == TEMA && record.temaNytt != TEMA },
+                Branched.withConsumer(::temaendringTopology)
+            )
+            .branch({ _, record -> record.temaNytt == TEMA }, Branched.withConsumer(::nyJournalpost))
 
         topology = streamBuilder.build()
     }
 
     private fun temaendringTopology(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.mapValues { record -> JournalpostId(record.journalpostId) }
-            .foreach{ _, record -> håndterTemaendring(record) }
+            .foreach { _, record -> håndterTemaendring(record) }
     }
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream.mapValues { record -> JournalpostId(record.journalpostId) }
-            .foreach { _, record -> opprettFordelingRegelJobb(record) }
+        transactionProvider.inTransaction {
+            stream.peek { key, value -> hendelsesRepository.lagreHendelse(
+                JoarkHendelse(key, value.toString())
+            ) }
+                .mapValues { record -> JournalpostId(record.journalpostId) }
+                .foreach { _, record -> opprettFordelingRegelJobb(record, flytJobbRepository) }
+
+        }
     }
 
     private fun håndterTemaendring(journalpostId: JournalpostId) {
@@ -90,18 +106,15 @@ class JoarkKafkaHandler(
             } catch (e: ElementNotFoundException) {
                 log.warn("Finner ikke behandling for mottatt melding om temaendring", e)
             }
+        }
+    }
 
-        }
-    }
-    
-    private fun opprettFordelingRegelJobb(journalpostId: JournalpostId) {
+    private fun opprettFordelingRegelJobb(journalpostId: JournalpostId, flytJobbRepository: FlytJobbRepository) {
         log.info("Mottatt ny journalpost: $journalpostId")
-        transactionProvider.inTransaction {
-            flytJobbRepository.leggTil(
-                JobbInput(FordelingRegelJobbUtfører)
-                    .medJournalpostId(journalpostId).medCallId()
-            )
-        }
+        flytJobbRepository.leggTil(
+            JobbInput(FordelingRegelJobbUtfører)
+                .medJournalpostId(journalpostId).medCallId()
+        )
     }
-    
+
 }

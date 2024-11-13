@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.postmottak.fordeler.HendelsesRepository
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
@@ -22,6 +23,7 @@ class JoarkKafkaHandlerTest {
 
     val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
+    val hendelsesRepository: HendelsesRepository = mockk(relaxed = true)
 
     @Test
     fun `verifiser mottagelse av joark event og oppretting regelfordelingjobb`() {
@@ -67,7 +69,8 @@ class JoarkKafkaHandlerTest {
         every { transactionProvider.inTransaction(any()) } answers {
             TransactionContext(
                 behandlingRepository,
-                flytJobbRepository
+                flytJobbRepository,
+                hendelsesRepository
             ).let(firstArg())
         }
 
