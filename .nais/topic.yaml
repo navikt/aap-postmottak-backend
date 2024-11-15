@@ -5,8 +5,15 @@ metadata:
     namespace: aap
     labels:
         team: aap
+    annotations:
+        kafka.nais.io/removeDataWhenResourceIsDeleted: "true"
 spec:
     pool: nav-dev
+    config:
+        cleanupPolicy: delete
+        minimumInSyncReplicas: 1
+        partitions: 3
+        replication: 2
     acl:
         - team: aap
           application: aap-postmottak-backend
