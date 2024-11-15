@@ -1,8 +1,11 @@
 package no.nav.aap.postmottak.fordeler.regler
 
 import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.Period
+
+private val log = LoggerFactory.getLogger(Aldersregel::class.java)
 
 class Aldersregel : Regel<AldersregelInput> {
     companion object : RegelFactory<AldersregelInput> {
@@ -12,7 +15,10 @@ class Aldersregel : Regel<AldersregelInput> {
     }
 
     override fun vurder(input: AldersregelInput): Boolean {
-        return Period.between(input.fødselsdato, input.nåDato).years < 65
+        // TODO: Fjern logging av persondata
+        val res = Period.between(input.fødselsdato, input.nåDato).years < 65
+        log.info("Vurderer Aldersregel for person født ${input.fødselsdato} mot ${input.nåDato}: $res")
+        return res
     }
 
     override fun regelNavn(): String {
