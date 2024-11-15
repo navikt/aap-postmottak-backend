@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.fordeler
 
+import no.nav.aap.postmottak.fordeler.regler.Regel
 import org.slf4j.LoggerFactory
 import no.nav.aap.postmottak.fordeler.regler.RegelFactory
 import no.nav.aap.postmottak.fordeler.regler.RegelInput
@@ -16,12 +17,12 @@ class FordelerRegelService {
     fun evaluer(input: RegelInput): Regelresultat {
         return hentAktiveRegler()
             .associate { regel ->
-                regel::class.simpleName!! to regel.vurder(input)
-                    .also { if (!it) log.info("Validering av regel ${regel::class.simpleName} ga false: journalpost ${input.journalpostId} skal ikke til Kelvin") }
+                regel.regelNavn() to regel.vurder(input)
+                    .also { if (!it) log.info("Validering av regel ${regel.regelNavn()} ga false: journalpost ${input.journalpostId} skal ikke til Kelvin") }
             }.let(::Regelresultat)
     }
 
-    private fun hentAktiveRegler() = RegelFactory::class.sealedSubclasses
+    private fun hentAktiveRegler(): List<Regel<RegelInput>> = RegelFactory::class.sealedSubclasses
         .mapNotNull { it.objectInstance }
         .filter { it.erAktiv }
         .map { it.medDataInnhenting() }

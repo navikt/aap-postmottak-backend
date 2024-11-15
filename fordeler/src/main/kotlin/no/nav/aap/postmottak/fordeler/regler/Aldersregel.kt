@@ -5,7 +5,7 @@ import java.time.LocalDate
 import java.time.Period
 
 class Aldersregel : Regel<AldersregelInput> {
-    companion object: RegelFactory<AldersregelInput> {
+    companion object : RegelFactory<AldersregelInput> {
         override val erAktiv = true
         override fun medDataInnhenting() =
             RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator())
@@ -14,6 +14,11 @@ class Aldersregel : Regel<AldersregelInput> {
     override fun vurder(input: AldersregelInput): Boolean {
         return Period.between(input.fødselsdato, input.nåDato).years < 65
     }
+
+    override fun regelNavn(): String {
+        return this::class.simpleName!!
+    }
+
 }
 
 class AldersregelInputGenerator : InputGenerator<AldersregelInput> {
