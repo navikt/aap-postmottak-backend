@@ -21,6 +21,7 @@ dependencies {
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
     implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
+    implementation("org.xerial.snappy:snappy-java:1.1.10.7")
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
     implementation("org.apache.avro:avro:1.12.0")
 
