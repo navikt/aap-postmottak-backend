@@ -11,7 +11,6 @@ import no.nav.aap.postmottak.fordeler.Regelresultat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class FordelingRegelJobbUtførerTest {
 
@@ -29,16 +28,16 @@ class FordelingRegelJobbUtførerTest {
     @Test
     fun `Vi kan sette og hente parametere for jobben`() {
         val journalpostId = JournalpostId(1)
-        val mottattTid = LocalDateTime.now()
+        val meldingId = "key"
         val input = JobbInput(FordelingRegelJobbUtfører)
             .medJournalpostId(journalpostId)
-            .medMottattdato(mottattTid)
+            .medMeldingId(meldingId)
 
         val actualJournalpostId = input.getJournalpostId()
-        val actualMottaTid = input.getMottattTid()
+        val actualMottaTid = input.getMeldingId()
 
         assertThat(actualJournalpostId).isEqualTo(actualJournalpostId)
-        assertThat(actualMottaTid).isEqualTo(mottattTid)
+        assertThat(actualMottaTid).isEqualTo(meldingId)
     }
 
     @Test
@@ -51,7 +50,8 @@ class FordelingRegelJobbUtførerTest {
 
         fordelingRegelJobbUtfører.utfør(JobbInput(FordelingRegelJobbUtfører)
             .medJournalpostId(journalpostId)
-            .medMottattdato(LocalDateTime.now()))
+            .medMeldingId("key")
+        )
 
         verify { innkommendeJournalpostRepository.lagre(withArg {
             assertThat(it.journalpostId).isEqualTo(journalpostId)
@@ -60,7 +60,8 @@ class FordelingRegelJobbUtførerTest {
 
         verify { flytJobbRepository.leggTil(withArg {
             assertThat(it.getJournalpostId()).isEqualTo(journalpostId)
-        }) }
+            })
+        }
     }
 
 }

@@ -5,7 +5,10 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.fordeler.HendelsesRepository
 import no.nav.aap.postmottak.fordeler.RegelRepository
+import no.nav.aap.postmottak.fordeler.arena.ArenaVideresender
+import no.nav.aap.postmottak.fordeler.arena.ProducerProvider
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -17,7 +20,8 @@ private val log = LoggerFactory.getLogger(FordelingVideresendJobbUtfører::class
 class FordelingVideresendJobbUtfører(
     val behandlingRepository: BehandlingRepository,
     val regelRepository: RegelRepository,
-    val flytJobbRepository: FlytJobbRepository
+    val flytJobbRepository: FlytJobbRepository,
+    val arenaVideresender: ArenaVideresender
 ) : JobbUtfører {
 
     companion object : Jobb {
@@ -25,7 +29,8 @@ class FordelingVideresendJobbUtfører(
             return FordelingVideresendJobbUtfører(
                 BehandlingRepositoryImpl(connection),
                 RegelRepository(connection),
-                FlytJobbRepository(connection)
+                FlytJobbRepository(connection),
+                ArenaVideresender(ProducerProvider.provideProducer(), HendelsesRepository(connection))
             )
         }
 
@@ -39,11 +44,12 @@ class FordelingVideresendJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
+        val meldingId = input.getMeldingId()
         val regelResultat = regelRepository.hentRegelresultat(journalpostId.referanse)
         if (regelResultat.skalTilKelvin()) {
             routeTilKelvin(journalpostId)
         } else {
-            routeTilArena(journalpostId)
+            routeTilArena(meldingId, journalpostId)
         }
 
     }
@@ -57,8 +63,9 @@ class FordelingVideresendJobbUtfører(
             )
     }
 
-    private fun routeTilArena(journalpostId: JournalpostId) {
-        log.info("Journalpost skal til Arena: $journalpostId")
+    private fun routeTilArena(meldingId: String, journalpostId: JournalpostId) {
+        log.info("Journalpost sendes til Arena: $journalpostId")
+        arenaVideresender.sendJournalpostTilArena(meldingId)
     }
 
 }

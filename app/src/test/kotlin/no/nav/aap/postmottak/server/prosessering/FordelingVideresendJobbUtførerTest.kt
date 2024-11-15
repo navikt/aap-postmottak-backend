@@ -19,7 +19,7 @@ class FordelingVideresendJobbUtførerTest : WithFakes {
     val regelRepositoryMock = mockk<RegelRepository>()
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val fordelingVideresendJobbUtfører =
-        FordelingVideresendJobbUtfører(behandlingRepositoryMock, regelRepositoryMock, flytJobbRepositoryMock)
+        FordelingVideresendJobbUtfører(behandlingRepositoryMock, regelRepositoryMock, flytJobbRepositoryMock, mockk(relaxed = true))
 
     @Test
     fun `Når journalposten skal til Kelvin skal vi opprette en ProsesserBehandlingJobb`() {
@@ -29,6 +29,7 @@ class FordelingVideresendJobbUtførerTest : WithFakes {
         val journalpostId = JournalpostId(1)
         val jobbInput = JobbInput(FordelingVideresendJobbUtfører)
             .medJournalpostId(journalpostId)
+            .medMeldingId("ID")
         fordelingVideresendJobbUtfører.utfør(jobbInput)
 
 

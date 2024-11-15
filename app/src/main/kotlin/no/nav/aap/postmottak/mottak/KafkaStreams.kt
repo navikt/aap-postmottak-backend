@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.medJournalpostId
+import no.nav.aap.postmottak.server.prosessering.medMeldingId
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -86,8 +87,8 @@ class JoarkKafkaHandler(
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.foreach { key, record ->
             transactionProvider.inTransaction {
-                opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId), flytJobbRepository)
                 hendelsesRepository.lagreHendelse(JoarkHendelse(key, record.toString()))
+                opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId), key, flytJobbRepository)
             }
         }
     }
@@ -107,11 +108,12 @@ class JoarkKafkaHandler(
         }
     }
 
-    private fun opprettFordelingRegelJobb(journalpostId: JournalpostId, flytJobbRepository: FlytJobbRepository) {
+    private fun opprettFordelingRegelJobb(journalpostId: JournalpostId, meldingsId: String, flytJobbRepository: FlytJobbRepository) {
         log.info("Mottatt ny journalpost: $journalpostId")
         flytJobbRepository.leggTil(
             JobbInput(FordelingRegelJobbUtfører)
-                .medJournalpostId(journalpostId).medCallId()
+                .medJournalpostId(journalpostId)
+                .medMeldingId(meldingsId).medCallId()
         )
     }
 

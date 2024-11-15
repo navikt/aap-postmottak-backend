@@ -2,6 +2,10 @@ package no.nav.aap.postmottak.flyt
 
 import io.ktor.http.*
 import io.ktor.server.response.*
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -21,6 +25,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.flyt.flate.Venteinformasjon
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
+import no.nav.aap.postmottak.fordeler.arena.ProducerProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -31,6 +36,7 @@ import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.server.prosessering.medJournalpostId
+import no.nav.aap.postmottak.server.prosessering.medMeldingId
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -54,11 +60,13 @@ class Flyttest : WithFakes {
         @JvmStatic
         internal fun beforeAll() {
             motor.start()
+            mockkObject(ProducerProvider)
         }
 
         @AfterAll
         @JvmStatic
         internal fun afterAll() {
+            unmockkObject(ProducerProvider)
             motor.stop()
         }
     }
@@ -153,12 +161,16 @@ class Flyttest : WithFakes {
 
     @Test
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
+        every { ProducerProvider.provideProducer() } returns mockk(relaxed = true)
+
         val journalpostId = JournalpostId(1L)
 
         dataSource.transaction { connection ->
             FlytJobbRepository(connection).leggTil(
                 JobbInput(FordelingRegelJobbUtfører)
-                    .medJournalpostId(journalpostId).medCallId()
+                    .medJournalpostId(journalpostId)
+                    .medMeldingId("id")
+                    .medCallId()
             )
         }
 
