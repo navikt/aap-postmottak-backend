@@ -45,13 +45,13 @@ class ArenaProducerTest {
 
         val mockProducer = MockProducer(true, StringSerializer(), StringSerializer())
 
-        val arenaVideresneder = ArenaVideresender(mockProducer, hendelsesRepository)
+        val arenaProducer = ArenaProducer(mockProducer, hendelsesRepository)
 
         every { hendelsesRepository.hentHendelse(key) } returns JoarkHendelse(key, value)
         mockProducer.sendException = SomethingWentHorriblyWrongException()
 
         assertThrows<TopicWriteException> {
-            arenaVideresneder.sendJournalpostTilArena(key)
+            arenaProducer.sendJournalpostTilArena(key)
         }
 
     }
@@ -64,7 +64,7 @@ class ArenaProducerTest {
 
         val mockProducer = MockProducer(true, StringSerializer(), StringSerializer())
 
-        val arenaVideresneder = ArenaVideresender(mockProducer, hendelsesRepository)
+        val arenaVideresneder = ArenaProducer(mockProducer, hendelsesRepository)
 
         every { hendelsesRepository.hentHendelse(key) } returns JoarkHendelse(key, value)
         mockProducer.sendException = TopicAuthorizationException("Noooo")
