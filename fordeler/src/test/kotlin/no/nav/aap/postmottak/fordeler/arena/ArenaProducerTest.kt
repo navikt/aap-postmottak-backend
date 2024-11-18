@@ -5,9 +5,11 @@ import io.mockk.mockk
 import no.nav.aap.postmottak.fordeler.HendelsesRepository
 import no.nav.aap.postmottak.fordeler.JoarkHendelse
 import org.apache.kafka.clients.producer.MockProducer
+import org.apache.kafka.common.errors.TopicAuthorizationException
 import org.apache.kafka.common.serialization.StringSerializer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 
 class ArenaProducerTest {
@@ -34,5 +36,45 @@ class ArenaProducerTest {
         assertThat(actualRecord.key()).isEqualTo(key)
         assertThat(actualRecord.value()).isEqualTo(value)
     }
+
+    @Test
+    fun `fanger og kaster exception videre ved exception fra kafka`() {
+
+        val key = "key"
+        val value = "value"
+
+        val mockProducer = MockProducer(true, StringSerializer(), StringSerializer())
+
+        val arenaVideresneder = ArenaVideresender(mockProducer, hendelsesRepository)
+
+        every { hendelsesRepository.hentHendelse(key) } returns JoarkHendelse(key, value)
+        mockProducer.sendException = SomethingWentHorriblyWrongException()
+
+        assertThrows<TopicWriteException> {
+            arenaVideresneder.sendJournalpostTilArena(key)
+        }
+
+    }
+
+    @Test
+    fun `fanger og kaster authorizationException videre ved TopicAuthorizationException fra kafka`() {
+
+        val key = "key"
+        val value = "value"
+
+        val mockProducer = MockProducer(true, StringSerializer(), StringSerializer())
+
+        val arenaVideresneder = ArenaVideresender(mockProducer, hendelsesRepository)
+
+        every { hendelsesRepository.hentHendelse(key) } returns JoarkHendelse(key, value)
+        mockProducer.sendException = TopicAuthorizationException("Noooo")
+
+        assertThrows<AuthorizationException> {
+            arenaVideresneder.sendJournalpostTilArena(key)
+        }
+
+    }
+
+    class SomethingWentHorriblyWrongException: RuntimeException()
 
 }
