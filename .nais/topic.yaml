@@ -16,7 +16,7 @@ spec:
         replication: 2
     acl:
         - team: aap
-          application: aap-postmottak-backend
+          application: postmottak-backend
           access: write
         - team: aap
           application: aap-jfr-arena
