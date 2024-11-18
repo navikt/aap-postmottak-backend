@@ -23,8 +23,8 @@ class ArenaProducerConfig {
         this[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = KafkaAvroSerializer::class.java.name
 
         this[KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = requiredConfigForKey("KAFKA_SCHEMA_REGISTRY")
-        this[KafkaAvroSerializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE] = KafkaAvroSerializerConfig.USER_INFO_CONFIG
-        this[KafkaAvroSerializerConfig.USER_INFO_CONFIG] = "USER_INFO"
+        this[KafkaAvroSerializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE] = "USER_INFO"
+        this[KafkaAvroSerializerConfig.USER_INFO_CONFIG] =
             "${requiredConfigForKey("KAFKA_SCHEMA_REGISTRY_USER")}:${requiredConfigForKey("KAFKA_SCHEMA_REGISTRY_PASSWORD")}"
         this[KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS] = "false"
 
