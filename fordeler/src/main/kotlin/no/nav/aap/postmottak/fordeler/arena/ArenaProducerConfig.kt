@@ -24,8 +24,6 @@ class ArenaProducerConfig {
         this[ProducerConfig.BATCH_SIZE_CONFIG] = 0
         this[ProducerConfig.LINGER_MS_CONFIG] = 0
 
-        this[ProducerConfig.COMPRESSION_TYPE_CONFIG] = "snappy"
-
     }
 
 
