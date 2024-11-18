@@ -5,10 +5,8 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.postmottak.fordeler.HendelsesRepository
 import no.nav.aap.postmottak.fordeler.RegelRepository
 import no.nav.aap.postmottak.fordeler.arena.ArenaVideresender
-import no.nav.aap.postmottak.fordeler.arena.ProducerProvider
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -30,7 +28,7 @@ class FordelingVideresendJobbUtfører(
                 BehandlingRepositoryImpl(connection),
                 RegelRepository(connection),
                 FlytJobbRepository(connection),
-                ArenaVideresender(ProducerProvider.provideProducer(), HendelsesRepository(connection))
+                ArenaVideresender(connection)
             )
         }
 
@@ -49,23 +47,16 @@ class FordelingVideresendJobbUtfører(
         if (regelResultat.skalTilKelvin()) {
             routeTilKelvin(journalpostId)
         } else {
-            routeTilArena(meldingId, journalpostId)
+            arenaVideresender.videresendJournalpostTilArena(meldingId, journalpostId)
         }
-
     }
 
     private fun routeTilKelvin(journalpostId: JournalpostId) {
         log.info("Oppretter behandling for journalpost som skal til Kelvin: $journalpostId")
-            val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-            flytJobbRepository.leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
-            )
+        val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+        flytJobbRepository.leggTil(
+            JobbInput(ProsesserBehandlingJobbUtfører)
+                .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+        )
     }
-
-    private fun routeTilArena(meldingId: String, journalpostId: JournalpostId) {
-        log.info("Journalpost sendes til Arena: $journalpostId")
-        arenaVideresender.sendJournalpostTilArena(meldingId)
-    }
-
 }

@@ -10,15 +10,15 @@ import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import java.net.URI
 
 interface Joark {
-    fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String)
-    fun førJournalpostPåGenerellSak(journalpost: Journalpost)
+    fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String, tema: String = "AAP")
+    fun førJournalpostPåGenerellSak(journalpost: Journalpost, tema: String = "AAP")
     fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost)
     fun ferdigstillJournalpost(journalpost: Journalpost, journalfoerendeEnhet: String)
 }
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
-class JoarkClient: Joark {
+class JoarkClient : Joark {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
     val config = ClientConfig(
@@ -29,37 +29,39 @@ class JoarkClient: Joark {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    override fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String) {
+    override fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String, tema: String) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
         val request = PutRequest(
             OppdaterJournalpostRequest(
-            journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
-            sak = JournalpostSak(
-                fagsakId = fagsakId,
-            ),
-            bruker = JournalpostBruker(
-                id = journalpost.person.aktivIdent().identifikator
+                journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
+                sak = JournalpostSak(
+                    fagsakId = fagsakId,
+                ),
+                tema = tema,
+                bruker = JournalpostBruker(
+                    id = journalpost.person.aktivIdent().identifikator
+                )
             )
         )
-        )
-        client.put(path, request) { _,_ -> }
+        client.put(path, request) { _, _ -> }
     }
 
-    override fun førJournalpostPåGenerellSak(journalpost: Journalpost) {
+    override fun førJournalpostPåGenerellSak(journalpost: Journalpost, tema: String) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
         val request = PutRequest(
             OppdaterJournalpostRequest(
-            journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
-            sak = JournalpostSak(
-                sakstype = Sakstype.GENERELL_SAK,
-                fagsaksystem = null
-            ),
-            bruker = JournalpostBruker(
-                id = journalpost.person.aktivIdent().identifikator
+                journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
+                sak = JournalpostSak(
+                    sakstype = Sakstype.GENERELL_SAK,
+                    fagsaksystem = null
+                ),
+                tema = tema,
+                bruker = JournalpostBruker(
+                    id = journalpost.person.aktivIdent().identifikator
+                )
             )
         )
-        )
-        client.put(path, request) { _,_ -> }
+        client.put(path, request) { _, _ -> }
     }
 
     override fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost) {
@@ -69,7 +71,7 @@ class JoarkClient: Joark {
     override fun ferdigstillJournalpost(journalpost: Journalpost, journalfoerendeEnhet: String) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}/ferdigstill")
         val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet))
-        client.patch(path, request) { _,_ -> }
+        client.patch(path, request) { _, _ -> }
     }
 }
 
@@ -81,11 +83,11 @@ data class OppdaterJournalpostRequest(
     val behandlingstema: String? = null,
     val journalfoerendeEnhet: String,
     val sak: JournalpostSak,
-    val tema: String = "AAP",
+    val tema: String,
     val bruker: JournalpostBruker
 )
 
-enum class  Fagsystem {
+enum class Fagsystem {
     KELVIN,
     AO01 // Arena
 }

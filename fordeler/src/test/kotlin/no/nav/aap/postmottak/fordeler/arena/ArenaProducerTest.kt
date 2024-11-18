@@ -10,7 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 
-class ArenaVideresenderTest {
+class ArenaProducerTest {
 
     val hendelsesRepository: HendelsesRepository = mockk()
 
@@ -21,7 +21,7 @@ class ArenaVideresenderTest {
         val value = "value"
 
         val mockProducer = MockProducer(true, StringSerializer(), StringSerializer())
-        val arenaVideresneder = ArenaVideresender(mockProducer, hendelsesRepository)
+        val arenaVideresneder = ArenaProducer(mockProducer, hendelsesRepository)
 
         every { hendelsesRepository.hentHendelse(key) } returns JoarkHendelse(key, value)
 
