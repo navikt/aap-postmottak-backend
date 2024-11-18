@@ -91,6 +91,9 @@ dependencies {
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
     implementation("org.apache.avro:avro:1.12.0")
 
+    runtimeOnly("org.xerial.snappy:snappy-java:1.1.10.7")
+
+
     implementation("io.confluent:kafka-streams-avro-serde:7.7.1")
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
 
