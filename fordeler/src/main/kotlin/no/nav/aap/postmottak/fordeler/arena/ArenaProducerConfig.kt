@@ -26,7 +26,7 @@ class ArenaProducerConfig {
         this[KafkaAvroSerializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE] = KafkaAvroSerializerConfig.USER_INFO_CONFIG
         this[KafkaAvroSerializerConfig.USER_INFO_CONFIG] = "USER_INFO"
             "${requiredConfigForKey("KAFKA_SCHEMA_REGISTRY_USER")}:${requiredConfigForKey("KAFKA_SCHEMA_REGISTRY_PASSWORD")}"
-
+        this[KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS] = "false"
 
         // Configuration for decreaseing latency
         this[ProducerConfig.BATCH_SIZE_CONFIG] = 0
