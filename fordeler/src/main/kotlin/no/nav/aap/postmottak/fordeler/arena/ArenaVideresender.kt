@@ -7,7 +7,7 @@ import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
 
-private const val ARENA_LEGEERKLÆRING_TEMA = "Oppfølging"
+private const val ARENA_LEGEERKLÆRING_TEMA = "OPP"
 
 class ArenaVideresender(val connection: DBConnection) {
 
