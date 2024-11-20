@@ -16,6 +16,9 @@ data class Journalpost(
     val dokumenter: List<Dokument> = emptyList()
 ) {
 
+    val hoveddokumentbrevkode: String
+        get() = dokumenter.minBy { it.dokumentInfoId.dokumentInfoId }.brevkode !!
+
     fun erSøknad(): Boolean {
         return dokumenter.any {
             it.brevkode == SKJEMANUMMER_SØKNAD

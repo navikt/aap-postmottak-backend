@@ -20,7 +20,9 @@ class ArenaKlient() {
         tokenProvider = ClientCredentialsTokenProvider
     )
 
-    fun nyesteArenaSak(ident: Ident): String? {
+    fun harAktivSak(ident :Ident) = nyesteAktiveSak(ident) != null
+
+    fun nyesteAktiveSak(ident: Ident): String? {
         val request = GetRequest()
         val nyesteSakUrl = url.resolve("arena/nyesteaktivesak/${ident.identifikator}")
         return client.get(nyesteSakUrl, request)
