@@ -43,7 +43,9 @@ class SettFagsakSteg(
             joarkKlient.førJournalpostPåGenerellSak(journalpost)
         } else {
             joarkKlient.førJournalpostPåFagsak(
-                journalpost, saksvurdering.saksnummer!!
+                journalpost.journalpostId,
+                journalpost.person.aktivIdent(),
+                saksvurdering.saksnummer!!
             )
         }
 

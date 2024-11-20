@@ -22,7 +22,7 @@ class JournalføringStegTest {
 
     @Test
     fun `verifiser at journalpost blir oppdatert med saksnummer og endelig journalført`() {
-        val journalpost: Journalpost = mockk()
+        val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val saksnummer = "saksnummer"
@@ -30,6 +30,6 @@ class JournalføringStegTest {
 
         journalføringSteg.utfør(mockk(relaxed = true))
 
-        verify(exactly = 1) { joark.ferdigstillJournalpostMaskinelt(journalpost) }
+        verify(exactly = 1) { joark.ferdigstillJournalpostMaskinelt(journalpost.journalpostId) }
     }
 }

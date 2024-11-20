@@ -6,14 +6,16 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
+import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.net.URI
 
 interface Joark {
-    fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String, tema: String = "AAP")
+    fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String = "AAP")
     fun førJournalpostPåGenerellSak(journalpost: Journalpost, tema: String = "AAP")
-    fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost)
-    fun ferdigstillJournalpost(journalpost: Journalpost, journalfoerendeEnhet: String)
+    fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId)
+    fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String)
 }
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
@@ -29,8 +31,8 @@ class JoarkClient : Joark {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    override fun førJournalpostPåFagsak(journalpost: Journalpost, fagsakId: String, tema: String) {
-        val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
+    override fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String) {
+        val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
         val request = PutRequest(
             OppdaterJournalpostRequest(
                 journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
@@ -39,7 +41,7 @@ class JoarkClient : Joark {
                 ),
                 tema = tema,
                 bruker = JournalpostBruker(
-                    id = journalpost.person.aktivIdent().identifikator
+                    id = ident.identifikator
                 )
             )
         )
@@ -64,12 +66,12 @@ class JoarkClient : Joark {
         client.put(path, request) { _, _ -> }
     }
 
-    override fun ferdigstillJournalpostMaskinelt(journalpost: Journalpost) {
-        ferdigstillJournalpost(journalpost, MASKINELL_JOURNALFØRING_ENHET)
+    override fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId) {
+        ferdigstillJournalpost(journalpostId, MASKINELL_JOURNALFØRING_ENHET)
     }
 
-    override fun ferdigstillJournalpost(journalpost: Journalpost, journalfoerendeEnhet: String) {
-        val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}/ferdigstill")
+    override fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String) {
+        val path = url.resolve("/rest/journalpostapi/v1/journalpost/$journalpostId/ferdigstill")
         val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet))
         client.patch(path, request) { _, _ -> }
     }

@@ -27,7 +27,7 @@ class JoarkClientTest : WithFakes {
         )
         every { journalpost.journalpostId } returns JournalpostId(1)
 
-        joarkClient.førJournalpostPåFagsak(journalpost, "213412")
+        joarkClient.førJournalpostPåFagsak(journalpost.journalpostId, journalpost.person.aktivIdent(), "213412")
     }
 
     @Test
@@ -57,6 +57,6 @@ class JoarkClientTest : WithFakes {
         )
         every { journalpost.journalpostId } returns JournalpostId(1)
 
-        joarkClient.ferdigstillJournalpostMaskinelt(journalpost)
+        joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
     }
 }
