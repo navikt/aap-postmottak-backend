@@ -118,3 +118,7 @@ spec:
       value: https://pdl-api.dev-fss-pub.nais.io
     - name: INTEGRASJON_PDL_SCOPE
       value: api://dev-fss.pdl.pdl-api/.default
+    - name: INTEGRASJON_ARENA_URL
+      value: https://aap-fss-proxy.dev-fss-pub.nais.io
+    - name: INTEGRASJON_ARENA_SCOPE
+      value: api://dev-fss.aap.fss-proxy/.default
