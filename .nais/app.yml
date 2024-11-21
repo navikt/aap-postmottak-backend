@@ -76,6 +76,7 @@ spec:
         - host: dokarkiv.dev-fss-pub.nais.io
         - host: oppgave.dev-fss-pub.nais.io
         - host: pdl-api.dev-fss-pub.nais.io
+        - host: aap-fss-proxy.dev-fss-pub.nais.io
       rules:
         - application: tilgang
         - application: behandlingsflyt
@@ -92,6 +93,10 @@ spec:
       value: https://dokarkiv-q2.dev-fss-pub.nais.io
     - name: INTEGRASJON_JOARK_SCOPE
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: INTEGRASJON_AAP_FSS_PROXY_URL
+      value: https://aap-fss-proxy.dev-fss-pub.nais.io
+    - name: INTEGRASJON_AAP_FSS_PROXY_SCOPE
+      value: api://dev-fss.aap.fss-proxy/.default
     - name: INTEGRASJON_BEHANDLINGSFLYT_URL
       value: http://behandlingsflyt
     - name: INTEGRASJON_BEHANDLINGSFLYT_SCOPE

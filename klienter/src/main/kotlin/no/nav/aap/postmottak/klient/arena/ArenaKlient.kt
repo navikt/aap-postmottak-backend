@@ -11,12 +11,12 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.net.URI
 
-class ArenaKlient() {
+class ArenaKlient {
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.arena.url.rest"))
+    private val url = URI.create(requiredConfigForKey("integrasjon.aap.fss.proxy.url"))
 
     private var client = RestClient.withDefaultResponseHandler(
-        config = ClientConfig(requiredConfigForKey("integrasjon.arena.url")),
+        config = ClientConfig(requiredConfigForKey("integrasjon.aap.fss.proxy.scope")),
         tokenProvider = ClientCredentialsTokenProvider
     )
 
