@@ -55,7 +55,7 @@ class AvklarTemaStegTest {
     }
 
     @Test
-    fun `når vi ikke kan behandle automatisk og mauell avklaring er avklart med "skal til AAP" forventer vi at steget ikke returnerer avklaringsbehov`() {
+    fun `naar vi ikke kan behandle automatisk og manuell avklaring er avklart med 'skal til AAP' forventer vi at steget ikke returnerer avklaringsbehov`() {
         every { journalpost.kanBehandlesAutomatisk() } returns false
         every { avklarTemaRepository.hentTemaAvklaring(any())?.skalTilAap } returns true
 
