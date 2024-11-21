@@ -1,13 +1,12 @@
 package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
-import no.nav.aap.postmottak.hendelse.oppgave.BehandlingsFlytStoppetHendelseDTO
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.hendelse.oppgave.OppgaveGateway
+import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StoppetHendelseJobbUtfører::class.java)
