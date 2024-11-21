@@ -15,6 +15,8 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.postmottak.klient.ArenaSak
+import no.nav.aap.postmottak.klient.arena.ArenaOpprettOppgaveForespørsel
+import no.nav.aap.postmottak.klient.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.postmottak.klient.gosysoppgave.FerdigstillOppgaveRequest
 import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
 import no.nav.aap.postmottak.klient.joark.FerdigstillRequest
@@ -73,6 +75,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val gosysOppgave = FakeServer(module = { gosysOppgaveFake() })
     val aapInternApi = FakeServer(module = { aapInternApiFake() })
     val pdl = FakeServer(module = { pdlFake() })
+    val fssProxy = FakeServer(module = {fssProxy()})
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -115,6 +118,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // PDL
         System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
         System.setProperty("integrasjon.pdl.scope", "scope")
+        
+        // Aap FSS proxy
+        System.setProperty("integrasjon.aap.fss.proxy.url", "http://localhost:${fssProxy.port()}")
+        System.setProperty("integrasjon.aap.fss.proxy.scope", "scope")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -294,6 +301,23 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             post("/tilgang/journalpost") {
                 call.receive<JournalpostTilgangRequest>()
                 call.respond(TilgangResponse(true))
+            }
+        }
+    }
+    
+    private fun Application.fssProxy() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        routing {
+            get("/arena/nyesteaktivesak/{ident}") {
+                call.respondText(ContentType.Text.Plain) {
+                    "12345678901"
+                }
+            }
+            post("/arena/opprettoppgave") {
+                call.receive<ArenaOpprettOppgaveForespørsel>()
+                call.respond(ArenaOpprettOppgaveRespons("OPG-1234", "SAK-5678"))
             }
         }
     }
