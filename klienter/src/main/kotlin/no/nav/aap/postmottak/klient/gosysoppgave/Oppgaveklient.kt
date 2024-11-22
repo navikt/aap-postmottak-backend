@@ -31,7 +31,7 @@ class Oppgaveklient {
 
         return opprettOppgave(
             OpprettOppgaveRequest(
-                oppgavetype = Oppgavetype.JFR.name,
+                oppgavetype = Oppgavetype.JOURNALFØRING.verdi,
                 journalpostId = journalpostId.toString(),
                 personident = personident,
                 beskrivelse = "Et dokument med feil tema har dukket opp hos AAP. Kan du hjelpe dokumentet på veien til sin rette mottaker?"
@@ -53,7 +53,7 @@ class Oppgaveklient {
 
     fun finnOppgaverForJournalpost(
         journalpostId: JournalpostId,
-        oppgavetyper: List<Oppgavetype> = listOf(Oppgavetype.JFR)
+        oppgavetyper: List<Oppgavetype> = listOf(Oppgavetype.JOURNALFØRING)
     ): List<Long> {
         log.info("Finn oppgaver for journalpost: $journalpostId")
         val oppgaveparams = oppgavetyper.map { "&oppgavetype=${it.name}" }.joinToString(separator = "")

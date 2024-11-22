@@ -2,9 +2,9 @@ package no.nav.aap.postmottak.klient.gosysoppgave
 
 import java.time.LocalDate
 
-enum class Oppgavetype {
-    JFR,
-    FDR
+enum class Oppgavetype(val verdi: String) {
+    JOURNALFØRING("JFR"),
+    FORDELING("FDR")
 }
 
 data class OpprettOppgaveRequest(
