@@ -18,6 +18,32 @@ class SendSøknadTilArenaJobbTest: WithFakes {
     val arenaKlientMock = mockk<ArenaKlient>(relaxed = true)
     val sendSøknadTilArenaJobb = SendSøknadTilArenaJobb(flytJobbRepositoryMock, arenaKlientMock)
 
+    @Test 
+    fun `Skal opprette jobb for automatisk journalføring dersom det finnes aktiv sak`() {
+        every {arenaKlientMock.harAktivSak(any())} returns true
+        
+        val journalpostId = JournalpostId(1)
+        
+        val jobbKontekst =   ArenaVideresenderKontekst(
+            journalpostId = journalpostId,
+            ident = Ident("123"),
+            hoveddokumenttittel = "Hoveddokument",
+            vedleggstittler = listOf("Vedlegg"),
+            navEnhet = "4491"
+        )
+        
+        val jobbInput = JobbInput(SendSøknadTilArenaJobb).medArenaVideresenderKontekst(
+            jobbKontekst
+        )
+        sendSøknadTilArenaJobb.utfør(jobbInput)
+        
+        verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
+            assertThat(it.type()).isEqualTo(AutomatiskJournalføringsjobb.type())
+            val actualKontekst = DefaultJsonMapper.fromJson<ArenaVideresenderKontekst>(it.payload())
+            assertThat(actualKontekst).isEqualTo(jobbKontekst)
+        })}
+    }
+    
     @Test
     fun `Skal opprette jobb for manuell oppgave dersom det ikke finnes aktiv sak`() {
         every {arenaKlientMock.harAktivSak(any())} returns false
