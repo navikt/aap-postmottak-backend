@@ -12,7 +12,8 @@ class Aldersregel : Regel<AldersregelInput> {
     }
 
     override fun vurder(input: AldersregelInput): Boolean {
-        return Period.between(input.fødselsdato, input.nåDato).years < 65
+        val alder = Period.between(input.fødselsdato, input.nåDato).years
+        return alder in 18..64
     }
 
     override fun regelNavn(): String {
