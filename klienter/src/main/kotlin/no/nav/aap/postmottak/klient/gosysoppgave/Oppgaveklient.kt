@@ -26,23 +26,39 @@ class Oppgaveklient {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    fun opprettOppgave(journalpostId: JournalpostId, personident: String) {
-        log.info("Oppretter oppgave for journalpost $journalpostId")
+    fun opprettEndreTemaOppgave(journalpostId: JournalpostId, personident: String) {
+        log.info("Oppretter journalføringsoppgave for journalpost $journalpostId")
 
+        return opprettOppgave(
+            OpprettOppgaveRequest(
+                oppgavetype = Oppgavetype.JFR.name,
+                journalpostId = journalpostId.toString(),
+                personident = personident,
+                beskrivelse = "Et dokument med feil tema har dukket opp hos AAP. Kan du hjelpe dokumentet på veien til sin rette mottaker?"
+            )
+        )
+    }
+
+    fun opprettOppgave(oppgaveRequest: OpprettOppgaveRequest) {
         val path = url.resolve("/api/v1/oppgaver")
 
-        val request = PostRequest(OpprettOppgaveRequest(journalpostId = journalpostId.toString(), personident = personident))
+        val request = PostRequest(oppgaveRequest)
 
         try {
-            client.post(path, request) {_, _ -> Unit}
+            client.post(path, request) { _, _ -> }
         } catch (e: Exception) {
             log.warn("Feil mot oppgaveApi under opprettelse av oppgave: ${e.message}", e)
         }
     }
 
-    fun finnOppgaverForJournalpost(journalpostId: JournalpostId): List<Long> {
+    fun finnOppgaverForJournalpost(
+        journalpostId: JournalpostId,
+        oppgavetyper: List<Oppgavetype> = listOf(Oppgavetype.JFR)
+    ): List<Long> {
         log.info("Finn oppgaver for journalpost: $journalpostId")
-        val path = url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId&oppgavetype=$OPPGAVETYPE&tema=AAP&statuskategori=AAPEN")
+        val oppgaveparams = oppgavetyper.map { "&oppgavetype=${it.name}" }.joinToString(separator = "")
+        val path =
+            url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId${oppgaveparams}&tema=AAP&statuskategori=AAPEN")
 
         return client.get<FinnOppgaverResponse>(path, GetRequest())?.oppgaver?.map { it.id } ?: emptyList()
     }
@@ -54,7 +70,7 @@ class Oppgaveklient {
         val request = PatchRequest(FerdigstillOppgaveRequest())
 
         try {
-            client.patch(path, request) {_, _ -> Unit}
+            client.patch(path, request) { _, _ -> }
         } catch (e: Exception) {
             log.warn("Feil mot oppgaveApi under lukking av oppgave: ${e.message}", e)
         }

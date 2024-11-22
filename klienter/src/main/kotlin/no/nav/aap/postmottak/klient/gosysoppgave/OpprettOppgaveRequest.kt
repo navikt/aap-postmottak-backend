@@ -2,10 +2,13 @@ package no.nav.aap.postmottak.klient.gosysoppgave
 
 import java.time.LocalDate
 
-const val OPPGAVETYPE = "JFR"
+enum class Oppgavetype {
+    JFR,
+    FDR
+}
 
 data class OpprettOppgaveRequest(
-    val oppgavetype: String = OPPGAVETYPE, // se kodeverk
+    val oppgavetype: String, // se kodeverk
     val tema: String = "AAP", // se kodeverk
     val prioritet: Prioritet = Prioritet.NORM,
     val aktivDato: String = LocalDate.now().toString(), // dato
@@ -16,7 +19,7 @@ data class OpprettOppgaveRequest(
     val journalpostId: String,
     val behandlesAvApplikasjon: String? = null,
     val tilordnetRessurs: String? = null, // navident
-    val beskrivelse: String? = "Et dokument med feil tema har dukket opp hos AAP. Kan du hjelpe dokumentet på veien til sin rette mottaker?",
+    val beskrivelse: String? = null,
     val behandlingstema: String? = null, // se kodeverk
     val behandlingstype: String? = null, // se kodeverk
     val fristFerdigstillelse: String? = null, // dato

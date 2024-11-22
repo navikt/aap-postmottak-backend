@@ -46,7 +46,8 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
                     JournalpostRepositoryImpl(connection).hentHvisEksisterer(req)?.person?.aktivIdent()
                 }
                 require(aktivIdent != null) { "Fant ikke personident for journalpost" }
-                Oppgaveklient().opprettOppgave(req, aktivIdent.identifikator)
+                
+                Oppgaveklient().opprettEndreTemaOppgave(req, aktivIdent.identifikator)
 
                 val url = URI.create(requiredConfigForKey("gosys.url"))
                 respond(EndreTemaResponse(url.toString()))
