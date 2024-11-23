@@ -72,6 +72,13 @@ class PdlGraphQLClient(
         return response.data?.hentPerson
     }
 
+    fun hentAdressebeskyttelseOgGeolokasjon(ident: Ident, currentToken: OidcToken? = null): PdlData {
+        val request = PdlRequest.hentAdressebeskyttelseOgGeografiskTilknytning(ident)
+        val response = runBlocking { graphqlQuery(request, currentToken) }
+
+        return response.data ?: error("Unexpected response from PDL: ${response.errors}")
+    }
+
     fun hentAlleIdenterForPerson(ident: String, currentToken: OidcToken? = null): List<Ident> {
         val request = PdlRequest.hentAlleIdenterForPerson(ident)
         val response = runBlocking { graphqlQuery(request, currentToken) }

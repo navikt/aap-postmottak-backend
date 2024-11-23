@@ -252,6 +252,8 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                     call.respondText(genererHentIdenterRespons(body))
                 } else if (body.contains("hentPersonBolk")) {
                     call.respondText(genererHentPersonBolkRespons(body))
+                } else if (body.contains("hentGeografiskTilknytning")) {
+                    call.respondText(genererHentAdressebeskytelseOgGeotilknytning())
                 } else {
                     call.respondText(genererHentPersonRespons())
                 }
@@ -392,6 +394,25 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                     ]
                 }
             }}
+        """.trimIndent()
+    }
+
+    private fun genererHentAdressebeskytelseOgGeotilknytning(): String {
+        return """
+            {
+              "data": {
+                "hentPerson": {
+                  "adressebeskyttelse": ["UGRADERT"]
+                },
+                "hentGeografiskTilknytning": {
+                  "gtType": "KOMMUNE",
+                  "gtKommune": "4216",
+                  "gtBydel": null,
+                  "gtLand": null,
+                  "regel": "2"
+                }
+              }
+            }
         """.trimIndent()
     }
 

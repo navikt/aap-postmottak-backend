@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.klient.pdl
 
 import no.nav.aap.postmottak.klient.graphql.asQuery
+import no.nav.aap.verdityper.sakogbehandling.Ident
 
 internal data class PdlRequest(val query: String, val variables: Variables) {
     data class Variables(val ident: String? = null, val identer: List<String>? = null)
@@ -10,15 +11,20 @@ internal data class PdlRequest(val query: String, val variables: Variables) {
             query = PERSON_BOLK_QUERY.asQuery(),
             variables = Variables(identer = personidenter),
         )
-        
+
         fun hentPerson(personident: String) = PdlRequest(
             query = PERSON_QUERY.asQuery(),
             variables = Variables(ident = personident),
         )
-        
+
         fun hentAlleIdenterForPerson(ident: String) = PdlRequest(
             query = IDENT_QUERY.asQuery(),
             variables = Variables(ident = ident),
+        )
+
+        fun hentAdressebeskyttelseOgGeografiskTilknytning(ident: Ident) = PdlRequest(
+            query = ADRESSEBESKYTTELSE_QUERY.asQuery(),
+            variables = Variables(ident = ident.identifikator)
         )
     }
 }
@@ -62,4 +68,22 @@ val IDENT_QUERY = """
             }
         }
     }
+""".trimIndent()
+
+val ADRESSEBESKYTTELSE_QUERY = """
+     query($ident: ID!) {
+      hentPerson(ident: $ident) {
+        adressebeskyttelse(historikk: false) {
+          gradering
+        }
+      },
+    
+      hentGeografiskTilknytning(ident: $ident) {
+        gtType
+        gtKommune
+        gtBydel
+        gtLand
+        regel
+      }
+    }   
 """.trimIndent()
