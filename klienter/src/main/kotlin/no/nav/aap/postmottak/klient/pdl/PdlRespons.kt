@@ -25,7 +25,7 @@ data class HentPersonBolkResult(
 )
 
 data class GeografiskTilknytning(
-    val gtType: String,
+    val gtType: GeografiskTilknytningType,
     val gtKommune: String?,
     val gtBydel: String?,
     val gtLand: String?,
