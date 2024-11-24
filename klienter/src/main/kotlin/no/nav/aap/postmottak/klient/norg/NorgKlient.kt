@@ -28,7 +28,7 @@ enum class Diskresjonskode { SPFO, SPSF, ANY }
 class NorgKlient {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.norg.url"))
-    val config = ClientConfig()
+    private val config = ClientConfig()
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
@@ -47,7 +47,7 @@ class NorgKlient {
             FinnNavenhetRequest(geografiskTilknyttning, erNavansatt, diskresjonskode)
         )
 
-        return client.post<FinnNavenhetRequest, Enhet>(url, request).let { response -> response?.enhetNr } ?: error("Feil i response fra norg")
+        return client.post<FinnNavenhetRequest, Enhet>(finnEnhetUrl, request).let { response -> response?.enhetNr } ?: error("Feil i response fra norg")
     }
 
 }

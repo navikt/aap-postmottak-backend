@@ -22,6 +22,7 @@ import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
 import no.nav.aap.postmottak.klient.joark.FerdigstillRequest
 import no.nav.aap.postmottak.klient.joark.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
+import no.nav.aap.postmottak.test.fakes.nomFake
 import no.nav.aap.postmottak.test.fakes.safFake
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.verdityper.sakogbehandling.Ident
@@ -76,6 +77,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val aapInternApi = FakeServer(module = { aapInternApiFake() })
     val pdl = FakeServer(module = { pdlFake() })
     val fssProxy = FakeServer(module = {fssProxy()})
+    val nomFake = FakeServer(module = {nomFake()})
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -123,6 +125,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         System.setProperty("integrasjon.aap.fss.proxy.url", "http://localhost:${fssProxy.port()}")
         System.setProperty("integrasjon.aap.fss.proxy.scope", "scope")
 
+        // Aap NOM
+        System.setProperty("integrasjon.nom.url", "http://localhost:${nomFake.port()}")
+        System.setProperty("integrasjon.nom.scope", "scope")
+
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
             TestPerson(
@@ -154,6 +160,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         oppgave.stop()
         saf.stop()
         joark.stop()
+        nomFake.stop()
     }
 
     fun leggTil(person: TestPerson) {
