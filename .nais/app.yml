@@ -128,4 +128,8 @@ spec:
     - name: INTEGRASJON_ARENA_SCOPE
       value: api://dev-fss.aap.fss-proxy/.default
     - name: INTEGRASJON_NORG_URL
-      value: https://norg2.q2-fss-pub.nais.io
+      value: https://norg2.dev-fss-pub.nais.io
+    - name: INTEGRASJON_NOM_URL
+      value: http://skjermede-personer-pip.nom
+    - name: INTEGRASJON_NOM_SCOPE
+      value: api://dev-gcp.nom.skjermede-personer-pip/.default
