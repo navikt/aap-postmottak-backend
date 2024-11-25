@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import no.nav.aap.verdityper.sakogbehandling.Ident
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -24,6 +25,7 @@ data class BehandlingsListe(
     val opprettet: LocalDateTime
 )
 
+private val log = LoggerFactory.getLogger("no.nav.aap.postmottak.backend.test")
 
 fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
     val miljø = Miljø.er()
@@ -53,6 +55,8 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
         route("/test/finnEnhetForPerson/{ident}") {
             get<String, String>{ req ->
                 val ident = Ident(req)
+
+                log.info("Finner enhet for : $req")
 
                 val enhetsutreder = Enhetsutreder(
                     NorgKlient(),

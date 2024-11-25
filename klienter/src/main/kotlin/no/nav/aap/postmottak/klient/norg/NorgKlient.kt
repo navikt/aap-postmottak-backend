@@ -10,6 +10,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.postmottak.klient.gosysoppgave.NavEnhet
+import org.slf4j.LoggerFactory
 import java.net.URI
 
 data class NavEnhetResponse(val enheter: List<Enhet>)
@@ -28,6 +29,8 @@ enum class Diskresjonskode { SPFO, SPSF, ANY }
 
 class NorgKlient {
 
+    private val log = LoggerFactory.getLogger(NorgKlient::class.java)
+
     private val url = URI.create(requiredConfigForKey("integrasjon.norg.url"))
     private val config = ClientConfig()
     private val client = RestClient.withDefaultResponseHandler(
@@ -43,6 +46,7 @@ class NorgKlient {
     }
 
     fun finnEnhet(geografiskTilknyttning: String?, erNavansatt: Boolean, diskresjonskode: Diskresjonskode): NavEnhet {
+        log.info("Finner enhet for $geografiskTilknyttning")
         val finnEnhetUrl = url.resolve("norg2/api/v1/arbeidsfordeling/enheter/bestmatch")
         val request = PostRequest(
             FinnNavenhetRequest(geografiskTilknyttning, erNavansatt, diskresjonskode)

@@ -10,8 +10,11 @@ import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytningType
 import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
+import org.slf4j.LoggerFactory
 
 class Enhetsutreder(private val norgKlient: NorgKlient, private val pdlKlient: PdlGraphQLClient, private val nomKlient: NomKlient) {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     fun finnNavenhetForJournalpost(journalpost: Journalpost): NavEnhet {
         val journalførendeEnhet = journalpost.journalførendeEnhet
@@ -20,6 +23,8 @@ class Enhetsutreder(private val norgKlient: NorgKlient, private val pdlKlient: P
     }
 
     fun finnNavenhetForPerson(person: Person): NavEnhet {
+        log.info("Finner enhet for ident ${person.aktivIdent()}")
+
         val adressebeskyttelseOgGeoTilknytning = pdlKlient.hentAdressebeskyttelseOgGeolokasjon(person.aktivIdent())
 
         val geografiskTilknytning = adressebeskyttelseOgGeoTilknytning.hentGeografiskTilknytning?.let { mapGeografiskTilknytningTilKode(it)} ?: error("Geografisk tilknytning mangler")

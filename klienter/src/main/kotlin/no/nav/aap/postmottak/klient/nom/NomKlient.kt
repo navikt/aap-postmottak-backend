@@ -7,11 +7,14 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.verdityper.sakogbehandling.Ident
+import org.slf4j.LoggerFactory
 import java.net.URI
 
 data class EgenansattRequest(val personident: String)
 
 class NomKlient {
+
+    private val log = LoggerFactory.getLogger(NomKlient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.nom.url"))
 
@@ -25,6 +28,7 @@ class NomKlient {
     )
 
     fun erEgenansatt(ident: Ident): Boolean {
+        log.info("Sjekker om $ident er egenansatt")
         val egenansattUrl = url.resolve("egenansatt")
         val request = PostRequest(
             body = EgenansattRequest(ident.identifikator)
