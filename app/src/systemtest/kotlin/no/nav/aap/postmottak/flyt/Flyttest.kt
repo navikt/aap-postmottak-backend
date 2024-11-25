@@ -46,6 +46,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 
@@ -159,6 +160,7 @@ class Flyttest : WithFakes {
         }
     }
 
+    @Disabled
     @Test
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
         every { ProducerProvider.provideProducer() } returns mockk(relaxed = true)

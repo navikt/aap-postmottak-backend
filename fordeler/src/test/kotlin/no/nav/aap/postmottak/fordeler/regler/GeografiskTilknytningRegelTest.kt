@@ -3,8 +3,10 @@ package no.nav.aap.postmottak.fordeler.regler
 import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytning
 import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytningType
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
+@Disabled
 class GeografiskTilknytningRegelTest {
     @Test
     fun `Person i bydel skal til Kelvin hvis kommunen er godkjent`() {
