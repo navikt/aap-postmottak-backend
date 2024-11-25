@@ -29,7 +29,7 @@ class NomKlient {
 
     fun erEgenansatt(ident: Ident): Boolean {
         log.info("Sjekker om $ident er egenansatt")
-        val egenansattUrl = url.resolve("egenansatt")
+        val egenansattUrl = url.resolve("skjermet")
         val request = PostRequest(
             body = EgenansattRequest(ident.identifikator)
         )
