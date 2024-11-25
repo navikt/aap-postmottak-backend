@@ -413,10 +413,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 },
                 "hentGeografiskTilknytning": {
                   "gtType": "KOMMUNE",
-                  "gtKommune": "4216",
+                  "gtKommune": "3207",
                   "gtBydel": null,
-                  "gtLand": null,
-                  "regel": "2"
+                  "gtLand": null
                 }
               }
             }
