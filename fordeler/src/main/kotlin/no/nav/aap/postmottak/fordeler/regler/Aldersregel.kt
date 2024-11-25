@@ -7,13 +7,15 @@ import java.time.Period
 class Aldersregel : Regel<AldersregelInput> {
     companion object : RegelFactory<AldersregelInput> {
         override val erAktiv = false
+        const val MIN_ALDER = 18
+        const val MAX_ALDER = 61
         override fun medDataInnhenting() =
             RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator())
     }
 
     override fun vurder(input: AldersregelInput): Boolean {
         val alder = Period.between(input.fødselsdato, input.nåDato).years
-        return alder in 18..64
+        return alder in MIN_ALDER..MAX_ALDER
     }
 
     override fun regelNavn(): String {

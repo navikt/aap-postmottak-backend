@@ -6,15 +6,15 @@ import java.time.LocalDate
 
 class AldersregelTest {
     @Test
-    fun `Journalpost for person som er fylt 65 år skal ikke til Kelvin`(){
-        val fødselsdato = LocalDate.of(1955,2, 15);
+    fun `Journalpost for person som er fylt 62 år skal ikke til Kelvin`(){
+        val fødselsdato = LocalDate.of(1958,2, 15);
         val nåDato = LocalDate.of(2020, 2, 15);
         assertFalse(Aldersregel().vurder(AldersregelInput(fødselsdato, nåDato)))
     }
 
     @Test
-    fun `Journalpost for person yngre enn 65 år skal til Kelvin`(){
-        val fødselsdato = LocalDate.of(1955,2, 15);
+    fun `Journalpost for person yngre enn 62 år skal til Kelvin`(){
+        val fødselsdato = LocalDate.of(1958,2, 15);
         val nåDato = LocalDate.of(2020, 2, 14);
         assert(Aldersregel().vurder(AldersregelInput(fødselsdato, nåDato)))
     }
