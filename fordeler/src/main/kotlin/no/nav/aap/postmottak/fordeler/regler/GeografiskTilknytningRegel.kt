@@ -48,8 +48,7 @@ class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
 }
 
 class GeografiskTilknytningRegelInputGenerator : InputGenerator<GeografiskTilknytningRegelInput> {
-    private val godkjenteGeografiskeTilknytninger =
-        listOf(GeografiskTilknytning(GeografiskTilknytningType.KOMMUNE, "3207", null, null))
+    private val godkjenteGeografiskeTilknytninger = emptyList<GeografiskTilknytning>()
 
     override fun generer(input: RegelInput): GeografiskTilknytningRegelInput {
         val geografiskTilknytning =
