@@ -12,10 +12,10 @@ internal data class PdlResponse(
 )
 
 data class PdlData(
-    val hentPerson: HentPersonResult?,
-    val hentPersonBolk: List<HentPersonBolkResult>?,
-    val hentIdenter: HentIdenterResult?,
-    val hentGeografiskTilknytning: GeografiskTilknytning?
+    val hentPerson: HentPersonResult? = null,
+    val hentPersonBolk: List<HentPersonBolkResult>? = null,
+    val hentIdenter: HentIdenterResult? = null,
+    val hentGeografiskTilknytning: GeografiskTilknytning? = null
 )
 
 data class HentPersonBolkResult(
@@ -26,15 +26,15 @@ data class HentPersonBolkResult(
 
 data class GeografiskTilknytning(
     val gtType: GeografiskTilknytningType,
-    val gtKommune: String?,
-    val gtBydel: String?,
-    val gtLand: String?,
+    val gtKommune: String? = null,
+    val gtBydel: String? = null,
+    val gtLand: String? = null,
 )
 
 enum class GeografiskTilknytningType{
     KOMMUNE,
     BYDEL,
-    UTLDAND,
+    UTLAND,
     UDEFINERT
 }
 
@@ -43,8 +43,8 @@ data class PdlPerson(
 )
 
 data class HentPersonResult(
-    val foedselsdato: List<Fødselsdato>?,
-    val adressebeskyttelse: List<Adressebeskyttelseskode>?
+    val foedselsdato: List<Fødselsdato>? = null,
+    val adressebeskyttelse: List<Adressebeskyttelseskode>? = null
 )
 
 data class Fødselsdato(val foedselsdato: LocalDate)

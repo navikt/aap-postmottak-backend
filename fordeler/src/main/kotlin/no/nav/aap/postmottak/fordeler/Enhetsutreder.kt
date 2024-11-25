@@ -41,19 +41,19 @@ class Enhetsutreder(private val norgKlient: NorgKlient, private val pdlKlient: P
         return norgKlient.hentAktiveEnheter()
     }
 
-    fun mapGeografiskTilknytningTilKode(geoTilknytning: GeografiskTilknytning) =
+    private fun mapGeografiskTilknytningTilKode(geoTilknytning: GeografiskTilknytning) =
         when (geoTilknytning.gtType) {
             GeografiskTilknytningType.KOMMUNE ->
                 geoTilknytning.gtKommune
             GeografiskTilknytningType.BYDEL ->
                 geoTilknytning.gtBydel
-            GeografiskTilknytningType.UTLDAND ->
+            GeografiskTilknytningType.UTLAND ->
                 geoTilknytning.gtLand
             GeografiskTilknytningType.UDEFINERT ->
                 geoTilknytning.gtType.name
         }
 
-    fun mapDiskresjonskode(adressebgeskyttelseskoder: List<Adressebeskyttelseskode>?) =
+    private fun mapDiskresjonskode(adressebgeskyttelseskoder: List<Adressebeskyttelseskode>?) =
         adressebgeskyttelseskoder?.firstOrNull().let {
             when (it) {
                 Adressebeskyttelseskode.FORTROLIG ->

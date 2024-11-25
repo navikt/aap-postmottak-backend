@@ -37,4 +37,6 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation(project(":lib-test"))
     implementation(kotlin("reflect"))
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.11.3")
+
 }
