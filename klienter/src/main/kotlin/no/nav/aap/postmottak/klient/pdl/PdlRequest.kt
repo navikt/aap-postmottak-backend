@@ -26,6 +26,11 @@ internal data class PdlRequest(val query: String, val variables: Variables) {
             query = ADRESSEBESKYTTELSE_QUERY.asQuery(),
             variables = Variables(ident = ident.identifikator)
         )
+        
+        fun hentGeografiskTilknytning(ident: String) = PdlRequest(
+            query = GEOGRAFISK_TILKNYTNING_QUERY.asQuery(),
+            variables = Variables(ident = ident)
+        )
     }
 }
 
@@ -83,7 +88,17 @@ val ADRESSEBESKYTTELSE_QUERY = """
         gtKommune
         gtBydel
         gtLand
-        regel
       }
     }   
+""".trimIndent()
+
+val GEOGRAFISK_TILKNYTNING_QUERY = """
+    query($ident: ID!) {
+        hentGeografiskTilknytning(ident: $ident) {
+            gtType
+            gtKommune
+            gtBydel
+            gtLand
+        }
+}
 """.trimIndent()

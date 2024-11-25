@@ -71,6 +71,15 @@ class PdlGraphQLClient(
         val response = runBlocking { graphqlQuery(request, currentToken) }
         return response.data?.hentPerson
     }
+    
+    fun hentGeografiskTilknytning(
+        personident: String,
+        currentToken: OidcToken? = null
+    ): GeografiskTilknytning? {
+        val request = PdlRequest.hentGeografiskTilknytning(personident)
+        val response = runBlocking { graphqlQuery(request, currentToken) }
+        return response.data?.hentGeografiskTilknytning
+    }
 
     fun hentAdressebeskyttelseOgGeolokasjon(ident: Ident, currentToken: OidcToken? = null): PdlData {
         val request = PdlRequest.hentAdressebeskyttelseOgGeografiskTilknytning(ident)

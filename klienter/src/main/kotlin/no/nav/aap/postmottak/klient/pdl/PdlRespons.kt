@@ -15,7 +15,7 @@ data class PdlData(
     val hentPerson: HentPersonResult?,
     val hentPersonBolk: List<HentPersonBolkResult>?,
     val hentIdenter: HentIdenterResult?,
-    val hentGeografiskTilknytning: GeografiskTilknytning?,
+    val hentGeografiskTilknytning: GeografiskTilknytning?
 )
 
 data class HentPersonBolkResult(
@@ -29,7 +29,6 @@ data class GeografiskTilknytning(
     val gtKommune: String?,
     val gtBydel: String?,
     val gtLand: String?,
-    val regel: String,
 )
 
 enum class GeografiskTilknytningType{
