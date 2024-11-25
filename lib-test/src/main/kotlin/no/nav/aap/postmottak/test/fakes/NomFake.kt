@@ -26,7 +26,7 @@ fun Application.nomFake(
     }
 
     routing {
-        post("/egenansatt", egenansatt)
+        post("/skjermet", egenansatt)
     }
 
 }
