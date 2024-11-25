@@ -1,5 +1,5 @@
 val junitVersion = "5.10.3"
-val komponenterVersjon = "1.0.50"
+val komponenterVersjon = "1.0.67"
 val kafkaVersion = "3.7.0"
 
 plugins {
