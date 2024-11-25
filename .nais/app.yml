@@ -70,6 +70,9 @@ spec:
       rules:
         - application: postmottak
         - application: paw-patrol
+        - application: azure-token-generator
+          namespace: aura
+          cluster: dev-gcp
     outbound:
       external:
         - host: saf.dev-fss-pub.nais.io
