@@ -6,7 +6,7 @@ import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
 
 class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
     companion object : RegelFactory<GeografiskTilknytningRegelInput> {
-        override val erAktiv = true
+        override val erAktiv = false
         override fun medDataInnhenting() =
             RegelMedInputgenerator(GeografiskTilknytningRegel(), GeografiskTilknytningRegelInputGenerator())
     }
@@ -48,8 +48,7 @@ class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
 }
 
 class GeografiskTilknytningRegelInputGenerator : InputGenerator<GeografiskTilknytningRegelInput> {
-    private val godkjenteGeografiskeTilknytninger =
-        listOf(GeografiskTilknytning(GeografiskTilknytningType.KOMMUNE, "3207", null, null))
+    private val godkjenteGeografiskeTilknytninger = emptyList<GeografiskTilknytning>()
 
     override fun generer(input: RegelInput): GeografiskTilknytningRegelInput {
         val geografiskTilknytning =

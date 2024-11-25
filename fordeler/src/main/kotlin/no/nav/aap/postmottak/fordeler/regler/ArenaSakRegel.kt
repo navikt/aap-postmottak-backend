@@ -5,7 +5,7 @@ import no.nav.aap.postmottak.klient.ArenaSak
 
 class ArenaSakRegel : Regel<ArenaSakRegelInput> {
     companion object : RegelFactory<ArenaSakRegelInput> {
-        override val erAktiv = true
+        override val erAktiv = false
         override fun medDataInnhenting() =
             RegelMedInputgenerator(ArenaSakRegel(), ArenaSakRegelInputGenerator())
     }
