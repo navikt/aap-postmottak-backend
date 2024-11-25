@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.test
 
+import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
@@ -23,6 +24,11 @@ data class BehandlingsListe(
     val steg: String,
     val status: String,
     val opprettet: LocalDateTime
+)
+
+data class FinnEntitetRequest(
+    @PathParam("ident")
+    val ident: String
 )
 
 private val log = LoggerFactory.getLogger("no.nav.aap.postmottak.backend.test")
@@ -53,8 +59,8 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
             }
         }
         route("/test/finnEnhetForPerson/{ident}") {
-            get<String, String>{ req ->
-                val ident = Ident(req)
+            get<FinnEntitetRequest, String>{ req ->
+                val ident = Ident(req.ident)
 
                 log.info("Finner enhet for : $req")
 
