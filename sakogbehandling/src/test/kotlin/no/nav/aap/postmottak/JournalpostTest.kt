@@ -58,6 +58,15 @@ class JournalpostTest {
     }
 
     @Test
+    fun `hoveddokumentbrevkode returnerer brevkode til dokument med lavest dokument id`() {
+        val journalpost = genererJournalpost()
+
+        val hovedkode = journalpost.hoveddokumentbrevkode
+
+        assertThat(hovedkode).isEqualTo("Brev")
+    }
+
+    @Test
     fun getDokumentNavn() {
     }
 
@@ -68,6 +77,7 @@ class JournalpostTest {
     @Test
     fun erDigital() {
     }
+
 
     fun genererJournalpost(
         dokumenter: List<Dokument>? = null
@@ -90,10 +100,16 @@ class JournalpostTest {
                 dokumentInfoId = DokumentInfoId("1")
             ),
             Dokument(
-                brevkode = "Brev",
+                brevkode = "Vedleg",
                 filtype = Filtype.PDF,
                 variantFormat = Variantformat.SLADDET,
-                dokumentInfoId = DokumentInfoId("1")
+                dokumentInfoId = DokumentInfoId("2")
+            ),
+            Dokument(
+                brevkode = "Kattebilde",
+                filtype = Filtype.PDF,
+                variantFormat = Variantformat.SLADDET,
+                dokumentInfoId = DokumentInfoId("3")
             )
         )
     )
