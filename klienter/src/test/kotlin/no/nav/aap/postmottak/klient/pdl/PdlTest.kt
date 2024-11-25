@@ -32,6 +32,6 @@ class PdlTest: WithFakes {
         val test = PdlGraphQLClient.withClientCredentialsRestClient().hentAdressebeskyttelseOgGeolokasjon(Ident("1234"))
         assertThat(test.hentPerson?.adressebeskyttelse).isEqualTo(listOf(Adressebeskyttelseskode.UGRADERT))
         assertThat(test.hentGeografiskTilknytning?.gtType).isEqualTo(GeografiskTilknytningType.KOMMUNE)
-        assertThat(test.hentGeografiskTilknytning?.gtKommune).isEqualTo("4216")
+        assertThat(test.hentGeografiskTilknytning?.gtKommune).isEqualTo("3207")
     }
 }
