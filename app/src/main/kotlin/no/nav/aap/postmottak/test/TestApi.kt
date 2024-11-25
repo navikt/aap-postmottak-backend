@@ -7,7 +7,14 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
+import no.nav.aap.postmottak.fordeler.Enhetsutreder
+import no.nav.aap.postmottak.klient.nom.NomKlient
+import no.nav.aap.postmottak.klient.norg.NorgKlient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
+import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.time.LocalDateTime
+import java.util.*
 import javax.sql.DataSource
 
 data class BehandlingsListe(
@@ -40,6 +47,20 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
                         }
                     }
                 }
+                respond(response)
+            }
+        }
+        route("/test/finnEnhetForPerson/{ident}") {
+            get<String, String>{ req ->
+                val ident = Ident(req)
+
+                val enhetsutreder = Enhetsutreder(
+                    NorgKlient(),
+                    PdlGraphQLClient.withClientCredentialsRestClient(),
+                    NomKlient()
+                )
+
+                val response = enhetsutreder.finnNavenhetForPerson(Person(1, UUID.randomUUID(), listOf(ident)))
                 respond(response)
             }
         }

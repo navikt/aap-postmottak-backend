@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.postmottak.klient.gosysoppgave.NavEnhet
 import java.net.URI
@@ -31,7 +32,7 @@ class NorgKlient {
     private val config = ClientConfig()
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
+        tokenProvider = NoTokenTokenProvider(),
     )
 
     fun hentAktiveEnheter(): List<NavEnhet> {
