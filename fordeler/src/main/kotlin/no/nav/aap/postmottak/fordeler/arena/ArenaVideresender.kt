@@ -7,12 +7,17 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.fordeler.Enhetsutreder
 import no.nav.aap.postmottak.fordeler.arena.jobber.ArenaVideresenderKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
+import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringKontekst
+import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringsJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.medArenaVideresenderKontekst
+import no.nav.aap.postmottak.fordeler.arena.jobber.medAutomatiskJournalføringKontekst
+import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.verdityper.Brevkoder
 
@@ -22,7 +27,8 @@ class ArenaVideresender(
     val journalpostService: JournalpostService,
     val joarkClient: JoarkClient,
     val flytJobbRepository: FlytJobbRepository,
-    val enhetsutreder: Enhetsutreder
+    val enhetsutreder: Enhetsutreder,
+    val arenaKlient: ArenaKlient
 ) {
     companion object {
         fun konstruer(connection: DBConnection) = ArenaVideresender(
@@ -33,7 +39,8 @@ class ArenaVideresender(
                 NorgKlient(),
                 PdlGraphQLClient.withClientCredentialsRestClient(),
                 NomKlient()
-            )
+            ),
+            ArenaKlient()
         )
     }
 
@@ -47,6 +54,9 @@ class ArenaVideresender(
             }
             Brevkoder.SØKNAD.kode -> {
                 sendJSøknadTilArena(journalpost)
+            }
+            Brevkoder.STANDARD_ETTERSENDING.kode -> {
+                sendSøknadsettersendelseTilArena(journalpost)
             }
         }
     }
@@ -64,6 +74,17 @@ class ArenaVideresender(
                 )
             )
         )
+    }
+
+    private fun sendSøknadsettersendelseTilArena(journalpost: Journalpost) {
+        val saksId = arenaKlient.nyesteAktiveSak(journalpost.person.aktivIdent()) ?: error("Fant ikke arenasaksnummer")
+        flytJobbRepository.leggTil(JobbInput(AutomatiskJournalføringsJobbUtfører).medAutomatiskJournalføringKontekst(
+            AutomatiskJournalføringKontekst(
+                journalpostId = journalpost.journalpostId,
+                ident = journalpost.person.aktivIdent(),
+                saksnummer = saksId
+            )
+        ))
     }
 
 }

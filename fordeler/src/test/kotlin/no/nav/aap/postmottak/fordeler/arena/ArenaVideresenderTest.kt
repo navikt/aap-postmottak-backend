@@ -6,16 +6,17 @@ import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.fordeler.Enhetsutreder
-import no.nav.aap.postmottak.fordeler.arena.jobber.ArenaVideresenderKontekst
-import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
-import no.nav.aap.postmottak.fordeler.arena.jobber.getArenaVideresenderKontekst
+import no.nav.aap.postmottak.fordeler.arena.jobber.*
+import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTitler
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import no.nav.aap.verdityper.Brevkoder
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.*
 
 class ArenaVideresenderTest {
 
@@ -23,12 +24,14 @@ class ArenaVideresenderTest {
     val joarkClient: JoarkClient = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
     val enhetsutreder: Enhetsutreder = mockk()
+    val arenaKlient: ArenaKlient = mockk()
 
     val arenaVideresender = ArenaVideresender(
         journalpostService,
         joarkClient,
         flytJobbRepository,
-        enhetsutreder
+        enhetsutreder,
+        arenaKlient
     )
 
     @Test
@@ -75,6 +78,34 @@ class ArenaVideresenderTest {
         verify { flytJobbRepository.leggTil(withArg {
             assertEquals(it.type(), SendSøknadTilArenaJobbUtfører.type())
             assertEquals(it.getArenaVideresenderKontekst(), actualKontekst)
+        }) }
+
+    }
+
+    @Test
+    fun `når journalpost er en søknadsettersendelse, skal en AutomatiskJournalføringsjobb opprettes`() {
+
+        val automatiskJournalføringKontekst = AutomatiskJournalføringKontekst(
+            journalpostId = JournalpostId(1),
+            ident = Ident("1"),
+            saksnummer = "saksnummer"
+        )
+
+        val journalpost: JournalpostMedDokumentTitler = mockk {
+            every { journalpostId } returns automatiskJournalføringKontekst.journalpostId
+            every { person } returns Person(1, UUID.randomUUID(), listOf(automatiskJournalføringKontekst.ident))
+            every { hoveddokumentbrevkode } returns Brevkoder.STANDARD_ETTERSENDING.kode
+        }
+
+        every { journalpostService.hentjournalpost(automatiskJournalføringKontekst.journalpostId) } returns journalpost
+
+        every { arenaKlient.nyesteAktiveSak(automatiskJournalføringKontekst.ident) } returns "saksnummer"
+
+        arenaVideresender.videresendJournalpostTilArena(automatiskJournalføringKontekst.journalpostId)
+
+        verify(exactly = 1) { flytJobbRepository.leggTil(withArg {
+            assertEquals(it.type(), AutomatiskJournalføringsJobbUtfører.type())
+            assertEquals(it.getAutomatiskJournalføringKontekst(), automatiskJournalføringKontekst)
         }) }
 
     }
