@@ -110,4 +110,35 @@ class ArenaVideresenderTest {
 
     }
 
+    @Test
+    fun `når journalposttyper som ikke har særregler skal gå til manuell journalføring`() {
+
+        val actualKontekst = ArenaVideresenderKontekst(
+            journalpostId = JournalpostId(1),
+            ident = Ident("1"),
+            navEnhet = "enhet",
+            hoveddokumenttittel = "hoveddokumenttittel",
+            vedleggstitler =  listOf("vedleggtitler")
+        )
+
+        val journalpost: JournalpostMedDokumentTitler = mockk {
+            every { hoveddokumentbrevkode } returns "something else"
+            every { journalpostId } returns actualKontekst.journalpostId
+            every { person } returns mockk { every{aktivIdent()} returns actualKontekst.ident }
+            every { getHoveddokumenttittel() } returns actualKontekst.hoveddokumenttittel
+            every { getVedleggTitler() } returns actualKontekst.vedleggstitler
+        }
+
+        every { journalpostService.hentjournalpost(actualKontekst.journalpostId) } returns journalpost
+        every { enhetsutreder.finnNavenhetForJournalpost(journalpost) } returns actualKontekst.navEnhet
+
+        arenaVideresender.videresendJournalpostTilArena(actualKontekst.journalpostId)
+
+        verify { flytJobbRepository.leggTil(withArg {
+            assertEquals(it.type(), ManuellJournalføringsoppgaveJobbUtfører.type())
+            assertEquals(it.getArenaVideresenderKontekst(), actualKontekst)
+        }) }
+
+    }
+
 }

@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.fordeler.arena.jobber.ArenaVideresenderKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringsJobbUtfører
+import no.nav.aap.postmottak.fordeler.arena.jobber.ManuellJournalføringsoppgaveJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.medArenaVideresenderKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.medAutomatiskJournalføringKontekst
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
@@ -58,20 +59,16 @@ class ArenaVideresender(
             Brevkoder.STANDARD_ETTERSENDING.kode -> {
                 sendSøknadsettersendelseTilArena(journalpost)
             }
+            else -> {
+                sendTilManuellJournalføring(journalpost)
+            }
         }
     }
 
     private fun sendJSøknadTilArena(journalpost: JournalpostMedDokumentTitler) {
-        val enhet = enhetsutreder.finnNavenhetForJournalpost(journalpost)
         flytJobbRepository.leggTil(
             JobbInput(SendSøknadTilArenaJobbUtfører).medArenaVideresenderKontekst(
-                ArenaVideresenderKontekst(
-                    journalpostId = journalpost.journalpostId,
-                    ident = journalpost.person.aktivIdent(),
-                    navEnhet = enhet,
-                    hoveddokumenttittel = journalpost.getHoveddokumenttittel(),
-                    vedleggstitler = journalpost.getVedleggTitler()
-                )
+                opprettArenaVideresenderKontekst(journalpost)
             )
         )
     }
@@ -86,5 +83,18 @@ class ArenaVideresender(
             )
         ))
     }
+
+    private fun sendTilManuellJournalføring(journalpost: JournalpostMedDokumentTitler) {
+        flytJobbRepository.leggTil(JobbInput(ManuellJournalføringsoppgaveJobbUtfører)
+            .medArenaVideresenderKontekst(opprettArenaVideresenderKontekst(journalpost)))
+    }
+
+    private fun opprettArenaVideresenderKontekst (journalpost: JournalpostMedDokumentTitler) = ArenaVideresenderKontekst(
+        journalpostId = journalpost.journalpostId,
+        ident = journalpost.person.aktivIdent(),
+        navEnhet = enhetsutreder.finnNavenhetForJournalpost(journalpost),
+        hoveddokumenttittel = journalpost.getHoveddokumenttittel(),
+        vedleggstitler = journalpost.getVedleggTitler()
+    )
 
 }
