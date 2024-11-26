@@ -17,12 +17,11 @@ class ManuellJournalføringsoppgaveJobbUtfører(private val oppgaveklient: Oppga
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return ManuellJournalføringsoppgaveJobbUtfører(Oppgaveklient())
         }
+        override fun type() = "arena.manuell.journalføring"
 
-        override fun type() = "arena.oppgaveoppretter"
+        override fun navn() = "Manuell journalføring"
 
-        override fun navn() = "Opprett oppgave i Arena"
-
-        override fun beskrivelse() = "Oppretter oppgave i Arena for ny Søknad om AAP"
+        override fun beskrivelse() = "Oppretter oppgave for manuell journalføring"
         
         override fun retries() = 6
 
