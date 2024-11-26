@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4.2.2
         with:
-          java-version: 22
+          java-version: 21
           distribution: 'temurin'
       - name: Setup Gradle for a non-wrapper project
         uses: gradle/actions/setup-gradle@v4
@@ -87,7 +87,7 @@ jobs:
                 major_pattern: "(MAJOR)" # If major bump, include this in commit message
           - uses: actions/setup-java@v4
             with:
-                java-version: 22
+                java-version: 21
                 distribution: 'temurin'
           - uses: gradle/actions/setup-gradle@v4
             with:
