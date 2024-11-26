@@ -33,23 +33,27 @@ class SendSøknadTilArenaJobbUtfører(
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (!arenaKlient.harAktivSak(kontekst.ident)) {
-            arenaKlient.opprettArenaOppgave(ArenaOpprettOppgaveForespørsel(
+            val sakId = arenaKlient.opprettArenaOppgave(ArenaOpprettOppgaveForespørsel(
                 fnr = kontekst.ident.identifikator,
                 enhet = kontekst.navEnhet,
                 tittel = kontekst.hoveddokumenttittel,
                 titler = kontekst.vedleggstitler
-            ))
-            opprettAutomatiskJournalføringsjobb(kontekst)
+            )).arenaSakId
+            opprettAutomatiskJournalføringsjobb(kontekst, sakId)
         } else {
             opprettManuellJournalføringsoppgavejobb(kontekst)
         }
 
     }
 
-    private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst) {
+    private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst, arenaSakId :String) {
         flytJobbRepository.leggTil(
             JobbInput(AutomatiskJournalføringsJobbUtfører)
-                .medArenaVideresenderKontekst(kontekst)
+                .medAutomatiskJournalføringKontekst(AutomatiskJournalføringKontekst(
+                    journalpostId = kontekst.journalpostId,
+                    ident = kontekst.ident,
+                    saksnummer = arenaSakId,
+                ))
         )
     }
 
