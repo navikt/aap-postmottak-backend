@@ -97,7 +97,8 @@ data class SafJournalpost(
      * Dersom journalposten ikke har noen kjent kanal, returneres [Kanal.UKJENT]
      * @example: ALTINN
      */
-    val kanal: KanalFraKodeverk,
+
+    val kanal: KanalFraKodeverk = KanalFraKodeverk.UKJENT,
 
     /**
      * Brukes for sporing og feilsøking på tvers av systemer.
