@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.sakogbehandling.journalpost
 
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.Brevkoder
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
 import java.time.LocalDate
 
 
@@ -13,7 +14,8 @@ open class Journalpost(
     val tema: String,
     val status: JournalpostStatus,
     val mottattDato: LocalDate,
-    val dokumenter: List<Dokument> = emptyList()
+    val dokumenter: List<Dokument> = emptyList(),
+    val kanal: KanalFraKodeverk
 ) {
 
     val hoveddokumentbrevkode: String

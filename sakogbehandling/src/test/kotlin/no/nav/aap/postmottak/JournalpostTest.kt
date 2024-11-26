@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.klient.joark.no.nav.aap.postmottak
 
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Filtype
@@ -92,12 +93,13 @@ class JournalpostTest {
         tema = "AAP",
         mottattDato = LocalDate.of(2021, 1, 1),
         journalførendeEnhet = "YOLO",
+        kanal = KanalFraKodeverk.UKJENT,
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "Brev",
                 filtype = Filtype.JSON,
                 variantFormat = Variantformat.ORIGINAL,
-                dokumentInfoId = DokumentInfoId("1")
+                dokumentInfoId = DokumentInfoId("1"),
             ),
             Dokument(
                 brevkode = "Vedleg",

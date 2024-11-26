@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Filtype
@@ -43,7 +44,8 @@ class DynamiskStegGruppeVisningServiceTest {
                         dokumentInfoId = DokumentInfoId("1")
                     )
                 ),
-                mottattDato = LocalDate.of(2021, 1, 1)
+                mottattDato = LocalDate.of(2021, 1, 1),
+                kanal = KanalFraKodeverk.UKJENT
             )
             
             val behandlingId = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)

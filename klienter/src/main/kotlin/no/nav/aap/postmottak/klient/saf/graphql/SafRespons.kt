@@ -2,6 +2,8 @@ package no.nav.aap.postmottak.saf.graphql
 
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
 import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Kanal
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
 import java.time.LocalDateTime
 
 data class SafRespons(
@@ -95,7 +97,7 @@ data class SafJournalpost(
      * Dersom journalposten ikke har noen kjent kanal, returneres [Kanal.UKJENT]
      * @example: ALTINN
      */
-    val kanal: Kanal? = null,
+    val kanal: KanalFraKodeverk,
 
     /**
      * Brukes for sporing og feilsøking på tvers av systemer.
@@ -115,30 +117,6 @@ data class SafJournalpost(
      */
     val dokumenter: List<SafDokumentInfo?>? = null,
 )
-
-enum class Kanal {
-    ALTINN,
-    EESSI,
-    EIA,
-    EKST_OPPS,
-    LOKAL_UTSKRIFT,
-    NAV_NO,
-    SENTRAL_UTSKRIFT,
-    SDP,
-    SKAN_NETS,
-    SKAN_PEN,
-    SKAN_IM,
-    TRYGDERETTEN,
-    HELSENETTET,
-    INGEN_DISTRIBUSJON,
-    NAV_NO_UINNLOGGET,
-    INNSENDT_NAV_ANSATT,
-    NAV_NO_CHAT,
-    DPV,
-    E_POST,
-    ALTINN_INNBOKS,
-    UKJENT,
-}
 
 enum class Journalposttype {
     /**

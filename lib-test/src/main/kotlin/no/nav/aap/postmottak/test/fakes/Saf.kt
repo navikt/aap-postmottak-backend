@@ -66,6 +66,7 @@ fun Application.safFake() {
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
                           "tema": "AAP",
+                          "kanal": "UKJENT",
                           "relevanteDatoer": [
                             {
                             "dato": "2020-12-01T10:00:00",

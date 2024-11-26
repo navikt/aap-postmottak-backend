@@ -104,6 +104,7 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTittler
         tema = journalpost.tema,
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,
-        dokumenter = dokumenter
+        dokumenter = dokumenter,
+        kanal = journalpost.kanal
     )
 }
