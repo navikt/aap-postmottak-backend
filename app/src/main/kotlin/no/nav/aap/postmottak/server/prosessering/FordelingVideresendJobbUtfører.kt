@@ -42,12 +42,11 @@ class FordelingVideresendJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
-        val meldingId = input.getMeldingId()
         val regelResultat = regelRepository.hentRegelresultat(journalpostId.referanse)
         if (regelResultat.skalTilKelvin()) {
             routeTilKelvin(journalpostId)
         } else {
-            arenaVideresender.videresendJournalpostTilArena(meldingId, journalpostId)
+            arenaVideresender.videresendJournalpostTilArena(journalpostId)
         }
     }
 

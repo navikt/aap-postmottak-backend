@@ -37,7 +37,7 @@ class ArenaVideresender(
         )
     }
 
-    fun videresendJournalpostTilArena(meldingId: String, journalpostId: JournalpostId) {
+    fun videresendJournalpostTilArena(journalpostId: JournalpostId) {
         val journalpost = journalpostService.hentjournalpost(journalpostId)
 
         when (journalpost.hoveddokumentbrevkode) {
