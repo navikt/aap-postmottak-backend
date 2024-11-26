@@ -18,17 +18,25 @@ import no.nav.aap.verdityper.Brevkoder
 
 private const val ARENA_LEGEERKLÆRING_TEMA = "OPP"
 
-class ArenaVideresender(connection: DBConnection) {
+class ArenaVideresender(
+    val journalpostService: JournalpostService,
+    val joarkClient: JoarkClient,
+    val flytJobbRepository: FlytJobbRepository,
+    val enhetsutreder: Enhetsutreder
+) {
+    companion object {
+        fun konstruer(connection: DBConnection) = ArenaVideresender(
+            JournalpostService.konstruer(connection),
+            JoarkClient(),
+            FlytJobbRepository(connection),
+            Enhetsutreder(
+                NorgKlient(),
+                PdlGraphQLClient.withClientCredentialsRestClient(),
+                NomKlient()
+            )
+        )
+    }
 
-    private val journalpostService = JournalpostService.konstruer(connection)
-    private val joarkClient = JoarkClient()
-    private val flytJobbRepository = FlytJobbRepository(connection)
-    private val enhetsutreder = Enhetsutreder(
-        NorgKlient(),
-        PdlGraphQLClient.withClientCredentialsRestClient(),
-        NomKlient()
-    )
-    
     fun videresendJournalpostTilArena(meldingId: String, journalpostId: JournalpostId) {
         val journalpost = journalpostService.hentjournalpost(journalpostId)
 

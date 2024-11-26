@@ -28,7 +28,7 @@ class FordelingVideresendJobbUtfører(
                 BehandlingRepositoryImpl(connection),
                 RegelRepository(connection),
                 FlytJobbRepository(connection),
-                ArenaVideresender(connection)
+                ArenaVideresender.konstruer(connection)
             )
         }
 
