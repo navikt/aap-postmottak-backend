@@ -7,8 +7,8 @@ import no.nav.aap.postmottak.sakogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
-import no.nav.aap.postmottak.sakogbehandling.journalpost.SKJEMANUMMER_SØKNAD
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Variantformat
+import no.nav.aap.verdityper.Brevkoder
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,7 +21,7 @@ class JournalpostTest {
 
     @Test
     fun `forventer at en journalpost med dokument med søknadsbrevkode er søknad`() {
-        val journalpost = genererJournalpost(dokumenter = listOf(genererDokument(brevkode = SKJEMANUMMER_SØKNAD)))
+        val journalpost = genererJournalpost(dokumenter = listOf(genererDokument(brevkode = Brevkoder.SØKNAD.kode)))
 
         val actual = journalpost.erSøknad()
 
