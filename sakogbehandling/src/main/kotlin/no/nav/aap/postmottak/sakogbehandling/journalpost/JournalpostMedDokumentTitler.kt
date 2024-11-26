@@ -1,18 +1,20 @@
 package no.nav.aap.postmottak.sakogbehandling.journalpost
 
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
 import java.time.LocalDate
 
 
-class JournalpostMedDokumentTittler(
+class JournalpostMedDokumentTitler(
     journalpostId: JournalpostId,
     person: Person,
     journalførendeEnhet: String?,
     tema: String,
     status: JournalpostStatus,
     mottattDato: LocalDate,
-    dokumenter: List<DokumentMedTittel> = emptyList()
-): Journalpost(journalpostId, person, journalførendeEnhet, tema, status, mottattDato, dokumenter) {
+    dokumenter: List<DokumentMedTittel> = emptyList(),
+    kanal: KanalFraKodeverk
+): Journalpost(journalpostId, person, journalførendeEnhet, tema, status, mottattDato, dokumenter, kanal) {
 
     fun getHoveddokumenttittel() = (hoveddokument as DokumentMedTittel).tittel
 

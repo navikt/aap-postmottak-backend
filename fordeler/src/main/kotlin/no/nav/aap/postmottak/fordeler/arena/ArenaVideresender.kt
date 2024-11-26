@@ -13,7 +13,7 @@ import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTittler
+import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.verdityper.Brevkoder
 
 private const val ARENA_LEGEERKLÆRING_TEMA = "OPP"
@@ -43,7 +43,7 @@ class ArenaVideresender(connection: DBConnection) {
         }
     }
 
-    private fun sendJSøknadTilArena(journalpost: JournalpostMedDokumentTittler) {
+    private fun sendJSøknadTilArena(journalpost: JournalpostMedDokumentTitler) {
         val enhet = enhetsutreder.finnNavenhetForJournalpost(journalpost)
         flytJobbRepository.leggTil(
             JobbInput(SendSøknadTilArenaJobb).medArenaVideresenderKontekst(

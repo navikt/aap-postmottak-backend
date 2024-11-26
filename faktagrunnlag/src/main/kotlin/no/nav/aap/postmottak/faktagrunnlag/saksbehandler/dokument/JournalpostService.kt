@@ -14,8 +14,7 @@ import no.nav.aap.postmottak.saf.graphql.SafJournalpost
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Filtype
-import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTittler
+import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Variantformat
@@ -57,7 +56,7 @@ class JournalpostService private constructor(
         return IKKE_ENDRET
     }
 
-    fun hentjournalpost(journalpostId: JournalpostId): JournalpostMedDokumentTittler {
+    fun hentjournalpost(journalpostId: JournalpostId): JournalpostMedDokumentTitler {
         val journalpost = safGraphqlClient.hentJournalpost(journalpostId)
 
         require(journalpost.bruker?.id != null) { "journalpost må ha ident" }
@@ -74,7 +73,7 @@ class JournalpostService private constructor(
 
 }
 
-fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTittler {
+fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler {
     val journalpost = this
 
     fun finnJournalpostStatus(status: Journalstatus?) = when (status) {
@@ -97,7 +96,7 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTittler
             )
         }
     } ?: emptyList()
-    return JournalpostMedDokumentTittler(
+    return JournalpostMedDokumentTitler(
         person = person,
         journalpostId = journalpost.journalpostId.let(::JournalpostId),
         status = finnJournalpostStatus(journalpost.journalstatus),
