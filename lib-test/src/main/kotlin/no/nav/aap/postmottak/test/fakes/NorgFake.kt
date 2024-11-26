@@ -8,7 +8,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 val finnEnhet: suspend RoutingContext.() -> Unit = {
-    call.respond("""{"enhetNr": "superNav!"}""")
+    call.respond("""[{"enhetNr": "superNav!"}]""")
 }
 
 fun Application.norgFake(
