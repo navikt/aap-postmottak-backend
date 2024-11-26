@@ -7,6 +7,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.arena.ArenaOpprettOppgaveForespørsel
+import org.slf4j.LoggerFactory
 
 class SendSøknadTilArenaJobbUtfører(
     private val flytJobbRepository: FlytJobbRepository,
@@ -29,10 +30,13 @@ class SendSøknadTilArenaJobbUtfører(
 
     }
 
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     override fun utfør(input: JobbInput) {
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (!arenaKlient.harAktivSak(kontekst.ident)) {
+            log.info("Oppretter oppgave i Arena for søknad med journalpostid \"${kontekst.journalpostId}\"")
             val sakId = arenaKlient.opprettArenaOppgave(ArenaOpprettOppgaveForespørsel(
                 fnr = kontekst.ident.identifikator,
                 enhet = kontekst.navEnhet,
@@ -41,6 +45,7 @@ class SendSøknadTilArenaJobbUtfører(
             )).arenaSakId
             opprettAutomatiskJournalføringsjobb(kontekst, sakId)
         } else {
+            log.info("Det finnes alt en sak i Arena for ${kontekst.ident}, sender journalpost til manuell journalføring")
             opprettManuellJournalføringsoppgavejobb(kontekst)
         }
 
