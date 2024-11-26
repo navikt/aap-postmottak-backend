@@ -8,14 +8,14 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.arena.ArenaOpprettOppgaveForespørsel
 
-class SendSøknadTilArenaJobb(
+class SendSøknadTilArenaJobbUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     private val arenaKlient: ArenaKlient
 ) : JobbUtfører {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return SendSøknadTilArenaJobb(
+            return SendSøknadTilArenaJobbUtfører(
                 FlytJobbRepository(connection),
                 ArenaKlient()
             )
@@ -37,7 +37,7 @@ class SendSøknadTilArenaJobb(
                 fnr = kontekst.ident.identifikator,
                 enhet = kontekst.navEnhet,
                 tittel = kontekst.hoveddokumenttittel,
-                titler = kontekst.vedleggstittler
+                titler = kontekst.vedleggstitler
             ))
             opprettAutomatiskJournalføringsjobb(kontekst)
         } else {
@@ -48,14 +48,14 @@ class SendSøknadTilArenaJobb(
 
     private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst) {
         flytJobbRepository.leggTil(
-            JobbInput(AutomatiskJournalføringsjobb)
+            JobbInput(AutomatiskJournalføringsJobbUtfører)
                 .medArenaVideresenderKontekst(kontekst)
         )
     }
 
     private fun opprettManuellJournalføringsoppgavejobb(kontekst: ArenaVideresenderKontekst) {
         flytJobbRepository.leggTil(
-            JobbInput(ManuellJournalføringsoppgavejobb)
+            JobbInput(ManuellJournalføringsoppgaveJobbUtfører)
                 .medArenaVideresenderKontekst(kontekst)
         )
     }

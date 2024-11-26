@@ -10,7 +10,7 @@ data class ArenaVideresenderKontekst(
     val journalpostId: JournalpostId,
     val ident: Ident,
     val hoveddokumenttittel: String,
-    val vedleggstittler: List<String>,
+    val vedleggstitler: List<String>,
     val navEnhet: String
 )
 

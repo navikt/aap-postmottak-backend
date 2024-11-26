@@ -13,10 +13,10 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class SendSøknadTilArenaJobbTest: WithFakes {
+class SendSøknadTilArenaJobbUtførerTest: WithFakes {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val arenaKlientMock = mockk<ArenaKlient>(relaxed = true)
-    val sendSøknadTilArenaJobb = SendSøknadTilArenaJobb(flytJobbRepositoryMock, arenaKlientMock)
+    val sendSøknadTilArenaJobb = SendSøknadTilArenaJobbUtfører(flytJobbRepositoryMock, arenaKlientMock)
 
     @Test 
     fun `Skal opprette jobb for automatisk journalføring dersom det finnes aktiv sak`() {
@@ -28,17 +28,17 @@ class SendSøknadTilArenaJobbTest: WithFakes {
             journalpostId = journalpostId,
             ident = Ident("123"),
             hoveddokumenttittel = "Hoveddokument",
-            vedleggstittler = listOf("Vedlegg"),
+            vedleggstitler = listOf("Vedlegg"),
             navEnhet = "4491"
         )
         
-        val jobbInput = JobbInput(SendSøknadTilArenaJobb).medArenaVideresenderKontekst(
+        val jobbInput = JobbInput(SendSøknadTilArenaJobbUtfører).medArenaVideresenderKontekst(
             jobbKontekst
         )
         sendSøknadTilArenaJobb.utfør(jobbInput)
         
         verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
-            assertThat(it.type()).isEqualTo(AutomatiskJournalføringsjobb.type())
+            assertThat(it.type()).isEqualTo(AutomatiskJournalføringsJobbUtfører.type())
             val actualKontekst = DefaultJsonMapper.fromJson<ArenaVideresenderKontekst>(it.payload())
             assertThat(actualKontekst).isEqualTo(jobbKontekst)
         })}
@@ -54,17 +54,17 @@ class SendSøknadTilArenaJobbTest: WithFakes {
             journalpostId = journalpostId,
             ident = Ident("123"),
             hoveddokumenttittel = "Hoveddokument",
-            vedleggstittler = listOf("Vedlegg"),
+            vedleggstitler = listOf("Vedlegg"),
             navEnhet = "4491"
         )
         
-        val jobbInput = JobbInput(SendSøknadTilArenaJobb).medArenaVideresenderKontekst(
+        val jobbInput = JobbInput(SendSøknadTilArenaJobbUtfører).medArenaVideresenderKontekst(
             jobbKontekst
         )
         sendSøknadTilArenaJobb.utfør(jobbInput)
         
         verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
-            assertThat(it.type()).isEqualTo(ManuellJournalføringsoppgavejobb.type())
+            assertThat(it.type()).isEqualTo(ManuellJournalføringsoppgaveJobbUtfører.type())
             val actualKontekst = DefaultJsonMapper.fromJson<ArenaVideresenderKontekst>(it.payload())
             assertThat(actualKontekst).isEqualTo(jobbKontekst)
         })}

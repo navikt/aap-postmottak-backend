@@ -7,13 +7,13 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 
 
-class AutomatiskJournalføringsjobb(
+class AutomatiskJournalføringsJobbUtfører(
     private val joarkClient: JoarkClient
 ) : JobbUtfører {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return AutomatiskJournalføringsjobb(
+            return AutomatiskJournalføringsJobbUtfører(
                 JoarkClient()
             )
         }

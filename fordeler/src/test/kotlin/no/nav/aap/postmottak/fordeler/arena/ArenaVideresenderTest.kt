@@ -7,7 +7,7 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.fordeler.Enhetsutreder
 import no.nav.aap.postmottak.fordeler.arena.jobber.ArenaVideresenderKontekst
-import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobb
+import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.getArenaVideresenderKontekst
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -36,7 +36,7 @@ class ArenaVideresenderTest {
 
         val journalpostId = JournalpostId(1)
         val journalpost: JournalpostMedDokumentTitler = mockk()
-        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLØRING.kode
+        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
         every { journalpost.journalpostId } returns journalpostId
 
         every { journalpostService.hentjournalpost(journalpostId) } returns journalpost
@@ -56,7 +56,7 @@ class ArenaVideresenderTest {
             ident = Ident("1"),
             navEnhet = "enhet",
             hoveddokumenttittel = "hoveddokumenttittel",
-            vedleggstittler =  listOf("vedleggtitler")
+            vedleggstitler =  listOf("vedleggtitler")
         )
 
         val journalpost: JournalpostMedDokumentTitler = mockk {
@@ -64,7 +64,7 @@ class ArenaVideresenderTest {
             every { journalpostId } returns actualKontekst.journalpostId
             every { person } returns mockk { every{aktivIdent()} returns actualKontekst.ident }
             every { getHoveddokumenttittel() } returns actualKontekst.hoveddokumenttittel
-            every { getVedleggTitler() } returns actualKontekst.vedleggstittler
+            every { getVedleggTitler() } returns actualKontekst.vedleggstitler
         }
 
         every { journalpostService.hentjournalpost(actualKontekst.journalpostId) } returns journalpost
@@ -73,7 +73,7 @@ class ArenaVideresenderTest {
         arenaVideresender.videresendJournalpostTilArena(actualKontekst.journalpostId)
 
         verify { flytJobbRepository.leggTil(withArg {
-            assertEquals(it.type(), SendSøknadTilArenaJobb.type())
+            assertEquals(it.type(), SendSøknadTilArenaJobbUtfører.type())
             assertEquals(it.getArenaVideresenderKontekst(), actualKontekst)
         }) }
 

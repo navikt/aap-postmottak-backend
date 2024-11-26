@@ -6,7 +6,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.fordeler.Enhetsutreder
 import no.nav.aap.postmottak.fordeler.arena.jobber.ArenaVideresenderKontekst
-import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobb
+import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.medArenaVideresenderKontekst
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.nom.NomKlient
@@ -41,7 +41,7 @@ class ArenaVideresender(
         val journalpost = journalpostService.hentjournalpost(journalpostId)
 
         when (journalpost.hoveddokumentbrevkode) {
-            Brevkoder.LEGEERKLØRING.kode -> {
+            Brevkoder.LEGEERKLÆRING.kode -> {
                 joarkClient.førJournalpostPåGenerellSak(journalpost, ARENA_LEGEERKLÆRING_TEMA)
                 joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
             }
@@ -54,13 +54,13 @@ class ArenaVideresender(
     private fun sendJSøknadTilArena(journalpost: JournalpostMedDokumentTitler) {
         val enhet = enhetsutreder.finnNavenhetForJournalpost(journalpost)
         flytJobbRepository.leggTil(
-            JobbInput(SendSøknadTilArenaJobb).medArenaVideresenderKontekst(
+            JobbInput(SendSøknadTilArenaJobbUtfører).medArenaVideresenderKontekst(
                 ArenaVideresenderKontekst(
                     journalpostId = journalpost.journalpostId,
                     ident = journalpost.person.aktivIdent(),
                     navEnhet = enhet,
                     hoveddokumenttittel = journalpost.getHoveddokumenttittel(),
-                    vedleggstittler = journalpost.getVedleggTitler()
+                    vedleggstitler = journalpost.getVedleggTitler()
                 )
             )
         )
