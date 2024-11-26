@@ -1,5 +1,5 @@
 # Kan vurdere å bruke 12-slim, men den er foreløpig eksprimentell, ref: https://hub.docker.com/_/debian
-FROM debian:12 as locale
+FROM debian:12 AS locale
 
 # Sakset og tilpasset til NO fra https://github.com/docker-library/postgres/blob/master/17/bookworm/Dockerfile
 # make the "nb_NO.UTF-8" locale so app will be utf-8 enabled by default
