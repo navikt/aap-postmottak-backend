@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.server.prosessering
 
-import no.nav.aap.behandlingsflyt.forretningsflyt.gjenopptak.GjenopptakRepository
+import no.nav.aap.postmottak.forretningsflyt.gjenopptak.GjenopptakRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb

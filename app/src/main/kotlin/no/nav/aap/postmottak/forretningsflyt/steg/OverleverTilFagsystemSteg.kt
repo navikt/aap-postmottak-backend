@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.forretningsflyt.steg
 
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
@@ -16,7 +17,6 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import org.slf4j.LoggerFactory
@@ -55,7 +55,7 @@ class OverleverTilFagsystemSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost != null)
 
-        if (!journalpost.erSøknad() && kategorivurdering?.avklaring != Brevkode.SØKNAD) {
+        if (!journalpost.erSøknad() && kategorivurdering?.avklaring != Brevkategori.SØKNAD) {
             log.info("Dokument er ikke en søknad, og skal ikke sendes til fagsystem")
             return Fullført
         }

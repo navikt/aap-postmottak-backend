@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.flyt.internals
 
-import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingHendelseHåndterer
+import no.nav.aap.postmottak.hendelse.mottak.BehandlingHendelseHåndterer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingHendelse
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId

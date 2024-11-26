@@ -1,10 +1,9 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate
 
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
-
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
 
 data class KategoriseringVurderingDto(
-    val brevkode: Brevkode,
+    val brevkode: Brevkategori,
 )
 
 data class KategoriseringGrunnlagDto(

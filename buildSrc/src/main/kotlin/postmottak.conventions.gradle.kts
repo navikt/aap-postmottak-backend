@@ -11,6 +11,17 @@ repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     maven("https://packages.confluent.io/maven/")
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/navikt/behandlingsflyt")
+        credentials {
+            username = "x-access-token"
+            password = (project.findProperty("githubPassword")
+                ?: System.getenv("GITHUB_PASSWORD")
+                ?: System.getenv("GITHUB_TOKEN")
+                ?: error("")).toString()
+        }
+    }
 }
 
 tasks.test {

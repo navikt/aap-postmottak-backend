@@ -5,7 +5,7 @@ val ktorVersion = "3.0.0"
 val komponenterVersjon = "1.0.67"
 val kafkaVersion = "3.7.0"
 val tilgangVersjon = "0.0.29"
-
+val behandlingsflytVersjon = "0.0.58"
 
 plugins {
     id("postmottak.conventions")
@@ -71,6 +71,7 @@ dependencies {
     implementation(project(":fordeler"))
 
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
+    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
     implementation("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")

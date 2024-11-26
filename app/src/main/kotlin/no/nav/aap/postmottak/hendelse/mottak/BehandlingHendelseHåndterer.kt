@@ -1,10 +1,9 @@
-package no.nav.aap.behandlingsflyt.hendelse.mottak
+package no.nav.aap.postmottak.hendelse.mottak
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovOrkestrator
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseService
-import no.nav.aap.postmottak.hendelse.mottak.BehandlingHendelse
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class BehandlingHendelseHåndterer(connection: DBConnection) {

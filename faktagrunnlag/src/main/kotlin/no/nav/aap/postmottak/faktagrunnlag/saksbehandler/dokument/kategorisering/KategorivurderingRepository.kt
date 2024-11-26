@@ -1,17 +1,16 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class KategorivurderingRepository(private val connection: DBConnection) {
 
 
-    fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: Brevkode) {
+    fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: Brevkategori) {
         val vurdeirngId = connection.executeReturnKey(
             """
-            INSERT INTO KATEGORIAVKLARING (KATEGORI) VALUES (
-            ?)
+            INSERT INTO KATEGORIAVKLARING (KATEGORI) VALUES (?)
         """.trimIndent()
         ) {
             setParams {
@@ -31,7 +30,7 @@ class KategorivurderingRepository(private val connection: DBConnection) {
 
     }
 
-    fun hentKategoriAvklaring(behandlingId: BehandlingId): no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurdering? {
+    fun hentKategoriAvklaring(behandlingId: BehandlingId): KategoriVurdering? {
         return connection.queryFirstOrNull("""SELECT KATEGORIAVKLARING.* FROM KATEGORIAVKLARING
             JOIN KATEGORIAVKLARING_GRUNNLAG ON KATEGORIAVKLARING_ID = KATEGORIAVKLARING.ID
             WHERE BEHANDLING_ID = ? AND AKTIV 
@@ -39,7 +38,7 @@ class KategorivurderingRepository(private val connection: DBConnection) {
         """) {
             setParams { setLong(1, behandlingId.toLong()) }
             setRowMapper { row ->
-                no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurdering(
+                KategoriVurdering(
                     row.getEnum("kategori")
                 )
             }

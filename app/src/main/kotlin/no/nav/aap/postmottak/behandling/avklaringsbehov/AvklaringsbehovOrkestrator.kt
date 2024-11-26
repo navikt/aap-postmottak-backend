@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.behandling.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.hendelse.mottak.BehandlingSattPåVent
+import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.komponenter.dbconnect.DBConnection

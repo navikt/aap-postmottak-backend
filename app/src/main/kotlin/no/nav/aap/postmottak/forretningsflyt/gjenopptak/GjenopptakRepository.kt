@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.forretningsflyt.gjenopptak
+package no.nav.aap.postmottak.forretningsflyt.gjenopptak
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.kontrakt.behandling.Status

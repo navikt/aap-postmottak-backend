@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.dokument.kategorisering
 
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
@@ -7,7 +8,6 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,11 +26,11 @@ class KategorivurderingRepositoryTest {
         inContext {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111), TypeBehandling.Journalføring)
 
-            kategorivurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+            kategorivurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkategori.SØKNAD)
 
             val vurdering = kategorivurderingRepository.hentKategoriAvklaring(behandlingId)
 
-            assertThat(vurdering?.avklaring).isEqualTo(Brevkode.SØKNAD)
+            assertThat(vurdering?.avklaring).isEqualTo(Brevkategori.SØKNAD)
         }
     }
 
@@ -38,13 +38,13 @@ class KategorivurderingRepositoryTest {
     @Test
     fun `når to kategoriseringvurderinger blir lagret forventer jeg å finne den siste på behandlingen`() {
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
-        inContext { kategorivurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD) }
+        inContext { kategorivurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkategori.SØKNAD) }
         Thread.sleep(100)
-        inContext { kategorivurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkode.PLIKTKORT) }
+        inContext { kategorivurderingRepository.lagreKategoriseringVurdering(behandlingId, Brevkategori.PLIKTKORT) }
         inContext {
             val vudering = kategorivurderingRepository.hentKategoriAvklaring(behandlingId)
 
-            assertThat(vudering?.avklaring).isEqualTo(Brevkode.PLIKTKORT)
+            assertThat(vudering?.avklaring).isEqualTo(Brevkategori.PLIKTKORT)
         }
     }
 
@@ -54,10 +54,10 @@ class KategorivurderingRepositoryTest {
         inContext {
             val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
-            kategorivurderingRepository.lagreKategoriseringVurdering(fraBehandling, Brevkode.SØKNAD)
+            kategorivurderingRepository.lagreKategoriseringVurdering(fraBehandling, Brevkategori.SØKNAD)
             kategorivurderingRepository.kopier(fraBehandling, tilBehandling)
 
-            assertThat(kategorivurderingRepository.hentKategoriAvklaring(tilBehandling)?.avklaring).isEqualTo(Brevkode.SØKNAD)
+            assertThat(kategorivurderingRepository.hentKategoriAvklaring(tilBehandling)?.avklaring).isEqualTo(Brevkategori.SØKNAD)
         }
     }
 

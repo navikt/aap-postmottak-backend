@@ -3,6 +3,7 @@ package no.nav.aap.postmottak
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
@@ -14,7 +15,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.Test
@@ -111,7 +111,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
         behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
     AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
     SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
-    KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkode.SØKNAD)
+    KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkategori.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()

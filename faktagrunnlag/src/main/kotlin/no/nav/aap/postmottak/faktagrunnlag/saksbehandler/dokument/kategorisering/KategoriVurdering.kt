@@ -1,5 +1,4 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
 
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
-
-data class KategoriVurdering(val avklaring: Brevkode)
+data class KategoriVurdering(val avklaring: Brevkategori)

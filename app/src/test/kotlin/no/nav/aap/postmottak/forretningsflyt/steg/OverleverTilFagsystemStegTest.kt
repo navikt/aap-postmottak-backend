@@ -4,6 +4,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.klient.saf.SafRestClient
@@ -12,7 +13,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Brevkode
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
@@ -73,7 +73,7 @@ class OverleverTilFagsystemStegTest {
             |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"},
             |"oppgitteBarn": []
             |}""".trimMargin()
-        every { kategorivurderingRepository.hentKategoriAvklaring(any())?.avklaring } returns Brevkode.SØKNAD
+        every { kategorivurderingRepository.hentKategoriAvklaring(any())?.avklaring } returns Brevkategori.SØKNAD
 
         overførTilFagsystemSteg.utfør(kontekst)
 
