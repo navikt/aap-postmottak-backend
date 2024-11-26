@@ -41,7 +41,7 @@ class JournalpostRepositoryImplTest {
 
             val hentetJournalpost = journalpostRepository.hentHvisEksisterer(behandlingid)
 
-            assertThat(hentetJournalpost).isEqualTo(journalpost)
+            assertThat(hentetJournalpost).usingRecursiveComparison().isEqualTo(journalpost)
             assertThat(hentetJournalpost?.dokumenter()?.size).isGreaterThan(0)
             assertThat(hentetJournalpost?.erSøknad()).isTrue()
             assertThat(hentetJournalpost?.erDigital()).isTrue()

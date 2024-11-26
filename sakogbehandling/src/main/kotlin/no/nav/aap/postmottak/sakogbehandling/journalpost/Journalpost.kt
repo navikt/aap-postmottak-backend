@@ -1,12 +1,12 @@
 package no.nav.aap.postmottak.sakogbehandling.journalpost
 
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.verdityper.Brevkoder
 import java.time.LocalDate
 
-const val SKJEMANUMMER_SØKNAD = "NAV 11-13.05"
 
 // TODO: Bør skille SAF-respons fra domenemodell
-data class Journalpost(
+open class Journalpost(
     val journalpostId: JournalpostId,
     val person: Person,
     val journalførendeEnhet: String?,
@@ -17,11 +17,14 @@ data class Journalpost(
 ) {
 
     val hoveddokumentbrevkode: String
-        get() = dokumenter.minBy { it.dokumentInfoId.dokumentInfoId }.brevkode !!
+        get() = hoveddokument.brevkode !!
+
+    val hoveddokument: Dokument
+        get() = dokumenter.minBy { it.dokumentInfoId.dokumentInfoId }
 
     fun erSøknad(): Boolean {
         return dokumenter.any {
-            it.brevkode == SKJEMANUMMER_SØKNAD
+            it.brevkode == Brevkoder.SØKNAD.kode
         }
     }
     
@@ -52,7 +55,7 @@ enum class JournalpostStatus {
     UKJENT
 }
 
-data class Dokument(
+open class Dokument(
     val dokumentInfoId: DokumentInfoId,
     val variantFormat: Variantformat,
     val filtype: Filtype,

@@ -1,20 +1,21 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.saf.graphql.Journalstatus
 import no.nav.aap.postmottak.saf.graphql.SafDatoType
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
 import no.nav.aap.postmottak.saf.graphql.SafJournalpost
-import no.nav.aap.postmottak.sakogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTittler
 import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Variantformat
@@ -56,7 +57,7 @@ class JournalpostService private constructor(
         return IKKE_ENDRET
     }
 
-    fun hentjournalpost(journalpostId: JournalpostId): Journalpost {
+    fun hentjournalpost(journalpostId: JournalpostId): JournalpostMedDokumentTittler {
         val journalpost = safGraphqlClient.hentJournalpost(journalpostId)
 
         require(journalpost.bruker?.id != null) { "journalpost må ha ident" }
@@ -73,7 +74,7 @@ class JournalpostService private constructor(
 
 }
 
-fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
+fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTittler {
     val journalpost = this
 
     fun finnJournalpostStatus(status: Journalstatus?) = when (status) {
@@ -87,15 +88,16 @@ fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
 
     val dokumenter = journalpost.dokumenter?.filterNotNull()?.flatMap { dokument ->
         dokument.dokumentvarianter.filterNotNull().map { variant ->
-            Dokument(
+            DokumentMedTittel(
                 dokument.dokumentInfoId.let(::DokumentInfoId),
                 Variantformat.valueOf(variant.variantformat.name),
                 Filtype.valueOf(variant.filtype),
                 dokument.brevkode,
+                dokument.tittel ?: "Dokument uten tittel"
             )
         }
     } ?: emptyList()
-    return Journalpost(
+    return JournalpostMedDokumentTittler(
         person = person,
         journalpostId = journalpost.journalpostId.let(::JournalpostId),
         status = finnJournalpostStatus(journalpost.journalstatus),
