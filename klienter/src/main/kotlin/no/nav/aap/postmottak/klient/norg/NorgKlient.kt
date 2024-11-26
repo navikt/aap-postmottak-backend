@@ -52,7 +52,8 @@ class NorgKlient {
             FinnNavenhetRequest(geografiskTilknyttning, erNavansatt, diskresjonskode)
         )
 
-        return client.post<FinnNavenhetRequest, Enhet>(finnEnhetUrl, request).let { response -> response?.enhetNr } ?: error("Feil i response fra norg")
+        return client.post<FinnNavenhetRequest, List<Enhet>>(finnEnhetUrl, request)
+            .let { response -> response?.first()?.enhetNr } ?: error("Feil i response fra norg")
     }
 
 }
