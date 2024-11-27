@@ -94,8 +94,11 @@ class JoarkKafkaHandler(
                     JobbInput(ProsesserBehandlingJobbUtfører)
                         .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id.id).medCallId()
                 )
-            } catch (e: ElementNotFoundException) {
-                log.warn("Finner ikke behandling for mottatt melding om temaendring", e)
+            } catch (e: Exception) {
+                when (e) {
+                    is ElementNotFoundException, is NoSuchElementException -> log.info("Fant ikke åpen behandling for journalpost $journalpostId")
+                    else -> throw e
+                }
             }
         }
     }
