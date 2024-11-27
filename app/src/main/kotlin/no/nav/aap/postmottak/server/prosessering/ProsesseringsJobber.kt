@@ -1,6 +1,9 @@
 package no.nav.aap.postmottak.server.prosessering
 
 import no.nav.aap.motor.Jobb
+import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringsJobbUtfører
+import no.nav.aap.postmottak.fordeler.arena.jobber.ManuellJournalføringsoppgaveJobbUtfører
+import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 
 object ProsesseringsJobber {
 
@@ -11,7 +14,10 @@ object ProsesseringsJobber {
             StoppetHendelseJobbUtfører,
             GjenopptaBehandlingJobbUtfører,
             FordelingRegelJobbUtfører,
-            FordelingVideresendJobbUtfører
+            FordelingVideresendJobbUtfører,
+            SendSøknadTilArenaJobbUtfører,
+            ManuellJournalføringsoppgaveJobbUtfører,
+            AutomatiskJournalføringsJobbUtfører
         )
     }
 }
