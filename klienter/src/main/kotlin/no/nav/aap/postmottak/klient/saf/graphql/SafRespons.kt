@@ -317,7 +317,7 @@ enum class BrukerIdType {
 
 data class SafDokumentInfo(
     val dokumentInfoId: String,
-    val brevkode: String? = null,
+    val brevkode: String? = "Ukjent",
     val tittel: String? = null,
     val dokumentvarianter: List<SafDokumentvariant?>
 )
