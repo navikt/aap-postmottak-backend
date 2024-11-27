@@ -91,7 +91,7 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
                 dokument.dokumentInfoId.let(::DokumentInfoId),
                 Variantformat.valueOf(variant.variantformat.name),
                 Filtype.valueOf(variant.filtype),
-                dokument.brevkode,
+                dokument.brevkode ?: "Ukjent",
                 dokument.tittel ?: "Dokument uten tittel"
             )
         }

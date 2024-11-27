@@ -116,7 +116,7 @@ private fun getDokumenter(journalpostId: Long) =
     {
         "tittel": "Dokument2",
         "dokumentInfoId": "45426854351",
-        "brevkode": "Ukjent",
+        "brevkode": null,
         "dokumentvarianter": [
         {
             "variantformat": "ARKIV",

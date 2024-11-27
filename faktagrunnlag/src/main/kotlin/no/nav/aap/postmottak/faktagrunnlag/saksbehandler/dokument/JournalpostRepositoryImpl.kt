@@ -104,7 +104,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                     dokumentInfoId = DokumentInfoId(it.getString("DOKUMENT_INFO_ID")),
                     variantFormat = it.getEnum("VARIANTFORMAT"),
                     filtype = it.getEnum("FILTYPE"),
-                    brevkode = it.getStringOrNull("BREVKODE"),
+                    brevkode = it.getString("BREVKODE"),
                 )
             }
         }

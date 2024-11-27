@@ -19,7 +19,7 @@ open class Journalpost(
 ) {
 
     val hoveddokumentbrevkode: String
-        get() = hoveddokument.brevkode !!
+        get() = hoveddokument.brevkode
 
     val hoveddokument: Dokument
         get() = dokumenter.minBy { it.dokumentInfoId.dokumentInfoId }
@@ -61,7 +61,7 @@ open class Dokument(
     val dokumentInfoId: DokumentInfoId,
     val variantFormat: Variantformat,
     val filtype: Filtype,
-    val brevkode: String?,
+    val brevkode: String,
 )
 
 enum class Filtype {

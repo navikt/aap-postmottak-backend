@@ -28,7 +28,7 @@ class DokumentMedTittel(
     dokumentInfoId: DokumentInfoId,
     variantFormat: Variantformat,
     filtype: Filtype,
-    brevkode: String?,
+    brevkode: String,
     val tittel: String
 ): Dokument(dokumentInfoId, variantFormat, filtype, brevkode)
 
