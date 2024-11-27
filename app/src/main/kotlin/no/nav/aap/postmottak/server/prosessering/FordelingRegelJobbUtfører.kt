@@ -40,7 +40,6 @@ class FordelingRegelJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
-        val meldingId = input.getMeldingId()
 
         val journalpost = journalpostService.hentjournalpost(journalpostId)
 
@@ -58,14 +57,13 @@ class FordelingRegelJobbUtfører(
         )
 
         innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
-        opprettVideresendJobb(journalpostId, meldingId)
+        opprettVideresendJobb(journalpostId)
     }
 
-    private fun opprettVideresendJobb(journalpostId: JournalpostId, meldingId: String) {
+    private fun opprettVideresendJobb(journalpostId: JournalpostId) {
         flytJobbRepository.leggTil(
             JobbInput(FordelingVideresendJobbUtfører)
                 .medJournalpostId(journalpostId)
-                .medMeldingId(meldingId)
         )
     }
 }

@@ -28,16 +28,12 @@ class FordelingRegelJobbUtførerTest {
     @Test
     fun `Vi kan sette og hente parametere for jobben`() {
         val journalpostId = JournalpostId(1)
-        val meldingId = "key"
         val input = JobbInput(FordelingRegelJobbUtfører)
             .medJournalpostId(journalpostId)
-            .medMeldingId(meldingId)
 
         val actualJournalpostId = input.getJournalpostId()
-        val actualMottaTid = input.getMeldingId()
 
         assertThat(actualJournalpostId).isEqualTo(actualJournalpostId)
-        assertThat(actualMottaTid).isEqualTo(meldingId)
     }
 
     @Test
@@ -50,7 +46,6 @@ class FordelingRegelJobbUtførerTest {
 
         fordelingRegelJobbUtfører.utfør(JobbInput(FordelingRegelJobbUtfører)
             .medJournalpostId(journalpostId)
-            .medMeldingId("key")
         )
 
         verify { innkommendeJournalpostRepository.lagre(withArg {

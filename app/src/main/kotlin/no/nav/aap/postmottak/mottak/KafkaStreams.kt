@@ -4,8 +4,6 @@ package no.nav.aap.postmottak.mottak
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.fordeler.HendelsesRepository
-import no.nav.aap.postmottak.fordeler.JoarkHendelse
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -13,7 +11,6 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.medJournalpostId
-import no.nav.aap.postmottak.server.prosessering.medMeldingId
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -29,7 +26,6 @@ import javax.sql.DataSource
 class TransactionContext(
     val behandlingRepository: BehandlingRepository,
     val flytJobbRepository: FlytJobbRepository,
-    val hendelsesRepository: HendelsesRepository,
 )
 
 class TransactionProvider(
@@ -40,7 +36,6 @@ class TransactionProvider(
             TransactionContext(
                 BehandlingRepositoryImpl(it),
                 FlytJobbRepository(it),
-                HendelsesRepository(it)
             ).let(block)
         }
     }
@@ -85,11 +80,8 @@ class JoarkKafkaHandler(
     }
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream.foreach { key, record ->
-            transactionProvider.inTransaction {
-                hendelsesRepository.lagreHendelse(JoarkHendelse(key, record.toString()))
-                opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId), key, flytJobbRepository)
-            }
+        stream.foreach { _, record ->
+            opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId))
         }
     }
 
@@ -108,13 +100,17 @@ class JoarkKafkaHandler(
         }
     }
 
-    private fun opprettFordelingRegelJobb(journalpostId: JournalpostId, meldingsId: String, flytJobbRepository: FlytJobbRepository) {
+    private fun opprettFordelingRegelJobb(
+        journalpostId: JournalpostId
+    ) {
         log.info("Mottatt ny journalpost: $journalpostId")
-        flytJobbRepository.leggTil(
-            JobbInput(FordelingRegelJobbUtfører)
-                .medJournalpostId(journalpostId)
-                .medMeldingId(meldingsId).medCallId()
-        )
+        transactionProvider.inTransaction {
+
+            flytJobbRepository.leggTil(
+                JobbInput(FordelingRegelJobbUtfører)
+                    .medJournalpostId(journalpostId)
+            )
+        }
     }
 
 }

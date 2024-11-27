@@ -10,16 +10,12 @@ class JobbInputExtensionsKtTest {
     @Test
     fun `Vi kan sette og hente parametere for jobben`() {
         val journalpostId = JournalpostId(1)
-        val mottattId = "ID"
         val input = JobbInput(FordelingRegelJobbUtfører)
             .medJournalpostId(journalpostId)
-            .medMeldingId(mottattId)
 
         val actualJournalpostId = input.getJournalpostId()
-        val actualMottaTid = input.getMeldingId()
 
         assertThat(actualJournalpostId).isEqualTo(actualJournalpostId)
-        assertThat(actualMottaTid).isEqualTo(mottattId)
     }
 
 }

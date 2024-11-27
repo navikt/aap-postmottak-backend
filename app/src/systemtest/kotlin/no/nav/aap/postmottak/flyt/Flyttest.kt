@@ -36,7 +36,6 @@ import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.server.prosessering.medJournalpostId
-import no.nav.aap.postmottak.server.prosessering.medMeldingId
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -169,7 +168,6 @@ class Flyttest : WithFakes {
             FlytJobbRepository(connection).leggTil(
                 JobbInput(FordelingRegelJobbUtfører)
                     .medJournalpostId(journalpostId)
-                    .medMeldingId("id")
                     .medCallId()
             )
         }
