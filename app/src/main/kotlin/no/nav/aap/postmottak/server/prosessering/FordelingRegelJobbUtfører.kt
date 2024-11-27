@@ -64,6 +64,7 @@ class FordelingRegelJobbUtfører(
         flytJobbRepository.leggTil(
             JobbInput(FordelingVideresendJobbUtfører)
                 .medJournalpostId(journalpostId)
+                .medCallId()
         )
     }
 }

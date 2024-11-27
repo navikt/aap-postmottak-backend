@@ -59,6 +59,7 @@ class SendSøknadTilArenaJobbUtfører(
                     ident = kontekst.ident,
                     saksnummer = arenaSakId,
                 ))
+                .medCallId()
         )
     }
 
@@ -66,6 +67,7 @@ class SendSøknadTilArenaJobbUtfører(
         flytJobbRepository.leggTil(
             JobbInput(ManuellJournalføringsoppgaveJobbUtfører)
                 .medArenaVideresenderKontekst(kontekst)
+                .medCallId()
         )
     }
 
