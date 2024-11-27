@@ -22,11 +22,11 @@ class SendSøknadTilArenaJobbUtfører(
             )
         }
 
-        override fun type() = "arena.oppgaveoppretter"
+        override fun type() = "arena.søknad"
 
-        override fun navn() = "Opprett oppgave i Arena"
+        override fun navn() = "Søknad til Arean Håndterer"
 
-        override fun beskrivelse() = "Oppretter oppgave i Arena for ny Søknad om AAP"
+        override fun beskrivelse() = "Oppretter sak i Arena for ny søknad"
 
     }
 

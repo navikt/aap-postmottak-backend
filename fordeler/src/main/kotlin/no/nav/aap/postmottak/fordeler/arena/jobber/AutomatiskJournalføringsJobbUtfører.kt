@@ -19,11 +19,11 @@ class AutomatiskJournalføringsJobbUtfører(
             )
         }
 
-        override fun type() = "arena.oppgaveoppretter"
+        override fun type() = "arena.automatiskjournalføring"
 
-        override fun navn() = "Opprett oppgave i Arena"
+        override fun navn() = "Automatisk journalfører"
 
-        override fun beskrivelse() = "Oppretter oppgave i Arena for ny Søknad om AAP"
+        override fun beskrivelse() = "Journalfører journalposter som kan behandles automatisk"
 
     }
 
