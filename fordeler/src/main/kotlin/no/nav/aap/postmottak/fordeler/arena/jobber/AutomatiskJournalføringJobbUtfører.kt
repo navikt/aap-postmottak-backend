@@ -8,13 +8,13 @@ import no.nav.aap.postmottak.klient.joark.JoarkClient
 import org.slf4j.LoggerFactory
 
 
-class AutomatiskJournalføringsJobbUtfører(
+class AutomatiskJournalføringJobbUtfører(
     private val joarkClient: JoarkClient
 ) : JobbUtfører {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return AutomatiskJournalføringsJobbUtfører(
+            return AutomatiskJournalføringJobbUtfører(
                 JoarkClient()
             )
         }

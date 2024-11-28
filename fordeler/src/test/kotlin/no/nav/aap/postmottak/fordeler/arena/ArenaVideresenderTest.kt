@@ -104,7 +104,7 @@ class ArenaVideresenderTest {
         arenaVideresender.videresendJournalpostTilArena(automatiskJournalføringKontekst.journalpostId)
 
         verify(exactly = 1) { flytJobbRepository.leggTil(withArg {
-            assertEquals(it.type(), AutomatiskJournalføringsJobbUtfører.type())
+            assertEquals(it.type(), AutomatiskJournalføringJobbUtfører.type())
             assertEquals(it.getAutomatiskJournalføringKontekst(), automatiskJournalføringKontekst)
         }) }
 
@@ -135,7 +135,7 @@ class ArenaVideresenderTest {
         arenaVideresender.videresendJournalpostTilArena(actualKontekst.journalpostId)
 
         verify { flytJobbRepository.leggTil(withArg {
-            assertEquals(it.type(), ManuellJournalføringsoppgaveJobbUtfører.type())
+            assertEquals(it.type(), ManuellJournalføringJobbUtfører.type())
             assertEquals(it.getArenaVideresenderKontekst(), actualKontekst)
         }) }
 

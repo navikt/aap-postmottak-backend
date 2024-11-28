@@ -9,13 +9,13 @@ import no.nav.aap.postmottak.klient.gosysoppgave.Oppgavetype
 import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(ManuellJournalføringsoppgaveJobbUtfører::class.java)
+private val log = LoggerFactory.getLogger(ManuellJournalføringJobbUtfører::class.java)
 
-class ManuellJournalføringsoppgaveJobbUtfører(private val oppgaveklient: Oppgaveklient) : JobbUtfører {
+class ManuellJournalføringJobbUtfører(private val oppgaveklient: Oppgaveklient) : JobbUtfører {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return ManuellJournalføringsoppgaveJobbUtfører(Oppgaveklient())
+            return ManuellJournalføringJobbUtfører(Oppgaveklient())
         }
         override fun type() = "arena.manuell.journalføring"
 

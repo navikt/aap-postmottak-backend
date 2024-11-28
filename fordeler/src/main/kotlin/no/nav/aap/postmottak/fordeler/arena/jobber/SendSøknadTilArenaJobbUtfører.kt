@@ -53,7 +53,7 @@ class SendSøknadTilArenaJobbUtfører(
 
     private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst, arenaSakId :String) {
         flytJobbRepository.leggTil(
-            JobbInput(AutomatiskJournalføringsJobbUtfører)
+            JobbInput(AutomatiskJournalføringJobbUtfører)
                 .medAutomatiskJournalføringKontekst(AutomatiskJournalføringKontekst(
                     journalpostId = kontekst.journalpostId,
                     ident = kontekst.ident,
@@ -65,7 +65,7 @@ class SendSøknadTilArenaJobbUtfører(
 
     private fun opprettManuellJournalføringsoppgavejobb(kontekst: ArenaVideresenderKontekst) {
         flytJobbRepository.leggTil(
-            JobbInput(ManuellJournalføringsoppgaveJobbUtfører)
+            JobbInput(ManuellJournalføringJobbUtfører)
                 .medArenaVideresenderKontekst(kontekst)
                 .medCallId()
         )

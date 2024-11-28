@@ -39,7 +39,7 @@ class SendSøknadTilArenaJobbUtførerTest: WithFakes {
         sendSøknadTilArenaJobb.utfør(jobbInput)
         
         verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
-            assertThat(it.type()).isEqualTo(ManuellJournalføringsoppgaveJobbUtfører.type())
+            assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type())
             assertThat(it.getArenaVideresenderKontekst()).isEqualTo(jobbKontekst)
         })}
     }
@@ -67,7 +67,7 @@ class SendSøknadTilArenaJobbUtførerTest: WithFakes {
         sendSøknadTilArenaJobb.utfør(jobbInput)
         
         verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
-            assertThat(it.type()).isEqualTo(AutomatiskJournalføringsJobbUtfører.type())
+            assertThat(it.type()).isEqualTo(AutomatiskJournalføringJobbUtfører.type())
             assertThat(it.getAutomatiskJournalføringKontekst()).isEqualTo(AutomatiskJournalføringKontekst(
                 journalpostId = journalpostId,
                 ident = jobbKontekst.ident,
