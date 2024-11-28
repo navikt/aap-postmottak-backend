@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
@@ -21,7 +21,7 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 class AvklarSakSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
-    private val behandlingsflytClient: BehandlingsflytGateway
+    private val behandlingsflytClient: BehandlingsflytKlient
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {

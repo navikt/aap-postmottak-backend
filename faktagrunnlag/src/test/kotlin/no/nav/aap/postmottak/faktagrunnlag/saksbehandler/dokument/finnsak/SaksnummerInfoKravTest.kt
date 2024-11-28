@@ -5,7 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -13,10 +13,10 @@ import java.time.LocalDate
 class SaksnummerInfoKravTest {
 
     val sakRepository: SaksnummerRepository = mockk(relaxed = true)
-    val behandlingsflytGateway: BehandlingsflytGateway = mockk()
+    val behandlingsflytKlient: BehandlingsflytKlient = mockk()
     val journalpostRepository: JournalpostRepository = mockk(relaxed = true)
 
-    val saksnummerInfoKrav = SaksnummerInfoKrav(sakRepository, behandlingsflytGateway, journalpostRepository)
+    val saksnummerInfoKrav = SaksnummerInfoKrav(sakRepository, behandlingsflytKlient, journalpostRepository)
 
     @Test
     fun `finn saksnummer for saker for borger og lagre på behandling`() {
@@ -25,7 +25,7 @@ class SaksnummerInfoKravTest {
             BehandlingsflytSak("5678", getPeriode())
         )
 
-        every { behandlingsflytGateway.finnSaker(any()) } returns saksnummre
+        every { behandlingsflytKlient.finnSaker(any()) } returns saksnummre
 
         saksnummerInfoKrav.oppdater(mockk(relaxed = true))
 

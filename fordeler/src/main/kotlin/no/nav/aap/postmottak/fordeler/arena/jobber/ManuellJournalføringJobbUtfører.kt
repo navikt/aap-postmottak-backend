@@ -4,18 +4,18 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
+import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.klient.gosysoppgave.Oppgavetype
 import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(ManuellJournalføringJobbUtfører::class.java)
 
-class ManuellJournalføringJobbUtfører(private val oppgaveklient: Oppgaveklient) : JobbUtfører {
+class ManuellJournalføringJobbUtfører(private val gosysOppgaveKlient: GosysOppgaveKlient) : JobbUtfører {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return ManuellJournalføringJobbUtfører(Oppgaveklient())
+            return ManuellJournalføringJobbUtfører(GosysOppgaveKlient())
         }
         override fun type() = "arena.manuell.journalføring"
 
@@ -30,7 +30,7 @@ class ManuellJournalføringJobbUtfører(private val oppgaveklient: Oppgaveklient
     override fun utfør(input: JobbInput) {
         val kontekst = input.getArenaVideresenderKontekst()
         val eksisterendeOppgaver =
-            oppgaveklient.finnOppgaverForJournalpost(
+            gosysOppgaveKlient.finnOppgaverForJournalpost(
                 kontekst.journalpostId,
                 listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING)
             )
@@ -38,10 +38,10 @@ class ManuellJournalføringJobbUtfører(private val oppgaveklient: Oppgaveklient
         if (eksisterendeOppgaver.isNotEmpty()) {
             log.info("Det finnes allerede en journalføringsoppgave for journalpost ${kontekst.journalpostId} - oppretter ingen ny")
         } else if (input.antallRetriesForsøkt() < 3) {
-            oppgaveklient.opprettOppgave(journalføringsOppgave(kontekst))
+            gosysOppgaveKlient.opprettOppgave(journalføringsOppgave(kontekst))
             log.info("Opprettet journalføringsoppgave i gosys for ${kontekst.journalpostId}")
         } else {
-            oppgaveklient.opprettOppgave(fordelingsOppgave(kontekst))
+            gosysOppgaveKlient.opprettOppgave(fordelingsOppgave(kontekst))
             log.info("Forsøkt å opprette journalføringsoppgave for journalpost ${kontekst.journalpostId} for mange ganger - opprettet fordelingsoppgave")
         }
     }

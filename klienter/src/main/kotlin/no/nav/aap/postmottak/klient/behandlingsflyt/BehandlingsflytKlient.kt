@@ -9,21 +9,21 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDate
 
-interface BehandlingsflytGateway {
+interface BehandlingsflytKlient {
     fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak
     fun finnSaker(ident: Ident): List<BehandlingsflytSak>
     fun sendSøknad(sakId: String, journalpostId: JournalpostId, søknad: Søknad)
 }
 
-class BehandlingsflytClient : BehandlingsflytGateway {
-    private val log = LoggerFactory.getLogger(SafGraphqlClient::class.java)
+class BehandlingsflytClient : BehandlingsflytKlient {
+    private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))
     val config = ClientConfig(

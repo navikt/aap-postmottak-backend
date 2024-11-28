@@ -13,10 +13,9 @@ import org.slf4j.LoggerFactory
 import java.net.URI
 
 
-private val log = LoggerFactory.getLogger(Oppgaveklient::class.java)
+private val log = LoggerFactory.getLogger(GosysOppgaveKlient::class.java)
 
-class Oppgaveklient {
-
+class GosysOppgaveKlient {
     private val url = URI.create(requiredConfigForKey("integrasjon.oppgaveapi.url"))
     val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.oppgaveapi.scope"),

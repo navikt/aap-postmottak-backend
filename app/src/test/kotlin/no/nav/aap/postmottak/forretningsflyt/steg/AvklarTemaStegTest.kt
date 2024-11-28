@@ -7,7 +7,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
-import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
+import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
@@ -23,9 +23,9 @@ class AvklarTemaStegTest {
 
     val avklarTemaRepository: AvklarTemaRepository = mockk()
     val journalpostRepo: JournalpostRepositoryImpl = mockk()
-    val oppgaveklient: Oppgaveklient = mockk(relaxed = true)
+    val gosysOppgaveKlient: GosysOppgaveKlient = mockk(relaxed = true)
 
-    val avklarTemaSteg = AvklarTemaSteg(journalpostRepo, avklarTemaRepository, oppgaveklient)
+    val avklarTemaSteg = AvklarTemaSteg(journalpostRepo, avklarTemaRepository, gosysOppgaveKlient)
 
 
     val journalpost: Journalpost = mockk(relaxed = true)

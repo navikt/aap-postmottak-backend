@@ -9,7 +9,7 @@ import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import java.net.URI
 
-class AapInternApiClient {
+class AapInternApiKlient {
     private val url = URI.create(requiredConfigForKey("integrasjon.aap.intern.api.url"))
     val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.aap.intern.api.scope"),

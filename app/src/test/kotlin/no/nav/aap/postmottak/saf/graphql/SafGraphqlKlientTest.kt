@@ -10,12 +10,12 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 
-class SafGraphqlClientTest: WithFakes {
+class SafGraphqlKlientTest: WithFakes {
 
     @Test
     fun hentJournalpost() {
         val person =  Person(123, identifikator = UUID.randomUUID(), identer = listOf(Ident("12345678")))
-        val test = SafGraphqlClient.withClientCredentialsRestClient().hentJournalpost(JournalpostId(1)).tilJournalpost(person)
+        val test = SafGraphqlKlient.withClientCredentialsRestClient().hentJournalpost(JournalpostId(1)).tilJournalpost(person)
 
         assertThat(test.journalpostId).isEqualTo(JournalpostId(1))
     }

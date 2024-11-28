@@ -10,7 +10,7 @@ import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.klient.gosysoppgave.Oppgaveklient
+import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
@@ -22,14 +22,14 @@ private val log = LoggerFactory.getLogger(AvklarTemaSteg::class.java)
 class AvklarTemaSteg(
     private val journalpostRepository: JournalpostRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
-    private val oppgaveklient: Oppgaveklient
+    private val gosysOppgaveKlient: GosysOppgaveKlient
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             return AvklarTemaSteg(
                 JournalpostRepositoryImpl(connection),
                 AvklarTemaRepository(connection),
-                Oppgaveklient()
+                GosysOppgaveKlient()
             )
         }
 
@@ -44,8 +44,8 @@ class AvklarTemaSteg(
             ?: error("Journalpost mangler i AvklarTemaSteg")
         if (journalpost.tema != "AAP") {
             log.info("Journalpost har endret tema. ytt tema er: ${journalpost.tema}")
-            oppgaveklient.finnOppgaverForJournalpost(journalpost.journalpostId)
-                .forEach {oppgaveklient.ferdigstillOppgave(it) }
+            gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)
+                .forEach {gosysOppgaveKlient.ferdigstillOppgave(it) }
             return Avbrutt
         }
 

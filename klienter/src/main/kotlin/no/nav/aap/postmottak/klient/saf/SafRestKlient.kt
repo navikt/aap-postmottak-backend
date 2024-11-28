@@ -14,27 +14,27 @@ import java.net.URI
 import java.net.http.HttpHeaders
 
 
-class SafRestClient(private val restClient: RestClient<InputStream>) {
+class SafRestKlient(private val restClient: RestClient<InputStream>) {
 
     private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
 
     companion object {
-        fun withOboRestClient(): SafRestClient {
+        fun withOboRestClient(): SafRestKlient {
             val config = ClientConfig(
                 scope = requiredConfigForKey("integrasjon.saf.scope"),
             )
-            return SafRestClient(
+            return SafRestKlient(
                 RestClient.withDefaultResponseHandler(
                     config = config,
                     tokenProvider = OnBehalfOfTokenProvider
                 )
             )
         }
-        fun withClientCredentialsRestClient(): SafRestClient {
+        fun withClientCredentialsRestClient(): SafRestKlient {
             val config = ClientConfig(
                 scope = requiredConfigForKey("integrasjon.saf.scope"),
             )
-            return SafRestClient(
+            return SafRestKlient(
                 RestClient.withDefaultResponseHandler(
                     config = config,
                     tokenProvider = ClientCredentialsTokenProvider

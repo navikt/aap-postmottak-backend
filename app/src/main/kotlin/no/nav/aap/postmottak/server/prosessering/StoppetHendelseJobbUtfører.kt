@@ -5,7 +5,7 @@ import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.postmottak.hendelse.oppgave.OppgaveGateway
+import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import org.slf4j.LoggerFactory
 
@@ -19,7 +19,7 @@ class StoppetHendelseJobbUtfører private constructor() : JobbUtfører {
         val hendelse = DefaultJsonMapper.fromJson<DokumentflytStoppetHendelse>(payload)
         
         log.info("Varsler hendelse til Oppgave: ${hendelse}")
-        OppgaveGateway.varsleHendelse(hendelse)
+        OppgaveKlient().varsleHendelse(hendelse)
     }
 
     companion object : Jobb {

@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.fordeler.regler
 
 import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytning
 import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytningType
-import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 
 class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
     companion object : RegelFactory<GeografiskTilknytningRegelInput> {
@@ -52,7 +52,7 @@ class GeografiskTilknytningRegelInputGenerator : InputGenerator<GeografiskTilkny
 
     override fun generer(input: RegelInput): GeografiskTilknytningRegelInput {
         val geografiskTilknytning =
-            PdlGraphQLClient.withClientCredentialsRestClient().hentGeografiskTilknytning(input.fnr)
+            PdlGraphqlKlient.withClientCredentialsRestClient().hentGeografiskTilknytning(input.fnr)
         return GeografiskTilknytningRegelInput(geografiskTilknytning, godkjenteGeografiskeTilknytninger)
     }
 }

@@ -15,13 +15,8 @@ import java.io.InputStream
 import java.net.URI
 import kotlinx.coroutines.runBlocking
 
-
-interface SafGraphqlGateway {
-    fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken? = null): SafJournalpost
-}
-
-class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGraphqlGateway {
-    private val log = LoggerFactory.getLogger(SafGraphqlClient::class.java)
+class SafGraphqlKlient(private val restClient: RestClient<InputStream>) {
+    private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
 
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
 
@@ -31,7 +26,7 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
         )
 
         fun withClientCredentialsRestClient() =
-            SafGraphqlClient(
+            SafGraphqlKlient(
                 RestClient(
                     config = getClientConfig(),
                     tokenProvider = ClientCredentialsTokenProvider,
@@ -40,7 +35,7 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
             )
 
         fun withOboRestClient() =
-            SafGraphqlClient(
+            SafGraphqlKlient(
                 RestClient(
                     config = getClientConfig(),
                     tokenProvider = OnBehalfOfTokenProvider,
@@ -49,7 +44,7 @@ class SafGraphqlClient(private val restClient: RestClient<InputStream>) : SafGra
             )
     }
 
-    override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken?): SafJournalpost {
+    fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken? = null): SafJournalpost {
         log.info("Henter journalpost: $journalpostId")
         val request = SafRequest.hentJournalpost(journalpostId)
         val response = runBlocking { graphqlQuery(request, currentToken) }

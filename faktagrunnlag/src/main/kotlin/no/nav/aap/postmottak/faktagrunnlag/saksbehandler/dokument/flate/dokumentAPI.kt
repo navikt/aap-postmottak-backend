@@ -7,10 +7,10 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.postmottak.journalPostResolverFactory
-import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
-import no.nav.aap.postmottak.klient.saf.SafRestClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
+import no.nav.aap.postmottak.klient.saf.SafRestKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
 import no.nav.aap.postmottak.saf.graphql.SafVariantformat
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
@@ -29,7 +29,7 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
                 val dokumentInfoId = req.dokumentinfoId
 
                 val token = token()
-                val gateway = SafRestClient.withOboRestClient()
+                val gateway = SafRestKlient.withOboRestClient()
                 val dokumentRespons =
                     gateway.hentDokument(
                         JournalpostId(journalpostId),
@@ -55,10 +55,10 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
 
                 val token = token()
                 val journalpost =
-                    SafGraphqlClient.withOboRestClient().hentJournalpost(JournalpostId(journalpostId.referanse), token)
+                    SafGraphqlKlient.withOboRestClient().hentJournalpost(JournalpostId(journalpostId.referanse), token)
                 val identer =
                     listOf(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).filterNotNull().distinct()
-                val personer = PdlGraphQLClient.withClientCredentialsRestClient().hentPersonBolk(identer)
+                val personer = PdlGraphqlKlient.withClientCredentialsRestClient().hentPersonBolk(identer)
                 respond(
                     DokumentInfoResponsDTO(
                         journalpostId = journalpostId.referanse,

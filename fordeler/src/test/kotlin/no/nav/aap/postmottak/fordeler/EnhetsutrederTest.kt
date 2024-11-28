@@ -11,7 +11,7 @@ import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytning
 import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytningType
 import no.nav.aap.postmottak.klient.pdl.HentPersonResult
 import no.nav.aap.postmottak.klient.pdl.PdlData
-import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.junit.jupiter.api.Test
@@ -22,7 +22,7 @@ import java.util.*
 class EnhetsutrederTest {
 
 
-    val pdlKlient: PdlGraphQLClient = mockk()
+    val pdlKlient: PdlGraphqlKlient = mockk()
     val norgKlient: NorgKlient = mockk(relaxed = true)
     val nomKlient: NomKlient = mockk()
 

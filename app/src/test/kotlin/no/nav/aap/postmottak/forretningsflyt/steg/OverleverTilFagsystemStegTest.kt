@@ -5,9 +5,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.klient.saf.SafRestClient
+import no.nav.aap.postmottak.klient.saf.SafRestKlient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
@@ -27,18 +27,18 @@ class OverleverTilFagsystemStegTest {
 
     val struktureringsvurderingRepository: StruktureringsvurderingRepository = mockk(relaxed = true)
     val kategorivurderingRepository: KategorivurderingRepository = mockk(relaxed = true)
-    val behandlingsflytGateway: BehandlingsflytGateway = mockk(relaxed = true)
+    val behandlingsflytKlient: BehandlingsflytKlient = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepository = mockk()
     val saksnummerRepository: SaksnummerRepository = mockk()
-    val safRestClient: SafRestClient = mockk(relaxed = true)
+    val safRestKlient: SafRestKlient = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         struktureringsvurderingRepository,
         kategorivurderingRepository,
-        behandlingsflytGateway,
+        behandlingsflytKlient,
         journalpostRepository,
         saksnummerRepository,
-        safRestClient
+        safRestKlient
     )
 
 
@@ -77,8 +77,8 @@ class OverleverTilFagsystemStegTest {
 
         overførTilFagsystemSteg.utfør(kontekst)
 
-        verify(exactly = 0) { safRestClient.hentDokument(any(), any()) }
-        verify(exactly = 1) { behandlingsflytGateway.sendSøknad(saksnummer, journalpostId, any()) }
+        verify(exactly = 0) { safRestKlient.hentDokument(any(), any()) }
+        verify(exactly = 1) { behandlingsflytKlient.sendSøknad(saksnummer, journalpostId, any()) }
     }
 
     @Test
@@ -97,7 +97,7 @@ class OverleverTilFagsystemStegTest {
         every { journalpost.finnOriginal() } returns dokument
         every { journalpost.erSøknad()} returns true
         every {
-            safRestClient.hentDokument(
+            safRestKlient.hentDokument(
                 journalpostId,
                 dokumentInfoId
             ).dokument
@@ -105,7 +105,7 @@ class OverleverTilFagsystemStegTest {
 
         overførTilFagsystemSteg.utfør(kontekst)
 
-        verify(exactly = 1) { safRestClient.hentDokument(journalpostId, dokumentInfoId) }
-        verify(exactly = 1) { behandlingsflytGateway.sendSøknad(saksnummer, journalpostId, any()) }
+        verify(exactly = 1) { safRestKlient.hentDokument(journalpostId, dokumentInfoId) }
+        verify(exactly = 1) { behandlingsflytKlient.sendSøknad(saksnummer, journalpostId, any()) }
     }
 }

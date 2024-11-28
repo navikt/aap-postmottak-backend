@@ -7,12 +7,12 @@ import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.pdl.Adressebeskyttelseskode
 import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytning
 import no.nav.aap.postmottak.klient.pdl.GeografiskTilknytningType
-import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
 
-class Enhetsutreder(private val norgKlient: NorgKlient, private val pdlKlient: PdlGraphQLClient, private val nomKlient: NomKlient) {
+class Enhetsutreder(private val norgKlient: NorgKlient, private val pdlKlient: PdlGraphqlKlient, private val nomKlient: NomKlient) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 

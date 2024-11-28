@@ -16,7 +16,7 @@ import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
-import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTitler
@@ -38,7 +38,7 @@ class ArenaVideresender(
             FlytJobbRepository(connection),
             Enhetsutreder(
                 NorgKlient(),
-                PdlGraphQLClient.withClientCredentialsRestClient(),
+                PdlGraphqlKlient.withClientCredentialsRestClient(),
                 NomKlient()
             ),
             ArenaKlient()

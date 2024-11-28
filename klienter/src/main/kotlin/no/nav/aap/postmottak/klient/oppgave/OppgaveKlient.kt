@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.hendelse.oppgave
+package no.nav.aap.postmottak.klient.oppgave
 
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -9,7 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import java.net.URI
 
-object OppgaveGateway {
+class OppgaveKlient {
     private val url = URI.create(requiredConfigForKey("integrasjon.oppgave.url"))
     private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.oppgave.scope"))
 

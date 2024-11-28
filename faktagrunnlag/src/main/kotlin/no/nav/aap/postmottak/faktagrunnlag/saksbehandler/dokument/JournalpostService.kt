@@ -5,11 +5,11 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
-import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.saf.graphql.Journalstatus
 import no.nav.aap.postmottak.saf.graphql.SafDatoType
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
 import no.nav.aap.postmottak.saf.graphql.SafJournalpost
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentMedTittel
@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory
 
 class JournalpostService private constructor(
     private val journalpostRepository: JournalpostRepository,
-    private val safGraphqlClient: SafGraphqlClient,
-    private val pdlGraphQLClient: PdlGraphQLClient,
+    private val safGraphqlKlient: SafGraphqlKlient,
+    private val pdlGraphqlKlient: PdlGraphqlKlient,
     private val personRepository: PersonRepository
 ) : Informasjonskrav {
     private val log = LoggerFactory.getLogger(JournalpostService::class.java)
@@ -34,8 +34,8 @@ class JournalpostService private constructor(
         override fun konstruer(connection: DBConnection): JournalpostService {
             return JournalpostService(
                 JournalpostRepositoryImpl(connection),
-                SafGraphqlClient.withClientCredentialsRestClient(),
-                PdlGraphQLClient.withClientCredentialsRestClient(),
+                SafGraphqlKlient.withClientCredentialsRestClient(),
+                PdlGraphqlKlient.withClientCredentialsRestClient(),
                 PersonRepository(connection)
             )
         }
@@ -57,10 +57,10 @@ class JournalpostService private constructor(
     }
 
     fun hentjournalpost(journalpostId: JournalpostId): JournalpostMedDokumentTitler {
-        val journalpost = safGraphqlClient.hentJournalpost(journalpostId)
+        val journalpost = safGraphqlKlient.hentJournalpost(journalpostId)
 
         require(journalpost.bruker?.id != null) { "journalpost må ha ident" }
-        val identliste = pdlGraphQLClient.hentAlleIdenterForPerson(journalpost.bruker?.id!!)
+        val identliste = pdlGraphqlKlient.hentAlleIdenterForPerson(journalpost.bruker?.id!!)
         if (identliste.isEmpty()) {
             throw IllegalStateException("Fikk ingen treff på ident i PDL")
         }

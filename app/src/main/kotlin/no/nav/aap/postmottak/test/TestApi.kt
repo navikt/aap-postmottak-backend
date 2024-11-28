@@ -11,7 +11,7 @@ import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.postmottak.fordeler.Enhetsutreder
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
-import no.nav.aap.postmottak.klient.pdl.PdlGraphQLClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.LoggerFactory
@@ -66,7 +66,7 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
 
                 val enhetsutreder = Enhetsutreder(
                     NorgKlient(),
-                    PdlGraphQLClient.withClientCredentialsRestClient(),
+                    PdlGraphqlKlient.withClientCredentialsRestClient(),
                     NomKlient()
                 )
 

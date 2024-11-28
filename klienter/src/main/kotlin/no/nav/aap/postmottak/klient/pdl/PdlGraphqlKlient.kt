@@ -11,20 +11,16 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClient
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
 
-interface IPdlGraphQLClient {
-    fun hentPersonBolk(personidenter: List<String>, currentToken: OidcToken? = null): List<HentPersonBolkResult>?
-}
-
-class PdlGraphQLClient(
+class PdlGraphqlKlient(
     private val restClient: RestClient<InputStream>
-) : IPdlGraphQLClient {
-    private val log = LoggerFactory.getLogger(SafGraphqlClient::class.java)
+) {
+    private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
 
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.pdl.url")).resolve("/graphql")
 
@@ -35,7 +31,7 @@ class PdlGraphQLClient(
         private const val BEHANDLINGSNUMMER_AAP_SAKSBEHANDLING = "B287"
 
         fun withClientCredentialsRestClient() =
-            PdlGraphQLClient(
+            PdlGraphqlKlient(
                 RestClient(
                     config = getClientConfig(),
                     tokenProvider = ClientCredentialsTokenProvider,
@@ -44,7 +40,7 @@ class PdlGraphQLClient(
             )
 
         fun withOboRestClient() =
-            PdlGraphQLClient(
+            PdlGraphqlKlient(
                 RestClient(
                     config = getClientConfig(),
                     tokenProvider = OnBehalfOfTokenProvider,
@@ -53,9 +49,9 @@ class PdlGraphQLClient(
             )
     }
 
-    override fun hentPersonBolk(
+    fun hentPersonBolk(
         personidenter: List<String>,
-        currentToken: OidcToken?
+        currentToken: OidcToken? = null
     ): List<HentPersonBolkResult>? {
         val request = PdlRequest.hentPersonBolk(personidenter)
         val response = runBlocking { graphqlQuery(request, currentToken) }
@@ -101,7 +97,7 @@ class PdlGraphQLClient(
             ?: emptyList()
     }
     
-    private fun graphqlQuery(query: PdlRequest, currentToken: OidcToken?): PdlResponse {
+    private fun graphqlQuery(query: PdlRequest, currentToken: OidcToken? = null): PdlResponse {
         val request = PostRequest(
             query, currentToken = currentToken, additionalHeaders = listOf(
                 Header("Accept", "application/json"),

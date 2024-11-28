@@ -5,7 +5,7 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
@@ -14,7 +14,7 @@ import no.nav.aap.verdityper.sakogbehandling.Ident
 
 class SaksnummerInfoKrav(
     private val saksnummerRepository: SaksnummerRepository,
-    private val behandlingsflytGateway: BehandlingsflytGateway,
+    private val behandlingsflytKlient: BehandlingsflytKlient,
     private val journalpostRepository: JournalpostRepository
 ) : Informasjonskrav {
     companion object : Informasjonskravkonstruktør {
@@ -32,7 +32,7 @@ class SaksnummerInfoKrav(
         requireNotNull(journalpost) { "Forventer journalpost" }
 
         val saker = try {
-            behandlingsflytGateway.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true)).map { it.tilSaksinfo() }
+            behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true)).map { it.tilSaksinfo() }
         } catch (e: Exception) {
             emptyList()
         } // TODO utbedre exception handling!!!

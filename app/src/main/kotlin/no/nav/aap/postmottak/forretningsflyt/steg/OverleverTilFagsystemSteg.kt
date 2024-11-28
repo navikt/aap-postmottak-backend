@@ -3,10 +3,10 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytGateway
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.klient.saf.SafRestClient
+import no.nav.aap.postmottak.klient.saf.SafRestKlient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
@@ -26,10 +26,10 @@ private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
 class OverleverTilFagsystemSteg(
     private val struktureringsvurderingRepository: StruktureringsvurderingRepository,
     private val kategorivurderingRepository: KategorivurderingRepository,
-    private val behandlingsflytGateway: BehandlingsflytGateway,
+    private val behandlingsflytKlient: BehandlingsflytKlient,
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
-    private val safRestClient: SafRestClient
+    private val safRestKlient: SafRestKlient
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
@@ -39,7 +39,7 @@ class OverleverTilFagsystemSteg(
                 BehandlingsflytClient(),
                 JournalpostRepositoryImpl(connection),
                 saksnummerRepository = SaksnummerRepository(connection),
-                SafRestClient.withClientCredentialsRestClient()
+                SafRestKlient.withClientCredentialsRestClient()
             )
         }
 
@@ -65,7 +65,7 @@ class OverleverTilFagsystemSteg(
             struktureringsvurdering?.vurdering?.parseDigitalSøknad()?.berik()
                 ?: hentDokumentFraSaf(journalpost).parseDigitalSøknad().berik()
 
-        behandlingsflytGateway.sendSøknad(
+        behandlingsflytKlient.sendSøknad(
             saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
             journalpost.journalpostId,
             dokumentJson
@@ -77,7 +77,7 @@ class OverleverTilFagsystemSteg(
     private fun hentDokumentFraSaf(journalpost: Journalpost): ByteArray {
         val strukturertDokument = journalpost.finnOriginal()
         requireNotNull(strukturertDokument) { "Finner ikke strukturert dokument" }
-        return safRestClient.hentDokument(
+        return safRestKlient.hentDokument(
             journalpost.journalpostId,
             strukturertDokument.dokumentInfoId
         ).dokument.readBytes()

@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.fordeler.regler
 
-import no.nav.aap.postmottak.klient.AapInternApiClient
+import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.ArenaSak
 
 class ArenaSakRegel : Regel<ArenaSakRegelInput> {
@@ -21,7 +21,7 @@ class ArenaSakRegel : Regel<ArenaSakRegelInput> {
 
 class ArenaSakRegelInputGenerator : InputGenerator<ArenaSakRegelInput> {
     override fun generer(input: RegelInput): ArenaSakRegelInput {
-        val saker = AapInternApiClient().hentArenaSakerForIdent(input.fnr)
+        val saker = AapInternApiKlient().hentArenaSakerForIdent(input.fnr)
         return ArenaSakRegelInput(saker)
     }
 }
