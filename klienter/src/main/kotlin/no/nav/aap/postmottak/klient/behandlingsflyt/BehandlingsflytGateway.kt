@@ -22,7 +22,7 @@ interface BehandlingsflytGateway {
     fun sendSøknad(sakId: String, journalpostId: JournalpostId, søknad: Søknad)
 }
 
-class BehandlingsflytClient() : BehandlingsflytGateway {
+class BehandlingsflytClient : BehandlingsflytGateway {
     private val log = LoggerFactory.getLogger(SafGraphqlClient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))

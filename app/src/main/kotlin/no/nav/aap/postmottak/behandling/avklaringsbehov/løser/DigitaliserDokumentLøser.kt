@@ -22,7 +22,7 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
 
         val dokument = when (brevkode) {
             Brevkategori.SØKNAD -> løsning.strukturertDokument.parseDigitalSøknad().serialiser()
-            else -> løsning.strukturertDokument!!
+            else -> løsning.strukturertDokument
         }
 
         struktureringsvurderingRepository.lagreStrukturertDokument(kontekst.kontekst.behandlingId, dokument)

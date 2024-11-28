@@ -164,7 +164,7 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         }
     }
 
-    override fun hent(behandlingId: BehandlingId): List<no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehov> {
+    override fun hent(behandlingId: BehandlingId): List<Avklaringsbehov> {
         val query = """
             SELECT * FROM AVKLARINGSBEHOV WHERE behandling_id = ?
             """.trimIndent()
@@ -179,10 +179,10 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         }
     }
 
-    private fun mapAvklaringsbehov(row: Row): no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehov {
+    private fun mapAvklaringsbehov(row: Row): Avklaringsbehov {
         val definisjon = Definisjon.forKode(row.getString("definisjon"))
         val id = row.getLong("id")
-        return no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehov(
+        return Avklaringsbehov(
             id = id,
             definisjon = definisjon,
             funnetISteg = row.getEnum("funnet_i_steg"),

@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.flyt.flate.visning
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId

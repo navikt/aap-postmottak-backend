@@ -6,7 +6,6 @@ import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegOrkestrator
-import no.nav.aap.postmottak.flyt.steg.Transisjon
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseService
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -133,7 +132,7 @@ class FlytOrkestrator(
             val avklaringsbehov = avklaringsbehovene.åpne()
             validerPlassering(behandlingFlyt, avklaringsbehov)
 
-            val neste = utledNesteSteg(result, behandlingFlyt)
+            val neste = utledNesteSteg(behandlingFlyt)
 
             if (!result.kanFortsette() || neste == null) {
                 if (neste == null || result is AvbrytEtterAvklaring) {
@@ -164,7 +163,6 @@ class FlytOrkestrator(
     }
 
     private fun utledNesteSteg(
-        result: Transisjon,
         behandlingFlyt: BehandlingFlyt
     ): FlytSteg? {
         return behandlingFlyt.neste()

@@ -110,18 +110,6 @@ class Avklaringsbehovene(
         return alle().filter { it.erÅpent() }.toList()
     }
 
-    override fun skalTilbakeføresEtterKvalitetssikring(): Boolean {
-        return tilbakeførtFraKvalitetssikrer().isNotEmpty()
-    }
-
-    fun tilbakeførtFraBeslutter(): List<Avklaringsbehov> {
-        return alle().filter { it.status() == Status.SENDT_TILBAKE_FRA_BESLUTTER }.toList()
-    }
-
-    fun tilbakeførtFraKvalitetssikrer(): List<Avklaringsbehov> {
-        return alle().filter { it.status() == Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER }.toList()
-    }
-
     override fun hentBehovForDefinisjon(definisjon: Definisjon): Avklaringsbehov? {
         return alle().filter { it.definisjon == definisjon }.singleOrNull()
     }

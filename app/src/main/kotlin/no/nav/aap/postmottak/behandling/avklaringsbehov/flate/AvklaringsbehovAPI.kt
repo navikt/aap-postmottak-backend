@@ -10,7 +10,6 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovHendelseH
 import no.nav.aap.postmottak.behandling.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.behandling.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.postmottak.journalpostIdMapper
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.tilgang.AvklaringsbehovResolver
 import no.nav.aap.tilgang.authorizedPost

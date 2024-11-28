@@ -8,5 +8,4 @@ interface AvklaringsbehoveneDecorator {
 
     fun erSattPåVent(): Boolean
     fun hentBehovForDefinisjon(definisjon: Definisjon): Avklaringsbehov?
-    fun skalTilbakeføresEtterKvalitetssikring(): Boolean
 }

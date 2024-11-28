@@ -2,10 +2,8 @@ package no.nav.aap.postmottak.behandling.avklaringsbehov
 
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.flyt.BehandlingFlyt
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 class FrivilligeAvklaringsbehov(
@@ -37,9 +35,5 @@ class FrivilligeAvklaringsbehov(
         list.addAll(eksisterendeBehov)
 
         return list.toList()
-    }
-
-    fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
-        return avklaringsbehovene.harVærtSendtTilbakeFraBeslutterTidligere()
     }
 }
