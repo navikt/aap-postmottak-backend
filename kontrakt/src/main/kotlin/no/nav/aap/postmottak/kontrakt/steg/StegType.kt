@@ -3,10 +3,6 @@ package no.nav.aap.postmottak.kontrakt.steg
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 
 enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg: Boolean = false) {
-    ROUTING(
-        gruppe = StegGruppe.ROUTING,
-        status = Status.UTREDES
-    ),
     KATEGORISER_DOKUMENT(
         gruppe = StegGruppe.KATEGORISER,
         status = Status.UTREDES
