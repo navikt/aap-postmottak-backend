@@ -37,12 +37,14 @@ class SendSøknadTilArenaJobbUtfører(
 
         if (!arenaKlient.harAktivSak(kontekst.ident)) {
             log.info("Oppretter oppgave i Arena for søknad med journalpostid \"${kontekst.journalpostId}\"")
-            val sakId = arenaKlient.opprettArenaOppgave(ArenaOpprettOppgaveForespørsel(
+            val request = ArenaOpprettOppgaveForespørsel(
                 fnr = kontekst.ident.identifikator,
                 enhet = kontekst.navEnhet,
                 tittel = kontekst.hoveddokumenttittel,
                 titler = kontekst.vedleggstitler
-            )).arenaSakId
+            )
+            log.info(request.toString()) // TODO  SLETT MEG ETTER DEBUGGING
+            val sakId = arenaKlient.opprettArenaOppgave(request).arenaSakId
             opprettAutomatiskJournalføringsjobb(kontekst, sakId)
         } else {
             log.info("Det finnes alt en sak i Arena for ${kontekst.ident}, sender journalpost til manuell journalføring")
