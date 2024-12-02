@@ -3,8 +3,10 @@ package no.nav.aap.postmottak.forretningsflyt.steg
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
+import no.nav.aap.postmottak.flyt.steg.Avbrutt
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
@@ -79,6 +81,28 @@ class AvklarTemaStegTest {
         assertEquals(actual::class.simpleName, FantAvklaringsbehov::class.simpleName)
         val funnetAvklaringsbehov = actual.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_TEMA)
+    }
+    
+    @Test
+    fun `når tema har blitt endret forventes at oppgaver blir ferdigstilt og steget avbrytes`() {
+        every { journalpost.tema } returns "ANNET"
+        every {gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)} returns listOf(1, 2)
+
+        val actual = avklarTemaSteg.utfør(kontekst)
+        
+        verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(1) }
+        verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(2) }
+        assertEquals(Avbrutt::class.simpleName, actual::class.simpleName)
+    }
+    
+    @Test 
+    fun `når tema har blitt endret, men ikke har oppgave, blir steget avbrutt`() {
+        every { journalpost.tema } returns "ANNET"
+        every {gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)} returns emptyList()
+
+        val actual = avklarTemaSteg.utfør(kontekst)
+        
+        assertEquals(Avbrutt::class.simpleName, actual::class.simpleName)
     }
 
 }
