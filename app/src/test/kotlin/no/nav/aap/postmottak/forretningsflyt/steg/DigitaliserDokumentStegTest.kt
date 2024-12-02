@@ -38,7 +38,7 @@ class DigitaliserDokumentStegTest {
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
-        assertEquals(stegresultat::class.simpleName, FantAvklaringsbehov::class.simpleName)
+        assertEquals(FantAvklaringsbehov::class.simpleName, stegresultat::class.simpleName)
         val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.DIGITALISER_DOKUMENT)
 
@@ -54,8 +54,8 @@ class DigitaliserDokumentStegTest {
         every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns mockk(relaxed = true)
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
-        
-        assertEquals(stegresultat::class.simpleName, Fullført::class.simpleName)
+
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
     }
 
     @Test
@@ -69,7 +69,7 @@ class DigitaliserDokumentStegTest {
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
-        assertEquals(stegresultat::class.simpleName, Fullført::class.simpleName)
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
 
     }
     
@@ -84,7 +84,7 @@ class DigitaliserDokumentStegTest {
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
-        assertEquals(stegresultat::class.simpleName, Fullført::class.simpleName)
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
     }
 
 }

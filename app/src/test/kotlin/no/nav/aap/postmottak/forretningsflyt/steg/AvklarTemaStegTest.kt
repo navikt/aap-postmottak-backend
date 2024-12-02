@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
+import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
@@ -15,6 +16,7 @@ import no.nav.aap.verdityper.flyt.FlytKontekstMedPerioder
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -51,17 +53,19 @@ class AvklarTemaStegTest {
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
-        assertThat(actual is Fullført)
+        assertEquals(Fullført::class.simpleName, actual::class.simpleName)
+
     }
 
     @Test
     fun `naar vi ikke kan behandle automatisk og manuell avklaring er avklart med 'skal til AAP' forventer vi at steget ikke returnerer avklaringsbehov`() {
         every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.tema } returns "AAP"
         every { avklarTemaRepository.hentTemaAvklaring(any())?.skalTilAap } returns true
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
-        assertThat(actual is Fullført)
+        assertEquals(Fullført::class.simpleName, actual::class.simpleName)
     }
 
     @Test
@@ -72,6 +76,7 @@ class AvklarTemaStegTest {
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
+        assertEquals(actual::class.simpleName, FantAvklaringsbehov::class.simpleName)
         val funnetAvklaringsbehov = actual.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_TEMA)
     }

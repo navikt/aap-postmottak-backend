@@ -6,6 +6,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
+import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
@@ -14,6 +15,7 @@ import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class AvklarSakStegTest {
@@ -44,7 +46,7 @@ class AvklarSakStegTest {
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat is Fullført)
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
 
     @Test
@@ -61,6 +63,7 @@ class AvklarSakStegTest {
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
+        assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
         val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_SAK)
     }
@@ -80,7 +83,7 @@ class AvklarSakStegTest {
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat is Fullført)
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
 
     }
 
@@ -100,7 +103,7 @@ class AvklarSakStegTest {
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
-        assertThat(resultat is Fullført)
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
 
     }
 }
