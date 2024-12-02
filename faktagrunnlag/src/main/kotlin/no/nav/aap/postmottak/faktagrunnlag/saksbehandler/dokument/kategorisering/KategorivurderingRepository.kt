@@ -7,14 +7,14 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 class KategorivurderingRepository(private val connection: DBConnection) {
 
 
-    fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: InnsendingType) {
+    fun lagreKategoriseringVurdering(behandlingId: BehandlingId, kategori: InnsendingType) {
         val vurdeirngId = connection.executeReturnKey(
             """
             INSERT INTO KATEGORIAVKLARING (KATEGORI) VALUES (?)
         """.trimIndent()
         ) {
             setParams {
-                setEnumName(1, brevkode)
+                setEnumName(1, kategori)
             }
         }
 

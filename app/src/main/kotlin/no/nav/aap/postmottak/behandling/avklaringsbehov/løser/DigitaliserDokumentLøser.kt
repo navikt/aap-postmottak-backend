@@ -16,11 +16,11 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
 
-        val brevkode = kategorivurderingRepository.hentKategoriAvklaring(kontekst.kontekst.behandlingId)?.avklaring
-        requireNotNull(brevkode) { "Mangler kategori for digitalisert dokument" }
+        val kategori = kategorivurderingRepository.hentKategoriAvklaring(kontekst.kontekst.behandlingId)?.avklaring
+        requireNotNull(kategori) { "Mangler kategori for digitalisert dokument" }
         requireNotNull(løsning.strukturertDokument) { "Digitalisert dokument kan ikke være null" }
 
-        val dokument = when (brevkode) {
+        val dokument = when (kategori) {
             InnsendingType.SØKNAD -> løsning.strukturertDokument.parseDigitalSøknad().serialiser()
             else -> løsning.strukturertDokument
         }

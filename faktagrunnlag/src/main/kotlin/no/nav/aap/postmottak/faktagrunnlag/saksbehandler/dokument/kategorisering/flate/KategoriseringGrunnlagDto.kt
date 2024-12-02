@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategoriserin
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 
 data class KategoriseringVurderingDto(
-    val brevkode: InnsendingType,
+    val kategori: InnsendingType,
 )
 
 data class KategoriseringGrunnlagDto(
