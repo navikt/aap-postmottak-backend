@@ -8,7 +8,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.serialiser
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 
 class DigitaliserDokumentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
     val struktureringsvurderingRepository = StruktureringsvurderingRepository(connection)
@@ -21,7 +21,7 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
         requireNotNull(løsning.strukturertDokument) { "Digitalisert dokument kan ikke være null" }
 
         val dokument = when (brevkode) {
-            Brevkategori.SØKNAD -> løsning.strukturertDokument.parseDigitalSøknad().serialiser()
+            InnsendingType.SØKNAD -> løsning.strukturertDokument.parseDigitalSøknad().serialiser()
             else -> løsning.strukturertDokument
         }
 

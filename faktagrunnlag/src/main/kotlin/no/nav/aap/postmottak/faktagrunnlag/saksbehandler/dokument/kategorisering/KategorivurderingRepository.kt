@@ -1,13 +1,13 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class KategorivurderingRepository(private val connection: DBConnection) {
 
 
-    fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: Brevkategori) {
+    fun lagreKategoriseringVurdering(behandlingId: BehandlingId, brevkode: InnsendingType) {
         val vurdeirngId = connection.executeReturnKey(
             """
             INSERT INTO KATEGORIAVKLARING (KATEGORI) VALUES (?)

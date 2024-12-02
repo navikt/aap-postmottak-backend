@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.forretningsflyt.steg
 
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
@@ -55,7 +55,7 @@ class OverleverTilFagsystemSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost != null)
 
-        if (!journalpost.erSøknad() && kategorivurdering?.avklaring != Brevkategori.SØKNAD) {
+        if (!journalpost.erSøknad() && kategorivurdering?.avklaring != InnsendingType.SØKNAD) {
             log.info("Dokument er ikke en søknad, og skal ikke sendes til fagsystem")
             return Fullført
         }

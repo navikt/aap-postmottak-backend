@@ -4,7 +4,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.klient.saf.SafRestKlient
@@ -73,7 +73,7 @@ class OverleverTilFagsystemStegTest {
             |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"},
             |"oppgitteBarn": []
             |}""".trimMargin()
-        every { kategorivurderingRepository.hentKategoriAvklaring(any())?.avklaring } returns Brevkategori.SØKNAD
+        every { kategorivurderingRepository.hentKategoriAvklaring(any())?.avklaring } returns InnsendingType.SØKNAD
 
         overførTilFagsystemSteg.utfør(kontekst)
 

@@ -3,7 +3,7 @@ package no.nav.aap.postmottak
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
@@ -111,7 +111,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
         behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
     AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
     SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
-    KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkategori.SØKNAD)
+    KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()

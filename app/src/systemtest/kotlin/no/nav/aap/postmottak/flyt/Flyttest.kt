@@ -6,7 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -193,7 +193,7 @@ class Flyttest : WithFakes {
 
             AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
             SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-            KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkategori.SØKNAD)
+            KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
@@ -276,7 +276,7 @@ class Flyttest : WithFakes {
 
         AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
         SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-        KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, Brevkategori.SØKNAD)
+        KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
         StruktureringsvurderingRepository(connection).lagreStrukturertDokument(
             behandlingId,
             """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}"""

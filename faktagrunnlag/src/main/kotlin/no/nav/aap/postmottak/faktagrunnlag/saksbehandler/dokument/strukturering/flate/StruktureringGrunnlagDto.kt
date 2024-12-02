@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.flate
 
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.Brevkategori
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 
 data class StruktureringVurderingDto(
     val strukturertDokumentJson: String,
@@ -8,6 +8,6 @@ data class StruktureringVurderingDto(
 
 data class StruktureringGrunnlagDto(
     val vurdering: StruktureringVurderingDto?,
-    val kategori: Brevkategori,
+    val kategori: InnsendingType,
     val dokumenter: List<Long>
 )
