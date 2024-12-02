@@ -43,7 +43,6 @@ class SendSøknadTilArenaJobbUtfører(
                 tittel = kontekst.hoveddokumenttittel,
                 titler = kontekst.vedleggstitler
             )
-            log.info(request.toString()) // TODO  SLETT MEG ETTER DEBUGGING
             val sakId = arenaKlient.opprettArenaOppgave(request).arenaSakId
             opprettAutomatiskJournalføringsjobb(kontekst, sakId)
         } else {

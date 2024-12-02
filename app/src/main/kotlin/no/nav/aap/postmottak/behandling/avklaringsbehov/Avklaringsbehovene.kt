@@ -72,7 +72,6 @@ class Avklaringsbehovene(
                 if (avklaringsbehov.erAvsluttet() || avklaringsbehov.status() == Status.AVBRUTT) {
                     avklaringsbehov.reåpne(frist, begrunnelse, grunn)
                     if (avklaringsbehov.erVentepunkt()) {
-                        // TODO: Vurdere om funnet steg bør ligge på endringen...
                         repository.endreVentepunkt(avklaringsbehov.id, avklaringsbehov.historikk.last(), stegType)
                     } else {
                         repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
