@@ -67,7 +67,7 @@ class OverleverTilFagsystemStegTest {
 
         val kontekst: FlytKontekstMedPerioder = mockk(relaxed = true)
 
-        every { journalpost.erSøknad() } returns false
+        every { journalpost.kanBehandlesAutomatisk() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any())?.vurdering } returns """{
             |"yrkesskade": "Nei"},
             |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"},
@@ -95,7 +95,7 @@ class OverleverTilFagsystemStegTest {
         every { dokument.dokumentInfoId } returns dokumentInfoId
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpost.finnOriginal() } returns dokument
-        every { journalpost.erSøknad()} returns true
+        every {journalpost.kanBehandlesAutomatisk()} returns true
         every {
             safRestKlient.hentDokument(
                 journalpostId,

@@ -58,6 +58,6 @@ class VideresendSteg(
                 .forBehandling(behandling.journalpostId.referanse, dokumentbehandlingId.id).medCallId()
         )
 
-        return Fullført
+            return Fullført
     }
 }

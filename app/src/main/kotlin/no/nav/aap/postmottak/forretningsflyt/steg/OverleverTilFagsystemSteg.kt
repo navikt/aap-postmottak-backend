@@ -50,12 +50,13 @@ class OverleverTilFagsystemSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
 
-        val struktureringsvurdering = struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
+        val struktureringsvurdering =
+            struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
         val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost != null)
 
-        if (!journalpost.erSøknad() && kategorivurdering?.avklaring != InnsendingType.SØKNAD) {
+        if (!journalpost.kanBehandlesAutomatisk() && kategorivurdering?.avklaring != InnsendingType.SØKNAD) {
             log.info("Dokument er ikke en søknad, og skal ikke sendes til fagsystem")
             return Fullført
         }
