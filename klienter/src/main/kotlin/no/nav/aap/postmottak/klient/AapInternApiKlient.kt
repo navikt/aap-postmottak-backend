@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import java.net.URI
 
 class AapInternApiKlient {
@@ -17,16 +18,18 @@ class AapInternApiKlient {
     private val client =
         RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
 
-    fun hentArenaSakerForIdent(ident: String): List<ArenaSak> {
+    fun hentArenaSakerForPerson(person: Person): List<ArenaSak> {
         val path = url.resolve("/sakerByFnr")
-        val reqbody = SakerRequest(personidentifikatorer = listOf(ident)) // TODO: send inn alle fnr-identer her
+        val reqbody =
+            SakerRequest(personidentifikatorer = person.identer().map { it.identifikator })
         return client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
             DefaultJsonMapper.fromJson(body)
         })!!
     }
 }
 
-data class SakerRequest (
+data class SakerRequest(
     val personidentifikatorer: List<String>
 )
+
 data class ArenaSak(val saksnummer: String, val periode: Periode)

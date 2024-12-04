@@ -52,7 +52,8 @@ class GeografiskTilknytningRegelInputGenerator : InputGenerator<GeografiskTilkny
 
     override fun generer(input: RegelInput): GeografiskTilknytningRegelInput {
         val geografiskTilknytning =
-            PdlGraphqlKlient.withClientCredentialsRestClient().hentGeografiskTilknytning(input.fnr)
+            PdlGraphqlKlient.withClientCredentialsRestClient()
+                .hentGeografiskTilknytning(input.person.aktivIdent().identifikator)
         return GeografiskTilknytningRegelInput(geografiskTilknytning, godkjenteGeografiskeTilknytninger)
     }
 }

@@ -21,7 +21,7 @@ class ArenaSakRegel : Regel<ArenaSakRegelInput> {
 
 class ArenaSakRegelInputGenerator : InputGenerator<ArenaSakRegelInput> {
     override fun generer(input: RegelInput): ArenaSakRegelInput {
-        val saker = AapInternApiKlient().hentArenaSakerForIdent(input.fnr)
+        val saker = AapInternApiKlient().hentArenaSakerForPerson(input.person)
         return ArenaSakRegelInput(saker)
     }
 }
