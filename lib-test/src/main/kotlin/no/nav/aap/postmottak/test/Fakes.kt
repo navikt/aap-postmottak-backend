@@ -14,7 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
-import no.nav.aap.postmottak.klient.ArenaSak
+import no.nav.aap.postmottak.klient.SakStatus
 import no.nav.aap.postmottak.klient.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.postmottak.klient.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.postmottak.klient.gosysoppgave.FerdigstillOppgaveRequest
@@ -227,7 +227,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
         routing {
             post("/sakerByFnr") {
-                call.respond<List<ArenaSak>>(emptyList())
+                call.respond<List<SakStatus>>(emptyList())
             }
         }
     }

@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.fordeler.regler
 
 import no.nav.aap.postmottak.klient.AapInternApiKlient
-import no.nav.aap.postmottak.klient.ArenaSak
+import no.nav.aap.postmottak.klient.SakStatus
 
 class ArenaSakRegel : Regel<ArenaSakRegelInput> {
     companion object : RegelFactory<ArenaSakRegelInput> {
@@ -27,5 +27,5 @@ class ArenaSakRegelInputGenerator : InputGenerator<ArenaSakRegelInput> {
 }
 
 data class ArenaSakRegelInput(
-    val saker: List<ArenaSak>
+    val saker: List<SakStatus>
 )
