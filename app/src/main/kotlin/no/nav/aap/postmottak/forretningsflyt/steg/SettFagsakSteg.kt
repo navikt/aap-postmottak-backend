@@ -38,7 +38,6 @@ class SettFagsakSteg(
 
         requireNotNull(journalpost)
 
-        // TODO: Skill mellom maskinell og manuell journalføring
         if (saksvurdering.generellSak){
             joarkKlient.førJournalpostPåGenerellSak(journalpost)
         } else {

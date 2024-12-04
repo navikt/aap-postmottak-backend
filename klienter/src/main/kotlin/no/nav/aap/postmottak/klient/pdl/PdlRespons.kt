@@ -50,7 +50,7 @@ data class HentPersonResult(
 data class Fødselsdato(val foedselsdato: LocalDate)
 
 enum class Code {
-    ok, not_found, bad_request //TODO: add more
+    ok, not_found, bad_request
 }
 
 data class Navn(

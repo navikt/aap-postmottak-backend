@@ -5,8 +5,6 @@ import no.nav.aap.verdityper.Brevkoder
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
 import java.time.LocalDate
 
-
-// TODO: Bør skille SAF-respons fra domenemodell
 open class Journalpost(
     val journalpostId: JournalpostId,
     val person: Person,

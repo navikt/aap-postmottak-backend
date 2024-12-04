@@ -43,7 +43,7 @@ class AvklarTemaSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
             ?: error("Journalpost mangler i AvklarTemaSteg")
         if (journalpost.tema != "AAP") {
-            log.info("Journalpost har endret tema. ytt tema er: ${journalpost.tema}")
+            log.info("Journalpost har endret tema. Nytt tema er: ${journalpost.tema}")
             gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)
                 .forEach {gosysOppgaveKlient.ferdigstillOppgave(it) }
             return Avbrutt

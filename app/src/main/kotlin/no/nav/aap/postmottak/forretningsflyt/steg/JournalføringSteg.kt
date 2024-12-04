@@ -38,7 +38,6 @@ class JournalføringSteg(
 
         requireNotNull(journalpost)
 
-        // TODO: Skill mellom maskinell og manuell journalføring
         joarkKlient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
 
         if (saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.generellSak == true) {
