@@ -109,7 +109,7 @@ internal fun Application.server(
 
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
-    val motor = module(dataSource)
+    val motor = module(dataSource, prometheus)
 
     val mottakStream = mottakStream(dataSource, prometheus)
 
@@ -134,12 +134,13 @@ internal fun Application.server(
 
 }
 
-fun Application.module(dataSource: DataSource): Motor {
+fun Application.module(dataSource: DataSource, prometheus: PrometheusMeterRegistry): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
         logInfoProvider = BehandlingsflytLogInfoProvider,
-        jobber = ProsesseringsJobber.alle()
+        jobber = ProsesseringsJobber.alle(),
+        prometheus = prometheus,
     )
 
     dataSource.transaction { dbConnection ->
