@@ -59,6 +59,7 @@ class ArenaVideresender(
             Brevkoder.STANDARD_ETTERSENDING.kode -> {
                 sendSøknadsettersendelseTilArena(journalpost)
             }
+            Brevkoder.SØKNAD_OM_REISESTØNAD.kode, Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode-> Unit // Håndteres af jfr-arena
             else -> {
                 sendTilManuellJournalføring(journalpost)
             }

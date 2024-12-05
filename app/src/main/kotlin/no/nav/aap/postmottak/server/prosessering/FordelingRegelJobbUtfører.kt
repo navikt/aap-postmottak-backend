@@ -46,7 +46,8 @@ class FordelingRegelJobbUtfører(
         val res = regelService.evaluer(
             RegelInput(
                 journalpostId.referanse,
-                journalpost.person
+                journalpost.person,
+                journalpost.hoveddokumentbrevkode
             )
         )
 
