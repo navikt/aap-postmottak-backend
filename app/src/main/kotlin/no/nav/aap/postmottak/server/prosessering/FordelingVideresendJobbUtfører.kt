@@ -49,10 +49,10 @@ class FordelingVideresendJobbUtfører(
         val journalpostId = input.getJournalpostId()
         val regelResultat = regelRepository.hentRegelresultat(journalpostId.referanse)
         if (regelResultat.skalTilKelvin()) {
-            prometheus.counter("fordeling.videresend", "system", "kelvin").increment()
+            prometheus.counter("fordeling_videresend", "system", "kelvin").increment()
             routeTilKelvin(journalpostId)
         } else {
-            prometheus.counter("fordeling.videresend", "system", "arena").increment()
+            prometheus.counter("fordeling_videresend", "system", "arena").increment()
             arenaVideresender.videresendJournalpostTilArena(journalpostId)
         }
     }

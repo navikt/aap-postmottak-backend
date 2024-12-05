@@ -31,7 +31,7 @@ class FordelingVideresendJobbUtførerTest : WithFakes {
             .medJournalpostId(journalpostId)
         fordelingVideresendJobbUtfører.utfør(jobbInput)
 
-        assertThat(fordelingVideresendJobbUtfører.prometheus.counter("fordeling.videresend", "system", "kelvin").count()).isEqualTo(1.0)
+        assertThat(fordelingVideresendJobbUtfører.prometheus.counter("fordeling_videresend", "system", "kelvin").count()).isEqualTo(1.0)
         verify(exactly = 1) { behandlingRepositoryMock.opprettBehandling(journalpostId, TypeBehandling.Journalføring) }
         verify(exactly = 1) {
             flytJobbRepositoryMock.leggTil(
