@@ -47,7 +47,7 @@ data class HentPersonResult(
     val adressebeskyttelse: List<Adressebeskyttelseskode>? = null
 )
 
-data class Fødselsdato(val foedselsdato: LocalDate)
+data class Fødselsdato(val foedselsdato: LocalDate, val metadata: HistoriskMetadata)
 
 enum class Code {
     ok, not_found, bad_request
@@ -90,3 +90,5 @@ enum class Adressebeskyttelseskode {
             UGRADERT -> Diskresjonskode.ANY
         }
 }
+
+data class HistoriskMetadata(val historisk: Boolean)

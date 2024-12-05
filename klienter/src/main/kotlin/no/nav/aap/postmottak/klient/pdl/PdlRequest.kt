@@ -58,6 +58,7 @@ val PERSON_QUERY = """
         hentPerson(ident: $ident) {
             foedselsdato {
                 foedselsdato
+                historisk
             }
         }
     }

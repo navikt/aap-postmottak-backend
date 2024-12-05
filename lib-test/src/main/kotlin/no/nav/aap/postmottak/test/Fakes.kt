@@ -403,7 +403,12 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             { "data":
             {"hentPerson": {
                     "foedselsdato": [
-                        {"foedselsdato": "1990-01-01"}
+                        {
+                            "foedselsdato": "1990-01-01",
+                            "metadata": {
+                                "historisk": false
+                            }
+                        }
                     ]
                 }
             }}
