@@ -32,6 +32,7 @@ import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobb
 import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
@@ -166,7 +167,7 @@ class Flyttest : WithFakes {
 
         dataSource.transaction { connection ->
             FlytJobbRepository(connection).leggTil(
-                JobbInput(FordelingRegelJobbUtfører)
+                JobbInput(FordelingRegelJobb())
                     .medJournalpostId(journalpostId)
                     .medCallId()
             )

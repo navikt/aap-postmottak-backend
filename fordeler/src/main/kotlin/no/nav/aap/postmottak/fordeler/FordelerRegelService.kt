@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.fordeler
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.postmottak.fordeler.regler.Regel
 import org.slf4j.LoggerFactory
 import no.nav.aap.postmottak.fordeler.regler.RegelFactory
@@ -13,7 +15,7 @@ data class Regelresultat(val regelMap: RegelMap) {
     fun skalTilKelvin() = regelMap.values.all { it }
 }
 
-class FordelerRegelService {
+class FordelerRegelService(private val prometheus: MeterRegistry = SimpleMeterRegistry()) {
     fun evaluer(input: RegelInput): Regelresultat {
         return hentAktiveRegler()
             .associate { regel ->

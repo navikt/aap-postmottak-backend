@@ -13,7 +13,7 @@ import javax.sql.DataSource
 fun Application.mottakStream(dataSource: DataSource, registry: MeterRegistry): Stream {
     if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
     val config = StreamsConfig()
-    val stream = MottakStream(JoarkKafkaHandler(config, dataSource).topology, config, registry)
+    val stream = MottakStream(JoarkKafkaHandler(config, dataSource, prometheus = registry).topology, config, registry)
     stream.start()
     monitor.subscribe(ApplicationStopped) {
         stream.close()

@@ -28,7 +28,7 @@ class FordelingRegelJobbUtførerTest {
     @Test
     fun `Vi kan sette og hente parametere for jobben`() {
         val journalpostId = JournalpostId(1)
-        val input = JobbInput(FordelingRegelJobbUtfører)
+        val input = JobbInput(FordelingRegelJobb())
             .medJournalpostId(journalpostId)
 
         val actualJournalpostId = input.getJournalpostId()
@@ -44,7 +44,7 @@ class FordelingRegelJobbUtførerTest {
 
         every { regelService.evaluer(any()) } returns regelResultat
 
-        fordelingRegelJobbUtfører.utfør(JobbInput(FordelingRegelJobbUtfører)
+        fordelingRegelJobbUtfører.utfør(JobbInput(FordelingRegelJobb())
             .medJournalpostId(journalpostId)
         )
 

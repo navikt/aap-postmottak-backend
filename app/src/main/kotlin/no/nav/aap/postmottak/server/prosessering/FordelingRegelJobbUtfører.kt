@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.server.prosessering
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
@@ -17,27 +19,9 @@ class FordelingRegelJobbUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     private val journalpostService: JournalpostService,
     private val regelService: FordelerRegelService,
-    private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository
+    private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
+    private val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
-
-    companion object : Jobb {
-        override fun konstruer(connection: DBConnection): JobbUtfører {
-            return FordelingRegelJobbUtfører(
-                FlytJobbRepository(connection),
-                JournalpostService.konstruer(connection),
-                FordelerRegelService(),
-                InnkommendeJournalpostRepository(connection)
-            )
-        }
-
-        override fun type() = "fordel.innkommende"
-
-        override fun navn() = "Prosesser fordeling"
-
-        override fun beskrivelse() = "Vurderer mottaker av innkommende journalpost"
-
-    }
-
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
 
@@ -62,9 +46,28 @@ class FordelingRegelJobbUtfører(
 
     private fun opprettVideresendJobb(journalpostId: JournalpostId) {
         flytJobbRepository.leggTil(
-            JobbInput(FordelingVideresendJobbUtfører)
+            JobbInput(FordelingVideresendJobb(prometheus))
                 .medJournalpostId(journalpostId)
                 .medCallId()
         )
     }
+}
+
+class FordelingRegelJobb(private val prometheus: MeterRegistry = SimpleMeterRegistry()) : Jobb {
+    override fun konstruer(connection: DBConnection): JobbUtfører {
+        return FordelingRegelJobbUtfører(
+            FlytJobbRepository(connection),
+            JournalpostService.konstruer(connection),
+            FordelerRegelService(),
+            InnkommendeJournalpostRepository(connection),
+            prometheus
+        )
+    }
+
+    override fun type() = "fordel.innkommende"
+
+    override fun navn() = "Prosesser fordeling"
+
+    override fun beskrivelse() = "Vurderer mottaker av innkommende journalpost"
+
 }

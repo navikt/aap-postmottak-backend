@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.mottak
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -8,6 +9,7 @@ import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobb
 import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
@@ -35,7 +37,7 @@ class JoarkKafkaHandlerTest {
             
             verify(exactly = 1) {
                 flytJobbRepository.leggTil(withArg {
-                    assertThat(it.type()).isEqualTo(FordelingRegelJobbUtfører.type())
+                    assertThat(it.type()).isEqualTo(FordelingRegelJobb().type())
                 })
             }
         }
@@ -71,7 +73,7 @@ class JoarkKafkaHandlerTest {
             ).let(firstArg())
         }
 
-        val joarkKafkaHandler = JoarkKafkaHandler(config, mockk(), transactionProvider)
+        val joarkKafkaHandler = JoarkKafkaHandler(config, mockk(), transactionProvider, SimpleMeterRegistry())
         val topologyTestDriver = TopologyTestDriver(joarkKafkaHandler.topology, config.streamsProperties())
         topologyTestDriver.createInputTopic(
             JOARK_TOPIC,
