@@ -28,12 +28,19 @@ class SendSøknadTilArenaJobbUtfører(
 
         override fun beskrivelse() = "Oppretter sak i Arena for ny søknad"
 
+        override fun retries() = 4
+
     }
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun utfør(input: JobbInput) {
         val kontekst = input.getArenaVideresenderKontekst()
+
+        if (input.antallRetriesForsøkt() >= 2) {
+            log.info("Forsøk på opprettelse av oppgave i Arena feilet ${input.antallRetriesForsøkt()+1}, oppretter manuell oppgave")
+            opprettManuellJournalføringsoppgavejobb((kontekst))
+        }
 
         if (!arenaKlient.harAktivSak(kontekst.ident)) {
             log.info("Oppretter oppgave i Arena for søknad med journalpostid \"${kontekst.journalpostId}\"")

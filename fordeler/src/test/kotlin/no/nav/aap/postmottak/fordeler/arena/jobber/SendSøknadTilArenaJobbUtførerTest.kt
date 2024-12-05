@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.fordeler.arena.jobber
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -75,5 +76,33 @@ class SendSøknadTilArenaJobbUtførerTest: WithFakes {
             ))
         })}
             
+    }
+
+    @Test
+    fun `journalpost skal sendes til manuell journalføring når Sendsøknadjobb har feilet 3 ganger`() {
+        every {arenaKlientMock.harAktivSak(any())} returns false
+
+        val journalpostId = JournalpostId(1)
+
+        val jobbKontekst =   ArenaVideresenderKontekst(
+            journalpostId = journalpostId,
+            ident = Ident("123"),
+            hoveddokumenttittel = "Hoveddokument",
+            vedleggstitler = listOf("Vedlegg"),
+            navEnhet = "4491"
+        )
+
+        val jobbInput = spyk(JobbInput(SendSøknadTilArenaJobbUtfører).medArenaVideresenderKontekst(
+            jobbKontekst
+        ))
+
+        every { jobbInput.antallRetriesForsøkt() } returns 2
+
+        sendSøknadTilArenaJobb.utfør(jobbInput)
+
+        verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
+            assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type())
+            assertThat(it.getArenaVideresenderKontekst()).isEqualTo(jobbKontekst)
+        })}
     }
 }
