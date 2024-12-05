@@ -75,12 +75,12 @@ fun main() {
 internal fun Application.server(
     dbConfig: DbConfig
 ) {
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
     DefaultJsonMapper.objectMapper()
         .registerSubtypes(utledSubtypes())
 
-    commonKtorModule(prometheus, azureConfig = AzureConfig(), InfoModel(title = "AAP - Postmottak"))
+    commonKtorModule(prometheus = PrometheusProvider.prometheus, azureConfig = AzureConfig(), InfoModel(title = "AAP - Postmottak"))
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -109,9 +109,9 @@ internal fun Application.server(
 
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
-    val motor = module(dataSource, prometheus)
+    val motor = module(dataSource)
 
-    val mottakStream = mottakStream(dataSource, prometheus)
+    val mottakStream = mottakStream(dataSource)
 
     routing {
         authenticate(AZURE) {
@@ -129,18 +129,18 @@ internal fun Application.server(
                 testApi(dataSource)
             }
         }
-        actuator(prometheus, motor, mottakStream)
+        actuator(motor, mottakStream)
     }
 
 }
 
-fun Application.module(dataSource: DataSource, prometheus: PrometheusMeterRegistry): Motor {
+fun Application.module(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
         logInfoProvider = BehandlingsflytLogInfoProvider,
         jobber = ProsesseringsJobber.alle(),
-        prometheus = prometheus,
+        prometheus = PrometheusProvider.prometheus,
     )
 
     dataSource.transaction { dbConnection ->
@@ -174,10 +174,10 @@ fun NormalOpenAPIRoute.configApi() {
     }
 }
 
-private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor, stream: Stream) {
+private fun Routing.actuator(motor: Motor, stream: Stream) {
     route("/actuator") {
         get("/metrics") {
-            call.respond(prometheus.scrape())
+            call.respond(PrometheusProvider.prometheus.scrape())
         }
 
         get("/live") {

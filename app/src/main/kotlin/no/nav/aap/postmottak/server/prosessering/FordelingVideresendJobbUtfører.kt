@@ -7,6 +7,7 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.fordeler.RegelRepository
 import no.nav.aap.postmottak.fordeler.arena.ArenaVideresender
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -24,6 +25,26 @@ class FordelingVideresendJobbUtfører(
     val arenaVideresender: ArenaVideresender,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
+    companion object : Jobb {
+
+        override fun konstruer(connection: DBConnection): JobbUtfører {
+            return FordelingVideresendJobbUtfører(
+                BehandlingRepositoryImpl(connection),
+                RegelRepository(connection),
+                FlytJobbRepository(connection),
+                ArenaVideresender.konstruer(connection),
+                PrometheusProvider.prometheus,
+            )
+        }
+
+        override fun type() = "fordel.videresend"
+
+        override fun navn() = "Prosesser videresending"
+
+        override fun beskrivelse() = "Videresend journalpost"
+
+    }
+
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
         val regelResultat = regelRepository.hentRegelresultat(journalpostId.referanse)
@@ -44,26 +65,5 @@ class FordelingVideresendJobbUtfører(
                 .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
         )
     }
-}
-
-class FordelingVideresendJobb(
-    val prometheus: MeterRegistry = SimpleMeterRegistry()
-) : Jobb {
-
-    override fun konstruer(connection: DBConnection): JobbUtfører {
-        return FordelingVideresendJobbUtfører(
-            BehandlingRepositoryImpl(connection),
-            RegelRepository(connection),
-            FlytJobbRepository(connection),
-            ArenaVideresender.konstruer(connection),
-            prometheus,
-        )
-    }
-
-    override fun type() = "fordel.videresend"
-
-    override fun navn() = "Prosesser videresending"
-
-    override fun beskrivelse() = "Videresend journalpost"
 
 }

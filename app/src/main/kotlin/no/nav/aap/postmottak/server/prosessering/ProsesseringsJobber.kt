@@ -15,8 +15,8 @@ object ProsesseringsJobber {
             ProsesserBehandlingJobbUtfører,
             StoppetHendelseJobbUtfører,
             GjenopptaBehandlingJobbUtfører,
-            FordelingRegelJobb(prometheus),
-            FordelingVideresendJobb(prometheus),
+            FordelingRegelJobbUtfører,
+            FordelingVideresendJobbUtfører,
             SendSøknadTilArenaJobbUtfører,
             ManuellJournalføringJobbUtfører,
             AutomatiskJournalføringJobbUtfører

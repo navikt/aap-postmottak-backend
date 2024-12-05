@@ -18,7 +18,6 @@ class FordelingVideresendJobbUtførerTest : WithFakes {
     val behandlingRepositoryMock = mockk<BehandlingRepository>(relaxed = true)
     val regelRepositoryMock = mockk<RegelRepository>()
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
-    val fordelingVideresenderJobb = mockk<FordelingVideresendJobb>()
     val fordelingVideresendJobbUtfører =
         FordelingVideresendJobbUtfører(behandlingRepositoryMock, regelRepositoryMock, flytJobbRepositoryMock, mockk(relaxed = true))
 
@@ -26,10 +25,9 @@ class FordelingVideresendJobbUtførerTest : WithFakes {
     fun `Når journalposten skal til Kelvin skal vi opprette en ProsesserBehandlingJobb`() {
         val regelResultat = Regelresultat(regelMap = mapOf("Regel1" to true, "Regel2" to true))
         every { regelRepositoryMock.hentRegelresultat(any()) } returns regelResultat
-        every{fordelingVideresenderJobb.konstruer(any())} returns fordelingVideresendJobbUtfører
-        
+
         val journalpostId = JournalpostId(1)
-        val jobbInput = JobbInput(FordelingRegelJobb())
+        val jobbInput = JobbInput(FordelingRegelJobbUtfører)
             .medJournalpostId(journalpostId)
         fordelingVideresendJobbUtfører.utfør(jobbInput)
 

@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.mottak
 
 
-import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -9,7 +8,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobb
+import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.medJournalpostId
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
@@ -53,7 +52,6 @@ class JoarkKafkaHandler(
     config: StreamsConfig,
     datasource: DataSource,
     private val transactionProvider: TransactionProvider = TransactionProvider(datasource),
-    private val prometheus: MeterRegistry
 ) {
 
     private val log = LoggerFactory.getLogger(JoarkKafkaHandler::class.java)
@@ -112,7 +110,7 @@ class JoarkKafkaHandler(
         transactionProvider.inTransaction {
 
             flytJobbRepository.leggTil(
-                JobbInput(FordelingRegelJobb(prometheus))
+                JobbInput(FordelingRegelJobbUtfører)
                     .medJournalpostId(journalpostId)
             )
         }

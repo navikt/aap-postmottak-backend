@@ -10,7 +10,7 @@ class JobbInputExtensionsKtTest {
     @Test
     fun `Vi kan sette og hente parametere for jobben`() {
         val journalpostId = JournalpostId(1)
-        val input = JobbInput(FordelingRegelJobb())
+        val input = JobbInput(FordelingRegelJobbUtfører)
             .medJournalpostId(journalpostId)
 
         val actualJournalpostId = input.getJournalpostId()

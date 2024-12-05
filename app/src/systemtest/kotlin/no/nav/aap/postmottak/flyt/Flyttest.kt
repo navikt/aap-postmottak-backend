@@ -7,8 +7,6 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
-import no.nav.aap.postmottak.test.fakes.WithFakes
-import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
@@ -27,17 +25,18 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.
 import no.nav.aap.postmottak.flyt.flate.Venteinformasjon
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.fordeler.arena.ProducerProvider
+import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobb
 import no.nav.aap.postmottak.server.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.server.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
+import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.assertj.core.api.Assertions.assertThat
@@ -167,7 +166,7 @@ class Flyttest : WithFakes {
 
         dataSource.transaction { connection ->
             FlytJobbRepository(connection).leggTil(
-                JobbInput(FordelingRegelJobb())
+                JobbInput(FordelingRegelJobbUtfører)
                     .medJournalpostId(journalpostId)
                     .medCallId()
             )

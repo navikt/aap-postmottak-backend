@@ -1,19 +1,19 @@
 package no.nav.aap.postmottak.mottak.kafka
 
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.mottak.kafka.config.ProcessingExceptionHandler
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.Topology
 
-class MottakStream(topology: Topology, config: StreamsConfig, registry: MeterRegistry): Stream {
+class MottakStream(topology: Topology, config: StreamsConfig): Stream {
     val streams = KafkaStreams(topology, config.streamsProperties())
 
 
     init {
         streams.setUncaughtExceptionHandler(ProcessingExceptionHandler())
-        KafkaStreamsMetrics(streams).bindTo(registry)
+        KafkaStreamsMetrics(streams).bindTo(PrometheusProvider.prometheus)
     }
 
     override fun ready(): Boolean = streams.state() in listOf(

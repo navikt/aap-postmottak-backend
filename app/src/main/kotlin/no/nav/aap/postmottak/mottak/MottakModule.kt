@@ -10,10 +10,10 @@ import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import javax.sql.DataSource
 
-fun Application.mottakStream(dataSource: DataSource, registry: MeterRegistry): Stream {
+fun Application.mottakStream(dataSource: DataSource): Stream {
     if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
     val config = StreamsConfig()
-    val stream = MottakStream(JoarkKafkaHandler(config, dataSource, prometheus = registry).topology, config, registry)
+    val stream = MottakStream(JoarkKafkaHandler(config, dataSource).topology, config)
     stream.start()
     monitor.subscribe(ApplicationStopped) {
         stream.close()
