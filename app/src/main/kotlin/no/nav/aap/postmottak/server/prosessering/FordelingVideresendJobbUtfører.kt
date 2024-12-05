@@ -1,10 +1,13 @@
 package no.nav.aap.postmottak.server.prosessering
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.fordeler.RegelRepository
 import no.nav.aap.postmottak.fordeler.arena.ArenaVideresender
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -19,16 +22,18 @@ class FordelingVideresendJobbUtfører(
     val behandlingRepository: BehandlingRepository,
     val regelRepository: RegelRepository,
     val flytJobbRepository: FlytJobbRepository,
-    val arenaVideresender: ArenaVideresender
+    val arenaVideresender: ArenaVideresender,
+    val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
-
     companion object : Jobb {
+
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return FordelingVideresendJobbUtfører(
                 BehandlingRepositoryImpl(connection),
                 RegelRepository(connection),
                 FlytJobbRepository(connection),
-                ArenaVideresender.konstruer(connection)
+                ArenaVideresender.konstruer(connection),
+                PrometheusProvider.prometheus,
             )
         }
 
@@ -44,8 +49,10 @@ class FordelingVideresendJobbUtfører(
         val journalpostId = input.getJournalpostId()
         val regelResultat = regelRepository.hentRegelresultat(journalpostId.referanse)
         if (regelResultat.skalTilKelvin()) {
+            prometheus.counter("fordeling.videresend", "system", "kelvin").increment()
             routeTilKelvin(journalpostId)
         } else {
+            prometheus.counter("fordeling.videresend", "system", "arena").increment()
             arenaVideresender.videresendJournalpostTilArena(journalpostId)
         }
     }
