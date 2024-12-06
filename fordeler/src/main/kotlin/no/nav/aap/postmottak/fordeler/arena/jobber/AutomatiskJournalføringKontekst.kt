@@ -15,6 +15,7 @@ data class AutomatiskJournalføringKontekst(
 
 fun JobbInput.getAutomatiskJournalføringKontekst() = DefaultJsonMapper.fromJson(this.payload(), AutomatiskJournalføringKontekst::class.java)
 fun JobbInput.medAutomatiskJournalføringKontekst(arenaVideresender: AutomatiskJournalføringKontekst): JobbInput {
+    this.forSak(arenaVideresender.journalpostId.referanse)
     this.medPayload(DefaultJsonMapper.toJson(arenaVideresender))
     return this
 }

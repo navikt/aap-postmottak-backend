@@ -16,5 +16,6 @@ data class ArenaVideresenderKontekst(
 
 fun JobbInput.getArenaVideresenderKontekst() = DefaultJsonMapper.fromJson(this.payload(), ArenaVideresenderKontekst::class.java)
 fun JobbInput.medArenaVideresenderKontekst(arenaVideresender: ArenaVideresenderKontekst): JobbInput {
+    this.forSak(arenaVideresender.journalpostId.referanse)
     return this.medPayload(DefaultJsonMapper.toJson(arenaVideresender))
 }
