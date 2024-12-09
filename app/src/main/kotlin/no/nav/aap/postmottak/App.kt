@@ -48,11 +48,8 @@ import no.nav.aap.postmottak.server.prosessering.BehandlingsflytLogInfoProvider
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.test.testApi
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
-
-internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 
 class App
 
@@ -61,7 +58,9 @@ val SYSTEMBRUKER = Bruker("Kelvin")
 private const val ANTALL_WORKERS = 4
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
+    Thread.currentThread().setUncaughtExceptionHandler { _, e ->
+        LoggerFactory.getLogger(App::class.java).error("Uhåndtert feil.", e)
+    }
     embeddedServer(Netty, configure = {
         connector {
             port = 8080
@@ -80,7 +79,11 @@ internal fun Application.server(
     DefaultJsonMapper.objectMapper()
         .registerSubtypes(utledSubtypes())
 
-    commonKtorModule(prometheus = PrometheusProvider.prometheus, azureConfig = AzureConfig(), InfoModel(title = "AAP - Postmottak"))
+    commonKtorModule(
+        prometheus = PrometheusProvider.prometheus,
+        azureConfig = AzureConfig(),
+        InfoModel(title = "AAP - Postmottak")
+    )
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -166,7 +169,7 @@ fun NormalOpenAPIRoute.configApi() {
         @Suppress("UnauthorizedGet")
         get<Unit, Map<AvklaringsbehovKode, Definisjon>> {
             val response = HashMap<AvklaringsbehovKode, Definisjon>()
-            Definisjon.entries.forEach{
+            Definisjon.entries.forEach {
                 response[it.kode] = it
             }
             respond(response)
