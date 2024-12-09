@@ -18,6 +18,9 @@ jobs:
       id-token: write
     uses: navikt/aap-workflows/.github/workflows/gradle-build.yml@main
     secrets: inherit
+    with:
+      publish-typescript: true
+      app-navn: postmottak-backend
   publiser-kontrakt:
     needs: build
     permissions:
