@@ -44,7 +44,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.mottakStream
 import no.nav.aap.postmottak.server.exception.FlytOperasjonException
-import no.nav.aap.postmottak.server.prosessering.BehandlingsflytLogInfoProvider
+import no.nav.aap.postmottak.server.prosessering.PostmottakLogInfoProvider
 import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.test.testApi
 import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
@@ -141,7 +141,7 @@ fun Application.module(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
-        logInfoProvider = BehandlingsflytLogInfoProvider,
+        logInfoProvider = PostmottakLogInfoProvider,
         jobber = ProsesseringsJobber.alle(),
         prometheus = PrometheusProvider.prometheus,
     )

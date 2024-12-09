@@ -5,7 +5,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.mdc.JobbLogInfoProvider
 import no.nav.aap.motor.mdc.LogInformasjon
 
-object BehandlingsflytLogInfoProvider : JobbLogInfoProvider {
+object PostmottakLogInfoProvider : JobbLogInfoProvider {
 
     override fun hentInformasjon(connection: DBConnection, jobbInput: JobbInput): LogInformasjon? {
 

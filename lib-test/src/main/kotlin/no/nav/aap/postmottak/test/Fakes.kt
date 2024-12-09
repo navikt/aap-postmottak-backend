@@ -83,6 +83,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
+
+        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+        System.setProperty("gosys.url", "http://localhost:3000/")
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
         System.setProperty("azure.app.client.id", POSTMOTTAK_BACKEND)
@@ -338,7 +341,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     }
 
 
-    internal data class TestToken(
+    data class TestToken(
         val access_token: String,
         val refresh_token: String = "very.secure.token",
         val id_token: String = "very.secure.token",

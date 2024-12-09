@@ -36,9 +36,6 @@ class TestApp {
 
 // Kjøres opp for å få logback i console uten json
 fun main() {
-    System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
-    System.setProperty("gosys.url", "http://localhost:3000/")
-
     val postgres = postgreSQLContainer()
     val fakes = Fakes(azurePort = 8081)
 
@@ -119,7 +116,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
 
 }
 
-private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
+internal fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
     val postgres = PostgreSQLContainer<Nothing>("postgres:15")
     postgres.waitingFor(HostPortWaitStrategy().withStartupTimeout(Duration.of(60L, ChronoUnit.SECONDS)))
     postgres.start()
