@@ -7,9 +7,11 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.fordeler.RegelRepository
 import no.nav.aap.postmottak.fordeler.arena.ArenaVideresender
+import no.nav.aap.postmottak.fordelingsCounter
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepository
@@ -49,11 +51,11 @@ class FordelingVideresendJobbUtfører(
         val journalpostId = input.getJournalpostId()
         val regelResultat = regelRepository.hentRegelresultat(journalpostId.referanse)
         if (regelResultat.skalTilKelvin()) {
-            prometheus.counter("fordeling_videresend", "system", "kelvin").increment()
             routeTilKelvin(journalpostId)
+            prometheus.fordelingsCounter(Fagsystem.kelvin).increment()
         } else {
-            prometheus.counter("fordeling_videresend", "system", "arena").increment()
             arenaVideresender.videresendJournalpostTilArena(journalpostId)
+            prometheus.fordelingsCounter(Fagsystem.arena).increment()
         }
     }
 
