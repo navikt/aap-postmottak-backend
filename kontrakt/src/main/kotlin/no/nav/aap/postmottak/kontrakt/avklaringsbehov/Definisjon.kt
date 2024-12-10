@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import tilgang.Rolle
 import java.time.LocalDate
 import java.time.Period
 import java.util.*
@@ -15,7 +16,8 @@ enum class Definisjon(
     val type: BehovType,
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
-    val kreverToTrinn: Boolean = false
+    val kreverToTrinn: Boolean = false,
+    val løsesAv: List<Rolle> = listOf(Rolle.SAKSBEHANDLER)
 ) {
     MANUELT_SATT_PÅ_VENT(
         kode = AvklaringsbehovKode.`9001`,

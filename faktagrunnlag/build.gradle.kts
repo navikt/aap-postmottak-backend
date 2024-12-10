@@ -1,6 +1,6 @@
 val komponenterVersjon = "1.0.77"
 val ktorVersion = "3.0.0"
-val tilgangVersjon = "0.0.48"
+val tilgangVersjon = "0.0.56"
 val behandlingsflytVersjon = "0.0.64"
 
 plugins {
