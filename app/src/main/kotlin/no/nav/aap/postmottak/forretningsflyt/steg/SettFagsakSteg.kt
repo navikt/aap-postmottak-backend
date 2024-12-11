@@ -23,7 +23,7 @@ class SettFagsakSteg(
             return SettFagsakSteg(
                 JournalpostRepositoryImpl(connection),
                 SaksnummerRepository(connection),
-                JoarkClient()
+                JoarkClient.withClientCridentialsTokenProvider()
             )
         }
 

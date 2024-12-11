@@ -13,6 +13,11 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 
 val DIGITAL_SØKNAD_ID = JournalpostId(999)
+val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
+
+val defaultJournalpost: suspend RoutingContext.() -> Unit = {
+    call.respond(false)
+}
 
 fun Application.safFake() {
 
@@ -36,6 +41,7 @@ fun Application.safFake() {
                     call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     call.respondText("{}")
                 }
+
                 else -> {
                     call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
                     call.respondOutputStream {
@@ -62,6 +68,7 @@ fun Application.safFake() {
                             "id": "213453452",
                             "type": "FNR"
                           },
+                          ${getAvsenderMottaker(journalpostId.toLong())}
                           "status": "MOTTATT",
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
@@ -85,6 +92,16 @@ fun Application.safFake() {
         }
     }
 }
+
+private fun getAvsenderMottaker(journalpostId: Long) =
+    when (journalpostId) {
+        UTEN_AVSENDER_MOTTAKER.referanse -> ""
+        else -> """"avsenderMottaker": {
+            "id": "213453452",
+            "type": "FNR"
+        },"""
+    }
+
 
 private fun getDokumenter(journalpostId: Long) =
     when (journalpostId) {

@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.fordeler.Enhetsutreder
 import no.nav.aap.postmottak.fordeler.arena.jobber.*
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.joark.Joark
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.journalpost.JournalpostMedDokumentTitler
@@ -21,7 +22,7 @@ import java.util.*
 class ArenaVideresenderTest {
 
     val journalpostService: JournalpostService = mockk()
-    val joarkClient: JoarkClient = mockk(relaxed = true)
+    val joarkClient: Joark = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
     val enhetsutreder: Enhetsutreder = mockk()
     val arenaKlient: ArenaKlient = mockk()

@@ -24,7 +24,7 @@ class JournalføringSteg(
             return JournalføringSteg(
                 JournalpostRepositoryImpl(connection),
                 SaksnummerRepository(connection),
-                JoarkClient()
+                JoarkClient.withClientCridentialsTokenProvider()
             )
         }
 

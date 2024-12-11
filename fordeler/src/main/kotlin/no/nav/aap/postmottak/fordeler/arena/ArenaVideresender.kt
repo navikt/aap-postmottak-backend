@@ -6,14 +6,15 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.fordeler.Enhetsutreder
 import no.nav.aap.postmottak.fordeler.arena.jobber.ArenaVideresenderKontekst
-import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
-import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringJobbUtfører
+import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
+import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.medArenaVideresenderKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.medAutomatiskJournalføringKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.opprettArenaVideresenderKontekst
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.joark.Joark
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
@@ -27,7 +28,7 @@ private const val ARENA_LEGEERKLÆRING_TEMA = "OPP"
 
 class ArenaVideresender(
     val journalpostService: JournalpostService,
-    val joarkClient: JoarkClient,
+    val joarkClient: Joark,
     val flytJobbRepository: FlytJobbRepository,
     val enhetsutreder: Enhetsutreder,
     val arenaKlient: ArenaKlient
@@ -35,7 +36,7 @@ class ArenaVideresender(
     companion object {
         fun konstruer(connection: DBConnection) = ArenaVideresender(
             JournalpostService.konstruer(connection),
-            JoarkClient(),
+            JoarkClient.withClientCridentialsTokenProvider(),
             FlytJobbRepository(connection),
             Enhetsutreder(
                 NorgKlient(),

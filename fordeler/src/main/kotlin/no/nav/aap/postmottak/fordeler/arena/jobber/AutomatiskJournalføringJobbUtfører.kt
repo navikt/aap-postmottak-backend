@@ -7,6 +7,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.fordeler.Enhetsutreder
+import no.nav.aap.postmottak.klient.joark.Joark
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
@@ -14,7 +15,7 @@ import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import org.slf4j.LoggerFactory
 
 class AutomatiskJournalføringJobbUtfører(
-    private val joarkClient: JoarkClient,
+    private val joarkClient: Joark,
     private val flytJobbRepository: FlytJobbRepository,
     private val journalpostService: JournalpostService,
     private val enhetsutreder: Enhetsutreder
@@ -23,7 +24,7 @@ class AutomatiskJournalføringJobbUtfører(
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return AutomatiskJournalføringJobbUtfører(
-                JoarkClient(),
+                JoarkClient.withClientCridentialsTokenProvider(),
                 FlytJobbRepository(connection),
                 JournalpostService.konstruer(connection),
                 Enhetsutreder(

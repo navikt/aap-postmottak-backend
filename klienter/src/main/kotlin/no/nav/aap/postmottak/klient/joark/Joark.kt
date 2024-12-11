@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.klient.joark
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -7,8 +8,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.saf.graphql.BrukerIdType
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.verdityper.sakogbehandling.Ident
+import java.io.InputStream
 import java.net.URI
 
 interface Joark {
@@ -20,16 +24,26 @@ interface Joark {
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
-class JoarkClient : Joark {
+class JoarkClient(
+    private val client: RestClient<InputStream>,
+    private val safGraphqlKlient: SafGraphqlKlient = SafGraphqlKlient.withClientCredentialsRestClient()
+) : Joark {
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
-    val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.joark.scope"),
-    )
-    private val client = RestClient.withDefaultResponseHandler(
-        config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
-    )
+    companion object {
+        private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
+        val config = ClientConfig(
+            scope = requiredConfigForKey("integrasjon.joark.scope"),
+        )
+
+        fun withClientCridentialsTokenProvider() =
+            JoarkClient(
+                RestClient.withDefaultResponseHandler(
+                    config = config,
+                    tokenProvider = ClientCredentialsTokenProvider
+                ),
+                SafGraphqlKlient.withClientCredentialsRestClient()
+            )
+    }
 
     override fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
@@ -42,7 +56,8 @@ class JoarkClient : Joark {
                 tema = tema,
                 bruker = JournalpostBruker(
                     id = ident.identifikator
-                )
+                ),
+                avsenderMottaker = hentAvsenderMottakerOmNødvendig(journalpostId)
             )
         )
         client.put(path, request) { _, _ -> }
@@ -60,7 +75,8 @@ class JoarkClient : Joark {
                 tema = tema,
                 bruker = JournalpostBruker(
                     id = journalpost.person.aktivIdent().identifikator
-                )
+                ),
+                avsenderMottaker = hentAvsenderMottakerOmNødvendig(journalpost.journalpostId)
             )
         )
         client.put(path, request) { _, _ -> }
@@ -75,6 +91,22 @@ class JoarkClient : Joark {
         val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet))
         client.patch(path, request) { _, _ -> }
     }
+
+    private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottaker? {
+        val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
+        val avsenderMottaker = safJournalpost.avsenderMottaker
+        val bruker = safJournalpost.bruker
+        return if (avsenderMottaker == null || avsenderMottaker.id == null) {
+            AvsenderMottaker(
+                id = safJournalpost.bruker?.id!!,
+                type = bruker?.type!!,
+                erLikBruker = true
+            )
+        } else {
+            null
+        }
+    }
+
 }
 
 data class FerdigstillRequest(
@@ -86,7 +118,17 @@ data class OppdaterJournalpostRequest(
     val journalfoerendeEnhet: String,
     val sak: JournalpostSak,
     val tema: String,
-    val bruker: JournalpostBruker
+    val bruker: JournalpostBruker,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val avsenderMottaker: AvsenderMottaker?
+)
+
+data class AvsenderMottaker(
+    val id: String,
+    val type: BrukerIdType,
+    val navn: String? = null,
+    val land: String? = null,
+    val erLikBruker: Boolean? = null,
 )
 
 enum class Fagsystem {
