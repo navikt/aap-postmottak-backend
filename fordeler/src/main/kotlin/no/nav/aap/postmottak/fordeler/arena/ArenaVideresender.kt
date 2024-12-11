@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringJobbU
 import no.nav.aap.postmottak.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.medArenaVideresenderKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.medAutomatiskJournalføringKontekst
+import no.nav.aap.postmottak.fordeler.arena.jobber.opprettArenaVideresenderKontekst
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.nom.NomKlient
@@ -53,13 +54,16 @@ class ArenaVideresender(
                 joarkClient.førJournalpostPåGenerellSak(journalpost, ARENA_LEGEERKLÆRING_TEMA)
                 joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
             }
+
             Brevkoder.SØKNAD.kode -> {
                 sendSøknadTilArena(journalpost)
             }
+
             Brevkoder.STANDARD_ETTERSENDING.kode -> {
                 sendSøknadsettersendelseTilArena(journalpost)
             }
-            Brevkoder.SØKNAD_OM_REISESTØNAD.kode, Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode-> Unit // Håndteres af jfr-arena
+
+            Brevkoder.SØKNAD_OM_REISESTØNAD.kode, Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> Unit // Håndteres af jfr-arena
             else -> {
                 sendTilManuellJournalføring(journalpost)
             }
@@ -76,26 +80,27 @@ class ArenaVideresender(
 
     private fun sendSøknadsettersendelseTilArena(journalpost: Journalpost) {
         val saksId = arenaKlient.nyesteAktiveSak(journalpost.person.aktivIdent()) ?: error("Fant ikke arenasaksnummer")
-        flytJobbRepository.leggTil(JobbInput(AutomatiskJournalføringJobbUtfører).medAutomatiskJournalføringKontekst(
-            AutomatiskJournalføringKontekst(
-                journalpostId = journalpost.journalpostId,
-                ident = journalpost.person.aktivIdent(),
-                saksnummer = saksId
+        flytJobbRepository.leggTil(
+            JobbInput(AutomatiskJournalføringJobbUtfører).medAutomatiskJournalføringKontekst(
+                AutomatiskJournalføringKontekst(
+                    journalpostId = journalpost.journalpostId,
+                    ident = journalpost.person.aktivIdent(),
+                    saksnummer = saksId
+                )
             )
-        ))
+        )
     }
 
     private fun sendTilManuellJournalføring(journalpost: JournalpostMedDokumentTitler) {
-        flytJobbRepository.leggTil(JobbInput(ManuellJournalføringJobbUtfører)
-            .medArenaVideresenderKontekst(opprettArenaVideresenderKontekst(journalpost)))
+        flytJobbRepository.leggTil(
+            JobbInput(ManuellJournalføringJobbUtfører)
+                .medArenaVideresenderKontekst(opprettArenaVideresenderKontekst(journalpost))
+        )
     }
 
-    private fun opprettArenaVideresenderKontekst (journalpost: JournalpostMedDokumentTitler) = ArenaVideresenderKontekst(
-        journalpostId = journalpost.journalpostId,
-        ident = journalpost.person.aktivIdent(),
-        navEnhet = enhetsutreder.finnNavenhetForJournalpost(journalpost),
-        hoveddokumenttittel = journalpost.getHoveddokumenttittel(),
-        vedleggstitler = journalpost.getVedleggTitler()
-    )
+    private fun opprettArenaVideresenderKontekst(journalpost: JournalpostMedDokumentTitler): ArenaVideresenderKontekst {
+        val enhet = enhetsutreder.finnNavenhetForJournalpost(journalpost)
+        return journalpost.opprettArenaVideresenderKontekst(enhet)
+    }
 
 }
