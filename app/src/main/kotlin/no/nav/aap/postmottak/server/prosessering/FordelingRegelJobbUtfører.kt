@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.server.prosessering
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
@@ -19,7 +21,8 @@ class FordelingRegelJobbUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     private val journalpostService: JournalpostService,
     private val regelService: FordelerRegelService,
-    private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository
+    private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
+    private val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
 
     companion object : Jobb {
@@ -28,7 +31,8 @@ class FordelingRegelJobbUtfører(
                 FlytJobbRepository(connection),
                 JournalpostService.konstruer(connection),
                 FordelerRegelService(),
-                InnkommendeJournalpostRepository(connection)
+                InnkommendeJournalpostRepository(connection),
+                PrometheusProvider.prometheus
             )
         }
 
@@ -62,7 +66,7 @@ class FordelingRegelJobbUtfører(
         innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
         opprettVideresendJobb(journalpostId)
 
-        PrometheusProvider.prometheus.journalpostCounter(journalpost).increment()
+        prometheus.journalpostCounter(journalpost).increment()
     }
 
     private fun opprettVideresendJobb(journalpostId: JournalpostId) {
