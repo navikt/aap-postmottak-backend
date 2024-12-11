@@ -36,7 +36,6 @@ class AutomatiskJournalføringJobbUtfører(
 
         joarkClient.førJournalpostPåFagsak(kontekst.journalpostId, kontekst.ident, kontekst.saksnummer)
         joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
-
     }
 
 }

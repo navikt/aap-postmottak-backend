@@ -5,12 +5,14 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.fordeler.FordelerRegelService
 import no.nav.aap.postmottak.fordeler.InnkommendeJournalpost
 import no.nav.aap.postmottak.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.postmottak.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.postmottak.fordeler.regler.RegelInput
+import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 class FordelingRegelJobbUtfører(
@@ -59,6 +61,8 @@ class FordelingRegelJobbUtfører(
 
         innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
         opprettVideresendJobb(journalpostId)
+
+        PrometheusProvider.prometheus.journalpostCounter(journalpost).increment()
     }
 
     private fun opprettVideresendJobb(journalpostId: JournalpostId) {
