@@ -12,8 +12,6 @@ import no.nav.aap.postmottak.klient.gosysoppgave.NavEnhet
 import org.slf4j.LoggerFactory
 import java.net.URI
 
-data class NavEnhetResponse(val enheter: List<Enhet>)
-
 data class Enhet(val enhetNr: String)
 
 data class FinnNavenhetRequest(
@@ -41,7 +39,7 @@ class NorgKlient {
         val aktiveEnheterUrl = url.resolve("norg2/api/v1/enhet")
         val request = GetRequest()
 
-        return client.get<NavEnhetResponse>(aktiveEnheterUrl, request)?.enheter?.map { it.enhetNr } ?: error("Feil i response fra norg")
+        return client.get<List<Enhet>>(aktiveEnheterUrl, request)?.map { it.enhetNr } ?: error("Feil i response fra norg")
     }
 
     fun finnEnhet(geografiskTilknyttning: String?, erNavansatt: Boolean, diskresjonskode: Diskresjonskode): NavEnhet {
