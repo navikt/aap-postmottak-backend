@@ -29,6 +29,7 @@ private val journalpost = """
             behandlingstemanavn
             avsenderMottaker {
                 id
+                type
             }
             kanal
             relevanteDatoer {
