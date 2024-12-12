@@ -10,7 +10,7 @@ data class ReisestønadRegelInput(
 
 class ReisestønadRegel : Regel<ReisestønadRegelInput> {
     companion object : RegelFactory<ReisestønadRegelInput> {
-        override val erAktiv = true
+        override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting() =
             RegelMedInputgenerator(ReisestønadRegel(), ReisestønadRegelInputGenerator())
     }

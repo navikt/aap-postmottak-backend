@@ -1,5 +1,8 @@
 package no.nav.aap.postmottak.fordeler.regler
 
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
+
 sealed interface Regel<T> {
     fun regelNavn(): String
     fun vurder(input: T): Boolean
@@ -20,4 +23,10 @@ class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGe
 sealed interface RegelFactory<T> {
     val erAktiv: Boolean
     fun medDataInnhenting(): RegelMedInputgenerator<T>
+}
+
+fun miljøConfig(prod: Boolean, dev:Boolean) =when (Miljø.er()) {
+    MiljøKode.PROD -> prod
+    MiljøKode.DEV -> dev
+    else -> false
 }

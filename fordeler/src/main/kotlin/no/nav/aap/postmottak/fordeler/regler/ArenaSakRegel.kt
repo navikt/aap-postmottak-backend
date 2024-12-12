@@ -1,11 +1,13 @@
 package no.nav.aap.postmottak.fordeler.regler
 
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.SakStatus
 
 class ArenaSakRegel : Regel<ArenaSakRegelInput> {
     companion object : RegelFactory<ArenaSakRegelInput> {
-        override val erAktiv = true
+        override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting() =
             RegelMedInputgenerator(ArenaSakRegel(), ArenaSakRegelInputGenerator())
     }
