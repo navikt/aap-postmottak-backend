@@ -29,16 +29,15 @@ class JoarkClient(
     private val safGraphqlKlient: SafGraphqlKlient = SafGraphqlKlient.withClientCredentialsRestClient()
 ) : Joark {
 
-    companion object {
-        private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
-        val config = ClientConfig(
-            scope = requiredConfigForKey("integrasjon.joark.scope"),
-        )
+    private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
 
+    companion object {
         fun withClientCridentialsTokenProvider() =
             JoarkClient(
                 RestClient.withDefaultResponseHandler(
-                    config = config,
+                    config = ClientConfig(
+                        scope = requiredConfigForKey("integrasjon.joark.scope"),
+                    ),
                     tokenProvider = ClientCredentialsTokenProvider
                 ),
                 SafGraphqlKlient.withClientCredentialsRestClient()
@@ -96,7 +95,7 @@ class JoarkClient(
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker
-        return if (avsenderMottaker == null || avsenderMottaker.id == null) {
+        return if (avsenderMottaker == null) {
             AvsenderMottaker(
                 id = safJournalpost.bruker?.id!!,
                 type = bruker?.type!!,

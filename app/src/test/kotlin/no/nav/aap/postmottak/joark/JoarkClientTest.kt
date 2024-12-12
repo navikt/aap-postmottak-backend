@@ -1,17 +1,9 @@
 package no.nav.aap.postmottak.joark
 
-import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.post
-import no.nav.aap.komponenter.httpklient.httpclient.put
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.postmottak.klient.joark.AvsenderMottaker
-import no.nav.aap.postmottak.klient.joark.Joark
-import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.joark.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -20,6 +12,7 @@ import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
 import no.nav.aap.postmottak.test.fakes.UTEN_AVSENDER_MOTTAKER
+import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

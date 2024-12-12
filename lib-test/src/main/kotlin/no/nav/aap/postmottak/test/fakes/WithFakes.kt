@@ -10,13 +10,13 @@ interface WithFakes {
 
         @JvmStatic
         @BeforeAll
-        fun beforeAll(): Unit {
+        fun beforeAll() {
             fakes = Fakes()
         }
 
         @JvmStatic
         @AfterAll
-        fun afterAll(): Unit {
+        fun afterAll() {
             fakes.close()
         }
     }

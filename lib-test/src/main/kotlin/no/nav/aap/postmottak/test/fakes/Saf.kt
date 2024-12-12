@@ -15,9 +15,6 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 val DIGITAL_SØKNAD_ID = JournalpostId(999)
 val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
 
-val defaultJournalpost: suspend RoutingContext.() -> Unit = {
-    call.respond(false)
-}
 
 fun Application.safFake() {
 
