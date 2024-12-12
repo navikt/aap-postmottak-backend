@@ -85,6 +85,26 @@ class Flyttest : WithFakes {
     }
 
     @Test
+    fun fordel() {
+        val journalpostId = DIGITAL_SØKNAD_ID
+        dataSource.transaction {
+            FlytJobbRepository(it).leggTil(
+                JobbInput(FordelingRegelJobbUtfører)
+                    .medJournalpostId(journalpostId)
+            )
+        }
+
+        await(10000) {
+            dataSource.transaction(readOnly = true) {
+                dataSource.transaction(readOnly = true) {
+                    val behandlinger = BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
+                    assertThat(behandlinger).isNotEmpty
+                }
+            }
+        }
+    }
+
+    @Test
     fun `Full helautomatisk flyt`() {
         val journalpostId = DIGITAL_SØKNAD_ID
         dataSource.transaction {
