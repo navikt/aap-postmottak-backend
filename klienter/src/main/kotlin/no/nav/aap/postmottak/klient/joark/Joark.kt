@@ -95,7 +95,7 @@ class JoarkClient(
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker
-        return if (avsenderMottaker == null) {
+        return if (avsenderMottaker?.id == null) {
             AvsenderMottaker(
                 id = safJournalpost.bruker?.id!!,
                 type = bruker?.type!!,

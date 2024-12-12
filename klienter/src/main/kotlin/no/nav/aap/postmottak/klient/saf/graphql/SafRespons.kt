@@ -256,13 +256,13 @@ data class AvsenderMottaker(
      * Identifikatoren til parten som er avsender ellermottaker.
      * Normalt et fødselsnummer eller organisasjonsnummer.
      */
-    val id: String,
+    val id: String?,
 
     /**
      * Identifikatoren sin type
      * @example: [AvsenderMottakerIdType.FNR]
      */
-    val type: AvsenderMottakerIdType,
+    val type: AvsenderMottakerIdType?,
 )
 
 enum class AvsenderMottakerIdType {
