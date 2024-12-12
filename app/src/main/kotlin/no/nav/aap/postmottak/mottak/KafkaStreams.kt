@@ -110,7 +110,8 @@ class JoarkKafkaHandler(
         transactionProvider.inTransaction {
 
             flytJobbRepository.leggTil(
-                JobbInput(FordelingRegelJobbUtfører)
+                JobbInput(FordelingRegelJobbUtfører) 
+                    .forSak(journalpostId.referanse)
                     .medJournalpostId(journalpostId)
             )
         }

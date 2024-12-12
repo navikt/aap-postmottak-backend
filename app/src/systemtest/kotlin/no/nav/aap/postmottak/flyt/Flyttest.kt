@@ -189,6 +189,7 @@ class Flyttest : WithFakes {
         dataSource.transaction { connection ->
             FlytJobbRepository(connection).leggTil(
                 JobbInput(FordelingRegelJobbUtfører)
+                    .forSak(journalpostId.referanse)
                     .medJournalpostId(journalpostId)
                     .medCallId()
             )

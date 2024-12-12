@@ -28,6 +28,7 @@ class FordelingVideresendJobbUtførerTest : WithFakes {
 
         val journalpostId = JournalpostId(1)
         val jobbInput = JobbInput(FordelingVideresendJobbUtfører)
+            .forSak(journalpostId.referanse)
             .medJournalpostId(journalpostId)
         fordelingVideresendJobbUtfører.utfør(jobbInput)
 

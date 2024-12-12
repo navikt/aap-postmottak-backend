@@ -72,6 +72,7 @@ class FordelingRegelJobbUtfører(
     private fun opprettVideresendJobb(journalpostId: JournalpostId) {
         flytJobbRepository.leggTil(
             JobbInput(FordelingVideresendJobbUtfører)
+                .forSak(journalpostId.referanse)
                 .medJournalpostId(journalpostId)
                 .medCallId()
         )
