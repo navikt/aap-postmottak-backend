@@ -44,7 +44,7 @@ class AvklarSakSteg(
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         requireNotNull(journalpost)
 
-        return if (journalpost.kanBehandlesAutomatisk()) {
+        return if (journalpost.erDigitalSøknad()) {
             val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
                 Ident(journalpost.person.aktivIdent().identifikator),
                 journalpost.mottattDato()

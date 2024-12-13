@@ -36,7 +36,7 @@ class KategoriserDokumentSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
 
-        return if (!journalpost.kanBehandlesAutomatisk() && kategorivurdering == null)
+        return if (!journalpost.erDigitalSøknad() && kategorivurdering == null)
             FantAvklaringsbehov(
                 Definisjon.KATEGORISER_DOKUMENT
             )

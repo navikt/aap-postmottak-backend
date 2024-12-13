@@ -56,7 +56,7 @@ class OverleverTilFagsystemSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost != null)
 
-        if (!journalpost.kanBehandlesAutomatisk() && kategorivurdering?.avklaring != InnsendingType.SØKNAD) {
+        if (!journalpost.erDigitalSøknad() && kategorivurdering?.avklaring != InnsendingType.SØKNAD) {
             log.info("Dokument er ikke en søknad, og skal ikke sendes til fagsystem")
             return Fullført
         }

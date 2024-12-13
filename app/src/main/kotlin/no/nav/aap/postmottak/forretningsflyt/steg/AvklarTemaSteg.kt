@@ -49,7 +49,7 @@ class AvklarTemaSteg(
             return Avbrutt
         }
 
-        return if (!journalpost.kanBehandlesAutomatisk() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) == null) {
+        return if (!journalpost.erDigitalSøknad() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) == null) {
             FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
         } else Fullført
     }

@@ -42,8 +42,14 @@ open class Journalpost(
          it.variantFormat == Variantformat.ARKIV
     }
 
-    fun kanBehandlesAutomatisk(): Boolean {
+    fun erDigitalSøknad(): Boolean {
         return erSøknad() && erDigital()
+    }
+    
+    fun erDigitalLegeerklæring(): Boolean {
+        return dokumenter.any {
+            it.brevkode == Brevkoder.LEGEERKLÆRING.kode
+        } && erDigital()
     }
 
     fun erDigital(): Boolean = finnOriginal()?.filtype == Filtype.JSON

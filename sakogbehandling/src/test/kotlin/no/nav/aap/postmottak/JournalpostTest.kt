@@ -72,7 +72,7 @@ class JournalpostTest {
     }
 
     @Test
-    fun kanBehandlesAutomatisk() {
+    fun erDigitalSøknad() {
     }
 
     @Test

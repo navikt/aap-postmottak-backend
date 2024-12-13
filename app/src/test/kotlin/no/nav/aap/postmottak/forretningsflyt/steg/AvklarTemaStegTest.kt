@@ -50,7 +50,7 @@ class AvklarTemaStegTest {
 
     @Test
     fun `når automatisk saksbehandling er mulig skal ingen avklaringsbehov bli opprettet`() {
-        every { journalpost.kanBehandlesAutomatisk() } returns true
+        every { journalpost.erDigitalSøknad() } returns true
         every { journalpost.tema } returns "AAP"
 
         val actual = avklarTemaSteg.utfør(kontekst)
@@ -61,7 +61,7 @@ class AvklarTemaStegTest {
 
     @Test
     fun `naar vi ikke kan behandle automatisk og manuell avklaring er avklart med 'skal til AAP' forventer vi at steget ikke returnerer avklaringsbehov`() {
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.tema } returns "AAP"
         every { avklarTemaRepository.hentTemaAvklaring(any())?.skalTilAap } returns true
 
@@ -72,7 +72,7 @@ class AvklarTemaStegTest {
 
     @Test
     fun `når vi ikke kan behandle automatisk og manuell avklaring mangler forventer vi avklaringsbehov AVKLAR_TEMA`() {
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.tema } returns "AAP"
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null
 

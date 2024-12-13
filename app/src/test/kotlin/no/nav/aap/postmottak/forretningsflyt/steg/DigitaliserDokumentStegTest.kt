@@ -31,7 +31,7 @@ class DigitaliserDokumentStegTest {
     fun `når behandlingen må gjøres manuelt og strukturering ikke er gjort forventes et nytt avlaringsbehov for strukturering`() {
         val journalpost: Journalpost = mockk(relaxed = true)
 
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.erDigitalSøknad() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns KategoriVurdering(InnsendingType.SØKNAD)
@@ -48,7 +48,7 @@ class DigitaliserDokumentStegTest {
     fun `når behandlingen må gjøres manuelt og strukturering er utført forventes ingen avklaringsbehov`() {
         val journalpost: Journalpost= mockk(relaxed = true)
 
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.erDigitalSøknad() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns mockk(relaxed = true)
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns mockk(relaxed = true)
@@ -62,7 +62,7 @@ class DigitaliserDokumentStegTest {
     fun `når behandling kan gjøres automatisk og strukturering ikke er gjort forventes ingen avklaringsbehov`() {
         val journalpost: Journalpost = mockk(relaxed = true)
 
-        every { journalpost.kanBehandlesAutomatisk() } returns true
+        every { journalpost.erDigitalSøknad() } returns true
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns mockk(relaxed = true)
@@ -77,7 +77,21 @@ class DigitaliserDokumentStegTest {
     fun `når behandlingen har kategori som ikke skal struktureres forventes ingen avklaringsbehov`() {
         val journalpost: Journalpost = mockk(relaxed = true)
 
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.erDigitalSøknad() } returns false
+        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns KategoriVurdering(InnsendingType.LEGEERKLÆRING)
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
+    }
+
+    @Test
+    fun `digital legeerklæring skal ikke digitaliseres`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+
+        every { journalpost.erDigitalLegeerklæring() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns KategoriVurdering(InnsendingType.LEGEERKLÆRING)

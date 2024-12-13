@@ -38,7 +38,7 @@ class AvklarSakStegTest {
     @Test
     fun `når automatisk behandling er mulig etterspørres ny sak uten avklaringsbehov`() {
         val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.kanBehandlesAutomatisk() } returns true
+        every { journalpost.erDigitalSøknad() } returns true
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
@@ -52,7 +52,7 @@ class AvklarSakStegTest {
     @Test
     fun `når vi ikke kan behandle journalposten automatisk kreves avklaring`() {
         val journalpost: Journalpost = mockk()
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.erDigitalSøknad() } returns false
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
@@ -71,7 +71,7 @@ class AvklarSakStegTest {
     @Test
     fun `når saksnummer er gitt i avklaring går vi videre i flyten`() {
         val journalpost: Journalpost = mockk()
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.erDigitalSøknad() } returns false
         every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns false
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
@@ -90,7 +90,7 @@ class AvklarSakStegTest {
     @Test
     fun `når det finnes relaterte saker til behandlingen og avklaring vil opprette nytt saksnummer spør vi behandlingsflyt om saksnummer før vi går videre`() {
         val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.kanBehandlesAutomatisk() } returns false
+        every { journalpost.erDigitalSøknad() } returns false
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
 

@@ -57,7 +57,8 @@ class DigitaliserDokumentSteg(
         struktureringsvurdering: Struktureringsvurdering?,
         kategorivurdering: KategoriVurdering?
     ): Boolean {
-        return !journalpost.kanBehandlesAutomatisk() 
+        return !journalpost.erDigitalSøknad()
+                && !journalpost.erDigitalLegeerklæring()        
                 && struktureringsvurdering == null 
                 && kategorivurdering?.avklaring?.kanStruktureres()!!
     }

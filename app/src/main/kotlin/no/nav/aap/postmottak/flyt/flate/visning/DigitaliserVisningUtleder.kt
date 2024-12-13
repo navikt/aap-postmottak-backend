@@ -10,7 +10,7 @@ class DigitaliserVisningUtleder(connection: DBConnection): StegGruppeVisningUtle
     
     override fun skalVises(behandlingId: BehandlingId): Boolean {
         val journalpost = journalpostRepository.hentHvisEksisterer(behandlingId)
-        return journalpost?.kanBehandlesAutomatisk() == false
+        return journalpost?.erDigitalSøknad() == false
     }
 
     override fun gruppe(): StegGruppe {
