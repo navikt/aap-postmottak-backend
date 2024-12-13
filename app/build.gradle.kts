@@ -5,7 +5,8 @@ val ktorVersion = "3.0.0"
 val komponenterVersjon = "1.0.77"
 val kafkaVersion = "3.7.0"
 val tilgangVersjon = "0.0.56"
-val behandlingsflytVersjon = "0.0.64"
+val behandlingsflytVersjon = "0.0.81"
+val junitVersjon = "5.10.3"
 
 plugins {
     id("postmottak.conventions")
@@ -38,6 +39,7 @@ tasks {
 
 fun runCommand(command: String): String {
     val byteOut = ByteArrayOutputStream()
+
     project.exec {
         commandLine = command.split("\\s".toRegex())
         standardOutput = byteOut
@@ -98,8 +100,8 @@ dependencies {
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation(project(":lib-test"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersjon")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersjon")
     testImplementation("org.assertj:assertj-core:3.26.3")
     testImplementation("org.testcontainers:postgresql:1.20.1")
     constraints {

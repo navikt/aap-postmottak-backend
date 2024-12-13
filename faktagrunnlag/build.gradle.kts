@@ -1,11 +1,13 @@
 val komponenterVersjon = "1.0.77"
-val ktorVersion = "3.0.0"
+val ktorVersion = "3.0.2"
 val tilgangVersjon = "0.0.56"
-val behandlingsflytVersjon = "0.0.64"
+val behandlingsflytVersjon = "0.0.81"
+val junitVersjon = "5.10.3"
 
 plugins {
     id("postmottak.conventions")
 }
+
 dependencies {
     implementation(project(":sakogbehandling"))
     implementation(project(":verdityper"))
@@ -28,8 +30,8 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:1.5.8")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersjon")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersjon")
     testImplementation("org.assertj:assertj-core:3.26.3")
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation(project(":lib-test"))
