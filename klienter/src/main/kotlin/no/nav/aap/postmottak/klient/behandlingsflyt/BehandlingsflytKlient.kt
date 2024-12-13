@@ -69,6 +69,7 @@ class BehandlingsflytClient : BehandlingsflytKlient {
         journalpostId: JournalpostId,
         søknad: Søknad,
     ) {
+        // TODO bruk /api/hendelse/send i stedet
         val url = url.resolve("/api/soknad/send")
         val request = PostRequest(
             SendSøknad(sakId, journalpostId.toString(), søknad),
