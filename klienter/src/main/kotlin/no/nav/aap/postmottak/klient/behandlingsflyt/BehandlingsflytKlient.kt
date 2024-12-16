@@ -1,6 +1,11 @@
 package no.nav.aap.postmottak.klient.behandlingsflyt
 
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
@@ -10,7 +15,9 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
+import no.nav.aap.verdityper.dokument.Kanal
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -19,7 +26,7 @@ import java.time.LocalDate
 interface BehandlingsflytKlient {
     fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak
     fun finnSaker(ident: Ident): List<BehandlingsflytSak>
-    fun sendSøknad(sakId: String, journalpostId: JournalpostId, søknad: Søknad)
+    fun sendHendelse(journalpost: Journalpost, saksnummer: String, melding: Melding)
 }
 
 class BehandlingsflytClient : BehandlingsflytKlient {
@@ -50,12 +57,12 @@ class BehandlingsflytClient : BehandlingsflytKlient {
             ?: throw UnknownError("Fikk uforventet respons fra behandlingsflyt")
 
     }
-    
+
     override fun finnSaker(ident: Ident): List<BehandlingsflytSak> {
         log.info("Finn saker for person i behandlingsflyt")
         return runBlocking { finn(ident) }
     }
-    
+
     private fun finn(ident: Ident): List<BehandlingsflytSak> {
         val request = PostRequest(
             FinnSaker(ident.identifikator)
@@ -64,20 +71,30 @@ class BehandlingsflytClient : BehandlingsflytKlient {
             ?: throw UnknownError("Fikk uforventet respons fra behandlingsflyt")
     }
 
-    override fun sendSøknad(
-        sakId: String,
-        journalpostId: JournalpostId,
-        søknad: Søknad,
+    override fun sendHendelse(
+        journalpost: Journalpost,
+        saksnummer: String,
+        melding: Melding
     ) {
         // TODO bruk /api/hendelse/send i stedet
-        val url = url.resolve("/api/soknad/send")
+        val url = url.resolve("/api/hendelse/send")
         val request = PostRequest(
-            SendSøknad(sakId, journalpostId.toString(), søknad),
+            Innsending(
+                Saksnummer(saksnummer),
+                InnsendingReferanse(
+                    InnsendingReferanse.Type.JOURNALPOST,
+                    journalpost.journalpostId.referanse.toString()
+                ),
+                InnsendingType.SØKNAD,
+                journalpost.kanal.tilBehandlingsflytKanal(),
+                journalpost.mottattDato.atStartOfDay(), //TODO: Avgjør hvilken dato vi skal bruke, og hvilket format
+                melding
+            ),
             additionalHeaders = listOf(
                 Header("Accept", "application/json")
             )
         )
-        client.post<SendSøknad, Unit>(url, request)
+        client.post<Innsending, Unit>(url, request)
     }
 }
 
@@ -85,3 +102,12 @@ data class BehandlingsflytSak(
     val saksnummer: String,
     val periode: Periode,
 )
+
+fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {
+    return when (this) {
+        KanalFraKodeverk.SKAN_NETS -> Kanal.PAPIR
+        KanalFraKodeverk.SKAN_PEN -> Kanal.PAPIR
+        KanalFraKodeverk.SKAN_IM -> Kanal.PAPIR
+        else -> Kanal.DIGITAL
+    }
+}

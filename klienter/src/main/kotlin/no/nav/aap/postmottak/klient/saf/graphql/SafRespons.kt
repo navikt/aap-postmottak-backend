@@ -2,7 +2,6 @@ package no.nav.aap.postmottak.saf.graphql
 
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
 import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.Kanal
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
 import java.time.LocalDateTime
 
@@ -94,7 +93,7 @@ data class SafJournalpost(
 
     /**
      * Kanalen dokumentene ble mottatt i eller sendt ut på.
-     * Dersom journalposten ikke har noen kjent kanal, returneres [Kanal.UKJENT]
+     * Dersom journalposten ikke har noen kjent kanal, returneres [KanalFraKodeverk.UKJENT]
      * @example: ALTINN
      */
 

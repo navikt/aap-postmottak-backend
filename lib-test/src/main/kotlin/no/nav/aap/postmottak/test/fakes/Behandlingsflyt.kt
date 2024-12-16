@@ -54,7 +54,7 @@ fun Application.behandlingsflytFake(
 
         post("/api/sak/finn", finn)
 
-        post("/api/soknad/send", send)
+        post("/api/hendelse/send", send)
     }
 
 }

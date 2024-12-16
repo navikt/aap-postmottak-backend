@@ -302,7 +302,7 @@ class Flyttest : WithFakes {
         KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
         StruktureringsvurderingRepository(connection).lagreStrukturertDokument(
             behandlingId,
-            """{"søknadsDato":"2024-09-02T22:00:00.000Z","yrkesSkade":"nei","erStudent":"Nei"}"""
+            """{"søknadsDato":"2024-09-02T22:00:00.000Z", "yrkesskade":"nei", "student": {"erStudent":"Nei"}}"""
         )
         return behandlingId
     }

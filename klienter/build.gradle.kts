@@ -3,6 +3,7 @@ val ktorVersion = "3.0.0"
 val tilgangVersjon = "0.0.56"
 val jacksonVersion = "2.17.2"
 val junitVersion = "5.10.3"
+val behandlingsflytVersjon = "0.0.81"
 
 plugins {
     id("postmottak.conventions")
@@ -13,6 +14,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
+    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
     implementation(project(":verdityper"))
     implementation(project(":kontrakt"))

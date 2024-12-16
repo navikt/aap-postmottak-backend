@@ -10,7 +10,6 @@ import no.nav.aap.postmottak.klient.saf.SafRestKlient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.berik
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -63,12 +62,13 @@ class OverleverTilFagsystemSteg(
 
         // TODO :poop: bør kanskje gjøres på journalpost
         val dokumentJson =
-            struktureringsvurdering?.vurdering?.parseDigitalSøknad()?.berik()
-                ?: hentDokumentFraSaf(journalpost).parseDigitalSøknad().berik()
+            struktureringsvurdering?.vurdering?.parseDigitalSøknad()
+                ?: hentDokumentFraSaf(journalpost).parseDigitalSøknad()
+            
 
-        behandlingsflytKlient.sendSøknad(
+        behandlingsflytKlient.sendHendelse(
+            journalpost,
             saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
-            journalpost.journalpostId,
             dokumentJson
         )
 

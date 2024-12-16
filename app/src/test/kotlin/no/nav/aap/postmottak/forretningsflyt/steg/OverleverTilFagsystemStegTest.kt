@@ -69,16 +69,15 @@ class OverleverTilFagsystemStegTest {
 
         every { journalpost.erDigitalSøknad() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any())?.vurdering } returns """{
-            |"yrkesskade": "Nei"},
-            |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"},
-            |"oppgitteBarn": []
+            |"yrkesskade": "Nei",
+            |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"}
             |}""".trimMargin()
         every { kategorivurderingRepository.hentKategoriAvklaring(any())?.avklaring } returns InnsendingType.SØKNAD
 
         overførTilFagsystemSteg.utfør(kontekst)
 
         verify(exactly = 0) { safRestKlient.hentDokument(any(), any()) }
-        verify(exactly = 1) { behandlingsflytKlient.sendSøknad(saksnummer, journalpostId, any()) }
+        verify(exactly = 1) { behandlingsflytKlient.sendHendelse(journalpost, saksnummer, any()) }
     }
 
     @Test
@@ -106,6 +105,6 @@ class OverleverTilFagsystemStegTest {
         overførTilFagsystemSteg.utfør(kontekst)
 
         verify(exactly = 1) { safRestKlient.hentDokument(journalpostId, dokumentInfoId) }
-        verify(exactly = 1) { behandlingsflytKlient.sendSøknad(saksnummer, journalpostId, any()) }
+        verify(exactly = 1) { behandlingsflytKlient.sendHendelse(journalpost, saksnummer, any()) }
     }
 }

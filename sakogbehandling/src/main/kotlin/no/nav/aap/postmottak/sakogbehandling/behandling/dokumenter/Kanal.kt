@@ -1,19 +1,5 @@
 package no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter
 
-
-enum class Kanal {
-    DIGITAL, PAPIR;
-
-    fun fraKanal(kanal: KanalFraKodeverk): Kanal {
-        return when (kanal) {
-            KanalFraKodeverk.SKAN_NETS -> PAPIR
-            KanalFraKodeverk.SKAN_PEN -> PAPIR
-            KanalFraKodeverk.SKAN_IM -> PAPIR
-            else -> DIGITAL
-        }
-    }
-}
-
 /**
  * Kopiert fra https://github.com/navikt/saf/blob/master/app/src/main/resources/schemas/saf.graphqls#L675
  * Ikke til bruk internt i koden, kun for oversettelse til [Kanal].

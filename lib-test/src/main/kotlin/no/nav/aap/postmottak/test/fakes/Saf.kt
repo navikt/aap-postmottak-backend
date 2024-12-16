@@ -36,7 +36,7 @@ fun Application.safFake() {
             when (journalpost) {
                 DIGITAL_SØKNAD_ID.referanse -> {
                     call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    call.respondText("{}")
+                    call.respondText("""{"yrkesskade":"nei", "student":{"erStudent": "nei"}}""")
                 }
 
                 else -> {
