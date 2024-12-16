@@ -23,7 +23,7 @@ import no.nav.aap.postmottak.flyt.flate.visning.Prosessering
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.postmottak.flyt.flate.visning.Visning
 import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.journalpostIdMapper
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
@@ -31,11 +31,16 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.sakogbehandling.lås.TaSkriveLåsRepository
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
+import no.nav.aap.tilgang.plugin.kontrakt.JournalpostIdResolver
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 import org.slf4j.MDC
 import tilgang.Operasjon
+import java.util.*
 import javax.sql.DataSource
 
 
@@ -43,7 +48,12 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
             authorizedGet<BehandlingsreferansePathParam, BehandlingFlytOgTilstandDto>(
-                journalPostResolverFactory(dataSource)
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        journalpostIdFraBehandlingResolver(dataSource)
+                    )
+                )
             ) { req ->
                 val dto = dataSource.transaction { connection ->
                     var behandling = BehandlingRepositoryImpl(connection).hent(req)
@@ -128,7 +138,12 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
         }
         route("/{referanse}/resultat") {
             authorizedGet<BehandlingsreferansePathParam, BehandlingResultatDto>(
-                journalPostResolverFactory(dataSource)
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        journalpostIdFraBehandlingResolver(dataSource)
+                    )
+                )
             ) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
 
@@ -138,11 +153,13 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
             }
         }
 
+        // TODO: Denne bør egentlig hente referanse fra path
         route("/{referanse}/sett-på-vent") {
             authorizedPost<BehandlingsreferansePathParam, BehandlingResultatDto, SettPåVentRequest>(
-                { _, body -> journalpostIdMapper(body.referanse, dataSource) },
-                { Definisjon.MANUELT_SATT_PÅ_VENT.kode.name },
-                Operasjon.SAKSBEHANDLE
+                AuthorizationBodyPathConfig(
+                    Operasjon.SAKSBEHANDLE,
+                    journalpostIdResolver = journalpostIdFraBehandlingResolver(dataSource)
+                )
             ) { request, body ->
                 dataSource.transaction { connection ->
                     val taSkriveLåsRepository = TaSkriveLåsRepository(connection)
@@ -172,7 +189,12 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
         }
         route("/{referanse}/vente-informasjon") {
             authorizedGet<BehandlingsreferansePathParam, Venteinformasjon>(
-                journalPostResolverFactory(dataSource)
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        journalpostIdFraBehandlingResolver(dataSource)
+                    )
+                )
             ) { request ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = BehandlingRepositoryImpl(connection).hent(request)

@@ -6,7 +6,7 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.token
-import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.SafRestKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -17,6 +17,8 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePath
 import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.DokumentResponsDTO
 import no.nav.aap.postmottak.sakogbehandling.sak.flate.HentDokumentDTO
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
@@ -24,7 +26,13 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
     route("/api/dokumenter") {
         route("/{journalpostId}/{dokumentinfoId}") {
-            authorizedGet<HentDokumentDTO, DokumentResponsDTO>({ params, _ -> params.journalpostId }) { req ->
+            authorizedGet<HentDokumentDTO, DokumentResponsDTO>(
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "journalpostId"
+                    )
+                )
+            ) { req ->
                 val journalpostId = req.journalpostId
                 val dokumentInfoId = req.dokumentinfoId
 
@@ -47,7 +55,12 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
 
         route("/{referanse}/info") {
             authorizedGet<BehandlingsreferansePathParam, DokumentInfoResponsDTO>(
-                journalPostResolverFactory(dataSource)
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        journalpostIdFraBehandlingResolver(dataSource)
+                    )
+                )
             ) { req ->
                 val journalpostId = dataSource.transaction(readOnly = true) { connection ->
                     BehandlingRepositoryImpl(connection).hent(req).journalpostId

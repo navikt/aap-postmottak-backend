@@ -1,5 +1,6 @@
 val ktorVersion = "3.0.0"
 val komponenterVersjon = "1.0.77"
+val tilgangVersjon = "0.0.65"
 
 plugins {
     id("postmottak.conventions")
@@ -9,6 +10,7 @@ dependencies {
     implementation("no.nav:ktor-openapi-generator:1.0.46")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+    implementation("no.nav.aap.tilgang:plugin-kontrakt:$tilgangVersjon")
 
     implementation(project(":verdityper"))
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")

@@ -15,13 +15,14 @@ import no.nav.aap.postmottak.behandling.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.behandling.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.verdityper.sakogbehandling.BehandlingId
@@ -31,7 +32,12 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
     route("/api/behandling") {
         route("/{referanse}") {
             authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(
-                journalPostResolverFactory(dataSource)
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        journalpostIdFraBehandlingResolver(dataSource)
+                    )
+                )
             ) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
                     val behandling = behandling(connection, req)
@@ -71,13 +77,23 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             }
         }
         route("/{referanse}/forbered") {
-            authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(JournalpostPathParam("referanse")) { req ->
+            authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        journalpostIdFraBehandlingResolver(dataSource)
+                    )
+                )
+            ) { req ->
                 dataSource.transaction { connection ->
                     val behandling = behandling(connection, req)
                     val flytJobbRepository = FlytJobbRepository(connection)
                     if (flytJobbRepository.hentJobberForBehandling(behandling.id.toLong()).isEmpty()) {
                         flytJobbRepository.leggTil(
-                            JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(behandling.journalpostId.referanse, behandling.id.id)
+                            JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(
+                                behandling.journalpostId.referanse,
+                                behandling.id.id
+                            )
                         )
                     }
                 }
@@ -89,7 +105,8 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
         post<Unit, BehandlingsreferansePathParam, JournalpostDto> { _, body ->
             val referanse = dataSource.transaction { connection ->
                 val behandlingRepository = BehandlingRepositoryImpl(connection)
-                val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(body.referanse), TypeBehandling.Journalføring)
+                val behandlingId =
+                    behandlingRepository.opprettBehandling(JournalpostId(body.referanse), TypeBehandling.Journalføring)
                 FlytJobbRepository(connection).leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
                         .forBehandling(body.referanse, behandlingId.id).medCallId()

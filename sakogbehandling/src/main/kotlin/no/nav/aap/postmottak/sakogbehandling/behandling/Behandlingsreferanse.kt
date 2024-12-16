@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import java.util.*
 
-
 open class Behandlingsreferanse(@JsonValue open val referanse: UUID)
 
 data class BehandlingsreferansePathParam(

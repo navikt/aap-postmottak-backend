@@ -8,20 +8,28 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
-import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 
 fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
     route("/api/behandling/{referanse}/grunnlag/strukturering") {
         authorizedGet<BehandlingsreferansePathParam, StruktureringGrunnlagDto>(
-            journalPostResolverFactory(dataSource)
+            AuthorizationParamPathConfig(
+                journalpostPathParam = JournalpostPathParam(
+                    "referanse",
+                    journalpostIdFraBehandlingResolver(dataSource)
+                )
+            )
         ) { req ->
             val (kategorivurdering, struktureringsvurdering) = dataSource.transaction(readOnly = true) {
                 val behandling = BehandlingRepositoryImpl(it).hent(req)
                 val kategorivurdering = KategorivurderingRepository(it).hentKategoriAvklaring(behandling.id)
-                val struktureringsvurdering = StruktureringsvurderingRepository(it).hentStruktureringsavklaring(behandling.id)
+                val struktureringsvurdering =
+                    StruktureringsvurderingRepository(it).hentStruktureringsavklaring(behandling.id)
                 Pair(kategorivurdering, struktureringsvurdering)
             }
 
@@ -32,7 +40,7 @@ fun NormalOpenAPIRoute.struktureringApi(dataSource: HikariDataSource) {
                     struktureringsvurdering
                         ?.vurdering?.let(::StruktureringVurderingDto),
                     kategorivurdering.avklaring,
-                    listOf(1,2)
+                    listOf(1, 2)
                 )
             )
         }

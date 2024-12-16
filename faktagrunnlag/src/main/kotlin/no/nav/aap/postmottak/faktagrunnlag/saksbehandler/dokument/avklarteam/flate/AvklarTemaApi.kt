@@ -9,11 +9,13 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
-import no.nav.aap.postmottak.journalPostResolverFactory
+import no.nav.aap.postmottak.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import java.net.URI
 import javax.sql.DataSource
@@ -23,7 +25,12 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
     route("/api/behandling/{referanse}") {
         route("/grunnlag/avklarTemaVurdering") {
             authorizedGet<BehandlingsreferansePathParam, AvklarTemaGrunnlagDto>(
-                journalPostResolverFactory(dataSource)
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        journalpostIdFraBehandlingResolver(dataSource)
+                    )
+                )
             ) { req ->
                 val grunnlag = dataSource.transaction(readOnly = true) {
                     val behandling = BehandlingRepositoryImpl(it).hent(req)
@@ -46,7 +53,7 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
                     JournalpostRepositoryImpl(connection).hentHvisEksisterer(req)?.person?.aktivIdent()
                 }
                 require(aktivIdent != null) { "Fant ikke personident for journalpost" }
-                
+
                 GosysOppgaveKlient().opprettEndreTemaOppgave(req, aktivIdent.identifikator)
 
                 val url = URI.create(requiredConfigForKey("gosys.url"))

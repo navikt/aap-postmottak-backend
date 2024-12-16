@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 val ktorVersion = "3.0.0"
 val komponenterVersjon = "1.0.77"
 val kafkaVersion = "3.7.0"
-val tilgangVersjon = "0.0.56"
+val tilgangVersjon = "0.0.65"
 val behandlingsflytVersjon = "0.0.81"
 val junitVersjon = "5.10.3"
 
