@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.flyt.steg.AvbrytEtterAvklaring
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -40,7 +41,8 @@ class FlytOrkestrator(
     private val avklaringsbehovRepository = AvklaringsbehovRepositoryImpl(connection)
     private val behandlingRepository = BehandlingRepositoryImpl(connection)
     private val behandlingHendelseService = BehandlingHendelseService(
-        FlytJobbRepository(connection)
+        FlytJobbRepository(connection),
+        JournalpostRepositoryImpl(connection)
     )
 
     fun opprettKontekst(behandlingId: BehandlingId): FlytKontekst {

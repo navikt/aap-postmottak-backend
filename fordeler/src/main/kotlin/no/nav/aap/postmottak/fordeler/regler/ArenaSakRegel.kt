@@ -1,7 +1,5 @@
 package no.nav.aap.postmottak.fordeler.regler
 
-import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.SakStatus
 

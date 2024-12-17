@@ -4,6 +4,7 @@ import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.hendelse.AvklaringsbehovHendelseDto
 import no.nav.aap.postmottak.kontrakt.hendelse.DefinisjonDTO
@@ -17,12 +18,17 @@ import java.time.LocalDateTime
 private val log = LoggerFactory.getLogger(BehandlingHendelseService::class.java)
 
 class BehandlingHendelseService(
-    private val flytJobbRepository: FlytJobbRepository
+    private val flytJobbRepository: FlytJobbRepository,
+    private val journalpostRepository: JournalpostRepository
 ) {
 
     fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
+
+        val ident = journalpostRepository.hentHvisEksisterer(behandling.id)!!.person.aktivIdent().identifikator
+
         val hendelse = DokumentflytStoppetHendelse(
             journalpostId = behandling.journalpostId,
+            ident = ident,
             referanse = behandling.referanse.referanse, // TODO må håndtere referanseendring i oppgave
             behandlingType = behandling.typeBehandling,
             status = behandling.status(),

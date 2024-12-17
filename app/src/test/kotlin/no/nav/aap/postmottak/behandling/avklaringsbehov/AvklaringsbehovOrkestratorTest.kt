@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.behandling.avklaringsbehov
 
-import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
+import io.mockk.mockk
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.behandling.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseService
+import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
@@ -32,6 +33,7 @@ class AvklaringsbehovOrkestratorTest {
             val behandlingHendelseService =
                 BehandlingHendelseService(
                     FlytJobbRepository(connection),
+                    mockk(relaxed = true)
                 )
 
             val avklaringsbehovOrkestrator = AvklaringsbehovOrkestrator(

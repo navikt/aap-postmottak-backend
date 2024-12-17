@@ -8,6 +8,7 @@ import java.util.UUID
 
 data class DokumentflytStoppetHendelse(
     val journalpostId: JournalpostId,
+    val ident: String,
     val referanse: UUID,
     val behandlingType: TypeBehandling,
     val status: Status,
