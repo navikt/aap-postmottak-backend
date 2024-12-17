@@ -27,7 +27,7 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource) {
             val response = dataSource.transaction(readOnly = true) {
                 val behandling = BehandlingRepositoryImpl(it).hent(req)
                 val saksvurdering = SaksnummerRepository(it).hentSakVurdering(behandling.id)
-                val relaterteSaker = SaksnummerRepository(it).hentSaksnummre(behandling.id)
+                val relaterteSaker = SaksnummerRepository(it).hentSaksnumre(behandling.id)
 
                 AvklarSakGrunnlagDto(
                     vurdering = saksvurdering?.let { AvklarSakVurderingDto.toDto(saksvurdering) },

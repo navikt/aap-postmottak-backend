@@ -55,7 +55,7 @@ class AvklarSakStegTest {
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
-        every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
+        every { saksnummerRepository.hentSaksnumre(any()) } returns listOf(mockk())
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
@@ -76,7 +76,7 @@ class AvklarSakStegTest {
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
 
-        every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
+        every { saksnummerRepository.hentSaksnumre(any()) } returns listOf(mockk())
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
@@ -96,7 +96,7 @@ class AvklarSakStegTest {
 
         every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns true
 
-        every { saksnummerRepository.hentSaksnummre(any()) } returns listOf(mockk())
+        every { saksnummerRepository.hentSaksnumre(any()) } returns listOf(mockk())
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 

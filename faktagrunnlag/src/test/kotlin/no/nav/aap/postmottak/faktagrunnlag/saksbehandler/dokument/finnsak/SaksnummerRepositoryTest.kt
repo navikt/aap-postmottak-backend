@@ -42,7 +42,7 @@ class SaksnummerRepositoryTest {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
             saksnummerRepository.lagreSaksnummer(behandlingId, saksinfo)
 
-            val actual = saksnummerRepository.hentSaksnummre(behandlingId)
+            val actual = saksnummerRepository.hentSaksnumre(behandlingId)
 
             assertThat(actual).isEqualTo(saksinfo)
         }
@@ -62,7 +62,7 @@ class SaksnummerRepositoryTest {
         }
 
         inContext {
-            val saker = saksnummerRepository.hentSaksnummre(behandlingId)
+            val saker = saksnummerRepository.hentSaksnumre(behandlingId)
             assertThat(saker).size().isEqualTo(3)
         }
     }

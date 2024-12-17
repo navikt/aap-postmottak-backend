@@ -5,7 +5,7 @@ import no.nav.aap.verdityper.sakogbehandling.BehandlingId
 
 class SaksnummerRepository(private val connection: DBConnection) {
 
-    fun hentSaksnummre(behandlingId: BehandlingId): List<Saksinfo> =
+    fun hentSaksnumre(behandlingId: BehandlingId): List<Saksinfo> =
         connection.queryList(
             """
             SELECT * FROM (

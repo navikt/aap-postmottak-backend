@@ -11,6 +11,9 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepositoryImpl
 import no.nav.aap.verdityper.flyt.FlytKontekst
 import no.nav.aap.verdityper.sakogbehandling.Ident
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(SaksnummerInfoKrav::class.java)
 
 class SaksnummerInfoKrav(
     private val saksnummerRepository: SaksnummerRepository,
@@ -34,6 +37,7 @@ class SaksnummerInfoKrav(
         val saker = try {
             behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true)).map { it.tilSaksinfo() }
         } catch (e: Exception) {
+            logger.warn("Feilet å hente saker fra behandlingsflyt. Returnerer tom liste", e)
             emptyList()
         } // TODO utbedre exception handling!!!
 

@@ -21,8 +21,6 @@ class BehandlingHendelseService(
 ) {
 
     fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
-
-        // TODO: Utvide med flere parametere for prioritering
         val hendelse = DokumentflytStoppetHendelse(
             journalpostId = behandling.journalpostId,
             referanse = behandling.referanse.referanse, // TODO må håndtere referanseendring i oppgave
@@ -48,11 +46,12 @@ class BehandlingHendelseService(
             },
             opprettetTidspunkt = behandling.opprettetTidspunkt,
             hendelsesTidspunkt = LocalDateTime.now(),
+            saksnummer = null
         )
 
         val payload = DefaultJsonMapper.toJson(hendelse)
 
-        log.info("Legger til flytjobber til statistikk og stoppethendels for behandling: ${behandling.id}")
+        log.info("Legger til flytjobber og stoppethendelse for oppgave for behandling: ${behandling.id}")
         flytJobbRepository.leggTil(
             JobbInput(jobb = StoppetHendelseJobbUtfører).medPayload(payload)
         )

@@ -14,4 +14,5 @@ data class DokumentflytStoppetHendelse(
     val avklaringsbehov: List<AvklaringsbehovHendelseDto>,
     val opprettetTidspunkt: LocalDateTime,
     val hendelsesTidspunkt: LocalDateTime,
+    val saksnummer: String?
 )

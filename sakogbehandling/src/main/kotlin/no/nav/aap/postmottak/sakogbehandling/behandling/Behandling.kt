@@ -26,7 +26,7 @@ class Behandling(
     }
 
     fun visit(stegTilstand: StegTilstand) {
-        check(stegTilstand.aktiv) {"Utvikler feil, prøver legge til steg med aktivtflagg false."}
+        check(stegTilstand.aktiv) {"Utviklerfeil, prøver legge til steg med aktivtflagg false."}
 
         if (stegHistorikk.isEmpty() || aktivtStegTilstand() != stegTilstand) {
             stegHistorikk.stream().filter { tilstand -> tilstand.aktiv }.forEach { tilstand -> tilstand.deaktiver() }
