@@ -2,10 +2,7 @@ package no.nav.aap.postmottak.flyt
 
 import io.ktor.http.*
 import io.ktor.server.response.*
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -25,7 +22,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.flyt.flate.Venteinformasjon
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
-import no.nav.aap.postmottak.fordeler.arena.ProducerProvider
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -61,13 +57,11 @@ class Flyttest : WithFakes {
         internal fun beforeAll() {
             PrometheusProvider.prometheus = mockk(relaxed = true)
             motor.start()
-            mockkObject(ProducerProvider)
         }
 
         @AfterAll
         @JvmStatic
         internal fun afterAll() {
-            unmockkObject(ProducerProvider)
             motor.stop()
         }
     }
@@ -182,8 +176,6 @@ class Flyttest : WithFakes {
 
     @Test
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
-        every { ProducerProvider.provideProducer() } returns mockk(relaxed = true)
-
         val journalpostId = JournalpostId(1L)
 
         dataSource.transaction { connection ->
