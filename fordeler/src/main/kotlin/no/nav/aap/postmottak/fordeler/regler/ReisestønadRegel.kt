@@ -30,7 +30,7 @@ class ReisestønadRegel : Regel<ReisestønadRegelInput> {
 
 class ReisestønadRegelInputGenerator : InputGenerator<ReisestønadRegelInput> {
     override fun generer(input: RegelInput): ReisestønadRegelInput {
-        val brevkode = try { input.brevkode.let(Brevkoder::valueOf) } catch (_: IllegalArgumentException) { Brevkoder.ANNEN }
+        val brevkode = input.brevkode.let(Brevkoder::fraKode)
         return ReisestønadRegelInput(brevkode)
     }
 }

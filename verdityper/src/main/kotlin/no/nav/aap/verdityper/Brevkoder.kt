@@ -6,5 +6,9 @@ enum class Brevkoder(val kode: String) {
     LEGEERKLÆRING("NAV 08-07.08"),
     SØKNAD_OM_REISESTØNAD("NAV 11-12.05"),
     SØKNAD_OM_REISESTØNAD_ETTERSENDELSE("NAVe 11-12.05"),
-    ANNEN("ANNEN")
+    ANNEN("ANNEN");
+
+    companion object {
+        fun fraKode(kode: String) = entries.find { it.kode == kode } ?: ANNEN
+    }
 }
