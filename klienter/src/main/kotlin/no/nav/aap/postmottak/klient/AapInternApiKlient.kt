@@ -37,4 +37,4 @@ data class SakStatus(
     val vedtakStatusKode: String,
     val periode: Periode
 )
-data class Periode(val fraOgMedDato: LocalDate, val tilOgMedDato: LocalDate?)
+data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?)
