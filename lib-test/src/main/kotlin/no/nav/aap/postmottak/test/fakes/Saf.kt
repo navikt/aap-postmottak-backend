@@ -16,7 +16,9 @@ val DIGITAL_SØKNAD_ID = JournalpostId(999)
 val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
 
 
-fun Application.safFake() {
+fun Application.safFake(
+    sakerRespons: String = ingenSakerRespons()
+) {
 
     install(ContentNegotiation) {
         jackson {
@@ -50,11 +52,16 @@ fun Application.safFake() {
         }
         post("/graphql") {
             val body = call.receive<String>()
-            val journalpostId = body.substringAfter("\"journalpostId\" : \"").substringBefore("\"").trim()
-            this@safFake.log.info("Henter dokumenter for journalpost {}", journalpostId)
 
-            call.respondText(
-                """
+            if (body.contains("saker")) {
+                call.respondText(sakerRespons)
+            } else {
+
+                val journalpostId = body.substringAfter("\"journalpostId\" : \"").substringBefore("\"").trim()
+                this@safFake.log.info("Henter dokumenter for journalpost {}", journalpostId)
+
+                call.respondText(
+                    """
                     { "data":
                     {"journalpost":
                         {
@@ -84,8 +91,9 @@ fun Application.safFake() {
                         }
                     }}
                 """.trimIndent(),
-                contentType = ContentType.Application.Json
-            )
+                    contentType = ContentType.Application.Json
+                )
+            }
         }
     }
 }
@@ -140,3 +148,26 @@ private fun getDokumenter(journalpostId: Long) =
     } """
 
     }
+
+private fun ingenSakerRespons() =
+    """
+        {
+            "data": {
+                "saker": []
+            }
+        }
+    """
+
+fun arenaSakerRespons() = 
+    """
+        {
+            "data": {
+                "saker": [
+                    {
+                        "fagsaksystem": "AO01",
+                        "tema": "AAP"
+                    }
+                ]
+            }
+        }
+    """

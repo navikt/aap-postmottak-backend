@@ -68,7 +68,7 @@ class Flyttest : WithFakes {
 
     @AfterEach
     fun afterEach() {
-        WithFakes.fakes.behandlkingsflyt.clean()
+        WithFakes.fakes.behandlingsflyt.clean()
         dataSource.transaction {
             it.execute(
                 """
@@ -146,7 +146,7 @@ class Flyttest : WithFakes {
         dataSource.transaction { connection ->
             val behandlingId = opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId)
 
-            WithFakes.fakes.behandlkingsflyt.setCustomModule {
+            WithFakes.fakes.behandlingsflyt.setCustomModule {
                 behandlingsflytFake(send = {
                     suspend {
                         call.respond(

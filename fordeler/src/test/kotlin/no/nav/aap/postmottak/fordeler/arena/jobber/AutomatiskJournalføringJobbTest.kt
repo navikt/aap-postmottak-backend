@@ -36,7 +36,7 @@ class AutomatiskJournalføringJobbTest : WithFakes {
         journalpostServiceMock,
         enhetsutrederMock
     )
-
+    
     @Test
     fun `Skal opprette manuell journalføirngsjobb dersom automatisk journalføring har feilet 2 ganger`() {
         val journalpostId = JournalpostId(1)

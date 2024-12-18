@@ -4,12 +4,17 @@ import no.nav.aap.postmottak.klient.graphql.asQuery
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 internal data class SafRequest(val query: String, val variables: Variables) {
-    data class Variables(val journalpostId: String? = null)
+    data class Variables(val journalpostId: String? = null, val fnr: String? = null)
 
     companion object {
         fun hentJournalpost(journalpostId: JournalpostId) = SafRequest(
             query = journalpost.asQuery(),
             variables = Variables(journalpostId = journalpostId.toString())
+        )
+
+        fun hentSaker(fnr: String) = SafRequest(
+            query = saker.asQuery(),
+            variables = Variables(fnr = fnr)
         )
     }
 }
@@ -61,3 +66,13 @@ private val journalpost = """
     }
 """.trimIndent()
 
+private const val fnr = "\$fnr"
+
+private val saker = """
+    query($fnr: String!) {
+        saker(brukerId: {id: $fnr, type: FNR}) {
+            tema
+            fagsaksystem
+        }
+    }
+""".trimIndent()

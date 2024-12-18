@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.saf.graphql
 
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
 import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
+import no.nav.aap.postmottak.klient.joark.Fagsystem
 import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
 import java.time.LocalDateTime
 
@@ -17,7 +18,8 @@ data class SafRespons(
 }
 
 data class SafData(
-    val journalpost: SafJournalpost?
+    val journalpost: SafJournalpost?,
+    val saker: List<SafSak>?
 )
 
 data class SafJournalpost(
@@ -330,3 +332,7 @@ enum class SafVariantformat {
     ARKIV, SLADDET, ORIGINAL
 }
 
+data class SafSak(
+    val tema: String,
+    val fagsaksystem: String
+)

@@ -33,7 +33,6 @@ import tilgang.JournalpostTilgangRequest
 import tilgang.TilgangResponse
 import java.time.LocalDate
 
-
 class FakeServer(port: Int = 0, private val module: Application.() -> Unit) {
     private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration> =
         embeddedServer(Netty, port = port, module = module).start()
@@ -72,7 +71,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
     val saf = FakeServer(module = { safFake() })
     val joark = FakeServer(module = { joarkFake() })
-    val behandlkingsflyt = FakeServer(module = { behandlingsflytFake() })
+    val behandlingsflyt = FakeServer(module = { behandlingsflytFake() })
     val tilgang = FakeServer(module = { tilgangFake() })
     val gosysOppgave = FakeServer(module = { gosysOppgaveFake() })
     val aapInternApi = FakeServer(module = { aapInternApiFake() })
@@ -103,7 +102,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
         // Behandlingsflyt
         System.setProperty("integrasjon.behandlingsflyt.scope", "behandlingsflyt")
-        System.setProperty("integrasjon.behandlingsflyt.url", "http://localhost:${behandlkingsflyt.port()}")
+        System.setProperty("integrasjon.behandlingsflyt.url", "http://localhost:${behandlingsflyt.port()}")
 
         // Saf
         System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}/graphql")

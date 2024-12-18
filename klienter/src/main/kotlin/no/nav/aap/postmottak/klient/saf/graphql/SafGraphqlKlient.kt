@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.verdityper.sakogbehandling.Ident
 
 class SafGraphqlKlient(private val restClient: RestClient<InputStream>) {
     private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
@@ -57,6 +58,13 @@ class SafGraphqlKlient(private val restClient: RestClient<InputStream>) {
         }
 
         return journalpost
+    }
+    
+    fun hentSaker(fnr: String, currentToken: OidcToken? = null): List<SafSak>{
+        val request = SafRequest.hentSaker(fnr)
+        val response = runBlocking { graphqlQuery(request, currentToken) }
+        val saker: List<SafSak> = response.data?.saker ?: emptyList()
+        return saker
     }
 
     private fun graphqlQuery(query: SafRequest, currentToken: OidcToken?): SafRespons {
