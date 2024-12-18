@@ -10,6 +10,7 @@ import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringJobbU
 import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
+import no.nav.aap.postmottak.fordeler.arena.jobber.SendTilArenaKjørelisteBehandling
 import no.nav.aap.postmottak.fordeler.arena.jobber.medArenaVideresenderKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.medAutomatiskJournalføringKontekst
 import no.nav.aap.postmottak.fordeler.arena.jobber.opprettArenaVideresenderKontekst
@@ -56,15 +57,10 @@ class ArenaVideresender(
                 joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
             }
 
-            Brevkoder.SØKNAD.kode -> {
-                sendSøknadTilArena(journalpost)
-            }
-
-            Brevkoder.STANDARD_ETTERSENDING.kode -> {
-                sendSøknadsettersendelseTilArena(journalpost)
-            }
-
-            Brevkoder.SØKNAD_OM_REISESTØNAD.kode, Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> Unit // Håndteres af jfr-arena
+            Brevkoder.SØKNAD.kode -> sendSøknadTilArena(journalpost)
+            Brevkoder.STANDARD_ETTERSENDING.kode -> automatiskJournalførPåNyesteSak(journalpost)
+            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> automatiskJournalførPåNyesteSak(journalpost)
+            Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> sendTiArenaKjøreliste(journalpost)// Håndteres af jfr-arena
             else -> {
                 sendTilManuellJournalføring(journalpost)
             }
@@ -79,7 +75,15 @@ class ArenaVideresender(
         )
     }
 
-    private fun sendSøknadsettersendelseTilArena(journalpost: Journalpost) {
+    private fun sendTiArenaKjøreliste(journalpost: JournalpostMedDokumentTitler) {
+        flytJobbRepository.leggTil(
+            JobbInput(SendTilArenaKjørelisteBehandling).medArenaVideresenderKontekst(
+                opprettArenaVideresenderKontekst(journalpost)
+            )
+        )
+    }
+
+    private fun automatiskJournalførPåNyesteSak(journalpost: Journalpost) {
         val saksId = arenaKlient.nyesteAktiveSak(journalpost.person.aktivIdent()) ?: error("Fant ikke arenasaksnummer")
         flytJobbRepository.leggTil(
             JobbInput(AutomatiskJournalføringJobbUtfører).medAutomatiskJournalføringKontekst(

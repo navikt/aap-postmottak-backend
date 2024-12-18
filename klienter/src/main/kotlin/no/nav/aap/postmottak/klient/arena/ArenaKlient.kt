@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.net.URI
 
@@ -34,4 +35,18 @@ class ArenaKlient {
         return client.post(opprettArenaoppgaveUrl, request) ?: error("Ingen respons fra Arena")
     }
 
+    fun behandleKjoerelisteOgOpprettOppgave(journalpostId: JournalpostId): String {
+        val request = PostRequest(BehandleKjoerelisteOgOpprettOppgaveRequest(journalpostId.referanse.toString()))
+        val behandleKjoerelisteOgOpprettOppgaveUrl = url.resolve("arena/behandleKjoerelisteOgOpprettOppgave")
+        return client.post<BehandleKjoerelisteOgOpprettOppgaveRequest, BehandleKjoerelisteOgOpprettOppgaveResponse>(behandleKjoerelisteOgOpprettOppgaveUrl, request)?.arenaSakId ?: error("Ingen respons fra Arena")
+    }
+
 }
+
+data class BehandleKjoerelisteOgOpprettOppgaveRequest(
+    val journalpostId: String
+)
+
+data class BehandleKjoerelisteOgOpprettOppgaveResponse(
+    val arenaSakId: String
+)

@@ -4,6 +4,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.postmottak.fordeler.arena.jobber.AutomatiskJournalføringJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
 import no.nav.aap.postmottak.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
+import no.nav.aap.postmottak.fordeler.arena.jobber.SendTilArenaKjørelisteBehandling
 
 object ProsesseringsJobber {
 
@@ -17,7 +18,8 @@ object ProsesseringsJobber {
             FordelingVideresendJobbUtfører,
             SendSøknadTilArenaJobbUtfører,
             ManuellJournalføringJobbUtfører,
-            AutomatiskJournalføringJobbUtfører
+            AutomatiskJournalføringJobbUtfører,
+            SendTilArenaKjørelisteBehandling
         )
     }
 }
