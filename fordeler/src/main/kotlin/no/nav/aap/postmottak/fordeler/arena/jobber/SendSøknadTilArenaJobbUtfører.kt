@@ -6,6 +6,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.arena.ArenaOppgaveType
 import no.nav.aap.postmottak.klient.arena.ArenaOpprettOppgaveForespørsel
 import org.slf4j.LoggerFactory
 
@@ -48,7 +49,8 @@ class SendSøknadTilArenaJobbUtfører(
                 fnr = kontekst.ident.identifikator,
                 enhet = kontekst.navEnhet,
                 tittel = kontekst.hoveddokumenttittel,
-                titler = kontekst.vedleggstitler
+                titler = kontekst.vedleggstitler,
+                oppgaveType = ArenaOppgaveType.STARTVEDTAK
             )
             val sakId = arenaKlient.opprettArenaOppgave(request).arenaSakId
             opprettAutomatiskJournalføringsjobb(kontekst, sakId)
