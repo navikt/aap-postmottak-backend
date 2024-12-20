@@ -1,4 +1,4 @@
-val komponenterVersjon = "1.0.77"
+val komponenterVersjon = "1.0.98"
 
 plugins {
     id("postmottak.conventions")

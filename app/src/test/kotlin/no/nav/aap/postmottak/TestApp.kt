@@ -3,6 +3,7 @@ package no.nav.aap.postmottak
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -54,7 +55,7 @@ fun main() {
         )
         module(fakes)
 
-        val datasource = initDatasource(dbConfig)
+        val datasource = initDatasource(dbConfig, SimpleMeterRegistry())
 
         datasource.transaction {
             opprettBehandlingAvklarTeam(it)

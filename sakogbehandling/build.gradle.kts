@@ -1,6 +1,6 @@
-val ktorVersion = "3.0.0"
-val komponenterVersjon = "1.0.77"
-val tilgangVersjon = "0.0.65"
+val ktorVersion = "3.0.2"
+val komponenterVersjon = "1.0.98"
+val tilgangVersjon = "0.0.72"
 
 plugins {
     id("postmottak.conventions")

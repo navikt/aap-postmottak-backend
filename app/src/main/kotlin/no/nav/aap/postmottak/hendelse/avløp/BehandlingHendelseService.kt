@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.hendelse.avløp
 
-import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.behandling.avklaringsbehov.Avklaringsbehovene

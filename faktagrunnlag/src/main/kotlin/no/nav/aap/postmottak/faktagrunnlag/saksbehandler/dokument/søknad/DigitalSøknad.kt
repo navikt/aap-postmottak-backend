@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
-import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import kotlin.text.Charsets.UTF_8
 
 fun ByteArray.parseDigitalSøknad(): SøknadV0 {

@@ -17,6 +17,7 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.server.AZURE
@@ -26,7 +27,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
@@ -110,7 +111,7 @@ internal fun Application.server(
         allowHeader(HttpHeaders.ContentType)
     }
 
-    val dataSource = initDatasource(dbConfig)
+    val dataSource = initDatasource(dbConfig, PrometheusProvider.prometheus)
     Migrering.migrate(dataSource)
     val motor = module(dataSource)
 
@@ -205,7 +206,7 @@ data class DbConfig(
     val password: String = requiredConfigForKey("DB_POSTMOTTAK_PASSWORD")
 )
 
-fun initDatasource(dbConfig: DbConfig): HikariDataSource {
+fun initDatasource(dbConfig: DbConfig, meterRegistry: MeterRegistry): HikariDataSource {
     return HikariDataSource(HikariConfig().apply {
         jdbcUrl = dbConfig.url
         username = dbConfig.username
@@ -214,6 +215,6 @@ fun initDatasource(dbConfig: DbConfig): HikariDataSource {
         minimumIdle = 1
         driverClassName = "org.postgresql.Driver"
         connectionTestQuery = "SELECT 1"
-
+        metricRegistry = meterRegistry
     })
 }

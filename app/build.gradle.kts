@@ -1,16 +1,16 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.ByteArrayOutputStream
 
-val ktorVersion = "3.0.0"
-val komponenterVersjon = "1.0.77"
+val ktorVersion = "3.0.2"
+val komponenterVersjon = "1.0.98"
 val kafkaVersion = "3.7.0"
-val tilgangVersjon = "0.0.65"
+val tilgangVersjon = "0.0.72"
 val behandlingsflytVersjon = "0.0.81"
 val junitVersjon = "5.10.3"
 
 plugins {
     id("postmottak.conventions")
-    id("io.ktor.plugin") version "3.0.0"
+    id("io.ktor.plugin") version "3.0.2"
 }
 
 application {
