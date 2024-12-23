@@ -6,7 +6,7 @@ val komponenterVersjon = "1.0.98"
 val kafkaVersion = "3.7.0"
 val tilgangVersjon = "0.0.72"
 val behandlingsflytVersjon = "0.0.81"
-val junitVersjon = "5.10.3"
+val junitVersjon = "5.11.3"
 
 plugins {
     id("postmottak.conventions")
@@ -66,11 +66,10 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.8")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
 
-    implementation(project(":sakogbehandling"))
-    implementation(project(":verdityper"))
-    implementation(project(":dbflyway"))
     implementation(project(":klienter"))
-    implementation(project(":fordeler"))
+    implementation(project(":repository"))
+    implementation(project(":api"))
+    implementation(project(":flyt"))
 
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
@@ -82,10 +81,9 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
-    implementation(project(":faktagrunnlag"))
-    implementation("com.zaxxer:HikariCP:6.0.0")
-    implementation("org.flywaydb:flyway-database-postgresql:10.17.3")
-    runtimeOnly("org.postgresql:postgresql:42.7.3")
+    implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation("org.flywaydb:flyway-database-postgresql:11.1.0")
+    runtimeOnly("org.postgresql:postgresql:42.7.4")
 
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")

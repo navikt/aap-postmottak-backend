@@ -1,0 +1,98 @@
+package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate
+
+
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.route
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.httpklient.auth.token
+import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
+import no.nav.aap.postmottak.gateway.DokumentOboGateway
+import no.nav.aap.postmottak.gateway.JournalpostOboGateway
+import no.nav.aap.postmottak.gateway.PersondataGateway
+import no.nav.aap.postmottak.gateway.SafVariantformat
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.flate.DokumentResponsDTO
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.flate.HentDokumentDTO
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.authorizedGet
+import javax.sql.DataSource
+
+fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
+    route("/api/dokumenter") {
+        route("/{journalpostId}/{dokumentinfoId}") {
+            authorizedGet<HentDokumentDTO, DokumentResponsDTO>(
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "journalpostId"
+                    )
+                )
+            ) { req ->
+                val journalpostId = req.journalpostId
+                val dokumentInfoId = req.dokumentinfoId
+
+                val token = token()
+                val gateway = GatewayProvider.provide(DokumentOboGateway::class)
+                val dokumentRespons =
+                    gateway.hentDokument(
+                        JournalpostId(journalpostId),
+                        DokumentInfoId(dokumentInfoId),
+                        SafVariantformat.ARKIV.name,
+                        currentToken = token
+                    )
+                pipeline.call.response.headers.append(
+                    name = "Content-Disposition", value = "inline; filename=${dokumentRespons.filnavn}"
+                )
+
+                respond(DokumentResponsDTO(stream = dokumentRespons.dokument))
+            }
+        }
+
+        route("/{referanse}/info") {
+            authorizedGet<BehandlingsreferansePathParam, DokumentInfoResponsDTO>(
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        journalpostIdFraBehandlingResolver(dataSource)
+                    )
+                )
+            ) { req ->
+                val journalpostId = dataSource.transaction(readOnly = true) { connection ->
+                val repositoryProvider = RepositoryProvider(connection)
+                    repositoryProvider.provide(BehandlingRepository::class).hent(req).journalpostId
+                }
+
+                val token = token()
+                val journalpost =
+                    GatewayProvider.provide(JournalpostOboGateway::class).hentJournalpost(JournalpostId(journalpostId.referanse), token)
+                // TODO: Rydd opp i dette
+                val identer =
+                    listOf(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).filterNotNull().distinct()
+                val personer = GatewayProvider.provide(PersondataGateway::class).hentPersonBolk(identer)
+                val søker = journalpost.bruker?.id
+                val avsender = journalpost.avsenderMottaker?.id
+                respond(
+                    DokumentInfoResponsDTO(
+                        journalpostId = journalpostId.referanse,
+                        søker = DokumentIdent(
+                            journalpost.bruker?.id,
+                            if (søker != null) personer?.getOrDefault(søker, null)?.verdi else null
+                        ),
+                        avsender = DokumentIdent(
+                            journalpost.avsenderMottaker?.id,
+                            if (avsender != null) personer?.getOrDefault(avsender, null)?.verdi else null
+                        ),
+                        dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) }
+                            ?: emptyList()
+                    )
+                )
+            }
+        }
+    }
+}

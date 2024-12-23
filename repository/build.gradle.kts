@@ -1,0 +1,27 @@
+plugins {
+    id("postmottak.conventions")
+}
+
+val komponenterVersjon = "1.0.98"
+val behandlingsflytVersjon = "0.0.81"
+val junitVersjon = "5.11.3"
+
+dependencies {
+    implementation(project(":flyt"))
+
+    implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:verdityper:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
+    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
+    implementation("org.flywaydb:flyway-database-postgresql:11.1.0")
+    runtimeOnly("org.postgresql:postgresql:42.7.4")
+
+    testImplementation(project(":lib-test"))
+    testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersjon")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersjon")
+    testImplementation("org.assertj:assertj-core:3.26.3")
+}

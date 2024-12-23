@@ -8,49 +8,74 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import no.nav.aap.postmottak.sakogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.gateway.DokumentGateway
+import no.nav.aap.postmottak.gateway.DokumentOboGateway
+import no.nav.aap.postmottak.gateway.SafDocumentResponse
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import java.io.InputStream
 import java.net.URI
 import java.net.http.HttpHeaders
 
-
-class SafRestKlient(private val restClient: RestClient<InputStream>) {
-
-    private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
-
-    companion object {
-        fun withOboRestClient(): SafRestKlient {
-            val config = ClientConfig(
-                scope = requiredConfigForKey("integrasjon.saf.scope"),
+class SafOboRestClient(client: RestClient<InputStream>) : SafRestKlient(client), DokumentOboGateway {
+    companion object : Factory<SafOboRestClient> {
+        override fun konstruer(): SafOboRestClient {
+            val client = RestClient.withDefaultResponseHandler(
+                config = ClientConfig(
+                    scope = requiredConfigForKey("integrasjon.saf.scope"),
+                ),
+                tokenProvider = OnBehalfOfTokenProvider
             )
-            return SafRestKlient(
-                RestClient.withDefaultResponseHandler(
-                    config = config,
-                    tokenProvider = OnBehalfOfTokenProvider
-                )
-            )
-        }
-        fun withClientCredentialsRestClient(): SafRestKlient {
-            val config = ClientConfig(
-                scope = requiredConfigForKey("integrasjon.saf.scope"),
-            )
-            return SafRestKlient(
-                RestClient.withDefaultResponseHandler(
-                    config = config,
-                    tokenProvider = ClientCredentialsTokenProvider
-                )
-            )
+            return SafOboRestClient(client)
         }
     }
 
-    fun hentDokument(
+    override fun hentDokument(
         journalpostId: JournalpostId,
         dokumentId: DokumentInfoId,
-        arkivtype: String = "ORIGINAL",
+        arkivtype: String,
+        currentToken: OidcToken
+    ) = hentDokumentInternal(client, journalpostId, dokumentId, arkivtype, currentToken)
+
+}
+
+class SafRestClient(client: RestClient<InputStream>) : SafRestKlient(client), DokumentGateway {
+    companion object : Factory<SafRestClient> {
+        override fun konstruer(): SafRestClient {
+            val client = RestClient.withDefaultResponseHandler(
+                config = ClientConfig(
+                    scope = requiredConfigForKey("integrasjon.saf.scope"),
+                ),
+                tokenProvider = ClientCredentialsTokenProvider
+            )
+            return SafRestClient(client)
+        }
+        fun konstruer(client: RestClient<InputStream>): SafRestClient {
+            return SafRestClient(client)
+        }
+    }
+
+    override fun hentDokument(
+        journalpostId: JournalpostId,
+        dokumentId: DokumentInfoId,
+        arkivtype: String,
+    ) = hentDokumentInternal(client, journalpostId, dokumentId, arkivtype)
+}
+
+abstract class SafRestKlient(val client: RestClient<InputStream>) {
+    private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
+    val scope = requiredConfigForKey("integrasjon.saf.scope")
+
+
+    protected fun hentDokumentInternal(
+        client: RestClient<InputStream>,
+        journalpostId: JournalpostId,
+        dokumentId: DokumentInfoId,
+        arkivtype: String,
         currentToken: OidcToken? = null,
     ): SafDocumentResponse {
         val url = konstruerSafRestURL(restUrl, journalpostId, dokumentId, arkivtype)
-        val response = restClient.get(url,request = GetRequest(currentToken = currentToken),
+        val response = client.get(url, request = GetRequest(currentToken = currentToken),
             mapper = { body, headers ->
                 val contentType = headers.map()["Content-Type"]?.firstOrNull()
                 val filnavn: String? = extractFileNameFromHeaders(headers)
@@ -84,4 +109,3 @@ class SafRestKlient(private val restClient: RestClient<InputStream>) {
         return matchResult?.groupValues?.get(1)
     }
 }
-data class SafDocumentResponse(val dokument: InputStream, val contentType: String, val filnavn: String)

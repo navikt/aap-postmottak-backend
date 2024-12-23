@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak
 
+import no.nav.aap.lookup.repository.RepositoryRegistry
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
@@ -25,36 +26,58 @@ import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
-import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
-import no.nav.aap.postmottak.behandling.avklaringsbehov.flate.avklaringsbehovApi
-import no.nav.aap.postmottak.behandling.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.flate.avklarTemaApi
+import no.nav.aap.postmottak.avklaringsbehov.flate.avklaringsbehovApi
+import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
+import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.exception.ErrorRespons
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.flate.avklarTemaApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.flate.finnSakApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.flate.struktureringApi
-import no.nav.aap.postmottak.flyt.flate.behandlingApi
-import no.nav.aap.postmottak.flyt.flate.flytApi
+import no.nav.aap.postmottak.flyt.behandlingApi
+import no.nav.aap.postmottak.flyt.flytApi
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
 import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.mottakStream
-import no.nav.aap.postmottak.server.exception.FlytOperasjonException
-import no.nav.aap.postmottak.server.prosessering.PostmottakLogInfoProvider
-import no.nav.aap.postmottak.server.prosessering.ProsesseringsJobber
+import no.nav.aap.postmottak.exception.FlytOperasjonException
+import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
+import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
+import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.test.testApi
-import no.nav.aap.verdityper.feilhåndtering.ElementNotFoundException
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
+import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
+import no.nav.aap.postmottak.klient.joark.JoarkClient
+import no.nav.aap.postmottak.klient.nom.NomKlient
+import no.nav.aap.postmottak.klient.norg.NorgKlient
+import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
+import no.nav.aap.postmottak.klient.saf.SafOboRestClient
+import no.nav.aap.postmottak.klient.saf.SafRestClient
+import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
+import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
+import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.saf.graphql.SafGraphqlOboClient
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 class App
-
-val SYSTEMBRUKER = Bruker("Kelvin")
 
 private const val ANTALL_WORKERS = 4
 
@@ -113,7 +136,10 @@ internal fun Application.server(
 
     val dataSource = initDatasource(dbConfig, PrometheusProvider.prometheus)
     Migrering.migrate(dataSource)
-    val motor = module(dataSource)
+    val motor = startMotor(dataSource)
+    
+    registerGateways()
+    registerRepositories()
 
     val mottakStream = mottakStream(dataSource)
 
@@ -138,7 +164,41 @@ internal fun Application.server(
 
 }
 
-fun Application.module(dataSource: DataSource): Motor {
+private fun registerGateways() {
+    GatewayRegistry
+        .register<OppgaveKlient>()
+        .register<GosysOppgaveKlient>()
+        .register<SafGraphqlClientCredentialsClient>()
+        .register<SafGraphqlOboClient>()
+        .register<SafOboRestClient>()
+        .register<SafRestClient>()
+        .register<BehandlingsflytClient>()
+        .register<JoarkClient>()
+        .register<NomKlient>()
+        .register<ArenaKlient>()
+        .register<PdlGraphqlKlient>()
+        .register<NorgKlient>()
+        .status()
+}
+
+private fun registerRepositories() {
+    RepositoryRegistry
+        .register<AvklaringsbehovRepositoryImpl>()
+        .register<BehandlingRepositoryImpl>()
+        .register<AvklarTemaRepositoryImpl>()
+        .register<KategorivurderingRepositoryImpl>()
+        .register<SaksnummerRepositoryImpl>()
+        .register<StruktureringsvurderingRepositoryImpl>()
+        .register<JournalpostRepositoryImpl>()
+        .register<TaSkriveLåsRepositoryImpl>()
+        .register<PersonRepositoryImpl>()
+        .register<InnkommendeJournalpostRepositoryImpl>()
+        .register<RegelRepositoryImpl>()
+        .status()
+}
+
+
+fun Application.startMotor(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
