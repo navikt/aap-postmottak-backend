@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.klient.pdl
 
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.graphql.asQuery
-import no.nav.aap.verdityper.sakogbehandling.Ident
 
 internal data class PdlRequest(val query: String, val variables: Variables) {
     data class Variables(val ident: String? = null, val identer: List<String>? = null)

@@ -9,14 +9,14 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklarteam.AvklarTemaRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategorivurderingRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.sakogbehandling.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.server.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -80,7 +80,7 @@ private fun opprettBehandlingFinnSak(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val journalpostId = JournalpostId(2)
     val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
+    AvklarTemaRepositoryImpl(connection).lagreTeamAvklaring(behandlingId, true)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
@@ -93,8 +93,8 @@ private fun opprettBehandlingKategoriser(connection: DBConnection) {
     val journalpostId = JournalpostId(3)
 
     val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
-    SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
+    AvklarTemaRepositoryImpl(connection).lagreTeamAvklaring(behandlingId, true)
+    SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
@@ -107,9 +107,9 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
     val journalpostId = JournalpostId(4)
     val behandlingId =
         behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepository(connection).lagreTeamAvklaring(behandlingId, true)
-    SaksnummerRepository(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
-    KategorivurderingRepository(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
+    AvklarTemaRepositoryImpl(connection).lagreTeamAvklaring(behandlingId, true)
+    SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
+    KategorivurderingRepositoryImpl(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()

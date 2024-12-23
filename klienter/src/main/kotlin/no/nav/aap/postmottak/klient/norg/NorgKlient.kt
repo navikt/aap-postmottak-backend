@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.klient.norg
 
+import no.nav.aap.fordeler.Diskresjonskode
+import no.nav.aap.fordeler.NorgGateway
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -8,6 +10,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
+import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.klient.gosysoppgave.NavEnhet
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -24,10 +27,14 @@ data class FinnNavenhetRequest(
     val behandlingstema: String = BEHANDLINGSTEMA_AAP
 )
 
-enum class Diskresjonskode { SPFO, SPSF, ANY }
+class NorgKlient: NorgGateway {
 
-class NorgKlient {
-
+    companion object: Factory<NorgKlient> {
+        override fun konstruer(): NorgKlient {
+            return NorgKlient()
+        }
+    }
+    
     private val log = LoggerFactory.getLogger(NorgKlient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.norg.url"))
@@ -37,14 +44,14 @@ class NorgKlient {
         tokenProvider = NoTokenTokenProvider(),
     )
 
-    fun hentAktiveEnheter(): List<NavEnhet> {
+    override fun hentAktiveEnheter(): List<NavEnhet> {
         val aktiveEnheterUrl = url.resolve("norg2/api/v1/enhet")
         val request = GetRequest()
 
         return client.get<List<Enhet>>(aktiveEnheterUrl, request)?.map { it.enhetNr } ?: error("Feil i response fra norg")
     }
 
-    fun finnEnhet(geografiskTilknyttning: String?, erNavansatt: Boolean, diskresjonskode: Diskresjonskode): NavEnhet {
+    override fun finnEnhet(geografiskTilknyttning: String?, erNavansatt: Boolean, diskresjonskode: Diskresjonskode): NavEnhet {
         log.info("Finner enhet for $geografiskTilknyttning")
         val finnEnhetUrl = url.resolve("norg2/api/v1/arbeidsfordeling/enheter/bestmatch")
         val request = PostRequest(

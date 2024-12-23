@@ -1,0 +1,54 @@
+package no.nav.aap.postmottak.journalpostogbehandling.flyt
+
+enum class StegStatus {
+    /**
+     * Teknisk status
+     */
+    START,
+    
+    /**
+    * Teknisk status
+    */
+    OPPDATER_FAKTAGRUNNLAG,
+    
+    /**
+     * Utfører forettningslogikken i steget
+     */
+    UTFØRER,
+
+    /**
+     * Venter på en gitt hendelse
+     */
+    VENTER_PÅ_CALLBACK,
+
+    /**
+     * Punkt for å vente på avklaringsbehov
+     */
+    AVKLARINGSPUNKT,
+
+    /**
+     * Teknisk status, finne neste steg
+     */
+    AVSLUTTER,
+
+    /**
+     * Tilbakeført fra steg A til steg B, mer for logg at hendelsen har inntruffet
+     */
+    TILBAKEFØRT;
+
+    fun neste(): StegStatus {
+        val rekkefølge = rekkefølge()
+        val indexOf = rekkefølge.indexOf(this)
+
+        if (indexOf > -1 && indexOf < rekkefølge.size - 1) {
+            return rekkefølge[indexOf + 1]
+        }
+        return START
+    }
+
+    companion object {
+        fun rekkefølge(): List<StegStatus> {
+            return listOf(START, OPPDATER_FAKTAGRUNNLAG, UTFØRER, AVKLARINGSPUNKT, AVSLUTTER)
+        }
+    }
+}

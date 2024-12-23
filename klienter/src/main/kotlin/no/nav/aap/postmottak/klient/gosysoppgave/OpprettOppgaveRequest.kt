@@ -2,11 +2,6 @@ package no.nav.aap.postmottak.klient.gosysoppgave
 
 import java.time.LocalDate
 
-enum class Oppgavetype(val verdi: String) {
-    JOURNALFØRING("JFR"),
-    FORDELING("FDR")
-}
-
 data class OpprettOppgaveRequest(
     val oppgavetype: String, // se kodeverk
     val tema: String = "AAP", // se kodeverk

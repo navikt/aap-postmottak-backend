@@ -1,8 +1,9 @@
 package no.nav.aap.postmottak.klient.pdl
 
+import no.nav.aap.postmottak.gateway.Adressebeskyttelseskode
+import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
 import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
-import no.nav.aap.postmottak.klient.norg.Diskresjonskode
 import java.time.LocalDate
 
 internal data class PdlResponse(
@@ -23,20 +24,6 @@ data class HentPersonBolkResult(
     val person: PdlPerson?,
     val code: String,
 )
-
-data class GeografiskTilknytning(
-    val gtType: GeografiskTilknytningType,
-    val gtKommune: String? = null,
-    val gtBydel: String? = null,
-    val gtLand: String? = null,
-)
-
-enum class GeografiskTilknytningType{
-    KOMMUNE,
-    BYDEL,
-    UTLAND,
-    UDEFINERT
-}
 
 data class PdlPerson(
     val navn: List<Navn>, val code: Code?     //Denne er påkrevd ved hentPersonBolk
@@ -75,20 +62,6 @@ enum class PdlGruppe {
     FOLKEREGISTERIDENT,
     AKTORID,
     NPID,
-}
-
-enum class Adressebeskyttelseskode {
-    FORTROLIG,
-    STRENGT_FORTROLIG,
-    STRENGT_FORTROLIG_UTLAND,
-    UGRADERT;
-
-    fun tilDiskresjonskode() =
-        when (this) {
-            FORTROLIG -> Diskresjonskode.SPFO
-            STRENGT_FORTROLIG, STRENGT_FORTROLIG_UTLAND -> Diskresjonskode.SPSF
-            UGRADERT -> Diskresjonskode.ANY
-        }
 }
 
 data class HistoriskMetadata(val historisk: Boolean)

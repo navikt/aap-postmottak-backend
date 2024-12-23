@@ -1,0 +1,46 @@
+package no.nav.aap.postmottak.forretningsflyt.steg
+
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
+import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
+import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
+import no.nav.aap.postmottak.flyt.steg.FlytSteg
+import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.flyt.steg.StegResultat
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.steg.StegType
+
+class KategoriserDokumentSteg(
+    private val kategorivurderingRepository: KategoriVurderingRepository,
+    private val journalpostRepository: JournalpostRepository
+) : BehandlingSteg {
+    companion object : FlytSteg {
+        override fun konstruer(connection: DBConnection): BehandlingSteg {
+            val repositoryProvider = RepositoryProvider(connection)
+            return KategoriserDokumentSteg(
+                repositoryProvider.provide(KategoriVurderingRepository::class),
+                repositoryProvider.provide(JournalpostRepository::class)
+            )
+        }
+
+        override fun type(): StegType {
+            return StegType.KATEGORISER_DOKUMENT
+        }
+
+    }
+
+    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
+        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+        requireNotNull(journalpost)
+
+        return if (!journalpost.erDigitalSøknad() && kategorivurdering == null)
+            FantAvklaringsbehov(
+                Definisjon.KATEGORISER_DOKUMENT
+            )
+        else Fullført
+    }
+}

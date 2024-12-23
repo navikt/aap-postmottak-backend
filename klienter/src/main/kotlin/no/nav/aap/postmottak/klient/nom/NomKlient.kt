@@ -6,13 +6,17 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.verdityper.sakogbehandling.Ident
+import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.gateway.EgenAnsattGateway
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.klient.saf.SafRestClient
 import org.slf4j.LoggerFactory
+import java.io.InputStream
 import java.net.URI
 
 data class EgenansattRequest(val personident: String)
 
-class NomKlient {
+class NomKlient : EgenAnsattGateway {
 
     private val log = LoggerFactory.getLogger(NomKlient::class.java)
 
@@ -27,7 +31,13 @@ class NomKlient {
         tokenProvider = ClientCredentialsTokenProvider
     )
 
-    fun erEgenansatt(ident: Ident): Boolean {
+    companion object : Factory<NomKlient> {
+        override fun konstruer(): NomKlient {
+            return NomKlient()
+        }
+    }
+
+    override fun erEgenAnsatt(ident: Ident): Boolean {
         log.info("Sjekker om $ident er egenansatt")
         val egenansattUrl = url.resolve("skjermet")
         val request = PostRequest(

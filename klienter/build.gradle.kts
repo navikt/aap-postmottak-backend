@@ -2,7 +2,7 @@ val komponenterVersjon = "1.0.98"
 val ktorVersion = "3.0.2"
 val tilgangVersjon = "0.0.72"
 val jacksonVersion = "2.17.2"
-val junitVersion = "5.10.3"
+val junitVersion = "5.11.3"
 val behandlingsflytVersjon = "0.0.81"
 
 plugins {
@@ -10,15 +10,14 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":verdityper"))
+    implementation(project(":kontrakt"))
+    implementation(project(":flyt"))
+    
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
-    implementation(project(":verdityper"))
-    implementation(project(":kontrakt"))
-    implementation(project(":sakogbehandling"))
 
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")

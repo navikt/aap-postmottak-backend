@@ -1,47 +1,46 @@
 package no.nav.aap.postmottak.klient.joark
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
+import no.nav.aap.postmottak.gateway.FerdigstillRequest
+import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.JournalpostBruker
+import no.nav.aap.postmottak.gateway.JournalpostGateway
+import no.nav.aap.postmottak.gateway.JournalpostSak
+import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.gateway.Sakstype
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.saf.graphql.BrukerIdType
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
-import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
-import no.nav.aap.verdityper.sakogbehandling.Ident
 import java.io.InputStream
 import java.net.URI
 
-interface Joark {
-    fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String = "AAP")
-    fun førJournalpostPåGenerellSak(journalpost: Journalpost, tema: String = "AAP")
-    fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId)
-    fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String)
-}
-
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
-class JoarkClient(
-    private val client: RestClient<InputStream>,
-    private val safGraphqlKlient: SafGraphqlKlient = SafGraphqlKlient.withClientCredentialsRestClient()
-) : Joark {
+class JoarkClient(private val client: RestClient<InputStream>, private val safGraphqlKlient: JournalpostGateway): JournalføringsGateway {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
 
-    companion object {
-        fun withClientCridentialsTokenProvider() =
-            JoarkClient(
-                RestClient.withDefaultResponseHandler(
-                    config = ClientConfig(
-                        scope = requiredConfigForKey("integrasjon.joark.scope"),
-                    ),
-                    tokenProvider = ClientCredentialsTokenProvider
+    companion object: Factory<JoarkClient> {
+        override fun konstruer(): JoarkClient {
+            val restClient = RestClient.withDefaultResponseHandler(
+                config = ClientConfig(
+                    scope = requiredConfigForKey("integrasjon.joark.scope"),
                 ),
-                SafGraphqlKlient.withClientCredentialsRestClient()
+                tokenProvider = ClientCredentialsTokenProvider
             )
+            return JoarkClient(restClient, GatewayProvider.provide(JournalpostGateway::class))
+        }
+        fun konstruer(restClient: RestClient<InputStream>, safGraphqlKlient: JournalpostGateway): JoarkClient {
+            return JoarkClient(restClient, safGraphqlKlient)
+        }
     }
 
     override fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String) {
@@ -91,12 +90,12 @@ class JoarkClient(
         client.patch(path, request) { _, _ -> }
     }
 
-    private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottaker? {
+    private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottakerDto? {
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker
         return if (avsenderMottaker?.id == null) {
-            AvsenderMottaker(
+            AvsenderMottakerDto(
                 id = safJournalpost.bruker?.id!!,
                 type = bruker?.type!!,
                 erLikBruker = true
@@ -108,45 +107,3 @@ class JoarkClient(
 
 }
 
-data class FerdigstillRequest(
-    val journalfoerendeEnhet: String
-)
-
-data class OppdaterJournalpostRequest(
-    val behandlingstema: String? = null,
-    val journalfoerendeEnhet: String,
-    val sak: JournalpostSak,
-    val tema: String,
-    val bruker: JournalpostBruker,
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    val avsenderMottaker: AvsenderMottaker?
-)
-
-data class AvsenderMottaker(
-    val id: String,
-    val type: BrukerIdType,
-    val navn: String? = null,
-    val land: String? = null,
-    val erLikBruker: Boolean? = null,
-)
-
-enum class Fagsystem {
-    KELVIN,
-    AO01 // Arena
-}
-
-enum class Sakstype {
-    FAGSAK,
-    GENERELL_SAK
-}
-
-data class JournalpostSak(
-    val sakstype: Sakstype = Sakstype.FAGSAK,
-    val fagsakId: String? = null,
-    val fagsaksystem: Fagsystem? = Fagsystem.KELVIN
-)
-
-data class JournalpostBruker(
-    val id: String,
-    val idType: String = "FNR"
-)

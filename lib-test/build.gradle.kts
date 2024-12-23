@@ -1,18 +1,16 @@
 val ktorVersion = "3.0.2"
 val komponenterVersjon = "1.0.98"
 val tilgangVersjon = "0.0.72"
-val junitVersion = "5.10.3"
+val junitVersion = "5.11.3"
 
 plugins {
     id("postmottak.conventions")
 }
 
 dependencies {
-    implementation(project(":sakogbehandling"))
-    implementation(project(":faktagrunnlag"))
-    implementation(project(":verdityper"))
-    implementation(project(":app"))
+    implementation(project(":flyt"))
     implementation(project(":klienter"))
+    implementation(project(":repository"))
 
     implementation("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")

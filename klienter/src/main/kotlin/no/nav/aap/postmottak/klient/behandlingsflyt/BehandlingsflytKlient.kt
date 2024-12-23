@@ -13,23 +13,20 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
+import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
-import no.nav.aap.postmottak.sakogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.sakogbehandling.journalpost.Journalpost
 import no.nav.aap.verdityper.dokument.Kanal
-import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDate
 
-interface BehandlingsflytKlient {
-    fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak
-    fun finnSaker(ident: Ident): List<BehandlingsflytSak>
-    fun sendHendelse(journalpost: Journalpost, saksnummer: String, melding: Melding)
-}
-
-class BehandlingsflytClient : BehandlingsflytKlient {
+class BehandlingsflytClient : BehandlingsflytGateway {
     private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))
@@ -40,6 +37,13 @@ class BehandlingsflytClient : BehandlingsflytKlient {
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
     )
+
+
+    companion object: Factory<BehandlingsflytClient> {
+        override fun konstruer(): BehandlingsflytClient {
+            return BehandlingsflytClient()
+        }
+    }
 
     override fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak {
         log.info("Finn eller opprett sak på person i behandlingsflyt")
@@ -97,11 +101,6 @@ class BehandlingsflytClient : BehandlingsflytKlient {
         client.post<Innsending, Unit>(url, request)
     }
 }
-
-data class BehandlingsflytSak(
-    val saksnummer: String,
-    val periode: Periode,
-)
 
 fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {
     return when (this) {

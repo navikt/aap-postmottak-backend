@@ -1,7 +1,9 @@
 package no.nav.aap.postmottak.klient.pdl
 
+import no.nav.aap.postmottak.gateway.Adressebeskyttelseskode
+import no.nav.aap.postmottak.gateway.GeografiskTilknytningType
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.test.fakes.WithFakes
-import no.nav.aap.verdityper.sakogbehandling.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -10,28 +12,28 @@ class PdlTest: WithFakes {
 
     @Test
     fun `Kan parse hentPersonBolk`() {
-        val test = PdlGraphqlKlient.withClientCredentialsRestClient().hentPersonBolk(listOf("1234"))
+        val test = PdlGraphqlKlient().hentPersonBolk(listOf("1234"))
 
         assertThat(test?.size).isEqualTo(1)
     }
 
     @Test
     fun `Kan parse hentPerson`() {
-        val test = PdlGraphqlKlient.withClientCredentialsRestClient().hentPerson("1234")
+        val test = PdlGraphqlKlient().hentFødselsdato("1234")
         assertNotNull(test)
     }
 
     @Test
     fun `Kan parse hentIdenter`() {
-        val test = PdlGraphqlKlient.withClientCredentialsRestClient().hentAlleIdenterForPerson("1234")
+        val test = PdlGraphqlKlient().hentAlleIdenterForPerson("1234")
         assertNotNull(test)
     }
 
     @Test
     fun `Kan parse geografiskTilknytning`() {
-        val test = PdlGraphqlKlient.withClientCredentialsRestClient().hentAdressebeskyttelseOgGeolokasjon(Ident("1234"))
-        assertThat(test.hentPerson?.adressebeskyttelse).isEqualTo(listOf(Adressebeskyttelseskode.UGRADERT))
-        assertThat(test.hentGeografiskTilknytning?.gtType).isEqualTo(GeografiskTilknytningType.KOMMUNE)
-        assertThat(test.hentGeografiskTilknytning?.gtKommune).isEqualTo("3207")
+        val test = PdlGraphqlKlient().hentAdressebeskyttelseOgGeolokasjon(Ident("1234"))
+        assertThat(test.adressebeskyttelse).isEqualTo(listOf(Adressebeskyttelseskode.UGRADERT))
+        assertThat(test.geografiskTilknytning.gtType).isEqualTo(GeografiskTilknytningType.KOMMUNE)
+        assertThat(test.geografiskTilknytning.gtKommune).isEqualTo("3207")
     }
 }

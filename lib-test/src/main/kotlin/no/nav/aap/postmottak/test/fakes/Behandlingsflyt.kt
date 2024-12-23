@@ -8,7 +8,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import java.time.LocalDate
 
 val defaultFinnEllerOpprett: suspend RoutingContext.() -> Unit = {

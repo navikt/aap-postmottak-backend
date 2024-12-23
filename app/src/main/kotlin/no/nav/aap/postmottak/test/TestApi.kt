@@ -5,15 +5,15 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
+import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
-import no.nav.aap.postmottak.fordeler.Enhetsutreder
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
-import no.nav.aap.postmottak.sakogbehandling.journalpost.Person
-import no.nav.aap.verdityper.sakogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
@@ -66,7 +66,7 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
 
                 val enhetsutreder = Enhetsutreder(
                     NorgKlient(),
-                    PdlGraphqlKlient.withClientCredentialsRestClient(),
+                    PdlGraphqlKlient(),
                     NomKlient()
                 )
 
