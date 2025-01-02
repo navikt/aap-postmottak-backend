@@ -55,6 +55,7 @@ import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.test.testApi
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
+import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
@@ -178,6 +179,7 @@ private fun registerGateways() {
         .register<ArenaKlient>()
         .register<PdlGraphqlKlient>()
         .register<NorgKlient>()
+        .register<AapInternApiKlient>()
         .status()
 }
 
