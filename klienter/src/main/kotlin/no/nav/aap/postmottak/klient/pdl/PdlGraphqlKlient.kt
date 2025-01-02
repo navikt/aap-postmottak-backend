@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.klient.pdl
 import PdlResponseHandler
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient

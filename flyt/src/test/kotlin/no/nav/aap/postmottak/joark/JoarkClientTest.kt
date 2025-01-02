@@ -15,7 +15,6 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClientCredentialsClient
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
 import no.nav.aap.postmottak.test.fakes.UTEN_AVSENDER_MOTTAKER
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
@@ -44,7 +43,6 @@ class JoarkClientTest : WithFakes {
             identer = listOf(Ident("12345678"))
         )
         every { journalpost.journalpostId } returns JournalpostId(1)
-
         joarkClient.førJournalpostPåFagsak(journalpost.journalpostId, journalpost.person.aktivIdent(), "213412")
     }
 

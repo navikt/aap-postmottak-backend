@@ -104,6 +104,5 @@ class JoarkClient(private val client: RestClient<InputStream>, private val safGr
             null
         }
     }
-
 }
 
