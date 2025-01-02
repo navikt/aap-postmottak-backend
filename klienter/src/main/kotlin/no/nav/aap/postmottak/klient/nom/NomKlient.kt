@@ -9,9 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.gateway.EgenAnsattGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.klient.saf.SafRestClient
 import org.slf4j.LoggerFactory
-import java.io.InputStream
 import java.net.URI
 
 data class EgenansattRequest(val personident: String)

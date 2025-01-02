@@ -23,7 +23,7 @@ class OppgaveKlient: OppgaveGateway {
     
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
+        tokenProvider = ClientCredentialsTokenProvider
     )
 
     override fun varsleHendelse(hendelse: DokumentflytStoppetHendelse) {

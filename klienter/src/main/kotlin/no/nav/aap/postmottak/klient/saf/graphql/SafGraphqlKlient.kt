@@ -27,7 +27,7 @@ class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
         tokenProvider = OnBehalfOfTokenProvider,
         responseHandler = SafResponseHandler()
     )
-
+    
     companion object: Factory<SafGraphqlOboClient> {
         override fun konstruer(): SafGraphqlOboClient {
             return SafGraphqlOboClient()

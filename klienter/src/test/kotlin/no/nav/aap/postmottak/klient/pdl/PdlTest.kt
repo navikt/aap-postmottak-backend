@@ -13,7 +13,6 @@ class PdlTest: WithFakes {
     @Test
     fun `Kan parse hentPersonBolk`() {
         val test = PdlGraphqlKlient().hentPersonBolk(listOf("1234"))
-
         assertThat(test?.size).isEqualTo(1)
     }
 
