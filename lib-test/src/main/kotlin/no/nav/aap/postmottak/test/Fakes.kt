@@ -76,8 +76,8 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val gosysOppgave = FakeServer(module = { gosysOppgaveFake() })
     val aapInternApi = FakeServer(module = { aapInternApiFake() })
     val pdl = FakeServer(module = { pdlFake() })
-    val fssProxy = FakeServer(module = {fssProxy()})
-    val nomFake = FakeServer(module = {nomFake()})
+    val fssProxy = FakeServer(module = { fssProxy() })
+    val nomFake = FakeServer(module = { nomFake() })
     val norgFake = FakeServer(module = { norgFake() })
 
     init {
@@ -124,7 +124,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // PDL
         System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
         System.setProperty("integrasjon.pdl.scope", "scope")
-        
+
         // Aap FSS proxy
         System.setProperty("integrasjon.aap.fss.proxy.url", "http://localhost:${fssProxy.port()}")
         System.setProperty("integrasjon.aap.fss.proxy.scope", "scope")
@@ -251,7 +251,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     }
 
 
-
     private fun Application.pdlFake() {
         install(ContentNegotiation) {
             jackson {
@@ -288,7 +287,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         }
         routing {
             post("/token") {
-                val token = AzureTokenGen(POSTMOTTAK_BACKEND, POSTMOTTAK_BACKEND).generate()
+                val body = call.receiveText()
+                val token = AzureTokenGen(
+                    POSTMOTTAK_BACKEND, POSTMOTTAK_BACKEND
+                ).generate(body.contains("grant_type=client_credentials"))
                 call.respond(TestToken(access_token = token))
             }
             get("/jwks") {
@@ -321,7 +323,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
         }
     }
-    
+
     private fun Application.fssProxy() {
         install(ContentNegotiation) {
             jackson()
