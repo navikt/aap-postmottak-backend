@@ -41,10 +41,6 @@ class AutomatiskJournalføringJobbUtfører(
     override fun utfør(input: JobbInput) {
         val kontekst = input.getAutomatiskJournalføringKontekst()
 
-        log.info("Automatisk journalfører journalpost ${kontekst.journalpostId} på sak ${kontekst.saksnummer} ")
-        joarkClient.førJournalpostPåFagsak(kontekst.journalpostId, kontekst.ident, kontekst.saksnummer)
-        joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
-
         if (input.antallRetriesForsøkt() >= retries()) {
             val journalpost = journalpostService.hentjournalpost(kontekst.journalpostId)
             val enhet = enhetsutreder.finnNavenhetForJournalpost(journalpost)
@@ -52,7 +48,12 @@ class AutomatiskJournalføringJobbUtfører(
                 JobbInput(ManuellJournalføringJobbUtfører)
                     .medArenaVideresenderKontekst(journalpost.opprettArenaVideresenderKontekst(enhet))
             )
+            return
         }
+        
+        log.info("Automatisk journalfører journalpost ${kontekst.journalpostId} på sak ${kontekst.saksnummer} ")
+        joarkClient.førJournalpostPåFagsak(kontekst.journalpostId, kontekst.ident, kontekst.saksnummer)
+        joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
     }
 
 }

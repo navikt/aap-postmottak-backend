@@ -40,11 +40,9 @@ class SendSøknadTilArenaJobbUtfører(
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (input.antallRetriesForsøkt() >= 2) {
-            log.info("Forsøk på opprettelse av oppgave i Arena feilet ${input.antallRetriesForsøkt()+1}, oppretter manuell oppgave")
+            log.info("Forsøk på opprettelse av oppgave i Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb((kontekst))
-        }
-
-        if (!arenaKlient.harAktivSak(kontekst.ident)) {
+        } else if (!arenaKlient.harAktivSak(kontekst.ident)) {
             log.info("Oppretter oppgave i Arena for søknad med journalpostid \"${kontekst.journalpostId}\"")
             val request = ArenaOpprettOppgaveForespørsel(
                 fnr = kontekst.ident.identifikator,
@@ -59,18 +57,17 @@ class SendSøknadTilArenaJobbUtfører(
             log.info("Det finnes alt en sak i Arena for ${kontekst.ident}, sender journalpost til manuell journalføring")
             opprettManuellJournalføringsoppgavejobb(kontekst)
         }
-
     }
 
-    private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst, arenaSakId :String) {
+    private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst, arenaSakId: String) {
         flytJobbRepository.leggTil(
             JobbInput(AutomatiskJournalføringJobbUtfører)
                 .medAutomatiskJournalføringKontekst(
                     AutomatiskJournalføringKontekst(
-                    journalpostId = kontekst.journalpostId,
-                    ident = kontekst.ident,
-                    saksnummer = arenaSakId,
-                )
+                        journalpostId = kontekst.journalpostId,
+                        ident = kontekst.ident,
+                        saksnummer = arenaSakId,
+                    )
                 )
                 .medCallId()
         )

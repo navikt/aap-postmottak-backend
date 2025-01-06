@@ -40,6 +40,7 @@ class SendTilArenaKjørelisteBehandling(
         if (input.antallRetriesForsøkt() >= 2) {
             log.info("Forsøk på sending av kjøreliste til Arena feilet ${input.antallRetriesForsøkt()+1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb(kontekst)
+            return
         }
 
         log.info("Oppretter oppgave i Arena for søknad med journalpostid \"${kontekst.journalpostId}\"")
