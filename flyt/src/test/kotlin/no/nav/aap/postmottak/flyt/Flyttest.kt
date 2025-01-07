@@ -12,7 +12,6 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.motor.Motor
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
@@ -41,7 +40,6 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
@@ -55,11 +53,11 @@ import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.test.TestMotor
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -69,8 +67,8 @@ import org.junit.jupiter.api.Test
 class Flyttest : WithFakes {
 
     companion object {
+        init { TestMotor }
         private val dataSource = InitTestDatabase.dataSource
-        private val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle())
         private val hendelsesMottak = TestHendelsesMottak(dataSource)
 
         @BeforeAll
@@ -103,14 +101,8 @@ class Flyttest : WithFakes {
 
 
             PrometheusProvider.prometheus = mockk(relaxed = true)
-            motor.start()
         }
 
-        @AfterAll
-        @JvmStatic
-        internal fun afterAll() {
-            motor.stop()
-        }
     }
 
     @AfterEach
