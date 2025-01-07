@@ -83,6 +83,8 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
 
     fun finnJournalpostStatus(status: Journalstatus?) = when (status) {
         Journalstatus.MOTTATT -> JournalpostStatus.MOTTATT
+        Journalstatus.FERDIGSTILT -> JournalpostStatus.FERDIGSTILT
+        Journalstatus.JOURNALFOERT -> JournalpostStatus.JOURNALFØRT
         else -> JournalpostStatus.UKJENT
     }
 

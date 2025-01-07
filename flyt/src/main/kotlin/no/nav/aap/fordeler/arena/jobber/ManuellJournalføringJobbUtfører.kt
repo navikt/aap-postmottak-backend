@@ -6,17 +6,23 @@ import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.gateway.JournalpostGateway
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.Oppgavetype
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(ManuellJournalføringJobbUtfører::class.java)
 
-class ManuellJournalføringJobbUtfører(private val gosysOppgaveGateway: GosysOppgaveGateway) : JobbUtfører {
+class ManuellJournalføringJobbUtfører(
+    private val gosysOppgaveGateway: GosysOppgaveGateway,
+    private val journalpostGateway: JournalpostGateway
+) : JobbUtfører {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             val gosysOppgaveGateway = GatewayProvider.provide(GosysOppgaveGateway::class)
-            return ManuellJournalføringJobbUtfører(gosysOppgaveGateway)
+            val journalpostGateway = GatewayProvider.provide(JournalpostGateway::class)
+            return ManuellJournalføringJobbUtfører(gosysOppgaveGateway, journalpostGateway)
         }
 
         override fun type() = "arena.manuell.journalføring"
@@ -36,9 +42,11 @@ class ManuellJournalføringJobbUtfører(private val gosysOppgaveGateway: GosysOp
                 kontekst.journalpostId,
                 listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING)
             )
-
+        val journalpostStatus = journalpostGateway.hentJournalpost(kontekst.journalpostId).journalstatus
         if (eksisterendeOppgaver.isNotEmpty()) {
             log.info("Det finnes allerede en journalføringsoppgave for journalpost ${kontekst.journalpostId} - oppretter ingen ny")
+        } else if (journalpostStatus == Journalstatus.FERDIGSTILT) {
+            log.info("Journalpost ${kontekst.journalpostId} er allerede ferdigstilt - oppretter ingen journalføringsoppgave")
         } else if (input.antallRetriesForsøkt() < 3) {
             gosysOppgaveGateway.opprettJournalføringsOppgave(
                 kontekst.journalpostId,

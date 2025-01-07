@@ -57,6 +57,7 @@ open class Journalpost(
 enum class JournalpostStatus {
     MOTTATT,
     JOURNALFØRT,
+    FERDIGSTILT,
     UKJENT
 }
 

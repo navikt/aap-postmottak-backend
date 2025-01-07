@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.klient.gosysoppgave
 
-import no.nav.aap.fordeler.arena.jobber.ArenaVideresenderKontekst
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -12,6 +11,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Oppgavetype
+import no.nav.aap.postmottak.gateway.Statuskategori
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.slf4j.LoggerFactory
@@ -63,12 +63,14 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
 
     override fun finnOppgaverForJournalpost(
         journalpostId: JournalpostId,
-        oppgavetyper: List<Oppgavetype>
+        oppgavetyper: List<Oppgavetype>,
+        tema: String,
+        statuskategori: Statuskategori
     ): List<Long> {
         log.info("Finn oppgaver for journalpost: $journalpostId")
         val oppgaveparams = oppgavetyper.map { "&oppgavetype=${it.name}" }.joinToString(separator = "")
         val path =
-            url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId${oppgaveparams}&tema=AAP&statuskategori=AAPEN")
+            url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId${oppgaveparams}&tema=$tema&statuskategori=${statuskategori.name}")
 
         return client.get<FinnOppgaverResponse>(path, GetRequest())?.oppgaver?.map { it.id } ?: emptyList()
     }

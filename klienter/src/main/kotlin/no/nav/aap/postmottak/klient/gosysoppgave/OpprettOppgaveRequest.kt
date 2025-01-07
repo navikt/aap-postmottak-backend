@@ -22,10 +22,6 @@ data class OpprettOppgaveRequest(
 
 typealias NavEnhet = String
 
-enum class Statuskategori {
-    AAPEN, AVSLUTTET
-}
-
 enum class Prioritet {
     HOY,
     NORM,
