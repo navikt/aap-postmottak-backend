@@ -2,22 +2,19 @@ package no.nav.aap.fordeler.arena
 
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.arena.jobber.ArenaVideresenderKontekst
-import no.nav.aap.fordeler.arena.jobber.AutomatiskJournalføringJobbUtfører
-import no.nav.aap.fordeler.arena.jobber.AutomatiskJournalføringKontekst
 import no.nav.aap.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
+import no.nav.aap.fordeler.arena.jobber.OppprettOppgaveIArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
+import no.nav.aap.fordeler.arena.jobber.SendTilArenaKjørelisteBehandling
+import no.nav.aap.fordeler.arena.jobber.medArenaVideresenderKontekst
+import no.nav.aap.fordeler.arena.jobber.opprettArenaVideresenderKontekst
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
-import no.nav.aap.fordeler.arena.jobber.SendTilArenaKjørelisteBehandling
-import no.nav.aap.fordeler.arena.jobber.medArenaVideresenderKontekst
-import no.nav.aap.fordeler.arena.jobber.medAutomatiskJournalføringKontekst
-import no.nav.aap.fordeler.arena.jobber.opprettArenaVideresenderKontekst
-import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
@@ -50,8 +47,8 @@ class ArenaVideresender(
             }
 
             Brevkoder.SØKNAD.kode -> sendSøknadTilArena(journalpost)
-            Brevkoder.STANDARD_ETTERSENDING.kode -> automatiskJournalførPåNyesteSak(journalpost)
-            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> automatiskJournalførPåNyesteSak(journalpost)
+            Brevkoder.STANDARD_ETTERSENDING.kode -> opprettOppagvePåEksisterendeSak(journalpost)
+            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> opprettOppagvePåEksisterendeSak(journalpost)
             Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> sendTiArenaKjøreliste(journalpost)// Håndteres af jfr-arena
             else -> {
                 sendTilManuellJournalføring(journalpost)
@@ -75,15 +72,10 @@ class ArenaVideresender(
         )
     }
 
-    private fun automatiskJournalførPåNyesteSak(journalpost: Journalpost) {
-        val saksId = arenaKlient.nyesteAktiveSak(journalpost.person.aktivIdent()) ?: error("Fant ikke arenasaksnummer")
+    private fun opprettOppagvePåEksisterendeSak(journalpost: JournalpostMedDokumentTitler) {
         flytJobbRepository.leggTil(
-            JobbInput(AutomatiskJournalføringJobbUtfører).medAutomatiskJournalføringKontekst(
-                AutomatiskJournalføringKontekst(
-                    journalpostId = journalpost.journalpostId,
-                    ident = journalpost.person.aktivIdent(),
-                    saksnummer = saksId
-                )
+            JobbInput(OppprettOppgaveIArenaJobbUtfører).medArenaVideresenderKontekst(
+                opprettArenaVideresenderKontekst(journalpost)
             )
         )
     }
