@@ -5,17 +5,21 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import org.junit.jupiter.api.BeforeAll
 
+object TestMotor {
+    private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
+
+    init {
+        motor.start()
+    }
+}
+
 interface WithMotor {
 
     companion object {
-        private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
-
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            if (!motor.kjører()) {
-                motor.start()
-            }
+            TestMotor
         }
     }
 
