@@ -24,11 +24,9 @@ import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.WithMotor
 import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.WithFakes
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-
 
 
 class SøknadTilArenaFlytTest: WithFakes, WithDependencies, WithMotor {
@@ -40,13 +38,6 @@ class SøknadTilArenaFlytTest: WithFakes, WithDependencies, WithMotor {
         fun beforeAll() {
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
-        }
-    }
-
-    @AfterEach
-    fun clean() {
-        InitTestDatabase.dataSource.transaction {
-            it.execute("""TRUNCATE JOBB CASCADE""")
         }
     }
 
