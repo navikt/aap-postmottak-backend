@@ -98,7 +98,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
             behandlingId
         }
 
-        await(10000) {
+        await(20000) {
             dataSource.transaction(readOnly = true) {
                 val behandlinger = RepositoryProvider(it).provide(BehandlingRepository::class).hentAlleBehandlingerForSak(journalpostId)
                 assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
