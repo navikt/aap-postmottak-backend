@@ -2,17 +2,14 @@ package no.nav.aap.postmottak.flyt
 
 import io.ktor.http.*
 import io.ktor.server.response.*
-import io.mockk.mockk
+import no.nav.aap.WithDependencies
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
@@ -25,15 +22,6 @@ import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.klient.arena.ArenaKlient
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
-import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
-import no.nav.aap.postmottak.klient.joark.JoarkClient
-import no.nav.aap.postmottak.klient.nom.NomKlient
-import no.nav.aap.postmottak.klient.norg.NorgKlient
-import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
-import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
-import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -46,14 +34,8 @@ import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
-import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
-import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
-import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
-import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.test.TestMotor
+import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
@@ -61,47 +43,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-class Flyttest : WithFakes {
+class Flyttest : WithFakes, WithDependencies {
 
     companion object {
         init { TestMotor }
         private val dataSource = InitTestDatabase.dataSource
         private val hendelsesMottak = TestHendelsesMottak(dataSource)
-
-        @BeforeAll
-        @JvmStatic
-        internal fun beforeAll() {
-            RepositoryRegistry.register<SaksnummerRepositoryImpl>()
-                .register<JournalpostRepositoryImpl>()
-                .register<TaSkriveLåsRepositoryImpl>()
-                .register<AvklaringsbehovRepositoryImpl>()
-                .register<BehandlingRepositoryImpl>()
-                .register<AvklarTemaRepositoryImpl>()
-                .register<KategorivurderingRepositoryImpl>()
-                .register<AvklarTemaRepositoryImpl>()
-                .register<StruktureringsvurderingRepositoryImpl>()
-                .register<PersonRepositoryImpl>()
-                .register<InnkommendeJournalpostRepositoryImpl>()
-                .register<RegelRepositoryImpl>()
-
-            GatewayRegistry
-                .register<OppgaveKlient>()
-                .register<GosysOppgaveKlient>()
-                .register<SafGraphqlClientCredentialsClient>()
-                .register<SafRestClient>()
-                .register<BehandlingsflytClient>()
-                .register<JoarkClient>()
-                .register<PdlGraphqlKlient>()
-                .register<NorgKlient>()
-                .register<NomKlient>()
-                .register<ArenaKlient>()
-
-
-            PrometheusProvider.prometheus = mockk(relaxed = true)
-        }
 
     }
 
@@ -343,15 +292,4 @@ class Flyttest : WithFakes {
         return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
     }
 
-    private fun <T> await(maxWait: Long = 5000, block: () -> T): T {
-        val currentTime = System.currentTimeMillis()
-        while (System.currentTimeMillis() - currentTime <= maxWait) {
-            try {
-                return block()
-            } catch (_: Throwable) {
-            }
-            Thread.sleep(50)
-        }
-        return block()
-    }
 }

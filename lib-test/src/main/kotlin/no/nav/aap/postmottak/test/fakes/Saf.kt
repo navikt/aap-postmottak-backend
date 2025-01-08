@@ -126,7 +126,7 @@ private fun getDokumenter(journalpostId: Long) =
 
         else -> """ {
             "tittel": "Dokumenttittel",
-            "dokumentInfoId": "4542685451",
+            "dokumentInfoId": "45426854351",
             "brevkode": "NAV 11-13.05",
             "dokumentvarianter": [
             {
@@ -136,8 +136,9 @@ private fun getDokumenter(journalpostId: Long) =
             ]
         },
     {
+        "dokumentInfoId": "2",
         "tittel": "Dokument2",
-        "dokumentInfoId": "45426854351",
+        "dokumentInfoId": "45426854352",
         "brevkode": null,
         "dokumentvarianter": [
         {

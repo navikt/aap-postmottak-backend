@@ -21,6 +21,7 @@ import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.SakStatus
 import no.nav.aap.postmottak.klient.gosysoppgave.FerdigstillOppgaveRequest
+import no.nav.aap.postmottak.klient.gosysoppgave.FinnOppgaverResponse
 import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.nomFake
@@ -239,6 +240,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             jackson()
         }
         routing {
+            get("/api/v1/oppgaver") {
+                call.respond(HttpStatusCode.OK, FinnOppgaverResponse(emptyList()))
+            }
             post("/api/v1/oppgaver") {
                 call.receive<OpprettOppgaveRequest>()
                 call.respond(HttpStatusCode.NoContent)

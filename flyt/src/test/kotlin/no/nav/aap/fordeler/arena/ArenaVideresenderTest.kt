@@ -5,12 +5,10 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.arena.jobber.ArenaVideresenderKontekst
-import no.nav.aap.fordeler.arena.jobber.AutomatiskJournalføringJobbUtfører
-import no.nav.aap.fordeler.arena.jobber.AutomatiskJournalføringKontekst
 import no.nav.aap.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
+import no.nav.aap.fordeler.arena.jobber.OppprettOppgaveIArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.getArenaVideresenderKontekst
-import no.nav.aap.fordeler.arena.jobber.getAutomatiskJournalføringKontekst
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
@@ -29,7 +27,7 @@ class ArenaVideresenderTest {
     val journalpostService: JournalpostService = mockk()
     val joarkClient: JournalføringsGateway = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
-    val enhetsutreder: Enhetsutreder = mockk()
+    val enhetsutreder: Enhetsutreder = mockk(relaxed = true)
     val arenaKlient: ArenaKlient = mockk()
 
     val arenaVideresender = ArenaVideresender(
@@ -44,9 +42,12 @@ class ArenaVideresenderTest {
     fun `når journalpost er en legeerklæring, skal journalposten journalføres med tema OPP`() {
 
         val journalpostId = JournalpostId(1)
-        val journalpost: JournalpostMedDokumentTitler = mockk()
-        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
-        every { journalpost.journalpostId } returns journalpostId
+        val journalpost: JournalpostMedDokumentTitler = mockk<JournalpostMedDokumentTitler> {
+            every { getHoveddokumenttittel() } returns Brevkoder.LEGEERKLÆRING.kode
+            every { journalpostId } returns journalpostId
+            every { getHoveddokumenttittel() } returns "Hoveddokumenttittel"
+            every { getVedleggTitler() } returns listOf("Vedlegg")
+        }
 
         every { journalpostService.hentjournalpost(journalpostId) } returns journalpost
 
@@ -91,27 +92,33 @@ class ArenaVideresenderTest {
     @Test
     fun `når journalpost er en søknadsettersendelse, skal en AutomatiskJournalføringsjobb opprettes`() {
 
-        val automatiskJournalføringKontekst = AutomatiskJournalføringKontekst(
+        val arenaVideresenderKontekst = ArenaVideresenderKontekst(
             journalpostId = JournalpostId(1),
             ident = Ident("1"),
-            saksnummer = "saksnummer"
+            hoveddokumenttittel = "hoveddokumenttittel",
+            vedleggstitler =  listOf("vedleggtittel"),
+            navEnhet = "Utland"
         )
 
         val journalpost: JournalpostMedDokumentTitler = mockk {
-            every { journalpostId } returns automatiskJournalføringKontekst.journalpostId
-            every { person } returns Person(1, UUID.randomUUID(), listOf(automatiskJournalføringKontekst.ident))
+            every { journalpostId } returns arenaVideresenderKontekst.journalpostId
+            every { person } returns Person(1, UUID.randomUUID(), listOf(arenaVideresenderKontekst.ident))
             every { hoveddokumentbrevkode } returns Brevkoder.STANDARD_ETTERSENDING.kode
+            every { getHoveddokumenttittel() } returns arenaVideresenderKontekst.hoveddokumenttittel
+            every { getVedleggTitler() } returns arenaVideresenderKontekst.vedleggstitler
         }
 
-        every { journalpostService.hentjournalpost(automatiskJournalføringKontekst.journalpostId) } returns journalpost
+        every { enhetsutreder.finnNavenhetForJournalpost(any()) } returns arenaVideresenderKontekst.navEnhet
 
-        every { arenaKlient.nyesteAktiveSak(automatiskJournalføringKontekst.ident) } returns "saksnummer"
+        every { journalpostService.hentjournalpost(arenaVideresenderKontekst.journalpostId) } returns journalpost
 
-        arenaVideresender.videresendJournalpostTilArena(automatiskJournalføringKontekst.journalpostId)
+        every { arenaKlient.nyesteAktiveSak(arenaVideresenderKontekst.ident) } returns "saksnummer"
+
+        arenaVideresender.videresendJournalpostTilArena(arenaVideresenderKontekst.journalpostId)
 
         verify(exactly = 1) { flytJobbRepository.leggTil(withArg {
-            assertEquals(it.type(), AutomatiskJournalføringJobbUtfører.type())
-            assertEquals(it.getAutomatiskJournalføringKontekst(), automatiskJournalføringKontekst)
+            assertEquals(it.type(), OppprettOppgaveIArenaJobbUtfører.type())
+            assertEquals(it.getArenaVideresenderKontekst(), arenaVideresenderKontekst)
         }) }
 
     }

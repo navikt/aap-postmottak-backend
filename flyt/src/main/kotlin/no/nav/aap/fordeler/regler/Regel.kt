@@ -25,8 +25,8 @@ sealed interface RegelFactory<T> {
     fun medDataInnhenting(): RegelMedInputgenerator<T>
 }
 
-fun miljøConfig(prod: Boolean, dev:Boolean) =when (Miljø.er()) {
+fun miljøConfig(prod: Boolean, dev:Boolean) = when (Miljø.er()) {
     MiljøKode.PROD -> prod
     MiljøKode.DEV -> dev
-    else -> false
+    else -> dev
 }
