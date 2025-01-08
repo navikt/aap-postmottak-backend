@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 
 val DIGITAL_SØKNAD_ID = JournalpostId(999)
+val SØKNAD_ETTERSENDELSE = JournalpostId(1000)
 val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
 
 
@@ -124,6 +125,20 @@ private fun getDokumenter(journalpostId: Long) =
         }
     """
 
+        SØKNAD_ETTERSENDELSE.referanse -> """       
+        {
+            "tittel": "Dokumenttittel",
+            "dokumentInfoId": "4542685451",
+            "brevkode": "NAVe 11-13.05",
+            "dokumentvarianter": [
+                {
+                    "variantformat": "ORIGINAL",
+                    "filtype": "JSON"
+                }
+            ]
+        }
+        """
+
         else -> """ {
             "tittel": "Dokumenttittel",
             "dokumentInfoId": "45426854351",
@@ -159,7 +174,7 @@ private fun ingenSakerRespons() =
         }
     """
 
-fun arenaSakerRespons() = 
+fun arenaSakerRespons() =
     """
         {
             "data": {

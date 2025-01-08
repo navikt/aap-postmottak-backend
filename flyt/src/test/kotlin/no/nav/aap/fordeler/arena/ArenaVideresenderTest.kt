@@ -41,20 +41,20 @@ class ArenaVideresenderTest {
     @Test
     fun `når journalpost er en legeerklæring, skal journalposten journalføres med tema OPP`() {
 
-        val journalpostId = JournalpostId(1)
+        val journalpostId_ = JournalpostId(1)
         val journalpost: JournalpostMedDokumentTitler = mockk<JournalpostMedDokumentTitler> {
-            every { getHoveddokumenttittel() } returns Brevkoder.LEGEERKLÆRING.kode
-            every { journalpostId } returns journalpostId
+            every { hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
+            every { journalpostId } returns journalpostId_
             every { getHoveddokumenttittel() } returns "Hoveddokumenttittel"
             every { getVedleggTitler() } returns listOf("Vedlegg")
         }
 
-        every { journalpostService.hentjournalpost(journalpostId) } returns journalpost
+        every { journalpostService.hentjournalpost(journalpostId_) } returns journalpost
 
-        arenaVideresender.videresendJournalpostTilArena(journalpostId)
+        arenaVideresender.videresendJournalpostTilArena(journalpostId_)
 
         verify(exactly = 1) { joarkClient.førJournalpostPåGenerellSak(journalpost, "OPP") }
-        verify(exactly = 1) { joarkClient.ferdigstillJournalpostMaskinelt(journalpostId) }
+        verify(exactly = 1) { joarkClient.ferdigstillJournalpostMaskinelt(journalpostId_) }
 
     }
 

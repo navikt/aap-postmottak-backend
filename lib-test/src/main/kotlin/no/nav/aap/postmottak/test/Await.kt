@@ -7,7 +7,7 @@ fun <T> await(maxWait: Long = 5000, block: () -> T): T {
             return block()
         } catch (_: Throwable) {
         }
-        Thread.sleep(50)
+        Thread.sleep(100)
     }
     return block()
 }

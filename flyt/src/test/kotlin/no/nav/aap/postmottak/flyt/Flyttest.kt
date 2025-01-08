@@ -34,7 +34,7 @@ import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
-import no.nav.aap.postmottak.test.TestMotor
+import no.nav.aap.postmottak.test.WithMotor
 import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.WithFakes
@@ -45,10 +45,9 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class Flyttest : WithFakes, WithDependencies {
+class Flyttest : WithFakes, WithDependencies, WithMotor {
 
     companion object {
-        init { TestMotor }
         private val dataSource = InitTestDatabase.dataSource
         private val hendelsesMottak = TestHendelsesMottak(dataSource)
 

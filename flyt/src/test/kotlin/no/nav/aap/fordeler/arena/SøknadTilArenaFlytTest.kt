@@ -21,7 +21,7 @@ import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.medJournalpostId
-import no.nav.aap.postmottak.test.TestMotor
+import no.nav.aap.postmottak.test.WithMotor
 import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.junit.jupiter.api.AfterEach
@@ -31,11 +31,7 @@ import java.time.LocalDate
 
 
 
-class SøknadTilArenaFlyt: WithFakes, WithDependencies {
-
-    init {
-        TestMotor
-    }
+class SøknadTilArenaFlytTest: WithFakes, WithDependencies, WithMotor {
 
     companion object {
 
@@ -57,7 +53,7 @@ class SøknadTilArenaFlyt: WithFakes, WithDependencies {
     val dataSource = InitTestDatabase.dataSource
 
     @Test
-    fun `happycase for søknad oppretter sak i arena og journalfører automatsik`() {
+    fun `happycase for søknad, oppretter sak i arena og journalfører automatsik`() {
         val journalpostId = JournalpostId(1)
 
         val persondataGateway = GatewayProvider.provide(PersondataGateway::class)
