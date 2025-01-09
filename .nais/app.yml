@@ -12,12 +12,12 @@ spec:
 #  strategy:
 #    type: Recreate
   ingresses:
-      - {{ ingres}}
+      - {{ingres}}
   replicas:
     cpuThresholdPercentage: 90
-    disableAutoScaling: {{ replicas.disableAutoScaling}}
-    max: {{ replicas.max }}
-    min: {{ replicas.min }}
+    disableAutoScaling: {{replicas.disableAutoScaling}}
+    max: {{replicas.max}}
+    min: {{replicas.min}}
   resources:
     limits:
       memory: 1024Mi
@@ -41,12 +41,15 @@ spec:
                   - "NAVident"
                   - "azp_name"
   kafka:
-      pool: {{ kafka.pool}}
+      pool: {{kafka.pool}}
       streams: true
   gcp:
     sqlInstances:
       - type: POSTGRES_16
-        tier: db-f1-micro
+        tier: {{sql.tier}}
+        diskAutoresize: {{sql.diskAutoresize}}
+        highAvailability: {{sql.highAvailability}}
+        pointInTimeRecovery: {{sql.pointInTimeRecovery}}
         databases:
           - name: postmottak
             envVarPrefix: DB_POSTMOTTAK
@@ -88,5 +91,5 @@ spec:
   env:
   {{#each env}}
     - name: {{this.name}}
-      value: {{this.value}}
+      value: this.value}}
   {{/each}}
