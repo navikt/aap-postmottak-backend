@@ -28,14 +28,12 @@ class ArenaVideresenderTest {
     val joarkClient: JournalføringsGateway = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
     val enhetsutreder: Enhetsutreder = mockk(relaxed = true)
-    val arenaKlient: ArenaKlient = mockk()
 
     val arenaVideresender = ArenaVideresender(
         journalpostService,
         joarkClient,
         flytJobbRepository,
         enhetsutreder,
-        arenaKlient
     )
 
     @Test
@@ -111,8 +109,6 @@ class ArenaVideresenderTest {
         every { enhetsutreder.finnNavenhetForJournalpost(any()) } returns arenaVideresenderKontekst.navEnhet
 
         every { journalpostService.hentjournalpost(arenaVideresenderKontekst.journalpostId) } returns journalpost
-
-        every { arenaKlient.nyesteAktiveSak(arenaVideresenderKontekst.ident) } returns "saksnummer"
 
         arenaVideresender.videresendJournalpostTilArena(arenaVideresenderKontekst.journalpostId)
 
