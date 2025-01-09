@@ -26,7 +26,7 @@ repositories {
 
 tasks.test {
     useJUnitPlatform()
-    maxParallelForks = 1
+    maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
 }
 
 kotlin {
