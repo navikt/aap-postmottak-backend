@@ -25,7 +25,6 @@ class ArenaVideresender(
     val joarkClient: JournalføringsGateway,
     val flytJobbRepository: FlytJobbRepository,
     val enhetsutreder: Enhetsutreder,
-    val arenaKlient: ArenaGateway
 ) {
     companion object {
         fun konstruer(connection: DBConnection) = ArenaVideresender(
@@ -33,7 +32,6 @@ class ArenaVideresender(
             GatewayProvider.provide(JournalføringsGateway::class),
             FlytJobbRepository(connection),
             Enhetsutreder.konstruer(),
-            GatewayProvider.provide(ArenaGateway::class)
         )
     }
 

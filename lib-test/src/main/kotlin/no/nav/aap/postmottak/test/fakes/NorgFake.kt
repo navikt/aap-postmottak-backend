@@ -12,7 +12,7 @@ val finnEnhet: suspend RoutingContext.() -> Unit = {
 }
 
 fun Application.norgFake(
-    bestMAtch: suspend RoutingContext.() -> Unit = finnEnhet,
+    bestMatch: suspend RoutingContext.() -> Unit = finnEnhet,
 ) {
 
     install(ContentNegotiation) {
@@ -22,7 +22,7 @@ fun Application.norgFake(
     }
 
     routing {
-        post("/norg2/api/v1/arbeidsfordeling/enheter/bestmatch", bestMAtch)
+        post("/norg2/api/v1/arbeidsfordeling/enheter/bestmatch", bestMatch)
     }
 
 }
