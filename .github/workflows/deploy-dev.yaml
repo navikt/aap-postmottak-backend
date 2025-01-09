@@ -85,3 +85,4 @@ jobs:
     with:
       cluster: dev-gcp
       manifest: .nais/app.yml
+      vars: .nais/dev.yaml
