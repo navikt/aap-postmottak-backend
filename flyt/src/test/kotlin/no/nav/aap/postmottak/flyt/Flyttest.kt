@@ -43,7 +43,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class Flyttest : WithFakes, WithDependencies, WithMotor {
@@ -86,7 +85,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         }
     }
 
-    @Disabled
+
     @Test
     fun `Full helautomatisk flyt`() {
         val journalpostId = DIGITAL_SØKNAD_ID
