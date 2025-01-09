@@ -1,3 +1,6 @@
+{{#*inline "inlineContent"}}
+  {{content}}
+    {{/inline}}
 name: Deploy postmottak-backend
 
 on:
