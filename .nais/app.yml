@@ -91,5 +91,5 @@ spec:
   env:
   {{#each env}}
     - name: {{this.name}}
-      value: this.value}}
+      value: {{this.value}}
   {{/each}}
