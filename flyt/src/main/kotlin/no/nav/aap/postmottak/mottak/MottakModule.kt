@@ -11,6 +11,7 @@ import javax.sql.DataSource
 
 fun Application.mottakStream(dataSource: DataSource): Stream {
     if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
+    if (Miljø.er() == MiljøKode.PROD) return NoopStream()
     val config = StreamsConfig()
     val stream = MottakStream(JoarkKafkaHandler(config, dataSource).topology, config)
     stream.start()
