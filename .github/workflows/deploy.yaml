@@ -73,7 +73,7 @@ jobs:
                 Endringer siden sist:
                 ${{ steps.notes.outputs.CHANGELOG }}
 
-  deploy-dev:
+  deploy:
     strategy:
         matrix:
             cluster: [dev, prod]
