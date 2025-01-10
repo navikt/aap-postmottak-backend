@@ -74,8 +74,10 @@ jobs:
                 ${{ steps.notes.outputs.CHANGELOG }}
 
   deploy-dev:
+    strategy:
+        matrix:
+            cluster: [dev, prod]
     ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'dev-gcp'
     permissions:
       contents: read
       id-token: write
@@ -83,6 +85,6 @@ jobs:
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     secrets: inherit
     with:
-      cluster: dev-gcp
+      cluster: ${{ matrix.cluster }}-gcp
       manifest: .nais/app.yml
-      vars: .nais/dev.yaml
+      vars: .nais/${{matrix.cluster}}.yaml
