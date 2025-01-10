@@ -78,6 +78,7 @@ jobs:
         matrix:
             cluster: [dev, prod]
     ## push til main eller etter branch (e.g. dependabot) er merget
+    environment: ${{matrix.cluster}}-gcp
     permissions:
       contents: read
       id-token: write
