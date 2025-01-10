@@ -76,18 +76,15 @@ jobs:
   deploy:
     strategy:
         matrix:
-            cluster: [dev, prod]
+            cluster: [dev]
     ## push til main eller etter branch (e.g. dependabot) er merget
-    name: Deploy to ${{matrix.cluster}}
-    environment: ${{matrix.cluster}}-gcp
     permissions:
       contents: read
       id-token: write
     needs: build
-    steps:
-      - uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
-        secrets: inherit
-        with:
-          cluster: ${{ matrix.cluster }}-gcp
-          manifest: .nais/app.yml
-          vars: .nais/${{matrix.cluster}}.yaml
+    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
+    secrets: inherit
+    with:
+      cluster: ${{ matrix.cluster }}-gcp
+      manifest: .nais/app.yml
+      vars: .nais/${{matrix.cluster}}.yaml
