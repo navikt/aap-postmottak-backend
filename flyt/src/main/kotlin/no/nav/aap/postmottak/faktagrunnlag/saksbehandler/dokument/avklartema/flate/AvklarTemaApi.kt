@@ -14,7 +14,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
@@ -54,16 +53,15 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
         }
         route("/endre-tema") {
             @Suppress("UnauthorizedPost") //TODO: Bør denne være obo eller kalle tilgang?
-            post<JournalpostId, EndreTemaResponse, Unit> { req, _ ->
-                log.info("Endrer tema for journalpost ${req}")
-                val aktivIdent = dataSource.transaction(readOnly = true) { connection ->
+            post<BehandlingsreferansePathParam, EndreTemaResponse, Unit> { req, _ ->
+                val journalpost = dataSource.transaction(readOnly = true) { connection ->
                     RepositoryProvider(connection).provide(JournalpostRepository::class)
-                        .hentHvisEksisterer(req)?.person?.aktivIdent()
-                }
-                require(aktivIdent != null) { "Fant ikke personident for journalpost" }
+                        .hentHvisEksisterer(req)
+                } ?: error("Fant ikke journalpost for behandling $req")
+                val aktivIdent = journalpost.person.aktivIdent()
 
                 GatewayProvider.provide(GosysOppgaveGateway::class)
-                    .opprettEndreTemaOppgave(req, aktivIdent.identifikator)
+                    .opprettEndreTemaOppgave(journalpost.journalpostId, aktivIdent.identifikator)
 
                 val url = URI.create(requiredConfigForKey("gosys.url"))
                 respond(EndreTemaResponse(url.toString()))

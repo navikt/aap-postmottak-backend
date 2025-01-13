@@ -10,6 +10,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 
 class JournalpostRepositoryImpl(private val connection: DBConnection) : JournalpostRepository {
@@ -60,6 +61,22 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
         return connection.queryFirstOrNull(query) {
             setParams {
                 setLong(1, behandlingId.toLong())
+            }
+            setRowMapper {
+                mapJournalpost(it)
+            }
+        }
+    }
+
+    override fun hentHvisEksisterer(behandlingsreferanse: Behandlingsreferanse): Journalpost? {
+        val query = """
+            SELECT journalpost.* FROM JOURNALPOST 
+            JOIN behandling on behandling.journalpost_id = journalpost.journalpost_id 
+            WHERE behandling.referanse = ? ORDER BY OPPRETTET_TID DESC LIMIT 1
+        """.trimIndent()
+        return connection.queryFirstOrNull(query) {
+            setParams {
+                setUUID(1, behandlingsreferanse.referanse)
             }
             setRowMapper {
                 mapJournalpost(it)
