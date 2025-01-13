@@ -42,6 +42,7 @@ class OppprettOppgaveIArenaJobbUtfører(
         if (input.antallRetriesForsøkt() >= 2) {
             log.info("Forsøk på opprettelse av oppgave i Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb(kontekst)
+            return
         }
 
         val saksId = arenaKlient.nyesteAktiveSak(kontekst.ident) ?: error("Fant ikke arenasaksnummer")
