@@ -26,7 +26,7 @@ class AvklarTemaRepositoryImplTest {
         inContext {
             val behandlingId = behandlingRepository.opprettBehandling(JournalpostId(11111), TypeBehandling.Journalføring)
 
-            avklarTemaRepository.lagreTeamAvklaring(behandlingId, false)
+            avklarTemaRepository.lagreTemaAvklaring(behandlingId, false)
 
             assertThat(avklarTemaRepository.hentTemaAvklaring(behandlingId)?.skalTilAap).isFalse()
         }
@@ -35,8 +35,8 @@ class AvklarTemaRepositoryImplTest {
     @Test
     fun `når to temaavklaringer blir lagret forventer jeg å finne den siste på behandlingen`() {
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
-        inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, false) }
-        inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, true) }
+        inContext { avklarTemaRepository.lagreTemaAvklaring(behandlingId, false) }
+        inContext { avklarTemaRepository.lagreTemaAvklaring(behandlingId, true) }
         inContext {
             assertThat(avklarTemaRepository.hentTemaAvklaring(behandlingId)?.skalTilAap).isTrue()
         }
@@ -45,7 +45,7 @@ class AvklarTemaRepositoryImplTest {
     @Test
     fun `kan ikke ha to aktive vurderinger på samme behandling`() {
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
-        inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, false) }
+        inContext { avklarTemaRepository.lagreTemaAvklaring(behandlingId, false) }
 
         catchThrowable {
             dataSource.transaction {
@@ -61,8 +61,8 @@ class AvklarTemaRepositoryImplTest {
     fun `hvis to vurderinger blir lagt på samme sak blir den første deaktivert`() {
         val saksnummer = "234234"
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
-        inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, false) }
-        inContext { avklarTemaRepository.lagreTeamAvklaring(behandlingId, true) }
+        inContext { avklarTemaRepository.lagreTemaAvklaring(behandlingId, false) }
+        inContext { avklarTemaRepository.lagreTemaAvklaring(behandlingId, true) }
     }
 
     @Test
@@ -71,7 +71,7 @@ class AvklarTemaRepositoryImplTest {
         inContext {
             val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
-            avklarTemaRepository.lagreTeamAvklaring(fraBehandling, true)
+            avklarTemaRepository.lagreTemaAvklaring(fraBehandling, true)
             avklarTemaRepository.kopier(fraBehandling, tilBehandling)
 
             assertThat(avklarTemaRepository.hentTemaAvklaring(tilBehandling)?.skalTilAap).isTrue()

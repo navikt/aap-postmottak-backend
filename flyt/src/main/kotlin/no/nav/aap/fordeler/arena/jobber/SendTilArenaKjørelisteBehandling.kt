@@ -44,6 +44,9 @@ class SendTilArenaKjørelisteBehandling(
         }
 
         log.info("Oppretter oppgave i Arena for søknad med journalpostid \"${kontekst.journalpostId}\"")
+        /**
+         * Dette fungerer ikke i dag - mangler xml
+         */
         val sakId = arenaKlient.behandleKjoerelisteOgOpprettOppgave(kontekst.journalpostId)
         opprettAutomatiskJournalføringsjobb(kontekst, sakId)
     }

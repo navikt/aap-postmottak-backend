@@ -194,7 +194,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
             val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
             val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
-            AvklarTemaRepositoryImpl(connection).lagreTeamAvklaring(behandlingId, true)
+            AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true)
             SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
             KategorivurderingRepositoryImpl(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
 
@@ -278,7 +278,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
         val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
         
-        repositoryProvider.provide(AvklarTemaRepository::class).lagreTeamAvklaring(behandlingId, true)
+        repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true)
         repositoryProvider.provide(SaksnummerRepository::class).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
         repositoryProvider.provide(KategoriVurderingRepository::class).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
         repositoryProvider.provide(StruktureringsvurderingRepository::class).lagreStrukturertDokument(

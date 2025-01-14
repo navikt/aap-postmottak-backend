@@ -12,10 +12,8 @@ class AvklarTemaLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Av
     private val avklarTemaRepository = repositoryProvider.provide(AvklarTemaRepository::class)
     
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarTemaLøsning): LøsningsResultat {
-        avklarTemaRepository.lagreTeamAvklaring(kontekst.kontekst.behandlingId, løsning.skalTilAap)
-
-        // TODO if NOT SKAL_TIL_AAP opprett oppgave i GOSYS
-
+        avklarTemaRepository.lagreTemaAvklaring(kontekst.kontekst.behandlingId, løsning.skalTilAap)
+        
         return LøsningsResultat("Dokument er ${if (løsning.skalTilAap) "" else "ikke"} ment for AAP")
     }
 

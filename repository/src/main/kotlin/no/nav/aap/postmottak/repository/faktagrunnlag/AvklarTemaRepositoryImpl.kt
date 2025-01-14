@@ -14,7 +14,7 @@ class AvklarTemaRepositoryImpl(private val connection: DBConnection): AvklarTema
         }
     }
     
-    override fun lagreTeamAvklaring(behandlingId: BehandlingId, vurdering: Boolean) {
+    override fun lagreTemaAvklaring(behandlingId: BehandlingId, vurdering: Boolean) {
         val vurderingId = connection.executeReturnKey(
             """
             INSERT INTO TEMAVURDERING (SKAL_TIL_AAP) VALUES (?)

@@ -80,7 +80,7 @@ private fun opprettBehandlingFinnSak(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val journalpostId = JournalpostId(2)
     val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTeamAvklaring(behandlingId, true)
+    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
@@ -93,7 +93,7 @@ private fun opprettBehandlingKategoriser(connection: DBConnection) {
     val journalpostId = JournalpostId(3)
 
     val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTeamAvklaring(behandlingId, true)
+    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true)
     SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
@@ -107,7 +107,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
     val journalpostId = JournalpostId(4)
     val behandlingId =
         behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTeamAvklaring(behandlingId, true)
+    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true)
     SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     KategorivurderingRepositoryImpl(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
     FlytJobbRepository(connection).leggTil(
