@@ -56,23 +56,30 @@ class OverleverTilFagsystemSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         require(journalpost != null)
 
-        if (!journalpost.erDigitalSøknad() && kategorivurdering?.avklaring != InnsendingType.SØKNAD) {
-            log.info("Dokument er ikke en søknad, og skal ikke sendes til fagsystem")
-            return Fullført
+        if (journalpost.erDigitalSøknad() || kategorivurdering?.avklaring == InnsendingType.SØKNAD) {
+            // TODO :poop: bør kanskje gjøres på journalpost
+            val dokumentJson =
+                struktureringsvurdering?.vurdering?.parseDigitalSøknad()
+                    ?: hentDokumentFraSaf(journalpost).parseDigitalSøknad()
+
+
+            behandlingsflytKlient.sendHendelse(
+                journalpost,
+                InnsendingType.SØKNAD,
+                saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
+                dokumentJson
+            )
+
+        } else if (journalpost.erDigitalLegeerklæring() || kategorivurdering?.avklaring == InnsendingType.LEGEERKLÆRING) {
+            behandlingsflytKlient.sendHendelse(
+                journalpost,
+                InnsendingType.LEGEERKLÆRING,
+                saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
+                null
+            )
+        } else {
+            log.info("Dokument overleveres ikke til Fagsystem")
         }
-
-        // TODO :poop: bør kanskje gjøres på journalpost
-        val dokumentJson =
-            struktureringsvurdering?.vurdering?.parseDigitalSøknad()
-                ?: hentDokumentFraSaf(journalpost).parseDigitalSøknad()
-            
-
-        behandlingsflytKlient.sendHendelse(
-            journalpost,
-            saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
-            dokumentJson
-        )
-
         return Fullført
     }
 

@@ -76,10 +76,10 @@ class BehandlingsflytClient : BehandlingsflytGateway {
 
     override fun sendHendelse(
         journalpost: Journalpost,
+        innsendingstype: InnsendingType,
         saksnummer: String,
-        melding: Melding
+        melding: Melding?
     ) {
-        // TODO bruk /api/hendelse/send i stedet
         val url = url.resolve("/api/hendelse/send")
         val request = PostRequest(
             Innsending(
@@ -88,7 +88,7 @@ class BehandlingsflytClient : BehandlingsflytGateway {
                     InnsendingReferanse.Type.JOURNALPOST,
                     journalpost.journalpostId.referanse.toString()
                 ),
-                InnsendingType.SØKNAD,
+                innsendingstype,
                 journalpost.kanal.tilBehandlingsflytKanal(),
                 journalpost.mottattDato.atStartOfDay(), //TODO: Avgjør hvilken dato vi skal bruke, og hvilket format
                 melding

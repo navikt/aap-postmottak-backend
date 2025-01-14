@@ -7,7 +7,6 @@ import io.mockk.verify
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
-import no.nav.aap.postmottak.klient.saf.SafRestKlient
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.forretningsflyt.steg.OverleverTilFagsystemSteg
@@ -79,7 +78,7 @@ class OverleverTilFagsystemStegTest {
         overførTilFagsystemSteg.utfør(kontekst)
 
         verify(exactly = 0) { safRestKlient.hentDokument(any(), any()) }
-        verify(exactly = 1) { behandlingsflytKlient.sendHendelse(journalpost, saksnummer, any()) }
+        verify(exactly = 1) { behandlingsflytKlient.sendHendelse(journalpost, InnsendingType.SØKNAD, saksnummer,  any()) }
     }
 
     @Test
@@ -107,6 +106,6 @@ class OverleverTilFagsystemStegTest {
         overførTilFagsystemSteg.utfør(kontekst)
 
         verify(exactly = 1) { safRestKlient.hentDokument(journalpostId, dokumentInfoId) }
-        verify(exactly = 1) { behandlingsflytKlient.sendHendelse(journalpost, saksnummer, any()) }
+        verify(exactly = 1) { behandlingsflytKlient.sendHendelse(journalpost, InnsendingType.SØKNAD, saksnummer, any()) }
     }
 }
