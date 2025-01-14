@@ -14,7 +14,7 @@ import java.time.LocalDate
 val defaultFinnEllerOpprett: suspend RoutingContext.() -> Unit = {
         call.respond(
             BehandlingsflytSak(
-                (Math.random() * 9999999999).toLong().toString(),
+                "123321123",
                 Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
             )
         )
@@ -24,7 +24,7 @@ val defaultFinn: suspend RoutingContext.() -> Unit = {
         call.respond(
             listOf(
                 BehandlingsflytSak(
-                    (Math.random() * 9999999999).toLong().toString(),
+                    "123321123",
                     Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
                 )
             )
