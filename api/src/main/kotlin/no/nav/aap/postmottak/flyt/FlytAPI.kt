@@ -29,6 +29,7 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
@@ -152,12 +153,15 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
             }
         }
 
-        // TODO: Denne bør egentlig hente referanse fra path
         route("/{referanse}/sett-på-vent") {
             authorizedPost<BehandlingsreferansePathParam, BehandlingResultatDto, SettPåVentRequest>(
-                AuthorizationBodyPathConfig(
+                AuthorizationParamPathConfig(
                     Operasjon.SAKSBEHANDLE,
-                    journalpostIdResolver = journalpostIdFraBehandlingResolver(dataSource)
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        resolver = journalpostIdFraBehandlingResolver(dataSource),
+                    ),
+                    avklaringsbehovKode = Definisjon.MANUELT_SATT_PÅ_VENT.kode.name
                 )
             ) { request, body ->
                 dataSource.transaction { connection ->

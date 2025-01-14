@@ -2,7 +2,6 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.fl
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.config.requiredConfigForKey
@@ -15,10 +14,13 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Avk
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
+import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
+import tilgang.Operasjon
 import java.net.URI
 import javax.sql.DataSource
 
@@ -52,8 +54,16 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
             }
         }
         route("/endre-tema") {
-            @Suppress("UnauthorizedPost") //TODO: Bør denne være obo eller kalle tilgang?
-            post<BehandlingsreferansePathParam, EndreTemaResponse, Unit> { req, _ ->
+            authorizedPost<BehandlingsreferansePathParam, EndreTemaResponse, Unit>(
+                AuthorizationParamPathConfig(
+                    Operasjon.SAKSBEHANDLE,
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                        resolver = journalpostIdFraBehandlingResolver(dataSource)
+                    ),
+                    avklaringsbehovKode = Definisjon.ENDRE_TEMA.kode.name
+                )
+            ) { req, _ ->
                 val journalpost = dataSource.transaction(readOnly = true) { connection ->
                     RepositoryProvider(connection).provide(JournalpostRepository::class)
                         .hentHvisEksisterer(req)
