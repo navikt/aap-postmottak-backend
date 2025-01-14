@@ -20,10 +20,8 @@ import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.SakStatus
-import no.nav.aap.postmottak.klient.gosysoppgave.FerdigstillOppgaveRequest
-import no.nav.aap.postmottak.klient.gosysoppgave.FinnOppgaverResponse
-import no.nav.aap.postmottak.klient.gosysoppgave.OpprettOppgaveRequest
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
+import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
 import no.nav.aap.postmottak.test.fakes.nomFake
 import no.nav.aap.postmottak.test.fakes.norgFake
 import no.nav.aap.postmottak.test.fakes.safFake
@@ -234,26 +232,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             }
         }
     }
-
-    private fun Application.gosysOppgaveFake() {
-        install(ContentNegotiation) {
-            jackson()
-        }
-        routing {
-            get("/api/v1/oppgaver") {
-                call.respond(HttpStatusCode.OK, FinnOppgaverResponse(emptyList()))
-            }
-            post("/api/v1/oppgaver") {
-                call.receive<OpprettOppgaveRequest>()
-                call.respond(HttpStatusCode.NoContent)
-            }
-            patch("/api/v1/oppgaver/{journalpostId}") {
-                call.receive<FerdigstillOppgaveRequest>()
-                call.respond(HttpStatusCode.OK)
-            }
-        }
-    }
-
 
     private fun Application.pdlFake() {
         install(ContentNegotiation) {

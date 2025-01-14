@@ -38,13 +38,22 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
 
     override fun opprettEndreTemaOppgave(journalpostId: JournalpostId, personident: String) {
         log.info("Oppretter journalføringsoppgave for journalpost $journalpostId")
+        val harAltOppgave = finnOppgaverForJournalpost(
+            journalpostId,
+            listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING),
+            "AAP",
+            Statuskategori.AAPEN).isNotEmpty()
+        if (harAltOppgave) {
+            log.info("Journalpost har alt en oppgave. Ny oppgave vil ikke bli opprettet")
+            return
+        }
 
-        return opprettOppgave(
+        opprettOppgave(
             OpprettOppgaveRequest(
                 oppgavetype = Oppgavetype.JOURNALFØRING.verdi,
                 journalpostId = journalpostId.toString(),
                 personident = personident,
-                beskrivelse = "Et dokument med feil tema har dukket opp hos AAP. Kan du hjelpe dokumentet på veien til sin rette mottaker?"
+                beskrivelse = "Et dokument med feil tema har dukket opp hos AAP. Hjelp dokumentet på veien til sin rette mottaker"
             )
         )
     }
@@ -58,6 +67,7 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
             client.post(path, request) { _, _ -> }
         } catch (e: Exception) {
             log.warn("Feil mot oppgaveApi under opprettelse av oppgave: ${e.message}", e)
+            throw e
         }
     }
 
