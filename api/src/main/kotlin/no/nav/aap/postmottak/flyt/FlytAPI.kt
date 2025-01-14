@@ -30,7 +30,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsrefer
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.tilgang.AuthorizationBodyPathConfig
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
@@ -59,7 +59,6 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                     var behandling = behandlingRepository.hent(req)
                     val flytJobbRepository = FlytJobbRepository(connection)
                     val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
-
                     val jobber = flytJobbRepository.hentJobberForBehandling(behandling.id.toLong())
                     val prosessering =
                         Prosessering(
@@ -129,7 +128,8 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                         prosessering = prosessering,
                         visning = utledVisning(
                             alleAvklaringsbehovInkludertFrivillige = alleAvklaringsbehovInkludertFrivillige,
-                            status = prosessering.status
+                            status = prosessering.status,
+                            behandlingStatus = behandling.status()
                         )
                     )
                 }
@@ -258,18 +258,21 @@ private fun utledStatus(oppgaver: List<JobbInput>): ProsesseringStatus {
 
 private fun utledVisning(
     alleAvklaringsbehovInkludertFrivillige: FrivilligeAvklaringsbehov,
-    status: ProsesseringStatus
+    status: ProsesseringStatus,
+    behandlingStatus: Status,
 ): Visning {
     val jobber = status in listOf(ProsesseringStatus.JOBBER, ProsesseringStatus.FEILET)
     val påVent = alleAvklaringsbehovInkludertFrivillige.erSattPåVent()
 
     if (jobber) {
         return Visning(
-            visVentekort = påVent
+            visVentekort = påVent,
+            readOnly = true,
         )
     } else {
         return Visning(
-            visVentekort = påVent
+            visVentekort = påVent,
+            readOnly = behandlingStatus.erAvsluttet(),
         )
     }
 }
