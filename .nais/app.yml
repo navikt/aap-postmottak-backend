@@ -71,10 +71,8 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: postmottak
-        - application: paw-patrol
         {{#each inbound.rules}}
-        - {{this}}
+        {{this}}
         {{/each}}
     outbound:
       external:
@@ -82,11 +80,10 @@ spec:
              - host: {{this.host}}
         {{/each}}
       rules:
-        - application: tilgang
-        - application: behandlingsflyt
-        - application: oppgave
+        {{#each outbound.rules}}
+        - application: {{this.application}}
+        {{/each}}
         - application: api-intern
-        - application: skjermede-personer-pip
           namespace: nom
   env:
   {{#each env}}

@@ -17,12 +17,19 @@ kafka:
 
 inbound:
     rules:
-        - |
-          application: azure-token-generator
-                    namespace: aura
-                    cluster: dev-gcp
+        - "- application: postmottak"
+        - "- application: paw-patrol"
+        - | 
+            - application: azure-token-generator
+                      namespace: aura
+                      cluster: dev-gcp
 
 outbound:
+    rules:
+        - application: tilgang
+        - application: behandlingsflyt
+        - application: oppgave
+        - application: skjermede-personer-pip
     external:
         - host: saf.dev-fss-pub.nais.io
         - host: dokarkiv.dev-fss-pub.nais.io
