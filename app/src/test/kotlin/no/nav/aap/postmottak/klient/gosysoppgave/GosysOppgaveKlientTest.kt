@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 
 class ShouldNotBeCalledException(message: String = "This endpoint should not have been called") : Exception(message)
-
+// TODO: Flytt denne til klienter
 class GosysOppgaveKlientTest : WithFakes {
 
     @AfterEach

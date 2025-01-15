@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 val ktorVersion = "3.0.2"
 val komponenterVersjon = "1.0.98"
 val kafkaVersion = "3.7.0"
-val tilgangVersjon = "0.0.72"
+val tilgangVersjon = "0.0.89"
 val behandlingsflytVersjon = "0.0.81"
 val junitVersjon = "5.11.3"
 
@@ -84,7 +84,9 @@ dependencies {
     implementation("com.zaxxer:HikariCP:6.2.1")
     implementation("org.flywaydb:flyway-database-postgresql:11.1.0")
     runtimeOnly("org.postgresql:postgresql:42.7.4")
-
+    // Auditlogging
+    runtimeOnly(group = "com.papertrailapp", name = "logback-syslog4j", version = "1.0.0")
+    
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
     implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
