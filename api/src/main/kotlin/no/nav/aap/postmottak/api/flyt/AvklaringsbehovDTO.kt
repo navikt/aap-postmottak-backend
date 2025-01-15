@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.flyt
+package no.nav.aap.postmottak.api.flyt
 
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon

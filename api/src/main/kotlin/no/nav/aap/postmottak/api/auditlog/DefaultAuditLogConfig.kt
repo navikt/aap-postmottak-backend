@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.auditlog
+package no.nav.aap.postmottak.api.auditlog
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.lookup.repository.RepositoryProvider

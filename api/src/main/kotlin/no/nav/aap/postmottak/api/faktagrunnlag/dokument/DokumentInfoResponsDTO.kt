@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate
+package no.nav.aap.postmottak.api.faktagrunnlag.dokument
 
 import no.nav.aap.postmottak.gateway.SafDokumentInfo
 

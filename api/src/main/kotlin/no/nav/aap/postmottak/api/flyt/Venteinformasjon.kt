@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.flyt
+package no.nav.aap.postmottak.api.flyt
 
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import java.time.LocalDate

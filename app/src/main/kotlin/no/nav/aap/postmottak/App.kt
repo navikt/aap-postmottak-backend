@@ -37,12 +37,12 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.exception.ErrorRespons
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.flate.avklarTemaApi
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.flate.finnSakApi
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate.dokumentApi
+import no.nav.aap.postmottak.api.faktagrunnlag.finnsak.finnSakApi
+import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.flate.struktureringApi
-import no.nav.aap.postmottak.flyt.behandlingApi
-import no.nav.aap.postmottak.flyt.flytApi
+import no.nav.aap.postmottak.api.flyt.behandlingApi
+import no.nav.aap.postmottak.api.flyt.flytApi
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl

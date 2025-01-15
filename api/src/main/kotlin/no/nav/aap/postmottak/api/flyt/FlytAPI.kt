@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.flyt
+package no.nav.aap.postmottak.api.flyt
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
@@ -22,6 +22,7 @@ import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.postmottak.flyt.flate.visning.Visning
+import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe

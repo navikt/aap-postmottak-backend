@@ -1,5 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.flate
-
+package no.nav.aap.postmottak.api.faktagrunnlag.dokument
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond

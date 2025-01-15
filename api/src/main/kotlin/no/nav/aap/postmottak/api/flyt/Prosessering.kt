@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.flyt
+package no.nav.aap.postmottak.api.flyt
 
 import no.nav.aap.motor.api.JobbInfoDto
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus

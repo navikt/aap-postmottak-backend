@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.flate
+package no.nav.aap.postmottak.api.faktagrunnlag.finnsak
 
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
