@@ -20,7 +20,7 @@ class JournalføringStegTest {
     val joark: JournalføringsGateway = mockk(relaxed = true)
 
     val journalføringSteg = JournalføringSteg(
-        journalpostRepository, saksnummerRepository, joark
+        journalpostRepository, joark
     )
 
     @Test

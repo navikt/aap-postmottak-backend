@@ -19,12 +19,12 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 
 class VideresendSteg(
-    val saksnummerRepository: SaksnummerRepository,
-    val avklarTemaRepository: AvklarTemaRepository,
-    val behandlingRepository: BehandlingRepository,
-    val flytJobbRepository: FlytJobbRepository,
-    val journalpostRepository: JournalpostRepository,
-    val kopierer: GrunnlagKopierer
+    private val saksnummerRepository: SaksnummerRepository,
+    private val avklarTemaRepository: AvklarTemaRepository,
+    private val behandlingRepository: BehandlingRepository,
+    private val flytJobbRepository: FlytJobbRepository,
+    private val journalpostRepository: JournalpostRepository,
+    private val kopierer: GrunnlagKopierer
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
@@ -48,25 +48,26 @@ class VideresendSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
-        if (journalpost?.tema != "AAP") {
+        if (journalpost?.tema != "AAP" || saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.generellSak == true) {
             return Fullført
         }
 
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
-        val avklarTemavurdering= avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+        val avklarTemavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         if (saksnummervurdering?.generellSak == true || avklarTemavurdering?.skalTilAap == false) {
             return Fullført
         }
 
-        val dokumentbehandlingId = behandlingRepository.opprettBehandling(behandling.journalpostId, TypeBehandling.DokumentHåndtering)
+        val dokumentbehandlingId =
+            behandlingRepository.opprettBehandling(behandling.journalpostId, TypeBehandling.DokumentHåndtering)
         kopierer.overfør(kontekst.behandlingId, dokumentbehandlingId)
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
                 .forBehandling(behandling.journalpostId.referanse, dokumentbehandlingId.id).medCallId()
         )
 
-            return Fullført
+        return Fullført
     }
 }

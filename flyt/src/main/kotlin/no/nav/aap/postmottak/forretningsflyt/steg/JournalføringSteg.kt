@@ -4,8 +4,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
-import no.nav.aap.postmottak.flyt.steg.Avbrutt
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -16,7 +14,6 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 class JournalføringSteg(
     private val journalpostRepository: JournalpostRepository,
-    private val saksnummerRepository: SaksnummerRepository,
     private val joarkKlient: JournalføringsGateway
 ) : BehandlingSteg {
     companion object : FlytSteg {
@@ -24,7 +21,6 @@ class JournalføringSteg(
             val repositoryProvider = RepositoryProvider(connection)
             return JournalføringSteg(
                 repositoryProvider.provide(JournalpostRepository::class),
-                repositoryProvider.provide(SaksnummerRepository::class),
                 GatewayProvider.provide(JournalføringsGateway::class)
             )
         }
@@ -44,10 +40,6 @@ class JournalføringSteg(
         requireNotNull(journalpost)
 
         joarkKlient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
-
-        if (saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.generellSak == true) {
-            return Avbrutt
-        }
 
         return Fullført
     }
