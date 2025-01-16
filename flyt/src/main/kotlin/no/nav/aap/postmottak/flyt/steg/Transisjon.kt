@@ -24,6 +24,3 @@ class FunnetVentebehov(private val ventebehov: List<Ventebehov>) : Transisjon {
         return ventebehov
     }
 }
-class AvbrytEtterAvklaring : Transisjon {
-    override fun kanFortsette() = false
-}

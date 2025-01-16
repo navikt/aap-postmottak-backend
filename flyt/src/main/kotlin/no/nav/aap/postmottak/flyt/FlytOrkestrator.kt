@@ -9,8 +9,6 @@ import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.flyt.steg.AvbrytEtterAvklaring
 import no.nav.aap.postmottak.flyt.steg.StegKonstruktør
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -139,7 +137,7 @@ class FlytOrkestrator(
             val neste = utledNesteSteg(behandlingFlyt)
 
             if (!result.kanFortsette() || neste == null) {
-                if (neste == null || result is AvbrytEtterAvklaring) {
+                if (neste == null) {
                     // Avslutter behandling
                     behandlingFlytRepository.oppdaterBehandlingStatus(
                         behandlingId = behandling.id,
