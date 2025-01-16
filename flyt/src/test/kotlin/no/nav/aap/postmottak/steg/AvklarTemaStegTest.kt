@@ -53,6 +53,7 @@ class AvklarTemaStegTest {
     fun `når automatisk saksbehandling er mulig skal ingen avklaringsbehov bli opprettet`() {
         every { journalpost.erDigitalSøknad() } returns true
         every { journalpost.tema } returns "AAP"
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns mockk()
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
@@ -85,7 +86,7 @@ class AvklarTemaStegTest {
     }
     
     @Test
-    fun `når tema har blitt endret forventes at oppgaver blir ferdigstilt og steget avbrytes`() {
+    fun `når tema har blitt endret fortsetter vi til neste steg`() {
         every { journalpost.tema } returns "ANNET"
         every {gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)} returns listOf(1, 2)
 
@@ -93,17 +94,17 @@ class AvklarTemaStegTest {
         
         verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(1) }
         verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(2) }
-        assertEquals(Avbrutt::class.simpleName, actual::class.simpleName)
+        assertEquals(Fullført::class.simpleName, actual::class.simpleName)
     }
     
     @Test 
-    fun `når tema har blitt endret, men ikke har oppgave, blir steget avbrutt`() {
+    fun `når tema har blitt endret, uten temaavklaring, blir steget fullført`() {
         every { journalpost.tema } returns "ANNET"
         every {gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)} returns emptyList()
 
         val actual = avklarTemaSteg.utfør(kontekst)
         
-        assertEquals(Avbrutt::class.simpleName, actual::class.simpleName)
+        assertEquals(Fullført::class.simpleName, actual::class.simpleName)
     }
 
 }

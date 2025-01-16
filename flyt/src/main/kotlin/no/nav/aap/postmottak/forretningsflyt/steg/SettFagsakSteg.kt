@@ -35,6 +35,11 @@ class SettFagsakSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+
+        if (journalpost?.tema != "AAP") {
+            return Fullført
+        }
+
         val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId) ?: error {"Mangler saksvurdering i journalføringssteg"}
 
         requireNotNull(journalpost)

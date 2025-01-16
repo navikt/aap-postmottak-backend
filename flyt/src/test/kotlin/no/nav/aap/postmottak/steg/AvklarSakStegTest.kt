@@ -40,6 +40,7 @@ class AvklarSakStegTest {
     fun `når automatisk behandling er mulig etterspørres ny sak uten avklaringsbehov`() {
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.erDigitalSøknad() } returns true
+        every { journalpost.tema } returns "AAP"
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
@@ -54,6 +55,8 @@ class AvklarSakStegTest {
     fun `når vi ikke kan behandle journalposten automatisk kreves avklaring`() {
         val journalpost: Journalpost = mockk()
         every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.tema } returns "AAP"
+
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         every { saksnummerRepository.hentSaksnumre(any()) } returns listOf(mockk())
@@ -73,6 +76,8 @@ class AvklarSakStegTest {
     fun `når saksnummer er gitt i avklaring går vi videre i flyten`() {
         val journalpost: Journalpost = mockk()
         every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.tema } returns "AAP"
+
         every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns false
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
@@ -92,6 +97,8 @@ class AvklarSakStegTest {
     fun `når det finnes relaterte saker til behandlingen og avklaring vil opprette nytt saksnummer spør vi behandlingsflyt om saksnummer før vi går videre`() {
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.tema } returns "AAP"
+
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
 
@@ -106,5 +113,20 @@ class AvklarSakStegTest {
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
 
+    }
+
+    @Test
+    fun `går videre dersom journalpost ikke har tema AAP`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.tema } returns "ikke AAP"
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+
+        every { saksnummerRepository.hentSakVurdering(any() as BehandlingId) } throws IllegalStateException("Skal ikke treffe denne mocken")
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
 }

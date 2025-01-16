@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 val DIGITAL_SØKNAD_ID = JournalpostId(999)
 val SØKNAD_ETTERSENDELSE = JournalpostId(1000)
 val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
+val IKKE_TEMA_AAP = JournalpostId(120)
 
 
 fun Application.safFake(
@@ -77,7 +78,7 @@ fun Application.safFake(
                           "status": "MOTTATT",
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
-                          "tema": "AAP",
+                          "tema": "${if (journalpostId != IKKE_TEMA_AAP.toString()) "AAP" else "ANNET"}",
                           "kanal": "UKJENT",
                           "relevanteDatoer": [
                             {

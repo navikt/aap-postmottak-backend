@@ -41,6 +41,11 @@ class AvklarSakSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost =
             journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost kan ikke være null")
+
+        if (journalpost?.tema != "AAP") {
+            return Fullført
+        }
+
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         requireNotNull(journalpost)
 

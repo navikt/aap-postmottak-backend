@@ -44,14 +44,18 @@ class AvklarTemaSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
             ?: error("Journalpost mangler i AvklarTemaSteg")
+
         if (journalpost.tema != "AAP") {
             log.info("Journalpost har endret tema. Nytt tema er: ${journalpost.tema}")
             gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId)
                 .forEach {gosysOppgaveGateway.ferdigstillOppgave(it) }
-            return Avbrutt
+            return Fullført
         }
 
-        return if (!journalpost.erDigitalSøknad() && avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) == null) {
+        val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+
+        return if (!journalpost.erDigitalSøknad() && temavurdering?.skalTilAap != true) {
+            log.info("Journalpost ${journalpost.tema} skal til AAP")
             FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
         } else Fullført
     }

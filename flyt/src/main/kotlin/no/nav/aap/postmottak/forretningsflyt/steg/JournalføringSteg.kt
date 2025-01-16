@@ -37,6 +37,10 @@ class JournalføringSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
+        if (journalpost?.tema != "AAP") {
+            return Fullført
+        }
+
         requireNotNull(journalpost)
 
         joarkKlient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)

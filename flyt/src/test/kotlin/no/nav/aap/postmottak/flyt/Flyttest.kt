@@ -38,6 +38,7 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.test.WithMotor
 import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
+import no.nav.aap.postmottak.test.fakes.IKKE_TEMA_AAP
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import org.assertj.core.api.Assertions.assertThat
@@ -60,7 +61,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         dataSource.transaction {
             it.execute(
                 """
-            TRUNCATE BEHANDLING CASCADE
+            TRUNCATE BEHANDLING CASCADE;
         """.trimIndent()
             )
         }
@@ -86,6 +87,34 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         }
     }
 
+    @Test
+    fun `feil tema flyt`() {
+        val behandlingId = dataSource.transaction { connection ->
+            val journalpostId = IKKE_TEMA_AAP
+            val behandlingId = RepositoryProvider(connection)
+                .provide(BehandlingRepository::class)
+                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+
+
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+            )
+            behandlingId
+        }
+
+        await {
+            dataSource.transaction(readOnly = true) { connection ->
+                val behandling = RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
+                assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+
+                val jobber: List<String> = connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
+                    setRowMapper { row -> row.getString("type") }
+                }
+                assertThat(jobber).hasSize(0)
+            }
+        }
+    }
 
     @Test
     fun `Full helautomatisk flyt`() {
