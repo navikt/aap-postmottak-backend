@@ -84,7 +84,6 @@ spec:
         - application: {{this.application}}
         {{/each}}
         - application: api-intern
-          namespace: nom
   env:
   {{#each env}}
     - name: {{this.name}}

@@ -30,6 +30,8 @@ outbound:
         - application: behandlingsflyt
         - application: oppgave
         - application: skjermede-personer-pip
+          namespace: nom
+        - application: api-intern
     external:
         - host: saf.dev-fss-pub.nais.io
         - host: dokarkiv.dev-fss-pub.nais.io
