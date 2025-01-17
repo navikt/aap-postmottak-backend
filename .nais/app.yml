@@ -82,6 +82,7 @@ spec:
       rules:
         {{#each outbound.rules}}
         - application: {{this.application}}
+          {{#if this.namespace}}namespace: {{this.namespace}}{{/if}}
         {{/each}}
         - application: api-intern
   env:
