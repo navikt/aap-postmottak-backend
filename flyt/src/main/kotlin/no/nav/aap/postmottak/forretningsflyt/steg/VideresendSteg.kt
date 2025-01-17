@@ -5,7 +5,6 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
@@ -23,7 +22,6 @@ class VideresendSteg(
     private val avklarTemaRepository: AvklarTemaRepository,
     private val behandlingRepository: BehandlingRepository,
     private val flytJobbRepository: FlytJobbRepository,
-    private val journalpostRepository: JournalpostRepository,
     private val kopierer: GrunnlagKopierer
 ) : BehandlingSteg {
     companion object : FlytSteg {
@@ -34,7 +32,6 @@ class VideresendSteg(
                 repositoryProvider.provide(AvklarTemaRepository::class),
                 repositoryProvider.provide(BehandlingRepository::class),
                 FlytJobbRepository(connection),
-                repositoryProvider.provide(JournalpostRepository::class),
                 GrunnlagKopierer(connection)
             )
         }
@@ -46,19 +43,16 @@ class VideresendSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-
-        if (journalpost?.tema != "AAP" || saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.generellSak == true) {
-            return Fullført
-        }
-
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
-        val avklarTemavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
-        val behandling = behandlingRepository.hent(kontekst.behandlingId)
+        requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
+        val avklarTemaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+        requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
 
-        if (saksnummervurdering?.generellSak == true || avklarTemavurdering?.skalTilAap == false) {
+        if (!avklarTemaVurdering.skalTilAap || saksnummervurdering.generellSak) {
             return Fullført
         }
+
+        val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         val dokumentbehandlingId =
             behandlingRepository.opprettBehandling(behandling.journalpostId, TypeBehandling.DokumentHåndtering)

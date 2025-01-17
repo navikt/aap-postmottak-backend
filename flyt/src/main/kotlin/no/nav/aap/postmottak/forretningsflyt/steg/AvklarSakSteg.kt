@@ -4,6 +4,8 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
@@ -13,14 +15,17 @@ import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 class AvklarSakSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
-    private val behandlingsflytClient: BehandlingsflytGateway
+    private val behandlingsflytClient: BehandlingsflytGateway,
+    private val avklarTemaRepository: AvklarTemaRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
@@ -28,7 +33,8 @@ class AvklarSakSteg(
             return AvklarSakSteg(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
-                GatewayProvider.provide(BehandlingsflytGateway::class)
+                GatewayProvider.provide(BehandlingsflytGateway::class),
+                repositoryProvider.provide(AvklarTemaRepository::class)
             )
         }
 
@@ -41,34 +47,41 @@ class AvklarSakSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost =
             journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost kan ikke være null")
+        requireNotNull(journalpost)
 
-        if (journalpost?.tema != "AAP") {
+        val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+        requireNotNull(temavurdering) { "Tema skal være avklart før AvklarSakSteg" }
+
+        if (temavurdering.tema == Tema.UKJENT) {
+            return Fullført
+        } else if (temavurdering.tema == Tema.OPP) {
+            avklarGenerellSakMaskinelt(kontekst.behandlingId)
             return Fullført
         }
 
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
-        requireNotNull(journalpost)
 
-        return if (journalpost.erDigitalSøknad()) {
-            val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
-                Ident(journalpost.person.aktivIdent().identifikator),
-                journalpost.mottattDato()
-            ).saksnummer
-            saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
+        return if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring()) {
+            avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
             Fullført
         } else if (saksnummerVurdering != null) {
-            if (saksnummerVurdering.opprettNySak) {
-                val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
-                    Ident(journalpost.person.aktivIdent().identifikator),
-                    journalpost.mottattDato()
-                ).saksnummer
-                saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer, false, false))
-            }
             Fullført
         } else {
             return FantAvklaringsbehov(
                 Definisjon.AVKLAR_SAK
             )
         }
+    }
+
+    private fun avklarFagSakMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {
+        val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
+            Ident(journalpost.person.aktivIdent().identifikator),
+            journalpost.mottattDato()
+        ).saksnummer
+        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer, false))
+    }
+
+    private fun avklarGenerellSakMaskinelt(behandlingId: BehandlingId) {
+        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(null, true))
     }
 }

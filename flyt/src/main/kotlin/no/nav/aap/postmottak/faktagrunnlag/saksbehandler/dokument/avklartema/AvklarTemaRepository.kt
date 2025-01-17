@@ -4,6 +4,6 @@ import no.nav.aap.lookup.repository.Repository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 
 interface AvklarTemaRepository: Repository {
-    fun lagreTemaAvklaring(behandlingId: BehandlingId, vurdering: Boolean)
-    fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdeirng?
+    fun lagreTemaAvklaring(behandlingId: BehandlingId, vurdering: Boolean, tema: Tema)
+    fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdering?
 }

@@ -7,6 +7,8 @@ import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
@@ -16,6 +18,7 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 class SettFagsakSteg(
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
+    private val avklarTemaRepository: AvklarTemaRepository,
     private val joarkKlient: JournalføringsGateway
 ) : BehandlingSteg {
     companion object : FlytSteg {
@@ -24,6 +27,7 @@ class SettFagsakSteg(
             return SettFagsakSteg(
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
+                repositoryProvider.provide(AvklarTemaRepository::class),
                 GatewayProvider.provide(JournalføringsGateway::class)
             )
         }
@@ -35,17 +39,21 @@ class SettFagsakSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+        requireNotNull(journalpost)
+        val temaavklaring = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+        requireNotNull(temaavklaring) {
+            "Tema skal være avklart før SettFagsakSteg"
+        }
 
-        if (journalpost?.tema != "AAP") {
+        if (temaavklaring.tema == Tema.UKJENT) {
             return Fullført
         }
 
-        val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId) ?: error {"Mangler saksvurdering i journalføringssteg"}
+        val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
+        requireNotNull(saksvurdering)
 
-        requireNotNull(journalpost)
-
-        if (saksvurdering.generellSak){
-            joarkKlient.førJournalpostPåGenerellSak(journalpost)
+        if (saksvurdering.generellSak) {
+            joarkKlient.førJournalpostPåGenerellSak(journalpost, temaavklaring.tema.name)
         } else {
             joarkKlient.førJournalpostPåFagsak(
                 journalpost.journalpostId,

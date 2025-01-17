@@ -3,7 +3,8 @@ package no.nav.aap.postmottak.repository.faktagrunnlag
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.TemaVurdeirng
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.TemaVurdering
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 
 class AvklarTemaRepositoryImpl(private val connection: DBConnection): AvklarTemaRepository {
@@ -14,14 +15,15 @@ class AvklarTemaRepositoryImpl(private val connection: DBConnection): AvklarTema
         }
     }
     
-    override fun lagreTemaAvklaring(behandlingId: BehandlingId, vurdering: Boolean) {
+    override fun lagreTemaAvklaring(behandlingId: BehandlingId, vurdering: Boolean, tema: Tema) {
         val vurderingId = connection.executeReturnKey(
             """
-            INSERT INTO TEMAVURDERING (SKAL_TIL_AAP) VALUES (?)
+            INSERT INTO TEMAVURDERING (SKAL_TIL_AAP, TEMA) VALUES (?, ?)
         """.trimIndent()
         ) {
             setParams {
                 setBoolean(1, vurdering)
+                setEnumName(2, tema)
             }
         }
 
@@ -30,20 +32,20 @@ class AvklarTemaRepositoryImpl(private val connection: DBConnection): AvklarTema
         connection.execute("""INSERT INTO TEMAVURDERING_GRUNNLAG (BEHANDLING_ID, TEMAVURDERING_ID) VALUES (?, ?)""") {
             setParams { setLong(1, behandlingId.id); setLong(2, vurderingId) }
         }
-
     }
 
-    override fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdeirng? {
+    override fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdering? {
         return connection.queryFirstOrNull("""
             SELECT * FROM TEMAVURDERING_GRUNNLAG
             JOIN TEMAVURDERING ON TEMAVURDERING.ID = TEMAVURDERING_ID
             WHERE BEHANDLING_ID = ? AND AKTIV 
         """.trimIndent()) {
             setParams { setLong(1, behandlingId.toLong()) }
-            setRowMapper { row -> TemaVurdeirng (
+            setRowMapper { row -> TemaVurdering (
                 row.getBoolean(
                     "skal_til_aap"
-                )
+                ),
+                row.getEnum("tema")
             )
             }
         }

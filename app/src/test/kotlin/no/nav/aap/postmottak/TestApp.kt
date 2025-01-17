@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -80,7 +81,7 @@ private fun opprettBehandlingFinnSak(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val journalpostId = JournalpostId(2)
     val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true)
+    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
@@ -93,7 +94,7 @@ private fun opprettBehandlingKategoriser(connection: DBConnection) {
     val journalpostId = JournalpostId(3)
 
     val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true)
+    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
     SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
@@ -107,7 +108,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
     val journalpostId = JournalpostId(4)
     val behandlingId =
         behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true)
+    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
     SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     KategorivurderingRepositoryImpl(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
     FlytJobbRepository(connection).leggTil(

@@ -10,12 +10,11 @@ data class SaksInfoDto(
 
 data class AvklarSakVurderingDto(
     val saksnummer: String?,
-    val opprettNySak: Boolean,
     val førPåGenerellSak: Boolean,
 ) {
     companion object {
         fun toDto(saksvurdering: Saksvurdering) = AvklarSakVurderingDto(
-            saksvurdering.saksnummer, saksvurdering.opprettNySak, saksvurdering.opprettNySak
+            saksvurdering.saksnummer, saksvurdering.generellSak
         )
     }
 }

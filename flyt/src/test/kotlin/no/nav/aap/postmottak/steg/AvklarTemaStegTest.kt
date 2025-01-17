@@ -6,6 +6,9 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.TemaVurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
@@ -25,11 +28,12 @@ import org.junit.jupiter.api.Test
 
 class AvklarTemaStegTest {
 
-    val avklarTemaRepository: AvklarTemaRepository = mockk()
+    val avklarTemaRepository: AvklarTemaRepository = mockk(relaxed = true)
     val journalpostRepo: JournalpostRepository = mockk()
     val gosysOppgaveKlient: GosysOppgaveKlient = mockk(relaxed = true)
+    val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
 
-    val avklarTemaSteg = AvklarTemaSteg(journalpostRepo, avklarTemaRepository, gosysOppgaveKlient)
+    val avklarTemaSteg = AvklarTemaSteg(journalpostRepo, avklarTemaRepository, gosysOppgaveKlient, saksnummerRepository)
 
 
     val journalpost: Journalpost = mockk(relaxed = true)
@@ -52,7 +56,7 @@ class AvklarTemaStegTest {
     fun `når automatisk saksbehandling er mulig skal ingen avklaringsbehov bli opprettet`() {
         every { journalpost.erDigitalSøknad() } returns true
         every { journalpost.tema } returns "AAP"
-        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns mockk()
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
@@ -87,6 +91,7 @@ class AvklarTemaStegTest {
     @Test
     fun `når tema har blitt endret fortsetter vi til neste steg`() {
         every { journalpost.tema } returns "ANNET"
+        every {avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
         every {gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)} returns listOf(1, 2)
 
         val actual = avklarTemaSteg.utfør(kontekst)
@@ -99,6 +104,7 @@ class AvklarTemaStegTest {
     @Test 
     fun `når tema har blitt endret, uten temaavklaring, blir steget fullført`() {
         every { journalpost.tema } returns "ANNET"
+        every {avklarTemaRepository.hentTemaAvklaring(any()) } returns null
         every {gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)} returns emptyList()
 
         val actual = avklarTemaSteg.utfør(kontekst)

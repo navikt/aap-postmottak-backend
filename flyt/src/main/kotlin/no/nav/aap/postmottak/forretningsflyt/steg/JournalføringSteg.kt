@@ -4,6 +4,8 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -14,14 +16,16 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 class JournalføringSteg(
     private val journalpostRepository: JournalpostRepository,
-    private val joarkKlient: JournalføringsGateway
+    private val joarkKlient: JournalføringsGateway,
+    private val avklarTemaRepository: AvklarTemaRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             val repositoryProvider = RepositoryProvider(connection)
             return JournalføringSteg(
                 repositoryProvider.provide(JournalpostRepository::class),
-                GatewayProvider.provide(JournalføringsGateway::class)
+                GatewayProvider.provide(JournalføringsGateway::class),
+                repositoryProvider.provide(AvklarTemaRepository::class)
             )
         }
 
@@ -32,12 +36,15 @@ class JournalføringSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+        requireNotNull(journalpost)
 
-        if (journalpost?.tema != "AAP") {
+        val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+            ?: error("Tema skal være avklart før JournalføringSteg")
+
+        if (temavurdering.tema == Tema.UKJENT) {
+            // Journalpost er blitt håndtert i Gosys
             return Fullført
         }
-
-        requireNotNull(journalpost)
 
         joarkKlient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
 

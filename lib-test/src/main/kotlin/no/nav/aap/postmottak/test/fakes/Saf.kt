@@ -15,7 +15,8 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 val DIGITAL_SØKNAD_ID = JournalpostId(999)
 val SØKNAD_ETTERSENDELSE = JournalpostId(1000)
 val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
-val IKKE_TEMA_AAP = JournalpostId(120)
+val LEGEERKLÆRING = JournalpostId(120)
+val ANNET_TEMA = JournalpostId(121)
 
 
 fun Application.safFake(
@@ -78,7 +79,7 @@ fun Application.safFake(
                           "status": "MOTTATT",
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
-                          "tema": "${if (journalpostId != IKKE_TEMA_AAP.toString()) "AAP" else "ANNET"}",
+                          "tema": "${finnTema(journalpostId.toLong())}",
                           "kanal": "UKJENT",
                           "relevanteDatoer": [
                             {
@@ -109,6 +110,12 @@ private fun getAvsenderMottaker(journalpostId: Long) =
         },"""
     }
 
+private fun finnTema(journalpostId: Long) {
+    when (journalpostId) {
+        ANNET_TEMA.referanse -> "ANNET"
+        else -> "AAP"
+    }
+}
 
 private fun getDokumenter(journalpostId: Long) =
     when (journalpostId) {
@@ -131,6 +138,20 @@ private fun getDokumenter(journalpostId: Long) =
             "tittel": "Dokumenttittel",
             "dokumentInfoId": "4542685451",
             "brevkode": "NAVe 11-13.05",
+            "dokumentvarianter": [
+                {
+                    "variantformat": "ORIGINAL",
+                    "filtype": "JSON"
+                }
+            ]
+        }
+        """
+
+        LEGEERKLÆRING.referanse -> """       
+        {
+            "tittel": "Legeeerklæring",
+            "dokumentInfoId": "4542685451",
+            "brevkode": "NAV 08-07.08",
             "dokumentvarianter": [
                 {
                     "variantformat": "ORIGINAL",

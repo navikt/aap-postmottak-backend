@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.api.flyt.Venteinformasjon
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
@@ -37,8 +38,9 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositor
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.test.WithMotor
 import no.nav.aap.postmottak.test.await
+import no.nav.aap.postmottak.test.fakes.ANNET_TEMA
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
-import no.nav.aap.postmottak.test.fakes.IKKE_TEMA_AAP
+import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import org.assertj.core.api.Assertions.assertThat
@@ -88,13 +90,44 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
     }
 
     @Test
-    fun `feil tema flyt`() {
+    fun `Flyt for legeerklæring som ikke skal til Kelvin`() {
         val behandlingId = dataSource.transaction { connection ->
-            val journalpostId = IKKE_TEMA_AAP
+            val journalpostId = LEGEERKLÆRING
             val behandlingId = RepositoryProvider(connection)
                 .provide(BehandlingRepository::class)
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
+
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+            )
+            behandlingId
+        }
+
+        await {
+            dataSource.transaction(readOnly = true) { connection ->
+                val behandling = RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
+                assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+
+                val jobber: List<String> = connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
+                    setRowMapper { row -> row.getString("type") }
+                }
+                assertThat(jobber).hasSize(0)
+            }
+        }
+    }
+
+    @Test
+    fun `Flyt for journalpost som er blitt behandlet i gosys`() {
+        val behandlingId = dataSource.transaction { connection ->
+            val journalpostId = ANNET_TEMA
+            val behandlingId = RepositoryProvider(connection)
+                .provide(BehandlingRepository::class)
+                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+
+            val repositoryProvider = RepositoryProvider(connection)
+            repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, false, Tema.UKJENT)
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
@@ -224,7 +257,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
             val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
             val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
-            AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true)
+            AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
             SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
             KategorivurderingRepositoryImpl(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
 
@@ -308,7 +341,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
         val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
         
-        repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true)
+        repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
         repositoryProvider.provide(SaksnummerRepository::class).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
         repositoryProvider.provide(KategoriVurderingRepository::class).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
         repositoryProvider.provide(StruktureringsvurderingRepository::class).lagreStrukturertDokument(

@@ -5,6 +5,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.TemaVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -29,11 +32,12 @@ class AvklarSakStegTest {
     val behandlingsflytClient = mockk<BehandlingsflytClient>(relaxed = true)
     val journalpostRepository = mockk<JournalpostRepository>()
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
+    val avklarTemaRepository: AvklarTemaRepository = mockk(relaxed = true)
 
     val avklarSakSteg = AvklarSakSteg(
         saksnummerRepository,
         journalpostRepository,
-        behandlingsflytClient)
+        behandlingsflytClient, avklarTemaRepository)
 
 
     @Test
@@ -55,6 +59,7 @@ class AvklarSakStegTest {
     fun `når vi ikke kan behandle journalposten automatisk kreves avklaring`() {
         val journalpost: Journalpost = mockk()
         every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.tema } returns "AAP"
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
@@ -76,11 +81,10 @@ class AvklarSakStegTest {
     fun `når saksnummer er gitt i avklaring går vi videre i flyten`() {
         val journalpost: Journalpost = mockk()
         every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.tema } returns "AAP"
 
-        every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns false
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
-
 
         every { saksnummerRepository.hentSaksnumre(any()) } returns listOf(mockk())
 
@@ -94,39 +98,18 @@ class AvklarSakStegTest {
     }
 
     @Test
-    fun `når det finnes relaterte saker til behandlingen og avklaring vil opprette nytt saksnummer spør vi behandlingsflyt om saksnummer før vi går videre`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.erDigitalSøknad() } returns false
-        every { journalpost.tema } returns "AAP"
-
-        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
-
-
-        every { saksnummerRepository.hentSakVurdering(any())?.opprettNySak } returns true
-
-        every { saksnummerRepository.hentSaksnumre(any()) } returns listOf(mockk())
-
-        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
-
-        verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
-
-        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
-
-    }
-
-    @Test
     fun `går videre dersom journalpost ikke har tema AAP`() {
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
+        every {avklarTemaRepository.hentTemaAvklaring(any())} returns TemaVurdering(false, Tema.UKJENT)
         every { journalpost.tema } returns "ikke AAP"
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
-        every { saksnummerRepository.hentSakVurdering(any() as BehandlingId) } throws IllegalStateException("Skal ikke treffe denne mocken")
-
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
+    
 }
