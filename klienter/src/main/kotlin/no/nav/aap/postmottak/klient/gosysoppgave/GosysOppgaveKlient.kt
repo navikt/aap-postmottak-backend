@@ -36,8 +36,7 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
         }
     }
 
-    override fun opprettEndreTemaOppgave(journalpostId: JournalpostId, personident: String) {
-        log.info("Oppretter journalføringsoppgave for journalpost $journalpostId")
+    override fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String) {
         val harAltOppgave = finnOppgaverForJournalpost(
             journalpostId,
             listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING),
@@ -48,6 +47,7 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
             return
         }
 
+        log.info("Oppretter journalføringsoppgave for journalpost $journalpostId i gosys")
         opprettOppgave(
             OpprettOppgaveRequest(
                 oppgavetype = Oppgavetype.JOURNALFØRING.verdi,

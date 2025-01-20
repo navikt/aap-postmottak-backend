@@ -21,7 +21,7 @@ class GosysOppgaveKlientTest : WithFakes {
 
     @Test
     fun opprettEndreTemaOppgave() {
-        gosysOppgaveKlient.opprettEndreTemaOppgave(JournalpostId(1), "YOLO")
+        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO")
     }
 
     @Test
@@ -31,6 +31,6 @@ class GosysOppgaveKlientTest : WithFakes {
             postOppgave = { throw ShouldNotBeCalledException("Dette endepunktet skal ikke ha blitt kalt ettersom det alt finnes en oppgave")}
             ) }
 
-        gosysOppgaveKlient.opprettEndreTemaOppgave(JournalpostId(1), "YOLO")
+        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO")
     }
 }

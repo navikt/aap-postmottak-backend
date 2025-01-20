@@ -73,6 +73,9 @@ class AvklarTemaSteg(
             }
         } else {
             if (venterPåBehandlingIGosys(journalpost, temavurdering)) {
+                val aktivIdent = journalpost.person.aktivIdent()
+                GatewayProvider.provide(GosysOppgaveGateway::class)
+                    .opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpost.journalpostId, aktivIdent.identifikator)
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) {
                 log.info("Journalpost har endret tema. Nytt tema er: ${journalpost.tema}")

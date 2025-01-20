@@ -6,12 +6,10 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
-import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -53,6 +51,7 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
                 respond(grunnlag)
             }
         }
+        // TODO: Denne bør kanskje gjøres frontend?
         route("/endre-tema") {
             authorizedPost<BehandlingsreferansePathParam, EndreTemaResponse, Unit>(
                 AuthorizationParamPathConfig(
@@ -64,15 +63,6 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
                     avklaringsbehovKode = Definisjon.ENDRE_TEMA.kode.name
                 )
             ) { req, _ ->
-                val journalpost = dataSource.transaction(readOnly = true) { connection ->
-                    RepositoryProvider(connection).provide(JournalpostRepository::class)
-                        .hentHvisEksisterer(req)
-                } ?: error("Fant ikke journalpost for behandling $req")
-                val aktivIdent = journalpost.person.aktivIdent()
-
-                GatewayProvider.provide(GosysOppgaveGateway::class)
-                    .opprettEndreTemaOppgave(journalpost.journalpostId, aktivIdent.identifikator)
-
                 val url = URI.create(requiredConfigForKey("gosys.url"))
                 respond(EndreTemaResponse(url.toString()))
             }
