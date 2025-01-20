@@ -44,7 +44,10 @@ class ArenaVideresenderTest {
             every { journalpostId } returns journalpostId_
             every { getHoveddokumenttittel() } returns "Hoveddokumenttittel"
             every { getVedleggTitler() } returns listOf("Vedlegg")
+            every { person } returns mockk { every{aktivIdent()} returns Ident("1") }
+
         }
+        every { enhetsutreder.finnNavenhetForJournalpost(journalpost) } returns "enhet"
 
         every { journalpostService.hentjournalpost(journalpostId_) } returns journalpost
 
