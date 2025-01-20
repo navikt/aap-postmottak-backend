@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.forretningsflyt.steg.AvklarSakSteg
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -63,6 +64,7 @@ class AvklarSakStegTest {
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.erUgyldig() } returns false
         every { journalpost.tema } returns "AAP"
+        every {journalpost.status} returns Journalstatus.MOTTATT
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
@@ -86,6 +88,7 @@ class AvklarSakStegTest {
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.tema } returns "AAP"
         every { journalpost.erUgyldig() } returns false
+        every {journalpost.status} returns Journalstatus.MOTTATT
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
@@ -111,6 +114,25 @@ class AvklarSakStegTest {
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+    
+    @Test
+    fun `dersom journalposten allerede er journalført skal vi ikke avklare sak`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erUgyldig() } returns false
+        every { journalpost.status } returns Journalstatus.JOURNALFOERT
+        every { journalpost.tema } returns "AAP"
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }

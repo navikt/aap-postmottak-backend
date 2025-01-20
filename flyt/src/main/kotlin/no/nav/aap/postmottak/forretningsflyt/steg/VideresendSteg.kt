@@ -12,12 +12,15 @@ import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import org.slf4j.LoggerFactory
 
+private val log = LoggerFactory.getLogger(VideresendSteg::class.java)
 class VideresendSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
@@ -53,10 +56,14 @@ class VideresendSteg(
         }
         
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
-        requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
         val avklarTemaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
-        requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
+        if (journalpost.status == Journalstatus.JOURNALFOERT && (saksnummervurdering == null || avklarTemaVurdering == null)) {
+            log.info("Journalpost ble journalført utenfor postmottak - videresendes ikke til dokumentflyt")
+            return Fullført
+        }
      
+        requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
+        requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
         if (!avklarTemaVurdering.skalTilAap || saksnummervurdering.generellSak) {
             return Fullført
         }

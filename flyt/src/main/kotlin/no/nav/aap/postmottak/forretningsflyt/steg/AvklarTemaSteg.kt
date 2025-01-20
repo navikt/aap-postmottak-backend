@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -50,7 +51,12 @@ class AvklarTemaSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
             ?: error("Journalpost mangler i AvklarTemaSteg")
 
-        if (journalpost.erUgyldig()) return Fullført.also { log.info("Journalpost skal ikke behandles - har status ${journalpost.status}") }
+        if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT)
+            return Fullført.also {
+                log.info(
+                    "Journalpost skal ikke behandles - har status ${journalpost.status}"
+                )
+            }
 
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 

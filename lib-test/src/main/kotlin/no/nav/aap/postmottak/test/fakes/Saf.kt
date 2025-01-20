@@ -18,6 +18,7 @@ val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
 val LEGEERKLÆRING = JournalpostId(120)
 val ANNET_TEMA = JournalpostId(121)
 val UGYLDIG_STATUS = JournalpostId(122)
+val STATUS_JOURNALFØRT = JournalpostId(123)
 
 
 fun Application.safFake(
@@ -213,5 +214,6 @@ fun arenaSakerRespons() =
 private fun finnStatus(journalpostId: Long) =
     when (journalpostId) {
         UGYLDIG_STATUS.referanse -> "UTGAAR"
+        STATUS_JOURNALFØRT.referanse -> "JOURNALFOERT"
         else -> "MOTTATT"
     }

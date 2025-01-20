@@ -11,6 +11,7 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
@@ -40,8 +41,13 @@ class JournalføringSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
-        if (journalpost.erUgyldig()) return Fullført.also { log.info("Journalpost skal ikke behandles - har status ${journalpost.status}") }
-
+        if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT)
+            return Fullført.also {
+                log.info(
+                    "Journalpost skal ikke behandles - har status ${journalpost.status}"
+                )
+            }
+        
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
             ?: error("Tema skal være avklart før JournalføringSteg")
 

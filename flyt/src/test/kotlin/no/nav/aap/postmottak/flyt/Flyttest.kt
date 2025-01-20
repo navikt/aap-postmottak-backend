@@ -43,6 +43,7 @@ import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.ANNET_TEMA
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING
+import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT
 import no.nav.aap.postmottak.test.fakes.UGYLDIG_STATUS
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
@@ -403,6 +404,33 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
                         setRowMapper { row -> row.getString("type") }
                     }
                 assertThat(jobber).hasSize(0)
+            }
+        }
+    }
+    
+    @Test
+    fun `Skal ikke videresende dersom journalposten ble journalført utenfor postmottak`() {
+        val journalpostId = STATUS_JOURNALFØRT
+        dataSource.transaction { connection ->
+            val behandlingId = RepositoryProvider(connection)
+                .provide(BehandlingRepository::class)
+                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+
+
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+            )
+            behandlingId
+        }
+
+        await {
+            dataSource.transaction(readOnly = true) { connection ->
+                val behandlinger = BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
+                assertThat(behandlinger).hasSize(1)
+                assertThat(behandlinger
+                    .filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET })
+                    .hasSize(1)
             }
         }
     }

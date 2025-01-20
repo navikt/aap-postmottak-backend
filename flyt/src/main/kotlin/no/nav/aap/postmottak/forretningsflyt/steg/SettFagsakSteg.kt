@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tem
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
@@ -43,8 +44,13 @@ class SettFagsakSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
-        if (journalpost.erUgyldig()) return Fullført.also { log.info("Journalpost skal ikke behandles - har status ${journalpost.status}") }
-
+        if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT)
+            return Fullført.also {
+                log.info(
+                    "Journalpost skal ikke behandles - har status ${journalpost.status}"
+                )
+            }
+        
         val temaavklaring = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         requireNotNull(temaavklaring) {
             "Tema skal være avklart før SettFagsakSteg"
