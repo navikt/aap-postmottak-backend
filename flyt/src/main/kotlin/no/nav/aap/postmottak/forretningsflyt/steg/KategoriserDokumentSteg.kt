@@ -33,11 +33,15 @@ class KategoriserDokumentSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
 
-        return if (!journalpost.erDigitalSøknad() && kategorivurdering == null)
+        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring()) {
+            return Fullført
+        }
+        
+        val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
+        return if (kategorivurdering == null)
             FantAvklaringsbehov(
                 Definisjon.KATEGORISER_DOKUMENT
             )

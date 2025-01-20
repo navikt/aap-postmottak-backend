@@ -7,6 +7,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -16,6 +17,7 @@ import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.Saksvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
@@ -49,6 +51,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class Flyttest : WithFakes, WithDependencies, WithMotor {
 
@@ -91,9 +94,9 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
     }
 
     @Test
-    fun `Flyt for legeerklæring som ikke skal til Kelvin`() {
-        val behandlingId = dataSource.transaction { connection ->
-            val journalpostId = LEGEERKLÆRING
+    fun `Helautomatisk flyt for legeerklæring som ikke skal til Kelvin`() {
+        val journalpostId = LEGEERKLÆRING
+        dataSource.transaction { connection ->
             val behandlingId = RepositoryProvider(connection)
                 .provide(BehandlingRepository::class)
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
@@ -108,13 +111,48 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
 
         await {
             dataSource.transaction(readOnly = true) { connection ->
-                val behandling = RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
-                assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+                val behandlinger = BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
+                assertThat(behandlinger).hasSize(1)
+                assertThat(behandlinger
+                    .filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET })
+                    .hasSize(1)
+            }
+        }
+    }
 
-                val jobber: List<String> = connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
-                    setRowMapper { row -> row.getString("type") }
-                }
-                assertThat(jobber).hasSize(0)
+    @Test
+    fun `Helautomatisk flyt for digital legeerklæring som skal til Kelvin`() {
+        val journalpostId = LEGEERKLÆRING
+        dataSource.transaction { connection ->
+            val behandlingId = RepositoryProvider(connection)
+                .provide(BehandlingRepository::class)
+                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+
+            SaksnummerRepositoryImpl(connection).lagreSaksnummer(
+                behandlingId, listOf(
+                    Saksinfo(
+                        "sak: 1", Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31)),
+                    )
+                )
+            )
+
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+            )
+            behandlingId
+        }
+
+        await {
+            dataSource.transaction(readOnly = true) { connection ->
+                val behandlinger = BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
+                assertThat(behandlinger).hasSize(2)
+                assertThat(behandlinger
+                    .filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET })
+                    .hasSize(1)
+                assertThat(behandlinger
+                    .filter { it.typeBehandling == TypeBehandling.DokumentHåndtering && it.status() == Status.AVSLUTTET })
+                    .hasSize(1)
             }
         }
     }
@@ -142,20 +180,22 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
                 val behandling = RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
                 assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
 
-                val jobber: List<String> = connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
-                    setRowMapper { row -> row.getString("type") }
-                }
+                val jobber: List<String> =
+                    connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
+                        setRowMapper { row -> row.getString("type") }
+                    }
                 assertThat(jobber).hasSize(0)
             }
         }
     }
 
     @Test
-    fun `Full helautomatisk flyt`() {
+    fun `Full helautomatisk flyt for søknad`() {
         val journalpostId = DIGITAL_SØKNAD_ID
         dataSource.transaction {
             val behandlingId =
-                RepositoryProvider(it).provide(BehandlingRepository::class).opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+                RepositoryProvider(it).provide(BehandlingRepository::class)
+                    .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             FlytJobbRepository(it).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
                     .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
@@ -165,7 +205,8 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
 
         await(10000) {
             dataSource.transaction(readOnly = true) {
-                val behandlinger = RepositoryProvider(it).provide(BehandlingRepository::class).hentAlleBehandlingerForSak(journalpostId)
+                val behandlinger = RepositoryProvider(it).provide(BehandlingRepository::class)
+                    .hentAlleBehandlingerForSak(journalpostId)
                 assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
             }
         }
@@ -260,7 +301,10 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
 
             AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
             SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-            KategorivurderingRepositoryImpl(connection).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
+            KategorivurderingRepositoryImpl(connection).lagreKategoriseringVurdering(
+                behandlingId,
+                InnsendingType.SØKNAD
+            )
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
@@ -333,7 +377,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         }
 
     }
-    
+
     @Test
     fun `Skal ikke opprette dokumentflyt dersom journalposten har ugyldig status`() {
         val behandlingId = dataSource.transaction { connection ->
@@ -354,9 +398,10 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
                 val behandling = RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
                 assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
 
-                val jobber: List<String> = connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
-                    setRowMapper { row -> row.getString("type") }
-                }
+                val jobber: List<String> =
+                    connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
+                        setRowMapper { row -> row.getString("type") }
+                    }
                 assertThat(jobber).hasSize(0)
             }
         }
@@ -369,10 +414,12 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         val repositoryProvider = RepositoryProvider(connection)
         val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
         val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-        
+
         repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
-        repositoryProvider.provide(SaksnummerRepository::class).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-        repositoryProvider.provide(KategoriVurderingRepository::class).lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
+        repositoryProvider.provide(SaksnummerRepository::class)
+            .lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
+        repositoryProvider.provide(KategoriVurderingRepository::class)
+            .lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
         repositoryProvider.provide(StruktureringsvurderingRepository::class).lagreStrukturertDokument(
             behandlingId,
             """{"søknadsDato":"2024-09-02T22:00:00.000Z", "yrkesskade":"nei", "student": {"erStudent":"Nei"}}"""
