@@ -64,7 +64,7 @@ class NorgKlient : NorgGateway {
         )
 
         return client.post<FinnNavenhetRequest, List<Enhet>>(finnEnhetUrl, request)
-            .let { response -> response?.first()?.enhetNr }
+            .let { response -> response?.firstOrNull()?.enhetNr }
             .also { if (it == null) log.info("Fant ingen enhet") }
     }
 }

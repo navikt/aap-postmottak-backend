@@ -52,7 +52,7 @@ class PdlGraphqlKlient : PersondataGateway {
             return null
         }
 
-        return data.associateBy({ it.ident }, { Navn(it.person?.navn?.first()?.fulltNavn()) })
+        return data.associateBy({ it.ident }, { Navn(it.person?.navn?.firstOrNull()?.fulltNavn()) })
     }
 
     override fun hentFødselsdato(personident: String): LocalDate? {
