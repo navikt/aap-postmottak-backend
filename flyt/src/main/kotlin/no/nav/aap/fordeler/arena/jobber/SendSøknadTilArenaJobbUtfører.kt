@@ -42,7 +42,7 @@ class SendSøknadTilArenaJobbUtfører(
         if (input.antallRetriesForsøkt() >= 2) {
             log.info("Forsøk på opprettelse av oppgave i Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb((kontekst))
-        } else if (!arenaKlient.harAktivSak(kontekst.ident)) {
+        } else if (kontekst.navEnhet != null && !arenaKlient.harAktivSak(kontekst.ident)) {
             log.info("Oppretter oppgave i Arena for søknad med journalpostid \"${kontekst.journalpostId}\"")
             val request = ArenaOpprettOppgaveForespørsel(
                 fnr = kontekst.ident.identifikator,

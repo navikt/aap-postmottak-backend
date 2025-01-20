@@ -37,6 +37,12 @@ class ArenaVideresender(
 
     fun videresendJournalpostTilArena(journalpostId: JournalpostId) {
         val journalpost = journalpostService.hentjournalpost(journalpostId)
+        
+        val videresenderKontekst = opprettArenaVideresenderKontekst(journalpost)
+        if (videresenderKontekst.navEnhet == null) {
+            sendTilManuellJournalføring(journalpost)
+            return
+        }
 
         when (journalpost.hoveddokumentbrevkode) {
             Brevkoder.LEGEERKLÆRING.kode -> {

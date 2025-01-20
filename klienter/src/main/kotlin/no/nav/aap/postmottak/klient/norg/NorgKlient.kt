@@ -22,19 +22,19 @@ private const val BEHANDLINGSTEMA_AAP = "ab0014"
 data class FinnNavenhetRequest(
     val geografiskOmraade: String?,
     val skjermet: Boolean = false,
-    val diskresjonskode : Diskresjonskode,
+    val diskresjonskode: Diskresjonskode,
     val tema: String = "AAP",
     val behandlingstema: String = BEHANDLINGSTEMA_AAP
 )
 
-class NorgKlient: NorgGateway {
+class NorgKlient : NorgGateway {
 
-    companion object: Factory<NorgKlient> {
+    companion object : Factory<NorgKlient> {
         override fun konstruer(): NorgKlient {
             return NorgKlient()
         }
     }
-    
+
     private val log = LoggerFactory.getLogger(NorgKlient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.norg.url"))
@@ -48,10 +48,15 @@ class NorgKlient: NorgGateway {
         val aktiveEnheterUrl = url.resolve("norg2/api/v1/enhet")
         val request = GetRequest()
 
-        return client.get<List<Enhet>>(aktiveEnheterUrl, request)?.map { it.enhetNr } ?: error("Feil i response fra norg")
+        return client.get<List<Enhet>>(aktiveEnheterUrl, request)?.map { it.enhetNr }
+            ?: error("Feil i response fra norg")
     }
 
-    override fun finnEnhet(geografiskTilknytning: String?, erNavansatt: Boolean, diskresjonskode: Diskresjonskode): NavEnhet {
+    override fun finnEnhet(
+        geografiskTilknytning: String?,
+        erNavansatt: Boolean,
+        diskresjonskode: Diskresjonskode
+    ): NavEnhet? {
         log.info("Finner enhet for $geografiskTilknytning")
         val finnEnhetUrl = url.resolve("norg2/api/v1/arbeidsfordeling/enheter/bestmatch")
         val request = PostRequest(
@@ -59,7 +64,7 @@ class NorgKlient: NorgGateway {
         )
 
         return client.post<FinnNavenhetRequest, List<Enhet>>(finnEnhetUrl, request)
-            .let { response -> response?.first()?.enhetNr } ?: error("Feil i response fra norg")
+            .let { response -> response?.first()?.enhetNr }
+            .also { if (it == null) log.info("Fant ingen enhet") }
     }
-
 }

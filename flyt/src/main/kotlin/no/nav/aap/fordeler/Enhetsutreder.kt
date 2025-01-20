@@ -26,13 +26,13 @@ class Enhetsutreder(
         }
     }
 
-    fun finnNavenhetForJournalpost(journalpost: Journalpost): NavEnhet {
+    fun finnNavenhetForJournalpost(journalpost: Journalpost): NavEnhet? {
         val journalførendeEnhet = journalpost.journalførendeEnhet
         return if (journalførendeEnhet != null && erNavEnhetAktiv(journalførendeEnhet)) journalførendeEnhet
         else finnNavenhetForPerson(journalpost.person)
     }
 
-    fun finnNavenhetForPerson(person: Person): NavEnhet {
+    fun finnNavenhetForPerson(person: Person): NavEnhet? {
         log.info("Finner enhet for ident ${person.aktivIdent()}")
 
         val adressebeskyttelseOgGeoTilknytning = pdlKlient.hentAdressebeskyttelseOgGeolokasjon(person.aktivIdent())

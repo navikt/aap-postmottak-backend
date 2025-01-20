@@ -39,7 +39,7 @@ class OppprettOppgaveIArenaJobbUtfører(
     override fun utfør(input: JobbInput) {
         val kontekst = input.getArenaVideresenderKontekst()
 
-        if (input.antallRetriesForsøkt() >= 2) {
+        if (kontekst.navEnhet == null || input.antallRetriesForsøkt() >= 2) {
             log.info("Forsøk på opprettelse av oppgave i Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb(kontekst)
             return

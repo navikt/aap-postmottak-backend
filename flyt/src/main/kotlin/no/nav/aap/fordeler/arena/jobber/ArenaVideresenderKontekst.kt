@@ -11,7 +11,7 @@ data class ArenaVideresenderKontekst(
     val ident: Ident,
     val hoveddokumenttittel: String,
     val vedleggstitler: List<String>,
-    val navEnhet: String
+    val navEnhet: String?
 )
 
 fun JobbInput.getArenaVideresenderKontekst() =
@@ -22,7 +22,7 @@ fun JobbInput.medArenaVideresenderKontekst(arenaVideresender: ArenaVideresenderK
     return this.medPayload(DefaultJsonMapper.toJson(arenaVideresender))
 }
 
-fun JournalpostMedDokumentTitler.opprettArenaVideresenderKontekst(enhet: String) =
+fun JournalpostMedDokumentTitler.opprettArenaVideresenderKontekst(enhet: String?) =
     ArenaVideresenderKontekst(
         journalpostId = this.journalpostId,
         ident = this.person.aktivIdent(),

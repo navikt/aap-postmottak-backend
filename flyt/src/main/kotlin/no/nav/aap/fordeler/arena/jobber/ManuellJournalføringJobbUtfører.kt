@@ -47,7 +47,7 @@ class ManuellJournalføringJobbUtfører(
             log.info("Det finnes allerede en journalføringsoppgave for journalpost ${kontekst.journalpostId} - oppretter ingen ny")
         } else if (journalpostStatus == Journalstatus.FERDIGSTILT) {
             log.info("Journalpost ${kontekst.journalpostId} er allerede ferdigstilt - oppretter ingen journalføringsoppgave")
-        } else if (input.antallRetriesForsøkt() < 3) {
+        } else if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 3) {
             gosysOppgaveGateway.opprettJournalføringsOppgave(
                 kontekst.journalpostId,
                 kontekst.ident,
