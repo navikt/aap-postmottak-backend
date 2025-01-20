@@ -13,6 +13,9 @@ import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger(JournalføringSteg::class.java)
 
 class JournalføringSteg(
     private val journalpostRepository: JournalpostRepository,
@@ -37,6 +40,7 @@ class JournalføringSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
+        if (journalpost.erUgyldig()) return Fullført.also { log.info("Journalpost skal ikke behandles - har status ${journalpost.status}") }
 
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
             ?: error("Tema skal være avklart før JournalføringSteg")

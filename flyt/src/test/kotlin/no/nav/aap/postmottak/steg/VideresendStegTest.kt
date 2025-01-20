@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.TemaVurdering
@@ -16,16 +17,18 @@ class VideresendStegTest {
     val flytJobbRepository: FlytJobbRepository = mockk()
     val saksnummerRepository: SaksnummerRepository = mockk()
     val avklarTemaRepository: AvklarTemaRepository = mockk()
-
+    val journalpostRepository: JournalpostRepository = mockk(relaxed = true)
 
     val videresendSteg =
-        VideresendSteg(saksnummerRepository, avklarTemaRepository, mockk(), flytJobbRepository, mockk())
+        VideresendSteg(saksnummerRepository, avklarTemaRepository, mockk(), journalpostRepository, flytJobbRepository, mockk())
 
     @Test
     fun `Journalposter som er journalført på generell sak skal ikke videresendes`() {
         val journalpost: Journalpost = mockk(relaxed = true)
         every {avklarTemaRepository.hentTemaAvklaring(any())} returns TemaVurdering(true, Tema.AAP)
         every { saksnummerRepository.hentSakVurdering(any())?.generellSak } returns true
+        every {journalpost.erUgyldig()} returns false
+        
         every { journalpost.tema } returns "AAP"
 
         videresendSteg.utfør(mockk(relaxed = true))

@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.journalpostogbehandling
 
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
@@ -7,7 +8,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import org.assertj.core.api.Assertions.assertThat
@@ -87,7 +87,7 @@ class JournalpostTest {
             identer = listOf(Ident("12345678"))
         ),
         journalpostId =  JournalpostId(1),
-        status = JournalpostStatus.MOTTATT,
+        status = Journalstatus.MOTTATT,
         tema = "AAP",
         mottattDato = LocalDate.of(2021, 1, 1),
         journalførendeEnhet = "YOLO",

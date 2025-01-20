@@ -8,13 +8,13 @@ import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.klient.joark.JoarkClient
@@ -54,7 +54,7 @@ class AutomatiskJournalføringJobbTest : WithFakes {
             person = Person(1, UUID.randomUUID(), listOf(Ident("123"))),
             journalførendeEnhet = null,
             tema = "AAP",
-            status = JournalpostStatus.MOTTATT,
+            status = Journalstatus.MOTTATT,
             kanal = KanalFraKodeverk.NAV_NO,
             mottattDato = LocalDate.now()
         )

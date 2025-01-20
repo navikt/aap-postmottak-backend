@@ -5,6 +5,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
@@ -21,6 +22,7 @@ class VideresendSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
     private val behandlingRepository: BehandlingRepository,
+    private val journalpostRepository: JournalpostRepository,
     private val flytJobbRepository: FlytJobbRepository,
     private val kopierer: GrunnlagKopierer
 ) : BehandlingSteg {
@@ -31,6 +33,7 @@ class VideresendSteg(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(AvklarTemaRepository::class),
                 repositoryProvider.provide(BehandlingRepository::class),
+                repositoryProvider.provide(JournalpostRepository::class),
                 FlytJobbRepository(connection),
                 GrunnlagKopierer(connection)
             )
@@ -43,11 +46,17 @@ class VideresendSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+        requireNotNull(journalpost) { "Journalpost skal eksistere før VideresendSteg" }
+        if (journalpost.erUgyldig()) {
+            return Fullført
+        }
+        
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
         val avklarTemaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
-
+     
         if (!avklarTemaVurdering.skalTilAap || saksnummervurdering.generellSak) {
             return Fullført
         }

@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.journalpostogbehandling.journalpost
 
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
@@ -9,7 +10,7 @@ open class Journalpost(
     val person: Person,
     val journalførendeEnhet: String?,
     val tema: String,
-    val status: JournalpostStatus,
+    val status: Journalstatus,
     val mottattDato: LocalDate,
     val dokumenter: List<Dokument> = emptyList(),
     val kanal: KanalFraKodeverk
@@ -26,11 +27,11 @@ open class Journalpost(
             it.brevkode == Brevkoder.SØKNAD.kode
         }
     }
-    
-    fun status(): JournalpostStatus = status
-    
+
+    fun status(): Journalstatus = status
+
     fun dokumenter(): List<Dokument> = dokumenter
-    
+
     fun mottattDato() = mottattDato
 
     fun finnOriginal(): Dokument? = dokumenter.find {
@@ -38,13 +39,13 @@ open class Journalpost(
     }
 
     fun finnArkivVarianter(): List<Dokument> = dokumenter.filter {
-         it.variantFormat == Variantformat.ARKIV
+        it.variantFormat == Variantformat.ARKIV
     }
 
     fun erDigitalSøknad(): Boolean {
         return erSøknad() && erDigital()
     }
-    
+
     fun erDigitalLegeerklæring(): Boolean {
         return dokumenter.any {
             it.brevkode == Brevkoder.LEGEERKLÆRING.kode
@@ -52,13 +53,9 @@ open class Journalpost(
     }
 
     fun erDigital(): Boolean = finnOriginal()?.filtype == Filtype.JSON
-}
 
-enum class JournalpostStatus {
-    MOTTATT,
-    JOURNALFØRT,
-    FERDIGSTILT,
-    UKJENT
+    fun erUgyldig(): Boolean =
+        status in listOf(Journalstatus.AVBRUTT, Journalstatus.FEILREGISTRERT, Journalstatus.UTGAAR)
 }
 
 open class Dokument(

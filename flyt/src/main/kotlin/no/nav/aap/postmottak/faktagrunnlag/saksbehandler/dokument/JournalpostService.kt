@@ -19,7 +19,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import org.slf4j.LoggerFactory
@@ -81,13 +80,6 @@ class JournalpostService private constructor(
 fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler {
     val journalpost = this
 
-    fun finnJournalpostStatus(status: Journalstatus?) = when (status) {
-        Journalstatus.MOTTATT -> JournalpostStatus.MOTTATT
-        Journalstatus.FERDIGSTILT -> JournalpostStatus.FERDIGSTILT
-        Journalstatus.JOURNALFOERT -> JournalpostStatus.JOURNALFØRT
-        else -> JournalpostStatus.UKJENT
-    }
-
     val mottattDato = journalpost.relevanteDatoer?.find { dato ->
         dato?.datotype == SafDatoType.DATO_REGISTRERT
     }?.dato?.toLocalDate() ?: error("Fant ikke dato")
@@ -106,7 +98,7 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
     return JournalpostMedDokumentTitler(
         person = person,
         journalpostId = journalpost.journalpostId.let(::JournalpostId),
-        status = finnJournalpostStatus(journalpost.journalstatus),
+        status = journalpost.journalstatus ?: Journalstatus.UKJENT,
         tema = journalpost.tema,
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,

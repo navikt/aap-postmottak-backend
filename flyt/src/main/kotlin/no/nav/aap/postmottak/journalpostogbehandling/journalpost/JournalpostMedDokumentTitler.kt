@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.journalpostogbehandling.journalpost
 
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import java.time.LocalDate
@@ -10,7 +11,7 @@ class JournalpostMedDokumentTitler(
     person: Person,
     journalførendeEnhet: String?,
     tema: String,
-    status: JournalpostStatus,
+    status: Journalstatus,
     mottattDato: LocalDate,
     dokumenter: List<DokumentMedTittel> = emptyList(),
     kanal: KanalFraKodeverk

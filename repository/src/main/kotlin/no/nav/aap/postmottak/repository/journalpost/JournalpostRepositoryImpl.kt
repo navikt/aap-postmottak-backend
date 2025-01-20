@@ -4,12 +4,12 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 
@@ -103,7 +103,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             person = personRepositoryImpl.hent(row.getLong("PERSON_ID")),
             journalpostId = JournalpostId(row.getLong("JOURNALPOST_ID")),
             journalførendeEnhet = row.getStringOrNull("JOURNALFORENDE_ENHET"),
-            status = JournalpostStatus.valueOf(row.getString("STATUS")),
+            status = Journalstatus.valueOf(row.getString("STATUS")),
             tema = row.getString("TEMA"),
             mottattDato = row.getLocalDate("MOTTATT_DATO"),
             kanal = row.getEnum("KANAL"),

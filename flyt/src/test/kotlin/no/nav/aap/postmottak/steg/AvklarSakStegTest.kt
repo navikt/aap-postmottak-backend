@@ -37,7 +37,8 @@ class AvklarSakStegTest {
     val avklarSakSteg = AvklarSakSteg(
         saksnummerRepository,
         journalpostRepository,
-        behandlingsflytClient, avklarTemaRepository)
+        behandlingsflytClient, avklarTemaRepository
+    )
 
 
     @Test
@@ -60,6 +61,7 @@ class AvklarSakStegTest {
         val journalpost: Journalpost = mockk()
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erUgyldig() } returns false
         every { journalpost.tema } returns "AAP"
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
@@ -83,6 +85,7 @@ class AvklarSakStegTest {
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.tema } returns "AAP"
+        every { journalpost.erUgyldig() } returns false
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
@@ -102,7 +105,7 @@ class AvklarSakStegTest {
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
-        every {avklarTemaRepository.hentTemaAvklaring(any())} returns TemaVurdering(false, Tema.UKJENT)
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
         every { journalpost.tema } returns "ikke AAP"
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
@@ -111,5 +114,5 @@ class AvklarSakStegTest {
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
-    
+
 }

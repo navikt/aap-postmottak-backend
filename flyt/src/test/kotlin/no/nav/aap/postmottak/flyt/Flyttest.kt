@@ -41,6 +41,7 @@ import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.ANNET_TEMA
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING
+import no.nav.aap.postmottak.test.fakes.UGYLDIG_STATUS
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import org.assertj.core.api.Assertions.assertThat
@@ -331,6 +332,34 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
                 .anySatisfy { !it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT }
         }
 
+    }
+    
+    @Test
+    fun `Skal ikke opprette dokumentflyt dersom journalposten har ugyldig status`() {
+        val behandlingId = dataSource.transaction { connection ->
+            val journalpostId = UGYLDIG_STATUS
+            val behandlingId = RepositoryProvider(connection)
+                .provide(BehandlingRepository::class)
+                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+            )
+            behandlingId
+        }
+
+        await {
+            dataSource.transaction(readOnly = true) { connection ->
+                val behandling = RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
+                assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+
+                val jobber: List<String> = connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
+                    setRowMapper { row -> row.getString("type") }
+                }
+                assertThat(jobber).hasSize(0)
+            }
+        }
     }
 
     private fun opprettManuellBehandlingMedAlleAvklaringer(

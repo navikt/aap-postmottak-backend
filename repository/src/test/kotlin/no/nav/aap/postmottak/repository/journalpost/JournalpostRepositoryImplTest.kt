@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.repository.journalpost
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -9,7 +10,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
@@ -87,7 +87,7 @@ class JournalpostRepositoryImplTest {
         person = person,
         journalførendeEnhet = "YOLO",
         tema = tema,
-        status = JournalpostStatus.MOTTATT,
+        status = Journalstatus.MOTTATT,
         mottattDato = LocalDate.of(2021, 1, 1),
         kanal = KanalFraKodeverk.UKJENT,
         dokumenter = dokumenter ?: listOf(

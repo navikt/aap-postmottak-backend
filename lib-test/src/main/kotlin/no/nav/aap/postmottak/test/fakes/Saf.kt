@@ -17,6 +17,7 @@ val SØKNAD_ETTERSENDELSE = JournalpostId(1000)
 val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
 val LEGEERKLÆRING = JournalpostId(120)
 val ANNET_TEMA = JournalpostId(121)
+val UGYLDIG_STATUS = JournalpostId(122)
 
 
 fun Application.safFake(
@@ -76,7 +77,7 @@ fun Application.safFake(
                             "type": "FNR"
                           },
                           ${getAvsenderMottaker(journalpostId.toLong())}
-                          "status": "MOTTATT",
+                          "journalstatus": "${finnStatus(journalpostId.toLong())}",
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
                           "tema": "${finnTema(journalpostId.toLong())}",
@@ -110,12 +111,11 @@ private fun getAvsenderMottaker(journalpostId: Long) =
         },"""
     }
 
-private fun finnTema(journalpostId: Long) {
+private fun finnTema(journalpostId: Long) = 
     when (journalpostId) {
         ANNET_TEMA.referanse -> "ANNET"
         else -> "AAP"
     }
-}
 
 private fun getDokumenter(journalpostId: Long) =
     when (journalpostId) {
@@ -209,3 +209,9 @@ fun arenaSakerRespons() =
             }
         }
     """
+
+private fun finnStatus(journalpostId: Long) =
+    when (journalpostId) {
+        UGYLDIG_STATUS.referanse -> "UTGAAR"
+        else -> "MOTTATT"
+    }

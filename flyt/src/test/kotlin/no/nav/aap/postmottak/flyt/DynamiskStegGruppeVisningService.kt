@@ -4,6 +4,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -13,7 +14,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
@@ -43,7 +43,7 @@ class DynamiskStegGruppeVisningServiceTest {
                 person =  person,
                 journalpostId = JournalpostId(111),
                 journalførendeEnhet = null,
-                status = JournalpostStatus.MOTTATT,
+                status = Journalstatus.MOTTATT,
                 tema = "AAP",
                 dokumenter = listOf(
                     Dokument(

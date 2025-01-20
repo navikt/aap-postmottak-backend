@@ -20,6 +20,9 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPeriode
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger(AvklarSakSteg::class.java)
 
 class AvklarSakSteg(
     private val saksnummerRepository: SaksnummerRepository,
@@ -48,6 +51,7 @@ class AvklarSakSteg(
         val journalpost =
             journalpostRepository.hentHvisEksisterer(kontekst.behandlingId) ?: error("Journalpost kan ikke være null")
         requireNotNull(journalpost)
+        if (journalpost.erUgyldig()) return Fullført.also { log.info("Journalpost skal ikke behandles - har status ${journalpost.status}") }
 
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         requireNotNull(temavurdering) { "Tema skal være avklart før AvklarSakSteg" }
