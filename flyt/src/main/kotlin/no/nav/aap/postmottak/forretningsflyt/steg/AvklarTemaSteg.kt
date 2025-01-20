@@ -51,7 +51,7 @@ class AvklarTemaSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
             ?: error("Journalpost mangler i AvklarTemaSteg")
 
-        if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT)
+        if (journalpost.erUgyldig())
             return Fullført.also {
                 log.info(
                     "Journalpost skal ikke behandles - har status ${journalpost.status}"
@@ -67,6 +67,10 @@ class AvklarTemaSteg(
                 Fullført
             } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad()) {
                 avklarTemaMaskinelt(kontekst.behandlingId, journalpost)
+                Fullført
+            } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
+                avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(true, Tema.AAP))
+                log.info("Journalpost har alt blitt journalført på tema AAP. Setter temaavklaring maskinelt til AAP")
                 Fullført
             } else {
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)

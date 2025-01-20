@@ -286,7 +286,6 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
                 val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
                 behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
                     .find { it.typeBehandling == TypeBehandling.Journalføring }!!
-
             }
         }
 
@@ -409,7 +408,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
     }
     
     @Test
-    fun `Skal ikke videresende dersom journalposten ble journalført utenfor postmottak`() {
+    fun `Skal videresende dersom journalposten ble journalført utenfor postmottak med tema AAP på Kelvin fagsak `() {
         val journalpostId = STATUS_JOURNALFØRT
         dataSource.transaction { connection ->
             val behandlingId = RepositoryProvider(connection)
@@ -427,7 +426,6 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         await {
             dataSource.transaction(readOnly = true) { connection ->
                 val behandlinger = BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
-                assertThat(behandlinger).hasSize(1)
                 assertThat(behandlinger
                     .filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET })
                     .hasSize(1)

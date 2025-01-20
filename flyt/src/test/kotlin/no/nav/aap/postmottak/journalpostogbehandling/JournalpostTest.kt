@@ -92,6 +92,7 @@ class JournalpostTest {
         mottattDato = LocalDate.of(2021, 1, 1),
         journalførendeEnhet = "YOLO",
         kanal = KanalFraKodeverk.UKJENT,
+        saksnummer = null,
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "Brev",

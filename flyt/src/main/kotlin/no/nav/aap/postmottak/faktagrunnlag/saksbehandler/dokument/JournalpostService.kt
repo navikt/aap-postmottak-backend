@@ -7,6 +7,7 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
+import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.PersondataGateway
@@ -18,6 +19,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
@@ -49,7 +51,13 @@ class JournalpostService private constructor(
         val persistertJournalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         val journalpostId = kontekst.journalpostId
-        val internJournalpost = hentjournalpost(journalpostId)
+
+        val safJournalpost = hentSafJournalpost(journalpostId)
+
+        require(safJournalpost.sak?.fagsaksystem != Fagsystem.AO01.name)
+
+        val internJournalpost = tilInternJournalpost(safJournalpost)
+
 
         if (persistertJournalpost != internJournalpost) {
             log.info("Fant endringer i journalpost")
@@ -61,20 +69,27 @@ class JournalpostService private constructor(
     }
 
     fun hentjournalpost(journalpostId: JournalpostId): JournalpostMedDokumentTitler {
-        val journalpost = journalpostGateway.hentJournalpost(journalpostId)
-
-        require(journalpost.bruker?.id != null) { "journalpost må ha ident" }
-        val identliste = pdlGraphqlKlient.hentAlleIdenterForPerson(journalpost.bruker?.id!!)
-        if (identliste.isEmpty()) {
-            throw IllegalStateException("Fikk ingen treff på ident i PDL")
-        }
-
-        val person = personRepository.finnEllerOpprett(identliste)
-
-        return journalpost.tilJournalpost(person)
+        val journalpost = hentSafJournalpost(journalpostId)
+        return tilInternJournalpost(journalpost)
 
     }
 
+    private fun hentSafJournalpost(journalpostId: JournalpostId): SafJournalpost {
+        val journalpost = journalpostGateway.hentJournalpost(journalpostId)
+        return journalpost
+    }
+
+    private fun tilInternJournalpost(safJournalpost: SafJournalpost): JournalpostMedDokumentTitler {
+        require(safJournalpost.bruker?.id != null) { "journalpost må ha ident" }
+        val identliste = pdlGraphqlKlient.hentAlleIdenterForPerson(safJournalpost.bruker?.id!!)
+
+        if (identliste.isEmpty()) {
+            throw IllegalStateException("Fikk ingen treff på ident i PDL")
+        }
+        val person = personRepository.finnEllerOpprett(identliste)
+
+        return safJournalpost.tilJournalpost(person)
+    }
 }
 
 fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler {
@@ -103,6 +118,7 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,
         dokumenter = dokumenter,
-        kanal = journalpost.kanal
+        kanal = journalpost.kanal,
+
     )
 }

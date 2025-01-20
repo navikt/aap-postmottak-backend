@@ -49,10 +49,9 @@ class AvklarSakSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val journalpost =
-            journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
-        if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT)
+        if (journalpost.erUgyldig())
             return Fullført.also {
                 log.info(
                     "Journalpost skal ikke behandles - har status ${journalpost.status}"
@@ -66,6 +65,10 @@ class AvklarSakSteg(
             return Fullført
         } else if (temavurdering.tema == Tema.OPP) {
             avklarGenerellSakMaskinelt(kontekst.behandlingId)
+            return Fullført
+        } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
+            log.info("Journalpost har alt blitt journalført. Setter saksavklaring tilsvarende journalpost.")
+            saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer = journalpost.saksnummer!!.toString()))
             return Fullført
         }
 

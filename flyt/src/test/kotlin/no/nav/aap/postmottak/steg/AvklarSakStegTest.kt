@@ -4,6 +4,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
@@ -119,20 +120,24 @@ class AvklarSakStegTest {
     }
     
     @Test
-    fun `dersom journalposten allerede er journalført skal vi ikke avklare sak`() {
+    fun `dersom journalposten allerede er journalført skal vi lage en saksavklaring med saksnummeret journalposten er journalført på`() {
         val journalpost: Journalpost = mockk(relaxed = true)
+        val saksnummer = Saksnummer("saksnummer")
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.erUgyldig() } returns false
         every { journalpost.status } returns Journalstatus.JOURNALFOERT
         every { journalpost.tema } returns "AAP"
+        every { journalpost.saksnummer } returns saksnummer
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+        verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), withArg {
+            assertThat(it.saksnummer).isEqualTo(saksnummer.toString())
+        }) }
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }

@@ -54,7 +54,8 @@ class DynamiskStegGruppeVisningServiceTest {
                     )
                 ),
                 mottattDato = LocalDate.of(2021, 1, 1),
-                kanal = KanalFraKodeverk.UKJENT
+                kanal = KanalFraKodeverk.UKJENT,
+                saksnummer = null
             )
             
             val behandlingId = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)

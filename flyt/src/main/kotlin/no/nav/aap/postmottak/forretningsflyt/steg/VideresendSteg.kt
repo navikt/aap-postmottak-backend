@@ -7,6 +7,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -57,14 +58,16 @@ class VideresendSteg(
         
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val avklarTemaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
-        if (journalpost.status == Journalstatus.JOURNALFOERT && (saksnummervurdering == null || avklarTemaVurdering == null)) {
-            log.info("Journalpost ble journalført utenfor postmottak - videresendes ikke til dokumentflyt")
+
+        requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
+
+        if (!avklarTemaVurdering.skalTilAap) {
             return Fullført
         }
-     
+
         requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
-        requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
-        if (!avklarTemaVurdering.skalTilAap || saksnummervurdering.generellSak) {
+
+        if (saksnummervurdering.generellSak) {
             return Fullført
         }
 

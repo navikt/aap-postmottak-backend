@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.journalpostogbehandling.journalpost
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -13,7 +14,8 @@ open class Journalpost(
     val status: Journalstatus,
     val mottattDato: LocalDate,
     val dokumenter: List<Dokument> = emptyList(),
-    val kanal: KanalFraKodeverk
+    val kanal: KanalFraKodeverk,
+    val saksnummer: Saksnummer?,
 ) {
 
     val hoveddokumentbrevkode: String

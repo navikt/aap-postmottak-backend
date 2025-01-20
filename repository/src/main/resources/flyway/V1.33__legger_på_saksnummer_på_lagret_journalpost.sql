@@ -1,0 +1,1 @@
+alter table journalpost add column saksnummer varchar(100);

@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.repository.journalpost
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.gateway.Journalstatus
@@ -90,6 +91,7 @@ class JournalpostRepositoryImplTest {
         status = Journalstatus.MOTTATT,
         mottattDato = LocalDate.of(2021, 1, 1),
         kanal = KanalFraKodeverk.UKJENT,
+        saksnummer = Saksnummer("saksnummer"),
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "NAV 11-13.05",

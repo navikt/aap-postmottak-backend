@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.repository.journalpost
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
@@ -24,7 +25,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
     
     override fun lagre(journalpost: Journalpost) {
         val query = """
-            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA, KANAL) VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA, KANAL, SAKSNUMMER) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
@@ -35,6 +36,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setLocalDate(5, journalpost.mottattDato())
                 setString(6, journalpost.tema)
                 setEnumName(7, journalpost.kanal)
+                setString(8, journalpost.saksnummer.toString())
             }
         }
 
@@ -107,6 +109,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             tema = row.getString("TEMA"),
             mottattDato = row.getLocalDate("MOTTATT_DATO"),
             kanal = row.getEnum("KANAL"),
+            saksnummer = row.getStringOrNull("SAKSNUMMER")?.let(::Saksnummer),
             dokumenter = hentDokumenter(row.getLong("ID"))
         )
     }
