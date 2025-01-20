@@ -51,11 +51,11 @@ class NorgKlient: NorgGateway {
         return client.get<List<Enhet>>(aktiveEnheterUrl, request)?.map { it.enhetNr } ?: error("Feil i response fra norg")
     }
 
-    override fun finnEnhet(geografiskTilknyttning: String?, erNavansatt: Boolean, diskresjonskode: Diskresjonskode): NavEnhet {
-        log.info("Finner enhet for $geografiskTilknyttning")
+    override fun finnEnhet(geografiskTilknytning: String?, erNavansatt: Boolean, diskresjonskode: Diskresjonskode): NavEnhet {
+        log.info("Finner enhet for $geografiskTilknytning")
         val finnEnhetUrl = url.resolve("norg2/api/v1/arbeidsfordeling/enheter/bestmatch")
         val request = PostRequest(
-            FinnNavenhetRequest(geografiskTilknyttning, erNavansatt, diskresjonskode)
+            FinnNavenhetRequest(geografiskTilknytning, erNavansatt, diskresjonskode)
         )
 
         return client.post<FinnNavenhetRequest, List<Enhet>>(finnEnhetUrl, request)

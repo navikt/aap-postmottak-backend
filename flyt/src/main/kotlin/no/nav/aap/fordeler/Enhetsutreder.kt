@@ -28,7 +28,7 @@ class Enhetsutreder(
 
     fun finnNavenhetForJournalpost(journalpost: Journalpost): NavEnhet {
         val journalførendeEnhet = journalpost.journalførendeEnhet
-        return if (journalførendeEnhet != null && erNavnenhetAktiv(journalførendeEnhet)) journalførendeEnhet
+        return if (journalførendeEnhet != null && erNavEnhetAktiv(journalførendeEnhet)) journalførendeEnhet
         else finnNavenhetForPerson(journalpost.person)
     }
 
@@ -44,13 +44,13 @@ class Enhetsutreder(
         val erNavansatt = nomKlient.erEgenAnsatt(person.aktivIdent())
 
         return norgKlient.finnEnhet(
-            geografiskTilknyttning = geografiskTilknytning,
+            geografiskTilknytning = geografiskTilknytning,
             diskresjonskode = diskresjonskode,
             erNavansatt = erNavansatt,
         )
     }
 
-    private fun erNavnenhetAktiv(navEnhet: NavEnhet): Boolean {
+    private fun erNavEnhetAktiv(navEnhet: NavEnhet): Boolean {
         return navEnhet in hentAkriveEnheter()
     }
 
