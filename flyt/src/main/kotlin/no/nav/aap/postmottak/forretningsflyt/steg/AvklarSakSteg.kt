@@ -51,12 +51,7 @@ class AvklarSakSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
-        if (journalpost.erUgyldig())
-            return Fullført.also {
-                log.info(
-                    "Journalpost skal ikke behandles - har status ${journalpost.status}"
-                )
-            }
+        if (journalpost.erUgyldig()) return Fullført
         
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         requireNotNull(temavurdering) { "Tema skal være avklart før AvklarSakSteg" }

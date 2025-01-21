@@ -44,12 +44,7 @@ class SettFagsakSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
-        if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT)
-            return Fullført.also {
-                log.info(
-                    "Journalpost skal ikke behandles - har status ${journalpost.status}"
-                )
-            }
+        if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT) return Fullført
         
         val temaavklaring = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         requireNotNull(temaavklaring) {

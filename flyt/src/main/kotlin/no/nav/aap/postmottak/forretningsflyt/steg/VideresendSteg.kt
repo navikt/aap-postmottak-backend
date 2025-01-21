@@ -22,6 +22,7 @@ import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(VideresendSteg::class.java)
+
 class VideresendSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
@@ -53,9 +54,10 @@ class VideresendSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost) { "Journalpost skal eksistere før VideresendSteg" }
         if (journalpost.erUgyldig()) {
+            log.info("Journalpost skal ikke behandles - har status ${journalpost.status}")
             return Fullført
         }
-        
+
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val avklarTemaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 

@@ -51,12 +51,7 @@ class AvklarTemaSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
             ?: error("Journalpost mangler i AvklarTemaSteg")
 
-        if (journalpost.erUgyldig())
-            return Fullført.also {
-                log.info(
-                    "Journalpost skal ikke behandles - har status ${journalpost.status}"
-                )
-            }
+        if (journalpost.erUgyldig()) return Fullført
 
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
