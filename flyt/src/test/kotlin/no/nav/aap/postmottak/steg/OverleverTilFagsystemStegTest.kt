@@ -8,10 +8,10 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.Struktureringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.forretningsflyt.steg.OverleverTilFagsystemSteg
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
-import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -22,7 +22,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayInputStream
 
 class OverleverTilFagsystemStegTest {
 
@@ -31,7 +30,6 @@ class OverleverTilFagsystemStegTest {
     val behandlingsflytKlient: BehandlingsflytGateway = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepository = mockk()
     val saksnummerRepository: SaksnummerRepository = mockk()
-    val safRestKlient: DokumentGateway = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         struktureringsvurderingRepository,
@@ -39,7 +37,6 @@ class OverleverTilFagsystemStegTest {
         behandlingsflytKlient,
         journalpostRepository,
         saksnummerRepository,
-        safRestKlient
     )
 
 
@@ -77,15 +74,21 @@ class OverleverTilFagsystemStegTest {
 
         overførTilFagsystemSteg.utfør(kontekst)
 
-        verify(exactly = 0) { safRestKlient.hentDokument(any(), any()) }
-        verify(exactly = 1) { behandlingsflytKlient.sendHendelse(journalpost, InnsendingType.SØKNAD, saksnummer,  any()) }
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                journalpost,
+                InnsendingType.SØKNAD,
+                saksnummer,
+                any()
+            )
+        }
     }
 
     @Test
     fun `hvis automatisk journalføring blir strukturert dokument fra joark sendt til behandlingsflyt`() {
         val dokument: Dokument = mockk()
         val dokumentInfoId: DokumentInfoId = mockk()
-        
+
         val journalpostJson = """{
             |"yrkesskade": "Nei",
             |"student": {"erStudent": "Nei", "kommeTilbake": "Nei"},
@@ -93,19 +96,22 @@ class OverleverTilFagsystemStegTest {
             |}""".trimMargin()
 
         every { dokument.dokumentInfoId } returns dokumentInfoId
-        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
+        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns Struktureringsvurdering(
+            journalpostJson
+        )
+        every { kategorivurderingRepository.hentKategoriAvklaring(any())?.avklaring } returns InnsendingType.SØKNAD
         every { journalpost.finnOriginal() } returns dokument
-        every {journalpost.erDigitalSøknad()} returns true
-        every {
-            safRestKlient.hentDokument(
-                journalpostId,
-                dokumentInfoId
-            ).dokument
-        } returns ByteArrayInputStream(journalpostJson.toByteArray())
+        every { journalpost.erDigitalSøknad() } returns true
 
         overførTilFagsystemSteg.utfør(kontekst)
 
-        verify(exactly = 1) { safRestKlient.hentDokument(journalpostId, dokumentInfoId) }
-        verify(exactly = 1) { behandlingsflytKlient.sendHendelse(journalpost, InnsendingType.SØKNAD, saksnummer, any()) }
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                journalpost,
+                InnsendingType.SØKNAD,
+                saksnummer,
+                any()
+            )
+        }
     }
 }
