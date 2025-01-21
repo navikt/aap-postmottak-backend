@@ -80,6 +80,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                 respond(dto)
             }
         }
+
         route("/{referanse}/forbered") {
             authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(
                 AuthorizationParamPathConfig(

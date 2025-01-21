@@ -37,12 +37,16 @@ class ManuellJournalføringJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val kontekst = input.getArenaVideresenderKontekst()
+        val journalpostStatus = journalpostGateway.hentJournalpost(kontekst.journalpostId).journalstatus
+        if (journalpostStatus == Journalstatus.JOURNALFOERT) {
+            log.warn("Avbryter jobb, journalpost er allerede journalført")
+            return
+        }
         val eksisterendeOppgaver =
             gosysOppgaveGateway.finnOppgaverForJournalpost(
                 kontekst.journalpostId,
                 listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING)
             )
-        val journalpostStatus = journalpostGateway.hentJournalpost(kontekst.journalpostId).journalstatus
         if (eksisterendeOppgaver.isNotEmpty()) {
             log.info("Det finnes allerede en journalføringsoppgave for journalpost ${kontekst.journalpostId} - oppretter ingen ny")
         } else if (journalpostStatus == Journalstatus.FERDIGSTILT) {
