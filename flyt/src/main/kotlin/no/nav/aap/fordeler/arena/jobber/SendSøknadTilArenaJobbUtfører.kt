@@ -51,8 +51,9 @@ class SendSøknadTilArenaJobbUtfører(
                 titler = kontekst.vedleggstitler,
                 oppgaveType = ArenaOppgaveType.STARTVEDTAK
             )
-            val sakId = arenaKlient.opprettArenaOppgave(request).arenaSakId
-            opprettAutomatiskJournalføringsjobb(kontekst, sakId)
+            val respons = arenaKlient.opprettArenaOppgave(request)
+            log.info("Opprettet oppgave med id ${respons.oppgaveId} på sak ${respons.arenaSakId}")
+            opprettAutomatiskJournalføringsjobb(kontekst, respons.arenaSakId)
         } else {
             log.info("Det finnes alt en sak i Arena for ${kontekst.ident}, sender journalpost til manuell journalføring")
             opprettManuellJournalføringsoppgavejobb(kontekst)
