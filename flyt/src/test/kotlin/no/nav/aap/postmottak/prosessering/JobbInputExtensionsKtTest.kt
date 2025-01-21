@@ -2,9 +2,6 @@ package no.nav.aap.postmottak.prosessering
 
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
-import no.nav.aap.postmottak.prosessering.getJournalpostId
-import no.nav.aap.postmottak.prosessering.medJournalpostId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

@@ -11,21 +11,24 @@ import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.forretningsflyt.steg.DigitaliserDokumentSteg
+import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayInputStream
 
 class DigitaliserDokumentStegTest {
 
-    val struktureringsvurderingRepository: StruktureringsvurderingRepository = mockk()
+    val struktureringsvurderingRepository: StruktureringsvurderingRepository = mockk(relaxed = true)
     val journalpostRepo: JournalpostRepository = mockk()
     val kategorivurderingRepo: KategoriVurderingRepository = mockk()
+    val dokumentGateway: DokumentGateway = mockk()
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        struktureringsvurderingRepository, journalpostRepo, kategorivurderingRepo
+        struktureringsvurderingRepository, journalpostRepo, kategorivurderingRepo, dokumentGateway
     )
 
     @Test
@@ -47,7 +50,7 @@ class DigitaliserDokumentStegTest {
 
     @Test
     fun `når behandlingen må gjøres manuelt og strukturering er utført forventes ingen avklaringsbehov`() {
-        val journalpost: Journalpost= mockk(relaxed = true)
+        val journalpost: Journalpost = mockk(relaxed = true)
 
         every { journalpost.erDigitalSøknad() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns mockk(relaxed = true)
@@ -62,18 +65,29 @@ class DigitaliserDokumentStegTest {
     @Test
     fun `når behandling kan gjøres automatisk og strukturering ikke er gjort forventes ingen avklaringsbehov`() {
         val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpostJson = """{
+            |"yrkesskade": "Nei",
+            |"student": {"erStudent": "Nei", "kommeTilbake": "Nei"},
+            |"oppgitteBarn": {"identer": []}
+            |}""".trimMargin()
 
         every { journalpost.erDigitalSøknad() } returns true
+        every { journalpost.journalpostId }
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns mockk(relaxed = true)
-
+        every {
+            dokumentGateway.hentDokument(
+                journalpost.journalpostId,
+                any()
+            ).dokument
+        } returns ByteArrayInputStream(journalpostJson.toByteArray())
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
         assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
 
     }
-    
+
     @Test
     fun `når behandlingen har kategori som ikke skal struktureres forventes ingen avklaringsbehov`() {
         val journalpost: Journalpost = mockk(relaxed = true)

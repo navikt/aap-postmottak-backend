@@ -8,16 +8,14 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.søknad.parseDigitalSøknad
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
-import no.nav.aap.postmottak.gateway.DokumentGateway
+import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
@@ -28,7 +26,6 @@ class OverleverTilFagsystemSteg(
     private val behandlingsflytKlient: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
-    private val dokumentGateway: DokumentGateway
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
@@ -39,7 +36,6 @@ class OverleverTilFagsystemSteg(
                 GatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
-                GatewayProvider.provide(DokumentGateway::class)
             )
         }
 
@@ -54,41 +50,28 @@ class OverleverTilFagsystemSteg(
             struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
         val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        require(journalpost != null)
+        requireNotNull(journalpost) { "Journalpost mangler i OverleverTilFagsystemSteg" }
+        requireNotNull(kategorivurdering) { "Kategorivurdering mangler i OverleverTilFagsystemSteg" }
 
-        if (journalpost.erDigitalSøknad() || kategorivurdering?.avklaring == InnsendingType.SØKNAD) {
-            // TODO :poop: bør kanskje gjøres på journalpost
-            val dokumentJson =
-                struktureringsvurdering?.vurdering?.parseDigitalSøknad()
-                    ?: hentDokumentFraSaf(journalpost).parseDigitalSøknad()
-
-
+        if (skalSendesTilBehandlingsflyt(kategorivurdering.avklaring)) {
+            val melding = DokumentTilMeldingParser.parseTilMelding(
+                struktureringsvurdering?.vurdering,
+                kategorivurdering.avklaring
+            )
             behandlingsflytKlient.sendHendelse(
                 journalpost,
-                InnsendingType.SØKNAD,
+                kategorivurdering.avklaring,
                 saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
-                dokumentJson
+                melding
             )
-
-        } else if (journalpost.erDigitalLegeerklæring() || kategorivurdering?.avklaring == InnsendingType.LEGEERKLÆRING) {
-            behandlingsflytKlient.sendHendelse(
-                journalpost,
-                InnsendingType.LEGEERKLÆRING,
-                saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
-                null
-            )
-        } else {
-            log.info("Dokument overleveres ikke til Fagsystem")
+            return Fullført
         }
+
+        log.info("Dokument overleveres ikke til Fagsystem")
         return Fullført
     }
 
-    private fun hentDokumentFraSaf(journalpost: Journalpost): ByteArray {
-        val strukturertDokument = journalpost.finnOriginal()
-        requireNotNull(strukturertDokument) { "Finner ikke strukturert dokument" }
-        return dokumentGateway.hentDokument(
-            journalpost.journalpostId,
-            strukturertDokument.dokumentInfoId
-        ).dokument.readBytes()
+    private fun skalSendesTilBehandlingsflyt(innsendingstype: InnsendingType): Boolean {
+        return innsendingstype in setOf(InnsendingType.SØKNAD, InnsendingType.LEGEERKLÆRING)
     }
 }

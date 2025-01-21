@@ -99,6 +99,7 @@ class BehandlingsflytClient : BehandlingsflytGateway {
         )
         client.post<Innsending, Unit>(url, request)
     }
+    
 }
 
 fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {
@@ -109,3 +110,4 @@ fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {
         else -> Kanal.DIGITAL
     }
 }
+
