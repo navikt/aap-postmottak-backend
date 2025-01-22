@@ -7,13 +7,11 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling

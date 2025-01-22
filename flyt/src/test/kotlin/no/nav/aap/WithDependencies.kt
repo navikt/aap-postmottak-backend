@@ -18,6 +18,7 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
@@ -45,6 +46,7 @@ interface WithDependencies {
                 .register<PersonRepositoryImpl>()
                 .register<InnkommendeJournalpostRepositoryImpl>()
                 .register<RegelRepositoryImpl>()
+                .register<OverleveringVurderingRepositoryImpl>()
 
             GatewayRegistry
                 .register<OppgaveKlient>()

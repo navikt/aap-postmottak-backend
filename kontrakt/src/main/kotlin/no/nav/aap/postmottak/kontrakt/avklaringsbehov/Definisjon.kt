@@ -44,10 +44,10 @@ enum class Definisjon(
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_SAK
     ),
-    ENDRE_TEMA(
+    AVKLAR_OVERLEVERING(
         kode = AvklaringsbehovKode.`1341`,
         type = BehovType.MANUELT_PÅKREVD,
-        løsesISteg = StegType.ENDRE_TEMA
+        løsesISteg = StegType.OVERLEVER_TIL_FAGSYSTEM
     );
 
     companion object {

@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.fl
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.config.requiredConfigForKey
@@ -12,13 +13,10 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.AvklarTemaRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
-import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
-import tilgang.Operasjon
 import java.net.URI
 import javax.sql.DataSource
 
@@ -30,8 +28,7 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
             authorizedGet<BehandlingsreferansePathParam, AvklarTemaGrunnlagDto>(
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
-                        "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource)
+                        "referanse", journalpostIdFraBehandlingResolver(dataSource)
                     )
                 )
             ) { req ->
@@ -42,27 +39,17 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
                         repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(behandling.id)
                     require(journalpost != null) { "Fant ikke journalpost" }
                     val arkivDokumenter = journalpost.finnArkivVarianter()
-                    AvklarTemaGrunnlagDto(
-                        repositoryProvider.provide(AvklarTemaRepository::class)
-                            .hentTemaAvklaring(behandling.id)?.skalTilAap?.let(::AvklarTemaVurderingDto),
-                        arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId }
-                    )
+                    AvklarTemaGrunnlagDto(repositoryProvider.provide(AvklarTemaRepository::class)
+                        .hentTemaAvklaring(behandling.id)?.skalTilAap?.let(::AvklarTemaVurderingDto),
+                        arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId })
                 }
                 respond(grunnlag)
             }
         }
-        // TODO: Denne bør kanskje gjøres frontend?
+        // TODO: Denne skal fjernes etter at frontend redirecter til gosys direkte
         route("/endre-tema") {
-            authorizedPost<BehandlingsreferansePathParam, EndreTemaResponse, Unit>(
-                AuthorizationParamPathConfig(
-                    Operasjon.SAKSBEHANDLE,
-                    journalpostPathParam = JournalpostPathParam(
-                        "referanse",
-                        resolver = journalpostIdFraBehandlingResolver(dataSource)
-                    ),
-                    avklaringsbehovKode = Definisjon.ENDRE_TEMA.kode.name
-                )
-            ) { req, _ ->
+            @Suppress("UnauthorizedPost")
+            post<BehandlingsreferansePathParam, EndreTemaResponse, Unit> { req, _ ->
                 val url = URI.create(requiredConfigForKey("gosys.url"))
                 respond(EndreTemaResponse(url.toString()))
             }

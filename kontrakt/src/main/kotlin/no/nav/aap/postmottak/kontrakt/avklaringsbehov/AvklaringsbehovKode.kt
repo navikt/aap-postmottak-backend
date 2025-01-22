@@ -8,7 +8,7 @@ const val KATEGORISER_DOKUMENT_KODE = "1337"
 const val DIGITALISER_DOKUMENT_KODE = "1338"
 const val AVKLAR_TEMA_KODE = "1339"
 const val AVKLAR_SAKSNUMMER_KODE = "1340"
-const val ENDRE_TEMA_KODE = "1341"
+const val AVKLAR_OVERLEVERING_KODE = "1341"
 
 enum class AvklaringsbehovKode {
     `9001`,

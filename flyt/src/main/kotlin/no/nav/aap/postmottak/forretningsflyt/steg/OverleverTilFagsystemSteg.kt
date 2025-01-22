@@ -7,14 +7,18 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
+import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 
@@ -26,6 +30,7 @@ class OverleverTilFagsystemSteg(
     private val behandlingsflytKlient: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
+    private val overleveringVurderingRepository: OverleveringVurderingRepository,
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
@@ -36,6 +41,7 @@ class OverleverTilFagsystemSteg(
                 GatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
+                repositoryProvider.provide(OverleveringVurderingRepository::class)
             )
         }
 
@@ -45,7 +51,6 @@ class OverleverTilFagsystemSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-
         val struktureringsvurdering =
             struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
         val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
@@ -53,25 +58,35 @@ class OverleverTilFagsystemSteg(
         requireNotNull(journalpost) { "Journalpost mangler i OverleverTilFagsystemSteg" }
         requireNotNull(kategorivurdering) { "Kategorivurdering mangler i OverleverTilFagsystemSteg" }
 
-        if (skalSendesTilBehandlingsflyt(kategorivurdering.avklaring)) {
-            val melding = DokumentTilMeldingParser.parseTilMelding(
-                struktureringsvurdering?.vurdering,
-                kategorivurdering.avklaring
+        var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
+
+        if (overleveringVurdering == null && kategorivurdering.avklaring in setOf(
+                InnsendingType.SØKNAD,
+                InnsendingType.LEGEERKLÆRING
             )
-            behandlingsflytKlient.sendHendelse(
-                journalpost,
-                kategorivurdering.avklaring,
-                saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
-                melding
-            )
-            return Fullført
+        ) {
+            val vurdering = OverleveringVurdering(true)
+            overleveringVurderingRepository.lagre(kontekst.behandlingId, OverleveringVurdering(true))
+            overleveringVurdering = vurdering
         }
 
-        log.info("Dokument overleveres ikke til Fagsystem")
-        return Fullført
-    }
-
-    private fun skalSendesTilBehandlingsflyt(innsendingstype: InnsendingType): Boolean {
-        return innsendingstype in setOf(InnsendingType.SØKNAD, InnsendingType.LEGEERKLÆRING)
+        if (overleveringVurdering == null) {
+            return FantAvklaringsbehov(Definisjon.AVKLAR_OVERLEVERING)
+        } else {
+            log.info("Dokument overleveres${if (overleveringVurdering.skalOverleveresTilKelvin) " " else "ikke"}til Fagsystem")
+            if (overleveringVurdering.skalOverleveresTilKelvin) {
+                val melding = DokumentTilMeldingParser.parseTilMelding(
+                    struktureringsvurdering?.vurdering,
+                    kategorivurdering.avklaring
+                )
+                behandlingsflytKlient.sendHendelse(
+                    journalpost,
+                    kategorivurdering.avklaring,
+                    saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
+                    melding
+                )
+            }
+            return Fullført
+        }
     }
 }

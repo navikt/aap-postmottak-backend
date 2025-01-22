@@ -19,7 +19,6 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat

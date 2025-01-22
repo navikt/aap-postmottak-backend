@@ -69,6 +69,7 @@ import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
@@ -196,6 +197,7 @@ private fun registerRepositories() {
         .register<PersonRepositoryImpl>()
         .register<InnkommendeJournalpostRepositoryImpl>()
         .register<RegelRepositoryImpl>()
+        .register<OverleveringVurderingRepositoryImpl>()
         .status()
 }
 
