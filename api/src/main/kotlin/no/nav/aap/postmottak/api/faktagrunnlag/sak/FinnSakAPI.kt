@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.api.faktagrunnlag.finnsak
+package no.nav.aap.postmottak.api.faktagrunnlag.sak
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
@@ -7,7 +7,7 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.tilgang.AuthorizationParamPathConfig

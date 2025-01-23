@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema
+package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase

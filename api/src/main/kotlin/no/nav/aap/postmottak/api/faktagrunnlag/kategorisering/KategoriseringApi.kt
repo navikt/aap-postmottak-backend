@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate
+package no.nav.aap.postmottak.api.faktagrunnlag.kategorisering
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
@@ -34,7 +34,7 @@ fun NormalOpenAPIRoute.kategoriseringApi(dataSource: DataSource) {
             respond(
                 KategoriseringGrunnlagDto(
                     vurdering?.avklaring?.let(::KategoriseringVurderingDto),
-                    listOf(1, 2)
+                    listOf(1, 2)//TODO: Fjern disse, eventuelt tydeliggjør grunnlag
                 )
             )
         }

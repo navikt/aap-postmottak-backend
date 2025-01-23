@@ -28,7 +28,7 @@ class GosysOppgaveKlientTest : WithFakes {
     fun `når en journalpost alt har oppgaver skal det ikke opprettes en ny oppgave`() {
         WithFakes.fakes.gosysOppgave.setCustomModule { gosysOppgaveFake(
             getOppgaver = {call.respond(FinnOppgaverResponse(listOf(Oppgave(1))))},
-            postOppgave = { throw ShouldNotBeCalledException("Dette endepunktet skal ikke ha blitt kalt ettersom det alt finnes en oppgave")}
+            postOppgave = { throw ShouldNotBeCalledException("Dette endepunktet skal ikke ha blitt kalt ettersom det alt finnes en oppgave") }
             ) }
 
         gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO")

@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak
+package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak
 
 data class Saksvurdering(
     val saksnummer: String? = null,

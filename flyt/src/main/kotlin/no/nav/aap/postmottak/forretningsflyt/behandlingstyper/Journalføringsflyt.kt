@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.forretningsflyt.behandlingstyper
 
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak.SaksnummerInfoKrav
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerInfoKrav
 import no.nav.aap.postmottak.flyt.BehandlingFlyt
 import no.nav.aap.postmottak.flyt.BehandlingFlytBuilder
 import no.nav.aap.postmottak.flyt.BehandlingType

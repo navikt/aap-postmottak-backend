@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.finnsak
+package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak
 
 import io.mockk.every
 import io.mockk.mockk

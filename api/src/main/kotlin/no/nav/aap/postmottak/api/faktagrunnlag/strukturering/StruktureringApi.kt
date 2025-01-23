@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.flate
+package no.nav.aap.postmottak.api.faktagrunnlag.strukturering
 
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
@@ -41,7 +41,7 @@ fun NormalOpenAPIRoute.struktureringApi(dataSource: DataSource) {
                     struktureringsvurdering
                         ?.vurdering?.let(::StruktureringVurderingDto),
                     kategorivurdering.avklaring,
-                    listOf(1, 2)
+                    listOf(1, 2) //TODO: Fjern disse, eventuelt tydeliggjør grunnlag
                 )
             )
         }

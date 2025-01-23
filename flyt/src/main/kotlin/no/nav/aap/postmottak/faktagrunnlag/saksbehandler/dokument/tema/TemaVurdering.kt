@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema
+package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema
 
 data class TemaVurdering(val skalTilAap: Boolean, val tema: Tema)
 

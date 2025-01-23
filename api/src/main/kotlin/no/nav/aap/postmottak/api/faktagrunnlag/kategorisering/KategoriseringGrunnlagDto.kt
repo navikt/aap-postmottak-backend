@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate
+package no.nav.aap.postmottak.api.faktagrunnlag.kategorisering
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 

@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.flate
+package no.nav.aap.postmottak.api.faktagrunnlag.tema
 
 data class AvklarTemaVurderingDto(
     val skalTilAap: Boolean
