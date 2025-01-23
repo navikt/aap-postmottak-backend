@@ -11,8 +11,8 @@ class DigitaliserVisningUtleder(connection: DBConnection): StegGruppeVisningUtle
     private val journalpostRepository = repositoryProvider.provide(JournalpostRepository::class)
     
     override fun skalVises(behandlingId: BehandlingId): Boolean {
-        val journalpost = journalpostRepository.hentHvisEksisterer(behandlingId)
-        return journalpost?.erDigitalSøknad() == false
+        val journalpost = journalpostRepository.hentHvisEksisterer(behandlingId) ?: throw IllegalStateException("Journalpost mangler")
+        return !(journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring())
     }
 
     override fun gruppe(): StegGruppe {

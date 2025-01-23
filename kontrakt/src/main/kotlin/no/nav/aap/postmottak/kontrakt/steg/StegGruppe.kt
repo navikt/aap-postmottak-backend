@@ -8,7 +8,7 @@ enum class StegGruppe(val skalVises: Boolean, val obligatoriskVisning: Boolean) 
     UDEFINERT(false, true),
     SETT_FAGSAK(false, false),
     ENDELIG_JOURNALFØRING(false, false),
-    OVERLEVER_TIL_FAGSYSTEM(true, false),
+    OVERLEVER_TIL_FAGSYSTEM(true, true),
     AVKLAR_SAK(true, true),
     VIDERESEND(false, false),
     IVERKSETTES(false, false)
