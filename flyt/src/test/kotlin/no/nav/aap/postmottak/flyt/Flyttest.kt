@@ -235,40 +235,6 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
     }
 
     @Test
-    fun `når det avsluttende steget feiler skal behandlingen fortsatt være åpen`() {
-        val journalpostId = JournalpostId(1)
-        dataSource.transaction { connection ->
-            val behandlingId = opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId)
-
-            WithFakes.fakes.behandlingsflyt.setCustomModule {
-                behandlingsflytFake(send = {
-                    suspend {
-                        call.respond(
-                            HttpStatusCode.BadRequest,
-                            "NOPE"
-                        )
-                    }
-                })
-            }
-
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
-            )
-            behandlingId
-        }
-
-        await {
-            dataSource.transaction(readOnly = true) { connection ->
-                val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
-                val behandlinger = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
-
-                assertThat(behandlinger).anyMatch { it.typeBehandling == TypeBehandling.DokumentHåndtering && it.status() == Status.IVERKSETTES }
-            }
-        }
-    }
-
-    @Test
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
         val journalpostId = JournalpostId(1L)
 

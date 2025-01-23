@@ -10,5 +10,6 @@ enum class StegGruppe(val skalVises: Boolean, val obligatoriskVisning: Boolean) 
     ENDELIG_JOURNALFØRING(false, false),
     OVERLEVER_TIL_FAGSYSTEM(true, false),
     AVKLAR_SAK(true, true),
-    VIDERESEND(false, false)
+    VIDERESEND(false, false),
+    IVERKSETTES(false, false)
 }

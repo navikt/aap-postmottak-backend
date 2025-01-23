@@ -30,7 +30,7 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     ),
     OVERLEVER_TIL_FAGSYSTEM(
         gruppe = StegGruppe.OVERLEVER_TIL_FAGSYSTEM,
-        status = Status.IVERKSETTES,
+        status = Status.UTREDES,
     ),
     UDEFINERT(
         gruppe = StegGruppe.UDEFINERT, status = Status.UTREDES
@@ -42,5 +42,9 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     VIDERESEND(
         gruppe = StegGruppe.VIDERESEND,
         status = Status.AVSLUTTET,
-    )
+    ),
+    IVERKSETTES(
+        gruppe = StegGruppe.IVERKSETTES,
+        status = Status.IVERKSETTES,
+    ),
 }
