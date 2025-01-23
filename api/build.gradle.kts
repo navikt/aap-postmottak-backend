@@ -2,10 +2,11 @@ plugins {
     id("postmottak.conventions")
 }
 
-val komponenterVersjon = "1.0.98"
-val ktorVersion = "3.0.2"
-val tilgangVersjon = "0.0.89"
 val junitVersjon = "5.11.3"
+val ktorVersion = "3.0.2"
+val komponenterVersjon = "1.0.98"
+val tilgangVersjon = "0.0.89"
+val behandlingsflytVersjon = "0.0.81"
 
 dependencies {
     api(project(":flyt"))
@@ -18,6 +19,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
     api("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     api("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
+    api("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
     compileOnly("io.ktor:ktor-http-jvm:$ktorVersion")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersjon")

@@ -39,7 +39,8 @@ import no.nav.aap.postmottak.exception.ErrorRespons
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.flate.avklarTemaApi
 import no.nav.aap.postmottak.api.faktagrunnlag.finnsak.finnSakApi
 import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.flate.kategoriseringApi
+import no.nav.aap.postmottak.api.faktagrunnlag.flate.kategoriseringApi
+import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.flate.struktureringApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
 import no.nav.aap.postmottak.api.flyt.flytApi
@@ -157,6 +158,7 @@ internal fun Application.server(
                 kategoriseringApi(dataSource)
                 finnSakApi(dataSource)
                 struktureringApi(dataSource)
+                overleveringApi(dataSource)
                 motorApi(dataSource)
                 testApi(dataSource)
             }
