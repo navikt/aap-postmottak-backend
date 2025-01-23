@@ -70,7 +70,7 @@ class DigitaliserDokumentSteg(
     }
 
     private fun InnsendingType.kanStruktureres(): Boolean {
-        return this in listOf(InnsendingType.SØKNAD, InnsendingType.PLIKTKORT, InnsendingType.AKTIVITETSKORT)
+        return this in listOf(InnsendingType.SØKNAD, InnsendingType.PLIKTKORT)
     }
 
     private fun hentOriginalDokumentFraSaf(journalpost: Journalpost): ByteArray {
