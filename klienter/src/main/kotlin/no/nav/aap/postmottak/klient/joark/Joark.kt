@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
+import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.gateway.JournalpostBruker
@@ -43,13 +44,20 @@ class JoarkClient(private val client: RestClient<InputStream>, private val safGr
         }
     }
 
-    override fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String) {
+    override fun førJournalpostPåFagsak(
+        journalpostId: JournalpostId,
+        ident: Ident,
+        fagsakId: String,
+        tema: String,
+        fagsystem: Fagsystem
+        ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
         val request = PutRequest(
             OppdaterJournalpostRequest(
                 journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
                 sak = JournalpostSak(
                     fagsakId = fagsakId,
+                    fagsaksystem = fagsystem,
                 ),
                 tema = tema,
                 bruker = JournalpostBruker(

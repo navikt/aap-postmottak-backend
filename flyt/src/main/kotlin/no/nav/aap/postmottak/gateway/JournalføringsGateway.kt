@@ -7,7 +7,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 interface JournalføringsGateway: Gateway {
-    fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String = "AAP")
+    fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String = "AAP", fagsystem: Fagsystem = Fagsystem.KELVIN)
     fun førJournalpostPåGenerellSak(journalpost: Journalpost, tema: String = "AAP")
     fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId)
     fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String)

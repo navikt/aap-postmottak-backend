@@ -8,6 +8,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import org.slf4j.LoggerFactory
 
@@ -52,7 +53,12 @@ class AutomatiskJournalføringJobbUtfører(
         }
         
         log.info("Automatisk journalfører journalpost ${kontekst.journalpostId} på sak ${kontekst.saksnummer} ")
-        joarkClient.førJournalpostPåFagsak(kontekst.journalpostId, kontekst.ident, kontekst.saksnummer)
+        joarkClient.førJournalpostPåFagsak(
+            kontekst.journalpostId,
+            kontekst.ident,
+            kontekst.saksnummer,
+            fagsystem = Fagsystem.AO01
+        )
         joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
     }
 
