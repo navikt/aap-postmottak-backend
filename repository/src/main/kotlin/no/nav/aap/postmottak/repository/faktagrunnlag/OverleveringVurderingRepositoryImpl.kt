@@ -41,7 +41,7 @@ class OverleveringVurderingRepositoryImpl(private val connection: DBConnection):
             setParams { setLong(1, behandlingId.toLong()) }
             setRowMapper { row ->
                 OverleveringVurdering(
-                    row.getBoolean("overlevering_vurdering")
+                    row.getBoolean("skal_overleveres")
                 )
             }
         }
