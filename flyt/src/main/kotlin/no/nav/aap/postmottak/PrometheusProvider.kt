@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 
 class PrometheusProvider {
     companion object {
@@ -20,7 +21,7 @@ fun MeterRegistry.journalpostCounter(journalpost: Journalpost) =
         "journalpost",
         listOf(
             Tag.of("brevkode", journalpost.hoveddokumentbrevkode),
-            Tag.of("filtype", journalpost.finnOriginal()?.filtype?.name ?: "UKJENT")
+            Tag.of("filtype", journalpost.finnOriginal()?.finnFiltype(Variantformat.ORIGINAL)?.name ?: "UKJENT")
         )
     )
 

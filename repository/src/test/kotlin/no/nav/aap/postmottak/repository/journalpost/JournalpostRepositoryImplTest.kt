@@ -4,16 +4,17 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.gateway.Journalstatus
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
@@ -36,9 +37,10 @@ class JournalpostRepositoryImplTest {
 
             val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
             val journalpost = genererJournalpost(person)
-            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
+            val behandlingid =
+                behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
             val journalpostRepository = JournalpostRepositoryImpl(connection)
-            
+
             // Act
             journalpostRepository.lagre(journalpost)
 
@@ -59,7 +61,8 @@ class JournalpostRepositoryImplTest {
 
             val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
             val journalpost = genererJournalpost(person)
-            val behandlingid = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
+            val behandlingid =
+                behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
             val journalpostRepository = JournalpostRepositoryImpl(connection)
 
             // Act
@@ -95,15 +98,23 @@ class JournalpostRepositoryImplTest {
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "NAV 11-13.05",
-                filtype = Filtype.JSON,
-                variantFormat = Variantformat.ORIGINAL,
-                dokumentInfoId = DokumentInfoId("1")
+                dokumentInfoId = DokumentInfoId("1"),
+                varianter = listOf(
+                    Variant(
+                        filtype = Filtype.JSON,
+                        variantformat = Variantformat.ORIGINAL
+                    )
+                ),
             ),
             Dokument(
                 brevkode = "NAV 11-13.05",
-                filtype = Filtype.PDF,
-                variantFormat = Variantformat.SLADDET,
-                dokumentInfoId = DokumentInfoId("1")
+                dokumentInfoId = DokumentInfoId("1"),
+                varianter = listOf(
+                    Variant(
+                        filtype = Filtype.PDF,
+                        variantformat = Variantformat.SLADDET
+                    )
+                ),
             )
         )
     )

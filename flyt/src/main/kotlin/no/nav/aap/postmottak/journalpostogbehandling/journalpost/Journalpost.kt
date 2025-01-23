@@ -36,12 +36,12 @@ open class Journalpost(
 
     fun mottattDato() = mottattDato
 
-    fun finnOriginal(): Dokument? = dokumenter.find {
-        it.variantFormat == Variantformat.ORIGINAL
+    fun finnOriginal(): Dokument? = dokumenter.find { dokument ->
+        dokument.varianter.any { variant -> variant.variantformat == Variantformat.ORIGINAL }
     }
 
-    fun finnArkivVarianter(): List<Dokument> = dokumenter.filter {
-        it.variantFormat == Variantformat.ARKIV
+    fun finnArkivVarianter(): List<Dokument> = dokumenter.filter { dokument ->
+        dokument.varianter.any { variant -> variant.variantformat == Variantformat.ARKIV }
     }
 
     fun erDigitalSøknad(): Boolean {
@@ -54,7 +54,7 @@ open class Journalpost(
         } && erDigital()
     }
 
-    fun erDigital(): Boolean = finnOriginal()?.filtype == Filtype.JSON
+    fun erDigital(): Boolean = finnOriginal()?.varianter?.any { it.filtype == Filtype.JSON } ?: false
 
     fun erUgyldig(): Boolean =
         status in listOf(Journalstatus.AVBRUTT, Journalstatus.FEILREGISTRERT, Journalstatus.UTGAAR)
@@ -62,9 +62,15 @@ open class Journalpost(
 
 open class Dokument(
     val dokumentInfoId: DokumentInfoId,
-    val variantFormat: Variantformat,
-    val filtype: Filtype,
     val brevkode: String,
+    val varianter: List<Variant>
+) {
+    fun finnFiltype(variantformat: Variantformat): Filtype? = varianter.find { it.variantformat == variantformat }?.filtype
+}
+
+data class Variant(
+    val filtype: Filtype,
+    val variantformat: Variantformat,
 )
 
 enum class Filtype {

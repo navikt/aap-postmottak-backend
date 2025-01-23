@@ -12,7 +12,29 @@ import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
+import java.util.stream.Collectors
+
+data class DbDokument(
+    val dokumentInfoId: DokumentInfoId,
+    val brevkode: String,
+    val filtype: Filtype,
+    val variantformat: Variantformat,
+    ){
+    companion object {
+        fun formDokument(dokument: Dokument) = dokument.varianter.map {
+            DbDokument(
+                dokument.dokumentInfoId,
+                dokument.brevkode,
+                it.filtype,
+                it.variantformat
+            )
+        }
+    }
+}
 
 class JournalpostRepositoryImpl(private val connection: DBConnection) : JournalpostRepository {
     private val personRepositoryImpl = PersonRepositoryImpl(connection)
@@ -43,12 +65,12 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
         val dokumentQuery = """
                 INSERT INTO DOKUMENT (JOURNALPOST_ID, DOKUMENT_INFO_ID, BREVKODE, VARIANTFORMAT, FILTYPE) VALUES (?, ?, ?, ?, ?)
             """.trimIndent()
-        connection.executeBatch(dokumentQuery, journalpost.dokumenter()) {
+        connection.executeBatch(dokumentQuery, journalpost.dokumenter().flatMap { DbDokument.formDokument(it) }) {
             setParams { dokument ->
                 setLong(1, journalpostId)
                 setString(2, dokument.dokumentInfoId.dokumentInfoId)
                 setString(3, dokument.brevkode)
-                setEnumName(4, dokument.variantFormat)
+                setEnumName(4, dokument.variantformat)
                 setEnumName(5, dokument.filtype)
             }
         }
@@ -123,13 +145,18 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setLong(1, journalpostId)
             }
             setRowMapper {
-                Dokument(
+                DbDokument(
                     dokumentInfoId = DokumentInfoId(it.getString("DOKUMENT_INFO_ID")),
-                    variantFormat = it.getEnum("VARIANTFORMAT"),
+                    variantformat = it.getEnum("VARIANTFORMAT"),
                     filtype = it.getEnum("FILTYPE"),
                     brevkode = it.getString("BREVKODE"),
                 )
             }
-        }
+        }.groupBy { Dokument(it.dokumentInfoId, it.brevkode, emptyList()) }
+            .map { (key, value) -> Dokument(
+                key.dokumentInfoId,
+                key.brevkode,
+                value.map { Variant(it.filtype, it.variantformat) })
+            }
     }
 }

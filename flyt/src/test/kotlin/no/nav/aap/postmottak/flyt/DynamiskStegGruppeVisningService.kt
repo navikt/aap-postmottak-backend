@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
@@ -22,6 +23,7 @@ import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.testcontainers.shaded.com.google.errorprone.annotations.Var
 import java.time.LocalDate
 
 class DynamiskStegGruppeVisningServiceTest {
@@ -30,7 +32,7 @@ class DynamiskStegGruppeVisningServiceTest {
         RepositoryRegistry.register<JournalpostRepositoryImpl>()
             .register<AvklarTemaRepositoryImpl>()
     }
-    
+
     @Test
     fun `Skal vise steg 'overlever til fagsystem' for søknad`() {
         InitTestDatabase.dataSource.transaction { connection ->
@@ -40,7 +42,7 @@ class DynamiskStegGruppeVisningServiceTest {
 
             val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
             val journalpost = Journalpost(
-                person =  person,
+                person = person,
                 journalpostId = JournalpostId(111),
                 journalførendeEnhet = null,
                 status = Journalstatus.MOTTATT,
@@ -48,21 +50,26 @@ class DynamiskStegGruppeVisningServiceTest {
                 dokumenter = listOf(
                     Dokument(
                         brevkode = "NAV 11-13.05",
-                        filtype = Filtype.JSON,
-                        variantFormat = Variantformat.ORIGINAL,
-                        dokumentInfoId = DokumentInfoId("1")
+                        dokumentInfoId = DokumentInfoId("1"),
+                        varianter = listOf(
+                            Variant(
+                                filtype = Filtype.JSON,
+                                variantformat = Variantformat.ORIGINAL
+                            )
+                        )
                     )
                 ),
                 mottattDato = LocalDate.of(2021, 1, 1),
                 kanal = KanalFraKodeverk.UKJENT,
                 saksnummer = null
             )
-            
-            val behandlingId = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
+
+            val behandlingId =
+                behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
             journalpostRepository.lagre(journalpost)
 
             val service = DynamiskStegGruppeVisningService(connection)
-            
+
             val gruppe = StegGruppe.OVERLEVER_TIL_FAGSYSTEM
 
             // Act

@@ -315,7 +315,7 @@ data class SafDokumentInfo(
     val dokumentInfoId: String,
     val brevkode: String? = "Ukjent",
     val tittel: String? = null,
-    val dokumentvarianter: List<SafDokumentvariant?>
+    val dokumentvarianter: List<SafDokumentvariant>?
 )
 
 data class SafDokumentvariant(

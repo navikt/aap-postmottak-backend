@@ -21,6 +21,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTitt
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import org.slf4j.LoggerFactory
 
@@ -97,16 +98,15 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
         dato?.datotype == SafDatoType.DATO_REGISTRERT
     }?.dato?.toLocalDate() ?: error("Fant ikke dato")
 
-    val dokumenter = journalpost.dokumenter?.filterNotNull()?.flatMap { dokument ->
-        dokument.dokumentvarianter.filterNotNull().map { variant ->
+    val dokumenter = journalpost.dokumenter?.filterNotNull()?.map { dokument ->
             DokumentMedTittel(
-                dokument.dokumentInfoId.let(::DokumentInfoId),
-                Variantformat.valueOf(variant.variantformat.name),
-                Filtype.valueOf(variant.filtype),
-                dokument.brevkode ?: "Ukjent",
-                dokument.tittel ?: "Dokument uten tittel"
+                dokumentInfoId = dokument.dokumentInfoId.let(::DokumentInfoId),
+                brevkode = dokument.brevkode ?: "Ukjent",
+                tittel = dokument.tittel ?: "Dokument uten tittel",
+                varianter = dokument.dokumentvarianter?.map {
+                    Variant(Filtype.valueOf(it.filtype),
+                        Variantformat.valueOf(it.variantformat.name)) } ?: emptyList()
             )
-        }
     } ?: emptyList()
     return JournalpostMedDokumentTitler(
         person = person,

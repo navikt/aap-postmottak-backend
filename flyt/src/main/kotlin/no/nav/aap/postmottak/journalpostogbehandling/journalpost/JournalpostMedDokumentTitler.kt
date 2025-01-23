@@ -29,9 +29,8 @@ class JournalpostMedDokumentTitler(
 
 class DokumentMedTittel(
     dokumentInfoId: DokumentInfoId,
-    variantFormat: Variantformat,
-    filtype: Filtype,
     brevkode: String,
-    val tittel: String
-): Dokument(dokumentInfoId, variantFormat, filtype, brevkode)
+    val tittel: String,
+    varianter: List<Variant>
+): Dokument(dokumentInfoId, brevkode, varianter)
 

@@ -16,6 +16,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTitt
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -45,10 +46,9 @@ class AutomatiskJournalføringJobbTest : WithFakes {
             dokumenter = listOf(
                 DokumentMedTittel(
                     DokumentInfoId("123"),
-                    Variantformat.ORIGINAL,
-                    Filtype.JSON,
                     "NAV 11.13-05",
-                    "Hoveddokument"
+                    "Hoveddokument",
+                    listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL))
                 )
             ),
             person = Person(1, UUID.randomUUID(), listOf(Ident("123"))),
