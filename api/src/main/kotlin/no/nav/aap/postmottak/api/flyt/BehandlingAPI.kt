@@ -51,6 +51,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                         type = behandling.typeBehandling.name,
                         status = behandling.status(),
                         opprettet = behandling.opprettetTidspunkt,
+                        skalForberede = behandling.harIkkeVærtAktivitetIDetSiste(),
 
                         avklaringsbehov = FrivilligeAvklaringsbehov(
                             avklaringsbehov(

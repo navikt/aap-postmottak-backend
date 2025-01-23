@@ -4,11 +4,17 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.time.LocalDateTime
 
-class StegTilstand(private val tidspunkt: LocalDateTime = LocalDateTime.now(),
-                   private val stegStatus: StegStatus,
-                   private val stegType: StegType,
-                   var aktiv: Boolean = true) : Comparable<StegTilstand> {
+class StegTilstand(
+    private val tidspunkt: LocalDateTime = LocalDateTime.now(),
+    private val stegStatus: StegStatus,
+    private val stegType: StegType,
+    var aktiv: Boolean = true
+) : Comparable<StegTilstand> {
 
+    fun tidspunkt(): LocalDateTime {
+        return tidspunkt
+    }
+    
     fun status(): StegStatus {
         return stegStatus
     }
