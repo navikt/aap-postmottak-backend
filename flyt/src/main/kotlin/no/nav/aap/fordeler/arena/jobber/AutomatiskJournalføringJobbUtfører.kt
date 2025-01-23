@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory
 class AutomatiskJournalføringJobbUtfører(
     private val joarkClient: JournalføringsGateway,
     private val flytJobbRepository: FlytJobbRepository,
-    private val journalpostService: JournalpostService,
-    private val enhetsutreder: Enhetsutreder
-) : JobbUtfører {
+    override val journalpostService: JournalpostService,
+    private val enhetsutreder: Enhetsutreder,
+) : ArenaJobbutførerBase(journalpostService) {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
@@ -39,7 +39,7 @@ class AutomatiskJournalføringJobbUtfører(
 
     private var log = LoggerFactory.getLogger(this::class.java)
 
-    override fun utfør(input: JobbInput) {
+    override fun utførArena(input: JobbInput) {
         val kontekst = input.getAutomatiskJournalføringKontekst()
 
         if (input.antallRetriesForsøkt() >= retries()) {

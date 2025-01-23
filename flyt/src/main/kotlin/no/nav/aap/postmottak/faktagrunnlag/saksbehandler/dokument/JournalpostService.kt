@@ -70,7 +70,6 @@ class JournalpostService private constructor(
     fun hentjournalpost(journalpostId: JournalpostId): JournalpostMedDokumentTitler {
         val journalpost = hentSafJournalpost(journalpostId)
         return tilInternJournalpost(journalpost)
-
     }
 
     private fun hentSafJournalpost(journalpostId: JournalpostId): SafJournalpost {

@@ -2,12 +2,11 @@ package no.nav.aap.fordeler.arena.jobber
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
-import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.postmottak.gateway.JournalpostGateway
-import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Oppgavetype
 import org.slf4j.LoggerFactory
 
@@ -15,14 +14,14 @@ private val log = LoggerFactory.getLogger(ManuellJournalføringJobbUtfører::cla
 
 class ManuellJournalføringJobbUtfører(
     private val gosysOppgaveGateway: GosysOppgaveGateway,
-    private val journalpostGateway: JournalpostGateway
-) : JobbUtfører {
+    override val journalpostService: JournalpostService
+) : ArenaJobbutførerBase(journalpostService) {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             val gosysOppgaveGateway = GatewayProvider.provide(GosysOppgaveGateway::class)
-            val journalpostGateway = GatewayProvider.provide(JournalpostGateway::class)
-            return ManuellJournalføringJobbUtfører(gosysOppgaveGateway, journalpostGateway)
+            val journalpostService = JournalpostService.konstruer(connection)
+            return ManuellJournalføringJobbUtfører(gosysOppgaveGateway, journalpostService)
         }
 
         override fun type() = "arena.manuell.journalføring"
@@ -35,13 +34,9 @@ class ManuellJournalføringJobbUtfører(
 
     }
 
-    override fun utfør(input: JobbInput) {
+    override fun utførArena(input: JobbInput) {
         val kontekst = input.getArenaVideresenderKontekst()
-        val journalpostStatus = journalpostGateway.hentJournalpost(kontekst.journalpostId).journalstatus
-        if (journalpostStatus == Journalstatus.JOURNALFOERT) {
-            log.warn("Avbryter jobb, journalpost er allerede journalført")
-            return
-        }
+
         val eksisterendeOppgaver =
             gosysOppgaveGateway.finnOppgaverForJournalpost(
                 kontekst.journalpostId,
@@ -49,8 +44,6 @@ class ManuellJournalføringJobbUtfører(
             )
         if (eksisterendeOppgaver.isNotEmpty()) {
             log.info("Det finnes allerede en journalføringsoppgave for journalpost ${kontekst.journalpostId} - oppretter ingen ny")
-        } else if (journalpostStatus == Journalstatus.FERDIGSTILT) {
-            log.info("Journalpost ${kontekst.journalpostId} er allerede ferdigstilt - oppretter ingen journalføringsoppgave")
         } else if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 3) {
             gosysOppgaveGateway.opprettJournalføringsOppgave(
                 kontekst.journalpostId,

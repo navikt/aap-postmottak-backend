@@ -7,18 +7,21 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import org.slf4j.LoggerFactory
 
 class SendTilArenaKjørelisteBehandling(
     private val flytJobbRepository: FlytJobbRepository,
-    private val arenaKlient: ArenaGateway
-) : JobbUtfører {
+    private val arenaKlient: ArenaGateway,
+    override val journalpostService: JournalpostService
+) : ArenaJobbutførerBase(journalpostService) {
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return SendTilArenaKjørelisteBehandling(
                 FlytJobbRepository(connection),
-                GatewayProvider.provide(ArenaGateway::class)
+                GatewayProvider.provide(ArenaGateway::class),
+                JournalpostService.konstruer(connection)
             )
         }
 
@@ -34,7 +37,7 @@ class SendTilArenaKjørelisteBehandling(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun utfør(input: JobbInput) {
+    override fun utførArena(input: JobbInput) {
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (input.antallRetriesForsøkt() >= 2) {

@@ -7,6 +7,8 @@ import io.mockk.verify
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -17,7 +19,12 @@ import org.junit.jupiter.api.Test
 class SendSøknadTilArenaJobbUtførerTest: WithFakes {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val arenaKlientMock = mockk<ArenaKlient>(relaxed = true)
-    val sendSøknadTilArenaJobb = SendSøknadTilArenaJobbUtfører(flytJobbRepositoryMock, arenaKlientMock)
+    val journalpostService = mockk<JournalpostService>(relaxed = true) {
+        every { hentjournalpost(any()) } returns mockk(relaxed = true) {
+            every { status } returns Journalstatus.MOTTATT
+        }
+    }
+    val sendSøknadTilArenaJobb = SendSøknadTilArenaJobbUtfører(flytJobbRepositoryMock, arenaKlientMock, journalpostService)
 
 
     @Test

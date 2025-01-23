@@ -13,7 +13,9 @@ import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.avklartema.flate.log
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId

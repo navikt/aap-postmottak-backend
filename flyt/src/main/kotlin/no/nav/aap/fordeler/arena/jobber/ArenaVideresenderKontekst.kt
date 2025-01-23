@@ -7,12 +7,12 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedD
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 
 data class ArenaVideresenderKontekst(
-    val journalpostId: JournalpostId,
+    override val journalpostId: JournalpostId,
     val ident: Ident,
     val hoveddokumenttittel: String,
     val vedleggstitler: List<String>,
     val navEnhet: String?
-)
+): ArenaBaseKontekst(journalpostId)
 
 fun JobbInput.getArenaVideresenderKontekst() =
     DefaultJsonMapper.fromJson(this.payload(), ArenaVideresenderKontekst::class.java)
