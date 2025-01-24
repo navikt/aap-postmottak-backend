@@ -58,7 +58,8 @@ class OppprettOppgaveIArenaJobbUtfører(
             titler = kontekst.vedleggstitler,
             oppgaveType = ArenaOppgaveType.BEHENVPERSON
         )
-        arenaKlient.opprettArenaOppgave(request)
+        val oppgave = arenaKlient.opprettArenaOppgave(request)
+        log.info("Opprettet oppgave i Arena: $oppgave")
         opprettAutomatiskJournalføringsjobb(kontekst, saksId)
 
     }

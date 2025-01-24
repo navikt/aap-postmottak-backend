@@ -55,6 +55,7 @@ class SendSøknadTilArenaJobbUtfører(
                 oppgaveType = ArenaOppgaveType.STARTVEDTAK
             )
             val respons = arenaKlient.opprettArenaOppgave(request)
+            requireNotNull(respons.arenaSakId) {"Mangler saksnummer fra Arena"}
             log.info("Opprettet oppgave med id ${respons.oppgaveId} på sak ${respons.arenaSakId}")
             opprettAutomatiskJournalføringsjobb(kontekst, respons.arenaSakId)
         } else {

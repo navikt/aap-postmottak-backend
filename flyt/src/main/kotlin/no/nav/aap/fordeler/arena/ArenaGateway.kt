@@ -13,7 +13,7 @@ interface ArenaGateway: Gateway {
 
 data class ArenaOpprettOppgaveRespons(
     val oppgaveId : String,
-    val arenaSakId : String
+    val arenaSakId : String?
 )
 
 data class ArenaOpprettOppgaveForespørsel(
