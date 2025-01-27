@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.steg
+package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -15,7 +15,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
-import no.nav.aap.postmottak.forretningsflyt.steg.OverleverTilFagsystemSteg
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId

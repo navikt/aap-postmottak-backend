@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.forretningsflyt.steg
+package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg

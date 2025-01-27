@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.steg
+package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import io.mockk.every
 import io.mockk.mockk
@@ -10,7 +10,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
-import no.nav.aap.postmottak.forretningsflyt.steg.DigitaliserDokumentSteg
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon

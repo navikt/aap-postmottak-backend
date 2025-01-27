@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.forretningsflyt.steg
+package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.RepositoryProvider

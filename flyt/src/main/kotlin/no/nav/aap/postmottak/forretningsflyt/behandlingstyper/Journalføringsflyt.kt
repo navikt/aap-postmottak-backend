@@ -5,12 +5,12 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksnummer
 import no.nav.aap.postmottak.flyt.BehandlingFlyt
 import no.nav.aap.postmottak.flyt.BehandlingFlytBuilder
 import no.nav.aap.postmottak.flyt.BehandlingType
-import no.nav.aap.postmottak.forretningsflyt.steg.AvklarSakSteg
-import no.nav.aap.postmottak.forretningsflyt.steg.AvklarTemaSteg
-import no.nav.aap.postmottak.forretningsflyt.steg.JournalføringSteg
-import no.nav.aap.postmottak.forretningsflyt.steg.SettFagsakSteg
+import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarSakSteg
+import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarTemaSteg
+import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.JournalføringSteg
+import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.SettFagsakSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.StartBehandlingSteg
-import no.nav.aap.postmottak.forretningsflyt.steg.VideresendSteg
+import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.VideresendSteg
 
 object Journalføringsflyt: BehandlingType {
     override fun flyt(): BehandlingFlyt = BehandlingFlytBuilder()
