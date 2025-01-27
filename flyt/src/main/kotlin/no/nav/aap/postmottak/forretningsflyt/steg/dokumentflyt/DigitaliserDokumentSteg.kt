@@ -5,7 +5,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
@@ -16,14 +16,15 @@ import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+
 
 class DigitaliserDokumentSteg(
     private val struktureringsvurderingRepository: StruktureringsvurderingRepository,
     private val journalpostRepository: JournalpostRepository,
-    private val kategorivurderingRepository: KategoriVurderingRepository,
     private val dokumentGateway: DokumentGateway
 ) : BehandlingSteg {
     companion object : FlytSteg {
@@ -32,7 +33,6 @@ class DigitaliserDokumentSteg(
             return DigitaliserDokumentSteg(
                 repositoryProvider.provide(StruktureringsvurderingRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
-                repositoryProvider.provide(KategoriVurderingRepository::class),
                 GatewayProvider.provide(DokumentGateway::class)
             )
         }
@@ -46,31 +46,25 @@ class DigitaliserDokumentSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val struktureringsvurdering =
             struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
-        val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
-        requireNotNull(kategorivurdering)
 
 
         if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring()) {
             val dokument = if (journalpost.erDigitalSøknad()) hentOriginalDokumentFraSaf(journalpost) else null
+            val innsending = getInnsendingForBrevkode(journalpost.hoveddokumentbrevkode)
             val validertDokument =
-                DokumentTilMeldingParser.parseTilMelding(dokument, kategorivurdering.avklaring)?.serialiser()
-            if (validertDokument != null) {
-                struktureringsvurderingRepository.lagreStrukturertDokument(kontekst.behandlingId, validertDokument)
-            }
+                DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
+            struktureringsvurderingRepository.lagreStrukturertDokument(
+                kontekst.behandlingId, Digitaliseringsvurdering(innsending, validertDokument)
+            )
+
             return Fullført
         }
 
-        return if (struktureringsvurdering == null && kategorivurdering.avklaring.kanStruktureres()) {
-            FantAvklaringsbehov(
-                Definisjon.DIGITALISER_DOKUMENT
-            )
+        return if (struktureringsvurdering == null) {
+            FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
         } else Fullført
-    }
-
-    private fun InnsendingType.kanStruktureres(): Boolean {
-        return this in listOf(InnsendingType.SØKNAD, InnsendingType.PLIKTKORT)
     }
 
     private fun hentOriginalDokumentFraSaf(journalpost: Journalpost): ByteArray {
@@ -81,4 +75,15 @@ class DigitaliserDokumentSteg(
             strukturertDokument.dokumentInfoId
         ).dokument.readBytes()
     }
+
+    private fun getInnsendingForBrevkode(brevkode: String): InnsendingType {
+        val brevkodeTilInnsendingMap = mapOf(
+            Brevkoder.SØKNAD to InnsendingType.SØKNAD,
+            Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING
+        )
+
+        return brevkodeTilInnsendingMap[Brevkoder.fraKode(brevkode)]
+            ?: throw IllegalStateException("Kan ikke automatisk behanlde journalposter av type $brevkode")
+    }
+
 }

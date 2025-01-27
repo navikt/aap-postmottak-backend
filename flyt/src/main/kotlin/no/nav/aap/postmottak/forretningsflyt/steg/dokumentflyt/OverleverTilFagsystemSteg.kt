@@ -6,7 +6,6 @@ import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
@@ -25,8 +24,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
 
 class OverleverTilFagsystemSteg(
-    private val struktureringsvurderingRepository: StruktureringsvurderingRepository,
-    private val kategorivurderingRepository: KategoriVurderingRepository,
+    private val digitaliseringsviurdeirngrepository: StruktureringsvurderingRepository,
     private val behandlingsflytKlient: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
@@ -37,7 +35,6 @@ class OverleverTilFagsystemSteg(
             val repositoryProvider = RepositoryProvider(connection)
             return OverleverTilFagsystemSteg(
                 repositoryProvider.provide(StruktureringsvurderingRepository::class),
-                repositoryProvider.provide(KategoriVurderingRepository::class),
                 GatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
@@ -51,16 +48,15 @@ class OverleverTilFagsystemSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val struktureringsvurdering =
-            struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
-        val kategorivurdering = kategorivurderingRepository.hentKategoriAvklaring(kontekst.behandlingId)
+        val digitaliseringsvurdering =
+            digitaliseringsviurdeirngrepository.hentStruktureringsavklaring(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost) { "Journalpost mangler i OverleverTilFagsystemSteg" }
-        requireNotNull(kategorivurdering) { "Kategorivurdering mangler i OverleverTilFagsystemSteg" }
+        requireNotNull(digitaliseringsvurdering) { "Digitaliseringsvurdering mangler i OverleverTilFagsystemSteg" }
 
         var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
 
-        if (overleveringVurdering == null && kategorivurdering.avklaring in setOf(
+        if (overleveringVurdering == null && digitaliseringsvurdering.kategori in setOf(
                 InnsendingType.SØKNAD,
                 InnsendingType.LEGEERKLÆRING
             )
@@ -76,12 +72,12 @@ class OverleverTilFagsystemSteg(
             log.info("Dokument overleveres${if (overleveringVurdering.skalOverleveresTilKelvin) " " else "ikke"}til Fagsystem")
             if (overleveringVurdering.skalOverleveresTilKelvin) {
                 val melding = DokumentTilMeldingParser.parseTilMelding(
-                    struktureringsvurdering?.vurdering,
-                    kategorivurdering.avklaring
+                    digitaliseringsvurdering.strukturertDokument,
+                    digitaliseringsvurdering.kategori
                 )
                 behandlingsflytKlient.sendHendelse(
                     journalpost,
-                    kategorivurdering.avklaring,
+                    digitaliseringsvurdering.kategori,
                     saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
                     melding
                 )

@@ -12,7 +12,6 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
@@ -29,7 +28,6 @@ class AvklaringsbehovsLøserTest {
         RepositoryRegistry.register<SaksnummerRepositoryImpl>()
             .register<AvklarTemaRepositoryImpl>()
             .register<StruktureringsvurderingRepositoryImpl>()
-            .register<KategorivurderingRepositoryImpl>()
             .register<JournalpostRepositoryImpl>()
             .register<OverleveringVurderingRepositoryImpl>()
         GatewayRegistry.register<BehandlingsflytGatewayMock>()

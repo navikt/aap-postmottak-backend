@@ -39,7 +39,6 @@ import no.nav.aap.postmottak.exception.ErrorRespons
 import no.nav.aap.postmottak.api.faktagrunnlag.tema.avklarTemaApi
 import no.nav.aap.postmottak.api.faktagrunnlag.sak.finnSakApi
 import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
-import no.nav.aap.postmottak.api.faktagrunnlag.kategorisering.kategoriseringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.strukturering.struktureringApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
@@ -69,7 +68,6 @@ import no.nav.aap.postmottak.klient.saf.SafOboRestClient
 import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
@@ -155,7 +153,6 @@ internal fun Application.server(
                 avklaringsbehovApi(dataSource)
                 dokumentApi(dataSource)
                 avklarTemaApi(dataSource)
-                kategoriseringApi(dataSource)
                 finnSakApi(dataSource)
                 struktureringApi(dataSource)
                 overleveringApi(dataSource)
@@ -191,7 +188,6 @@ private fun registerRepositories() {
         .register<AvklaringsbehovRepositoryImpl>()
         .register<BehandlingRepositoryImpl>()
         .register<AvklarTemaRepositoryImpl>()
-        .register<KategorivurderingRepositoryImpl>()
         .register<SaksnummerRepositoryImpl>()
         .register<StruktureringsvurderingRepositoryImpl>()
         .register<JournalpostRepositoryImpl>()

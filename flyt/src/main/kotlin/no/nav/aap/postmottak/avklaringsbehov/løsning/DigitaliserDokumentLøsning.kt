@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.avklaringsbehov.løsning
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeName
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løser.DigitaliserDokumentLøser
@@ -12,7 +13,9 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.DIGITALISER_DOKUMENT_KODE
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = DIGITALISER_DOKUMENT_KODE)
 class DigitaliserDokumentLøsning(
-    @JsonProperty("strukturertDokument", required = true)
+    @JsonProperty(required = true)
+    val kategori: InnsendingType,
+    @JsonProperty(required = true)
     val strukturertDokument: String?,
     @JsonProperty(
         "behovstype",

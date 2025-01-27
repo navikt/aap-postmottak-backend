@@ -1,7 +1,5 @@
 package no.nav.aap.postmottak.flyt
 
-import io.ktor.http.*
-import io.ktor.server.response.*
 import no.nav.aap.WithDependencies
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -15,13 +13,13 @@ import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -36,7 +34,6 @@ import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.test.WithMotor
 import no.nav.aap.postmottak.test.await
@@ -46,7 +43,6 @@ import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING
 import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT
 import no.nav.aap.postmottak.test.fakes.UGYLDIG_STATUS
 import no.nav.aap.postmottak.test.fakes.WithFakes
-import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -267,10 +263,6 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
 
             AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
             SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-            KategorivurderingRepositoryImpl(connection).lagreKategoriseringVurdering(
-                behandlingId,
-                InnsendingType.SØKNAD
-            )
 
             FlytJobbRepository(connection).leggTil(
                 JobbInput(ProsesserBehandlingJobbUtfører)
@@ -410,12 +402,12 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
         repositoryProvider.provide(SaksnummerRepository::class)
             .lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-        repositoryProvider.provide(KategoriVurderingRepository::class)
-            .lagreKategoriseringVurdering(behandlingId, InnsendingType.SØKNAD)
         repositoryProvider.provide(StruktureringsvurderingRepository::class).lagreStrukturertDokument(
             behandlingId,
+            Digitaliseringsvurdering(
+                InnsendingType.SØKNAD,
             """{"søknadsDato":"2024-09-02T22:00:00.000Z", "yrkesskade":"nei", "student": {"erStudent":"Nei"}}"""
-        )
+        ))
         return behandlingId
     }
 

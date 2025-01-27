@@ -7,7 +7,6 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
@@ -26,22 +25,21 @@ fun NormalOpenAPIRoute.struktureringApi(dataSource: DataSource) {
                 )
             )
         ) { req ->
-            val (kategorivurdering, struktureringsvurdering) = dataSource.transaction(readOnly = true) {
+            val struktureringsvurdering = dataSource.transaction(readOnly = true) {
                 val repositoryProvider = RepositoryProvider(it)
                 val behandling = repositoryProvider.provide(BehandlingRepository::class).hent(req)
-                val kategorivurdering = repositoryProvider.provide(KategoriVurderingRepository::class).hentKategoriAvklaring(behandling.id)
-                val struktureringsvurdering = repositoryProvider.provide(StruktureringsvurderingRepository::class).hentStruktureringsavklaring(behandling.id)
-                Pair(kategorivurdering, struktureringsvurdering)
+                repositoryProvider.provide(StruktureringsvurderingRepository::class)
+                    .hentStruktureringsavklaring(behandling.id)
             }
-
-            checkNotNull(kategorivurdering) { "Behandlingen mangler kategorisering" }
 
             respond(
                 StruktureringGrunnlagDto(
-                    struktureringsvurdering
-                        ?.vurdering?.let(::StruktureringVurderingDto),
-                    kategorivurdering.avklaring,
-                    listOf(1, 2) //TODO: Fjern disse, eventuelt tydeliggjør grunnlag
+                    struktureringsvurdering?.let {
+                        StruktureringVurderingDto(
+                            struktureringsvurdering.kategori,
+                            struktureringsvurdering.strukturertDokument
+                        )
+                    }
                 )
             )
         }

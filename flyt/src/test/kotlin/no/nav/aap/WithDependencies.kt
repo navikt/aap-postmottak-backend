@@ -17,7 +17,6 @@ import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.KategorivurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
@@ -40,7 +39,6 @@ interface WithDependencies {
                 .register<AvklaringsbehovRepositoryImpl>()
                 .register<BehandlingRepositoryImpl>()
                 .register<AvklarTemaRepositoryImpl>()
-                .register<KategorivurderingRepositoryImpl>()
                 .register<AvklarTemaRepositoryImpl>()
                 .register<StruktureringsvurderingRepositoryImpl>()
                 .register<PersonRepositoryImpl>()

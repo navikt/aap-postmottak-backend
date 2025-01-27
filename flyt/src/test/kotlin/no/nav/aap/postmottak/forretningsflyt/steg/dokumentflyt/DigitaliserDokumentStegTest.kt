@@ -2,18 +2,16 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -23,11 +21,10 @@ class DigitaliserDokumentStegTest {
 
     val struktureringsvurderingRepository: StruktureringsvurderingRepository = mockk(relaxed = true)
     val journalpostRepo: JournalpostRepository = mockk()
-    val kategorivurderingRepo: KategoriVurderingRepository = mockk()
     val dokumentGateway: DokumentGateway = mockk()
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        struktureringsvurderingRepository, journalpostRepo, kategorivurderingRepo, dokumentGateway
+        struktureringsvurderingRepository, journalpostRepo, dokumentGateway
     )
 
     @Test
@@ -37,7 +34,6 @@ class DigitaliserDokumentStegTest {
         every { journalpost.erDigitalSøknad() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns KategoriVurdering(InnsendingType.SØKNAD)
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -54,7 +50,6 @@ class DigitaliserDokumentStegTest {
         every { journalpost.erDigitalSøknad() } returns false
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns mockk(relaxed = true)
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns mockk(relaxed = true)
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -72,9 +67,9 @@ class DigitaliserDokumentStegTest {
 
         every { journalpost.erDigitalSøknad() } returns true
         every { journalpost.journalpostId }
+        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.SØKNAD.kode
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns mockk(relaxed = true)
         every {
             dokumentGateway.hentDokument(
                 journalpost.journalpostId,
@@ -88,27 +83,13 @@ class DigitaliserDokumentStegTest {
     }
 
     @Test
-    fun `når behandlingen har kategori som ikke skal struktureres forventes ingen avklaringsbehov`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
-
-        every { journalpost.erDigitalSøknad() } returns false
-        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
-        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns KategoriVurdering(InnsendingType.LEGEERKLÆRING)
-
-        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
-
-        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
-    }
-
-    @Test
     fun `digital legeerklæring skal ikke digitaliseres`() {
         val journalpost: Journalpost = mockk(relaxed = true)
 
-        every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns true
+        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
         every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { kategorivurderingRepo.hentKategoriAvklaring(any()) } returns KategoriVurdering(InnsendingType.LEGEERKLÆRING)
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 

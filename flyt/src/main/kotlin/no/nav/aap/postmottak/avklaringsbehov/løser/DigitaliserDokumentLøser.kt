@@ -1,30 +1,25 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.kategorisering.KategoriVurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
 class DigitaliserDokumentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
     val repositoryProvider = RepositoryProvider(connection)
     val struktureringsvurderingRepository = repositoryProvider.provide(StruktureringsvurderingRepository::class)
-    val kategorivurderingRepository = repositoryProvider.provide(KategoriVurderingRepository::class)
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
 
-        val kategori = kategorivurderingRepository.hentKategoriAvklaring(kontekst.kontekst.behandlingId)?.avklaring
-        requireNotNull(kategori) { "Mangler kategori for digitalisert dokument" }
-        requireNotNull(løsning.strukturertDokument) { "Digitalisert dokument kan ikke være null" }
+        val dokument = DokumentTilMeldingParser.parseTilMelding(løsning.strukturertDokument, løsning.kategori)?.serialiser()
 
-        val dokument = DokumentTilMeldingParser.parseTilMelding(løsning.strukturertDokument, kategori)?.serialiser()
-        requireNotNull(dokument, { "Digitalisering av denne kategorien støttes ikke" })
-        
-        struktureringsvurderingRepository.lagreStrukturertDokument(kontekst.kontekst.behandlingId, dokument)
+        struktureringsvurderingRepository.lagreStrukturertDokument(
+            kontekst.kontekst.behandlingId, Digitaliseringsvurdering(løsning.kategori, dokument))
 
         return LøsningsResultat("Dokument er strukturet")
     }
