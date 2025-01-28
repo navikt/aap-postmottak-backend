@@ -14,7 +14,7 @@ class BehandlingReferanseService(private val behandlingRepository: BehandlingRep
             return behandlingRepository.hent(referanse)
         } catch (e: NoSuchElementException) {
             logger.info("Fant ikke behandling med ref $referanse. Stacktrace: ${e.stackTraceToString()}")
-            throw ElementNotFoundException()
+            throw ElementNotFoundException("Fant ikke behandling med ref $referanse.")
         }
     }
 

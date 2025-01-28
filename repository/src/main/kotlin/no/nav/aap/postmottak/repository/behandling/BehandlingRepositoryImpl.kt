@@ -11,6 +11,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Params
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.lookup.repository.Factory
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -18,12 +19,12 @@ import java.time.LocalDateTime
 import java.util.*
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
-    companion object: Factory<BehandlingRepositoryImpl> {
+    companion object : Factory<BehandlingRepositoryImpl> {
         override fun konstruer(connection: DBConnection): BehandlingRepositoryImpl {
             return BehandlingRepositoryImpl(connection)
         }
     }
-    
+
     override fun opprettBehandling(journalpostId: JournalpostId, typeBehandling: TypeBehandling): BehandlingId {
         val query = """
             INSERT INTO BEHANDLING (status, type, referanse, journalpost_id)
@@ -124,7 +125,11 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             WHERE b.id = ?
             """.trimIndent()
 
-        return utførHentQuery(query) { setLong(1, behandlingId.toLong()) }
+        return try {
+            utførHentQuery(query) { setLong(1, behandlingId.toLong()) }
+        } catch (_: NoSuchElementException) {
+            throw ElementNotFoundException("Fant ikke behandling med id $behandlingId")
+        }
     }
 
     override fun hent(referanse: Behandlingsreferanse): Behandling {
@@ -133,7 +138,11 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             WHERE referanse = ?
             """.trimIndent()
 
-        return utførHentQuery(query) { setUUID(1, referanse.referanse) }
+        return try {
+            utførHentQuery(query) { setUUID(1, referanse.referanse) }
+        } catch (_: NoSuchElementException) {
+            throw ElementNotFoundException("Fant ikke behandling med referanse $referanse.")
+        }
 
     }
 
@@ -150,24 +159,31 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     }
 
     override fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling {
-        return connection.queryFirst("""
+        return try {
+            connection.queryFirst(
+                """
             SELECT * FROM behandling
             WHERE journalpost_id = ? AND
             type = 'Journalføring' AND
             (status = 'OPPRETTET' OR status = 'UTREDES') 
-        """.trimIndent()) {
-            setParams { setLong(1, journalpostId.referanse) }
-            setRowMapper(::mapBehandling)
+        """.trimIndent()
+            ) {
+                setParams { setLong(1, journalpostId.referanse) }
+                setRowMapper(::mapBehandling)
+            }
+        } catch (_: NoSuchElementException) {
+            throw ElementNotFoundException("Fant ikke åpen behandling med id $journalpostId")
         }
     }
 
-    private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {
-        return connection.queryFirst(query) {
-            setParams(params)
-            setRowMapper {
-                mapBehandling(it)
-            }
+
+private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {
+    return connection.queryFirst(query) {
+        setParams(params)
+        setRowMapper {
+            mapBehandling(it)
         }
     }
+}
 
 }
