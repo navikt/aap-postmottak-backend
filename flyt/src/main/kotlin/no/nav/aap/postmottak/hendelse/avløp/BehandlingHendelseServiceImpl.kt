@@ -20,7 +20,7 @@ private val log = LoggerFactory.getLogger(BehandlingHendelseServiceImpl::class.j
 class BehandlingHendelseServiceImpl(
     private val flytJobbRepository: FlytJobbRepository,
     private val journalpostRepository: JournalpostRepository
-): BehandlingHendelseService {
+) : BehandlingHendelseService {
 
     override fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
 
@@ -33,22 +33,26 @@ class BehandlingHendelseServiceImpl(
             behandlingType = behandling.typeBehandling,
             status = behandling.status(),
             avklaringsbehov = avklaringsbehovene.alle().map { avklaringsbehov ->
-                AvklaringsbehovHendelseDto(definisjon = DefinisjonDTO(
-                    type = avklaringsbehov.definisjon.kode,
-                    behovType = avklaringsbehov.definisjon.type,
-                    løsesISteg = avklaringsbehov.løsesISteg()
-                ), status = avklaringsbehov.status(), endringer = avklaringsbehov.historikk.filter {
-                    it.status in listOf(
-                        Status.OPPRETTET, Status.SENDT_TILBAKE_FRA_BESLUTTER, Status.AVSLUTTET
-                    )
-                }.map { endring ->
-                    EndringDTO(
-                        status = endring.status,
-                        tidsstempel = endring.tidsstempel,
-                        endretAv = endring.endretAv,
-                        frist = endring.frist
-                    )
-                })
+                AvklaringsbehovHendelseDto(
+                    avklaringsbehovDefinisjon = avklaringsbehov.definisjon,
+                    definisjon = DefinisjonDTO(
+                        type = avklaringsbehov.definisjon.kode,
+                        behovType = avklaringsbehov.definisjon.type,
+                        løsesISteg = avklaringsbehov.løsesISteg()
+                    ),
+                    status = avklaringsbehov.status(),
+                    endringer = avklaringsbehov.historikk.filter {
+                        it.status in listOf(
+                            Status.OPPRETTET, Status.SENDT_TILBAKE_FRA_BESLUTTER, Status.AVSLUTTET
+                        )
+                    }.map { endring ->
+                        EndringDTO(
+                            status = endring.status,
+                            tidsstempel = endring.tidsstempel,
+                            endretAv = endring.endretAv,
+                            frist = endring.frist
+                        )
+                    })
             },
             opprettetTidspunkt = behandling.opprettetTidspunkt,
             hendelsesTidspunkt = LocalDateTime.now(),
