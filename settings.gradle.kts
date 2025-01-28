@@ -1,13 +1,12 @@
 rootProject.name = "postmottak"
 
 include(
+    "api",
     "app",
     "dbflyway",
     "lib-test",
+    "repository",
     "kontrakt",
-    "klienter",
-    "fordeler"
+    "flyt",
+    "klienter"
 )
-include("api")
-include("repository")
-include("flyt")
