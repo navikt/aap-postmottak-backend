@@ -56,6 +56,7 @@ class BehandlingHendelseServiceImpl(
             },
             opprettetTidspunkt = behandling.opprettetTidspunkt,
             hendelsesTidspunkt = LocalDateTime.now(),
+            // TODO, fjern dette feltet
             saksnummer = null
         )
 
