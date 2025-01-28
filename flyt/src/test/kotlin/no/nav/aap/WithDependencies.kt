@@ -58,6 +58,7 @@ interface WithDependencies {
                 .register<NomKlient>()
                 .register<ArenaKlient>()
                 .register<AapInternApiKlient>()
+                .register<FakeStatistikkKlient>()
 
 
             PrometheusProvider.prometheus = mockk(relaxed = true)

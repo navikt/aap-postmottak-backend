@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.kontrakt.avklaringsbehov
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -50,11 +51,15 @@ enum class Definisjon(
         løsesISteg = StegType.OVERLEVER_TIL_FAGSYSTEM
     );
 
+
     companion object {
+        @JsonCreator
+        @JvmStatic
+        public fun fraKode(@JsonProperty("kode") kode: AvklaringsbehovKode): Definisjon = forKode(kode)
         fun forKode(definisjon: String): Definisjon {
             return entries.single { it.kode == AvklaringsbehovKode.valueOf(definisjon) }
         }
-        
+
         fun forKode(definisjon: AvklaringsbehovKode): Definisjon {
             return entries.single { it.kode == definisjon }
         }
@@ -66,7 +71,7 @@ enum class Definisjon(
                     .map { it.kode }
                     .collect(Collectors.toSet())
             // Burde dette vært en unit test?
-            check (unikeKoder.size == entries.size) { "Gjenbrukt koder for Avklaringsbehov" }
+            check(unikeKoder.size == entries.size) { "Gjenbrukt koder for Avklaringsbehov" }
 
             for (value in entries) {
                 value.type.valideringsFunksjon(value)
@@ -124,7 +129,7 @@ enum class Definisjon(
     }
 
     fun utledFrist(frist: LocalDate?): LocalDate {
-        check (erVentebehov()) { "Forsøker utlede frist for et behov som ikke er ventepunkt" }
+        check(erVentebehov()) { "Forsøker utlede frist for et behov som ikke er ventepunkt" }
         if (frist != null) {
             return frist
         }

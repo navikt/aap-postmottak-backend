@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak
 
-import no.nav.aap.lookup.repository.RepositoryRegistry
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
@@ -21,39 +20,29 @@ import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.komponenter.server.AZURE
-import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.lookup.gateway.GatewayRegistry
+import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
-import no.nav.aap.postmottak.avklaringsbehov.flate.avklaringsbehovApi
-import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.exception.ErrorRespons
-import no.nav.aap.postmottak.api.faktagrunnlag.tema.avklarTemaApi
-import no.nav.aap.postmottak.api.faktagrunnlag.sak.finnSakApi
 import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
 import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
+import no.nav.aap.postmottak.api.faktagrunnlag.sak.finnSakApi
 import no.nav.aap.postmottak.api.faktagrunnlag.strukturering.struktureringApi
+import no.nav.aap.postmottak.api.faktagrunnlag.tema.avklarTemaApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
 import no.nav.aap.postmottak.api.flyt.flytApi
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
-import no.nav.aap.postmottak.mottak.kafka.Stream
-import no.nav.aap.postmottak.mottak.mottakStream
+import no.nav.aap.postmottak.avklaringsbehov.flate.avklaringsbehovApi
+import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
+import no.nav.aap.postmottak.exception.ErrorRespons
 import no.nav.aap.postmottak.exception.FlytOperasjonException
-import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
-import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
-import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
-import no.nav.aap.postmottak.test.testApi
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
 import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
@@ -66,15 +55,27 @@ import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.SafOboRestClient
 import no.nav.aap.postmottak.klient.saf.SafRestClient
+import no.nav.aap.postmottak.klient.statistikk.StatistikkKlient
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.mottak.kafka.Stream
+import no.nav.aap.postmottak.mottak.mottakStream
+import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
+import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
+import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
+import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlOboClient
+import no.nav.aap.postmottak.test.testApi
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
@@ -180,6 +181,7 @@ private fun registerGateways() {
         .register<PdlGraphqlKlient>()
         .register<NorgKlient>()
         .register<AapInternApiKlient>()
+        .register<StatistikkKlient>()
         .status()
 }
 

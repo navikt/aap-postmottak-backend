@@ -35,9 +35,9 @@ dependencies {
     implementation("org.apache.avro:avro:1.12.0")
     implementation("io.confluent:kafka-streams-avro-serde:7.7.1")
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
-    testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersjon")
+    testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersjon")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersjon")
     testImplementation("org.assertj:assertj-core:3.26.3")
