@@ -2,8 +2,6 @@ rootProject.name = "postmottak"
 
 include(
     "app",
-    "faktagrunnlag",
-    "verdityper",
     "dbflyway",
     "lib-test",
     "kontrakt",
