@@ -38,13 +38,11 @@ tasks {
 }
 
 fun runCommand(command: String): String {
-    val byteOut = ByteArrayOutputStream()
+    val execResult = providers.exec {
+        commandLine(command.split("\\s".toRegex()))
+    }.standardOutput.asText
 
-    project.exec {
-        commandLine = command.split("\\s".toRegex())
-        standardOutput = byteOut
-    }
-    return String(byteOut.toByteArray()).trim()
+    return execResult.get()
 }
 
 fun getCheckedOutGitCommitHash(): String {
@@ -63,7 +61,7 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.4")
-    implementation("ch.qos.logback:logback-classic:1.5.8")
+    implementation("ch.qos.logback:logback-classic:1.5.13")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
 
     implementation(project(":klienter"))
