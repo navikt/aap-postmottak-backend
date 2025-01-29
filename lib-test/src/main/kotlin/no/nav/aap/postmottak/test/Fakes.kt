@@ -78,6 +78,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val fssProxy = FakeServer(module = { fssProxy() })
     val nomFake = FakeServer(module = { nomFake() })
     val norgFake = FakeServer(module = { norgFake() })
+    val staistikkFake = FakeServer(module = { statistikkFake()} )
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -135,6 +136,9 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // NORG
         System.setProperty("integrasjon.norg.url", "http://localhost:${norgFake.port()}")
 
+        // Statistikk
+        System.setProperty("integrasjon.statistikk.url", "http://localhost:${staistikkFake.port()}")
+        System.setProperty("integrasjon.statistikk.scope", "scope")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
@@ -200,6 +204,24 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         routing {
             post("/oppdater-postmottak-oppgaver") {
                 call.respond(HttpStatusCode.Companion.NoContent)
+            }
+        }
+    }
+
+    private fun Application.statistikkFake() {
+        install(ContentNegotiation) {
+            jackson {
+                registerModule(JavaTimeModule())
+            }
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+            }
+        }
+        routing {
+            post("/postmottak") {
+                call.respond(HttpStatusCode.OK, "{}")
             }
         }
     }
