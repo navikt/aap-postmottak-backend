@@ -9,6 +9,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 
@@ -19,7 +20,7 @@ val LEGEERKLÆRING = JournalpostId(120)
 val ANNET_TEMA = JournalpostId(121)
 val UGYLDIG_STATUS = JournalpostId(122)
 val STATUS_JOURNALFØRT = JournalpostId(123)
-
+val PAPIR_SØKNAD = JournalpostId(124)
 
 fun Application.safFake(
     sakerRespons: String = ingenSakerRespons()
@@ -82,7 +83,7 @@ fun Application.safFake(
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
                           "tema": "${finnTema(journalpostId.toLong())}",
-                          "kanal": "UKJENT",
+                          "kanal": "${finnKanal(journalpostId.toLong())}",
                           "relevanteDatoer": [
                             {
                             "dato": "2020-12-01T10:00:00",
@@ -110,6 +111,13 @@ private fun getAvsenderMottaker(journalpostId: Long) =
             "id": "213453452",
             "type": "FNR"
         },"""
+    }
+
+private fun finnKanal(journalpostId: Long) =
+    when (journalpostId) {
+        DIGITAL_SØKNAD_ID.referanse -> KanalFraKodeverk.NAV_NO.name
+        PAPIR_SØKNAD.referanse -> KanalFraKodeverk.SKAN_NETS.name
+        else -> KanalFraKodeverk.UKJENT.name
     }
 
 private fun finnTema(journalpostId: Long) = 

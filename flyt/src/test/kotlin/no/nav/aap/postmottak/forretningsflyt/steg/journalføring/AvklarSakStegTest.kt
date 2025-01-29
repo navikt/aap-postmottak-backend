@@ -15,7 +15,7 @@ import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.assertj.core.api.Assertions.assertThat
@@ -30,7 +30,7 @@ class AvklarSakStegTest {
         clearAllMocks()
     }
 
-    val behandlingsflytClient = mockk<BehandlingsflytClient>(relaxed = true)
+    val behandlingsflytClient = mockk<BehandlingsflytKlient>(relaxed = true)
     val journalpostRepository = mockk<JournalpostRepository>()
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
     val avklarTemaRepository: AvklarTemaRepository = mockk(relaxed = true)

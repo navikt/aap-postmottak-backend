@@ -18,14 +18,14 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
 import no.nav.aap.verdityper.dokument.Kanal
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDate
 
-class BehandlingsflytClient : BehandlingsflytGateway {
+class BehandlingsflytKlient : BehandlingsflytGateway {
     private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))
@@ -38,9 +38,9 @@ class BehandlingsflytClient : BehandlingsflytGateway {
     )
 
 
-    companion object: Factory<BehandlingsflytClient> {
-        override fun konstruer(): BehandlingsflytClient {
-            return BehandlingsflytClient()
+    companion object: Factory<BehandlingsflytKlient> {
+        override fun konstruer(): BehandlingsflytKlient {
+            return BehandlingsflytKlient()
         }
     }
 
@@ -75,7 +75,9 @@ class BehandlingsflytClient : BehandlingsflytGateway {
     }
 
     override fun sendHendelse(
-        journalpost: Journalpost,
+        journalpostId: JournalpostId,
+        kanal: KanalFraKodeverk,
+        mottattDato: LocalDate,
         innsendingstype: InnsendingType,
         saksnummer: String,
         melding: Melding?
@@ -86,11 +88,11 @@ class BehandlingsflytClient : BehandlingsflytGateway {
                 Saksnummer(saksnummer),
                 InnsendingReferanse(
                     InnsendingReferanse.Type.JOURNALPOST,
-                    journalpost.journalpostId.referanse.toString()
+                    journalpostId.referanse.toString()
                 ),
                 innsendingstype,
-                journalpost.kanal.tilBehandlingsflytKanal(),
-                journalpost.mottattDato.atStartOfDay(), //TODO: Avgjør hvilken dato vi skal bruke, og hvilket format
+                kanal.tilBehandlingsflytKanal(),
+                mottattDato.atStartOfDay(), //TODO: Avgjør hvilken dato vi skal bruke, og hvilket format
                 melding
             ),
             additionalHeaders = listOf(

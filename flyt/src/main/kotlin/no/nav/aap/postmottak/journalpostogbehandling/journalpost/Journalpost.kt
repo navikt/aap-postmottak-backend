@@ -55,6 +55,9 @@ open class Journalpost(
     }
 
     fun erDigital(): Boolean = finnOriginal()?.varianter?.any { it.filtype == Filtype.JSON } ?: false
+    
+    fun erPapir(): Boolean =
+        kanal in listOf(KanalFraKodeverk.SKAN_IM, KanalFraKodeverk.SKAN_PEN, KanalFraKodeverk.SKAN_NETS)
 
     fun erUgyldig(): Boolean =
         status in listOf(Journalstatus.AVBRUTT, Journalstatus.FEILREGISTRERT, Journalstatus.UTGAAR)

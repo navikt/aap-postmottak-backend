@@ -6,7 +6,7 @@ import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.nom.NomKlient
@@ -17,9 +17,9 @@ import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
@@ -40,7 +40,7 @@ interface WithDependencies {
                 .register<BehandlingRepositoryImpl>()
                 .register<AvklarTemaRepositoryImpl>()
                 .register<AvklarTemaRepositoryImpl>()
-                .register<StruktureringsvurderingRepositoryImpl>()
+                .register<DigitaliseringsvurderingRepositoryImpl>()
                 .register<PersonRepositoryImpl>()
                 .register<InnkommendeJournalpostRepositoryImpl>()
                 .register<RegelRepositoryImpl>()
@@ -51,7 +51,7 @@ interface WithDependencies {
                 .register<GosysOppgaveKlient>()
                 .register<SafGraphqlClientCredentialsClient>()
                 .register<SafRestClient>()
-                .register<BehandlingsflytClient>()
+                .register<BehandlingsflytKlient>()
                 .register<JoarkClient>()
                 .register<PdlGraphqlKlient>()
                 .register<NorgKlient>()

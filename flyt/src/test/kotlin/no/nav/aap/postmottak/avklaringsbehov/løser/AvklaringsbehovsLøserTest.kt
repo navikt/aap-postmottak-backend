@@ -10,11 +10,12 @@ import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.StruktureringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -27,7 +28,7 @@ class AvklaringsbehovsLøserTest {
     fun setup() {
         RepositoryRegistry.register<SaksnummerRepositoryImpl>()
             .register<AvklarTemaRepositoryImpl>()
-            .register<StruktureringsvurderingRepositoryImpl>()
+            .register<DigitaliseringsvurderingRepositoryImpl>()
             .register<JournalpostRepositoryImpl>()
             .register<OverleveringVurderingRepositoryImpl>()
         GatewayRegistry.register<BehandlingsflytGatewayMock>()
@@ -44,13 +45,13 @@ class AvklaringsbehovsLøserTest {
     }
 }
 
-class BehandlingsflytGatewayMock: BehandlingsflytGateway {
-    companion object: Factory<BehandlingsflytGatewayMock> {
+class BehandlingsflytGatewayMock : BehandlingsflytGateway {
+    companion object : Factory<BehandlingsflytGatewayMock> {
         override fun konstruer(): BehandlingsflytGatewayMock {
             return BehandlingsflytGatewayMock()
         }
     }
-    
+
     override fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak {
         TODO("Not yet implemented")
     }
@@ -60,7 +61,9 @@ class BehandlingsflytGatewayMock: BehandlingsflytGateway {
     }
 
     override fun sendHendelse(
-        journalpost: Journalpost,
+        journalpostId: JournalpostId,
+        kanal: KanalFraKodeverk,
+        mottattDato: LocalDate,
         innsendingstype: InnsendingType,
         saksnummer: String,
         melding: Melding?

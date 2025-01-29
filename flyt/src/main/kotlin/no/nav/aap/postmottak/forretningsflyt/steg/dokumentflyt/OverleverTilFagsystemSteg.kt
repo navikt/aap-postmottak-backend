@@ -5,10 +5,10 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
 
 class OverleverTilFagsystemSteg(
-    private val digitaliseringsviurdeirngrepository: StruktureringsvurderingRepository,
+    private val digitaliseringsviurdeirngrepository: DigitaliseringsvurderingRepository,
     private val behandlingsflytKlient: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
@@ -34,7 +34,7 @@ class OverleverTilFagsystemSteg(
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             val repositoryProvider = RepositoryProvider(connection)
             return OverleverTilFagsystemSteg(
-                repositoryProvider.provide(StruktureringsvurderingRepository::class),
+                repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 GatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
@@ -49,7 +49,7 @@ class OverleverTilFagsystemSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val digitaliseringsvurdering =
-            digitaliseringsviurdeirngrepository.hentStruktureringsavklaring(kontekst.behandlingId)
+            digitaliseringsviurdeirngrepository.hentHvisEksisterer(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost) { "Journalpost mangler i OverleverTilFagsystemSteg" }
         requireNotNull(digitaliseringsvurdering) { "Digitaliseringsvurdering mangler i OverleverTilFagsystemSteg" }
@@ -76,7 +76,9 @@ class OverleverTilFagsystemSteg(
                     digitaliseringsvurdering.kategori
                 )
                 behandlingsflytKlient.sendHendelse(
-                    journalpost,
+                    journalpost.journalpostId,
+                    journalpost.kanal,
+                    digitaliseringsvurdering.søknadsdato ?: journalpost.mottattDato,
                     digitaliseringsvurdering.kategori,
                     saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
                     melding

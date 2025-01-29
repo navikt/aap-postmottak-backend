@@ -13,11 +13,11 @@ import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.Digitaliseringsvurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
@@ -364,7 +364,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
             }
         }
     }
-    
+
     @Test
     fun `Skal videresende dersom journalposten ble journalført utenfor postmottak med tema AAP på Kelvin fagsak `() {
         val journalpostId = STATUS_JOURNALFØRT
@@ -402,12 +402,14 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
         repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
         repositoryProvider.provide(SaksnummerRepository::class)
             .lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-        repositoryProvider.provide(StruktureringsvurderingRepository::class).lagreStrukturertDokument(
+        repositoryProvider.provide(DigitaliseringsvurderingRepository::class).lagre(
             behandlingId,
             Digitaliseringsvurdering(
                 InnsendingType.SØKNAD,
-            """{"søknadsDato":"2024-09-02T22:00:00.000Z", "yrkesskade":"nei", "student": {"erStudent":"Nei"}}"""
-        ))
+                """{"søknadsDato":"2024-09-02T22:00:00.000Z", "yrkesskade":"nei", "student": {"erStudent":"Nei"}}""",
+                LocalDate.of(2024, 9, 2)
+            )
+        )
         return behandlingId
     }
 

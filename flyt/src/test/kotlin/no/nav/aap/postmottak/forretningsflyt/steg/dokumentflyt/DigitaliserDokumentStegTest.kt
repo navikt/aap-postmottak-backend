@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
@@ -19,7 +19,7 @@ import java.io.ByteArrayInputStream
 
 class DigitaliserDokumentStegTest {
 
-    val struktureringsvurderingRepository: StruktureringsvurderingRepository = mockk(relaxed = true)
+    val struktureringsvurderingRepository: DigitaliseringsvurderingRepository = mockk(relaxed = true)
     val journalpostRepo: JournalpostRepository = mockk()
     val dokumentGateway: DokumentGateway = mockk()
 
@@ -32,7 +32,7 @@ class DigitaliserDokumentStegTest {
         val journalpost: Journalpost = mockk(relaxed = true)
 
         every { journalpost.erDigitalSøknad() } returns false
-        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
@@ -48,7 +48,7 @@ class DigitaliserDokumentStegTest {
         val journalpost: Journalpost = mockk(relaxed = true)
 
         every { journalpost.erDigitalSøknad() } returns false
-        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns mockk(relaxed = true)
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns mockk(relaxed = true)
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
@@ -68,7 +68,7 @@ class DigitaliserDokumentStegTest {
         every { journalpost.erDigitalSøknad() } returns true
         every { journalpost.journalpostId }
         every { journalpost.hoveddokumentbrevkode } returns Brevkoder.SØKNAD.kode
-        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every {
             dokumentGateway.hentDokument(
@@ -88,7 +88,7 @@ class DigitaliserDokumentStegTest {
 
         every { journalpost.erDigitalLegeerklæring() } returns true
         every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
-        every { struktureringsvurderingRepository.hentStruktureringsavklaring(any()) } returns null
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))

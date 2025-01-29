@@ -5,8 +5,8 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.Digitaliseringsvurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.strukturering.StruktureringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -23,7 +23,7 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 
 class DigitaliserDokumentSteg(
-    private val struktureringsvurderingRepository: StruktureringsvurderingRepository,
+    private val digitaliseringsvurderingRepository: DigitaliseringsvurderingRepository,
     private val journalpostRepository: JournalpostRepository,
     private val dokumentGateway: DokumentGateway
 ) : BehandlingSteg {
@@ -31,7 +31,7 @@ class DigitaliserDokumentSteg(
         override fun konstruer(connection: DBConnection): BehandlingSteg {
             val repositoryProvider = RepositoryProvider(connection)
             return DigitaliserDokumentSteg(
-                repositoryProvider.provide(StruktureringsvurderingRepository::class),
+                repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 GatewayProvider.provide(DokumentGateway::class)
             )
@@ -45,7 +45,7 @@ class DigitaliserDokumentSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val struktureringsvurdering =
-            struktureringsvurderingRepository.hentStruktureringsavklaring(kontekst.behandlingId)
+            digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
 
@@ -55,8 +55,8 @@ class DigitaliserDokumentSteg(
             val innsending = getInnsendingForBrevkode(journalpost.hoveddokumentbrevkode)
             val validertDokument =
                 DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
-            struktureringsvurderingRepository.lagreStrukturertDokument(
-                kontekst.behandlingId, Digitaliseringsvurdering(innsending, validertDokument)
+            digitaliseringsvurderingRepository.lagre(
+                kontekst.behandlingId, Digitaliseringsvurdering(innsending, validertDokument, null)
             )
 
             return Fullført

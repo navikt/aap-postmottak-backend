@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løser.AvklarOverleveringLøser
-import no.nav.aap.postmottak.avklaringsbehov.løser.AvklarSakLøser
 import no.nav.aap.postmottak.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AVKLAR_OVERLEVERING_KODE
 

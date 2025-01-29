@@ -7,14 +7,22 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.lookup.gateway.Gateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
 import kotlin.text.Charsets.UTF_8
 
 interface BehandlingsflytGateway : Gateway {
     fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak
     fun finnSaker(ident: Ident): List<BehandlingsflytSak>
-    fun sendHendelse(journalpost: Journalpost, innsendingstype: InnsendingType, saksnummer: String, melding: Melding?)
+    fun sendHendelse(
+        journalpostId: JournalpostId,
+        kanal: KanalFraKodeverk,
+        mottattDato: LocalDate,
+        innsendingstype: InnsendingType,
+        saksnummer: String,
+        melding: Melding?
+    )
 }
 
 data class BehandlingsflytSak(

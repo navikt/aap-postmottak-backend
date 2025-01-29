@@ -17,6 +17,7 @@ import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.PAPIR_SØKNAD
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.testcontainers.containers.PostgreSQLContainer
@@ -61,6 +62,7 @@ fun main() {
             opprettBehandlingFinnSak(it)
             opprettBehandlingKategoriser(it)
             opprettBehandlingDigitaliser(it)
+            opprettBehandlingPapirSøknadKategoriser(it)
         }
 
     }.start(wait = true)
@@ -106,6 +108,20 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
     val journalpostId = JournalpostId(4)
     val behandlingId =
         behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
+    SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+    )
+
+}
+
+private fun opprettBehandlingPapirSøknadKategoriser(connection: DBConnection) {
+    val behandlingRepository = BehandlingRepositoryImpl(connection)
+    val journalpostId = JournalpostId(PAPIR_SØKNAD.referanse)
+
+    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
     AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
     SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
     FlytJobbRepository(connection).leggTil(

@@ -86,7 +86,7 @@ class JoarkKafkaHandler(
     }
 
     private fun håndterTemaendring(journalpostId: JournalpostId) {
-        log.info("Motatt temaendring på journalpost $journalpostId")
+        log.info("Mottatt temaendring på journalpost $journalpostId")
         transactionProvider.inTransaction {
             try {
                 val behandling = behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
