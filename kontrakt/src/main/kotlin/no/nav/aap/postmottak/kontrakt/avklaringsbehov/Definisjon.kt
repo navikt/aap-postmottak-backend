@@ -30,11 +30,6 @@ enum class Definisjon(
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_TEMA
     ),
-    KATEGORISER_DOKUMENT(
-        kode = AvklaringsbehovKode.`1337`,
-        type = BehovType.MANUELT_PÅKREVD,
-        løsesISteg = StegType.KATEGORISER_DOKUMENT
-    ),
     DIGITALISER_DOKUMENT(
         kode = AvklaringsbehovKode.`1338`,
         type = BehovType.MANUELT_PÅKREVD,
