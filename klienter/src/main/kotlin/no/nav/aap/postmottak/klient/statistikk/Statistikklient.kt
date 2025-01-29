@@ -33,7 +33,7 @@ class StatistikkKlient : StatistikkGateway {
         )
         requireNotNull(
             client.post<_, Unit>(
-                uri = baseUrl.resolve("/oppgave"),
+                uri = baseUrl.resolve("/postmottak"),
                 request = httpRequest
             )
         )
