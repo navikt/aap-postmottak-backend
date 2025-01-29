@@ -66,7 +66,7 @@ env:
   value: http://oppgave
 - name: INTEGRASJON_OPPGAVE_SCOPE
   value: api://dev-gcp.aap.oppgave/.default
-- name: INTEGRASJON_OPPGAVE_URL
+- name: INTEGRASJON_STATISTIKK_URL
   value: http://statistikk
 - name: INTEGRASJON_STATISTIKK_SCOPE
   value: api://dev-gcp.aap.statistikk/.default
