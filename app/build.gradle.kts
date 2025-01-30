@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.ByteArrayOutputStream
 
 val ktorVersion = "3.0.3"
-val komponenterVersjon = "1.0.98"
+val komponenterVersjon = "1.0.121"
 val kafkaVersion = "3.7.0"
 val tilgangVersjon = "0.0.89"
 val behandlingsflytVersjon = "0.0.120"
