@@ -39,7 +39,6 @@ fun NormalOpenAPIRoute.digitaliseringApi(dataSource: DataSource) {
 
             respond(
                 DigitaliseringGrunnlagDto(
-                    journalpost.mottattDato,
                     journalpost.erPapir(),
                     digitaliseringsvurdering?.let {
                         DigitaliseringvurderingDto(

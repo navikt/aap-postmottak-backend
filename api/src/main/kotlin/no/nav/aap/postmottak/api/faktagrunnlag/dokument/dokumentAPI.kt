@@ -11,13 +11,14 @@ import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.gateway.DokumentOboGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.PersondataGateway
+import no.nav.aap.postmottak.gateway.SafDatoType
 import no.nav.aap.postmottak.gateway.SafVariantformat
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.flate.DokumentResponsDTO
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.flate.HentDokumentDTO
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
@@ -63,13 +64,14 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
                 )
             ) { req ->
                 val journalpostId = dataSource.transaction(readOnly = true) { connection ->
-                val repositoryProvider = RepositoryProvider(connection)
+                    val repositoryProvider = RepositoryProvider(connection)
                     repositoryProvider.provide(BehandlingRepository::class).hent(req).journalpostId
                 }
 
                 val token = token()
                 val journalpost =
-                    GatewayProvider.provide(JournalpostOboGateway::class).hentJournalpost(JournalpostId(journalpostId.referanse), token)
+                    GatewayProvider.provide(JournalpostOboGateway::class)
+                        .hentJournalpost(JournalpostId(journalpostId.referanse), token)
                 // TODO: Rydd opp i dette
                 val identer =
                     listOf(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).filterNotNull().distinct()
@@ -88,7 +90,10 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
                             if (avsender != null) personer?.getOrDefault(avsender, null)?.verdi else null
                         ),
                         dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) }
-                            ?: emptyList()
+                            ?: emptyList(),
+                        registrertDato = journalpost.relevanteDatoer?.find { dato ->
+                            dato?.datotype == SafDatoType.DATO_REGISTRERT
+                        }?.dato?.toLocalDate()
                     )
                 )
             }

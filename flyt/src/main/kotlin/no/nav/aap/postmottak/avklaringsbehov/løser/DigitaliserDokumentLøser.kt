@@ -19,8 +19,8 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId)!!
-        require((løsning.søknadsdato == null) xor (løsning.kategori == InnsendingType.SØKNAD && journalpost.erPapir())) {
-            "Søknadsdato skal kun settes for skannede søknader"
+        require((løsning.søknadsdato == null) xor (løsning.kategori == InnsendingType.SØKNAD)) {
+            "Søknadsdato skal kun settes for søknader"
         }
         require(løsning.søknadsdato == null || !løsning.søknadsdato.isAfter(journalpost.mottattDato)) {
             "Søknadsdato kan ikke være etter registrert dato"

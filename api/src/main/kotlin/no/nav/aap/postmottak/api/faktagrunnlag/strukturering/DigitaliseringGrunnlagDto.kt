@@ -10,7 +10,6 @@ data class DigitaliseringvurderingDto(
 )
 
 data class DigitaliseringGrunnlagDto(
-    val registrertDato: LocalDate,
     val erPapir: Boolean,
     val vurdering: DigitaliseringvurderingDto?
 )
