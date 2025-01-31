@@ -18,7 +18,7 @@ enum class Definisjon(
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
     @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
     val kreverToTrinn: Boolean = false,
-    val løsesAv: List<Rolle> = listOf(Rolle.SAKSBEHANDLER)
+    val løsesAv: List<Rolle> = listOf(Rolle.SAKSBEHANDLER, Rolle.SAKSBEHANDLER_NASJONAL)
 ) {
     MANUELT_SATT_PÅ_VENT(
         kode = AvklaringsbehovKode.`9001`,
