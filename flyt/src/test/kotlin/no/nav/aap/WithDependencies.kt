@@ -25,7 +25,7 @@ import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import org.junit.jupiter.api.BeforeAll
 
 interface WithDependencies {

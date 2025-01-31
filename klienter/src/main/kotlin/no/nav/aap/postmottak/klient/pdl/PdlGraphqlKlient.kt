@@ -16,7 +16,7 @@ import no.nav.aap.postmottak.gateway.GeografiskTilknytningOgAdressebeskyttelse
 import no.nav.aap.postmottak.gateway.Navn
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlKlient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlKlient
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDate

@@ -73,8 +73,8 @@ import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClientCredentialsClient
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlOboClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboClient
 import no.nav.aap.postmottak.test.testApi
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource

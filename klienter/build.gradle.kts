@@ -1,4 +1,4 @@
-val komponenterVersjon = "1.0.123"
+val komponenterVersjon = "1.0.129"
 val ktorVersion = "3.0.3"
 val tilgangVersjon = "0.0.94"
 val jacksonVersion = "2.17.2"
@@ -17,6 +17,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
+    implementation("no.nav.aap.kelvin:cache:$komponenterVersjon")
 
 
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")

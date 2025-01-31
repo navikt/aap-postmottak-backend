@@ -1,7 +1,9 @@
-package no.nav.aap.postmottak.saf.graphql
+package no.nav.aap.postmottak.klient.saf.graphql
 
 import SafResponseHandler
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import kotlinx.coroutines.runBlocking
+import no.nav.aap.komponenter.cache.Cacheable
+import no.nav.aap.komponenter.cache.withCache
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -10,16 +12,19 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import org.slf4j.LoggerFactory
-import java.io.InputStream
-import java.net.URI
-import kotlinx.coroutines.runBlocking
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.SafSak
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.saf.graphql.SafRequest
+import no.nav.aap.postmottak.saf.graphql.SafRespons
+import org.slf4j.LoggerFactory
+import java.io.InputStream
+import java.net.URI
+
 
 class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
     override val restClient: RestClient<InputStream> = RestClient(
@@ -28,12 +33,13 @@ class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
         responseHandler = SafResponseHandler()
     )
     
-    companion object: Factory<SafGraphqlOboClient> {
-        override fun konstruer(): SafGraphqlOboClient {
-            return SafGraphqlOboClient()
+    companion object: Factory<JournalpostOboGateway> {
+        override fun konstruer(): JournalpostOboGateway {
+            return withCache(SafGraphqlOboClient()) as JournalpostOboGateway
         }
     }
 
+    @Cacheable
     override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken): SafJournalpost =
         hentJournalpostInternal(journalpostId, currentToken)
 
@@ -48,13 +54,14 @@ class SafGraphqlClientCredentialsClient : SafGraphqlKlient(), JournalpostGateway
         responseHandler = SafResponseHandler()
     )
 
-    companion object: Factory<SafGraphqlClientCredentialsClient> {
-        override fun konstruer(): SafGraphqlClientCredentialsClient {
-            return SafGraphqlClientCredentialsClient()
+    companion object: Factory<JournalpostGateway> {
+        override fun konstruer(): JournalpostGateway {
+            return withCache(SafGraphqlClientCredentialsClient()) as JournalpostGateway
         }
 
     }
 
+    @Cacheable
     override fun hentJournalpost(journalpostId: JournalpostId) = hentJournalpostInternal(journalpostId, null)
     override fun hentSaker(fnr: String) = hentSakerInternal(fnr, null)
 }

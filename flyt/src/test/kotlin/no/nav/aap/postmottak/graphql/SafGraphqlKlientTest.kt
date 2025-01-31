@@ -10,7 +10,7 @@ import no.nav.aap.postmottak.gateway.SafSak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import no.nav.aap.postmottak.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.test.fakes.arenaSakerRespons
 import no.nav.aap.postmottak.test.fakes.safFake
 import org.assertj.core.api.Assertions.assertThat
