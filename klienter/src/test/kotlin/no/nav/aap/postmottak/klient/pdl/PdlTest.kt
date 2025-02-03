@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.klient.pdl
 
 import no.nav.aap.postmottak.gateway.Adressebeskyttelseskode
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningType
+import no.nav.aap.postmottak.gateway.Gradering
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
@@ -31,7 +32,7 @@ class PdlTest: WithFakes {
     @Test
     fun `Kan parse geografiskTilknytning`() {
         val test = PdlGraphqlKlient().hentAdressebeskyttelseOgGeolokasjon(Ident("1234"))
-        assertThat(test.adressebeskyttelse).isEqualTo(listOf(Adressebeskyttelseskode.UGRADERT))
+        assertThat(test.adressebeskyttelse).isEqualTo(listOf(Gradering(Adressebeskyttelseskode.UGRADERT)))
         assertThat(test.geografiskTilknytning.gtType).isEqualTo(GeografiskTilknytningType.KOMMUNE)
         assertThat(test.geografiskTilknytning.gtKommune).isEqualTo("3207")
     }

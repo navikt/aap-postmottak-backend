@@ -7,6 +7,7 @@ import no.nav.aap.postmottak.gateway.Adressebeskyttelseskode
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningOgAdressebeskyttelse
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningType
+import no.nav.aap.postmottak.gateway.Gradering
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.nom.NomKlient
@@ -26,32 +27,34 @@ class EnhetsutrederTest {
 
     val enhetsutleder = Enhetsutreder(norgKlient, pdlKlient, nomKlient)
 
-     @Test
-     fun `alle avhengigheter blir kalt med forventede argumenter`() {
-         val kommunenummer = "2342345"
-         val erNavansatt = false
-         val ident = Ident("test")
+    @Test
+    fun `alle avhengigheter blir kalt med forventede argumenter`() {
+        val kommunenummer = "2342345"
+        val erNavansatt = false
+        val ident = Ident("test")
 
-         every { pdlKlient.hentAdressebeskyttelseOgGeolokasjon(ident) } returns GeografiskTilknytningOgAdressebeskyttelse(
-             adressebeskyttelse = listOf(Adressebeskyttelseskode.STRENGT_FORTROLIG),
-             geografiskTilknytning = GeografiskTilknytning(GeografiskTilknytningType.KOMMUNE, gtKommune = kommunenummer)
-         )
+        every { pdlKlient.hentAdressebeskyttelseOgGeolokasjon(ident) } returns GeografiskTilknytningOgAdressebeskyttelse(
+            adressebeskyttelse = listOf(Gradering(Adressebeskyttelseskode.STRENGT_FORTROLIG)),
+            geografiskTilknytning = GeografiskTilknytning(GeografiskTilknytningType.KOMMUNE, gtKommune = kommunenummer)
+        )
 
-         every { nomKlient.erEgenAnsatt(any()) } returns erNavansatt
+        every { nomKlient.erEgenAnsatt(any()) } returns erNavansatt
 
-         enhetsutleder.finnNavenhetForPerson(personMedIDent(ident))
+        enhetsutleder.finnNavenhetForPerson(personMedIDent(ident))
 
-         verify(exactly = 1) { norgKlient.finnEnhet(kommunenummer, erNavansatt, Diskresjonskode.SPSF) }
+        verify(exactly = 1) { norgKlient.finnEnhet(kommunenummer, erNavansatt, Diskresjonskode.SPSF) }
 
-     }
+    }
 
     @ParameterizedTest
-    @CsvSource(value = [
-        "KOMMUNE, 1",
-        "BYDEL, 2",
-        "UTLAND, 3",
-        "UDEFINERT, UDEFINERT"
-    ])
+    @CsvSource(
+        value = [
+            "KOMMUNE, 1",
+            "BYDEL, 2",
+            "UTLAND, 3",
+            "UDEFINERT, UDEFINERT"
+        ]
+    )
     fun `verifiser at geografisk tilknytning blir mappet riktig`(
         geografiskTilknytningType: GeografiskTilknytningType,
         forventetGeografiskKode: String
@@ -59,7 +62,7 @@ class EnhetsutrederTest {
         val ident = Ident("test")
 
         every { pdlKlient.hentAdressebeskyttelseOgGeolokasjon(ident) } returns GeografiskTilknytningOgAdressebeskyttelse(
-            adressebeskyttelse = listOf(Adressebeskyttelseskode.STRENGT_FORTROLIG),
+            adressebeskyttelse = listOf(Gradering(Adressebeskyttelseskode.STRENGT_FORTROLIG)),
             geografiskTilknytning = GeografiskTilknytning(
                 gtType = geografiskTilknytningType,
                 gtKommune = "1",
@@ -77,12 +80,14 @@ class EnhetsutrederTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = [
-        "FORTROLIG, SPFO",
-        "STRENGT_FORTROLIG, SPSF",
-        "STRENGT_FORTROLIG_UTLAND, SPSF",
-        ", ANY"
-    ])
+    @CsvSource(
+        value = [
+            "FORTROLIG, SPFO",
+            "STRENGT_FORTROLIG, SPSF",
+            "STRENGT_FORTROLIG_UTLAND, SPSF",
+            ", ANY"
+        ]
+    )
     fun `verifiser at adressebeskyttelse blir riktig mappet til diskresjonskode`(
         adressebeskyttelseskode: Adressebeskyttelseskode?,
         forventetDiskresjonskode: Diskresjonskode
@@ -90,12 +95,12 @@ class EnhetsutrederTest {
         val ident = Ident("test")
 
         every { pdlKlient.hentAdressebeskyttelseOgGeolokasjon(ident) } returns GeografiskTilknytningOgAdressebeskyttelse(
-            adressebeskyttelse = adressebeskyttelseskode?.let { listOf(it) } ?: emptyList(),
+            adressebeskyttelse = adressebeskyttelseskode?.let { listOf(Gradering(it)) } ?: emptyList(),
             geografiskTilknytning = GeografiskTilknytning(
-                    gtType = GeografiskTilknytningType.KOMMUNE,
-                    gtKommune = "1",
-                )
+                gtType = GeografiskTilknytningType.KOMMUNE,
+                gtKommune = "1",
             )
+        )
 
         every { nomKlient.erEgenAnsatt(any()) } returns true
 
@@ -107,4 +112,4 @@ class EnhetsutrederTest {
 
     private fun personMedIDent(ident: Ident) = Person(1, UUID.randomUUID(), listOf(ident))
 
- }
+}

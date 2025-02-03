@@ -41,7 +41,11 @@ enum class GeografiskTilknytningType{
 
 data class GeografiskTilknytningOgAdressebeskyttelse(
     val geografiskTilknytning: GeografiskTilknytning,
-    val adressebeskyttelse: List<Adressebeskyttelseskode>
+    val adressebeskyttelse: List<Gradering>
+)
+
+data class Gradering(
+    val gradering: Adressebeskyttelseskode
 )
 
 enum class Adressebeskyttelseskode {

@@ -428,7 +428,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
             {
               "data": {
                 "hentPerson": {
-                  "adressebeskyttelse": ["UGRADERT"]
+                  "adressebeskyttelse": [{"gradering": "UGRADERT"}]
                 },
                 "hentGeografiskTilknytning": {
                   "gtType": "KOMMUNE",

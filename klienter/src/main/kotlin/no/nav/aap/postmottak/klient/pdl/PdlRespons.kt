@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.klient.pdl
 
-import no.nav.aap.postmottak.gateway.Adressebeskyttelseskode
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
+import no.nav.aap.postmottak.gateway.Gradering
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
 import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
 import java.time.LocalDate
@@ -31,7 +31,7 @@ data class PdlPerson(
 
 data class HentPersonResult(
     val foedselsdato: List<Fødselsdato>? = null,
-    val adressebeskyttelse: List<Adressebeskyttelseskode>? = null
+    val adressebeskyttelse: List<Gradering>? = null
 )
 
 data class Fødselsdato(val foedselsdato: LocalDate, val metadata: HistoriskMetadata)

@@ -39,7 +39,7 @@ class Enhetsutreder(
 
         val geografiskTilknytning =
             mapGeografiskTilknytningTilKode(adressebeskyttelseOgGeoTilknytning.geografiskTilknytning)
-        val diskresjonskode = adressebeskyttelseOgGeoTilknytning.adressebeskyttelse.firstOrNull()?.tilDiskresjonskode()
+        val diskresjonskode = adressebeskyttelseOgGeoTilknytning.adressebeskyttelse.firstOrNull()?.gradering?.tilDiskresjonskode()
             ?: Diskresjonskode.ANY
         val erNavansatt = nomKlient.erEgenAnsatt(person.aktivIdent())
 
