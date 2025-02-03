@@ -7,7 +7,7 @@ plugins {
 val tilgangVersjon = "0.0.94"
 
 dependencies {
-    api("com.fasterxml.jackson.core:jackson-annotations:2.17.2")
+    api("com.fasterxml.jackson.core:jackson-annotations:2.18.2")
     api("no.nav:ktor-openapi-generator:1.0.46")
     implementation("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
 
