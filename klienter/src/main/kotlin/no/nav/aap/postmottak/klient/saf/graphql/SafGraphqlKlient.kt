@@ -1,9 +1,7 @@
 package no.nav.aap.postmottak.klient.saf.graphql
 
 import SafResponseHandler
-import kotlinx.coroutines.runBlocking
-import no.nav.aap.komponenter.cache.Cacheable
-import no.nav.aap.komponenter.cache.withCache
+
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -25,21 +23,19 @@ import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
 
-
 class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
     override val restClient: RestClient<InputStream> = RestClient(
         config = ClientConfig(scope),
         tokenProvider = OnBehalfOfTokenProvider,
         responseHandler = SafResponseHandler()
     )
-    
-    companion object: Factory<JournalpostOboGateway> {
-        override fun konstruer(): JournalpostOboGateway {
-            return withCache(SafGraphqlOboClient()) as JournalpostOboGateway
+
+    companion object : Factory<SafGraphqlOboClient> {
+        override fun konstruer(): SafGraphqlOboClient {
+            return SafGraphqlOboClient()
         }
     }
 
-    @Cacheable
     override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken): SafJournalpost =
         hentJournalpostInternal(journalpostId, currentToken)
 
@@ -54,14 +50,13 @@ class SafGraphqlClientCredentialsClient : SafGraphqlKlient(), JournalpostGateway
         responseHandler = SafResponseHandler()
     )
 
-    companion object: Factory<JournalpostGateway> {
-        override fun konstruer(): JournalpostGateway {
-            return withCache(SafGraphqlClientCredentialsClient()) as JournalpostGateway
+    companion object : Factory<SafGraphqlClientCredentialsClient> {
+        override fun konstruer(): SafGraphqlClientCredentialsClient {
+            return SafGraphqlClientCredentialsClient()
         }
 
     }
 
-    @Cacheable
     override fun hentJournalpost(journalpostId: JournalpostId) = hentJournalpostInternal(journalpostId, null)
     override fun hentSaker(fnr: String) = hentSakerInternal(fnr, null)
 }
@@ -76,7 +71,7 @@ abstract class SafGraphqlKlient {
     protected fun hentJournalpostInternal(journalpostId: JournalpostId, currentToken: OidcToken?): SafJournalpost {
         log.info("Henter journalpost: $journalpostId")
         val request = SafRequest.hentJournalpost(journalpostId)
-        val response = runBlocking { graphqlQuery(request, currentToken) }
+        val response = graphqlQuery(request, currentToken)
 
         val journalpost: SafJournalpost = response.data?.journalpost
             ?: error("Fant ikke journalpost for $journalpostId")
@@ -90,7 +85,7 @@ abstract class SafGraphqlKlient {
 
     protected fun hentSakerInternal(fnr: String, currentToken: OidcToken? = null): List<SafSak> {
         val request = SafRequest.hentSaker(fnr)
-        val response = runBlocking { graphqlQuery(request, currentToken) }
+        val response = graphqlQuery(request, currentToken)
         val saker: List<SafSak> = response.data?.saker ?: emptyList()
         return saker
     }
