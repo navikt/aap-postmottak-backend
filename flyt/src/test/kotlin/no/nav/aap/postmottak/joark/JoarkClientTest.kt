@@ -10,11 +10,12 @@ import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.klient.joark.JoarkClient
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.fakes.DEFAULT_IDENT
 import no.nav.aap.postmottak.test.fakes.UTEN_AVSENDER_MOTTAKER
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
@@ -81,18 +82,17 @@ class JoarkClientTest : WithFakes {
 
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
         val joarkClient = JoarkClient.konstruer(restClient, SafGraphqlClientCredentialsClient())
-        val ident = Ident("213453452")
 
         val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(UTEN_AVSENDER_MOTTAKER)
 
         assertThat(safJournalpost.avsenderMottaker).isNull()
 
-        joarkClient.førJournalpostPåFagsak(UTEN_AVSENDER_MOTTAKER, ident, "2344")
+        joarkClient.førJournalpostPåFagsak(UTEN_AVSENDER_MOTTAKER, DEFAULT_IDENT, "2344")
 
         verify {
             restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->
                 val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
-                assertThat(avsenderMottaker?.id).isEqualTo("213453452")
+                assertThat(avsenderMottaker?.id).isEqualTo(DEFAULT_IDENT.identifikator)
                 assertThat(avsenderMottaker?.type).isEqualTo(BrukerIdType.FNR)
             }, any())
         }

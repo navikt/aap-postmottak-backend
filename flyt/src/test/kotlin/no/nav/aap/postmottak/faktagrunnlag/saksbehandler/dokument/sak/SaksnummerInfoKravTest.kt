@@ -29,7 +29,7 @@ class SaksnummerInfoKravTest {
 
         saksnummerInfoKrav.oppdater(mockk(relaxed = true))
 
-        verify(exactly = 1) { sakRepository.lagreSaksnummer(any(), saksnummre.map { it.tilSaksinfo() }) }
+        verify(exactly = 1) { sakRepository.lagreKelvinSak(any(), saksnummre.map { it.tilSaksinfo() }) }
     }
 
     private fun getPeriode() = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31))

@@ -15,7 +15,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection): Saksnummer
         }
     }
     
-    override fun hentSaksnumre(behandlingId: BehandlingId): List<Saksinfo> =
+    override fun hentKelvinSaker(behandlingId: BehandlingId): List<Saksinfo> =
         connection.queryList(
             """
             SELECT * FROM (
@@ -35,7 +35,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection): Saksnummer
         }
 
 
-    override fun lagreSaksnummer(
+    override fun lagreKelvinSak(
         behandlingId: BehandlingId,
         saksinfo: List<Saksinfo>
     ) {

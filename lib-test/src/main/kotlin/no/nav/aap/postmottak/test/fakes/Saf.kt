@@ -10,17 +10,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-
-
-val DIGITAL_SØKNAD_ID = JournalpostId(999)
-val SØKNAD_ETTERSENDELSE = JournalpostId(1000)
-val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
-val LEGEERKLÆRING = JournalpostId(120)
-val ANNET_TEMA = JournalpostId(121)
-val UGYLDIG_STATUS = JournalpostId(122)
-val STATUS_JOURNALFØRT = JournalpostId(123)
-val PAPIR_SØKNAD = JournalpostId(124)
 
 fun Application.safFake(
     sakerRespons: String = ingenSakerRespons()
@@ -75,7 +64,7 @@ fun Application.safFake(
                           "tittel": "Overordnet tittel",
                           "personident": "3",
                           "bruker": {
-                            "id": "213453452",
+                            "id": "${finnBruker(journalpostId.toLong())}",
                             "type": "FNR"
                           },
                           ${getAvsenderMottaker(journalpostId.toLong())}
@@ -120,14 +109,28 @@ private fun finnKanal(journalpostId: Long) =
         else -> KanalFraKodeverk.UKJENT.name
     }
 
-private fun finnTema(journalpostId: Long) = 
+private fun finnTema(journalpostId: Long) =
     when (journalpostId) {
         ANNET_TEMA.referanse -> "ANNET"
         else -> "AAP"
     }
 
-private fun getDokumenter(journalpostId: Long) =
-    when (journalpostId) {
+private fun getDokumenter(journalpostId: Long): String {
+    val legeerklæring = """       
+        {
+            "tittel": "Legeeerklæring",
+            "dokumentInfoId": "4542685451",
+            "brevkode": "NAV 08-07.08",
+            "dokumentvarianter": [
+                {
+                    "variantformat": "ORIGINAL",
+                    "filtype": "JSON"
+                }
+            ]
+        }
+        """
+
+    return when (journalpostId) {
         DIGITAL_SØKNAD_ID.referanse -> """
         {
             "tittel": "Dokumenttittel",
@@ -156,19 +159,8 @@ private fun getDokumenter(journalpostId: Long) =
         }
         """
 
-        LEGEERKLÆRING.referanse -> """       
-        {
-            "tittel": "Legeeerklæring",
-            "dokumentInfoId": "4542685451",
-            "brevkode": "NAV 08-07.08",
-            "dokumentvarianter": [
-                {
-                    "variantformat": "ORIGINAL",
-                    "filtype": "JSON"
-                }
-            ]
-        }
-        """
+        LEGEERKLÆRING.referanse -> legeerklæring
+        LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> legeerklæring
 
         else -> """ {
             "tittel": "Dokumenttittel",
@@ -195,6 +187,7 @@ private fun getDokumenter(journalpostId: Long) =
     } """
 
     }
+}
 
 private fun ingenSakerRespons() =
     """
@@ -224,4 +217,10 @@ private fun finnStatus(journalpostId: Long) =
         UGYLDIG_STATUS.referanse -> "UTGAAR"
         STATUS_JOURNALFØRT.referanse -> "JOURNALFOERT"
         else -> "MOTTATT"
+    }
+
+private fun finnBruker(journalpostId: Long) =
+    when (journalpostId) {
+        LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> IDENT_UTEN_SAK.identifikator
+        else -> DEFAULT_IDENT.identifikator
     }

@@ -42,7 +42,7 @@ class SaksnummerInfoKrav(
             emptyList()
         } // TODO utbedre exception handling!!!
 
-        saksnummerRepository.lagreSaksnummer(kontekst.behandlingId, saker)
+        saksnummerRepository.lagreKelvinSak(kontekst.behandlingId, saker)
         return IKKE_ENDRET
     }
 

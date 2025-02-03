@@ -40,6 +40,7 @@ import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.ANNET_TEMA
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING
+import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING_IKKE_TIL_KELVIN
 import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT
 import no.nav.aap.postmottak.test.fakes.UGYLDIG_STATUS
 import no.nav.aap.postmottak.test.fakes.WithFakes
@@ -92,7 +93,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
 
     @Test
     fun `Helautomatisk flyt for legeerklæring som ikke skal til Kelvin`() {
-        val journalpostId = LEGEERKLÆRING
+        val journalpostId = LEGEERKLÆRING_IKKE_TIL_KELVIN
         dataSource.transaction { connection ->
             val behandlingId = RepositoryProvider(connection)
                 .provide(BehandlingRepository::class)
@@ -125,7 +126,7 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
                 .provide(BehandlingRepository::class)
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
-            SaksnummerRepositoryImpl(connection).lagreSaksnummer(
+            SaksnummerRepositoryImpl(connection).lagreKelvinSak(
                 behandlingId, listOf(
                     Saksinfo(
                         "sak: 1", Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31)),

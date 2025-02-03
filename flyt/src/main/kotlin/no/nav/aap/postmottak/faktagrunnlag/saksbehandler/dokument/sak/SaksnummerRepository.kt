@@ -4,8 +4,8 @@ import no.nav.aap.lookup.repository.Repository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 
 interface SaksnummerRepository: Repository {
-    fun hentSaksnumre(behandlingId: BehandlingId): List<Saksinfo>
-    fun lagreSaksnummer(
+    fun hentKelvinSaker(behandlingId: BehandlingId): List<Saksinfo>
+    fun lagreKelvinSak(
         behandlingId: BehandlingId,
         saksinfo: List<Saksinfo>
     )

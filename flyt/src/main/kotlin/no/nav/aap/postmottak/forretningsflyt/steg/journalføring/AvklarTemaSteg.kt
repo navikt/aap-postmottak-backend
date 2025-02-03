@@ -115,7 +115,7 @@ class AvklarTemaSteg(
     }
 
     private fun skalLegeerklæringTilAap(behandlingId: BehandlingId): Boolean {
-        val kelvinSaker = saksnummerRepository.hentSaksnumre(behandlingId)
+        val kelvinSaker = saksnummerRepository.hentKelvinSaker(behandlingId)
         return kelvinSaker.isNotEmpty()
     }
 }
