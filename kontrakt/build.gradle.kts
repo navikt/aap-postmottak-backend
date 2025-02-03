@@ -9,7 +9,7 @@ val tilgangVersjon = "0.0.94"
 dependencies {
     api("com.fasterxml.jackson.core:jackson-annotations:2.18.2")
     api("no.nav:ktor-openapi-generator:1.0.46")
-    implementation("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
+    compileOnly("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.4")
