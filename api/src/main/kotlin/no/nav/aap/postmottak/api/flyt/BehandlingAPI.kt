@@ -16,12 +16,13 @@ import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
@@ -93,11 +94,18 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             ) { req ->
                 dataSource.transaction { connection ->
                     val repositoryProvider = RepositoryProvider(connection)
+                    val taSkriveLåsRepository = repositoryProvider.provide(TaSkriveLåsRepository::class)
                     val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
+                    val lås = taSkriveLåsRepository.lås(req)
                     
                     val behandling = behandling(behandlingRepository, req)
                     val flytJobbRepository = FlytJobbRepository(connection)
-                    if (flytJobbRepository.hentJobberForBehandling(behandling.id.toLong()).isEmpty()) {
+
+                    if (!behandling.status()
+                            .erAvsluttet() && behandling.harIkkeVærtAktivitetIDetSiste() && flytJobbRepository.hentJobberForBehandling(
+                            behandling.id.toLong()
+                        ).isEmpty()
+                    ) {
                         flytJobbRepository.leggTil(
                             JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(
                                 behandling.journalpostId.referanse,
@@ -105,6 +113,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                             )
                         )
                     }
+                    taSkriveLåsRepository.verifiserSkrivelås(lås)
                 }
                 respondWithStatus(HttpStatusCode.Accepted)
             }
