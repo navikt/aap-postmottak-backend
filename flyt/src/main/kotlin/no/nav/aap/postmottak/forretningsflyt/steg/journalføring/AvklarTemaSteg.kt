@@ -4,10 +4,10 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -96,11 +96,14 @@ class AvklarTemaSteg(
     private fun avklarTemaMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {
         if (journalpost.erDigitalLegeerklæring()) {
             if (skalLegeerklæringTilAap(behandlingId)) {
+                log.info("Avklarer maskinelt - Legeerklæring skal til AAP")
                 avklarTemaMaskinelt(behandlingId, TemaVurdering(true, Tema.AAP))
             } else {
+                log.info("Avklarer maskinelt - Legeerklæring skal ikke til AAP")
                 avklarTemaMaskinelt(behandlingId, TemaVurdering(false, Tema.OPP))
             }
         } else if (journalpost.erDigitalSøknad()) {
+            log.info("Avklarer maskinelt - Legeerklæring skal til AAP")
             avklarTemaMaskinelt(behandlingId, TemaVurdering(true, Tema.AAP))
         } else {
             throw IllegalStateException("Journalpost er ikke en digital søknad eller legeerklæring")
