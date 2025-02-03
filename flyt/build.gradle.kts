@@ -47,6 +47,6 @@ dependencies {
     testImplementation(project(":api"))
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
-    testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("org.testcontainers:postgresql:1.20.1")
 }
