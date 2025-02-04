@@ -40,7 +40,7 @@ dependencies {
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersjon")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersjon")
-    testImplementation("org.assertj:assertj-core:3.26.3")
+    testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation(project(":lib-test"))
     testImplementation(project(":repository"))
     testImplementation(project(":klienter"))
