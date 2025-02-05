@@ -22,7 +22,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.MDC
-import tilgang.Operasjon
+import no.nav.aap.tilgang.Operasjon
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {

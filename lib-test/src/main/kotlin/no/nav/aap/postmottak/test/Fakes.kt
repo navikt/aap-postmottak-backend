@@ -28,8 +28,8 @@ import no.nav.aap.postmottak.test.fakes.safFake
 import no.nav.aap.postmottak.test.modell.TestPerson
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import tilgang.JournalpostTilgangRequest
-import tilgang.TilgangResponse
+import no.nav.aap.tilgang.JournalpostTilgangRequest
+import no.nav.aap.tilgang.TilgangResponse
 import java.time.LocalDate
 
 class FakeServer(port: Int = 0, private val module: Application.() -> Unit) {

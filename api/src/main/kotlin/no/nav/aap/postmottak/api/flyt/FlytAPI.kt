@@ -37,7 +37,7 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.MDC
-import tilgang.Operasjon
+import no.nav.aap.tilgang.Operasjon
 import javax.sql.DataSource
 
 
