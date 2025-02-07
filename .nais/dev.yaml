@@ -95,6 +95,6 @@ env:
 - name: INTEGRASJON_NOM_SCOPE
   value: api://dev-gcp.nom.skjermede-personer-pip/.default
 - name: INTEGRASJON_VEILARBARENA_URL
-- value: https://veilarbarena.dev-fss-pub.nais.io
+  value: https://veilarbarena.dev-fss-pub.nais.io
 - name: INTEGRASJON_VEILARBARENA_SCOPE
-- value: api://dev-fss.pto.veilarbarena/.default
+  value: api://dev-fss.pto.veilarbarena/.default
