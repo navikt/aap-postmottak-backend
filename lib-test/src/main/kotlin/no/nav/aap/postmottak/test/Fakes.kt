@@ -25,11 +25,12 @@ import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
 import no.nav.aap.postmottak.test.fakes.nomFake
 import no.nav.aap.postmottak.test.fakes.norgFake
 import no.nav.aap.postmottak.test.fakes.safFake
+import no.nav.aap.postmottak.test.fakes.veilarbarena
 import no.nav.aap.postmottak.test.modell.TestPerson
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import no.nav.aap.tilgang.JournalpostTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class FakeServer(port: Int = 0, private val module: Application.() -> Unit) {
@@ -79,6 +80,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val nomFake = FakeServer(module = { nomFake() })
     val norgFake = FakeServer(module = { norgFake() })
     val staistikkFake = FakeServer(module = { statistikkFake()} )
+    val veilarbarena = FakeServer(module = { veilarbarena() })
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -139,6 +141,10 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Statistikk
         System.setProperty("integrasjon.statistikk.url", "http://localhost:${staistikkFake.port()}")
         System.setProperty("integrasjon.statistikk.scope", "scope")
+        
+        // Veilarbarena
+        System.setProperty("integrasjon.veilarbarena.url", "http://localhost:${veilarbarena.port()}")
+        System.setProperty("integrasjon.veilarbarena.scope", "scope")
 
         // testpersoner
         val BARNLØS_PERSON_30ÅR =

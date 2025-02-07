@@ -12,7 +12,8 @@ import org.slf4j.LoggerFactory
 class Enhetsutreder(
     private val norgKlient: NorgGateway,
     private val pdlKlient: PersondataGateway,
-    private val nomKlient: EgenAnsattGateway
+    private val nomKlient: EgenAnsattGateway,
+    private val veilarbarenaKlient: VeilarbarenaGateway,
 ) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -22,7 +23,8 @@ class Enhetsutreder(
             val norgKlient = GatewayProvider.provide(NorgGateway::class)
             val pdlKlient = GatewayProvider.provide(PersondataGateway::class)
             val nomKlient = GatewayProvider.provide(EgenAnsattGateway::class)
-            return Enhetsutreder(norgKlient, pdlKlient, nomKlient)
+            val veilarbarenaKlient = GatewayProvider.provide(VeilarbarenaGateway::class)
+            return Enhetsutreder(norgKlient, pdlKlient, nomKlient, veilarbarenaKlient)
         }
     }
 
@@ -39,8 +41,9 @@ class Enhetsutreder(
 
         val geografiskTilknytning =
             mapGeografiskTilknytningTilKode(adressebeskyttelseOgGeoTilknytning.geografiskTilknytning)
-        val diskresjonskode = adressebeskyttelseOgGeoTilknytning.adressebeskyttelse.firstOrNull()?.gradering?.tilDiskresjonskode()
-            ?: Diskresjonskode.ANY
+        val diskresjonskode =
+            adressebeskyttelseOgGeoTilknytning.adressebeskyttelse.firstOrNull()?.gradering?.tilDiskresjonskode()
+                ?: Diskresjonskode.ANY
         val erNavansatt = nomKlient.erEgenAnsatt(person.aktivIdent())
 
         return norgKlient.finnEnhet(
@@ -48,6 +51,30 @@ class Enhetsutreder(
             diskresjonskode = diskresjonskode,
             erNavansatt = erNavansatt,
         )
+    }
+
+    fun finnEnhetMedOppfølgingskontor(person: Person): EnhetMedOppfølgingsKontor? {
+        val adressebeskyttelseOgGeoTilknytning = pdlKlient.hentAdressebeskyttelseOgGeolokasjon(person.aktivIdent())
+
+        val geografiskTilknytning =
+            mapGeografiskTilknytningTilKode(adressebeskyttelseOgGeoTilknytning.geografiskTilknytning)
+        val diskresjonskode =
+            adressebeskyttelseOgGeoTilknytning.adressebeskyttelse.firstOrNull()?.gradering?.tilDiskresjonskode()
+                ?: Diskresjonskode.ANY
+        val erNavansatt = nomKlient.erEgenAnsatt(person.aktivIdent())
+
+        val norgEnhet = norgKlient.finnEnhet(
+            geografiskTilknytning = geografiskTilknytning,
+            diskresjonskode = diskresjonskode,
+            erNavansatt = erNavansatt,
+        )
+
+        val oppfølgingsenhet =
+            if (diskresjonskode != Diskresjonskode.SPSF)
+                veilarbarenaKlient.hentOppfølgingsenhet(person.aktivIdent().identifikator)
+            else null
+
+        return EnhetMedOppfølgingsKontor(norgEnhet, oppfølgingsenhet)
     }
 
     private fun erNavEnhetAktiv(navEnhet: NavEnhet): Boolean {
@@ -75,3 +102,8 @@ class Enhetsutreder(
 }
 
 typealias NavEnhet = String
+
+data class EnhetMedOppfølgingsKontor(
+    val norgEnhet: NavEnhet?,
+    val oppfølgingsenhet: NavEnhet?
+)

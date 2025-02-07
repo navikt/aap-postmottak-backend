@@ -12,10 +12,11 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
@@ -69,7 +70,8 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
                 val enhetsutreder = Enhetsutreder(
                     NorgKlient(),
                     PdlGraphqlKlient(),
-                    NomKlient()
+                    NomKlient(),
+                    VeilarbarenaKlient()
                 )
 
                 val response = enhetsutreder.finnNavenhetForPerson(Person(1, UUID.randomUUID(), listOf(ident)))

@@ -6,6 +6,7 @@ import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.klient.joark.JoarkClient
@@ -14,6 +15,7 @@ import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.SafRestClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
@@ -25,7 +27,6 @@ import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import org.junit.jupiter.api.BeforeAll
 
 interface WithDependencies {
@@ -59,8 +60,8 @@ interface WithDependencies {
                 .register<ArenaKlient>()
                 .register<AapInternApiKlient>()
                 .register<FakeStatistikkKlient>()
-
-
+                .register<VeilarbarenaKlient>()
+            
             PrometheusProvider.prometheus = mockk(relaxed = true)
         }
     }

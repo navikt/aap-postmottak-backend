@@ -46,6 +46,7 @@ import no.nav.aap.postmottak.exception.FlytOperasjonException
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
 import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.klient.joark.JoarkClient
@@ -55,6 +56,8 @@ import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.SafOboRestClient
 import no.nav.aap.postmottak.klient.saf.SafRestClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboClient
 import no.nav.aap.postmottak.klient.statistikk.StatistikkKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -73,8 +76,6 @@ import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboClient
 import no.nav.aap.postmottak.test.testApi
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -182,6 +183,7 @@ private fun registerGateways() {
         .register<NorgKlient>()
         .register<AapInternApiKlient>()
         .register<StatistikkKlient>()
+        .register<VeilarbarenaKlient>()
         .status()
 }
 

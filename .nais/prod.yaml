@@ -74,3 +74,7 @@ env:
   value: http://skjermede-personer-pip.nom
 - name: INTEGRASJON_NOM_SCOPE
   value: api://prod-gcp.nom.skjermede-personer-pip/.default
+- name: INTEGRASJON_VEILARBARENA_URL
+  value: https://veilarbarena.prod-fss-pub.nais.io
+- name: INTEGRASJON_VEILARBARENA_SCOPE
+  value: api://prod-fss.pto.veilarbarena/.default
