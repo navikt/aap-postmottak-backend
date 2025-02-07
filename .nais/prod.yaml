@@ -22,6 +22,7 @@ outbound:
         - host: oppgave.prod-fss-pub.nais.io
         - host: pdl-api.prod-fss-pub.nais.io
         - host: aap-fss-proxy.prod-fss-pub.nais.io
+        - host: veilarbarena.prod-fss-pub.nais.io
 
 env:
 - name: INTEGRASJON_SAF_URL_GRAPHQL
