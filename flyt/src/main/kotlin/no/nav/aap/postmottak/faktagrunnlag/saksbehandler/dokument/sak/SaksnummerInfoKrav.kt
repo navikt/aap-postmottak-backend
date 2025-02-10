@@ -35,13 +35,8 @@ class SaksnummerInfoKrav(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost) { "Forventer journalpost" }
 
-        val saker = try {
-            behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true)).map { it.tilSaksinfo() }
-        } catch (e: Exception) {
-            logger.warn("Feilet å hente saker fra behandlingsflyt. Returnerer tom liste", e)
-            emptyList()
-        } // TODO utbedre exception handling!!!
-
+        val saker =  behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true)).map { it.tilSaksinfo() }
+       
         saksnummerRepository.lagreKelvinSak(kontekst.behandlingId, saker)
         return IKKE_ENDRET
     }
