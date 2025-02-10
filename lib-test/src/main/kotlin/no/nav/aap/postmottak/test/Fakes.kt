@@ -86,6 +86,8 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+        System.setProperty("NAIS_APP_NAME", "postmottak-backend")
+        
         System.setProperty("gosys.url", "http://localhost:3000/")
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")

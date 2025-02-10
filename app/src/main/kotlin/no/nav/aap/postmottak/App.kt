@@ -32,6 +32,7 @@ import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
+import no.nav.aap.postmottak.api.auditlog.auditlogApi
 import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
 import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.sak.finnSakApi
@@ -160,6 +161,7 @@ internal fun Application.server(
                 overleveringApi(dataSource)
                 motorApi(dataSource)
                 testApi(dataSource)
+                auditlogApi(dataSource)
             }
         }
         actuator(motor, mottakStream)
