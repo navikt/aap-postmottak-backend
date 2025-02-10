@@ -19,7 +19,7 @@ fun NormalOpenAPIRoute.auditlogApi(dataSource: DataSource) {
                         "referanse"
                     )
                 ),
-                DefaultAuditLogConfig.fraJournalpostPathParam("journalpostId", dataSource)
+                DefaultAuditLogConfig.fraJournalpostPathParam("referanse", dataSource)
             ) { _, _ ->
                 respondWithStatus(HttpStatusCode.Accepted)
             }
