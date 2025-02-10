@@ -1,6 +1,5 @@
 package no.nav.aap.fordeler.regler
 
-import no.nav.aap.komponenter.httpklient.httpclient.error.IkkeFunnetException
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 
@@ -20,11 +19,7 @@ class KelvinSakRegel : Regel<KelvinSakRegelInput> {
 
 class KelvinSakRegelInputGenerator : InputGenerator<KelvinSakRegelInput> {
     override fun generer(input: RegelInput): KelvinSakRegelInput {
-        val sakerFraKelvin = try {
-            GatewayProvider.provide(BehandlingsflytGateway::class).finnSaker(input.person.aktivIdent())
-        } catch (e: IkkeFunnetException) {
-            emptyList()
-        }
+        val sakerFraKelvin = GatewayProvider.provide(BehandlingsflytGateway::class).finnSaker(input.person.aktivIdent())
         return KelvinSakRegelInput(sakerFraKelvin.map { it.saksnummer })
     }
 }
