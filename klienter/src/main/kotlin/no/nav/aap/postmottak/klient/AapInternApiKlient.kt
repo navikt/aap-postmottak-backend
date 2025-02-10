@@ -8,9 +8,9 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
+import no.nav.aap.postmottak.gateway.SakStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import java.net.URI
-import java.time.LocalDate
 
 class AapInternApiKlient : AapInternApiGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.aap.intern.api.url"))
@@ -26,7 +26,10 @@ class AapInternApiKlient : AapInternApiGateway {
         }
     }
 
-    override fun hentArenaSakerForPerson(person: Person): List<String> {
+    /**
+     * Arena-saker baserer seg på vedtak i Arena
+     */
+    override fun hentAapSakerForPerson(person: Person): List<SakStatus> {
         val path = url.resolve("/sakerByFnr")
         val reqbody =
             SakerRequest(personidentifikatorer = person.identer().map { it.identifikator })
@@ -34,18 +37,10 @@ class AapInternApiKlient : AapInternApiGateway {
             DefaultJsonMapper.fromJson(body)
         })!!
 
-        return saker.map { it.sakId }
+        return saker
     }
 }
 
 data class SakerRequest(
     val personidentifikatorer: List<String>
 )
-
-data class SakStatus(
-    val sakId: String,
-    val vedtakStatusKode: String,
-    val periode: Periode
-)
-
-data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?)

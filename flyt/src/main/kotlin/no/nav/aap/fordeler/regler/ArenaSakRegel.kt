@@ -4,6 +4,7 @@ import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalpostGateway
+import no.nav.aap.postmottak.gateway.Kilde
 import no.nav.aap.postmottak.gateway.SafSak
 
 class ArenaSakRegel : Regel<ArenaSakRegelInput> {
@@ -29,7 +30,8 @@ class ArenaSakRegel : Regel<ArenaSakRegelInput> {
 
 class ArenaSakRegelInputGenerator : InputGenerator<ArenaSakRegelInput> {
     override fun generer(input: RegelInput): ArenaSakRegelInput {
-        val sakerFraArena = GatewayProvider.provide(AapInternApiGateway::class).hentArenaSakerForPerson(input.person)
+        val sakerFraArena = GatewayProvider.provide(AapInternApiGateway::class).hentAapSakerForPerson(input.person)
+            .filter { it.kilde == Kilde.ARENA }.map { it.sakId }
         val sakerFraJoark =
             GatewayProvider.provide(JournalpostGateway::class).hentSaker(input.person.aktivIdent().identifikator)
         return ArenaSakRegelInput(sakerFraArena, sakerFraJoark)

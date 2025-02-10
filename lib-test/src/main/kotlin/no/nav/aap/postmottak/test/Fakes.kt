@@ -19,7 +19,7 @@ import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsd
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.klient.SakStatus
+import no.nav.aap.postmottak.test.fakes.aapInternApiFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
 import no.nav.aap.postmottak.test.fakes.nomFake
@@ -246,17 +246,6 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
                 call.respondText(ContentType.Text.Plain) {
                     "I'm just a string"
                 }
-            }
-        }
-    }
-
-    private fun Application.aapInternApiFake() {
-        install(ContentNegotiation) {
-            jackson()
-        }
-        routing {
-            post("/sakerByFnr") {
-                call.respond<List<SakStatus>>(emptyList())
             }
         }
     }

@@ -4,11 +4,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.fordeler.FordelerRegelService
-import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -60,5 +60,4 @@ class FordelingRegelJobbUtførerTest {
             })
         }
     }
-
 }
