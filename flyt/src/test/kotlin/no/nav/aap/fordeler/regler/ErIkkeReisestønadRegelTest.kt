@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.util.*
 
-class ReisestønadRegelTest {
+class ErIkkeReisestønadRegelTest {
 
     @ParameterizedTest(name = "Når brevkode er {0}-{1} skal regelen evalueres til {2}")
     @CsvSource(value = [
@@ -18,10 +18,10 @@ class ReisestønadRegelTest {
         "0000 000;ANNEN;true"
     ], delimiter = ';')
     fun vurder(brevkodeString: String, brevkode: Brevkoder, forventetResultat: Boolean) {
-        val regel = ReisestønadRegel()
+        val regel = ErIkkeReisestønadRegel()
 
 
-        val regelInputGenerator = ReisestønadRegelInputGenerator()
+        val regelInputGenerator = ErIkkeReisestønadRegelInputGenerator()
         val person = Person(1, UUID.randomUUID(), emptyList())
         val regelInput = regelInputGenerator.generer(RegelInput(1, person, brevkodeString))
 

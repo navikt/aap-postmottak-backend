@@ -39,6 +39,10 @@ val defaultFinn: suspend RoutingContext.() -> Unit = {
     }
 }
 
+val tomFinn: suspend RoutingContext.() -> Unit = {
+    call.respond(emptyList<BehandlingsflytSak>())
+}
+
 val defualtSend: suspend RoutingContext.() -> Unit = {
 
     call.respond(HttpStatusCode.NoContent)

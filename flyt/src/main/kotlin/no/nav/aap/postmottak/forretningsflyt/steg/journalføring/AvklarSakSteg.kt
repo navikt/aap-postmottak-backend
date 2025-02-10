@@ -4,10 +4,10 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -49,10 +49,15 @@ class AvklarSakSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+        /* 
+         * TODO: Når vi tillater at person kan ha Arena-historikk må vi avklare manuelt dersom det finnes sak både i Arena og Kelvin. 
+         * Må da lagre ned fagsystem i saksvurdering. Hvis fagsystem er Arena: opprett en jobb for ArenaVidereseninding,
+         * og no-op resten av denne journalføringsflyten basert på fagsystem
+         */
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
         if (journalpost.erUgyldig()) return Fullført
-        
+
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         requireNotNull(temavurdering) { "Tema skal være avklart før AvklarSakSteg" }
 
@@ -63,7 +68,10 @@ class AvklarSakSteg(
             return Fullført
         } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
             log.info("Journalpost har alt blitt journalført. Setter saksavklaring tilsvarende journalpost.")
-            saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(saksnummer = journalpost.saksnummer!!.toString()))
+            saksnummerRepository.lagreSakVurdering(
+                kontekst.behandlingId,
+                Saksvurdering(saksnummer = journalpost.saksnummer!!.toString())
+            )
             return Fullført
         }
 

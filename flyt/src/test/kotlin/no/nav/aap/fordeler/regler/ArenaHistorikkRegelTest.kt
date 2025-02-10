@@ -18,11 +18,11 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.*
 
-class ArenaSakRegelTest {
+class ArenaHistorikkRegelTest {
     @Test
     fun `Dersom bruker har en sak i Joark med fagsystem AO01 og tema AAP, skal regelen returnere false`() {
         // Arrange
-        val input = ArenaSakRegelInput(
+        val input = ArenaHistorikkRegelInput(
             sakerFraArena = emptyList(),
             sakerFraJoark = listOf(
                 SafSak(
@@ -35,7 +35,7 @@ class ArenaSakRegelTest {
                 ),
             )
         )
-        val regel = ArenaSakRegel()
+        val regel = ArenaHistorikkRegel()
 
         // Act
         val resultat = regel.vurder(input)
@@ -50,7 +50,7 @@ class ArenaSakRegelTest {
         val person = Person(1, UUID.randomUUID(), listOf(Ident("12345678901")))
 
         GatewayRegistry.register(JoarkMock::class).register(ApiInternMock::class)
-        val regelMedInputGenerator = ArenaSakRegel.medDataInnhenting()
+        val regelMedInputGenerator = ArenaHistorikkRegel.medDataInnhenting()
         val res = regelMedInputGenerator.vurder(
             RegelInput(
                 person = person,

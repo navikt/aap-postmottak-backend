@@ -24,18 +24,21 @@ import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.WithMotor
 import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.WithFakes
+import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
+import no.nav.aap.postmottak.test.fakes.tomFinn
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 
-class SøknadTilArenaFlytTest: WithFakes, WithDependencies, WithMotor {
+class SøknadTilArenaFlytTest : WithFakes, WithDependencies, WithMotor {
 
     companion object {
-
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
+            WithFakes.fakes.behandlingsflyt.setCustomModule { behandlingsflytFake(finn = tomFinn) }
+
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
         }
@@ -54,7 +57,9 @@ class SøknadTilArenaFlytTest: WithFakes, WithDependencies, WithMotor {
         every { arenaGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
-            FlytJobbRepository(it).leggTil(JobbInput(FordelingRegelJobbUtfører).forSak(1).medJournalpostId(journalpostId))
+            FlytJobbRepository(it).leggTil(
+                JobbInput(FordelingRegelJobbUtfører).forSak(1).medJournalpostId(journalpostId)
+            )
         }
 
         await(10000) {
@@ -64,9 +69,9 @@ class SøknadTilArenaFlytTest: WithFakes, WithDependencies, WithMotor {
 
 }
 
-class PdlKlientSpy: PersondataGateway {
+class PdlKlientSpy : PersondataGateway {
 
-    companion object: Factory<PdlGraphqlKlient> {
+    companion object : Factory<PdlGraphqlKlient> {
         val klient = spyk(PdlGraphqlKlient.konstruer())
         override fun konstruer() = klient
     }
@@ -93,7 +98,7 @@ class PdlKlientSpy: PersondataGateway {
 
 }
 
-class ArenaKlientSpy: ArenaGateway {
+class ArenaKlientSpy : ArenaGateway {
 
     companion object : Factory<ArenaKlient> {
         val klient = spyk(ArenaKlient.konstruer())

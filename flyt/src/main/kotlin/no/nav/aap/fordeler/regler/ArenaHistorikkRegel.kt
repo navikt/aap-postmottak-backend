@@ -7,19 +7,19 @@ import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.Kilde
 import no.nav.aap.postmottak.gateway.SafSak
 
-class ArenaSakRegel : Regel<ArenaSakRegelInput> {
-    companion object : RegelFactory<ArenaSakRegelInput> {
+class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
+    companion object : RegelFactory<ArenaHistorikkRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting() =
-            RegelMedInputgenerator(ArenaSakRegel(), ArenaSakRegelInputGenerator())
+            RegelMedInputgenerator(ArenaHistorikkRegel(), ArenaSakRegelInputGenerator())
     }
 
-    override fun vurder(input: ArenaSakRegelInput): Boolean {
-        // TODO: Avklar om vi skal fjerne filter på tema
+    override fun vurder(input: ArenaHistorikkRegelInput): Boolean {
+        // TODO: Avklar om vi skal fjerne denne
         val sakerJournalførtPåArenaAap = input.sakerFraJoark
             .filter { it.fagsaksystem == Fagsystem.AO01.name }
             .filter { it.tema == "AAP" }
-        // TODO: Avklar om vi kun skal sjekke joark, eller om vi også sjekker på vedtak i arena
+        // TODO: Dersom vi skal ha en mildere regel for Arena-historikk må AvklarSakSteg oppdateres */
         return input.sakerFraArena.isEmpty() && sakerJournalførtPåArenaAap.isEmpty()
     }
 
@@ -28,17 +28,17 @@ class ArenaSakRegel : Regel<ArenaSakRegelInput> {
     }
 }
 
-class ArenaSakRegelInputGenerator : InputGenerator<ArenaSakRegelInput> {
-    override fun generer(input: RegelInput): ArenaSakRegelInput {
+class ArenaSakRegelInputGenerator : InputGenerator<ArenaHistorikkRegelInput> {
+    override fun generer(input: RegelInput): ArenaHistorikkRegelInput {
         val sakerFraArena = GatewayProvider.provide(AapInternApiGateway::class).hentAapSakerForPerson(input.person)
             .filter { it.kilde == Kilde.ARENA }.map { it.sakId }
         val sakerFraJoark =
             GatewayProvider.provide(JournalpostGateway::class).hentSaker(input.person.aktivIdent().identifikator)
-        return ArenaSakRegelInput(sakerFraArena, sakerFraJoark)
+        return ArenaHistorikkRegelInput(sakerFraArena, sakerFraJoark)
     }
 }
 
-data class ArenaSakRegelInput(
+data class ArenaHistorikkRegelInput(
     val sakerFraArena: List<String>,
     val sakerFraJoark: List<SafSak>
 )

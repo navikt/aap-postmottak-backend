@@ -1,16 +1,35 @@
 package no.nav.aap.fordeler
 
+import no.nav.aap.fordeler.regler.ErIkkeReisestønadRegel
+import no.nav.aap.fordeler.regler.KelvinSakRegel
 import no.nav.aap.fordeler.regler.Regel
-import org.slf4j.LoggerFactory
 import no.nav.aap.fordeler.regler.RegelFactory
 import no.nav.aap.fordeler.regler.RegelInput
+import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
 
 typealias RegelMap = Map<String, Boolean>
 
 data class Regelresultat(val regelMap: RegelMap) {
-    fun skalTilKelvin() = regelMap.values.all { it }
+    fun skalTilKelvin(): Boolean {
+        val kelvinSakRegel = regelMap[KelvinSakRegel::class.simpleName] ?: false
+        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName]!!
+        if (kelvinSakRegel && erIkkeReisestønad) {
+            log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
+            return true
+        }
+        val reglerTilEvaluering = regelMap.filter { it.key != KelvinSakRegel::class.simpleName }
+        return reglerTilEvaluering.values.all { it }.also {
+            log.info(
+                "Skal til Kelvin: $it. ${
+                    if (!it) "\n Følgende regler ga false: ${
+                        reglerTilEvaluering.filter { !it.value }.map { it.key }
+                    }" else ""
+                }"
+            )
+        }
+    }
 }
 
 class FordelerRegelService {
@@ -18,7 +37,6 @@ class FordelerRegelService {
         return hentAktiveRegler()
             .associate { regel ->
                 regel.regelNavn() to regel.vurder(input)
-                    .also { if (!it) log.info("Validering av regel ${regel.regelNavn()} ga false: journalpost ${input.journalpostId} skal ikke til Kelvin") }
             }.let(::Regelresultat)
     }
 

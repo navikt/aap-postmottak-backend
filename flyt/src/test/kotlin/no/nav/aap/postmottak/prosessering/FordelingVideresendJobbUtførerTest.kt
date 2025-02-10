@@ -7,9 +7,9 @@ import no.nav.aap.fordeler.RegelRepository
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ class FordelingVideresendJobbUtførerTest : WithFakes {
 
     @Test
     fun `Når journalposten skal til Kelvin skal vi opprette en ProsesserBehandlingJobb`() {
-        val regelResultat = Regelresultat(regelMap = mapOf("Regel1" to true, "Regel2" to true))
+        val regelResultat = Regelresultat(regelMap = mapOf("Regel1" to true, "Regel2" to true, "ErIkkeReisestønadRegel" to true))
         every { regelRepositoryMock.hentRegelresultat(any()) } returns regelResultat
 
         val journalpostId = JournalpostId(1)

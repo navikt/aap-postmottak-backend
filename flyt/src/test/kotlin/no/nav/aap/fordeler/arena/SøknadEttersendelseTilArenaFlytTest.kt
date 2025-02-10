@@ -16,18 +16,22 @@ import no.nav.aap.postmottak.test.WithMotor
 import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.SØKNAD_ETTERSENDELSE
 import no.nav.aap.postmottak.test.fakes.WithFakes
+import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
+import no.nav.aap.postmottak.test.fakes.tomFinn
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 
-class SøknadEttersendelseTilArenaFlytTest: WithFakes, WithDependencies, WithMotor {
+class SøknadEttersendelseTilArenaFlytTest : WithFakes, WithDependencies, WithMotor {
 
     companion object {
 
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
+            WithFakes.fakes.behandlingsflyt.setCustomModule { behandlingsflytFake(finn = tomFinn) }
+
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
         }
@@ -46,7 +50,9 @@ class SøknadEttersendelseTilArenaFlytTest: WithFakes, WithDependencies, WithMot
         every { arenaGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
-            FlytJobbRepository(it).leggTil(JobbInput(FordelingRegelJobbUtfører).forSak(1).medJournalpostId(journalpostId))
+            FlytJobbRepository(it).leggTil(
+                JobbInput(FordelingRegelJobbUtfører).forSak(1).medJournalpostId(journalpostId)
+            )
         }
 
         await(10000) {
