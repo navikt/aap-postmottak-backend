@@ -53,7 +53,7 @@ class Enhetsutreder(
         )
     }
 
-    fun finnEnhetMedOppfølgingskontor(person: Person): EnhetMedOppfølgingsKontor? {
+    fun finnEnhetMedOppfølgingskontor(person: Person): EnhetMedOppfølgingsKontor {
         val adressebeskyttelseOgGeoTilknytning = pdlKlient.hentAdressebeskyttelseOgGeolokasjon(person.aktivIdent())
 
         val geografiskTilknytning =

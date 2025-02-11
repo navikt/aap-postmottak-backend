@@ -7,7 +7,8 @@ import no.nav.aap.postmottak.gateway.PersondataGateway
 
 class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
     companion object : RegelFactory<GeografiskTilknytningRegelInput> {
-        override val erAktiv = miljøConfig(prod = true, dev = false)
+        // Bruk enhetsregel i stedet
+        override val erAktiv = miljøConfig(prod = false, dev = false)
         override fun medDataInnhenting() =
             RegelMedInputgenerator(GeografiskTilknytningRegel(), GeografiskTilknytningRegelInputGenerator())
     }
