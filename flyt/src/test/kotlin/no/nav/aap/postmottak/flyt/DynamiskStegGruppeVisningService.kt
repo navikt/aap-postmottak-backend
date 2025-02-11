@@ -63,7 +63,8 @@ class DynamiskStegGruppeVisningServiceTest {
                 ),
                 mottattDato = LocalDate.of(2021, 1, 1),
                 kanal = KanalFraKodeverk.UKJENT,
-                saksnummer = null
+                saksnummer = null,
+                fagsystem = null
             )
 
             val behandlingId =

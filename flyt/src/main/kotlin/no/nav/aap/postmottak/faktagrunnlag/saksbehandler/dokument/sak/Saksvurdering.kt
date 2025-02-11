@@ -5,6 +5,6 @@ data class Saksvurdering(
     val generellSak: Boolean = false,
 ) {
     init {
-        require(saksnummer != null || generellSak) { "Sak må oppgis"}
+        require(!saksnummer.isNullOrEmpty() || generellSak) { "Sak må oppgis"}
     }
 }

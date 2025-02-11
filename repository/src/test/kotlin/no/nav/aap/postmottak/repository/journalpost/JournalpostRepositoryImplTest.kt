@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.repository.journalpost
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -95,6 +96,7 @@ class JournalpostRepositoryImplTest {
         mottattDato = LocalDate.of(2021, 1, 1),
         kanal = KanalFraKodeverk.UKJENT,
         saksnummer = Saksnummer("saksnummer"),
+        fagsystem = Fagsystem.KELVIN.name,
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "NAV 11-13.05",

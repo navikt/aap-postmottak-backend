@@ -1,22 +1,21 @@
 package no.nav.aap.postmottak.repository.journalpost
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
-import java.util.stream.Collectors
 
 data class DbDokument(
     val dokumentInfoId: DokumentInfoId,
@@ -47,7 +46,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
     
     override fun lagre(journalpost: Journalpost) {
         val query = """
-            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA, KANAL, SAKSNUMMER) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
@@ -59,6 +58,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setString(6, journalpost.tema)
                 setEnumName(7, journalpost.kanal)
                 setString(8, journalpost.saksnummer.toString())
+                setString(9, journalpost.fagsystem)
             }
         }
 
@@ -132,7 +132,8 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             mottattDato = row.getLocalDate("MOTTATT_DATO"),
             kanal = row.getEnum("KANAL"),
             saksnummer = row.getStringOrNull("SAKSNUMMER")?.let(::Saksnummer),
-            dokumenter = hentDokumenter(row.getLong("ID"))
+            dokumenter = hentDokumenter(row.getLong("ID")),
+            fagsystem = row.getStringOrNull("FAGSYSTEM")
         )
     }
 

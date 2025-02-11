@@ -37,7 +37,8 @@ data class AvsenderMottakerDto(
 
 enum class Fagsystem {
     KELVIN,
-    AO01 // Arena
+    AO01, // Arena
+    FS22 // Generell sak
 }
 
 data class JournalpostSak(

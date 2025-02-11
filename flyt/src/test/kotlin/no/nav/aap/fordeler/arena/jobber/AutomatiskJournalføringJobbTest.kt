@@ -56,7 +56,9 @@ class AutomatiskJournalføringJobbTest : WithFakes {
             tema = "AAP",
             status = Journalstatus.MOTTATT,
             kanal = KanalFraKodeverk.NAV_NO,
-            mottattDato = LocalDate.now()
+            mottattDato = LocalDate.now(),
+            fagsystem = null,
+            saksnummer = null
         )
 
 

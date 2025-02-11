@@ -6,14 +6,17 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
+import no.nav.aap.postmottak.gateway.Fagsystem
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
@@ -61,7 +64,7 @@ class VideresendSteg(
 
         requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
 
-        if (!avklarTemaVurdering.skalTilAap) {
+        if (!avklarTemaVurdering.skalTilAap || erJournalførtPåAnnetFagsystem(journalpost)) {
             return Fullført
         }
 
@@ -82,5 +85,9 @@ class VideresendSteg(
         )
 
         return Fullført
+    }
+    
+    private fun erJournalførtPåAnnetFagsystem(journalpost: Journalpost): Boolean {
+        return journalpost.status == Journalstatus.JOURNALFOERT && journalpost.fagsystem != Fagsystem.KELVIN.name
     }
 }

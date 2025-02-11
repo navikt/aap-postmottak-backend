@@ -9,6 +9,8 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.postmottak.gateway.Fagsystem
+import no.nav.aap.postmottak.gateway.Sakstype
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 
 fun Application.safFake(
@@ -79,6 +81,7 @@ fun Application.safFake(
                             "datotype": "DATO_REGISTRERT"
                             }
                           ], 
+                          "sak": ${finnSak(journalpostId.toLong())},
                           "dokumenter": [
                             ${getDokumenter(journalpostId.toLong())}
                            ]
@@ -189,6 +192,16 @@ private fun getDokumenter(journalpostId: Long): String {
     }
 }
 
+private fun finnSak(journalpostId: Long) =
+    when (journalpostId) {
+        STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> """{
+            "fagsakId": "123456",
+            "fagsaksystem": "${Fagsystem.FS22.name}",
+            "sakstype": "${Sakstype.GENERELL_SAK.name}"
+        }"""
+        else -> "null"
+    }
+
 private fun ingenSakerRespons() =
     """
         {
@@ -215,7 +228,7 @@ fun arenaSakerRespons() =
 private fun finnStatus(journalpostId: Long) =
     when (journalpostId) {
         UGYLDIG_STATUS.referanse -> "UTGAAR"
-        STATUS_JOURNALFØRT.referanse -> "JOURNALFOERT"
+        STATUS_JOURNALFØRT.referanse, STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> "JOURNALFOERT"
         else -> "MOTTATT"
     }
 

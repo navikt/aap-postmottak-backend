@@ -16,6 +16,7 @@ open class Journalpost(
     val dokumenter: List<Dokument> = emptyList(),
     val kanal: KanalFraKodeverk,
     val saksnummer: Saksnummer?,
+    val fagsystem: String?
 ) {
 
     val hoveddokumentbrevkode: String
@@ -55,12 +56,13 @@ open class Journalpost(
     }
 
     fun erDigital(): Boolean = finnOriginal()?.varianter?.any { it.filtype == Filtype.JSON } ?: false
-    
+
     fun erPapir(): Boolean =
         kanal in listOf(KanalFraKodeverk.SKAN_IM, KanalFraKodeverk.SKAN_PEN, KanalFraKodeverk.SKAN_NETS)
 
     fun erUgyldig(): Boolean =
         status in listOf(Journalstatus.AVBRUTT, Journalstatus.FEILREGISTRERT, Journalstatus.UTGAAR)
+    
 }
 
 open class Dokument(
@@ -68,7 +70,8 @@ open class Dokument(
     val brevkode: String,
     val varianter: List<Variant>
 ) {
-    fun finnFiltype(variantformat: Variantformat): Filtype? = varianter.find { it.variantformat == variantformat }?.filtype
+    fun finnFiltype(variantformat: Variantformat): Filtype? =
+        varianter.find { it.variantformat == variantformat }?.filtype
 }
 
 data class Variant(

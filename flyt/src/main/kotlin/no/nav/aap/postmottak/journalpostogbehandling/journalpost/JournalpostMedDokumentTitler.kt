@@ -2,8 +2,8 @@ package no.nav.aap.postmottak.journalpostogbehandling.journalpost
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.postmottak.gateway.Journalstatus
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
 
 
@@ -16,8 +16,20 @@ class JournalpostMedDokumentTitler(
     mottattDato: LocalDate,
     dokumenter: List<DokumentMedTittel> = emptyList(),
     kanal: KanalFraKodeverk,
-    saksnummer: Saksnummer? = null,
-): Journalpost(journalpostId, person, journalførendeEnhet, tema, status, mottattDato, dokumenter, kanal, saksnummer) {
+    saksnummer: Saksnummer?,
+    fagsystem: String?,
+) : Journalpost(
+    journalpostId,
+    person,
+    journalførendeEnhet,
+    tema,
+    status,
+    mottattDato,
+    dokumenter,
+    kanal,
+    saksnummer,
+    fagsystem
+) {
 
     fun getHoveddokumenttittel() = (hoveddokument as DokumentMedTittel).tittel
 
@@ -32,5 +44,5 @@ class DokumentMedTittel(
     brevkode: String,
     val tittel: String,
     varianter: List<Variant>
-): Dokument(dokumentInfoId, brevkode, varianter)
+) : Dokument(dokumentInfoId, brevkode, varianter)
 

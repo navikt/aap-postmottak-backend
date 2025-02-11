@@ -12,6 +12,7 @@ val UGYLDIG_STATUS = JournalpostId(122)
 val STATUS_JOURNALFØRT = JournalpostId(123)
 val PAPIR_SØKNAD = JournalpostId(124)
 val LEGEERKLÆRING_IKKE_TIL_KELVIN = JournalpostId(125)
+val STATUS_JOURNALFØRT_ANNET_FAGSYSTEM = JournalpostId(126)
 
 val DEFAULT_IDENT = Ident("21345345210")
 val IDENT_UTEN_SAK = Ident("00000001111")

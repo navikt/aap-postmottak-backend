@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
+import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -50,8 +51,8 @@ class AvklarSakSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         /* 
-         * TODO: Når vi tillater at person kan ha Arena-historikk må vi avklare manuelt dersom det finnes sak både i Arena og Kelvin. 
-         * Må da lagre ned fagsystem i saksvurdering. Hvis fagsystem er Arena: opprett en jobb for ArenaVidereseninding,
+         * TODO: Når vi skal tillate at person kan ha Arena-historikk må vi avklare manuelt dersom det finnes sak både i Arena og Kelvin. 
+         * Må da lagre ned fagsystem i saksvurdering. Hvis fagsystem er Arena: opprett en jobb for ArenaVideresending,
          * og no-op resten av denne journalføringsflyten basert på fagsystem
          */
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
@@ -67,10 +68,14 @@ class AvklarSakSteg(
             avklarGenerellSakMaskinelt(kontekst.behandlingId)
             return Fullført
         } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
-            log.info("Journalpost har alt blitt journalført. Setter saksavklaring tilsvarende journalpost.")
+            if (journalpost.fagsystem != Fagsystem.KELVIN.name) {
+                log.info("Journalpost har blitt journalført på annet fagsystem, går videre til neste steg")
+                return Fullført
+            }
+            log.info("Journalpost har alt blitt journalført på Kelvin-sak. Setter saksavklaring tilsvarende journalpost")
             saksnummerRepository.lagreSakVurdering(
                 kontekst.behandlingId,
-                Saksvurdering(saksnummer = journalpost.saksnummer!!.toString())
+                Saksvurdering(saksnummer = journalpost.saksnummer.toString())
             )
             return Fullført
         }

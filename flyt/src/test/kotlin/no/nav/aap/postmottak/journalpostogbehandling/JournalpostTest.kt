@@ -93,6 +93,7 @@ class JournalpostTest {
         journalførendeEnhet = "YOLO",
         kanal = KanalFraKodeverk.UKJENT,
         saksnummer = null,
+        fagsystem = null,
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "Brev",

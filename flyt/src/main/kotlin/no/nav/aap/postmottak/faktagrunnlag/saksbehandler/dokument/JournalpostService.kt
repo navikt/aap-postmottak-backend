@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -7,7 +8,6 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
-import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.PersondataGateway
@@ -15,7 +15,6 @@ import no.nav.aap.postmottak.gateway.SafDatoType
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.journalpostogbehandling.db.PersonRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
@@ -23,6 +22,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedD
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.slf4j.LoggerFactory
 
 class JournalpostService private constructor(
@@ -54,10 +54,7 @@ class JournalpostService private constructor(
 
         val safJournalpost = hentSafJournalpost(journalpostId)
 
-        require(safJournalpost.sak?.fagsaksystem != Fagsystem.AO01.name)
-
         val internJournalpost = tilInternJournalpost(safJournalpost)
-
 
         if (persistertJournalpost != internJournalpost) {
             log.info("Fant endringer i journalpost")
@@ -99,15 +96,19 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
     }?.dato?.toLocalDate() ?: error("Fant ikke dato")
 
     val dokumenter = journalpost.dokumenter?.filterNotNull()?.map { dokument ->
-            DokumentMedTittel(
-                dokumentInfoId = dokument.dokumentInfoId.let(::DokumentInfoId),
-                brevkode = dokument.brevkode ?: "Ukjent",
-                tittel = dokument.tittel ?: "Dokument uten tittel",
-                varianter = dokument.dokumentvarianter?.map {
-                    Variant(Filtype.valueOf(it.filtype),
-                        Variantformat.valueOf(it.variantformat.name)) } ?: emptyList()
-            )
+        DokumentMedTittel(
+            dokumentInfoId = dokument.dokumentInfoId.let(::DokumentInfoId),
+            brevkode = dokument.brevkode ?: "Ukjent",
+            tittel = dokument.tittel ?: "Dokument uten tittel",
+            varianter = dokument.dokumentvarianter?.map {
+                Variant(
+                    Filtype.valueOf(it.filtype),
+                    Variantformat.valueOf(it.variantformat.name)
+                )
+            } ?: emptyList()
+        )
     } ?: emptyList()
+    
     return JournalpostMedDokumentTitler(
         person = person,
         journalpostId = journalpost.journalpostId.let(::JournalpostId),
@@ -117,6 +118,7 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
         mottattDato = mottattDato,
         dokumenter = dokumenter,
         kanal = journalpost.kanal,
-
+        saksnummer = sak?.fagsakId?.let(::Saksnummer),
+        fagsystem = sak?.fagsaksystem
     )
 }
