@@ -12,6 +12,7 @@ import no.nav.aap.fordeler.arena.jobber.getArenaVideresenderKontekst
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
@@ -45,6 +46,7 @@ class ArenaVideresenderTest {
             every { getHoveddokumenttittel() } returns "Hoveddokumenttittel"
             every { getVedleggTitler() } returns listOf("Vedlegg")
             every { person } returns mockk { every{aktivIdent()} returns Ident("1") }
+            every { status } returns Journalstatus.MOTTATT
 
         }
         every { enhetsutreder.finnNavenhetForJournalpost(journalpost) } returns "enhet"
@@ -75,6 +77,7 @@ class ArenaVideresenderTest {
             every { person } returns mockk { every{aktivIdent()} returns actualKontekst.ident }
             every { getHoveddokumenttittel() } returns actualKontekst.hoveddokumenttittel
             every { getVedleggTitler() } returns actualKontekst.vedleggstitler
+            every { status } returns Journalstatus.MOTTATT
         }
 
         every { journalpostService.hentjournalpost(actualKontekst.journalpostId) } returns journalpost
@@ -106,6 +109,7 @@ class ArenaVideresenderTest {
             every { hoveddokumentbrevkode } returns Brevkoder.STANDARD_ETTERSENDING.kode
             every { getHoveddokumenttittel() } returns arenaVideresenderKontekst.hoveddokumenttittel
             every { getVedleggTitler() } returns arenaVideresenderKontekst.vedleggstitler
+            every { status } returns Journalstatus.MOTTATT
         }
 
         every { enhetsutreder.finnNavenhetForJournalpost(any()) } returns arenaVideresenderKontekst.navEnhet
@@ -138,6 +142,7 @@ class ArenaVideresenderTest {
             every { person } returns mockk { every{aktivIdent()} returns actualKontekst.ident }
             every { getHoveddokumenttittel() } returns actualKontekst.hoveddokumenttittel
             every { getVedleggTitler() } returns actualKontekst.vedleggstitler
+            every { status } returns Journalstatus.MOTTATT
         }
 
         every { journalpostService.hentjournalpost(actualKontekst.journalpostId) } returns journalpost
@@ -151,5 +156,21 @@ class ArenaVideresenderTest {
         }) }
 
     }
+    
+    @Test
+    fun `Allerede journalførte journalposter skal ikke føre til nye oppgaver i Arena eller Gosys`() {
+        
+        val journalpostId_ = JournalpostId(1)
+        val journalpost: JournalpostMedDokumentTitler = mockk {
+            every { journalpostId } returns journalpostId_
+            every { status } returns Journalstatus.JOURNALFOERT
+        }
+
+        every { journalpostService.hentjournalpost(journalpostId_) } returns journalpost
+
+        arenaVideresender.videresendJournalpostTilArena(journalpostId_)
+
+        verify(exactly = 0) { flytJobbRepository.leggTil(any()) }
+    } 
 
 }

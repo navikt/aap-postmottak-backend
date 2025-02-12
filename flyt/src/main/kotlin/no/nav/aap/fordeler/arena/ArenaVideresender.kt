@@ -14,11 +14,14 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import org.slf4j.LoggerFactory
 
 private const val ARENA_LEGEERKLÆRING_TEMA = "OPP"
+private val log = LoggerFactory.getLogger(ArenaVideresender::class.java)
 
 class ArenaVideresender(
     val journalpostService: JournalpostService,
@@ -37,6 +40,14 @@ class ArenaVideresender(
 
     fun videresendJournalpostTilArena(journalpostId: JournalpostId) {
         val journalpost = journalpostService.hentjournalpost(journalpostId)
+        
+        if (journalpost.status == Journalstatus.JOURNALFOERT) {
+            log.info("Journalposten er allerede journalført - oppretter ikke oppgaver i Arena eller gosys")
+            return
+        } else if (journalpost.status == Journalstatus.UTGAAR) {
+            log.info("Journalposten er utgått - oppretter ikke oppgaver i Arena eller gosys")
+            return
+        }
         
         val videresenderKontekst = opprettArenaVideresenderKontekst(journalpost)
         if (videresenderKontekst.navEnhet == null) {
