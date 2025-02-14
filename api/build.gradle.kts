@@ -4,9 +4,9 @@ plugins {
 
 val junitVersjon = "5.11.4"
 val ktorVersion = "3.1.0"
-val komponenterVersjon = "1.0.123"
-val tilgangVersjon = "1.0.2"
-val behandlingsflytVersjon = "0.0.132"
+val komponenterVersjon = "1.0.146"
+val tilgangVersjon = "1.0.4"
+val behandlingsflytVersjon = "0.0.155"
 
 dependencies {
     api(project(":flyt"))

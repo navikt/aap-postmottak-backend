@@ -3,7 +3,7 @@ val ktorVersion = "3.1.0"
 val tilgangVersjon = "0.0.94"
 val jacksonVersion = "2.18.2"
 val junitVersion = "5.11.3"
-val behandlingsflytVersjon = "0.0.132"
+val behandlingsflytVersjon = "0.0.155"
 
 plugins {
     id("postmottak.conventions")

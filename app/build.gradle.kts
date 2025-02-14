@@ -1,10 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 val ktorVersion = "3.1.0"
-val komponenterVersjon = "1.0.123"
+val komponenterVersjon = "1.0.146"
 val kafkaVersion = "3.7.0"
-val tilgangVersjon = "1.0.2"
-val behandlingsflytVersjon = "0.0.132"
+val tilgangVersjon = "1.0.4"
+val behandlingsflytVersjon = "0.0.155"
 val junitVersjon = "5.11.4"
 
 plugins {
