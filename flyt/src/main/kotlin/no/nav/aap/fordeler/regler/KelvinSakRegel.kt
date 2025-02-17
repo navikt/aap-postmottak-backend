@@ -1,12 +1,13 @@
 package no.nav.aap.fordeler.regler
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 
 class KelvinSakRegel : Regel<KelvinSakRegelInput> {
     companion object : RegelFactory<KelvinSakRegelInput> {
         override val erAktiv = miljøConfig(prod = false, dev = true)
-        override fun medDataInnhenting() =
+        override fun medDataInnhenting(connection: DBConnection?) =
             RegelMedInputgenerator(KelvinSakRegel(), KelvinSakRegelInputGenerator())
     }
 

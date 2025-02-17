@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler.regler
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.gateway.Fagsystem
@@ -10,7 +11,7 @@ import no.nav.aap.postmottak.gateway.SafSak
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
     companion object : RegelFactory<ArenaHistorikkRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = true)
-        override fun medDataInnhenting() =
+        override fun medDataInnhenting(connection: DBConnection?) =
             RegelMedInputgenerator(ArenaHistorikkRegel(), ArenaSakRegelInputGenerator())
     }
 

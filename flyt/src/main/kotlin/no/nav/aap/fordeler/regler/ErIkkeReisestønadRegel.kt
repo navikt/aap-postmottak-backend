@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler.regler
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 
 data class ErIkkeReisestønadRegelInput(
@@ -10,7 +11,7 @@ class ErIkkeReisestønadRegel : Regel<ErIkkeReisestønadRegelInput> {
     companion object : RegelFactory<ErIkkeReisestønadRegelInput> {
         // Oppdater RegelResultat dersom denne deaktiveres
         override val erAktiv = miljøConfig(prod = true, dev = true)
-        override fun medDataInnhenting() =
+        override fun medDataInnhenting(connection: DBConnection?) =
             RegelMedInputgenerator(ErIkkeReisestønadRegel(), ErIkkeReisestønadRegelInputGenerator())
     }
 

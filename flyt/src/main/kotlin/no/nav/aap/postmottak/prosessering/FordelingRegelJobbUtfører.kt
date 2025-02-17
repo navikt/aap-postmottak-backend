@@ -32,7 +32,7 @@ class FordelingRegelJobbUtfører(
             return FordelingRegelJobbUtfører(
                 FlytJobbRepository(connection),
                 JournalpostService.konstruer(connection),
-                FordelerRegelService(),
+                FordelerRegelService(connection),
                 repositoryProvider.provide(InnkommendeJournalpostRepository::class),
                 PrometheusProvider.prometheus
             )

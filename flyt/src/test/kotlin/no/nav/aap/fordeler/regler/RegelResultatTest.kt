@@ -13,7 +13,7 @@ class RegelResultatTest {
                 "KelvinSakRegel" to true,
                 "ErIkkeReisestønadRegel" to true,
                 "GeografiskTilknytningRegel" to false,
-
+                "MaksAntallPersonerIKelvinRegel" to false,
             )
         )
         
@@ -27,6 +27,7 @@ class RegelResultatTest {
                 "KelvinSakRegel" to false,
                 "GeografiskTilknytningRegel" to true,
                 "ErIkkeReisestønadRegel" to true,
+                "MaksAntallPersonerIKelvinRegel" to true,
             )
         )
 
@@ -40,6 +41,7 @@ class RegelResultatTest {
                 "KelvinSakRegel" to true,
                 "ErIkkeReisestønadRegel" to false,
                 "GeografiskTilknytningRegel" to true,
+                "MaksAntallPersonerIKelvinRegel" to true,
             )
         )
 
@@ -53,6 +55,7 @@ class RegelResultatTest {
                 "KelvinSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "GeografiskTilknytningRegel" to false,
+                "MaksAntallPersonerIKelvinRegel" to true
             )
         )
 

@@ -4,15 +4,18 @@ import no.nav.aap.fordeler.RegelRepository
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.Factory
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 
-class RegelRepositoryImpl(private val connection: DBConnection): RegelRepository {
+class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepository {
+    private val personRepositoryImpl = PersonRepositoryImpl(connection)
 
-    companion object: Factory<RegelRepositoryImpl> {
+    companion object : Factory<RegelRepositoryImpl> {
         override fun konstruer(connection: DBConnection): RegelRepositoryImpl {
             return RegelRepositoryImpl(connection)
         }
     }
-    
+
     override fun hentRegelresultat(journalpostId: Long): Regelresultat {
         return connection.queryList(
             """
@@ -27,6 +30,20 @@ class RegelRepositoryImpl(private val connection: DBConnection): RegelRepository
                 row.getString("REGEL_NAVN") to row.getBoolean("RESULTAT")
             }
         }.toMap().let { Regelresultat(it) }
+    }
+
+    override fun hentPersonerMedJournalpostVideresendtTilKelvin(): List<Person> {
+        return connection.queryList(
+            """
+            SELECT distinct person_id FROM JOURNALPOST j 
+            INNER JOIN INNKOMMENDE_JOURNALPOST ijp
+            ON j.JOURNALPOST_ID = ijp.JOURNALPOST_ID
+            JOIN REGELSETT_RESULTAT rr ON rr.INNKOMMENDE_JOURNALPOST = ijp.ID
+            WHERE rr.SYSTEM_NAVN = 'KELVIN'
+        """.trimIndent()
+        ) {
+            setRowMapper { row -> personRepositoryImpl.hent(row.getLong("PERSON_ID")) }
+        }
     }
 
     override fun lagre(journalpostId: Long, regelresultat: Regelresultat) {
