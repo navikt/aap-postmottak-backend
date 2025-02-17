@@ -8,6 +8,8 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -122,6 +124,9 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
         @Suppress("UnauthorizedPost")
         post<Unit, BehandlingsreferansePathParam, JournalpostDto> { _, body ->
             val referanse = dataSource.transaction { connection ->
+                if (Miljø.er() != MiljøKode.LOKALT) {
+                    throw IllegalStateException("Behandling kan kun opprettes manuelt i lokalt miljø")
+                }
                 val repositoryProvider = RepositoryProvider(connection)
                 val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
                 
