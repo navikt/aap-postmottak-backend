@@ -10,13 +10,13 @@ interface AapInternApiGateway: Gateway {
 
 data class SakStatus(
     val sakId: String,
-    val vedtakStatusKode: String,
+    val StatusKode: String,
     val periode: Periode,
     val kilde: Kilde
 )
 
 enum class Kilde {
     ARENA,
-    Kelvin
+    KELVIN
 }
 data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?)
