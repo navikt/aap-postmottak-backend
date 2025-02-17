@@ -11,6 +11,7 @@ open class Journalpost(
     val person: Person,
     val journalførendeEnhet: String?,
     val tema: String,
+    val behandlingstema: String?,
     val status: Journalstatus,
     val mottattDato: LocalDate,
     val dokumenter: List<Dokument> = emptyList(),
@@ -30,7 +31,9 @@ open class Journalpost(
             it.brevkode == Brevkoder.SØKNAD.kode
         }
     }
-
+    
+    fun behandlingstema(): String? = behandlingstema
+    
     fun status(): Journalstatus = status
 
     fun dokumenter(): List<Dokument> = dokumenter
@@ -62,7 +65,6 @@ open class Journalpost(
 
     fun erUgyldig(): Boolean =
         status in listOf(Journalstatus.AVBRUTT, Journalstatus.FEILREGISTRERT, Journalstatus.UTGAAR)
-    
 }
 
 open class Dokument(

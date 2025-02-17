@@ -103,7 +103,7 @@ class ArenaVideresender(
     }
 
     private fun opprettArenaVideresenderKontekst(journalpost: JournalpostMedDokumentTitler): ArenaVideresenderKontekst {
-        val enhet = enhetsutreder.finnNavenhetForJournalpost(journalpost)
+        val enhet = enhetsutreder.finnJournalføringsenhet(journalpost)
         return journalpost.opprettArenaVideresenderKontekst(enhet)
     }
 

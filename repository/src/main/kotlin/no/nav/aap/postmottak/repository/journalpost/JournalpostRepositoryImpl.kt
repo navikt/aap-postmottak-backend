@@ -46,7 +46,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
     
     override fun lagre(journalpost: Journalpost) {
         val query = """
-            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM, BEHANDLINGSTEMA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
@@ -59,6 +59,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setEnumName(7, journalpost.kanal)
                 setString(8, journalpost.saksnummer.toString())
                 setString(9, journalpost.fagsystem)
+                setString(10, journalpost.behandlingstema)
             }
         }
 
@@ -133,7 +134,8 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             kanal = row.getEnum("KANAL"),
             saksnummer = row.getStringOrNull("SAKSNUMMER")?.let(::Saksnummer),
             dokumenter = hentDokumenter(row.getLong("ID")),
-            fagsystem = row.getStringOrNull("FAGSYSTEM")
+            fagsystem = row.getStringOrNull("FAGSYSTEM"),
+            behandlingstema = row.getStringOrNull("BEHANDLINGSTEMA")
         )
     }
 

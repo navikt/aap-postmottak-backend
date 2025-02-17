@@ -1,0 +1,1 @@
+alter table journalpost add column behandlingstema varchar(100);

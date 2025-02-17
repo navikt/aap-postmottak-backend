@@ -25,6 +25,8 @@ class InnkommendeJournalpostRepositoryImpl(
             setRowMapper { row -> InnkommendeJournalpost(
                 journalpostId = journalpostId,
                 status = row.getEnum("status"),
+                behandlingstema = row.getStringOrNull("behandlingstema"),
+                brevkode = row.getStringOrNull("brevkode"),
                 regelresultat = regelRepository.hentRegelresultat(row.getLong("ID"))
             ) }
         }
@@ -32,12 +34,14 @@ class InnkommendeJournalpostRepositoryImpl(
     
     override fun lagre(innkommendeJournalpost: InnkommendeJournalpost) {
         val query = """
-            INSERT INTO innkommende_journalpost (journalpost_id, status) VALUES (?, ?)
+            INSERT INTO innkommende_journalpost (journalpost_id, behandlingstema, brevkode, status) VALUES (?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
                 setLong(1, innkommendeJournalpost.journalpostId.referanse)
                 setEnumName(2, innkommendeJournalpost.status)
+                setString(3, innkommendeJournalpost.behandlingstema)
+                setString(4, innkommendeJournalpost.brevkode)
             }
         }
         

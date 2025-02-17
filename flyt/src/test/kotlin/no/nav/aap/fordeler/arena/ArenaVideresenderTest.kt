@@ -49,7 +49,7 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.MOTTATT
 
         }
-        every { enhetsutreder.finnNavenhetForJournalpost(journalpost) } returns "enhet"
+        every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns "enhet"
 
         every { journalpostService.hentjournalpost(journalpostId_) } returns journalpost
 
@@ -81,7 +81,7 @@ class ArenaVideresenderTest {
         }
 
         every { journalpostService.hentjournalpost(actualKontekst.journalpostId) } returns journalpost
-        every { enhetsutreder.finnNavenhetForJournalpost(journalpost) } returns actualKontekst.navEnhet
+        every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns actualKontekst.navEnhet
 
         arenaVideresender.videresendJournalpostTilArena(actualKontekst.journalpostId)
 
@@ -112,7 +112,7 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.MOTTATT
         }
 
-        every { enhetsutreder.finnNavenhetForJournalpost(any()) } returns arenaVideresenderKontekst.navEnhet
+        every { enhetsutreder.finnJournalføringsenhet(any()) } returns arenaVideresenderKontekst.navEnhet
 
         every { journalpostService.hentjournalpost(arenaVideresenderKontekst.journalpostId) } returns journalpost
 
@@ -146,7 +146,7 @@ class ArenaVideresenderTest {
         }
 
         every { journalpostService.hentjournalpost(actualKontekst.journalpostId) } returns journalpost
-        every { enhetsutreder.finnNavenhetForJournalpost(journalpost) } returns actualKontekst.navEnhet
+        every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns actualKontekst.navEnhet
 
         arenaVideresender.videresendJournalpostTilArena(actualKontekst.journalpostId)
 

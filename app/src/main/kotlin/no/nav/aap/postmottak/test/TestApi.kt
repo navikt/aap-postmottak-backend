@@ -7,6 +7,7 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
+import no.nav.aap.fordeler.EnhetMedOppfølgingsKontor
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
@@ -61,8 +62,8 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
                 respond(response)
             }
         }
-        route("/test/finnEnhetForPerson/{ident}") {
-            get<FinnEntitetRequest, String> { req ->
+        route("/test/finnEnhetMedOppfolgingskontor/{ident}") {
+            get<FinnEntitetRequest, EnhetMedOppfølgingsKontor> { req ->
                 val ident = Ident(req.ident)
 
                 log.info("Finner enhet for : $req")
@@ -74,7 +75,7 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
                     VeilarbarenaKlient()
                 )
 
-                val response = enhetsutreder.finnNavenhetForPerson(Person(1, UUID.randomUUID(), listOf(ident)))
+                val response = enhetsutreder.finnEnhetMedOppfølgingskontor(Person(1, UUID.randomUUID(), listOf(ident)))
                 if (response == null) {
                     respondWithStatus(HttpStatusCode.NotFound)
                 } else {

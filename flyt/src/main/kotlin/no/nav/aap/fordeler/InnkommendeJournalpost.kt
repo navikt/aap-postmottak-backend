@@ -9,6 +9,8 @@ enum class InnkommendeJournalpostStatus{
 
 data class InnkommendeJournalpost(
     val journalpostId: JournalpostId,
+    val brevkode: String?,
+    val behandlingstema: String?,
     val status: InnkommendeJournalpostStatus,
     val regelresultat: Regelresultat,
 )

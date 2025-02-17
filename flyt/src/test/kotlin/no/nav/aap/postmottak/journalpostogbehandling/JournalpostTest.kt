@@ -89,6 +89,7 @@ class JournalpostTest {
         journalpostId = JournalpostId(1),
         status = Journalstatus.MOTTATT,
         tema = "AAP",
+        behandlingstema = null,
         mottattDato = LocalDate.of(2021, 1, 1),
         journalførendeEnhet = "YOLO",
         kanal = KanalFraKodeverk.UKJENT,

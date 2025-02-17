@@ -92,6 +92,7 @@ class JournalpostRepositoryImplTest {
         person = person,
         journalførendeEnhet = "YOLO",
         tema = tema,
+        behandlingstema = null,
         status = Journalstatus.MOTTATT,
         mottattDato = LocalDate.of(2021, 1, 1),
         kanal = KanalFraKodeverk.UKJENT,

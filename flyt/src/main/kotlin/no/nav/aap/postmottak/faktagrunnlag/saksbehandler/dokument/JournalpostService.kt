@@ -114,6 +114,7 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
         journalpostId = journalpost.journalpostId.let(::JournalpostId),
         status = journalpost.journalstatus ?: Journalstatus.UKJENT,
         tema = journalpost.tema,
+        behandlingstema = journalpost.behandlingstema,
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,
         dokumenter = dokumenter,

@@ -49,6 +49,7 @@ class DynamiskStegGruppeVisningServiceTest {
                 journalførendeEnhet = null,
                 status = Journalstatus.MOTTATT,
                 tema = "AAP",
+                behandlingstema = null,
                 dokumenter = listOf(
                     Dokument(
                         brevkode = "NAV 11-13.05",

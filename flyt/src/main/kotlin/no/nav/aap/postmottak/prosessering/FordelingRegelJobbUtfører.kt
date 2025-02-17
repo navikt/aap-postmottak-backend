@@ -61,6 +61,8 @@ class FordelingRegelJobbUtfører(
 
         val innkommendeJournalpost = InnkommendeJournalpost(
             journalpostId = journalpostId,
+            brevkode = journalpost.hoveddokumentbrevkode,
+            behandlingstema = journalpost.behandlingstema,
             status = InnkommendeJournalpostStatus.EVALUERT,
             regelresultat = res
         )

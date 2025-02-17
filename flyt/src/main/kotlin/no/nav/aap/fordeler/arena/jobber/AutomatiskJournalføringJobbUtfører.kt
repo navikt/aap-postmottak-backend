@@ -44,7 +44,7 @@ class AutomatiskJournalføringJobbUtfører(
 
         if (input.antallRetriesForsøkt() >= retries()) {
             val journalpost = journalpostService.hentjournalpost(kontekst.journalpostId)
-            val enhet = enhetsutreder.finnNavenhetForJournalpost(journalpost)
+            val enhet = enhetsutreder.finnJournalføringsenhet(journalpost)
             flytJobbRepository.leggTil(
                 JobbInput(ManuellJournalføringJobbUtfører)
                     .medArenaVideresenderKontekst(journalpost.opprettArenaVideresenderKontekst(enhet))

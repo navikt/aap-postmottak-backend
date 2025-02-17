@@ -58,7 +58,8 @@ class AutomatiskJournalføringJobbTest : WithFakes {
             kanal = KanalFraKodeverk.NAV_NO,
             mottattDato = LocalDate.now(),
             fagsystem = null,
-            saksnummer = null
+            saksnummer = null,
+            behandlingstema = null
         )
 
 
@@ -73,7 +74,7 @@ class AutomatiskJournalføringJobbTest : WithFakes {
         ))
 
         every { journalpostServiceMock.hentjournalpost(any()) } returns journalpost
-        every { enhetsutrederMock.finnNavenhetForJournalpost(any()) } returns "4491"
+        every { enhetsutrederMock.finnJournalføringsenhet(any()) } returns "4491"
         every { jobbInput.antallRetriesForsøkt() } returns 3
 
         automatiskJournalføringJobb.utfør(jobbInput)
