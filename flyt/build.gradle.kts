@@ -8,11 +8,13 @@ val ktorVersion = "3.1.0"
 val tilgangVersjon = "1.0.4"
 val junitVersjon = "5.11.4"
 val kafkaVersion = "3.7.0"
+val apiInternVersjon = "0.0.1"
 
 dependencies {
     api(project(":kontrakt"))
     api("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
+    implementation("no.nav.aap.api.intern:kontrakt:$apiInternVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")

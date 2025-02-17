@@ -1,11 +1,11 @@
 package no.nav.aap.fordeler.regler
 
+import no.nav.aap.api.intern.Kilde
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalpostGateway
-import no.nav.aap.postmottak.gateway.Kilde
 import no.nav.aap.postmottak.gateway.SafSak
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {

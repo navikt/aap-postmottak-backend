@@ -1,14 +1,15 @@
 package no.nav.aap.fordeler.regler
 
+import no.nav.aap.api.intern.Kilde
+import no.nav.aap.api.intern.Periode
+import no.nav.aap.api.intern.SakStatus
+import no.nav.aap.api.intern.Status
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.gateway.JournalpostGateway
-import no.nav.aap.postmottak.gateway.Kilde
-import no.nav.aap.postmottak.gateway.Periode
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.SafSak
-import no.nav.aap.postmottak.gateway.SakStatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -76,7 +77,7 @@ class ApiInternMock : AapInternApiGateway {
         return listOf(
             SakStatus(
                 sakId = "1",
-                statusKode = "AVS",
+                statusKode = Status.AVSLU,
                 Periode(fom, tom),
                 kilde = Kilde.ARENA
             )

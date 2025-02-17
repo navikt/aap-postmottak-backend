@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.klient
 
+import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -8,7 +9,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
-import no.nav.aap.postmottak.gateway.SakStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import java.net.URI
 
