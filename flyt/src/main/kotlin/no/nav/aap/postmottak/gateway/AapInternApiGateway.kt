@@ -10,7 +10,7 @@ interface AapInternApiGateway: Gateway {
 
 data class SakStatus(
     val sakId: String,
-    val StatusKode: String,
+    val statusKode: String,
     val periode: Periode,
     val kilde: Kilde
 )

@@ -76,7 +76,7 @@ class ApiInternMock : AapInternApiGateway {
         return listOf(
             SakStatus(
                 sakId = "1",
-                StatusKode = "AVS",
+                statusKode = "AVS",
                 Periode(fom, tom),
                 kilde = Kilde.ARENA
             )

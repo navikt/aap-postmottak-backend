@@ -28,7 +28,7 @@ class AapApiInternKlientTest : WithFakes {
              [
                 {
                     "sakId": "1234",
-                    "StatusKode": "AVSLU",
+                    "statusKode": "AVSLU",
                     "periode": {
                         "fraOgMedDato": "2020-01-01",
                         "tilOgMedDato": "2020-12-31"
