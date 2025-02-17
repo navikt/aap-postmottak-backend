@@ -17,6 +17,6 @@ data class SakStatus(
 
 enum class Kilde {
     ARENA,
-    KELVIN
+    Kelvin
 }
 data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?)
