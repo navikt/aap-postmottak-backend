@@ -5,6 +5,8 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.fordeler.Enhetsutreder
+import no.nav.aap.lookup.gateway.GatewayRegistry
+import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
@@ -19,9 +21,15 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.klient.joark.JoarkClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.*
@@ -37,6 +45,15 @@ class AutomatiskJournalføringJobbTest : WithFakes {
         journalpostServiceMock,
         enhetsutrederMock
     )
+
+    @BeforeEach
+    fun setup() {
+        RepositoryRegistry.register(JournalpostRepositoryImpl::class)
+        RepositoryRegistry.register(BehandlingRepositoryImpl::class)
+        RepositoryRegistry.register(PersonRepositoryImpl::class)
+        GatewayRegistry.register(SafGraphqlClientCredentialsClient::class)
+        GatewayRegistry.register(PdlGraphqlKlient::class)
+    }
     
     @Test
     fun `Skal opprette manuell journalføirngsjobb dersom automatisk journalføring har feilet 2 ganger`() {
@@ -73,7 +90,7 @@ class AutomatiskJournalføringJobbTest : WithFakes {
             jobbKontekst
         ))
 
-        every { journalpostServiceMock.hentjournalpost(any()) } returns journalpost
+        every { journalpostServiceMock.hentJournalpostMedDokumentTitler(any()) } returns journalpost
         every { enhetsutrederMock.finnJournalføringsenhet(any()) } returns "4491"
         every { jobbInput.antallRetriesForsøkt() } returns 3
 

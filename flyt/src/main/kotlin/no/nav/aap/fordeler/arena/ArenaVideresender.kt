@@ -39,7 +39,7 @@ class ArenaVideresender(
     }
 
     fun videresendJournalpostTilArena(journalpostId: JournalpostId) {
-        val journalpost = journalpostService.hentjournalpost(journalpostId)
+        val journalpost = journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
         
         if (journalpost.status == Journalstatus.JOURNALFOERT) {
             log.info("Journalposten er allerede journalført - oppretter ikke oppgaver i Arena eller gosys")

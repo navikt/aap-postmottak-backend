@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 class SendSøknadTilArenaJobbUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     private val arenaKlient: ArenaGateway,
-    override val journalpostService: JournalpostService
+    journalpostService: JournalpostService
 ) : ArenaJobbutførerBase(journalpostService) {
 
     companion object : Jobb {

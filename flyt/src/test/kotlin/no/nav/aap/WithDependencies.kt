@@ -16,6 +16,7 @@ import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboClient
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
@@ -51,6 +52,7 @@ interface WithDependencies {
                 .register<OppgaveKlient>()
                 .register<GosysOppgaveKlient>()
                 .register<SafGraphqlClientCredentialsClient>()
+                .register<SafGraphqlOboClient>()
                 .register<SafRestClient>()
                 .register<BehandlingsflytKlient>()
                 .register<JoarkClient>()

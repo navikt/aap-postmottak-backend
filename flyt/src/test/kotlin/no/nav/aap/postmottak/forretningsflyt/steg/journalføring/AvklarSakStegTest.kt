@@ -4,7 +4,6 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
@@ -148,7 +147,7 @@ class AvklarSakStegTest {
     @Test
     fun `dersom journalposten allerede er journalført på Kelvin-sak skal vi lage en saksavklaring med saksnummeret journalposten er journalført på`() {
         val journalpost: Journalpost = mockk(relaxed = true)
-        val saksnummer = Saksnummer("saksnummer")
+        val saksnummer = "saksnummer"
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.erUgyldig() } returns false

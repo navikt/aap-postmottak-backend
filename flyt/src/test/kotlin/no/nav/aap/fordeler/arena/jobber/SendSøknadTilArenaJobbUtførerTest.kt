@@ -20,7 +20,7 @@ class SendSøknadTilArenaJobbUtførerTest: WithFakes {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val arenaKlientMock = mockk<ArenaKlient>(relaxed = true)
     val journalpostService = mockk<JournalpostService>(relaxed = true) {
-        every { hentjournalpost(any()) } returns mockk(relaxed = true) {
+        every { hentJournalpostMedDokumentTitler(any()) } returns mockk(relaxed = true) {
             every { status } returns Journalstatus.MOTTATT
         }
     }

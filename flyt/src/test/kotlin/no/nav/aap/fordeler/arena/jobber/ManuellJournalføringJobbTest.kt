@@ -27,7 +27,7 @@ class ManuellJournalføringJobbTest: WithFakes {
 
     @BeforeEach
     fun beforeEach() {
-        every { journalpostServiceMock.hentjournalpost(any()) } returns journalpostMock
+        every { journalpostServiceMock.hentJournalpostMedDokumentTitler(any()) } returns journalpostMock
     }
     
     @Test

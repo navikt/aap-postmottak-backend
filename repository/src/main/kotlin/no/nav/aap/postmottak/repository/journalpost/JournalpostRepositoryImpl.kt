@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.repository.journalpost
 
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.lookup.repository.Factory
@@ -24,7 +23,7 @@ data class DbDokument(
     val variantformat: Variantformat,
     ){
     companion object {
-        fun formDokument(dokument: Dokument) = dokument.varianter.map {
+        fun fraDokument(dokument: Dokument) = dokument.varianter.map {
             DbDokument(
                 dokument.dokumentInfoId,
                 dokument.brevkode,
@@ -66,7 +65,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
         val dokumentQuery = """
                 INSERT INTO DOKUMENT (JOURNALPOST_ID, DOKUMENT_INFO_ID, BREVKODE, VARIANTFORMAT, FILTYPE) VALUES (?, ?, ?, ?, ?)
             """.trimIndent()
-        connection.executeBatch(dokumentQuery, journalpost.dokumenter().flatMap { DbDokument.formDokument(it) }) {
+        connection.executeBatch(dokumentQuery, journalpost.dokumenter().flatMap { DbDokument.fraDokument(it) }) {
             setParams { dokument ->
                 setLong(1, journalpostId)
                 setString(2, dokument.dokumentInfoId.dokumentInfoId)
@@ -132,7 +131,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             tema = row.getString("TEMA"),
             mottattDato = row.getLocalDate("MOTTATT_DATO"),
             kanal = row.getEnum("KANAL"),
-            saksnummer = row.getStringOrNull("SAKSNUMMER")?.let(::Saksnummer),
+            saksnummer = row.getStringOrNull("SAKSNUMMER"),
             dokumenter = hentDokumenter(row.getLong("ID")),
             fagsystem = row.getStringOrNull("FAGSYSTEM"),
             behandlingstema = row.getStringOrNull("BEHANDLINGSTEMA")

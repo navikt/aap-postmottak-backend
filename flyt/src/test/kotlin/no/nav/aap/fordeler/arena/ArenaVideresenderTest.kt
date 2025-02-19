@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 class ArenaVideresenderTest {
-
     val journalpostService: JournalpostService = mockk()
     val joarkClient: JournalføringsGateway = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
@@ -51,7 +50,7 @@ class ArenaVideresenderTest {
         }
         every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns "enhet"
 
-        every { journalpostService.hentjournalpost(journalpostId_) } returns journalpost
+        every { journalpostService.hentJournalpostMedDokumentTitler(journalpostId_) } returns journalpost
 
         arenaVideresender.videresendJournalpostTilArena(journalpostId_)
 
@@ -80,7 +79,7 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.MOTTATT
         }
 
-        every { journalpostService.hentjournalpost(actualKontekst.journalpostId) } returns journalpost
+        every { journalpostService.hentJournalpostMedDokumentTitler(actualKontekst.journalpostId) } returns journalpost
         every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns actualKontekst.navEnhet
 
         arenaVideresender.videresendJournalpostTilArena(actualKontekst.journalpostId)
@@ -114,7 +113,7 @@ class ArenaVideresenderTest {
 
         every { enhetsutreder.finnJournalføringsenhet(any()) } returns arenaVideresenderKontekst.navEnhet
 
-        every { journalpostService.hentjournalpost(arenaVideresenderKontekst.journalpostId) } returns journalpost
+        every { journalpostService.hentJournalpostMedDokumentTitler(arenaVideresenderKontekst.journalpostId) } returns journalpost
 
         arenaVideresender.videresendJournalpostTilArena(arenaVideresenderKontekst.journalpostId)
 
@@ -145,7 +144,7 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.MOTTATT
         }
 
-        every { journalpostService.hentjournalpost(actualKontekst.journalpostId) } returns journalpost
+        every { journalpostService.hentJournalpostMedDokumentTitler(actualKontekst.journalpostId) } returns journalpost
         every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns actualKontekst.navEnhet
 
         arenaVideresender.videresendJournalpostTilArena(actualKontekst.journalpostId)
@@ -166,7 +165,7 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.JOURNALFOERT
         }
 
-        every { journalpostService.hentjournalpost(journalpostId_) } returns journalpost
+        every { journalpostService.hentJournalpostMedDokumentTitler(journalpostId_) } returns journalpost
 
         arenaVideresender.videresendJournalpostTilArena(journalpostId_)
 

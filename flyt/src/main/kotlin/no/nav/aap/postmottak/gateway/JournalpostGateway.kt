@@ -324,7 +324,7 @@ data class SafDokumentvariant(
 )
 
 enum class SafVariantformat {
-    ARKIV, SLADDET, ORIGINAL
+    ARKIV, FULLVERSJON, PRODUKSJON, PRODUKSJON_DLF, SLADDET, ORIGINAL
 }
 
 data class SafSak(

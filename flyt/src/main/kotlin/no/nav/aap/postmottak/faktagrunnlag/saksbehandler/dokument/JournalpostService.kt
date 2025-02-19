@@ -1,94 +1,74 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.lookup.gateway.GatewayProvider
-import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
-import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.ENDRET
-import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
-import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
+import no.nav.aap.postmottak.faktagrunnlag.register.PersonService
 import no.nav.aap.postmottak.gateway.JournalpostGateway
+import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
-import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.gateway.SafDatoType
 import no.nav.aap.postmottak.gateway.SafJournalpost
-import no.nav.aap.postmottak.journalpostogbehandling.db.PersonRepository
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import org.slf4j.LoggerFactory
 
-class JournalpostService private constructor(
-    private val journalpostRepository: JournalpostRepository,
+class JournalpostService(
     private val journalpostGateway: JournalpostGateway,
-    private val pdlGraphqlKlient: PersondataGateway,
-    private val personRepository: PersonRepository
-) : Informasjonskrav {
-    private val log = LoggerFactory.getLogger(JournalpostService::class.java)
-
-
-    companion object : Informasjonskravkonstruktør {
-        override fun konstruer(connection: DBConnection): JournalpostService {
-            val repositoryProvider = RepositoryProvider(connection)
-            val journalpostGateway = GatewayProvider.provide(JournalpostGateway::class)
+    private val journalpostOboGateway: JournalpostOboGateway,
+    private val personService: PersonService
+) {
+    companion object {
+        fun konstruer(connection: DBConnection): JournalpostService {
             return JournalpostService(
-                repositoryProvider.provide(JournalpostRepository::class),
-                journalpostGateway,
-                GatewayProvider.provide(PersondataGateway::class),
-                repositoryProvider.provide(PersonRepository::class)
+                GatewayProvider.provide(JournalpostGateway::class),
+                GatewayProvider.provide(JournalpostOboGateway::class),
+                PersonService.konstruer(connection)
             )
         }
     }
 
-    override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
-        val persistertJournalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
+    fun hentJournalpostMedDokumentTitler(
+        journalpostId: JournalpostId,
+        token: OidcToken? = null
+    ): JournalpostMedDokumentTitler {
+        val journalpost = hentSafJournalpost(journalpostId, token)
+        val person = personService.finnOgOppdaterPerson(journalpost)
+        return journalpost.tilJournalpostMedDokumentTitler(person)
+    }
 
-        val journalpostId = kontekst.journalpostId
-
-        val safJournalpost = hentSafJournalpost(journalpostId)
-
-        val internJournalpost = tilInternJournalpost(safJournalpost)
-
-        if (persistertJournalpost != internJournalpost) {
-            log.info("Fant endringer i journalpost")
-            journalpostRepository.lagre(internJournalpost)
-            return ENDRET
+    private fun hentSafJournalpost(journalpostId: JournalpostId, token: OidcToken? = null): SafJournalpost {
+        val journalpost = if (token != null) {
+            journalpostOboGateway.hentJournalpost(
+                journalpostId,
+                token
+            )
+        } else {
+            journalpostGateway.hentJournalpost(journalpostId)
         }
-
-        return IKKE_ENDRET
-    }
-
-    fun hentjournalpost(journalpostId: JournalpostId): JournalpostMedDokumentTitler {
-        val journalpost = hentSafJournalpost(journalpostId)
-        return tilInternJournalpost(journalpost)
-    }
-
-    private fun hentSafJournalpost(journalpostId: JournalpostId): SafJournalpost {
-        val journalpost = journalpostGateway.hentJournalpost(journalpostId)
         return journalpost
     }
 
-    private fun tilInternJournalpost(safJournalpost: SafJournalpost): JournalpostMedDokumentTitler {
-        require(safJournalpost.bruker?.id != null) { "journalpost må ha ident" }
-        val identliste = pdlGraphqlKlient.hentAlleIdenterForPerson(safJournalpost.bruker?.id!!)
-
-        if (identliste.isEmpty()) {
-            throw IllegalStateException("Fikk ingen treff på ident i PDL")
+    fun hentJournalpost(journalpostId: JournalpostId, token: OidcToken? = null): Journalpost {
+        val journalpost = if (token != null) {
+            journalpostOboGateway.hentJournalpost(journalpostId, token)
+        } else {
+            journalpostGateway.hentJournalpost(journalpostId)
         }
-        val person = personRepository.finnEllerOpprett(identliste)
-
-        return safJournalpost.tilJournalpost(person)
+        val person = personService.finnOgOppdaterPerson(journalpost)
+        return journalpost.tilJournalpost(person)
     }
+
 }
 
-fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler {
+fun SafJournalpost.tilJournalpostMedDokumentTitler(person: Person): JournalpostMedDokumentTitler {
     val journalpost = this
 
     val mottattDato = journalpost.relevanteDatoer?.find { dato ->
@@ -108,7 +88,7 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
             } ?: emptyList()
         )
     } ?: emptyList()
-    
+
     return JournalpostMedDokumentTitler(
         person = person,
         journalpostId = journalpost.journalpostId.let(::JournalpostId),
@@ -119,7 +99,42 @@ fun SafJournalpost.tilJournalpost(person: Person): JournalpostMedDokumentTitler 
         mottattDato = mottattDato,
         dokumenter = dokumenter,
         kanal = journalpost.kanal,
-        saksnummer = sak?.fagsakId?.let(::Saksnummer),
+        saksnummer = sak?.fagsakId,
+        fagsystem = sak?.fagsaksystem
+    )
+}
+
+fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
+    val journalpost = this
+
+    val mottattDato = journalpost.relevanteDatoer?.find { dato ->
+        dato?.datotype == SafDatoType.DATO_REGISTRERT
+    }?.dato?.toLocalDate() ?: error("Fant ikke dato")
+
+    val dokumenter = journalpost.dokumenter?.filterNotNull()?.map { dokument ->
+        Dokument(
+            dokumentInfoId = dokument.dokumentInfoId.let(::DokumentInfoId),
+            brevkode = dokument.brevkode ?: "Ukjent",
+            varianter = dokument.dokumentvarianter?.map {
+                Variant(
+                    Filtype.valueOf(it.filtype),
+                    Variantformat.valueOf(it.variantformat.name)
+                )
+            } ?: emptyList()
+        )
+    } ?: emptyList()
+
+    return Journalpost(
+        person = person,
+        journalpostId = journalpost.journalpostId.let(::JournalpostId),
+        status = journalpost.journalstatus ?: Journalstatus.UKJENT,
+        tema = journalpost.tema,
+        behandlingstema = journalpost.behandlingstema,
+        journalførendeEnhet = journalpost.journalfoerendeEnhet,
+        mottattDato = mottattDato,
+        dokumenter = dokumenter,
+        kanal = journalpost.kanal,
+        saksnummer = sak?.fagsakId,
         fagsystem = sak?.fagsaksystem
     )
 }

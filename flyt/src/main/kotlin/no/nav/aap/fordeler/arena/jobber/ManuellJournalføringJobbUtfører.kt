@@ -14,7 +14,7 @@ private val log = LoggerFactory.getLogger(ManuellJournalføringJobbUtfører::cla
 
 class ManuellJournalføringJobbUtfører(
     private val gosysOppgaveGateway: GosysOppgaveGateway,
-    override val journalpostService: JournalpostService
+    journalpostService: JournalpostService
 ) : ArenaJobbutførerBase(journalpostService) {
 
     companion object : Jobb {

@@ -49,7 +49,7 @@ class FordelingRegelJobbUtfører(
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
 
-        val journalpost = journalpostService.hentjournalpost(journalpostId)
+        val journalpost = journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
 
         val res = regelService.evaluer(
             RegelInput(

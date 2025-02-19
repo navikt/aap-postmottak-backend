@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 class AutomatiskJournalføringJobbUtfører(
     private val joarkClient: JournalføringsGateway,
     private val flytJobbRepository: FlytJobbRepository,
-    override val journalpostService: JournalpostService,
+    journalpostService: JournalpostService,
     private val enhetsutreder: Enhetsutreder,
 ) : ArenaJobbutførerBase(journalpostService) {
 
@@ -43,7 +43,7 @@ class AutomatiskJournalføringJobbUtfører(
         val kontekst = input.getAutomatiskJournalføringKontekst()
 
         if (input.antallRetriesForsøkt() >= retries()) {
-            val journalpost = journalpostService.hentjournalpost(kontekst.journalpostId)
+            val journalpost = journalpostService.hentJournalpostMedDokumentTitler(kontekst.journalpostId)
             val enhet = enhetsutreder.finnJournalføringsenhet(journalpost)
             flytJobbRepository.leggTil(
                 JobbInput(ManuellJournalføringJobbUtfører)

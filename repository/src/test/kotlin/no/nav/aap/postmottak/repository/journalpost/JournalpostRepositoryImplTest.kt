@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.repository.journalpost
 
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.gateway.Fagsystem
@@ -27,7 +26,9 @@ class JournalpostRepositoryImplTest {
 
     @AfterEach
     fun afterEach() {
-        InitTestDatabase.dataSource.transaction { it.execute("TRUNCATE BEHANDLING CASCADE") }
+        InitTestDatabase.dataSource.transaction {
+            it.execute("TRUNCATE BEHANDLING CASCADE")
+        }
     }
 
     @Test
@@ -96,7 +97,7 @@ class JournalpostRepositoryImplTest {
         status = Journalstatus.MOTTATT,
         mottattDato = LocalDate.of(2021, 1, 1),
         kanal = KanalFraKodeverk.UKJENT,
-        saksnummer = Saksnummer("saksnummer"),
+        saksnummer = "saksnummer",
         fagsystem = Fagsystem.KELVIN.name,
         dokumenter = dokumenter ?: listOf(
             Dokument(
@@ -110,9 +111,13 @@ class JournalpostRepositoryImplTest {
                 ),
             ),
             Dokument(
+                dokumentInfoId = DokumentInfoId("2"),
                 brevkode = "NAV 11-13.05",
-                dokumentInfoId = DokumentInfoId("1"),
                 varianter = listOf(
+                    Variant(
+                        filtype = Filtype.JSON,
+                        variantformat = Variantformat.ORIGINAL
+                    ),
                     Variant(
                         filtype = Filtype.PDF,
                         variantformat = Variantformat.SLADDET
