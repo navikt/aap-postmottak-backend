@@ -9,14 +9,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.gateway.EgenAnsattGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import org.slf4j.LoggerFactory
 import java.net.URI
 
 data class EgenansattRequest(val personident: String)
 
 class NomKlient : EgenAnsattGateway {
-
-    private val log = LoggerFactory.getLogger(NomKlient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.nom.url"))
 
@@ -36,7 +33,6 @@ class NomKlient : EgenAnsattGateway {
     }
 
     override fun erEgenAnsatt(ident: Ident): Boolean {
-        log.info("Sjekker om $ident er egenansatt")
         val egenansattUrl = url.resolve("skjermet")
         val request = PostRequest(
             body = EgenansattRequest(ident.identifikator)
