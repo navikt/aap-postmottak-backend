@@ -5,12 +5,12 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.hendelse.AvklaringsbehovHendelseDto
 import no.nav.aap.postmottak.kontrakt.hendelse.DefinisjonDTO
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import no.nav.aap.postmottak.kontrakt.hendelse.EndringDTO
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.prosessering.StoppetHendelseJobbUtfører
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -64,7 +64,10 @@ class BehandlingHendelseServiceImpl(
 
         log.info("Legger til flytjobber og stoppethendelse for oppgave for behandling: ${behandling.id}")
         flytJobbRepository.leggTil(
-            JobbInput(jobb = StoppetHendelseJobbUtfører).medPayload(payload)
+            JobbInput(jobb = StoppetHendelseJobbUtfører).forBehandling(
+                behandling.journalpostId.referanse,
+                behandling.id.id
+            ).medPayload(payload)
         )
 
     }
