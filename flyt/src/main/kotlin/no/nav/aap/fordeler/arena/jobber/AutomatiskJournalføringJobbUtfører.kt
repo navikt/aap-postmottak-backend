@@ -1,5 +1,7 @@
 package no.nav.aap.fordeler.arena.jobber
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
@@ -7,9 +9,12 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.JournalføringsType
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.journalføringCounter
 import org.slf4j.LoggerFactory
 
 class AutomatiskJournalføringJobbUtfører(
@@ -17,6 +22,7 @@ class AutomatiskJournalføringJobbUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     journalpostService: JournalpostService,
     private val enhetsutreder: Enhetsutreder,
+    val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : ArenaJobbutførerBase(journalpostService) {
 
     companion object : Jobb {
@@ -25,7 +31,8 @@ class AutomatiskJournalføringJobbUtfører(
                 GatewayProvider.provide(JournalføringsGateway::class),
                 FlytJobbRepository(connection),
                 JournalpostService.konstruer(connection),
-                Enhetsutreder.konstruer()
+                Enhetsutreder.konstruer(),
+                PrometheusProvider.prometheus
             )
         }
 
@@ -60,6 +67,7 @@ class AutomatiskJournalføringJobbUtfører(
             fagsystem = Fagsystem.AO01
         )
         joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
+        prometheus.journalføringCounter(type = JournalføringsType.jfr).increment()
     }
 
 }
