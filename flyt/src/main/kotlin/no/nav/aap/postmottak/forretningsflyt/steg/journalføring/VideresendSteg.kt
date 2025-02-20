@@ -59,12 +59,17 @@ class VideresendSteg(
             return Fullført
         }
 
+        if (erJournalførtPåAnnetFagsystem(journalpost)) {
+            log.info("Journalpost er journalført på annet fagsystem - videresender ikke")
+            return Fullført
+        }
+        
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val avklarTemaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
         requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
 
-        if (!avklarTemaVurdering.skalTilAap || erJournalførtPåAnnetFagsystem(journalpost)) {
+        if (!avklarTemaVurdering.skalTilAap) {
             return Fullført
         }
 
@@ -86,7 +91,7 @@ class VideresendSteg(
 
         return Fullført
     }
-    
+
     private fun erJournalførtPåAnnetFagsystem(journalpost: Journalpost): Boolean {
         return journalpost.status == Journalstatus.JOURNALFOERT && journalpost.fagsystem != Fagsystem.KELVIN.name
     }
