@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 
 class FakeStatistikkKlient : StatistikkGateway {
     private val logger = LoggerFactory.getLogger(javaClass)
-    val hendelser = mutableListOf<DokumentflytStoppetHendelse>()
+    private val hendelser = mutableListOf<DokumentflytStoppetHendelse>()
     companion object : Factory<FakeStatistikkKlient> {
         override fun konstruer(): FakeStatistikkKlient {
             return FakeStatistikkKlient()

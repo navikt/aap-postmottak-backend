@@ -16,5 +16,5 @@ data class DokumentflytStoppetHendelse(
     val opprettetTidspunkt: LocalDateTime,
     val hendelsesTidspunkt: LocalDateTime,
     @Deprecated("Denne er alltid null. Vil bli fjernet.")
-    val saksnummer: String?
+    val saksnummer: String? = null
 )

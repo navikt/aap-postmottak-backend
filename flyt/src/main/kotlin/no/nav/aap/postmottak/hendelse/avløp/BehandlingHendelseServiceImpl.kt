@@ -4,13 +4,14 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.hendelse.AvklaringsbehovHendelseDto
 import no.nav.aap.postmottak.kontrakt.hendelse.DefinisjonDTO
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import no.nav.aap.postmottak.kontrakt.hendelse.EndringDTO
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.prosessering.StoppetHendelseJobbUtfører
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -50,14 +51,17 @@ class BehandlingHendelseServiceImpl(
                             status = endring.status,
                             tidsstempel = endring.tidsstempel,
                             endretAv = endring.endretAv,
-                            frist = endring.frist
+                            frist = endring.frist,
+                            årsakTilSattPåVent = when (endring.grunn) {
+                                ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER
+                                null -> null
+                                else -> TODO("Skal ikke kunne skje")
+                            }
                         )
                     })
             },
             opprettetTidspunkt = behandling.opprettetTidspunkt,
             hendelsesTidspunkt = LocalDateTime.now(),
-            // TODO, fjern dette feltet
-            saksnummer = null
         )
 
         val payload = DefaultJsonMapper.toJson(hendelse)
