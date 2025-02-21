@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 data class AvklaringsbehovHendelseDto(
     @Deprecated(message = "Bruk direkte definisjon.")
-    val definisjon: DefinisjonDTO,
+    val definisjon: DefinisjonDTO?,
     val avklaringsbehovDefinisjon: Definisjon,
     val status: Status,
     val endringer: List<EndringDTO>
