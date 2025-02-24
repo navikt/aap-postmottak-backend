@@ -14,6 +14,9 @@ dependencies {
     implementation(project(":kontrakt"))
     implementation(project(":flyt"))
     
+    // TODO: undersøk om vi kan bruke en enklere algoritme for arbeidsdager
+    implementation("no.bekk.bekkopen:nocommons:0.16.0")
+    
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")

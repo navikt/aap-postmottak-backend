@@ -20,7 +20,7 @@ import java.net.URI
 
 private val log = LoggerFactory.getLogger(GosysOppgaveKlient::class.java)
 
-class GosysOppgaveKlient: GosysOppgaveGateway {
+class GosysOppgaveKlient : GosysOppgaveGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.oppgaveapi.url"))
     val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.oppgaveapi.scope"),
@@ -30,7 +30,7 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    companion object: Factory<GosysOppgaveKlient> {
+    companion object : Factory<GosysOppgaveKlient> {
         override fun konstruer(): GosysOppgaveKlient {
             return GosysOppgaveKlient()
         }
@@ -38,10 +38,8 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
 
     override fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String) {
         val harAltOppgave = finnOppgaverForJournalpost(
-            journalpostId,
-            listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING),
-            "AAP",
-            Statuskategori.AAPEN).isNotEmpty()
+            journalpostId, listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING), "AAP", Statuskategori.AAPEN
+        ).isNotEmpty()
         if (harAltOppgave) {
             log.info("Journalpost har alt en oppgave. Ny oppgave vil ikke bli opprettet")
             return
@@ -53,6 +51,7 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
                 oppgavetype = Oppgavetype.JOURNALFØRING.verdi,
                 journalpostId = journalpostId.toString(),
                 personident = personident,
+                fristFerdigstillelse = finnStandardOppgavefrist(),
                 beskrivelse = "Et dokument med feil tema har dukket opp hos AAP. Hjelp dokumentet på veien til sin rette mottaker"
             )
         )
@@ -72,10 +71,7 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
     }
 
     override fun finnOppgaverForJournalpost(
-        journalpostId: JournalpostId,
-        oppgavetyper: List<Oppgavetype>,
-        tema: String,
-        statuskategori: Statuskategori
+        journalpostId: JournalpostId, oppgavetyper: List<Oppgavetype>, tema: String, statuskategori: Statuskategori
     ): List<Long> {
         log.info("Finn oppgaver for journalpost: $journalpostId")
         val oppgaveparams = oppgavetyper.map { "&oppgavetype=${it.name}" }.joinToString(separator = "")
@@ -98,24 +94,29 @@ class GosysOppgaveKlient: GosysOppgaveGateway {
         }
     }
 
-    override fun opprettJournalføringsOppgave(journalpostId: JournalpostId, personIdent: Ident, beskrivelse: String, tildeltEnhetsnr: String) =
-        opprettOppgave(OpprettOppgaveRequest(
+    override fun opprettJournalføringsOppgave(
+        journalpostId: JournalpostId, personIdent: Ident, beskrivelse: String, tildeltEnhetsnr: String
+    ) = opprettOppgave(
+        OpprettOppgaveRequest(
             oppgavetype = Oppgavetype.JOURNALFØRING.verdi,
             journalpostId = journalpostId.toString(),
             personident = personIdent.identifikator,
             beskrivelse = beskrivelse,
-            tildeltEnhetsnr = tildeltEnhetsnr
-        ))
+            tildeltEnhetsnr = tildeltEnhetsnr,
+            fristFerdigstillelse = finnStandardOppgavefrist()
+        )
+    )
 
     override fun opprettFordelingsOppgave(journalpostId: JournalpostId, personIdent: Ident, beskrivelse: String) =
-        opprettOppgave(OpprettOppgaveRequest(
-            oppgavetype = Oppgavetype.FORDELING.verdi,
-            journalpostId = journalpostId.toString(),
-            personident = personIdent.identifikator,
-            beskrivelse = beskrivelse
-        ))
-
-
+        opprettOppgave(
+            OpprettOppgaveRequest(
+                oppgavetype = Oppgavetype.FORDELING.verdi,
+                journalpostId = journalpostId.toString(),
+                personident = personIdent.identifikator,
+                beskrivelse = beskrivelse,
+                fristFerdigstillelse = finnStandardOppgavefrist()
+            )
+        )
 }
 
 data class FinnOppgaverResponse(
