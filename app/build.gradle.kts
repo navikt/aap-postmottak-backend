@@ -53,7 +53,7 @@ fun getCheckedOutGitCommitHash(): String {
 
 dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-server-double-receive-jvm:3.1.0")
+    implementation("io.ktor:ktor-server-double-receive-jvm:3.1.1")
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("no.nav:ktor-openapi-generator:1.0.81")
