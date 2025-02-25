@@ -74,7 +74,7 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
         journalpostId: JournalpostId, oppgavetyper: List<Oppgavetype>, tema: String, statuskategori: Statuskategori
     ): List<Long> {
         log.info("Finn oppgaver for journalpost: $journalpostId")
-        val oppgaveparams = oppgavetyper.map { "&oppgavetype=${it.name}" }.joinToString(separator = "")
+        val oppgaveparams = oppgavetyper.map { "&oppgavetype=${it.verdi}" }.joinToString(separator = "")
         val path =
             url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId${oppgaveparams}&tema=$tema&statuskategori=${statuskategori.name}")
 
