@@ -6,6 +6,8 @@ import no.nav.aap.fordeler.regler.Regel
 import no.nav.aap.fordeler.regler.RegelFactory
 import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
@@ -14,6 +16,10 @@ typealias RegelMap = Map<String, Boolean>
 
 data class Regelresultat(val regelMap: RegelMap) {
     fun skalTilKelvin(): Boolean {
+        if (Miljø.er() == MiljøKode.PROD) {
+            return false
+        }
+        
         val kelvinSakRegel = regelMap[KelvinSakRegel::class.simpleName] ?: false
         val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName]!!
         if (kelvinSakRegel && erIkkeReisestønad) {
