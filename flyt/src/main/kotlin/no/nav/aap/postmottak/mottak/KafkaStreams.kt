@@ -2,13 +2,15 @@ package no.nav.aap.postmottak.mottak
 
 
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.medJournalpostId
@@ -76,12 +78,22 @@ class JoarkKafkaHandler(
 
     private fun temaendringTopology(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.mapValues { record -> JournalpostId(record.journalpostId) }
-            .foreach { _, record -> håndterTemaendring(record) }
+            .foreach { _, record ->
+                if (Miljø.er() == MiljøKode.PROD) {
+                    log.info("Mottatt temaendring")
+                } else {
+                    håndterTemaendring(record)
+                }
+            }
     }
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.foreach { _, record ->
-            opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId))
+            if (Miljø.er() == MiljøKode.PROD) {
+                log.info("Mottatt ny")
+            } else {
+                opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId))
+            }
         }
     }
 
@@ -110,7 +122,7 @@ class JoarkKafkaHandler(
         transactionProvider.inTransaction {
 
             flytJobbRepository.leggTil(
-                JobbInput(FordelingRegelJobbUtfører) 
+                JobbInput(FordelingRegelJobbUtfører)
                     .forSak(journalpostId.referanse)
                     .medJournalpostId(journalpostId)
             )
