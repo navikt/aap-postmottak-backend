@@ -69,14 +69,12 @@ spec:
   secureLogs:
     enabled: true
   accessPolicy:
-    {{#if inbound.rules.length}}
     inbound:
       rules:
         {{#each inbound.rules}}
           - application: {{this.application}}
             {{#if this.namespace}}namespace: {{this.namespace}}{{/if}}
         {{/each}}
-    {{/if}}
     outbound:
       external:
         {{#each outbound.external}}
