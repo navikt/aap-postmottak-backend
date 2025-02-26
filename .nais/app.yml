@@ -73,7 +73,8 @@ spec:
     inbound:
       rules:
         {{#each inbound.rules}}
-        {{this}}
+          - application: {{this.application}}
+            {{#if this.namespace}}namespace: {{this.namespace}}{{/if}}
         {{/each}}
     {{/if}}
     outbound:
