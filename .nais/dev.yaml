@@ -17,8 +17,8 @@ kafka:
 
 inbound:
     rules:
-        - application: postmottak
-        - application: paw-patrol
+        - "- application: postmottak"
+        - "- application: paw-patrol"
         - | 
             - application: azure-token-generator
                       namespace: aura
