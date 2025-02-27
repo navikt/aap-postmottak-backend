@@ -59,7 +59,7 @@ class SendSøknadTilArenaJobbUtfører(
             log.info("Opprettet oppgave med id ${respons.oppgaveId} på sak ${respons.arenaSakId}")
             opprettAutomatiskJournalføringsjobb(kontekst, respons.arenaSakId)
         } else {
-            log.info("Det finnes alt en sak i Arena for ${kontekst.ident}, sender journalpost til manuell journalføring")
+            log.info("Det finnes alt en sak i Arena, sender journalpost til manuell journalføring")
             opprettManuellJournalføringsoppgavejobb(kontekst)
         }
     }
