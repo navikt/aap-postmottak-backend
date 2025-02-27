@@ -2,10 +2,16 @@ package no.nav.aap.fordeler.regler
 
 import no.nav.aap.fordeler.Regelresultat
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class RegelResultatTest {
 
+    @BeforeEach
+    fun setUp() {
+        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+    }
+    
     @Test
     fun `KelvinSakRegel skal overstyre alle andre regler bortsett fra reisestønad`() {
         val regelResultat = Regelresultat(

@@ -15,8 +15,10 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import org.slf4j.LoggerFactory
 
 class FordelingRegelJobbUtfører(
     private val flytJobbRepository: FlytJobbRepository,
@@ -25,6 +27,7 @@ class FordelingRegelJobbUtfører(
     private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
     private val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
+    private val log = LoggerFactory.getLogger(FordelingRegelJobbUtfører::class.java)
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
@@ -51,6 +54,15 @@ class FordelingRegelJobbUtfører(
 
         val journalpost = journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
 
+
+        if (journalpost.status == Journalstatus.JOURNALFOERT) {
+            log.info("Journalposten er allerede journalført - oppretter ikke oppgaver i Arena eller gosys")
+            return
+        } else if (journalpost.status == Journalstatus.UTGAAR) {
+            log.info("Journalposten er utgått - oppretter ikke oppgaver i Arena eller gosys")
+            return
+        }
+        
         val res = regelService.evaluer(
             RegelInput(
                 journalpostId.referanse,
