@@ -8,7 +8,7 @@ import org.apache.kafka.streams.StreamsConfig
 import java.util.*
 
 data class StreamsConfig(
-    val applicationId: String = requiredConfigForKey("KAFKA_STREAMS_APPLICATION_ID"),
+    val applicationId: String = requiredConfigForKey("KAFKA_STREAMS_APPLICATION_ID") + "-v1",
     val brokers: String = requiredConfigForKey("KAFKA_BROKERS"),
     val ssl: SslConfig? = SslConfig(),
     val schemaRegistry: SchemaRegistryConfig? = SchemaRegistryConfig(),
