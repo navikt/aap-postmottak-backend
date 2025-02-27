@@ -2,8 +2,8 @@ package no.nav.aap.postmottak.gateway
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.AnnetRelevantDokumentV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.MeldekortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.PliktkortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
@@ -36,7 +36,7 @@ object DokumentTilMeldingParser {
     fun parseTilMelding(dokument: String?, innsendingType: InnsendingType): Melding? {
         return when (innsendingType) {
             InnsendingType.SØKNAD -> DefaultJsonMapper.fromJson(dokument!!, SøknadV0::class.java)
-            InnsendingType.PLIKTKORT -> DefaultJsonMapper.fromJson(dokument!!, PliktkortV0::class.java)
+            InnsendingType.MELDEKORT -> DefaultJsonMapper.fromJson(dokument!!, MeldekortV0::class.java)
             InnsendingType.ANNET_RELEVANT_DOKUMENT -> DefaultJsonMapper.fromJson(
                 dokument!!,
                 AnnetRelevantDokumentV0::class.java
