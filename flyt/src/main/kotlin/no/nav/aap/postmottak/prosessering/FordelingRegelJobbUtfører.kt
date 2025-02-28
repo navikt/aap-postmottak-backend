@@ -53,15 +53,15 @@ class FordelingRegelJobbUtfører(
         val journalpostId = input.getJournalpostId()
 
         val journalpost = journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
-
-
+        log.info("Journalstatus: ${journalpost.status}")
         if (journalpost.status == Journalstatus.JOURNALFOERT) {
-            log.info("Journalposten er allerede journalført - oppretter ikke oppgaver i Arena eller gosys")
+            log.info("Journalposten er allerede journalført - behandler ikke videre")
             return
         } else if (journalpost.status == Journalstatus.UTGAAR) {
-            log.info("Journalposten er utgått - oppretter ikke oppgaver i Arena eller gosys")
+            log.info("Journalposten er utgått - behandler ikke videre")
             return
         }
+        log.info("Evaluerer regler...")
         
         val res = regelService.evaluer(
             RegelInput(
