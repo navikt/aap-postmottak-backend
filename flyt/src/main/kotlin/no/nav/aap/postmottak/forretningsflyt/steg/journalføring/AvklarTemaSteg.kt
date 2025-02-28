@@ -60,7 +60,7 @@ class AvklarTemaSteg(
                 log.info("Journalposten har blitt endret utenfra")
                 avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(false, Tema.UKJENT))
                 Fullført
-            } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad()) {
+            } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
                 avklarTemaMaskinelt(kontekst.behandlingId, journalpost)
                 Fullført
             } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
@@ -97,16 +97,18 @@ class AvklarTemaSteg(
         if (journalpost.erDigitalLegeerklæring()) {
             if (skalLegeerklæringTilAap(behandlingId)) {
                 log.info("Avklarer maskinelt - Legeerklæring skal til AAP")
-                avklarTemaMaskinelt(behandlingId, TemaVurdering(true, Tema.AAP))
+                avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
             } else {
                 log.info("Avklarer maskinelt - Legeerklæring skal ikke til AAP")
-                avklarTemaMaskinelt(behandlingId, TemaVurdering(false, Tema.OPP))
+                avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = false, Tema.OPP))
             }
         } else if (journalpost.erDigitalSøknad()) {
             log.info("Avklarer maskinelt - Legeerklæring skal til AAP")
-            avklarTemaMaskinelt(behandlingId, TemaVurdering(true, Tema.AAP))
+            avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
+        } else if (journalpost.erDigitaltMeldekort()) {
+            avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
         } else {
-            throw IllegalStateException("Journalpost er ikke en digital søknad eller legeerklæring")
+            throw IllegalStateException("Journalpost er ikke en digital søknad, legeerklæring eller meldekort")
         }
     }
 

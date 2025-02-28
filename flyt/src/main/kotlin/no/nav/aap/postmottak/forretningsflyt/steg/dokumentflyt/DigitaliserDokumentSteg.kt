@@ -50,7 +50,7 @@ class DigitaliserDokumentSteg(
         requireNotNull(journalpost)
 
 
-        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring()) {
+        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
             val dokument = if (journalpost.erDigitalSøknad()) hentOriginalDokumentFraSaf(journalpost) else null
             val innsending = getInnsendingForBrevkode(journalpost.hoveddokumentbrevkode)
             val validertDokument =

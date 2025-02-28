@@ -70,6 +70,7 @@ class AvklarSakStegTest {
         val journalpost: Journalpost = mockk()
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitaltMeldekort() } returns false
         every { journalpost.erUgyldig() } returns false
         every { journalpost.tema } returns "AAP"
         every { journalpost.status } returns Journalstatus.MOTTATT
@@ -94,6 +95,7 @@ class AvklarSakStegTest {
         val journalpost: Journalpost = mockk()
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitaltMeldekort() } returns false
         every { journalpost.tema } returns "AAP"
         every { journalpost.erUgyldig() } returns false
         every { journalpost.status } returns Journalstatus.MOTTATT

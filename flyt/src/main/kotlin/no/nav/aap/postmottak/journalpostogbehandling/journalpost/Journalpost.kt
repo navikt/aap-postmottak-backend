@@ -57,6 +57,12 @@ open class Journalpost(
         } && erDigital()
     }
 
+    fun erDigitaltMeldekort(): Boolean {
+        return dokumenter.any {
+            it.brevkode == Brevkoder.MELDEKORT.kode
+        } && erDigital()
+    }
+
     fun erDigital(): Boolean = finnOriginal()?.varianter?.any { it.filtype == Filtype.JSON } ?: false
 
     fun erPapir(): Boolean =

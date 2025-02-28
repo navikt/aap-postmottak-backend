@@ -82,7 +82,7 @@ class AvklarSakSteg(
 
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
 
-        return if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring()) {
+        return if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
             avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
             Fullført
         } else if (saksnummerVurdering != null) {

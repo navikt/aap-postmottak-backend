@@ -12,7 +12,7 @@ class DigitaliserVisningUtleder(connection: DBConnection): StegGruppeVisningUtle
     
     override fun skalVises(behandlingId: BehandlingId): Boolean {
         val journalpost = journalpostRepository.hentHvisEksisterer(behandlingId) ?: throw IllegalStateException("Journalpost mangler")
-        return !(journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring())
+        return !(journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort())
     }
 
     override fun gruppe(): StegGruppe {
