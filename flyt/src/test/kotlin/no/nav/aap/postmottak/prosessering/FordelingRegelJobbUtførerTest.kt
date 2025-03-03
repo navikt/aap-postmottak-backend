@@ -22,7 +22,8 @@ class FordelingRegelJobbUtførerTest {
         flytJobbRepository,
         journalpostService = mockk(relaxed = true),
         regelService = regelService,
-        innkommendeJournalpostRepository = innkommendeJournalpostRepository
+        innkommendeJournalpostRepository = innkommendeJournalpostRepository,
+        gosysOppgaveGateway = mockk(relaxed = true),
     )
 
     @Test

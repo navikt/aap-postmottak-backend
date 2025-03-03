@@ -8,15 +8,22 @@ import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.gateway.BrukerIdType
+import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.gateway.Oppgavetype
+import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostCounter
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.slf4j.LoggerFactory
 
@@ -25,7 +32,8 @@ class FordelingRegelJobbUtfører(
     private val journalpostService: JournalpostService,
     private val regelService: FordelerRegelService,
     private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
-    private val prometheus: MeterRegistry = SimpleMeterRegistry()
+    private val gosysOppgaveGateway: GosysOppgaveGateway,
+    private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) : JobbUtfører {
     private val log = LoggerFactory.getLogger(FordelingRegelJobbUtfører::class.java)
 
@@ -37,6 +45,7 @@ class FordelingRegelJobbUtfører(
                 JournalpostService.konstruer(connection),
                 FordelerRegelService(connection),
                 repositoryProvider.provide(InnkommendeJournalpostRepository::class),
+                GatewayProvider.provide(GosysOppgaveGateway::class),
                 PrometheusProvider.prometheus
             )
         }
@@ -52,7 +61,45 @@ class FordelingRegelJobbUtfører(
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
 
-        val journalpost = journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
+
+        // TODO: Håndter organisasjonsnummer bedre
+        val journalpost = try {
+            journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
+        } catch (e: Exception) {
+            if (e.message?.contains("Ugyldig ident ved GraphQL oppslag") == true) {
+                val safJournalpost = journalpostService.hentSafJournalpost(journalpostId)
+                if (safJournalpost.journalstatus == Journalstatus.JOURNALFOERT) {
+                    log.info("Journalposten er allerede journalført - behandler ikke videre")
+                    return
+                } else if (safJournalpost.journalstatus == Journalstatus.UTGAAR) {
+                    log.info("Journalposten er utgått - behandler ikke videre")
+                    return
+                }
+
+                if (safJournalpost.bruker?.type == BrukerIdType.ORGNR) {
+                    val eksisterendeOppgaver =
+                        gosysOppgaveGateway.finnOppgaverForJournalpost(
+                            journalpostId,
+                            listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING)
+                        )
+                    if (eksisterendeOppgaver.isNotEmpty()) {
+                        log.info("Det finnes allerede en journalføringsoppgave for journalpost $journalpostId} - oppretter ingen ny")
+                    } else {
+
+                        gosysOppgaveGateway.opprettFordelingsOppgave(
+                            journalpostId,
+                            Ident(safJournalpost.bruker.id!!),
+                            safJournalpost.dokumenter!!.minBy { it?.dokumentInfoId!! }?.tittel
+                                ?: throw IllegalStateException("Fant ingen dokumenter i journalposten")
+                        )
+                        log.info("Fant orgnummer på ${journalpostId} - opprettet fordelingsoppgave")
+                        prometheus.journalføringCounter(type = JournalføringsType.fdr).increment()
+                    }
+                    return
+                } else throw e
+            }
+            throw e
+        }
         log.info("Journalstatus: ${journalpost.status}")
         if (journalpost.status == Journalstatus.JOURNALFOERT) {
             log.info("Journalposten er allerede journalført - behandler ikke videre")
@@ -62,7 +109,7 @@ class FordelingRegelJobbUtfører(
             return
         }
         log.info("Evaluerer regler...")
-        
+
         val res = regelService.evaluer(
             RegelInput(
                 journalpostId.referanse,

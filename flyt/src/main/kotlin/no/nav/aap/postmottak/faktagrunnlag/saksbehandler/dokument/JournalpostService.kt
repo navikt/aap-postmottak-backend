@@ -44,7 +44,7 @@ class JournalpostService(
         return journalpost.tilJournalpostMedDokumentTitler(person)
     }
 
-    private fun hentSafJournalpost(journalpostId: JournalpostId, token: OidcToken? = null): SafJournalpost {
+    fun hentSafJournalpost(journalpostId: JournalpostId, token: OidcToken? = null): SafJournalpost {
         val journalpost = if (token != null) {
             journalpostOboGateway.hentJournalpost(
                 journalpostId,
