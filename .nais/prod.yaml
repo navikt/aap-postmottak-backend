@@ -17,9 +17,10 @@ kafka:
 
 inbound:
     rules:
+outbound:
+    rules:
         - application: skjermede-personer-pip
           namespace: nom
-outbound:
     external:
         - host: saf.prod-fss-pub.nais.io
         - host: dokarkiv.prod-fss-pub.nais.io
