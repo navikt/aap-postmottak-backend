@@ -51,7 +51,7 @@ class DigitaliserDokumentSteg(
 
 
         if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
-            val dokument = if (journalpost.erDigitalSøknad()) hentOriginalDokumentFraSaf(journalpost) else null
+            val dokument = if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) hentOriginalDokumentFraSaf(journalpost) else null
             val innsending = getInnsendingForBrevkode(journalpost.hoveddokumentbrevkode)
             val validertDokument =
                 DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
