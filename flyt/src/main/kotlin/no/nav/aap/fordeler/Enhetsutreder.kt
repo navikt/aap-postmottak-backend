@@ -33,7 +33,7 @@ class Enhetsutreder(
 
     fun finnJournalføringsenhet(journalpost: Journalpost): NavEnhet? {
         val journalførendeEnhet = journalpost.journalførendeEnhet
-        if (journalførendeEnhet != null && erNavEnhetAktiv(journalførendeEnhet)) {
+        if (journalførendeEnhet != null && journalførendeEnhet != "9999" && erNavEnhetAktiv(journalførendeEnhet)) {
             return journalførendeEnhet
         }
         val personAttributter = finnPersonAttributter(journalpost.person)
