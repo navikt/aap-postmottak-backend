@@ -66,7 +66,9 @@ class FordelingRegelJobbUtfører(
         val journalpost = try {
             journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
         } catch (e: Exception) {
-            if (e.message?.contains("Ugyldig ident ved GraphQL oppslag") == true) {
+            // beklager
+            if (e.message?.contains("Ugyldig ident ved GraphQL oppslag") == true
+                || e.message?.contains("journalpost må ha ident") == true) {
                 val safJournalpost = journalpostService.hentSafJournalpost(journalpostId)
                 if (safJournalpost.journalstatus == Journalstatus.JOURNALFOERT) {
                     log.info("Journalposten er allerede journalført - behandler ikke videre")
@@ -76,7 +78,7 @@ class FordelingRegelJobbUtfører(
                     return
                 }
 
-                if (safJournalpost.bruker?.type == BrukerIdType.ORGNR) {
+                if (safJournalpost.bruker?.type == BrukerIdType.ORGNR || safJournalpost.bruker?.id == null) {
                     val eksisterendeOppgaver =
                         gosysOppgaveGateway.finnOppgaverForJournalpost(
                             journalpostId,
@@ -88,11 +90,13 @@ class FordelingRegelJobbUtfører(
 
                         gosysOppgaveGateway.opprettFordelingsOppgave(
                             journalpostId,
-                            Ident(safJournalpost.bruker.id!!),
+                            safJournalpost.bruker?.id?.let(::Ident),
                             safJournalpost.dokumenter!!.minBy { it?.dokumentInfoId!! }?.tittel
                                 ?: throw IllegalStateException("Fant ingen dokumenter i journalposten")
                         )
-                        log.info("Fant orgnummer på ${journalpostId} - opprettet fordelingsoppgave")
+
+                        val årsak = if (safJournalpost.bruker?.type == BrukerIdType.ORGNR) "orgnummer" else "ingen bruker.id"
+                        log.info("Fant $årsak på ${journalpostId} - opprettet fordelingsoppgave")
                         prometheus.journalføringCounter(type = JournalføringsType.fdr).increment()
                     }
                     return

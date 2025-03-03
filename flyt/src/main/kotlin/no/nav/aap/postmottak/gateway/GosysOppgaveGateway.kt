@@ -21,7 +21,7 @@ interface GosysOppgaveGateway : Gateway {
         tildeltEnhetsnr: String
     )
 
-    fun opprettFordelingsOppgave(journalpostId: JournalpostId, personIdent: Ident, beskrivelse: String)
+    fun opprettFordelingsOppgave(journalpostId: JournalpostId, personIdent: Ident?, beskrivelse: String)
 }
 
 enum class Oppgavetype(val verdi: String) {

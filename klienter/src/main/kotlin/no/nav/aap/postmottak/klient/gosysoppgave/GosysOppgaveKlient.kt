@@ -107,12 +107,12 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
         )
     )
 
-    override fun opprettFordelingsOppgave(journalpostId: JournalpostId, personIdent: Ident, beskrivelse: String) =
+    override fun opprettFordelingsOppgave(journalpostId: JournalpostId, personIdent: Ident?, beskrivelse: String) =
         opprettOppgave(
             OpprettOppgaveRequest(
                 oppgavetype = Oppgavetype.FORDELING.verdi,
                 journalpostId = journalpostId.toString(),
-                personident = personIdent.identifikator,
+                personident = personIdent?.identifikator,
                 beskrivelse = beskrivelse,
                 fristFerdigstillelse = finnStandardOppgavefrist()
             )
