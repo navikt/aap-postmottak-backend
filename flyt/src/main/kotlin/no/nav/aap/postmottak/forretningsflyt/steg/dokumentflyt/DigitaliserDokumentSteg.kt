@@ -79,7 +79,8 @@ class DigitaliserDokumentSteg(
     private fun getInnsendingForBrevkode(brevkode: String): InnsendingType {
         val brevkodeTilInnsendingMap = mapOf(
             Brevkoder.SØKNAD to InnsendingType.SØKNAD,
-            Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING
+            Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING,
+            Brevkoder.MELDEKORT to InnsendingType.MELDEKORT
         )
 
         return brevkodeTilInnsendingMap[Brevkoder.fraKode(brevkode)]
