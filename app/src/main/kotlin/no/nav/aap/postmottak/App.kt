@@ -83,7 +83,7 @@ import javax.sql.DataSource
 
 class App
 
-private const val ANTALL_WORKERS = 4
+private const val ANTALL_WORKERS = 16
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e ->

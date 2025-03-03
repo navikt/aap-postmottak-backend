@@ -8,8 +8,8 @@ sql:
     pointInTimeRecovery: true
 
 replicas:
-    min: 2
-    max: 4
+    min: 8
+    max: 8
     disableAutoScaling: false
 
 kafka:
