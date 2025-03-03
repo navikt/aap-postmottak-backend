@@ -1,0 +1,1 @@
+create index IDX_JOBB_SAK_ID_BEHANDLING_ID_NESTE_KJORING on JOBB (sak_id, behandling_id, neste_kjoring);
