@@ -7,7 +7,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 
 class MaksAntallPersonerIKelvinRegel(private val maksAntallPersoner: Int) : Regel<MaksAntallPersonerIKelvinRegelInput> {
     companion object : RegelFactory<MaksAntallPersonerIKelvinRegelInput> {
-        override val erAktiv = miljøConfig(prod = true, dev = false)
+        override val erAktiv = miljøConfig(prod = false, dev = false)
         override fun medDataInnhenting(connection: DBConnection?): RegelMedInputgenerator<MaksAntallPersonerIKelvinRegelInput> {
             val maksAntallPersoner = 1
             requireNotNull(connection)
