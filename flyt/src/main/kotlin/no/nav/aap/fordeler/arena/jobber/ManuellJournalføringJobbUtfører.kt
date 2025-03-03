@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Oppgavetype
 import no.nav.aap.postmottak.journalføringCounter
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(ManuellJournalføringJobbUtfører::class.java)
@@ -44,7 +45,7 @@ class ManuellJournalføringJobbUtfører(
 
     }
 
-    override fun utførArena(input: JobbInput) {
+    override fun utførArena(input: JobbInput, journalpost: JournalpostMedDokumentTitler) {
         val kontekst = input.getArenaVideresenderKontekst()
 
         val eksisterendeOppgaver =

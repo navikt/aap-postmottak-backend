@@ -4,6 +4,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import org.slf4j.LoggerFactory
 
 abstract class ArenaJobbutførerBase(val journalpostService: JournalpostService): JobbUtfører {
@@ -19,10 +20,10 @@ abstract class ArenaJobbutførerBase(val journalpostService: JournalpostService)
             return
         }
 
-        utførArena(input)
+        utførArena(input, journalpost)
     }
 
-    protected abstract fun utførArena(input: JobbInput)
+    protected abstract fun utførArena(input: JobbInput, journalpost: JournalpostMedDokumentTitler)
 
 
 

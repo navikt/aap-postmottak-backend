@@ -10,6 +10,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import org.slf4j.LoggerFactory
 
 class SendSøknadTilArenaJobbUtfører(
@@ -39,7 +40,7 @@ class SendSøknadTilArenaJobbUtfører(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun utførArena(input: JobbInput) {
+    override fun utførArena(input: JobbInput, journalpost: JournalpostMedDokumentTitler) {
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (input.antallRetriesForsøkt() >= 2) {
