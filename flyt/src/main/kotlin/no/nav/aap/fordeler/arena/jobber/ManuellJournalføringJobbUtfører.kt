@@ -82,7 +82,7 @@ class ManuellJournalføringJobbUtfører(
             eksisterendeFordelingsOppgaver.forEach {
                 gosysOppgaveGateway.ferdigstillOppgave(it)
             }
-            if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 3) {
+            if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 10) {
                 gosysOppgaveGateway.opprettJournalføringsOppgave(
                     kontekst.journalpostId,
                     kontekst.ident,
