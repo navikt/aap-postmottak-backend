@@ -34,7 +34,7 @@ class InnkommendeJournalpostRepositoryImpl(
     
     override fun lagre(innkommendeJournalpost: InnkommendeJournalpost) {
         val query = """
-            INSERT INTO innkommende_journalpost (journalpost_id, behandlingstema, brevkode, status) VALUES (?, ?, ?, ?)
+            INSERT INTO innkommende_journalpost (journalpost_id, status, behandlingstema, brevkode) VALUES (?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
