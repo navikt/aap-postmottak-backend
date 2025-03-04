@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.klient.pdl
 
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.Gradering
+import no.nav.aap.postmottak.gateway.Navn
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
 import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
 import java.time.LocalDate
@@ -30,6 +31,7 @@ data class PdlPerson(
 )
 
 data class HentPersonResult(
+    val navn: List<Navn>? = null,
     val foedselsdato: List<Fødselsdato>? = null,
     val adressebeskyttelse: List<Gradering>? = null
 )
@@ -38,16 +40,6 @@ data class Fødselsdato(val foedselsdato: LocalDate, val metadata: HistoriskMeta
 
 enum class Code {
     ok, not_found, bad_request
-}
-
-data class Navn(
-    val fornavn: String?,
-    val mellomnavn: String?,
-    val etternavn: String?
-) {
-    fun fulltNavn(): String {
-        return "${fornavn ?: ""} ${mellomnavn ?: ""} ${etternavn ?: ""}".trim()
-    }
 }
 
 data class HentIdenterResult(val identer: List<PdlIdent>)

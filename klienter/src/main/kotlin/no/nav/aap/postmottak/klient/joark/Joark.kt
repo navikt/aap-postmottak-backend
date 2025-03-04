@@ -16,6 +16,7 @@ import no.nav.aap.postmottak.gateway.JournalpostBruker
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostSak
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.gateway.Sakstype
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -25,7 +26,7 @@ import java.net.URI
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
-class JoarkClient(private val client: RestClient<InputStream>, private val safGraphqlKlient: JournalpostGateway): JournalføringsGateway {
+class JoarkClient(private val client: RestClient<InputStream>, private val safGraphqlKlient: JournalpostGateway, private val persondataGateway: PersondataGateway): JournalføringsGateway {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
 
@@ -37,10 +38,10 @@ class JoarkClient(private val client: RestClient<InputStream>, private val safGr
                 ),
                 tokenProvider = ClientCredentialsTokenProvider
             )
-            return JoarkClient(restClient, GatewayProvider.provide(JournalpostGateway::class))
+            return JoarkClient(restClient, GatewayProvider.provide(JournalpostGateway::class), GatewayProvider.provide(PersondataGateway::class))
         }
-        fun konstruer(restClient: RestClient<InputStream>, safGraphqlKlient: JournalpostGateway): JoarkClient {
-            return JoarkClient(restClient, safGraphqlKlient)
+        fun konstruer(restClient: RestClient<InputStream>, safGraphqlKlient: JournalpostGateway, persondataGateway: PersondataGateway): JoarkClient {
+            return JoarkClient(restClient, safGraphqlKlient, persondataGateway)
         }
     }
 
@@ -102,10 +103,12 @@ class JoarkClient(private val client: RestClient<InputStream>, private val safGr
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker
+        val navn = persondataGateway.hentNavn(bruker?.id!!)
         return if (avsenderMottaker?.id == null) {
             AvsenderMottakerDto(
                 id = safJournalpost.bruker?.id!!,
-                type = bruker?.type!!,
+                type = bruker.type!!,
+                navn = navn?.fulltNavn(),
                 erLikBruker = true
             )
         } else {

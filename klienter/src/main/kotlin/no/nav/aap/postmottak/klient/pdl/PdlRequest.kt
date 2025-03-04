@@ -26,7 +26,7 @@ internal data class PdlRequest(val query: String, val variables: Variables) {
             query = ADRESSEBESKYTTELSE_QUERY.asQuery(),
             variables = Variables(ident = ident.identifikator)
         )
-        
+
         fun hentGeografiskTilknytning(ident: String) = PdlRequest(
             query = GEOGRAFISK_TILKNYTNING_QUERY.asQuery(),
             variables = Variables(ident = ident)
@@ -56,6 +56,11 @@ private const val ident = "\$ident"
 val PERSON_QUERY = """
     query($ident: ID!) {
         hentPerson(ident: $ident) {
+             navn(historikk: false) {
+                fornavn
+                mellomnavn
+                etternavn
+            },
             foedselsdato {
                 foedselsdato
                 metadata {

@@ -9,6 +9,7 @@ import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -81,7 +82,7 @@ class JoarkClientTest : WithFakes {
     fun `avsenderMottaker blir satt til samme som bruker dersom den mangler`() {
 
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
-        val joarkClient = JoarkClient.konstruer(restClient, SafGraphqlClientCredentialsClient())
+        val joarkClient = JoarkClient.konstruer(restClient, SafGraphqlClientCredentialsClient(), mockk<PersondataGateway>())
 
         val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(UTEN_AVSENDER_MOTTAKER)
 

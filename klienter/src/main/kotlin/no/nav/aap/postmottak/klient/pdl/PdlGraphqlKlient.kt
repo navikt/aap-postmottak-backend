@@ -44,7 +44,7 @@ class PdlGraphqlKlient : PersondataGateway {
 
     override fun hentPersonBolk(
         personidenter: List<String>
-    ): Map<String, Navn>? {
+    ): Map<String, Navn?>? {
         val request = PdlRequest.hentPersonBolk(personidenter)
         val response = runBlocking { graphqlQuery(request, null) }
         val data = response.data?.hentPersonBolk
@@ -52,12 +52,17 @@ class PdlGraphqlKlient : PersondataGateway {
             return null
         }
 
-        return data.associateBy({ it.ident }, { Navn(it.person?.navn?.firstOrNull()?.fulltNavn()) })
+        return data.associateBy({ it.ident }, { it.person?.navn?.firstOrNull() })
     }
 
     override fun hentFødselsdato(personident: String): LocalDate? {
         val data = hentPerson(personident)
         return data?.foedselsdato?.first { !it.metadata.historisk }?.foedselsdato
+    }
+    
+    override fun hentNavn(personident: String): Navn? {
+        val data = hentPerson(personident)
+        return data?.navn?.firstOrNull()
     }
 
     private fun hentPerson(

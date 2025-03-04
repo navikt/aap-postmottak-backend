@@ -79,7 +79,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
     val fssProxy = FakeServer(module = { fssProxy() })
     val nomFake = FakeServer(module = { nomFake() })
     val norgFake = FakeServer(module = { norgFake() })
-    val staistikkFake = FakeServer(module = { statistikkFake()} )
+    val staistikkFake = FakeServer(module = { statistikkFake() })
     val veilarbarena = FakeServer(module = { veilarbarena() })
 
     init {
@@ -87,7 +87,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
         System.setProperty("NAIS_APP_NAME", "postmottak-backend")
-        
+
         System.setProperty("gosys.url", "http://localhost:3000/")
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
@@ -143,7 +143,7 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         // Statistikk
         System.setProperty("integrasjon.statistikk.url", "http://localhost:${staistikkFake.port()}")
         System.setProperty("integrasjon.statistikk.scope", "scope")
-        
+
         // Veilarbarena
         System.setProperty("integrasjon.veilarbarena.url", "http://localhost:${veilarbarena.port()}")
         System.setProperty("integrasjon.veilarbarena.scope", "scope")
@@ -407,6 +407,13 @@ class Fakes(azurePort: Int = 0) : AutoCloseable {
         return """
             { "data":
             {"hentPerson": {
+                    "navn": [
+                       {
+                         "fornavn": "Ola",
+                         "mellomnavn": null,
+                         "etternavn": "Normann"
+                       }
+                    ],
                     "foedselsdato": [
                         {
                             "foedselsdato": "1990-01-01",

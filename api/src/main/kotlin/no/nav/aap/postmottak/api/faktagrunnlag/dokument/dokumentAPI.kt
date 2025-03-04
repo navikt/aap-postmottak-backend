@@ -83,11 +83,11 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
                         journalpostId = journalpostId.referanse,
                         søker = DokumentIdent(
                             journalpost.bruker?.id,
-                            if (søker != null) personer?.getOrDefault(søker, null)?.verdi else null
+                            if (søker != null) personer?.getOrDefault(søker, null)?.fulltNavn() else null
                         ),
                         avsender = DokumentIdent(
                             journalpost.avsenderMottaker?.id,
-                            if (avsender != null) personer?.getOrDefault(avsender, null)?.verdi else null
+                            if (avsender != null) personer?.getOrDefault(avsender, null)?.fulltNavn() else null
                         ),
                         dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) }
                             ?: emptyList(),

@@ -8,11 +8,15 @@ import java.time.LocalDate
 interface PersondataGateway: Gateway {
     fun hentPersonBolk(
         personidenter: List<String>
-    ): Map<String, Navn>?
+    ): Map<String, Navn?>?
 
     fun hentFødselsdato(
         personident: String
     ): LocalDate?
+    
+    fun hentNavn(
+        personident: String
+    ): Navn?
 
     fun hentGeografiskTilknytning(
         personident: String,
@@ -22,8 +26,6 @@ interface PersondataGateway: Gateway {
 
     fun hentAdressebeskyttelseOgGeolokasjon(ident: Ident): GeografiskTilknytningOgAdressebeskyttelse
 }
-
-data class Navn(val verdi: String?)
 
 data class GeografiskTilknytning(
     val gtType: GeografiskTilknytningType,
@@ -60,4 +62,14 @@ enum class Adressebeskyttelseskode {
             STRENGT_FORTROLIG, STRENGT_FORTROLIG_UTLAND -> Diskresjonskode.SPSF
             UGRADERT -> Diskresjonskode.ANY
         }
+}
+
+data class Navn(
+    val fornavn: String?,
+    val mellomnavn: String?,
+    val etternavn: String?
+) {
+    fun fulltNavn(): String {
+        return "${fornavn ?: ""} ${mellomnavn ?: ""} ${etternavn ?: ""}".trim()
+    }
 }

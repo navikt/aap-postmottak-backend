@@ -96,6 +96,9 @@ class PdlKlientSpy : PersondataGateway {
         TODO("Not yet implemented")
     }
 
+    override fun hentNavn(personident: String): Navn? {
+        TODO("Not yet implemented")
+    }
 }
 
 class ArenaKlientSpy : ArenaGateway {
