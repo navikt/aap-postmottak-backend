@@ -70,6 +70,6 @@ data class Navn(
     val etternavn: String?
 ) {
     fun fulltNavn(): String {
-        return "${fornavn ?: ""} ${mellomnavn ?: ""} ${etternavn ?: ""}".trim()
+        return listOfNotNull(fornavn, mellomnavn, etternavn).joinToString(" ")
     }
 }

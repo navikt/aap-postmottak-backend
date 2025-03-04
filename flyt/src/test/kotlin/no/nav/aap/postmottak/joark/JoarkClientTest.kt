@@ -9,11 +9,11 @@ import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
-import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.joark.JoarkClient
+import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.fakes.DEFAULT_IDENT
@@ -32,11 +32,12 @@ class JoarkClientTest : WithFakes {
     fun setup() {
         GatewayRegistry.register(SafGraphqlClientCredentialsClient::class)
         GatewayRegistry.register(JoarkClient::class)
+        GatewayRegistry.register(PdlGraphqlKlient::class)
     }
-    
+
     @Test
     fun `før journalpost på fagsak`() {
-        val joarkClient =  GatewayProvider.provide(JournalføringsGateway::class)
+        val joarkClient = GatewayProvider.provide(JournalføringsGateway::class)
 
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.person } returns Person(
@@ -50,7 +51,7 @@ class JoarkClientTest : WithFakes {
 
     @Test
     fun `før journalpost på generell sak`() {
-        val joarkClient =  GatewayProvider.provide(JournalføringsGateway::class)
+        val joarkClient = GatewayProvider.provide(JournalføringsGateway::class)
 
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.person } returns Person(
@@ -82,7 +83,7 @@ class JoarkClientTest : WithFakes {
     fun `avsenderMottaker blir satt til samme som bruker dersom den mangler`() {
 
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
-        val joarkClient = JoarkClient.konstruer(restClient, SafGraphqlClientCredentialsClient(), mockk<PersondataGateway>())
+        val joarkClient = JoarkClient.konstruer(restClient, SafGraphqlClientCredentialsClient(), PdlGraphqlKlient())
 
         val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(UTEN_AVSENDER_MOTTAKER)
 
@@ -95,6 +96,7 @@ class JoarkClientTest : WithFakes {
                 val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
                 assertThat(avsenderMottaker?.id).isEqualTo(DEFAULT_IDENT.identifikator)
                 assertThat(avsenderMottaker?.type).isEqualTo(BrukerIdType.FNR)
+                assertThat(avsenderMottaker?.navn).isEqualTo("Ola Normann")
             }, any())
         }
     }
