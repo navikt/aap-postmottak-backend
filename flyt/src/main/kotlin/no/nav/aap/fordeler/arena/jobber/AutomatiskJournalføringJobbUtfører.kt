@@ -67,7 +67,7 @@ class AutomatiskJournalføringJobbUtfører(
             fagsystem = Fagsystem.AO01
         )
         joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
-        prometheus.journalføringCounter(type = JournalføringsType.jfr).increment()
+        prometheus.journalføringCounter(type = JournalføringsType.automatisk).increment()
     }
 
 }
