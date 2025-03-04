@@ -1,10 +1,13 @@
 package no.nav.aap.postmottak.mottak
 
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.hendelseType
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
@@ -51,7 +54,8 @@ private const val EESSI = "EESSI"
 class JoarkKafkaHandler(
     config: StreamsConfig,
     datasource: DataSource,
-    private val transactionProvider: TransactionProvider = TransactionProvider(datasource)
+    private val transactionProvider: TransactionProvider = TransactionProvider(datasource),
+    private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) {
 
     private val log = LoggerFactory.getLogger(JoarkKafkaHandler::class.java)
@@ -62,6 +66,7 @@ class JoarkKafkaHandler(
         val journalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
         val streamBuilder = StreamsBuilder()
         streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
+            .peek { _, record -> prometheus.hendelseType(record) }
             .filter { _, record -> record.journalpostStatus == MOTTATT }
             .filter { _, record -> record.mottaksKanal != EESSI }
             .split()
