@@ -55,54 +55,6 @@ class ManuellJournalføringJobbUtfører(
                 listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING)
             )
 
-        /* midlertidig kode for å fikse fordelingsoppgaver. */
-        val specialCase = listOf(
-            698581045L,
-            698581047L,
-            698588247L,
-            698590382L,
-            698592673L,
-            698598590L,
-            698598613L,
-            698598639L,
-            698599024L,
-            698600148L,
-            698600159L,
-            698600240L,
-            698600312L,
-        ).map { JournalpostId(it) }
-
-        if (kontekst.journalpostId in specialCase) {
-            log.info("special case ${kontekst.journalpostId}")
-            val eksisterendeFordelingsOppgaver =
-                gosysOppgaveGateway.finnOppgaverForJournalpost(
-                    kontekst.journalpostId,
-                    listOf(Oppgavetype.FORDELING)
-                )
-            eksisterendeFordelingsOppgaver.forEach {
-                gosysOppgaveGateway.ferdigstillOppgave(it)
-            }
-            if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 10) {
-                gosysOppgaveGateway.opprettJournalføringsOppgave(
-                    kontekst.journalpostId,
-                    kontekst.ident,
-                    kontekst.hoveddokumenttittel,
-                    kontekst.navEnhet
-                )
-                log.info("Opprettet journalføringsoppgave i gosys for ${kontekst.journalpostId}")
-                prometheus.journalføringCounter(type = JournalføringsType.jfr, enhet = kontekst.navEnhet).increment()
-            } else {
-                gosysOppgaveGateway.opprettFordelingsOppgave(
-                    kontekst.journalpostId,
-                    kontekst.ident,
-                    kontekst.hoveddokumenttittel
-                )
-                log.info("Forsøkt å opprette journalføringsoppgave for journalpost ${kontekst.journalpostId} for mange ganger - opprettet fordelingsoppgave")
-                prometheus.journalføringCounter(type = JournalføringsType.fdr).increment()
-            }
-            return
-        }
-
         if (eksisterendeOppgaver.isNotEmpty()) {
             log.info("Det finnes allerede en journalføringsoppgave for journalpost ${kontekst.journalpostId} - oppretter ingen ny")
         } else if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 3) {
