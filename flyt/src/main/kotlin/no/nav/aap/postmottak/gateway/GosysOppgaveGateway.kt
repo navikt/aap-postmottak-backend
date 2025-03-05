@@ -14,14 +14,14 @@ interface GosysOppgaveGateway : Gateway {
     ): List<Long>
 
     fun ferdigstillOppgave(oppgaveId: Long)
-    fun opprettJournalføringsOppgave(
+    fun opprettJournalføringsOppgaveHvisIkkeEksisterer(
         journalpostId: JournalpostId,
         personIdent: Ident,
         beskrivelse: String,
         tildeltEnhetsnr: String
     )
 
-    fun opprettFordelingsOppgave(journalpostId: JournalpostId, personIdent: Ident?, beskrivelse: String)
+    fun opprettFordelingsOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, orgnr: String? = null, personIdent: Ident?, beskrivelse: String)
 }
 
 enum class Oppgavetype(val verdi: String) {

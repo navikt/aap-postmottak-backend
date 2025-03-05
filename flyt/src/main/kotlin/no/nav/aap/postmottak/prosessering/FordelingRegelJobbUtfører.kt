@@ -14,14 +14,11 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
-import no.nav.aap.postmottak.gateway.Oppgavetype
-import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -60,8 +57,7 @@ class FordelingRegelJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
-
-
+        
         // TODO: Håndter organisasjonsnummer bedre
         val journalpost = try {
             journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
@@ -79,26 +75,15 @@ class FordelingRegelJobbUtfører(
                 }
 
                 if (safJournalpost.bruker?.type == BrukerIdType.ORGNR || safJournalpost.bruker?.id == null) {
-                    val eksisterendeOppgaver =
-                        gosysOppgaveGateway.finnOppgaverForJournalpost(
-                            journalpostId,
-                            listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING)
-                        )
-                    if (eksisterendeOppgaver.isNotEmpty()) {
-                        log.info("Det finnes allerede en journalføringsoppgave for journalpost $journalpostId} - oppretter ingen ny")
-                    } else {
-
-                        gosysOppgaveGateway.opprettFordelingsOppgave(
-                            journalpostId,
-                            safJournalpost.bruker?.id?.let(::Ident),
-                            safJournalpost.dokumenter!!.minBy { it?.dokumentInfoId!! }?.tittel
+                        gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
+                            journalpostId = journalpostId,
+                            personIdent = safJournalpost.bruker?.id?.let(::Ident),
+                            beskrivelse = safJournalpost.dokumenter!!.minBy { it?.dokumentInfoId!! }?.tittel
                                 ?: throw IllegalStateException("Fant ingen dokumenter i journalposten")
                         )
 
                         val årsak = if (safJournalpost.bruker?.type == BrukerIdType.ORGNR) "orgnummer" else "ingen bruker.id"
                         log.info("Fant $årsak på ${journalpostId} - opprettet fordelingsoppgave")
-                        prometheus.journalføringCounter(type = JournalføringsType.fdr).increment()
-                    }
                     return
                 } else throw e
             }

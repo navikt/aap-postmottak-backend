@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.klient.gosysoppgave
 
 import io.ktor.server.response.*
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
@@ -36,6 +37,8 @@ class GosysOppgaveKlientTest : WithFakes {
             )
         }
         gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO")
+        gosysOppgaveKlient.opprettJournalføringsOppgaveHvisIkkeEksisterer(JournalpostId(1), Ident("YOLO"), "YOLO", "YOLO")
+        gosysOppgaveKlient.opprettFordelingsOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO", null, "YOLO")
     }
 
     @Test

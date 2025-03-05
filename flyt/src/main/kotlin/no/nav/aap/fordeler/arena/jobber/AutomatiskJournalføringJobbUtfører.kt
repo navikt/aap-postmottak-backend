@@ -9,12 +9,10 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
-import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import org.slf4j.LoggerFactory
 
@@ -67,7 +65,6 @@ class AutomatiskJournalføringJobbUtfører(
             fagsystem = Fagsystem.AO01
         )
         joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
-        prometheus.journalføringCounter(type = JournalføringsType.automatisk).increment()
     }
 
 }
