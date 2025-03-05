@@ -8,10 +8,10 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.hendelseType
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.medJournalpostId
@@ -66,9 +66,9 @@ class JoarkKafkaHandler(
         val journalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
         val streamBuilder = StreamsBuilder()
         streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
-            .peek { _, record -> prometheus.hendelseType(record) }
             .filter { _, record -> record.journalpostStatus == MOTTATT }
             .filter { _, record -> record.mottaksKanal != EESSI }
+            .peek { _, record -> prometheus.hendelseType(record) }
             .split()
             .branch(
                 { _, record -> record.temaGammelt == TEMA && record.temaNytt != TEMA },
@@ -86,7 +86,7 @@ class JoarkKafkaHandler(
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.foreach { _, record ->
-            opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId))
+            opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId), record.hendelsesType)
         }
     }
 
@@ -109,9 +109,10 @@ class JoarkKafkaHandler(
     }
 
     private fun opprettFordelingRegelJobb(
-        journalpostId: JournalpostId
+        journalpostId: JournalpostId,
+        hendelse: String,
     ) {
-        log.info("Mottatt ny journalpost: $journalpostId")
+        log.info("Mottatt ny journalpost: $journalpostId, hendelse: $hendelse")
         transactionProvider.inTransaction {
 
             flytJobbRepository.leggTil(
