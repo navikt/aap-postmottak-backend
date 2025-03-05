@@ -17,6 +17,7 @@ kafka:
 
 inbound:
     rules:
+      - application: paw-patrol
 outbound:
     rules:
         - application: skjermede-personer-pip
