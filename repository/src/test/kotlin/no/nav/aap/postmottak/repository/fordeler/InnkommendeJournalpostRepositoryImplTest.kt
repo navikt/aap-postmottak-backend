@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.repository.fordeler
 
 import no.nav.aap.fordeler.InnkommendeJournalpost
-import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -14,11 +13,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class InnkommendeJournalpostRepositoryImplTest {
+    val dataSource = InitTestDatabase.dataSource
 
     @BeforeEach
     fun beforeEach() {
-        InitTestDatabase.dataSource.transaction {
-            it.execute("TRUNCATE behandling CASCADE")
+        dataSource.transaction {
             it.execute("""TRUNCATE regel_evaluering CASCADE""")
             it.execute("TRUNCATE innkommende_journalpost CASCADE")
         }
@@ -33,7 +32,8 @@ class InnkommendeJournalpostRepositoryImplTest {
             brevkode = "brevkode"
         )
 
-        inContext {
+        dataSource.transaction { connection ->
+            val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
             innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
 
             val hentetInnkommendeJournalpost =
@@ -55,22 +55,24 @@ class InnkommendeJournalpostRepositoryImplTest {
             regelresultat = Regelresultat(mapOf("yolo" to true))
         )
 
-        InitTestDatabase.dataSource.transaction { connection ->
-            val id = InnkommendeJournalpostRepositoryImpl(connection).lagre(innkommendeJournalpost)
+        dataSource.transaction { connection ->
+            val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
+
+            val id = innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
 
             val hentetInnkommendeJournalpost =
-                InnkommendeJournalpostRepositoryImpl(connection).hent(innkommendeJournalpost.journalpostId)
+                innkommendeJournalpostRepository.hent(innkommendeJournalpost.journalpostId)
 
             val hentetRegel = RegelRepositoryImpl(connection).hentRegelresultat(journalpostId)
             assertThat(hentetRegel).isEqualTo(innkommendeJournalpost.regelresultat)
-            
+
             val hentetRegelPåId = RegelRepositoryImpl(connection).hentRegelresultat(id)
             assertThat(hentetRegelPåId).isEqualTo(innkommendeJournalpost.regelresultat)
 
             assertThat(hentetInnkommendeJournalpost).isEqualTo(innkommendeJournalpost)
         }
     }
-    
+
     @Test
     fun `Eksisterer`() {
         val journalpostId = JournalpostId(1)
@@ -83,22 +85,10 @@ class InnkommendeJournalpostRepositoryImplTest {
         )
         InitTestDatabase.dataSource.transaction { connection ->
             val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
-            
+
             assertFalse(innkommendeJournalpostRepository.eksisterer(journalpostId))
             innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
             assertTrue(innkommendeJournalpostRepository.eksisterer(journalpostId))
-        }
-    }
-
-    private class Context(
-        val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
-    )
-
-    private fun <T> inContext(block: Context.() -> T): T {
-        return InitTestDatabase.dataSource.transaction {
-            val context =
-                Context(InnkommendeJournalpostRepositoryImpl(it))
-            context.let(block)
         }
     }
 }

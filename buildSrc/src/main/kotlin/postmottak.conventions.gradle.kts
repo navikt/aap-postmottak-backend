@@ -34,7 +34,7 @@ testing {
 
 tasks.test {
     useJUnitPlatform()
-    maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() - 1) / 2
 }
 
 kotlin {
