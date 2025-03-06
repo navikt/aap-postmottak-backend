@@ -37,4 +37,7 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.17")
     testImplementation(project(":lib-test"))
     testImplementation("io.ktor:ktor-server-netty:$ktorVersion")
+    constraints {
+        implementation("io.netty:netty-common:4.1.119.Final")
+    }
 }
