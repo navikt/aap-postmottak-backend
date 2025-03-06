@@ -4,9 +4,7 @@ import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
-import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.*
 import no.nav.aap.fordeler.EnhetMedOppfølgingsKontor
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -76,11 +74,7 @@ fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
                 )
 
                 val response = enhetsutreder.finnEnhetMedOppfølgingskontor(Person(1, UUID.randomUUID(), listOf(ident)))
-                if (response == null) {
-                    respondWithStatus(HttpStatusCode.NotFound)
-                } else {
-                    respond(response)
-                }
+                respond(response)
             }
         }
     }
