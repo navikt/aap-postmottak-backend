@@ -18,6 +18,7 @@ kafka:
 inbound:
     rules:
         - application: postmottak
+        - application: saksbehandling
         - application: paw-patrol
         - application: azure-token-generator
           namespace: aura
