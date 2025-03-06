@@ -11,6 +11,8 @@ import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningOgAdressebeskyttelse
 import no.nav.aap.postmottak.gateway.Navn
@@ -20,20 +22,22 @@ import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
+import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
-import no.nav.aap.postmottak.test.WithMotor
-import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.tomFinn
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 
-class SøknadTilArenaFlytTest : WithFakes, WithDependencies, WithMotor {
+class SøknadTilArenaFlytTest : WithFakes, WithDependencies {
 
     companion object {
+        private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
+
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
@@ -41,10 +45,20 @@ class SøknadTilArenaFlytTest : WithFakes, WithDependencies, WithMotor {
 
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
-        }
-    }
 
-    val dataSource = InitTestDatabase.dataSource
+            motor.start()
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun afterAll() {
+            motor.stop()
+        }
+
+        val dataSource = InitTestDatabase.dataSource
+        private val util =
+            TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
+    }
 
     @Test
     fun `happycase for søknad, oppretter sak i arena og journalfører automatsik`() {
@@ -62,9 +76,8 @@ class SøknadTilArenaFlytTest : WithFakes, WithDependencies, WithMotor {
             )
         }
 
-        await(10000) {
-            verify(exactly = 1) { arenaGateway.opprettArenaOppgave(any()) }
-        }
+        util.ventPåSvar()
+        verify(exactly = 1) { arenaGateway.opprettArenaOppgave(any()) }
     }
 
 }

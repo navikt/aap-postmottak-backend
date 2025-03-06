@@ -9,11 +9,12 @@ import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
+import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
-import no.nav.aap.postmottak.test.WithMotor
-import no.nav.aap.postmottak.test.await
 import no.nav.aap.postmottak.test.fakes.SØKNAD_ETTERSENDELSE
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
@@ -23,9 +24,13 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 
-class SøknadEttersendelseTilArenaFlytTest : WithFakes, WithDependencies, WithMotor {
+class SøknadEttersendelseTilArenaFlytTest : WithFakes, WithDependencies {
 
     companion object {
+        private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
+        val dataSource = InitTestDatabase.dataSource
+        val util =
+            TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
 
         @JvmStatic
         @BeforeAll
@@ -34,10 +39,10 @@ class SøknadEttersendelseTilArenaFlytTest : WithFakes, WithDependencies, WithMo
 
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
+
+            motor.start()
         }
     }
-
-    val dataSource = InitTestDatabase.dataSource
 
     @Test
     fun `happycase for søknad oppretter sak i arena og journalfører automatsik`() {
@@ -54,10 +59,9 @@ class SøknadEttersendelseTilArenaFlytTest : WithFakes, WithDependencies, WithMo
                 JobbInput(FordelingRegelJobbUtfører).forSak(1).medJournalpostId(journalpostId)
             )
         }
+        util.ventPåSvar()
+        verify(exactly = 1) { arenaGateway.opprettArenaOppgave(any()) }
 
-        await(10000) {
-            verify(exactly = 1) { arenaGateway.opprettArenaOppgave(any()) }
-        }
     }
 
 }
