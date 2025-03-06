@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 val ktorVersion = "3.1.1"
 val komponenterVersjon = "1.0.151"
 val kafkaVersion = "3.7.0"
-val tilgangVersjon = "1.0.14"
+val tilgangVersjon = "1.0.15"
 val behandlingsflytVersjon = "0.0.177"
 val junitVersjon = "5.11.4"
 
