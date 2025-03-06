@@ -1,0 +1,1 @@
+alter table innkommende_journalpost add column aarsak_til_status varchar(100);

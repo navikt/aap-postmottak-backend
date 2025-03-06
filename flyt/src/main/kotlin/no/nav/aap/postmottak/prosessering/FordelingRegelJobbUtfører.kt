@@ -6,7 +6,9 @@ import no.nav.aap.fordeler.FordelerRegelService
 import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
+import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.regler.RegelInput
+import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -19,8 +21,10 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.gateway.SafJournalpost
+import no.nav.aap.postmottak.gateway.hoveddokument
+import no.nav.aap.postmottak.gateway.originalFiltype
 import no.nav.aap.postmottak.journalpostCounter
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.slf4j.LoggerFactory
 
@@ -62,68 +66,80 @@ class FordelingRegelJobbUtfører(
             log.info("Journalposten har allerede blitt evaluert - behandler ikke videre")
             return
         }
-        
-        // TODO: Håndter organisasjonsnummer bedre
-        val journalpost = try {
-            journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
-        } catch (e: Exception) {
-            // beklager
-            if (e.message?.contains("Ugyldig ident ved GraphQL oppslag") == true
-                || e.message?.contains("journalpost må ha ident") == true) {
-                val safJournalpost = journalpostService.hentSafJournalpost(journalpostId)
-                if (safJournalpost.journalstatus == Journalstatus.JOURNALFOERT) {
-                    log.info("Journalposten er allerede journalført - behandler ikke videre")
-                    return
-                } else if (safJournalpost.journalstatus == Journalstatus.UTGAAR) {
-                    log.info("Journalposten er utgått - behandler ikke videre")
-                    return
-                }
 
-                if (safJournalpost.bruker?.type == BrukerIdType.ORGNR || safJournalpost.bruker?.id == null) {
-                        gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
-                            journalpostId = journalpostId,
-                            personIdent = safJournalpost.bruker?.id?.let(::Ident),
-                            beskrivelse = safJournalpost.dokumenter!!.minBy { it?.dokumentInfoId!! }?.tittel
-                                ?: throw IllegalStateException("Fant ingen dokumenter i journalposten")
-                        )
+        val safJournalpost = journalpostService.hentSafJournalpost(journalpostId)
 
-                        val årsak = if (safJournalpost.bruker?.type == BrukerIdType.ORGNR) "orgnummer" else "ingen bruker.id"
-                        log.info("Fant $årsak på ${journalpostId} - opprettet fordelingsoppgave")
-                    return
-                } else throw e
+        val statusMedÅrsakOgRegelresultat: StatusMedÅrsakOgRegelresultat = when {
+            safJournalpost.journalstatus == Journalstatus.JOURNALFOERT -> {
+                log.info("Journalposten har status ${safJournalpost.journalstatus} - behandler ikke videre")
+                StatusMedÅrsakOgRegelresultat(
+                    InnkommendeJournalpostStatus.IGNORERT,
+                    ÅrsakTilStatus.ALLEREDE_JOURNALFØRT)
             }
-            throw e
-        }
-        log.info("Journalstatus: ${journalpost.status}")
-        if (journalpost.status == Journalstatus.JOURNALFOERT) {
-            log.info("Journalposten er allerede journalført - behandler ikke videre")
-            return
-        } else if (journalpost.status == Journalstatus.UTGAAR) {
-            log.info("Journalposten er utgått - behandler ikke videre")
-            return
-        }
-        log.info("Evaluerer regler...")
 
-        val res = regelService.evaluer(
-            RegelInput(
-                journalpostId.referanse,
-                journalpost.person,
-                journalpost.hoveddokumentbrevkode
+            safJournalpost.journalstatus == Journalstatus.UTGAAR -> {
+                log.info("Journalposten har status ${safJournalpost.journalstatus} - behandler ikke videre")
+                StatusMedÅrsakOgRegelresultat(
+                    InnkommendeJournalpostStatus.IGNORERT,
+                    ÅrsakTilStatus.UTGÅTT
+                )
+            }
+
+            safJournalpost.bruker?.id == null -> {
+                val årsak = ÅrsakTilStatus.MANGLER_IDENT
+                log.info("Bruker på ${safJournalpost.journalpostId} var ${safJournalpost.bruker?.type ?: "tom"} - oppretter fordelingsoppgave hvis ikke eksisterer")
+                opprettFordelingsOppgaveHvisIkkeEksisterer(safJournalpost, årsak)
+                StatusMedÅrsakOgRegelresultat(
+                    InnkommendeJournalpostStatus.GOSYS_FDR,
+                    årsak
+                )
+            }
+
+            safJournalpost.bruker.type == BrukerIdType.ORGNR -> {
+                val årsak = ÅrsakTilStatus.ORGNR
+                log.info("Bruker på ${safJournalpost.journalpostId} var organisasjon - oppretter fordelingsoppgave hvis ikke eksisterer")
+                opprettFordelingsOppgaveHvisIkkeEksisterer(safJournalpost, årsak)
+                StatusMedÅrsakOgRegelresultat(
+                    InnkommendeJournalpostStatus.GOSYS_FDR,
+                    årsak
+                )
+            }
+
+            else -> {
+                val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
+
+                val res = regelService.evaluer(
+                    RegelInput(
+                        safJournalpost.journalpostId,
+                        journalpost.person,
+                        journalpost.hoveddokumentbrevkode
+                    )
+                )
+                StatusMedÅrsakOgRegelresultat(
+                    InnkommendeJournalpostStatus.EVALUERT,
+                    regelresultat = res
+                )
+            }
+        }
+
+        innkommendeJournalpostRepository.lagre(
+            InnkommendeJournalpost(
+                journalpostId = JournalpostId(safJournalpost.journalpostId),
+                brevkode = safJournalpost.hoveddokument()?.brevkode,
+                behandlingstema = safJournalpost.behandlingstema,
+                status = statusMedÅrsakOgRegelresultat.status,
+                årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
+                regelresultat = statusMedÅrsakOgRegelresultat.regelresultat
             )
         )
-
-        val innkommendeJournalpost = InnkommendeJournalpost(
-            journalpostId = journalpostId,
-            brevkode = journalpost.hoveddokumentbrevkode,
-            behandlingstema = journalpost.behandlingstema,
-            status = InnkommendeJournalpostStatus.EVALUERT,
-            regelresultat = res
-        )
-
-        innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
-        opprettVideresendJobb(journalpostId)
-
-        prometheus.journalpostCounter(journalpost).increment()
+        prometheus.journalpostCounter(
+            brevkode = safJournalpost.hoveddokument()?.brevkode,
+            filtype = safJournalpost.originalFiltype()
+        ).increment()
+        
+        if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
+            opprettVideresendJobb(journalpostId)
+        }
     }
 
     private fun opprettVideresendJobb(journalpostId: JournalpostId) {
@@ -134,4 +150,28 @@ class FordelingRegelJobbUtfører(
                 .medCallId()
         )
     }
+
+    private fun opprettFordelingsOppgaveHvisIkkeEksisterer(journalpost: SafJournalpost, årsak: ÅrsakTilStatus) {
+        val tittel = journalpost.hoveddokument()?.tittel
+            ?: throw IllegalStateException("Fant ingen dokumenter i journalposten")
+        val årsakstekst = when (årsak) {
+            ÅrsakTilStatus.MANGLER_IDENT -> "Mangler ident - klarer ikke fordele til enhet"
+            ÅrsakTilStatus.ORGNR -> "Forventet ikke å motta journalpost fra organisasjon på tema AAP"
+            else -> throw IllegalArgumentException("Ukjent årsak")
+        }
+
+        gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
+            journalpostId = JournalpostId(journalpost.journalpostId),
+            personIdent = null,
+            orgnr = if (årsak == ÅrsakTilStatus.ORGNR) journalpost.bruker?.id else null,
+            beskrivelse = "$tittel. $årsakstekst"
+        )
+    }
+
+    data class StatusMedÅrsakOgRegelresultat(
+        val status: InnkommendeJournalpostStatus,
+        val årsak: ÅrsakTilStatus? = null,
+        val regelresultat: Regelresultat? = null
+    )
 }
+

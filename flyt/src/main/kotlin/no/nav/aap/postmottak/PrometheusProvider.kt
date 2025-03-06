@@ -5,8 +5,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.fordeler.NavEnhet
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 
 class PrometheusProvider {
@@ -19,18 +17,20 @@ fun MeterRegistry.fordelingsCounter(system: Fagsystem): Counter =
     this.counter("fordeling_videresend", listOf(Tag.of("system", system.name)))
 
 fun MeterRegistry.hendelseType(record: JournalfoeringHendelseRecord): Counter =
-    this.counter("joark_hendelse", listOf(
-        Tag.of("hendelseType", record.hendelsesType),
-        Tag.of("status", record.journalpostStatus),
-        Tag.of("temaNytt", record.temaNytt),
-    ))
+    this.counter(
+        "joark_hendelse", listOf(
+            Tag.of("hendelseType", record.hendelsesType),
+            Tag.of("status", record.journalpostStatus),
+            Tag.of("temaNytt", record.temaNytt),
+        )
+    )
 
-fun MeterRegistry.journalpostCounter(journalpost: Journalpost) =
+fun MeterRegistry.journalpostCounter(brevkode: String?, filtype: String?) =
     this.counter(
         "journalpost",
         listOf(
-            Tag.of("brevkode", journalpost.hoveddokumentbrevkode),
-            Tag.of("filtype", journalpost.finnOriginal()?.finnFiltype(Variantformat.ORIGINAL)?.name ?: "UKJENT")
+            Tag.of("brevkode", filtype ?: "Ukjent"),
+            Tag.of("filtype", brevkode ?: "Ukjent")
         )
     )
 

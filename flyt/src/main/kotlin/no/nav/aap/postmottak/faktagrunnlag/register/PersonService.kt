@@ -4,7 +4,6 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.PersondataGateway
-import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.journalpostogbehandling.db.PersonRepository
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 
@@ -18,9 +17,8 @@ class PersonService(private val personRepository: PersonRepository, private val 
         }
     }
 
-    fun finnOgOppdaterPerson(safJournalpost: SafJournalpost): Person {
-        require(safJournalpost.bruker?.id != null) { "journalpost må ha ident" }
-        val identliste = persondataGateway.hentAlleIdenterForPerson(safJournalpost.bruker?.id!!)
+    fun finnOgOppdaterPerson(ident: String): Person {
+        val identliste = persondataGateway.hentAlleIdenterForPerson(ident)
 
         if (identliste.isEmpty()) {
             throw IllegalStateException("Fikk ingen treff på ident i PDL")

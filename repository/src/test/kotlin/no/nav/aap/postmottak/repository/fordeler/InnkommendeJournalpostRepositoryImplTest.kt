@@ -4,6 +4,7 @@ import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
+import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -28,6 +29,7 @@ class InnkommendeJournalpostRepositoryImplTest {
         val innkommendeJournalpost = InnkommendeJournalpost(
             journalpostId = JournalpostId(1),
             status = InnkommendeJournalpostStatus.IGNORERT,
+            årsakTilStatus = ÅrsakTilStatus.ALLEREDE_JOURNALFØRT,
             behandlingstema = "behandlingstema",
             brevkode = "brevkode"
         )
