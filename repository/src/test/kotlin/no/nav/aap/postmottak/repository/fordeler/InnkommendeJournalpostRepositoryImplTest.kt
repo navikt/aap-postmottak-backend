@@ -8,16 +8,17 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class InnkommendeJournalpostRepositoryImplTest {
 
-    @AfterEach
-    fun afterEach() {
+    @BeforeEach
+    fun beforeEach() {
         InitTestDatabase.dataSource.transaction {
+            it.execute("TRUNCATE behandling CASCADE")
             it.execute("""TRUNCATE regel_evaluering CASCADE""")
             it.execute("TRUNCATE innkommende_journalpost CASCADE")
         }
