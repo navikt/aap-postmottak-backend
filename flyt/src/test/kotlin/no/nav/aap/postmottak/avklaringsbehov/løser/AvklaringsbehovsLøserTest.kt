@@ -1,9 +1,9 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
+import io.mockk.mockk
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
-import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.lookup.repository.RepositoryRegistry
@@ -37,11 +37,9 @@ class AvklaringsbehovsLøserTest {
     @Test
     fun `alle subtyper skal ha unik verdi`() {
         val utledSubtypes = AvklaringsbehovsLøser::class.sealedSubclasses
-        InitTestDatabase.dataSource.transaction { dbConnection ->
-            val løsningSubtypes = utledSubtypes.map { it.primaryConstructor!!.call(dbConnection).forBehov() }.toSet()
+        val løsningSubtypes = utledSubtypes.map { it.primaryConstructor!!.call(mockk<DBConnection>()).forBehov() }.toSet()
 
-            Assertions.assertThat(løsningSubtypes).hasSize(utledSubtypes.size)
-        }
+        Assertions.assertThat(løsningSubtypes).hasSize(utledSubtypes.size)
     }
 }
 

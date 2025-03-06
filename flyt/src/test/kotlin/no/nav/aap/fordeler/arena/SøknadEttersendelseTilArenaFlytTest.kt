@@ -19,6 +19,7 @@ import no.nav.aap.postmottak.test.fakes.SØKNAD_ETTERSENDELSE
 import no.nav.aap.postmottak.test.fakes.WithFakes
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.tomFinn
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -41,6 +42,12 @@ class SøknadEttersendelseTilArenaFlytTest : WithFakes, WithDependencies {
                 .register<ArenaKlientSpy>()
 
             motor.start()
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun afterAll() {
+            motor.stop()
         }
     }
 

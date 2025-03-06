@@ -58,7 +58,7 @@ class DigitaliseringsvurderingRepositoryImplTest {
                 Digitaliseringsvurdering(InnsendingType.SØKNAD, """{"Test: Plakat"}""", søknadsdato)
             )
         }
-        Thread.sleep(100)
+//        Thread.sleep(100)
         inContext {
             struktureringsvurderingRepository.lagre(
                 behandlingId,

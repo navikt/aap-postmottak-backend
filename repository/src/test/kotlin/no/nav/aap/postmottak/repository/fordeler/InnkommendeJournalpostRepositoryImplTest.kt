@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class InnkommendeJournalpostRepositoryImplTest {
-    val dataSource = InitTestDatabase.dataSource
+    private val dataSource = InitTestDatabase.dataSource
 
     @BeforeEach
     fun beforeEach() {
@@ -35,12 +35,14 @@ class InnkommendeJournalpostRepositoryImplTest {
         dataSource.transaction { connection ->
             val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
             innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
-
-            val hentetInnkommendeJournalpost =
-                innkommendeJournalpostRepository.hent(innkommendeJournalpost.journalpostId)
-
-            assertThat(hentetInnkommendeJournalpost).isEqualTo(innkommendeJournalpost)
         }
+        val hentetInnkommendeJournalpost = dataSource.transaction { connection ->
+            val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
+            innkommendeJournalpostRepository.hent(innkommendeJournalpost.journalpostId)
+        }
+
+        assertThat(hentetInnkommendeJournalpost).isEqualTo(innkommendeJournalpost)
+
     }
 
 
@@ -55,22 +57,30 @@ class InnkommendeJournalpostRepositoryImplTest {
             regelresultat = Regelresultat(mapOf("yolo" to true))
         )
 
-        dataSource.transaction { connection ->
+        val id = dataSource.transaction { connection ->
             val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
-
-            val id = innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
-
-            val hentetInnkommendeJournalpost =
-                innkommendeJournalpostRepository.hent(innkommendeJournalpost.journalpostId)
-
-            val hentetRegel = RegelRepositoryImpl(connection).hentRegelresultat(journalpostId)
-            assertThat(hentetRegel).isEqualTo(innkommendeJournalpost.regelresultat)
-
-            val hentetRegelPåId = RegelRepositoryImpl(connection).hentRegelresultat(id)
-            assertThat(hentetRegelPåId).isEqualTo(innkommendeJournalpost.regelresultat)
-
-            assertThat(hentetInnkommendeJournalpost).isEqualTo(innkommendeJournalpost)
+            innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
         }
+
+
+        val hentetRegel = dataSource.transaction { connection ->
+            RegelRepositoryImpl(connection).hentRegelresultat(journalpostId)
+        }
+        assertThat(hentetRegel).isEqualTo(innkommendeJournalpost.regelresultat)
+
+        val hentetRegelPåId = dataSource.transaction { connection ->
+            RegelRepositoryImpl(connection).hentRegelresultat(id)
+        }
+        assertThat(hentetRegelPåId).isEqualTo(innkommendeJournalpost.regelresultat)
+
+        val hentetInnkommendeJournalpost =
+            dataSource.transaction {
+                val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(it)
+                innkommendeJournalpostRepository.hent(innkommendeJournalpost.journalpostId)
+            }
+
+        assertThat(hentetInnkommendeJournalpost).isEqualTo(innkommendeJournalpost)
+
     }
 
     @Test
@@ -83,12 +93,15 @@ class InnkommendeJournalpostRepositoryImplTest {
             brevkode = "brevkode",
             regelresultat = Regelresultat(mapOf("yolo" to true))
         )
-        InitTestDatabase.dataSource.transaction { connection ->
+        assertFalse(dataSource.transaction { connection ->
             val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
+            innkommendeJournalpostRepository.eksisterer(journalpostId)
+        })
 
-            assertFalse(innkommendeJournalpostRepository.eksisterer(journalpostId))
+        assertTrue(dataSource.transaction { connection ->
+            val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
             innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
-            assertTrue(innkommendeJournalpostRepository.eksisterer(journalpostId))
-        }
+            innkommendeJournalpostRepository.eksisterer(journalpostId)
+        })
     }
 }

@@ -21,7 +21,7 @@ data class Regelresultat(val regelMap: RegelMap) {
         }
         
         val kelvinSakRegel = regelMap[KelvinSakRegel::class.simpleName] ?: false
-        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName]!!
+        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName] ?: false
         if (kelvinSakRegel && erIkkeReisestønad) {
             log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
             return true
