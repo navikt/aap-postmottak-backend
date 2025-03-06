@@ -4,7 +4,11 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 enum class InnkommendeJournalpostStatus{
     EVALUERT,
-    VIDERESENDT
+    VIDERSENDT_TIL_KELVIN,
+    VIDERESENDT_TIL_ARENA,
+    GOSYS_JFR,
+    GOSYS_FDR,
+    IGNORERT,
 }
 
 data class InnkommendeJournalpost(
@@ -12,5 +16,11 @@ data class InnkommendeJournalpost(
     val brevkode: String?,
     val behandlingstema: String?,
     val status: InnkommendeJournalpostStatus,
-    val regelresultat: Regelresultat,
-)
+    val regelresultat: Regelresultat? = null
+) {
+    init {
+        if (status == InnkommendeJournalpostStatus.EVALUERT && regelresultat == null) {
+            throw IllegalArgumentException("Regelresultat må være satt når status er EVALUERT")
+        }
+    }
+}

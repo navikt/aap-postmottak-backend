@@ -5,6 +5,7 @@ import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 
 class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepository {
@@ -16,21 +17,41 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
         }
     }
 
-    override fun hentRegelresultat(journalpostId: Long): Regelresultat {
+    override fun hentRegelresultat(journalpostId: JournalpostId): Regelresultat? {
         return connection.queryList(
             """
-            SELECT * FROM REGELSETT_RESULTAT rr
-            JOIN REGEL_EVALUERING re ON re.REGEL_RESULTAT_ID = rr.ID
-            JOIN INNKOMMENDE_JOURNALPOST ijp ON ijp.ID = rr.INNKOMMENDE_JOURNALPOST
-            WHERE ijp.JOURNALPOST_ID = ?
-        """.trimIndent()
+                SELECT * FROM REGELSETT_RESULTAT rr
+                JOIN REGEL_EVALUERING re ON re.REGEL_RESULTAT_ID = rr.ID
+                JOIN INNKOMMENDE_JOURNALPOST ijp ON ijp.ID = rr.INNKOMMENDE_JOURNALPOST
+                WHERE ijp.JOURNALPOST_ID = ?
+            """.trimIndent()
         ) {
-            setParams { setLong(1, journalpostId) }
+            setParams { setLong(1, journalpostId.referanse) }
             setRowMapper { row ->
                 row.getString("REGEL_NAVN") to row.getBoolean("RESULTAT")
             }
-        }.toMap().let { Regelresultat(it) }
+        }.let {
+            if (it.isEmpty()) null else Regelresultat(it.toMap())
+        }
     }
+
+    override fun hentRegelresultat(innkommendeJournalpostId: Long): Regelresultat? {
+        return connection.queryList(
+            """
+                SELECT * FROM REGELSETT_RESULTAT rr
+                JOIN REGEL_EVALUERING re ON re.REGEL_RESULTAT_ID = rr.ID
+                WHERE innkommende_journalpost = ?
+            """.trimIndent()
+        ) {
+            setParams { setLong(1, innkommendeJournalpostId) }
+            setRowMapper { row ->
+                row.getString("REGEL_NAVN") to row.getBoolean("RESULTAT")
+            }
+        }.let {
+            if (it.isEmpty()) null else Regelresultat(it.toMap())
+        }
+    }
+
 
     override fun hentPersonerMedJournalpostVideresendtTilKelvin(): List<Person> {
         return connection.queryList(
@@ -46,7 +67,7 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
         }
     }
 
-    override fun lagre(journalpostId: Long, regelresultat: Regelresultat) {
+    override fun lagre(innkommendeJournalpostId: Long, regelresultat: Regelresultat) {
         val systemNavn = if (regelresultat.skalTilKelvin()) "KELVIN" else "ARENA"
 
         val regelResultatId = connection.executeReturnKey(
@@ -54,7 +75,7 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
             INSERT INTO REGELSETT_RESULTAT (INNKOMMENDE_JOURNALPOST, SYSTEM_NAVN) VALUES (?, ?)
         """.trimIndent()
         ) {
-            setParams { setLong(1, journalpostId) }
+            setParams { setLong(1, innkommendeJournalpostId) }
             setParams { setString(2, systemNavn) }
         }
 

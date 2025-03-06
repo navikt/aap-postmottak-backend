@@ -4,6 +4,7 @@ import no.nav.aap.lookup.repository.Repository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 interface InnkommendeJournalpostRepository: Repository {
+    fun eksisterer(journalpostId: JournalpostId): Boolean
     fun hent(journalpostId: JournalpostId): InnkommendeJournalpost
-    fun lagre(innkommendeJournalpost: InnkommendeJournalpost)
+    fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long
 }

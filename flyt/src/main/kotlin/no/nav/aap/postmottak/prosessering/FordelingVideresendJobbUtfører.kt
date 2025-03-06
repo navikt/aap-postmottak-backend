@@ -13,9 +13,9 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.fordelingsCounter
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FordelingVideresendJobbUtfører::class.java)
@@ -50,7 +50,9 @@ class FordelingVideresendJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
-        val regelResultat = regelRepository.hentRegelresultat(journalpostId.referanse)
+        val regelResultat = regelRepository.hentRegelresultat(journalpostId)
+        requireNotNull(regelResultat) { "Fant ikke regelresultat for journalpostId=$journalpostId" }
+        
         if (regelResultat.skalTilKelvin()) {
             routeTilKelvin(journalpostId)
             prometheus.fordelingsCounter(Fagsystem.kelvin).increment()

@@ -39,7 +39,7 @@ class FordelingRegelJobbUtførerTest {
     }
 
     @Test
-    fun `når joben er utført finnes det et regel resultat for journalposten`() {
+    fun `når jobben er utført finnes det et regel resultat for journalposten`() {
         val journalpostId = JournalpostId(1L)
 
         val regelResultat = Regelresultat(mapOf("yolo" to true))
@@ -60,5 +60,18 @@ class FordelingRegelJobbUtførerTest {
             assertThat(it.getJournalpostId()).isEqualTo(journalpostId)
             })
         }
+    }
+    
+    @Test
+    fun `Skal returnere tidlig dersom journalposten har blitt evaluert før`() {
+        val journalpostId = JournalpostId(1L)
+        every { innkommendeJournalpostRepository.eksisterer(journalpostId) } returns true
+
+        fordelingRegelJobbUtfører.utfør(JobbInput(FordelingRegelJobbUtfører)
+            .forSak(journalpostId.referanse)
+            .medJournalpostId(journalpostId)
+        )
+
+        verify(exactly = 0) { regelService.evaluer(any()) }
     }
 }

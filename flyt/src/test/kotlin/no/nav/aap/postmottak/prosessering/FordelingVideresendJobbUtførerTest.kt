@@ -24,9 +24,9 @@ class FordelingVideresendJobbUtførerTest : WithFakes {
     @Test
     fun `Når journalposten skal til Kelvin skal vi opprette en ProsesserBehandlingJobb`() {
         val regelResultat = Regelresultat(regelMap = mapOf("Regel1" to true, "Regel2" to true, "ErIkkeReisestønadRegel" to true))
-        every { regelRepositoryMock.hentRegelresultat(any()) } returns regelResultat
-
         val journalpostId = JournalpostId(1)
+        every { regelRepositoryMock.hentRegelresultat(journalpostId) } returns regelResultat
+
         val jobbInput = JobbInput(FordelingVideresendJobbUtfører)
             .forSak(journalpostId.referanse)
             .medJournalpostId(journalpostId)

@@ -17,6 +17,17 @@ class InnkommendeJournalpostRepositoryImpl(
         }
     }
     
+    override fun eksisterer(journalpostId: JournalpostId): Boolean {
+        return connection.queryFirstOrNull(
+            """
+            SELECT id FROM innkommende_journalpost WHERE journalpost_id = ?
+        """.trimIndent()
+        ) {
+            setParams { setLong(1, journalpostId.referanse) }
+            setRowMapper { row -> row.getInt("ID") }
+        } != null
+    }
+    
     override fun hent(journalpostId: JournalpostId): InnkommendeJournalpost {
         return connection.queryFirst("""
             SELECT * FROM innkommende_journalpost WHERE journalpost_id = ?
@@ -32,11 +43,11 @@ class InnkommendeJournalpostRepositoryImpl(
         }
     }
     
-    override fun lagre(innkommendeJournalpost: InnkommendeJournalpost) {
+    override fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long {
         val query = """
             INSERT INTO innkommende_journalpost (journalpost_id, status, behandlingstema, brevkode) VALUES (?, ?, ?, ?)
         """.trimIndent()
-        val journalpostId = connection.executeReturnKey(query) {
+        val id = connection.executeReturnKey(query) {
             setParams {
                 setLong(1, innkommendeJournalpost.journalpostId.referanse)
                 setEnumName(2, innkommendeJournalpost.status)
@@ -44,8 +55,10 @@ class InnkommendeJournalpostRepositoryImpl(
                 setString(4, innkommendeJournalpost.brevkode)
             }
         }
-        
-        regelRepository.lagre(journalpostId, innkommendeJournalpost.regelresultat)
+        if (innkommendeJournalpost.regelresultat != null) {
+            regelRepository.lagre(id, innkommendeJournalpost.regelresultat!!)
+        }
+        return id
     }
 
 }
