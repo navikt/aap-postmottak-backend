@@ -2,8 +2,8 @@ plugins {
     id("postmottak.conventions")
 }
 
-val komponenterVersjon = "1.0.151"
-val behandlingsflytVersjon = "0.0.177"
+val komponenterVersjon = "1.0.170"
+val behandlingsflytVersjon = "0.0.187"
 val ktorVersion = "3.1.1"
 val tilgangVersjon = "1.0.15"
 val junitVersjon = "5.11.4"
