@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import kotlin.math.max
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
@@ -34,7 +35,7 @@ testing {
 
 tasks.test {
     useJUnitPlatform()
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() - 1) / 2
+    maxParallelForks = max(1, (Runtime.getRuntime().availableProcessors() - 1) / 2)
 }
 
 kotlin {
