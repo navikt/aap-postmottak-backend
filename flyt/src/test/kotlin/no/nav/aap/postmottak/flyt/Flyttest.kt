@@ -67,6 +67,8 @@ class Flyttest : WithFakes, WithDependencies, WithMotor {
             it.execute(
                 """
             TRUNCATE BEHANDLING CASCADE;
+            TRUNCATE innkommende_journalpost CASCADE;
+            TRUNCATE regel_evaluering CASCADE;
         """.trimIndent()
             )
         }
