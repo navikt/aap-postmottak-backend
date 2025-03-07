@@ -58,7 +58,8 @@ class OverleverTilFagsystemSteg(
 
         if (overleveringVurdering == null && digitaliseringsvurdering.kategori in setOf(
                 InnsendingType.SØKNAD,
-                InnsendingType.LEGEERKLÆRING
+                InnsendingType.LEGEERKLÆRING,
+                InnsendingType.MELDEKORT,
             )
         ) {
             val vurdering = OverleveringVurdering(true)
