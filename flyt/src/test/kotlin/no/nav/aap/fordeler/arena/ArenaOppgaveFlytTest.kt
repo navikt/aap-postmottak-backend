@@ -26,6 +26,8 @@ import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
+import no.nav.aap.postmottak.test.fakes.SØKNAD_ETTERSENDELSE
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -33,7 +35,7 @@ import java.time.LocalDate
 
 
 @Fakes
-class SøknadTilArenaFlytTest: WithDependencies {
+class ArenaOppgaveFlytTest : WithDependencies {
 
     companion object {
         private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
@@ -57,7 +59,7 @@ class SøknadTilArenaFlytTest: WithDependencies {
         private val util =
             TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
     }
-    
+
     @Test
     fun `happycase for søknad, oppretter sak i arena og journalfører automatsik`() {
         val journalpostId = PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
@@ -75,7 +77,34 @@ class SøknadTilArenaFlytTest: WithDependencies {
         }
 
         util.ventPåSvar()
-        verify(exactly = 1) { arenaGateway.opprettArenaOppgave(any()) }
+        verify(exactly = 1) {
+            arenaGateway.opprettArenaOppgave(withArg {
+                assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.STARTVEDTAK)
+            })
+        }
+    }
+
+    @Test
+    fun `happycase for søknad oppretter sak i arena og journalfører automatsik`() {
+        val journalpostId = SØKNAD_ETTERSENDELSE
+
+        val persondataGateway = GatewayProvider.provide(PersondataGateway::class)
+        val arenaGateway = GatewayProvider.provide(ArenaGateway::class)
+
+        every { persondataGateway.hentFødselsdato(any()) } returns LocalDate.now().minusYears(70)
+        every { arenaGateway.harAktivSak(any()) } returns false
+
+        dataSource.transaction {
+            FlytJobbRepository(it).leggTil(
+                JobbInput(FordelingRegelJobbUtfører).forSak(1).medJournalpostId(journalpostId)
+            )
+        }
+        util.ventPåSvar()
+        verify(exactly = 1) {
+            arenaGateway.opprettArenaOppgave(withArg {
+                assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.BEHENVPERSON)
+            })
+        }
     }
 
 }
