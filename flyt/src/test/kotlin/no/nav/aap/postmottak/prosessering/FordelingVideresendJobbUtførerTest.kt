@@ -10,11 +10,12 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.test.fakes.WithFakes
+import no.nav.aap.postmottak.test.Fakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class FordelingVideresendJobbUtførerTest : WithFakes {
+@Fakes
+class FordelingVideresendJobbUtførerTest {
     val behandlingRepositoryMock = mockk<BehandlingRepository>(relaxed = true)
     val regelRepositoryMock = mockk<RegelRepository>()
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)

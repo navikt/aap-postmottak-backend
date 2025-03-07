@@ -11,11 +11,10 @@ import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class ManuellJournalføringJobbTest: WithFakes {
+class ManuellJournalføringJobbTest {
     val gosysMock = mockk<GosysOppgaveGateway>(relaxed = true)
     val journalpostServiceMock = mockk<JournalpostService>()
     val journalpostMock = mockk<JournalpostMedDokumentTitler>()

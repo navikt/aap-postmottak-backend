@@ -211,20 +211,6 @@ private fun ingenSakerRespons() =
         }
     """
 
-fun arenaSakerRespons() =
-    """
-        {
-            "data": {
-                "saker": [
-                    {
-                        "fagsaksystem": "AO01",
-                        "tema": "AAP"
-                    }
-                ]
-            }
-        }
-    """
-
 private fun finnStatus(journalpostId: Long) =
     when (journalpostId) {
         UGYLDIG_STATUS.referanse -> "UTGAAR"
@@ -234,6 +220,7 @@ private fun finnStatus(journalpostId: Long) =
 
 private fun finnBruker(journalpostId: Long) =
     when (journalpostId) {
-        LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> IDENT_UTEN_SAK.identifikator
+        SØKNAD_ETTERSENDELSE.referanse, PERSON_UTEN_SAK_I_BEHANDLINGSFLYT.referanse, LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> IDENT_UTEN_SAK_I_KELVIN.identifikator
+        PERSON_MED_SAK_I_ARENA.referanse -> IDENT_MED_SAK_I_ARENA.identifikator
         else -> DEFAULT_IDENT.identifikator
     }

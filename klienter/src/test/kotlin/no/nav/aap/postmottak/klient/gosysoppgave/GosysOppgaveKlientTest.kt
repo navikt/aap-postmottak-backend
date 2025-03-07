@@ -1,26 +1,16 @@
 package no.nav.aap.postmottak.klient.gosysoppgave
 
-import io.ktor.server.response.*
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.test.fakes.WithFakes
-import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
+import no.nav.aap.postmottak.test.Fakes
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime.of
 
-
-class ShouldNotBeCalledException(message: String = "This endpoint should not have been called") : Exception(message)
-
-class GosysOppgaveKlientTest : WithFakes {
-
-    @AfterEach
-    fun tearDown() {
-        WithFakes.fakes.gosysOppgave.clean()
-    }
-
+@Fakes
+class GosysOppgaveKlientTest {
+    
     val gosysOppgaveKlient = GosysOppgaveKlient()
 
     @Test
@@ -28,17 +18,12 @@ class GosysOppgaveKlientTest : WithFakes {
         gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO")
     }
 
+    //TODO: Forbedre denne testen
     @Test
     fun `når en journalpost alt har oppgaver skal det ikke opprettes en ny oppgave`() {
-        WithFakes.fakes.gosysOppgave.setCustomModule {
-            gosysOppgaveFake(
-                getOppgaver = { call.respond(FinnOppgaverResponse(listOf(Oppgave(1)))) },
-                postOppgave = { throw ShouldNotBeCalledException("Dette endepunktet skal ikke ha blitt kalt ettersom det alt finnes en oppgave") }
-            )
-        }
-        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO")
-        gosysOppgaveKlient.opprettJournalføringsOppgaveHvisIkkeEksisterer(JournalpostId(1), Ident("YOLO"), "YOLO", "YOLO")
-        gosysOppgaveKlient.opprettFordelingsOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO", null, "YOLO")
+        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(128), "YOLO")
+        gosysOppgaveKlient.opprettJournalføringsOppgaveHvisIkkeEksisterer(JournalpostId(128), Ident("YOLO"), "YOLO", "YOLO")
+        gosysOppgaveKlient.opprettFordelingsOppgaveHvisIkkeEksisterer(JournalpostId(128), "YOLO", null, "YOLO")
     }
 
     @Test

@@ -24,16 +24,16 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
-import no.nav.aap.postmottak.test.fakes.WithFakes
-import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
-import no.nav.aap.postmottak.test.fakes.tomFinn
+import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 
-class SøknadTilArenaFlytTest : WithFakes, WithDependencies {
+@Fakes
+class SøknadTilArenaFlytTest: WithDependencies {
 
     companion object {
         private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
@@ -41,8 +41,6 @@ class SøknadTilArenaFlytTest : WithFakes, WithDependencies {
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            WithFakes.fakes.behandlingsflyt.setCustomModule { behandlingsflytFake(finn = tomFinn) }
-
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
 
@@ -59,10 +57,10 @@ class SøknadTilArenaFlytTest : WithFakes, WithDependencies {
         private val util =
             TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
     }
-
+    
     @Test
     fun `happycase for søknad, oppretter sak i arena og journalfører automatsik`() {
-        val journalpostId = JournalpostId(1)
+        val journalpostId = PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
 
         val persondataGateway = GatewayProvider.provide(PersondataGateway::class)
         val arenaGateway = GatewayProvider.provide(ArenaGateway::class)

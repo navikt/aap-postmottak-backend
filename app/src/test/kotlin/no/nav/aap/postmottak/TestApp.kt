@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak
 
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -16,29 +15,19 @@ import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
-import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.AzurePortHolder
+import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.fakes.PAPIR_SØKNAD
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
-class TestApp {
-    @Test
-    @EnabledIfEnvironmentVariable(named = "TEST_APP", matches = "RUN")
-    fun `kjør test-app`() {
-        // For å kjøre test-app fra kommandolinjen, kjør
-        // cd app && TEST_APP=RUN ../gradlew test --tests TestApp --info
-        main()
-    }
-}
-
 // Kjøres opp for å få logback i console uten json
 fun main() {
     val postgres = postgreSQLContainer()
-    val fakes = Fakes(azurePort = 8081)
+    AzurePortHolder.setPort(8081)
+    FakeServers.start()
 
     // Starter server
     embeddedServer(Netty, port = 8080) {
@@ -53,7 +42,6 @@ fun main() {
         server(
             dbConfig
         )
-        module(fakes)
 
         val datasource = initDatasource(dbConfig, SimpleMeterRegistry())
 
@@ -136,14 +124,4 @@ internal fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
     postgres.waitingFor(HostPortWaitStrategy().withStartupTimeout(Duration.of(60L, ChronoUnit.SECONDS)))
     postgres.start()
     return postgres
-}
-
-private fun Application.module(fakes: Fakes) {
-    // Setter opp virtuell sandkasse lokalt
-    monitor.subscribe(ApplicationStopped) { application ->
-        application.environment.log.info("Server har stoppet")
-        fakes.close()
-        // Release resources and unsubscribe from events
-        application.monitor.unsubscribe(ApplicationStopped) {}
-    }
 }

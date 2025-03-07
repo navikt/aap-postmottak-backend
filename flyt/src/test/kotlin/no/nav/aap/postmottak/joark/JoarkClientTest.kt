@@ -19,17 +19,17 @@ import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.DEFAULT_IDENT
 import no.nav.aap.postmottak.test.fakes.UTEN_AVSENDER_MOTTAKER
-import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.InputStream
 import java.util.*
 
-
-class JoarkClientTest : WithFakes {
+@Fakes
+class JoarkClientTest {
 
     @BeforeEach
     fun setup() {

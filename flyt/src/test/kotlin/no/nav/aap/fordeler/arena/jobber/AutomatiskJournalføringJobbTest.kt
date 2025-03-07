@@ -27,14 +27,13 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
-import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.*
 
-class AutomatiskJournalføringJobbTest : WithFakes {
+class AutomatiskJournalføringJobbTest {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val joarkClientMock = mockk<JoarkClient>(relaxed = true)
     val journalpostServiceMock = mockk<JournalpostService>(relaxed = true)

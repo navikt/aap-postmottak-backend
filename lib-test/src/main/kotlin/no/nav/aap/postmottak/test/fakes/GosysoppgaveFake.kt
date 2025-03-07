@@ -8,25 +8,12 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.aap.postmottak.klient.gosysoppgave.FinnOppgaverResponse
+import no.nav.aap.postmottak.klient.gosysoppgave.Oppgave
 
-val getOppgaverDefault: suspend RoutingContext.() -> Unit = {
-    call.respond(FinnOppgaverResponse(emptyList()))
-}
-
-val postOppgaveDefault: suspend RoutingContext.() -> Unit = {
-    call.respond(false)
-}
-
-val patchOppgaveDefault: suspend RoutingContext.() -> Unit = {
-    call.respond(HttpStatusCode.OK)
-}
+class ShouldNotBeCalledException(message: String = "This endpoint should not have been called") : Exception(message)
 
 fun Application.gosysOppgaveFake(
-    getOppgaver: suspend RoutingContext.() -> Unit = getOppgaverDefault,
-    postOppgave: suspend RoutingContext.() -> Unit = postOppgaveDefault,
-    patchOppgave: suspend RoutingContext.() -> Unit = patchOppgaveDefault,
 ) {
-
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
@@ -34,9 +21,21 @@ fun Application.gosysOppgaveFake(
     }
 
     routing {
-        get("/api/v1/oppgaver", getOppgaver)
-        post("/api/v1/oppgaver", postOppgave)
-        patch("/api/v1/oppgaver/{journalpostId}", patchOppgave)
+        get("/api/v1/oppgaver") {
+            if (call.parameters["journalpostId"] == MED_GOSYS_OPPGAVER.referanse.toString()) {
+                call.respond(FinnOppgaverResponse(listOf(Oppgave(1))))
+            }
+            call.respond(FinnOppgaverResponse(emptyList()))
+        }
+        post("/api/v1/oppgaver") {
+            if (call.parameters["journalpostId"] == MED_GOSYS_OPPGAVER.referanse.toString()) {
+                throw ShouldNotBeCalledException("Dette endepunktet skal ikke ha blitt kalt ettersom det alt finnes en oppgave")
+            }
+            call.respond(false)
+        }
+        patch("/api/v1/oppgaver/{journalpostId}") {
+            call.respond(HttpStatusCode.OK)
+        }
     }
 
 }

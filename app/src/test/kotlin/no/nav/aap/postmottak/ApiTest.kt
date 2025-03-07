@@ -13,8 +13,8 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
+import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -26,7 +26,8 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 import kotlin.test.fail
 
-class ApiTest: WithFakes {
+@Fakes
+class ApiTest {
     private val logger = LoggerFactory.getLogger(ApiTest::class.java)
 
     companion object {
@@ -53,7 +54,7 @@ class ApiTest: WithFakes {
                 responseHandler = DefaultResponseHandler()
             )
             return token ?: OidcToken(
-                client.post<Unit, Fakes.TestToken>(
+                client.post<Unit, FakeServers.TestToken>(
                     URI.create(requiredConfigForKey("azure.openid.config.token.endpoint")),
                     PostRequest(Unit)
                 )!!.access_token

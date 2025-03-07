@@ -38,6 +38,7 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
+import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.ANNET_TEMA
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
 import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING
@@ -45,7 +46,6 @@ import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING_IKKE_TIL_KELVIN
 import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT
 import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM
 import no.nav.aap.postmottak.test.fakes.UGYLDIG_STATUS
-import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -56,8 +56,8 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 
-class Flyttest : WithFakes, WithDependencies {
-
+@Fakes
+class Flyttest: WithDependencies {
     companion object {
         private val dataSource = InitTestDatabase.dataSource
         private val hendelsesMottak = TestHendelsesMottak(dataSource)
@@ -81,7 +81,6 @@ class Flyttest : WithFakes, WithDependencies {
 
     @AfterEach
     fun afterEach() {
-        WithFakes.fakes.behandlingsflyt.clean()
         dataSource.transaction {
             it.execute(
                 """

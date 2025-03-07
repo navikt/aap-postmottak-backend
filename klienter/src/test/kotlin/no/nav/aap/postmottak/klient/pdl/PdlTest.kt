@@ -4,12 +4,13 @@ import no.nav.aap.postmottak.gateway.Adressebeskyttelseskode
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningType
 import no.nav.aap.postmottak.gateway.Gradering
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.test.fakes.WithFakes
+import no.nav.aap.postmottak.test.Fakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
-class PdlTest: WithFakes {
+@Fakes
+class PdlTest {
 
     @Test
     fun `Kan parse hentPersonBolk`() {

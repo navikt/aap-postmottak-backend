@@ -15,17 +15,15 @@ import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
+import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.SØKNAD_ETTERSENDELSE
-import no.nav.aap.postmottak.test.fakes.WithFakes
-import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
-import no.nav.aap.postmottak.test.fakes.tomFinn
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-
-class SøknadEttersendelseTilArenaFlytTest : WithFakes, WithDependencies {
+@Fakes
+class SøknadEttersendelseTilArenaFlytTest : WithDependencies {
 
     companion object {
         private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
@@ -36,8 +34,6 @@ class SøknadEttersendelseTilArenaFlytTest : WithFakes, WithDependencies {
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            WithFakes.fakes.behandlingsflyt.setCustomModule { behandlingsflytFake(finn = tomFinn) }
-
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
 

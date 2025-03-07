@@ -12,11 +12,10 @@ import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.test.fakes.WithFakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class SendSøknadTilArenaJobbUtførerTest: WithFakes {
+class SendSøknadTilArenaJobbUtførerTest {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val arenaKlientMock = mockk<ArenaKlient>(relaxed = true)
     val journalpostService = mockk<JournalpostService>(relaxed = true) {
