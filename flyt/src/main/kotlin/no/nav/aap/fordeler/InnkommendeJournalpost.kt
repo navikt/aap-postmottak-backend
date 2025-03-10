@@ -11,12 +11,20 @@ enum class InnkommendeJournalpostStatus{
     IGNORERT,
 }
 
+enum class ÅrsakTilStatus{
+    MANGLER_IDENT,
+    ORGNR,
+    ALLEREDE_JOURNALFØRT,
+    UTGÅTT
+}
+
 data class InnkommendeJournalpost(
     val journalpostId: JournalpostId,
     val brevkode: String?,
     val behandlingstema: String?,
     val status: InnkommendeJournalpostStatus,
-    val regelresultat: Regelresultat? = null
+    val regelresultat: Regelresultat? = null,
+    val årsakTilStatus: ÅrsakTilStatus? = null
 ) {
     init {
         if (status == InnkommendeJournalpostStatus.EVALUERT && regelresultat == null) {

@@ -6,13 +6,13 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.Kanal
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDateTime
 
-interface JournalpostGateway: Gateway {
+interface JournalpostGateway : Gateway {
     fun hentJournalpost(journalpostId: JournalpostId): SafJournalpost
     fun hentSaker(fnr: String): List<SafSak>
 }
 
 
-interface JournalpostOboGateway: Gateway {
+interface JournalpostOboGateway : Gateway {
     fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken): SafJournalpost
     fun hentSaker(fnr: String, currentToken: OidcToken): List<SafSak>
 }
@@ -331,3 +331,9 @@ data class SafSak(
     val tema: String,
     val fagsaksystem: String
 )
+
+fun SafJournalpost.hoveddokument() =
+    dokumenter?.filterNotNull()?.minBy { it.dokumentInfoId }
+
+fun SafJournalpost.originalFiltype() =
+    this.hoveddokument()?.dokumentvarianter?.find { it.variantformat == SafVariantformat.ORIGINAL }?.filtype

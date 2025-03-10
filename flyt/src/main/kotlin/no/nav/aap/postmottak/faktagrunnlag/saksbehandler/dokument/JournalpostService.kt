@@ -40,8 +40,13 @@ class JournalpostService(
         token: OidcToken? = null
     ): JournalpostMedDokumentTitler {
         val journalpost = hentSafJournalpost(journalpostId, token)
-        val person = personService.finnOgOppdaterPerson(journalpost)
-        return journalpost.tilJournalpostMedDokumentTitler(person)
+        return tilJournalpostMedDokumentTitler(journalpost)
+    }
+    
+    fun tilJournalpostMedDokumentTitler(safJournalpost: SafJournalpost): JournalpostMedDokumentTitler {
+        requireNotNull (safJournalpost.bruker?.id) { "Journalpost har ikke brukerid" }
+        val person = personService.finnOgOppdaterPerson(safJournalpost.bruker?.id!!)
+        return safJournalpost.tilJournalpostMedDokumentTitler(person)
     }
 
     fun hentSafJournalpost(journalpostId: JournalpostId, token: OidcToken? = null): SafJournalpost {
@@ -62,7 +67,8 @@ class JournalpostService(
         } else {
             journalpostGateway.hentJournalpost(journalpostId)
         }
-        val person = personService.finnOgOppdaterPerson(journalpost)
+        requireNotNull (journalpost.bruker?.id) { "Journalpost har ikke brukerid" }
+        val person = personService.finnOgOppdaterPerson(journalpost.bruker?.id!!)
         return journalpost.tilJournalpost(person)
     }
 
