@@ -1,5 +1,8 @@
 package no.nav.aap.postmottak.klient.pdl
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.Adressebeskyttelseskode
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningType
 import no.nav.aap.postmottak.gateway.Gradering
@@ -7,10 +10,18 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.test.Fakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
 @Fakes
 class PdlTest {
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun beforeAll() {
+            PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+        }
+    }
 
     @Test
     fun `Kan parse hentPersonBolk`() {

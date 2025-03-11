@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.flyt
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.WithDependencies
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -11,6 +13,7 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
@@ -57,7 +60,7 @@ import java.time.LocalDate
 
 
 @Fakes
-class Flyttest: WithDependencies {
+class Flyttest : WithDependencies {
     companion object {
         private val dataSource = InitTestDatabase.dataSource
         private val hendelsesMottak = TestHendelsesMottak(dataSource)
@@ -70,6 +73,7 @@ class Flyttest: WithDependencies {
         @BeforeAll
         fun beforeAll() {
             motor.start()
+            PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
         }
 
         @AfterAll

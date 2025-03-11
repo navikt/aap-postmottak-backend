@@ -1,5 +1,7 @@
 package no.nav.aap.fordeler.arena
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
@@ -13,6 +15,7 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningOgAdressebeskyttelse
 import no.nav.aap.postmottak.gateway.Navn
@@ -43,6 +46,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
+            PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
 
