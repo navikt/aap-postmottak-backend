@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.klient.saf
 
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -9,10 +8,12 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentOboGateway
 import no.nav.aap.postmottak.gateway.SafDocumentResponse
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.io.InputStream
 import java.net.URI
 import java.net.http.HttpHeaders
@@ -24,7 +25,7 @@ class SafOboRestClient(client: RestClient<InputStream>) : SafRestKlient(client),
                 config = ClientConfig(
                     scope = requiredConfigForKey("integrasjon.saf.scope"),
                 ),
-                tokenProvider = OnBehalfOfTokenProvider
+                OnBehalfOfTokenProvider
             )
             return SafOboRestClient(client)
         }
@@ -46,10 +47,12 @@ class SafRestClient(client: RestClient<InputStream>) : SafRestKlient(client), Do
                 config = ClientConfig(
                     scope = requiredConfigForKey("integrasjon.saf.scope"),
                 ),
-                tokenProvider = ClientCredentialsTokenProvider
+                tokenProvider = ClientCredentialsTokenProvider,
+                prometheus = PrometheusProvider.prometheus
             )
             return SafRestClient(client)
         }
+
         fun konstruer(client: RestClient<InputStream>): SafRestClient {
             return SafRestClient(client)
         }
@@ -75,7 +78,8 @@ abstract class SafRestKlient(val client: RestClient<InputStream>) {
         currentToken: OidcToken? = null,
     ): SafDocumentResponse {
         val url = konstruerSafRestURL(restUrl, journalpostId, dokumentId, arkivtype)
-        val response = client.get(url, request = GetRequest(currentToken = currentToken),
+        val response = client.get(
+            url, request = GetRequest(currentToken = currentToken),
             mapper = { body, headers ->
                 val contentType = headers.map()["Content-Type"]?.firstOrNull()
                 val filnavn: String? = extractFileNameFromHeaders(headers)

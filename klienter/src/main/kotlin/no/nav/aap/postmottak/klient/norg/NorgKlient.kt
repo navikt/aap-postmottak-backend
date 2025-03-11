@@ -11,6 +11,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.Oppgavetype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Behandlingstema
 import no.nav.aap.postmottak.klient.gosysoppgave.NavEnhet
@@ -44,6 +45,7 @@ class NorgKlient : NorgGateway {
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = NoTokenTokenProvider(),
+        prometheus = PrometheusProvider.prometheus
     )
 
     override fun hentAktiveEnheter(): List<NavEnhet> {

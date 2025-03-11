@@ -12,17 +12,19 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.net.URI
 
-class ArenaKlient: ArenaGateway {
+class ArenaKlient : ArenaGateway {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.aap.fss.proxy.url"))
 
     private var client = RestClient.withDefaultResponseHandler(
         config = ClientConfig(requiredConfigForKey("integrasjon.aap.fss.proxy.scope")),
-        tokenProvider = ClientCredentialsTokenProvider
+        tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = PrometheusProvider.prometheus
     )
 
     companion object : Factory<ArenaKlient> {
@@ -32,7 +34,7 @@ class ArenaKlient: ArenaGateway {
     }
 
 
-    override fun harAktivSak(ident : Ident) = nyesteAktiveSak(ident) != null
+    override fun harAktivSak(ident: Ident) = nyesteAktiveSak(ident) != null
 
     override fun nyesteAktiveSak(ident: Ident): String? {
         val request = GetRequest()
@@ -49,7 +51,10 @@ class ArenaKlient: ArenaGateway {
     override fun behandleKjoerelisteOgOpprettOppgave(journalpostId: JournalpostId): String {
         val request = PostRequest(BehandleKjoerelisteOgOpprettOppgaveRequest(journalpostId.referanse.toString()))
         val behandleKjoerelisteOgOpprettOppgaveUrl = url.resolve("arena/behandleKjoerelisteOgOpprettOppgave")
-        return client.post<BehandleKjoerelisteOgOpprettOppgaveRequest, BehandleKjoerelisteOgOpprettOppgaveResponse>(behandleKjoerelisteOgOpprettOppgaveUrl, request)?.arenaSakId ?: error("Ingen respons fra Arena")
+        return client.post<BehandleKjoerelisteOgOpprettOppgaveRequest, BehandleKjoerelisteOgOpprettOppgaveResponse>(
+            behandleKjoerelisteOgOpprettOppgaveUrl,
+            request
+        )?.arenaSakId ?: error("Ingen respons fra Arena")
     }
 
 }

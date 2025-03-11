@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.EgenAnsattGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import java.net.URI
@@ -23,7 +24,8 @@ class NomKlient : EgenAnsattGateway {
 
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider
+        tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = PrometheusProvider.prometheus
     )
 
     companion object : Factory<NomKlient> {

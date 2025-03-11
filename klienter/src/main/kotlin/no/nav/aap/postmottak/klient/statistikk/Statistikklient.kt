@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.StatistikkGateway
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import java.net.URI
@@ -25,6 +26,7 @@ class StatistikkKlient : StatistikkGateway {
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = PrometheusProvider.prometheus
     )
 
     override fun avgiHendelse(oppgaveHendelse: DokumentflytStoppetHendelse) {

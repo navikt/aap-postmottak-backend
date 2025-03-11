@@ -26,7 +26,7 @@ import java.net.URI
 class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
     override val restClient: RestClient<InputStream> = RestClient(
         config = ClientConfig(scope),
-        tokenProvider = OnBehalfOfTokenProvider,
+        OnBehalfOfTokenProvider,
         responseHandler = SafResponseHandler()
     )
 
@@ -46,7 +46,7 @@ class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
 class SafGraphqlClientCredentialsClient : SafGraphqlKlient(), JournalpostGateway {
     override val restClient: RestClient<InputStream> = RestClient(
         config = ClientConfig(scope),
-        tokenProvider = ClientCredentialsTokenProvider,
+        ClientCredentialsTokenProvider,
         responseHandler = SafResponseHandler()
     )
 

@@ -14,12 +14,13 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlKlient
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.dokument.Kanal
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -35,10 +36,11 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = PrometheusProvider.prometheus
     )
 
 
-    companion object: Factory<BehandlingsflytKlient> {
+    companion object : Factory<BehandlingsflytKlient> {
         override fun konstruer(): BehandlingsflytKlient {
             return BehandlingsflytKlient()
         }
@@ -101,7 +103,7 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
         )
         client.post<Innsending, Unit>(url, request)
     }
-    
+
 }
 
 fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {

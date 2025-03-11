@@ -7,23 +7,25 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.OppgaveGateway
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import java.net.URI
 
-class OppgaveKlient: OppgaveGateway {
+class OppgaveKlient : OppgaveGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.oppgave.url"))
     private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.oppgave.scope"))
 
-    companion object: Factory<OppgaveKlient> {
+    companion object : Factory<OppgaveKlient> {
         override fun konstruer(): OppgaveKlient {
             return OppgaveKlient()
         }
     }
-    
+
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider
+        tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = PrometheusProvider.prometheus,
     )
 
     override fun varsleHendelse(hendelse: DokumentflytStoppetHendelse) {

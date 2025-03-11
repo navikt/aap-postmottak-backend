@@ -46,7 +46,8 @@ class JoarkClient(
                 config = ClientConfig(
                     scope = requiredConfigForKey("integrasjon.joark.scope"),
                 ),
-                tokenProvider = ClientCredentialsTokenProvider
+                tokenProvider = ClientCredentialsTokenProvider,
+                prometheus = PrometheusProvider.prometheus,
             )
             return JoarkClient(
                 restClient,

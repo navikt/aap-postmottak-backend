@@ -33,6 +33,7 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = prometheus
     )
 
     companion object : Factory<GosysOppgaveKlient> {

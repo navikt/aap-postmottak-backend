@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import java.net.URI
@@ -18,9 +19,13 @@ class AapInternApiKlient : AapInternApiGateway {
         scope = requiredConfigForKey("integrasjon.aap.intern.api.scope"),
     )
     private val client =
-        RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
-    
-    companion object: Factory<AapInternApiKlient> {
+        RestClient.withDefaultResponseHandler(
+            config = config,
+            tokenProvider = ClientCredentialsTokenProvider,
+            prometheus = PrometheusProvider.prometheus
+        )
+
+    companion object : Factory<AapInternApiKlient> {
         override fun konstruer(): AapInternApiKlient {
             return AapInternApiKlient()
         }
