@@ -1,6 +1,7 @@
 package no.nav.aap.fordeler.regler
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -20,15 +21,15 @@ class AldersregelTest {
     }
 
     @Test
-    fun `Journalpost for person yngre enn 18 år skal ikke til Kelvin`(){
-        val fødselsdato = LocalDate.of(2002,2, 16)
+    fun `Journalpost for person yngre enn 24 år skal ikke til Kelvin`(){
+        val fødselsdato = LocalDate.of(1996,2, 16)
         val nåDato = LocalDate.of(2020, 2, 15)
         assertFalse(Aldersregel().vurder(AldersregelInput(fødselsdato, nåDato)))
     }
 
     @Test
-    fun `Journalpost for person som er fylt 18 år skal til Kelvin`(){
-        val fødselsdato = LocalDate.of(2002,2, 15)
+    fun `Journalpost for person som er fylt 24 år skal til Kelvin`(){
+        val fødselsdato = LocalDate.of(1996,2, 15)
         val nåDato = LocalDate.of(2020, 2, 15)
         assertTrue(Aldersregel().vurder(AldersregelInput(fødselsdato, nåDato)))
     }
