@@ -50,8 +50,11 @@ class DigitaliserDokumentSteg(
         requireNotNull(journalpost)
 
 
-        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
-            val dokument = if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) hentOriginalDokumentFraSaf(journalpost) else null
+        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort() || journalpost.erDigitalKlage()) {
+            val dokument =
+                if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) hentOriginalDokumentFraSaf(
+                    journalpost
+                ) else null
             val innsending = getInnsendingForBrevkode(journalpost.hoveddokumentbrevkode)
             val validertDokument =
                 DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
@@ -80,7 +83,8 @@ class DigitaliserDokumentSteg(
         val brevkodeTilInnsendingMap = mapOf(
             Brevkoder.SØKNAD to InnsendingType.SØKNAD,
             Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING,
-            Brevkoder.MELDEKORT to InnsendingType.MELDEKORT
+            Brevkoder.MELDEKORT to InnsendingType.MELDEKORT,
+            Brevkoder.KLAGE to InnsendingType.KLAGE
         )
 
         return brevkodeTilInnsendingMap[Brevkoder.fraKode(brevkode)]

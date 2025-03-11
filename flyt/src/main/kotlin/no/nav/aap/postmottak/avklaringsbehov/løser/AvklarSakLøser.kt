@@ -50,6 +50,6 @@ class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Avk
             Ident(journalpost.person.aktivIdent().identifikator),
             journalpost.mottattDato()
         ).saksnummer
-        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer,  false))
+        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer,  false, opprettetNy = true))
     }
 }

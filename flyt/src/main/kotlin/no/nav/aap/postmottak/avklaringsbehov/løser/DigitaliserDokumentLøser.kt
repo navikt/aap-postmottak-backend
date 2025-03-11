@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsnin
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -16,6 +17,7 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
     val repositoryProvider = RepositoryProvider(connection)
     val struktureringsvurderingRepository = repositoryProvider.provide(DigitaliseringsvurderingRepository::class)
     val journalpostRepository = repositoryProvider.provide(JournalpostRepository::class)
+    val sakVurderingRepository = repositoryProvider.provide(SaksnummerRepository::class)
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId)!!
@@ -24,6 +26,11 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
         }
         require(løsning.søknadsdato == null || !løsning.søknadsdato.isAfter(journalpost.mottattDato)) {
             "Søknadsdato kan ikke være etter registrert dato"
+        }
+
+        val avklartSak = sakVurderingRepository.hentSakVurdering(kontekst.kontekst.behandlingId)
+        require(!(løsning.kategori == InnsendingType.KLAGE && avklartSak?.opprettetNy!!)) {
+            "Klage skal knyttes mot eksisterende sak"
         }
 
         val dokument =

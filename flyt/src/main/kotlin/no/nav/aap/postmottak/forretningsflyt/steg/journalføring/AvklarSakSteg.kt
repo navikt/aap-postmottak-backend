@@ -88,7 +88,16 @@ class AvklarSakSteg(
         } else if (saksnummerVurdering != null) {
             Fullført
         } else {
-            return FantAvklaringsbehov(
+            if (journalpost.erDigitalKlage()) {
+                val eksisterendeSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+                return if (eksisterendeSaker.size == 1) {
+                    avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
+                    Fullført
+                } else {
+                    FantAvklaringsbehov(Definisjon.AVKLAR_SAK)
+                }
+            }
+            FantAvklaringsbehov(
                 Definisjon.AVKLAR_SAK
             )
         }

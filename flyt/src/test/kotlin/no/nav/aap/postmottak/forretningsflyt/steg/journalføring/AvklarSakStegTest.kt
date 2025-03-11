@@ -16,8 +16,10 @@ import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.assertj.core.api.Assertions.assertThat
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.*
 
 class AvklarSakStegTest {
 
@@ -72,6 +75,7 @@ class AvklarSakStegTest {
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.erDigitaltMeldekort() } returns false
         every { journalpost.erUgyldig() } returns false
+        every { journalpost.erDigitalKlage() } returns false
         every { journalpost.tema } returns "AAP"
         every { journalpost.status } returns Journalstatus.MOTTATT
 
@@ -170,5 +174,37 @@ class AvklarSakStegTest {
         }
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `Hvis det kun finnes én sak kan klage behandles automatisk`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erDigitalKlage() } returns true
+        every { journalpost.tema } returns "AAP"
+        every { journalpost.erUgyldig() } returns false
+        every { journalpost.status } returns Journalstatus.MOTTATT
+        every { journalpost.person } returns Person(1L, UUID.randomUUID(), listOf(Ident("ident")))
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk())
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
+
+        every { behandlingsflytClient.finnEllerOpprettSak(any(), any()) } returns BehandlingsflytSak(
+            "saksnummer", Periode(
+                LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)
+            )
+        )
+        
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
+        verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+
     }
 }

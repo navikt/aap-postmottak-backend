@@ -65,13 +65,14 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection): Saksnummer
     override fun lagreSakVurdering(behandlingId: BehandlingId, saksvurdering: Saksvurdering) {
         val avklaringId = connection.executeReturnKey(
             """
-            INSERT INTO SAKSNUMMER_AVKLARING (SAKSNUMMER, GENERELL_SAK) VALUES (
-            ?, ?)
+            INSERT INTO SAKSNUMMER_AVKLARING (SAKSNUMMER, GENERELL_SAK, opprettet_ny) VALUES (
+            ?, ?, ?)
         """.trimIndent()
         ) {
             setParams {
                 setString(1, saksvurdering.saksnummer)
                 setBoolean(2, saksvurdering.generellSak)
+                setBoolean(3, saksvurdering.opprettetNy)
             }
         }
         setVurderingInaktiv(behandlingId)
@@ -93,6 +94,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection): Saksnummer
                 Saksvurdering(
                     row.getStringOrNull("SAKSNUMMER"),
                     row.getBoolean("GENERELL_SAK"),
+                    row.getBoolean("OPPRETTET_NY")
                 )
             }
         }

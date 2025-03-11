@@ -57,6 +57,12 @@ open class Journalpost(
             it.brevkode == Brevkoder.LEGEERKLÆRING.kode
         } && erDigital()
     }
+    
+    fun erDigitalKlage(): Boolean {
+        return dokumenter.any {
+            it.brevkode == Brevkoder.KLAGE.kode
+        } && erDigital()
+    }
 
     fun erDigitaltMeldekort(): Boolean {
         return dokumenter.any {

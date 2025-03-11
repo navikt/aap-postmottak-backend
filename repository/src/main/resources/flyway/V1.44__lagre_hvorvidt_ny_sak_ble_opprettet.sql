@@ -1,0 +1,1 @@
+ALTER TABLE saksnummer_avklaring ADD COLUMN opprettet_ny BOOLEAN NOT NULL DEFAULT FALSE;
