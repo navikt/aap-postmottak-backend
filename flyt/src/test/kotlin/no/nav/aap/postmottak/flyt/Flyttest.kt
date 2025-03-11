@@ -282,7 +282,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Blir satt på vent for etterspørring av informasjon`() {
-        val journalpostId = JournalpostId(1L)
+        val journalpostId = JournalpostId(2L)
         val behandlingId = dataSource.transaction { connection ->
             val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
             behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)

@@ -20,11 +20,24 @@ class FordelingVideresendJobbUtførerTest {
     val regelRepositoryMock = mockk<RegelRepository>()
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val fordelingVideresendJobbUtfører =
-        FordelingVideresendJobbUtfører(behandlingRepositoryMock, regelRepositoryMock, flytJobbRepositoryMock, mockk(relaxed = true))
+        FordelingVideresendJobbUtfører(
+            behandlingRepositoryMock,
+            regelRepositoryMock,
+            flytJobbRepositoryMock,
+            mockk(relaxed = true)
+        )
 
     @Test
     fun `Når journalposten skal til Kelvin skal vi opprette en ProsesserBehandlingJobb`() {
-        val regelResultat = Regelresultat(regelMap = mapOf("Regel1" to true, "Regel2" to true, "ErIkkeReisestønadRegel" to true))
+        val regelResultat = Regelresultat(
+            regelMap = mapOf(
+                "Regel1" to true,
+                "Regel2" to true,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+                "KelvinSakRegel" to false
+            )
+        )
         val journalpostId = JournalpostId(1)
         every { regelRepositoryMock.hentRegelresultat(journalpostId) } returns regelResultat
 
@@ -33,11 +46,13 @@ class FordelingVideresendJobbUtførerTest {
             .medJournalpostId(journalpostId)
         fordelingVideresendJobbUtfører.utfør(jobbInput)
 
-        assertThat(fordelingVideresendJobbUtfører.prometheus.counter("fordeling_videresend", "system", "kelvin").count()).isEqualTo(1.0)
+        assertThat(
+            fordelingVideresendJobbUtfører.prometheus.counter("fordeling_videresend", "system", "kelvin").count()
+        ).isEqualTo(1.0)
         verify(exactly = 1) { behandlingRepositoryMock.opprettBehandling(journalpostId, TypeBehandling.Journalføring) }
         verify(exactly = 1) {
             flytJobbRepositoryMock.leggTil(
-                withArg{
+                withArg {
                     assertThat(it.sakId()).isEqualTo(journalpostId.referanse)
                     assertThat(it.type()).isEqualTo(ProsesserBehandlingJobbUtfører.type())
                 }

@@ -11,7 +11,7 @@ class RegelResultatTest {
     fun setUp() {
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
     }
-    
+
     @Test
     fun `KelvinSakRegel skal overstyre alle andre regler bortsett fra reisestønad og anke`() {
         val regelResultat = Regelresultat(
@@ -23,7 +23,7 @@ class RegelResultatTest {
                 "MaksAntallPersonerIKelvinRegel" to false,
             )
         )
-        
+
         assertThat(regelResultat.skalTilKelvin()).isTrue()
     }
 
@@ -34,6 +34,7 @@ class RegelResultatTest {
                 "KelvinSakRegel" to false,
                 "GeografiskTilknytningRegel" to true,
                 "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
                 "MaksAntallPersonerIKelvinRegel" to true,
             )
         )
@@ -47,6 +48,7 @@ class RegelResultatTest {
             mapOf(
                 "KelvinSakRegel" to true,
                 "ErIkkeReisestønadRegel" to false,
+                "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to true,
                 "MaksAntallPersonerIKelvinRegel" to true,
             )
@@ -76,11 +78,48 @@ class RegelResultatTest {
             mapOf(
                 "KelvinSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to false,
                 "MaksAntallPersonerIKelvinRegel" to true
             )
         )
 
         assertThat(regelResultat.skalTilKelvin()).isFalse()
+    }
+
+    @Test
+    fun `Kun søknad går til Kelvin, med mindre det allerede finnes en sak i Kelvin`() {
+        val annetDokumentUtenKelvinSak = Regelresultat(
+            mapOf(
+                "KelvinSakRegel" to false,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+                "SøknadRegel" to false
+            )
+        )
+
+        assertThat(annetDokumentUtenKelvinSak.skalTilKelvin()).isFalse()
+
+        val søknadUtenKelvinSak = Regelresultat(
+            mapOf(
+                "KelvinSakRegel" to false,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+                "SøknadRegel" to true,
+            )
+        )
+        assertThat(søknadUtenKelvinSak.skalTilKelvin()).isTrue()
+
+        val annetDokumentMedKelvinSak = Regelresultat(
+            mapOf(
+                "KelvinSakRegel" to true,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+                "SøknadRegel" to false,
+            )
+        )
+        assertThat(annetDokumentMedKelvinSak.skalTilKelvin()).isTrue()
+
+
     }
 }

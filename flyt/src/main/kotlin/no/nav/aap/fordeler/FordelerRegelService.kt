@@ -21,10 +21,10 @@ data class Regelresultat(val regelMap: RegelMap) {
             return false
         }
         
-        val kelvinSakRegel = regelMap[KelvinSakRegel::class.simpleName] ?: false
-        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName] ?: false
-        val erIkkeAnke = regelMap[ErIkkeAnkeRegel::class.simpleName] ?: false
-        if (kelvinSakRegel && erIkkeReisestønad && erIkkeAnke) {
+        val sakFinnesIKelvin = regelMap[KelvinSakRegel::class.simpleName]!!
+        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName]!!
+        val erIkkeAnke = regelMap[ErIkkeAnkeRegel::class.simpleName]!!
+        if (sakFinnesIKelvin && erIkkeReisestønad && erIkkeAnke) {
             log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
             return true
         }
