@@ -13,11 +13,12 @@ class RegelResultatTest {
     }
     
     @Test
-    fun `KelvinSakRegel skal overstyre alle andre regler bortsett fra reisestønad`() {
+    fun `KelvinSakRegel skal overstyre alle andre regler bortsett fra reisestønad og anke`() {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to true,
                 "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to false,
                 "MaksAntallPersonerIKelvinRegel" to false,
             )
@@ -46,6 +47,21 @@ class RegelResultatTest {
             mapOf(
                 "KelvinSakRegel" to true,
                 "ErIkkeReisestønadRegel" to false,
+                "GeografiskTilknytningRegel" to true,
+                "MaksAntallPersonerIKelvinRegel" to true,
+            )
+        )
+
+        assertThat(regelResultat.skalTilKelvin()).isFalse()
+    }
+
+    @Test
+    fun `Anke skal via arena-gosys-flyt`() {
+        val regelResultat = Regelresultat(
+            mapOf(
+                "KelvinSakRegel" to true,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to false,
                 "GeografiskTilknytningRegel" to true,
                 "MaksAntallPersonerIKelvinRegel" to true,
             )

@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler
 
+import no.nav.aap.fordeler.regler.ErIkkeAnkeRegel
 import no.nav.aap.fordeler.regler.ErIkkeReisestønadRegel
 import no.nav.aap.fordeler.regler.KelvinSakRegel
 import no.nav.aap.fordeler.regler.Regel
@@ -22,7 +23,8 @@ data class Regelresultat(val regelMap: RegelMap) {
         
         val kelvinSakRegel = regelMap[KelvinSakRegel::class.simpleName] ?: false
         val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName] ?: false
-        if (kelvinSakRegel && erIkkeReisestønad) {
+        val erIkkeAnke = regelMap[ErIkkeAnkeRegel::class.simpleName] ?: false
+        if (kelvinSakRegel && erIkkeReisestønad && erIkkeAnke) {
             log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
             return true
         }
