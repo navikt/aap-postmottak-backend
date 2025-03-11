@@ -21,5 +21,6 @@ data class AvklarSakVurderingDto(
 
 data class AvklarSakGrunnlagDto(
     val vurdering: AvklarSakVurderingDto?,
-    val saksinfo: List<SaksInfoDto>
+    val saksinfo: List<SaksInfoDto>,
+    val brevkode: String
 )

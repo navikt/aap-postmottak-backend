@@ -7,6 +7,7 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
@@ -32,9 +33,15 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource) {
                 val saksvurdering = saksnummerRepository.hentSakVurdering(behandling.id)
                 val relaterteSaker = saksnummerRepository.hentKelvinSaker(behandling.id)
 
+                val journalpost = dataSource.transaction(readOnly = true) {
+                    RepositoryProvider(it).provide(JournalpostRepository::class).hentHvisEksisterer(req)
+                }
+                requireNotNull(journalpost) { "Journalpost ikke funnet" }
+
                 AvklarSakGrunnlagDto(
                     vurdering = saksvurdering?.let { AvklarSakVurderingDto.toDto(saksvurdering) },
-                    saksinfo = relaterteSaker.map { SaksInfoDto(it.saksnummer, it.periode) }
+                    saksinfo = relaterteSaker.map { SaksInfoDto(it.saksnummer, it.periode) },
+                    brevkode = journalpost.hoveddokumentbrevkode
                 )
             }
             respond(response)

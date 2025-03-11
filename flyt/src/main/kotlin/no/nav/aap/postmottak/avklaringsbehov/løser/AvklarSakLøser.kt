@@ -1,17 +1,17 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(AvklarSakLøser::class.java)
@@ -43,6 +43,9 @@ class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Avk
     private fun avklarFagSakMaskinelt(behandlingId: BehandlingId) {
         val journalpost = journalpostRepository.hentHvisEksisterer(behandlingId)
             ?: error("Fant ikke journalpost for behandling $behandlingId")
+        require(journalpost.hoveddokumentbrevkode == "Ukjent" || journalpost.erSøknad()) {
+            "Det skal kun være mulig å opprette ny sak for søknad"
+        }
         val saksnummer = behandlingsflytGateway.finnEllerOpprettSak(
             Ident(journalpost.person.aktivIdent().identifikator),
             journalpost.mottattDato()
