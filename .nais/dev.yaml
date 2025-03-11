@@ -18,6 +18,7 @@ kafka:
 inbound:
     rules:
         - application: saksbehandling
+        - application: saksbehandling-lokal # For lokalt utvikling. IKKE kopier denne til prod.yaml
         - application: paw-patrol
         - application: azure-token-generator
           namespace: aura
