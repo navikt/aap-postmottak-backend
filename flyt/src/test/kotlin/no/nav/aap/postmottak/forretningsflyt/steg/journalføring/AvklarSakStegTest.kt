@@ -25,6 +25,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.*
@@ -176,6 +177,7 @@ class AvklarSakStegTest {
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
 
+    @Disabled("Automatisk behandling kan ikke skje så lenge det er manuell rutine for å skrive brev om mottatt klage")
     @Test
     fun `Hvis det kun finnes én sak kan klage behandles automatisk`() {
         val journalpost: Journalpost = mockk(relaxed = true)

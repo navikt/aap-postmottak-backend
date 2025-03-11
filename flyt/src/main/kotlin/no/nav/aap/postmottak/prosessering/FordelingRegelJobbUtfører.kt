@@ -62,6 +62,7 @@ class FordelingRegelJobbUtfører(
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
 
+        // TODO: Denne kan være problematisk hvis vi skal støtte at journalførte dokumenter skal kunne sendes inn til Kelvin
         if (innkommendeJournalpostRepository.eksisterer(journalpostId)) {
             log.info("Journalposten har allerede blitt evaluert - behandler ikke videre")
             return
