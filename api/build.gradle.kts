@@ -6,7 +6,7 @@ val junitVersjon = "5.12.0"
 val ktorVersion = "3.1.1"
 val komponenterVersjon = "1.0.171"
 val tilgangVersjon = "1.0.15"
-val behandlingsflytVersjon = "0.0.194"
+val behandlingsflytVersjon = "0.0.197"
 
 dependencies {
     api(project(":flyt"))
