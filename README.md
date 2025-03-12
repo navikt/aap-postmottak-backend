@@ -2,7 +2,7 @@
 Postmottak tar imot og håndterer journalposter på tema AAP
 
 ### API-dokumentasjon
-APIene er dokumentert med Swagger: http://localhost:8080/swagger-ui/index.html
+APIene er dokumentert med [Swagger](https://aap-postmottak-backend.intern.dev.nav.no/swagger-ui/index.html)
 
 ### Lokalt utviklingsmiljø:
 Test containers benyttes for integrasjonstester med databasen så et verktøy for å kjøre Docker 
