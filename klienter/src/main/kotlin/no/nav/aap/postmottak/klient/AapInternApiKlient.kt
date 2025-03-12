@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.klient
 
-import no.nav.aap.api.intern.SakStatus
+import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -34,15 +34,13 @@ class AapInternApiKlient : AapInternApiGateway {
     /**
      * Arena-saker baserer seg på vedtak i Arena
      */
-    override fun hentAapSakerForPerson(person: Person): List<SakStatus> {
-        val path = url.resolve("/sakerByFnr")
+    override fun harAapSakIArena(person: Person): PersonEksistererIAAPArena {
+        val path = url.resolve("/arena/person/aap/eksisterer")
         val reqbody =
             SakerRequest(personidentifikatorer = person.identer().map { it.identifikator })
-        val saker: List<SakStatus> = client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
+        return client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
             DefaultJsonMapper.fromJson(body)
         })!!
-
-        return saker
     }
 }
 

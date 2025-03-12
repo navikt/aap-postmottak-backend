@@ -1,9 +1,6 @@
 package no.nav.aap.fordeler.regler
 
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.api.intern.Periode
-import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.intern.Status
+import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
@@ -16,35 +13,9 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.*
 
 class ArenaHistorikkRegelTest {
-    @Test
-    fun `Dersom bruker har en sak i Joark med fagsystem AO01 og tema AAP, skal regelen returnere false`() {
-        // Arrange
-        val input = ArenaHistorikkRegelInput(
-            sakerFraArena = emptyList(),
-            sakerFraJoark = listOf(
-                SafSak(
-                    fagsaksystem = "AO01",
-                    tema = "AAP"
-                ),
-                SafSak(
-                    fagsaksystem = "AO01",
-                    tema = "TSO"
-                ),
-            )
-        )
-        val regel = ArenaHistorikkRegel()
-
-        // Act
-        val resultat = regel.vurder(input)
-
-        // Assert
-        assertFalse(resultat)
-    }
-
     @Test
     fun `Dersom bruker har sak i Arena, skal regelen returnere false`() {
         val journalpostId = JournalpostId(1)
@@ -71,17 +42,8 @@ class ApiInternMock : AapInternApiGateway {
         }
     }
 
-    override fun hentAapSakerForPerson(person: Person): List<SakStatus> {
-        val fom = LocalDate.of(2020, 1, 1)
-        val tom = LocalDate.of(2021, 1, 31)
-        return listOf(
-            SakStatus(
-                sakId = "1",
-                statusKode = Status.AVSLU,
-                Periode(fom, tom),
-                kilde = Kilde.ARENA
-            )
-        )
+    override fun harAapSakIArena(person: Person): PersonEksistererIAAPArena {
+        return PersonEksistererIAAPArena(true)
     }
 }
 

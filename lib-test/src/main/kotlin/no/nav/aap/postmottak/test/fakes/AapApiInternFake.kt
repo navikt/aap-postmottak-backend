@@ -33,5 +33,13 @@ fun Application.aapInternApiFake() {
             }
             call.respond("[]")
         }
+        post("/arena/person/aap/eksisterer") {
+            val reqBody = call.receive<SakerRequest>()
+            if (reqBody.personidentifikatorer.contains(IDENT_MED_SAK_I_ARENA.identifikator)) {
+                call.respond("""{"eksisterer": true}""")
+
+            }
+            call.respond("""{"eksisterer": false}""")
+        }
     }
 }
