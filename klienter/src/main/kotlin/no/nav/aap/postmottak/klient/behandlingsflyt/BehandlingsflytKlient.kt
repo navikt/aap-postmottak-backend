@@ -25,6 +25,7 @@ import no.nav.aap.verdityper.dokument.Kanal
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class BehandlingsflytKlient : BehandlingsflytGateway {
     private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
@@ -79,7 +80,7 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
     override fun sendHendelse(
         journalpostId: JournalpostId,
         kanal: KanalFraKodeverk,
-        mottattDato: LocalDate,
+        mottattDato: LocalDateTime,
         innsendingstype: InnsendingType,
         saksnummer: String,
         melding: Melding?
@@ -94,7 +95,7 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
                 ),
                 innsendingstype,
                 kanal.tilBehandlingsflytKanal(),
-                mottattDato.atStartOfDay(), //TODO: Avgjør hvilken dato vi skal bruke, og hvilket format
+                mottattDato,
                 melding
             ),
             additionalHeaders = listOf(

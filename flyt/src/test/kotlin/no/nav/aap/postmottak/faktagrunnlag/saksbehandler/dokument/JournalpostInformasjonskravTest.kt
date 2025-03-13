@@ -26,6 +26,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 class JournalpostInformasjonskravTest {
@@ -142,6 +143,7 @@ class JournalpostInformasjonskravTest {
         status: Journalstatus = Journalstatus.MOTTATT,
         kanal: KanalFraKodeverk = KanalFraKodeverk.UKJENT,
         mottattDato: LocalDate = LocalDate.of(2020, 12, 1),
+        mottattTid: LocalDateTime = mottattDato.atStartOfDay(),
         fagsystem: String? = null,
         saksnummer: String? = null,
         behandlingstema: String? = null
@@ -155,6 +157,7 @@ class JournalpostInformasjonskravTest {
             status = status,
             kanal = kanal,
             mottattDato = mottattDato,
+            mottattTid = mottattTid,
             fagsystem = fagsystem,
             saksnummer = saksnummer,
             behandlingstema = behandlingstema

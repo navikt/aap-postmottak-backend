@@ -91,6 +91,7 @@ class JournalpostTest {
         tema = "AAP",
         behandlingstema = null,
         mottattDato = LocalDate.of(2021, 1, 1),
+        mottattTid = LocalDate.of(2021, 1, 1).atStartOfDay(),
         journalførendeEnhet = "YOLO",
         kanal = KanalFraKodeverk.UKJENT,
         saksnummer = null,

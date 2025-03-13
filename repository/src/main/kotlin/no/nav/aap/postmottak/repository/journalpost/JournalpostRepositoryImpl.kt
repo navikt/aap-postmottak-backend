@@ -45,7 +45,8 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
     
     override fun lagre(journalpost: Journalpost) {
         val query = """
-            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM, BEHANDLINGSTEMA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, MOTTATT_TID, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM, BEHANDLINGSTEMA)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
@@ -54,11 +55,12 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setLong(3, journalpost.person.id)
                 setString(4, journalpost.status().name)
                 setLocalDate(5, journalpost.mottattDato())
-                setString(6, journalpost.tema)
-                setEnumName(7, journalpost.kanal)
-                setString(8, journalpost.saksnummer.toString())
-                setString(9, journalpost.fagsystem)
-                setString(10, journalpost.behandlingstema)
+                setLocalDateTime(6, journalpost.mottattTid)
+                setString(7, journalpost.tema)
+                setEnumName(8, journalpost.kanal)
+                setString(9, journalpost.saksnummer.toString())
+                setString(10, journalpost.fagsystem)
+                setString(11, journalpost.behandlingstema)
             }
         }
 
@@ -130,6 +132,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             status = Journalstatus.valueOf(row.getString("STATUS")),
             tema = row.getString("TEMA"),
             mottattDato = row.getLocalDate("MOTTATT_DATO"),
+            mottattTid = row.getLocalDateTimeOrNull("MOTTATT_TID"),
             kanal = row.getEnum("KANAL"),
             saksnummer = row.getStringOrNull("SAKSNUMMER"),
             dokumenter = hentDokumenter(row.getLong("ID")),

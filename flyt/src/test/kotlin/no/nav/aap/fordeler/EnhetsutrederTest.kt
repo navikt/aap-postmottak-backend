@@ -195,6 +195,7 @@ class EnhetsutrederTest {
             status = Journalstatus.MOTTATT,
             kanal = KanalFraKodeverk.NAV_NO,
             mottattDato = LocalDate.of(2025, 1, 1),
+            mottattTid = LocalDate.of(2025, 1, 1).atStartOfDay(),
             dokumenter = listOf(Dokument(
                 brevkode = Brevkoder.KLAGE.kode,
                 dokumentInfoId = DokumentInfoId("1"),

@@ -21,6 +21,7 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.reflect.full.primaryConstructor
 
 class AvklaringsbehovsLøserTest {
@@ -61,7 +62,7 @@ class BehandlingsflytGatewayMock : BehandlingsflytGateway {
     override fun sendHendelse(
         journalpostId: JournalpostId,
         kanal: KanalFraKodeverk,
-        mottattDato: LocalDate,
+        mottattDato: LocalDateTime,
         innsendingstype: InnsendingType,
         saksnummer: String,
         melding: Melding?

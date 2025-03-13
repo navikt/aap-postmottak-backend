@@ -96,6 +96,7 @@ class JournalpostRepositoryImplTest {
         behandlingstema = null,
         status = Journalstatus.MOTTATT,
         mottattDato = LocalDate.of(2021, 1, 1),
+        mottattTid = LocalDate.of(2021, 1, 1).atStartOfDay(),
         kanal = KanalFraKodeverk.UKJENT,
         saksnummer = "saksnummer",
         fagsystem = Fagsystem.KELVIN.name,

@@ -63,6 +63,7 @@ class DynamiskStegGruppeVisningServiceTest {
                     )
                 ),
                 mottattDato = LocalDate.of(2021, 1, 1),
+                mottattTid = LocalDate.of(2021, 1, 1).atStartOfDay(),
                 kanal = KanalFraKodeverk.UKJENT,
                 saksnummer = null,
                 fagsystem = null

@@ -4,6 +4,7 @@ import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 class JournalpostMedDokumentTitler(
@@ -14,6 +15,7 @@ class JournalpostMedDokumentTitler(
     behandlingstema: String?,
     status: Journalstatus,
     mottattDato: LocalDate,
+    mottattTid: LocalDateTime?,
     dokumenter: List<DokumentMedTittel> = emptyList(),
     kanal: KanalFraKodeverk,
     saksnummer: String?,
@@ -26,6 +28,7 @@ class JournalpostMedDokumentTitler(
     behandlingstema,
     status,
     mottattDato,
+    mottattTid,
     dokumenter,
     kanal,
     saksnummer,

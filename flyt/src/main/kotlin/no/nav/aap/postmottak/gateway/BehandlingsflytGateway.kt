@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.text.Charsets.UTF_8
 
 interface BehandlingsflytGateway : Gateway {
@@ -20,7 +21,7 @@ interface BehandlingsflytGateway : Gateway {
     fun sendHendelse(
         journalpostId: JournalpostId,
         kanal: KanalFraKodeverk,
-        mottattDato: LocalDate,
+        mottattDato: LocalDateTime,
         innsendingstype: InnsendingType,
         saksnummer: String,
         melding: Melding?

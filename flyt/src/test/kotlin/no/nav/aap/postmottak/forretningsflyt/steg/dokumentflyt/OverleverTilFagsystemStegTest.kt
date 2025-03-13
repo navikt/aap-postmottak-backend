@@ -95,7 +95,7 @@ class OverleverTilFagsystemStegTest {
             behandlingsflytKlient.sendHendelse(
                 journalpostId,
                 kanal,
-                mottattDato,
+                mottattDato.atStartOfDay(),
                 InnsendingType.SØKNAD,
                 saksnummer,
                 DokumentTilMeldingParser
@@ -128,7 +128,7 @@ class OverleverTilFagsystemStegTest {
             behandlingsflytKlient.sendHendelse(
                 journalpostId,
                 kanal,
-                mottattDato,
+                mottattDato.atStartOfDay(),
                 InnsendingType.SØKNAD,
                 saksnummer,
                 DokumentTilMeldingParser
@@ -163,13 +163,14 @@ class OverleverTilFagsystemStegTest {
         )
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(true)
         every {journalpost.mottattDato} returns mottattDato
+        every { journalpost.mottattTid } returns mottattDato.atStartOfDay()
         
         val stegresultat = overførTilFagsystemSteg.utfør(kontekst)
         verify(exactly = 1) {
             behandlingsflytKlient.sendHendelse(
                 journalpostId,
                 kanal,
-                mottattDato,
+                mottattDato.atStartOfDay(),
                 InnsendingType.DIALOGMELDING,
                 saksnummer,
                 null

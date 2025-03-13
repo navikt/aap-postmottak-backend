@@ -77,9 +77,11 @@ class JournalpostService(
 fun SafJournalpost.tilJournalpostMedDokumentTitler(person: Person): JournalpostMedDokumentTitler {
     val journalpost = this
 
-    val mottattDato = journalpost.relevanteDatoer?.find { dato ->
-        dato?.datotype == SafDatoType.DATO_REGISTRERT
-    }?.dato?.toLocalDate() ?: error("Fant ikke dato")
+    val mottattTid = journalpost.relevanteDatoer
+        ?.find { dato -> dato?.datotype == SafDatoType.DATO_REGISTRERT }
+        ?.dato
+        ?: error("Fant ikke dato")
+    val mottattDato = mottattTid.toLocalDate()
 
     val dokumenter = journalpost.dokumenter?.filterNotNull()?.map { dokument ->
         DokumentMedTittel(
@@ -103,6 +105,7 @@ fun SafJournalpost.tilJournalpostMedDokumentTitler(person: Person): JournalpostM
         behandlingstema = journalpost.behandlingstema,
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,
+        mottattTid = mottattTid,
         dokumenter = dokumenter,
         kanal = journalpost.kanal,
         saksnummer = sak?.fagsakId,
@@ -113,9 +116,11 @@ fun SafJournalpost.tilJournalpostMedDokumentTitler(person: Person): JournalpostM
 fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
     val journalpost = this
 
-    val mottattDato = journalpost.relevanteDatoer?.find { dato ->
-        dato?.datotype == SafDatoType.DATO_REGISTRERT
-    }?.dato?.toLocalDate() ?: error("Fant ikke dato")
+    val mottattTid = journalpost.relevanteDatoer
+        ?.find { dato -> dato?.datotype == SafDatoType.DATO_REGISTRERT }
+        ?.dato
+        ?: error("Fant ikke dato")
+    val mottattDato = mottattTid.toLocalDate()
 
     val dokumenter = journalpost.dokumenter?.filterNotNull()?.map { dokument ->
         Dokument(
@@ -138,6 +143,7 @@ fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
         behandlingstema = journalpost.behandlingstema,
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,
+        mottattTid = mottattTid,
         dokumenter = dokumenter,
         kanal = journalpost.kanal,
         saksnummer = sak?.fagsakId,

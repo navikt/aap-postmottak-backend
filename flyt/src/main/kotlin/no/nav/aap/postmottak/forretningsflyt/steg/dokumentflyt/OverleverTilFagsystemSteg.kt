@@ -78,12 +78,14 @@ class OverleverTilFagsystemSteg(
                     digitaliseringsvurdering.kategori
                 )
                 behandlingsflytKlient.sendHendelse(
-                    journalpost.journalpostId,
-                    journalpost.kanal,
-                    digitaliseringsvurdering.søknadsdato ?: journalpost.mottattDato,
-                    digitaliseringsvurdering.kategori,
-                    saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
-                    melding
+                    journalpostId = journalpost.journalpostId,
+                    kanal = journalpost.kanal,
+                    mottattDato = digitaliseringsvurdering.søknadsdato?.atStartOfDay()
+                        ?: journalpost.mottattTid
+                        ?: journalpost.mottattDato.atStartOfDay(),
+                    innsendingstype = digitaliseringsvurdering.kategori,
+                    saksnummer = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
+                    melding = melding
                 )
             }
             return Fullført
