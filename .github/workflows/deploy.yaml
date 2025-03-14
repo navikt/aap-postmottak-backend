@@ -21,6 +21,7 @@ jobs:
     with:
       publish-typescript: true
       app-navn: postmottak-backend
+
   publiser-kontrakt:
     needs: build
     permissions:

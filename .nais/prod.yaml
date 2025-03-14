@@ -23,6 +23,7 @@ outbound:
         - application: skjermede-personer-pip
           namespace: nom
         - application: tilgang
+        - application: oppgave
     external:
         - host: saf.prod-fss-pub.nais.io
         - host: dokarkiv.prod-fss-pub.nais.io
