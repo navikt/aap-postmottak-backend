@@ -1,89 +1,88 @@
-
 ingres: "https://aap-postmottak-backend.intern.nav.no"
 
 sql:
-    tier: db-custom-2-5120
-    diskAutoresize: true
-    highAvailability: true
-    pointInTimeRecovery: true
+  tier: db-custom-2-5120
+  diskAutoresize: true
+  highAvailability: true
+  pointInTimeRecovery: true
 
 replicas:
-    min: 2
-    max: 4
-    disableAutoScaling: false
+  min: 2
+  max: 4
+  disableAutoScaling: false
 
 kafka:
-    pool: nav-prod
+  pool: nav-prod
 
 inbound:
-    rules:
-      - application: paw-patrol
+  rules:
+    - application: paw-patrol
 outbound:
-    rules:
-        - application: skjermede-personer-pip
-          namespace: nom
-        - application: tilgang
-        - application: oppgave
-    external:
-        - host: saf.prod-fss-pub.nais.io
-        - host: dokarkiv.prod-fss-pub.nais.io
-        - host: oppgave.prod-fss-pub.nais.io
-        - host: pdl-api.prod-fss-pub.nais.io
-        - host: aap-fss-proxy.prod-fss-pub.nais.io
-        - host: veilarbarena.prod-fss-pub.nais.io
+  rules:
+    - application: skjermede-personer-pip
+      namespace: nom
+    - application: tilgang
+    - application: oppgave
+  external:
+    - host: saf.prod-fss-pub.nais.io
+    - host: dokarkiv.prod-fss-pub.nais.io
+    - host: oppgave.prod-fss-pub.nais.io
+    - host: pdl-api.prod-fss-pub.nais.io
+    - host: aap-fss-proxy.prod-fss-pub.nais.io
+    - host: veilarbarena.prod-fss-pub.nais.io
 
 env:
-- name: INTEGRASJON_SAF_URL_GRAPHQL
-  value: https://saf.prod-fss-pub.nais.io/graphql
-- name: INTEGRASJON_SAF_URL_REST
-  value: https://saf.prod-fss-pub.nais.io/rest
-- name: INTEGRASJON_SAF_SCOPE
-  value: api://prod-fss.teamdokumenthandtering.saf/.default
-- name: INTEGRASJON_JOARK_URL
-  value: https://dokarkiv.prod-fss-pub.nais.io
-- name: INTEGRASJON_JOARK_SCOPE
-  value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
-- name: INTEGRASJON_AAP_FSS_PROXY_URL
-  value: https://aap-fss-proxy.prod-fss-pub.nais.io
-- name: INTEGRASJON_AAP_FSS_PROXY_SCOPE
-  value: api://prod-fss.aap.fss-proxy/.default
-- name: INTEGRASJON_BEHANDLINGSFLYT_URL
-  value: http://behandlingsflyt
-- name: INTEGRASJON_BEHANDLINGSFLYT_SCOPE
-  value: api://prod-gcp.aap.behandlingsflyt/.default
-- name: INTEGRASJON_AAP_INTERN_API_URL
-  value: http://api-intern
-- name: INTEGRASJON_AAP_INTERN_API_SCOPE
-  value: api://prod-gcp.aap.api-intern/.default
-- name: INTEGRASJON_OPPGAVE_URL
-  value: http://oppgave
-- name: INTEGRASJON_OPPGAVE_SCOPE
-  value: api://prod-gcp.aap.oppgave/.default
-- name: INTEGRASJON_TILGANG_URL
-  value: http://tilgang
-- name: INTEGRASJON_TILGANG_SCOPE
-  value: api://prod-gcp.aap.tilgang/.default
-- name: INTEGRASJON_OPPGAVEAPI_URL
-  value: https://oppgave.prod-fss-pub.nais.io
-- name: INTEGRASJON_OPPGAVEAPI_SCOPE
-  value: api://prod-fss.oppgavehandtering.oppgave/.default
-- name: GOSYS_URL
-  value: https://gosys.prod.intern.nav.no/gosys
-- name: INTEGRASJON_PDL_URL
-  value: https://pdl-api.prod-fss-pub.nais.io
-- name: INTEGRASJON_PDL_SCOPE
-  value: api://prod-fss.pdl.pdl-api/.default
-- name: INTEGRASJON_ARENA_URL
-  value: https://aap-fss-proxy.prod-fss-pub.nais.io
-- name: INTEGRASJON_ARENA_SCOPE
-  value: api://prod-fss.aap.fss-proxy/.default
-- name: INTEGRASJON_NORG_URL
-  value: https://norg2.prod-fss-pub.nais.io
-- name: INTEGRASJON_NOM_URL
-  value: http://skjermede-personer-pip.nom
-- name: INTEGRASJON_NOM_SCOPE
-  value: api://prod-gcp.nom.skjermede-personer-pip/.default
-- name: INTEGRASJON_VEILARBARENA_URL
-  value: https://veilarbarena.prod-fss-pub.nais.io
-- name: INTEGRASJON_VEILARBARENA_SCOPE
-  value: api://prod-fss.pto.veilarbarena/.default
+  - name: INTEGRASJON_SAF_URL_GRAPHQL
+    value: https://saf.prod-fss-pub.nais.io/graphql
+  - name: INTEGRASJON_SAF_URL_REST
+    value: https://saf.prod-fss-pub.nais.io/rest
+  - name: INTEGRASJON_SAF_SCOPE
+    value: api://prod-fss.teamdokumenthandtering.saf/.default
+  - name: INTEGRASJON_JOARK_URL
+    value: https://dokarkiv.prod-fss-pub.nais.io
+  - name: INTEGRASJON_JOARK_SCOPE
+    value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+  - name: INTEGRASJON_AAP_FSS_PROXY_URL
+    value: https://aap-fss-proxy.prod-fss-pub.nais.io
+  - name: INTEGRASJON_AAP_FSS_PROXY_SCOPE
+    value: api://prod-fss.aap.fss-proxy/.default
+  - name: INTEGRASJON_BEHANDLINGSFLYT_URL
+    value: http://behandlingsflyt
+  - name: INTEGRASJON_BEHANDLINGSFLYT_SCOPE
+    value: api://prod-gcp.aap.behandlingsflyt/.default
+  - name: INTEGRASJON_AAP_INTERN_API_URL
+    value: http://api-intern
+  - name: INTEGRASJON_AAP_INTERN_API_SCOPE
+    value: api://prod-gcp.aap.api-intern/.default
+  - name: INTEGRASJON_OPPGAVE_URL
+    value: http://oppgave
+  - name: INTEGRASJON_OPPGAVE_SCOPE
+    value: api://prod-gcp.aap.oppgave/.default
+  - name: INTEGRASJON_TILGANG_URL
+    value: http://tilgang
+  - name: INTEGRASJON_TILGANG_SCOPE
+    value: api://prod-gcp.aap.tilgang/.default
+  - name: INTEGRASJON_OPPGAVEAPI_URL
+    value: https://oppgave.prod-fss-pub.nais.io
+  - name: INTEGRASJON_OPPGAVEAPI_SCOPE
+    value: api://prod-fss.oppgavehandtering.oppgave/.default
+  - name: GOSYS_URL
+    value: https://gosys.prod.intern.nav.no/gosys
+  - name: INTEGRASJON_PDL_URL
+    value: https://pdl-api.prod-fss-pub.nais.io
+  - name: INTEGRASJON_PDL_SCOPE
+    value: api://prod-fss.pdl.pdl-api/.default
+  - name: INTEGRASJON_ARENA_URL
+    value: https://aap-fss-proxy.prod-fss-pub.nais.io
+  - name: INTEGRASJON_ARENA_SCOPE
+    value: api://prod-fss.aap.fss-proxy/.default
+  - name: INTEGRASJON_NORG_URL
+    value: https://norg2.prod-fss-pub.nais.io
+  - name: INTEGRASJON_NOM_URL
+    value: http://skjermede-personer-pip.nom
+  - name: INTEGRASJON_NOM_SCOPE
+    value: api://prod-gcp.nom.skjermede-personer-pip/.default
+  - name: INTEGRASJON_VEILARBARENA_URL
+    value: https://veilarbarena.prod-fss-pub.nais.io
+  - name: INTEGRASJON_VEILARBARENA_SCOPE
+    value: api://prod-fss.pto.veilarbarena/.default
