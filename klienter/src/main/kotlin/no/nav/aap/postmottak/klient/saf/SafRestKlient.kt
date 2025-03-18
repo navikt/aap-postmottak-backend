@@ -25,7 +25,8 @@ class SafOboRestClient(client: RestClient<InputStream>) : SafRestKlient(client),
                 config = ClientConfig(
                     scope = requiredConfigForKey("integrasjon.saf.scope"),
                 ),
-                OnBehalfOfTokenProvider
+                OnBehalfOfTokenProvider,
+                prometheus = PrometheusProvider.prometheus
             )
             return SafOboRestClient(client)
         }
