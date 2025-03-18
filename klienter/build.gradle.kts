@@ -4,7 +4,7 @@ val tilgangVersjon = "0.0.94"
 val jacksonVersion = "2.18.3"
 val junitVersion = "5.11.3"
 val behandlingsflytVersjon = "0.0.197"
-val apiInternVersjon = "0.0.2"
+val apiInternVersjon = "0.0.3"
 
 plugins {
     id("postmottak.conventions")
