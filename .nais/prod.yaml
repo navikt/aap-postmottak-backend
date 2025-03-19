@@ -22,6 +22,7 @@ outbound:
     - application: skjermede-personer-pip
       namespace: nom
     - application: tilgang
+    - application: statistikk
     - application: oppgave
   external:
     - host: saf.prod-fss-pub.nais.io
