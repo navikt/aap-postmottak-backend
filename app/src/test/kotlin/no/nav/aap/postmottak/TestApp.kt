@@ -26,11 +26,11 @@ import java.time.temporal.ChronoUnit
 // Kjøres opp for å få logback i console uten json
 fun main() {
     val postgres = postgreSQLContainer()
-    AzurePortHolder.setPort(8081)
+    AzurePortHolder.setPort(8071)
     FakeServers.start()
 
     // Starter server
-    embeddedServer(Netty, port = 8080) {
+    embeddedServer(Netty, port = 8070) {
         val dbConfig = DbConfig(
             url = postgres.jdbcUrl,
             username = postgres.username,
