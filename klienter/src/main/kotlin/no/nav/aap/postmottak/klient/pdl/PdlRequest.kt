@@ -41,10 +41,13 @@ val PERSON_BOLK_QUERY = """
         hentPersonBolk(identer: $identer) {
             ident,
                 person {
-                    navn {
+                    navn(historikk: false) {
                         fornavn
                         mellomnavn
                         etternavn
+                    },
+                    folkeregisteridentifikator(historikk: false) {
+                        identifikasjonsnummer
                     }
                 },
             code

@@ -19,6 +19,7 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningOgAdressebeskyttelse
 import no.nav.aap.postmottak.gateway.Navn
+import no.nav.aap.postmottak.gateway.NavnMedIdent
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
@@ -120,7 +121,7 @@ class PdlKlientSpy : PersondataGateway {
         override fun konstruer() = klient
     }
 
-    override fun hentPersonBolk(personidenter: List<String>): Map<String, Navn>? {
+    override fun hentPersonBolk(personidenter: List<String>): Map<String, NavnMedIdent>? {
         TODO("Not yet implemented")
     }
 

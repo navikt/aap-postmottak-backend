@@ -76,18 +76,18 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
                 val identer =
                     listOf(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).filterNotNull().distinct()
                 val personer = GatewayProvider.provide(PersondataGateway::class).hentPersonBolk(identer)
-                val søker = journalpost.bruker?.id
-                val avsender = journalpost.avsenderMottaker?.id
+                val søker = personer?.getOrDefault(journalpost.bruker?.id, null)
+                val avsender = personer?.getOrDefault(journalpost.avsenderMottaker?.id, null)
                 respond(
                     DokumentInfoResponsDTO(
                         journalpostId = journalpostId.referanse,
                         søker = DokumentIdent(
-                            journalpost.bruker?.id,
-                            if (søker != null) personer?.getOrDefault(søker, null)?.fulltNavn() else null
+                            søker?.ident,
+                            søker?.navn?.fulltNavn()
                         ),
                         avsender = DokumentIdent(
-                            journalpost.avsenderMottaker?.id,
-                            if (avsender != null) personer?.getOrDefault(avsender, null)?.fulltNavn() else null
+                            avsender?.ident,
+                            avsender?.navn?.fulltNavn()
                         ),
                         dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) }
                             ?: emptyList(),

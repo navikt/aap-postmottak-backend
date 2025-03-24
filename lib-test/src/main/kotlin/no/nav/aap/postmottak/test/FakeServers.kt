@@ -61,7 +61,7 @@ object FakeServers : AutoCloseable {
     internal val statistikkHendelser = mutableListOf<DokumentflytStoppetHendelse>()
 
     private val started = AtomicBoolean(false)
-    
+
     private fun setAzureProperties() {
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
@@ -71,7 +71,7 @@ object FakeServers : AutoCloseable {
         System.setProperty("azure.openid.config.issuer", POSTMOTTAK_BACKEND)
 
     }
-    
+
     private fun setProperties() {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
 
@@ -79,7 +79,7 @@ object FakeServers : AutoCloseable {
         System.setProperty("NAIS_APP_NAME", "postmottak-backend")
 
         System.setProperty("gosys.url", "http://localhost:3000/")
-        
+
         // Oppgave
         System.setProperty("integrasjon.oppgave.scope", "oppgave")
         System.setProperty("integrasjon.oppgave.url", "http://localhost:${oppgave.port()}")
@@ -163,7 +163,7 @@ object FakeServers : AutoCloseable {
         if (started.get()) {
             return
         }
-        
+
         azure.start()
         setAzureProperties()
         oppgave.start()
@@ -179,7 +179,7 @@ object FakeServers : AutoCloseable {
         norgFake.start()
         staistikkFake.start()
         veilarbarena.start()
-        
+
         println("AZURE PORT ${azure.port()}")
 
         setProperties()
@@ -394,6 +394,11 @@ object FakeServers : AutoCloseable {
                                      "mellomnavn": null,
                                      "etternavn": "Normann"
                                    }
+                                 ],
+                                 "folkeregisteridentifikator": [
+                                    {
+                                      "identifikasjonsnummer": "${identer[0]}"
+                                    }
                                  ]
                               },
                               "code": "ok"
@@ -419,6 +424,11 @@ object FakeServers : AutoCloseable {
                                      "mellomnavn": null,
                                      "etternavn": "Normann"
                                    }
+                                 ],
+                                 "folkeregisteridentifikator": [
+                                    {
+                                      "identifikasjonsnummer": "${if (identer.isEmpty()) "1234568" else identer[0]}"
+                                    }
                                  ]
                               },
                               "code": "ok"

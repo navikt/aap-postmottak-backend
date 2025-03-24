@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.klient.pdl
 
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.Gradering
+import no.nav.aap.postmottak.gateway.Identifikasjonsnummer
 import no.nav.aap.postmottak.gateway.Navn
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
 import no.nav.aap.postmottak.klient.graphql.GraphQLExtensions
@@ -27,7 +28,9 @@ data class HentPersonBolkResult(
 )
 
 data class PdlPerson(
-    val navn: List<Navn>, val code: Code?     //Denne er påkrevd ved hentPersonBolk
+    val navn: List<Navn>, 
+    val folkeregisteridentifikator: List<Identifikasjonsnummer>,
+    val code: Code?     //Denne er påkrevd ved hentPersonBolk
 )
 
 data class HentPersonResult(

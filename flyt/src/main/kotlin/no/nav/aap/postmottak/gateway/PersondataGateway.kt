@@ -8,7 +8,7 @@ import java.time.LocalDate
 interface PersondataGateway: Gateway {
     fun hentPersonBolk(
         personidenter: List<String>
-    ): Map<String, Navn?>?
+    ): Map<String, NavnMedIdent?>?
 
     fun hentFødselsdato(
         personident: String
@@ -73,3 +73,12 @@ data class Navn(
         return listOfNotNull(fornavn, mellomnavn, etternavn).joinToString(" ")
     }
 }
+
+data class Identifikasjonsnummer (
+    val identifikasjonsnummer: String
+)
+
+data class NavnMedIdent(
+    val navn: Navn?,
+    val ident: String?
+)

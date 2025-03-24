@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningOgAdressebeskyttelse
 import no.nav.aap.postmottak.gateway.Navn
+import no.nav.aap.postmottak.gateway.NavnMedIdent
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlKlient
@@ -46,7 +47,7 @@ class PdlGraphqlKlient : PersondataGateway {
 
     override fun hentPersonBolk(
         personidenter: List<String>
-    ): Map<String, Navn?>? {
+    ): Map<String, NavnMedIdent?>? {
         val request = PdlRequest.hentPersonBolk(personidenter)
         val response = runBlocking { graphqlQuery(request, null) }
         val data = response.data?.hentPersonBolk
@@ -54,7 +55,16 @@ class PdlGraphqlKlient : PersondataGateway {
             return null
         }
 
-        return data.associateBy({ it.ident }, { it.person?.navn?.firstOrNull() })
+        return data.associateBy(
+            { it.ident },
+            {
+                it.person?.let { p ->
+                    NavnMedIdent(
+                        p.navn.firstOrNull(),
+                        p.folkeregisteridentifikator.firstOrNull()?.identifikasjonsnummer
+                    )
+                }
+            })
     }
 
     override fun hentFødselsdato(personident: String): LocalDate? {
