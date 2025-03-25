@@ -27,7 +27,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:11.4.1")
 
     implementation(kotlin("reflect"))
-    implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation("com.zaxxer:HikariCP:6.3.0")
 
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
