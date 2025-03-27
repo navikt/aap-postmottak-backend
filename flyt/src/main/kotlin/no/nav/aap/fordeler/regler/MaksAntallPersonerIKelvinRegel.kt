@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(MaksAntallPersonerIKelvinRegel::class.java)
 class MaksAntallPersonerIKelvinRegel(private val maksAntallPersoner: Int) : Regel<MaksAntallPersonerIKelvinRegelInput> {
     companion object : RegelFactory<MaksAntallPersonerIKelvinRegelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = true)
+        override val erAktiv = miljøConfig(prod = false, dev = false)
         override fun medDataInnhenting(connection: DBConnection?): RegelMedInputgenerator<MaksAntallPersonerIKelvinRegelInput> {
-            val maksAntallPersoner = 1394
+            val maksAntallPersoner = 0
             requireNotNull(connection)
             return RegelMedInputgenerator(
                 MaksAntallPersonerIKelvinRegel(maksAntallPersoner),
