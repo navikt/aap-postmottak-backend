@@ -16,20 +16,10 @@ private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
 typealias RegelMap = Map<String, Boolean>
 
 data class Regelresultat(val regelMap: RegelMap) {
+    
     fun skalTilKelvin(): Boolean {
-        if (Miljø.er() == MiljøKode.PROD) {
-            return false
-        }
-        
-        val sakFinnesIKelvin = regelMap[KelvinSakRegel::class.simpleName]!!
-        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName]!!
-        val erIkkeAnke = regelMap[ErIkkeAnkeRegel::class.simpleName]!!
-        if (sakFinnesIKelvin && erIkkeReisestønad && erIkkeAnke) {
-            log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
-            return true
-        }
         val reglerTilEvaluering = regelMap.filter { it.key != KelvinSakRegel::class.simpleName }
-        return reglerTilEvaluering.values.all { it }.also {
+        val resultat = reglerTilEvaluering.values.all { it }.also {
             log.info(
                 "Skal til Kelvin: $it. ${
                     if (!it) "\n Følgende regler ga false: ${
@@ -38,6 +28,20 @@ data class Regelresultat(val regelMap: RegelMap) {
                 }"
             )
         }
+        
+        if (Miljø.er() == MiljøKode.PROD) {
+            log.info("Miljø er prod, skal aldri til Arena")
+            return false
+        }
+
+        val sakFinnesIKelvin = regelMap[KelvinSakRegel::class.simpleName]!!
+        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName]!!
+        val erIkkeAnke = regelMap[ErIkkeAnkeRegel::class.simpleName]!!
+        if (sakFinnesIKelvin && erIkkeReisestønad && erIkkeAnke) {
+            log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
+            return true
+        }
+        return resultat
     }
 }
 
@@ -49,9 +53,10 @@ class FordelerRegelService(private val connection: DBConnection) {
             }.let(::Regelresultat)
     }
 
-    private fun hentAktiveRegler(connection: DBConnection): List<Regel<RegelInput>> = RegelFactory::class.sealedSubclasses
-        .mapNotNull { it.objectInstance }
-        .filter { it.erAktiv }
-        .map { it.medDataInnhenting(connection) }
+    private fun hentAktiveRegler(connection: DBConnection): List<Regel<RegelInput>> =
+        RegelFactory::class.sealedSubclasses
+            .mapNotNull { it.objectInstance }
+            .filter { it.erAktiv }
+            .map { it.medDataInnhenting(connection) }
 
 }

@@ -6,7 +6,7 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 
 class KelvinSakRegel : Regel<KelvinSakRegelInput> {
     companion object : RegelFactory<KelvinSakRegelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = true)
+        override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting(connection: DBConnection?) =
             RegelMedInputgenerator(KelvinSakRegel(), KelvinSakRegelInputGenerator())
     }

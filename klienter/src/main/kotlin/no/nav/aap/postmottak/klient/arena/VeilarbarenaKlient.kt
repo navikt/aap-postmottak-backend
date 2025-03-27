@@ -12,6 +12,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.PrometheusProvider
+import org.slf4j.LoggerFactory
 import java.net.URI
 
 private data class HentOppfølgingsenhetRequest(
@@ -23,6 +24,7 @@ private data class HentOppfølgingsenhetResponse(
 )
 
 class VeilarbarenaKlient : VeilarbarenaGateway {
+    private val log = LoggerFactory.getLogger(VeilarbarenaKlient::class.java)
     companion object : Factory<VeilarbarenaKlient> {
         override fun konstruer(): VeilarbarenaKlient {
             return VeilarbarenaKlient()
@@ -57,6 +59,11 @@ class VeilarbarenaKlient : VeilarbarenaGateway {
             // Tjenesten returner 404 dersom det ikke finnes noen oppfølgingsenhet for oppgitt fnr
             return null
         }
+        
+        if (resp?.oppfolgingsenhet != null) {
+            log.info("Oppfølgingsenhet.length: ${resp.oppfolgingsenhet.length}")
+        }
+        
         return resp?.oppfolgingsenhet
     }
 

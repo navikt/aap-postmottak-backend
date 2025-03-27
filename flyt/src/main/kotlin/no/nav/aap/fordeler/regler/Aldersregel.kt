@@ -3,12 +3,14 @@ package no.nav.aap.fordeler.regler
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.PersondataGateway
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.Period
 
 class Aldersregel : Regel<AldersregelInput> {
+    private val log = LoggerFactory.getLogger(Aldersregel::class.java)
     companion object : RegelFactory<AldersregelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = true)
+        override val erAktiv = miljøConfig(prod = true, dev = true)
         const val MIN_ALDER = 22
         const val MAX_ALDER = 59
         override fun medDataInnhenting(connection: DBConnection?) =
@@ -16,6 +18,10 @@ class Aldersregel : Regel<AldersregelInput> {
     }
 
     override fun vurder(input: AldersregelInput): Boolean {
+        if (input.fødselsdato == null) {
+            log.info("Fant ikke fødselsdato for person i PDL - returnerer false")
+            return false
+        }
         val alder = Period.between(input.fødselsdato, input.nåDato).years
         return alder in MIN_ALDER..MAX_ALDER
     }
@@ -31,12 +37,12 @@ class AldersregelInputGenerator : InputGenerator<AldersregelInput> {
         val fnr = input.person.aktivIdent().identifikator
         val fødselsdato =
             GatewayProvider.provide(PersondataGateway::class).hentFødselsdato(fnr)
-                ?: throw RuntimeException("Fant ikke fødselsdato for person") // TODO: Håndter denne
+        
         return AldersregelInput(fødselsdato, LocalDate.now())
     }
 }
 
 data class AldersregelInput(
-    val fødselsdato: LocalDate,
+    val fødselsdato: LocalDate?,
     val nåDato: LocalDate
 )
