@@ -56,7 +56,14 @@ class InnkommendeJournalpostRepositoryImplTest {
             status = InnkommendeJournalpostStatus.EVALUERT,
             behandlingstema = "behandlingstema",
             brevkode = "brevkode",
-            regelresultat = Regelresultat(mapOf("yolo" to true))
+            regelresultat = Regelresultat(
+                mapOf(
+                    "KelvinSakRegel" to false,
+                    "ErIkkeReisestønadRegel" to true,
+                    "ErIkkeAnkeRegel" to true,
+                    "yolo" to true
+                )
+            )
         )
 
         val id = dataSource.transaction { connection ->
@@ -93,7 +100,14 @@ class InnkommendeJournalpostRepositoryImplTest {
             status = InnkommendeJournalpostStatus.EVALUERT,
             behandlingstema = "behandlingstema",
             brevkode = "brevkode",
-            regelresultat = Regelresultat(mapOf("yolo" to true))
+            regelresultat = Regelresultat(
+                mapOf(
+                    "KelvinSakRegel" to false,
+                    "ErIkkeReisestønadRegel" to true,
+                    "ErIkkeAnkeRegel" to true,
+                    "yolo" to true
+                )
+            )
         )
         assertFalse(dataSource.transaction { connection ->
             val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
