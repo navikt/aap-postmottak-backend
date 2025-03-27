@@ -9,7 +9,7 @@ import java.time.Period
 class Aldersregel : Regel<AldersregelInput> {
     companion object : RegelFactory<AldersregelInput> {
         override val erAktiv = miljøConfig(prod = false, dev = true)
-        const val MIN_ALDER = 24
+        const val MIN_ALDER = 22
         const val MAX_ALDER = 59
         override fun medDataInnhenting(connection: DBConnection?) =
             RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator())
