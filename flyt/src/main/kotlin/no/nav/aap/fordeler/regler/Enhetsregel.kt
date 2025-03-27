@@ -14,7 +14,7 @@ class Enhetsregel : Regel<EnhetsregelInput> {
     )
 
     companion object : RegelFactory<EnhetsregelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = true)
+        override val erAktiv = miljøConfig(prod = false, dev = false)
         override fun medDataInnhenting(connection: DBConnection?) = RegelMedInputgenerator(Enhetsregel(), EnhetsregelInputGenerator())
     }
 
