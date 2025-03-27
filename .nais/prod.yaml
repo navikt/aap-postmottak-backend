@@ -24,6 +24,7 @@ outbound:
     - application: tilgang
     - application: statistikk
     - application: oppgave
+    - application: behandlingsflyt
   external:
     - host: saf.prod-fss-pub.nais.io
     - host: dokarkiv.prod-fss-pub.nais.io
