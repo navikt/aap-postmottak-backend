@@ -16,6 +16,7 @@ kafka:
 
 inbound:
   rules:
+    - application: saksbehandling
     - application: paw-patrol
 outbound:
   rules:
