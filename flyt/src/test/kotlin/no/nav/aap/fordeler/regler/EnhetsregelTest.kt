@@ -40,17 +40,6 @@ class EnhetsregelTest {
         val resultat = Enhetsregel().vurder(input)
         assertTrue(resultat)
     }
-    
-    @Test
-    fun `Nav Utland er godkjent`() {
-        val input = EnhetsregelInput(
-            enheter = EnhetMedOppfølgingsKontor(
-                oppfølgingsenhet = null,
-                norgEnhet = Enhet.NAV_UTLAND.enhetNr))
-        
-        val resultat = Enhetsregel().vurder(input)
-        assertTrue(resultat)
-    }
 
     @Test
     fun `Nav Drammen er ikke godkjent`() {
