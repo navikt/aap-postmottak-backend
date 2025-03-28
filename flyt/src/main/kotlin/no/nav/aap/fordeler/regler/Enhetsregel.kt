@@ -44,6 +44,5 @@ data class EnhetsregelInput(
 
 enum class Enhet(val enhetNr: String) {
     NAV_ASKER("0220"),
-    NAV_UTLAND("0393"),
     SYFA_INNLANDET("0491")
 }
