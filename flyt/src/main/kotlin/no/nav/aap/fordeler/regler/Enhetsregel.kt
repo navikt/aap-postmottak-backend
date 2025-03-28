@@ -9,7 +9,6 @@ private val log = LoggerFactory.getLogger(Enhetsregel::class.java)
 class Enhetsregel : Regel<EnhetsregelInput> {
     private val godkjenteEnheter = listOf(
         Enhet.NAV_ASKER,
-        Enhet.NAV_UTLAND,
         Enhet.SYFA_INNLANDET
     )
 
