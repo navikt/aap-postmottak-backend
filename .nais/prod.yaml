@@ -88,3 +88,7 @@ env:
     value: https://veilarbarena.prod-fss-pub.nais.io
   - name: INTEGRASJON_VEILARBARENA_SCOPE
     value: api://prod-fss.pto.veilarbarena/.default
+  - name: INTEGRASJON_STATISTIKK_URL
+    value: http://statistikk
+  - name: INTEGRASJON_STATISTIKK_SCOPE
+    value: api://prod-gcp.aap.statistikk/.default
