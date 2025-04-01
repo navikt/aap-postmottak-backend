@@ -12,7 +12,9 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.fordelingsCounter
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -25,6 +27,7 @@ class FordelingVideresendJobbUtfører(
     val regelRepository: RegelRepository,
     val flytJobbRepository: FlytJobbRepository,
     val arenaVideresender: ArenaVideresender,
+    val journalpostService: JournalpostService,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
     companion object : Jobb {
@@ -36,6 +39,7 @@ class FordelingVideresendJobbUtfører(
                 repositoryProvider.provide(RegelRepository::class),
                 FlytJobbRepository(connection),
                 ArenaVideresender.konstruer(connection),
+                JournalpostService.konstruer(connection),
                 PrometheusProvider.prometheus,
             )
         }
@@ -52,7 +56,13 @@ class FordelingVideresendJobbUtfører(
         val journalpostId = input.getJournalpostId()
         val regelResultat = regelRepository.hentRegelresultat(journalpostId)
         requireNotNull(regelResultat) { "Fant ikke regelresultat for journalpostId=$journalpostId" }
-        
+
+        val safJournalpost = journalpostService.hentSafJournalpost(journalpostId)
+        if (safJournalpost.journalstatus == Journalstatus.JOURNALFOERT) {
+            log.info("Journalposten er allerede journalført i Joark. Ignorerer. JournalpostId: $journalpostId")
+            return
+        }
+
         if (regelResultat.skalTilKelvin()) {
             routeTilKelvin(journalpostId)
             prometheus.fordelingsCounter(Fagsystem.kelvin).increment()

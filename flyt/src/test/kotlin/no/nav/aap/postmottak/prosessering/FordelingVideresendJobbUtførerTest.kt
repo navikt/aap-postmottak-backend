@@ -21,10 +21,11 @@ class FordelingVideresendJobbUtførerTest {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val fordelingVideresendJobbUtfører =
         FordelingVideresendJobbUtfører(
-            behandlingRepositoryMock,
-            regelRepositoryMock,
-            flytJobbRepositoryMock,
-            mockk(relaxed = true)
+            behandlingRepository = behandlingRepositoryMock,
+            regelRepository = regelRepositoryMock,
+            flytJobbRepository = flytJobbRepositoryMock,
+            arenaVideresender = mockk(),
+            journalpostService = mockk(relaxed = true)
         )
 
     @Test
