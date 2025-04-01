@@ -8,7 +8,7 @@ val ktorVersion = "3.1.2"
 val tilgangVersjon = "1.0.34"
 val junitVersjon = "5.12.1"
 val kafkaVersion = "3.7.0"
-val apiInternVersjon = "0.0.4"
+val apiInternVersjon = "0.0.5"
 
 dependencies {
     api(project(":kontrakt"))
