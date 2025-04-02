@@ -16,9 +16,9 @@ typealias RegelMap = Map<String, Boolean>
 data class Regelresultat(val regelMap: RegelMap) {
     
     fun skalTilKelvin(): Boolean {
-        val sakFinnesIKelvin = regelMap[KelvinSakRegel::class.simpleName]!!
-        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName]!!
-        val erIkkeAnke = regelMap[ErIkkeAnkeRegel::class.simpleName]!!
+        val sakFinnesIKelvin = regelMap[KelvinSakRegel::class.simpleName] ?: false
+        val erIkkeReisestønad = regelMap[ErIkkeReisestønadRegel::class.simpleName] ?: false
+        val erIkkeAnke = regelMap[ErIkkeAnkeRegel::class.simpleName] ?: false
         if (sakFinnesIKelvin && erIkkeReisestønad && erIkkeAnke) {
             log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
             return true
