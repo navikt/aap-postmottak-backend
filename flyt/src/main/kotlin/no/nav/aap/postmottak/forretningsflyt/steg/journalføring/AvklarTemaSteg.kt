@@ -78,7 +78,7 @@ class AvklarTemaSteg(
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) {
                 log.info("Journalpost har endret tema. Nytt tema er: ${journalpost.tema}")
-                gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId)
+                gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
                     .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
                 return Fullført
             } else Fullført

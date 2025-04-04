@@ -9,7 +9,7 @@ interface GosysOppgaveGateway : Gateway {
     fun finnOppgaverForJournalpost(
         journalpostId: JournalpostId, 
         oppgavetyper: List<Oppgavetype> = listOf(Oppgavetype.JOURNALFØRING),
-        tema: String = "AAP",
+        tema: String?,
         statuskategori: Statuskategori = Statuskategori.AAPEN
     ): List<Long>
 

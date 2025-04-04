@@ -5,19 +5,19 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -86,28 +86,33 @@ class AvklarTemaStegTest {
         val funnetAvklaringsbehov = actual.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_TEMA)
     }
-    
+
     @Test
     fun `når tema har blitt endret fortsetter vi til neste steg`() {
         every { journalpost.tema } returns "ANNET"
-        every {avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
-        every {gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)} returns listOf(1, 2)
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
+        every { gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP") } returns listOf(1, 2)
 
         val actual = avklarTemaSteg.utfør(kontekst)
-        
+
         verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(1) }
         verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(2) }
         assertEquals(Fullført::class.simpleName, actual::class.simpleName)
     }
-    
-    @Test 
+
+    @Test
     fun `når tema har blitt endret, uten temaavklaring, blir steget fullført`() {
         every { journalpost.tema } returns "ANNET"
-        every {avklarTemaRepository.hentTemaAvklaring(any()) } returns null
-        every {gosysOppgaveKlient.finnOppgaverForJournalpost(journalpost.journalpostId)} returns emptyList()
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null
+        every {
+            gosysOppgaveKlient.finnOppgaverForJournalpost(
+                journalpost.journalpostId,
+                tema = "AAP"
+            )
+        } returns emptyList()
 
         val actual = avklarTemaSteg.utfør(kontekst)
-        
+
         assertEquals(Fullført::class.simpleName, actual::class.simpleName)
     }
 

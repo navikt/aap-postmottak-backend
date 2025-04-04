@@ -58,7 +58,7 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
         val oppgaver = finnOppgaverForJournalpost(
             JournalpostId(oppgaveRequest.journalpostId.toLong()),
             listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING),
-            "AAP",
+            null,
             Statuskategori.AAPEN
         )
 
@@ -88,12 +88,13 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
     }
 
     override fun finnOppgaverForJournalpost(
-        journalpostId: JournalpostId, oppgavetyper: List<Oppgavetype>, tema: String, statuskategori: Statuskategori
+        journalpostId: JournalpostId, oppgavetyper: List<Oppgavetype>, tema: String?, statuskategori: Statuskategori
     ): List<Long> {
         log.info("Finn oppgaver for journalpost: $journalpostId")
         val oppgaveparams = oppgavetyper.map { "&oppgavetype=${it.verdi}" }.joinToString(separator = "")
+        val temaparams = if (tema != null) "&tema=$tema" else ""
         val path =
-            url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId${oppgaveparams}&tema=$tema&statuskategori=${statuskategori.name}")
+            url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId$oppgaveparams$temaparams&statuskategori=${statuskategori.name}")
 
         return client.get<FinnOppgaverResponse>(path, GetRequest())?.oppgaver?.map { it.id } ?: emptyList()
     }

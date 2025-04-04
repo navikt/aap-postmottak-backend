@@ -32,7 +32,7 @@ class ManuellJournalføringJobbTest {
     @Test
     fun `Skal opprette fordelingsoppgave hvis oppretting av journalføringsoppgave har feilet 3 ganger`() {
         every { journalpostMock.status } returns Journalstatus.MOTTATT
-        every {gosysMock.finnOppgaverForJournalpost(any(), any())} returns emptyList()
+        every {gosysMock.finnOppgaverForJournalpost(any(), any(), any())} returns emptyList()
         
         val kontekst =   ArenaVideresenderKontekst(
             journalpostId = JournalpostId(1),
