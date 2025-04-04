@@ -27,6 +27,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
+import no.nav.aap.komponenter.server.plugins.NavIdentInterceptor
 import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.Motor
@@ -149,6 +150,8 @@ internal fun Application.server(
 
     routing {
         authenticate(AZURE) {
+            install(NavIdentInterceptor)
+
             apiRouting {
                 configApi()
                 behandlingApi(dataSource)
