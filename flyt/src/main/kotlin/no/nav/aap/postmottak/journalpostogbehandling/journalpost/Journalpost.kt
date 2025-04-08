@@ -67,9 +67,8 @@ open class Journalpost(
     }
 
     fun erDigitaltMeldekort(): Boolean {
-        return dokumenter.any {
-            it.brevkode == Brevkoder.MELDEKORT.kode
-        } && erDigital()
+        val meldekortkoder = listOf(Brevkoder.MELDEKORT.kode, Brevkoder.MELDEKORT_KORRIGERING.kode)
+        return dokumenter.any { it.brevkode in meldekortkoder } && erDigital()
     }
 
     fun erDigital(): Boolean = finnOriginal()?.varianter?.any { it.filtype == Filtype.JSON } ?: false

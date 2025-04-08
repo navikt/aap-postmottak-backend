@@ -84,6 +84,7 @@ class DigitaliserDokumentSteg(
             Brevkoder.SØKNAD to InnsendingType.SØKNAD,
             Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING,
             Brevkoder.MELDEKORT to InnsendingType.MELDEKORT,
+            Brevkoder.MELDEKORT_KORRIGERING to InnsendingType.MELDEKORT,
             Brevkoder.KLAGE to InnsendingType.KLAGE
         )
 

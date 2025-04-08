@@ -19,6 +19,7 @@ enum class Brevkoder(val kode: String, val behandlingstype: String?) {
     BREV_UTLAND("UTL", Behandlingstype.UTLAND.kode),
     EGENERKLÆRING_AAP_EØS("NAV 11-03.08", Behandlingstype.EU_EØS_PRAKSISENDRING.kode),
     MELDEKORT("NAV 00-10.02", null),
+    MELDEKORT_KORRIGERING("NAV 00-10.03", null),
     ANNEN("ANNEN", null);
 
     companion object {
