@@ -73,7 +73,7 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
         val request = PostRequest(
             FinnSaker(ident.identifikator)
         )
-        return client.post(url.resolve("/api/sak/finn"), request)
+        return client.post(url.resolve("/api/sak/ekstern/finn"), request)
             ?: throw UnknownError("Fikk uforventet respons fra behandlingsflyt")
     }
 
