@@ -29,7 +29,7 @@ data class OppdaterJournalpostRequest(
 
 data class AvsenderMottakerDto(
     val id: String,
-    val type: BrukerIdType,
+    val idType: BrukerIdType,
     val navn: String? = null,
     val land: String? = null,
     val erLikBruker: Boolean? = null,

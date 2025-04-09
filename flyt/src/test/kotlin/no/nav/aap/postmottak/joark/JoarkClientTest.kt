@@ -99,7 +99,7 @@ class JoarkClientTest {
             restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->
                 val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
                 assertThat(avsenderMottaker?.id).isEqualTo(DEFAULT_IDENT.identifikator)
-                assertThat(avsenderMottaker?.type).isEqualTo(BrukerIdType.FNR)
+                assertThat(avsenderMottaker?.idType).isEqualTo(BrukerIdType.FNR)
                 assertThat(avsenderMottaker?.navn).isEqualTo("Ola Normann")
             }, any())
         }

@@ -130,7 +130,7 @@ class JoarkClient(
         return if (avsenderMottaker?.id == null) {
             AvsenderMottakerDto(
                 id = safJournalpost.bruker?.id!!,
-                type = bruker.type!!,
+                idType = bruker.type!!,
                 navn = navn?.fulltNavn(),
                 erLikBruker = true
             )
