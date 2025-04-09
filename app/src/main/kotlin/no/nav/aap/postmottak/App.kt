@@ -23,6 +23,8 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
+import no.nav.aap.komponenter.httpklient.exception.ApiException
+import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.server.AZURE
@@ -43,9 +45,7 @@ import no.nav.aap.postmottak.api.flyt.behandlingApi
 import no.nav.aap.postmottak.api.flyt.flytApi
 import no.nav.aap.postmottak.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.postmottak.exception.ErrorRespons
 import no.nav.aap.postmottak.exception.FlytOperasjonException
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
 import no.nav.aap.postmottak.klient.AapInternApiKlient
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
@@ -116,19 +116,31 @@ internal fun Application.server(
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
+            val logger = LoggerFactory.getLogger(javaClass)
+
             when (cause) {
-                is ElementNotFoundException -> {
-                    call.respondText(status = HttpStatusCode.NotFound, text = cause.message ?: "")
+                is InternfeilException -> {
+                    logger.error(cause.cause?.message ?: cause.message)
+                    call.respondWithError(cause)
+                }
+
+                is ApiException -> {
+                    logger.warn(cause.message, cause)
+                    call.respondWithError(cause)
                 }
 
                 is FlytOperasjonException -> {
-                    call.respond(status = cause.status(), message = cause.body())
+                    call.respondWithError(
+                        ApiException(
+                            status = cause.status(),
+                            message = cause.body().message ?: "Ukjent feil i behandlingsflyt"
+                        )
+                    )
                 }
 
                 else -> {
-                    LoggerFactory.getLogger(App::class.java)
-                        .warn("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                    call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+                    logger.error("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                    call.respondWithError(InternfeilException("En ukjent feil oppsto"))
                 }
             }
         }
@@ -142,7 +154,7 @@ internal fun Application.server(
     val dataSource = initDatasource(dbConfig, PrometheusProvider.prometheus)
     Migrering.migrate(dataSource)
     val motor = startMotor(dataSource)
-    
+
     registerGateways()
     registerRepositories()
 
@@ -170,6 +182,13 @@ internal fun Application.server(
         actuator(motor, mottakStream)
     }
 
+}
+
+private suspend fun ApplicationCall.respondWithError(exception: ApiException) {
+    respond(
+        exception.status,
+        exception.tilApiErrorResponse()
+    )
 }
 
 private fun registerGateways() {

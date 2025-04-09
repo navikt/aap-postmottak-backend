@@ -4,12 +4,12 @@ package no.nav.aap.postmottak.mottak
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.hendelseType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
@@ -101,7 +101,8 @@ class JoarkKafkaHandler(
                 )
             } catch (e: Exception) {
                 when (e) {
-                    is ElementNotFoundException, is NoSuchElementException -> log.info("Fant ikke åpen behandling for journalpost $journalpostId")
+                    is VerdiIkkeFunnetException,
+                    is NoSuchElementException -> log.info("Fant ikke åpen behandling for journalpost $journalpostId")
                     else -> throw e
                 }
             }

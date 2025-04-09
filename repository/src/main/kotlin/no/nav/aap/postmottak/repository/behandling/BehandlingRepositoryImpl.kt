@@ -10,8 +10,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Params
 import no.nav.aap.komponenter.dbconnect.Row
+import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.lookup.repository.Factory
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.ElementNotFoundException
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -128,7 +128,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return try {
             utførHentQuery(query) { setLong(1, behandlingId.toLong()) }
         } catch (_: NoSuchElementException) {
-            throw ElementNotFoundException("Fant ikke behandling med id $behandlingId")
+            throw VerdiIkkeFunnetException("Fant ikke behandling med id $behandlingId")
         }
     }
 
@@ -141,7 +141,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return try {
             utførHentQuery(query) { setUUID(1, referanse.referanse) }
         } catch (_: NoSuchElementException) {
-            throw ElementNotFoundException("Fant ikke behandling med referanse $referanse.")
+            throw VerdiIkkeFunnetException("Fant ikke behandling med referanse $referanse.")
         }
 
     }
@@ -172,7 +172,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
                 setRowMapper(::mapBehandling)
             }
         } catch (_: NoSuchElementException) {
-            throw ElementNotFoundException("Fant ikke åpen behandling med id $journalpostId")
+            throw VerdiIkkeFunnetException("Fant ikke åpen behandling med id $journalpostId")
         }
     }
 
