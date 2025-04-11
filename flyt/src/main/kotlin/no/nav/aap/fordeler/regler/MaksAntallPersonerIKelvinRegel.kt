@@ -11,7 +11,7 @@ class MaksAntallPersonerIKelvinRegel(private val maksAntallPersoner: Int) : Rege
     companion object : RegelFactory<MaksAntallPersonerIKelvinRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
         override fun medDataInnhenting(connection: DBConnection?): RegelMedInputgenerator<MaksAntallPersonerIKelvinRegelInput> {
-            val maksAntallPersoner = 11
+            val maksAntallPersoner = 16
             requireNotNull(connection)
             return RegelMedInputgenerator(
                 MaksAntallPersonerIKelvinRegel(maksAntallPersoner),
