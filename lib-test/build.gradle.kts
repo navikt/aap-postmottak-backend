@@ -1,5 +1,5 @@
 val ktorVersion = "3.1.2"
-val komponenterVersjon = "1.0.211"
+val komponenterVersjon = "1.0.217"
 val tilgangVersjon = "1.0.49"
 val junitVersion = "5.11.3"
 
