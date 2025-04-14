@@ -2,7 +2,7 @@ plugins {
     id("postmottak.conventions")
 }
 
-val junitVersjon = "5.12.1"
+val junitVersjon = "5.12.2"
 val ktorVersion = "3.1.2"
 val komponenterVersjon = "1.0.217"
 val tilgangVersjon = "1.0.49"
