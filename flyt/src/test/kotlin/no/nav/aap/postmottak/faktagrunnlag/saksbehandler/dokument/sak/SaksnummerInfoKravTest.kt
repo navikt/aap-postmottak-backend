@@ -21,8 +21,8 @@ class SaksnummerInfoKravTest {
     @Test
     fun `finn saksnummer for saker for borger og lagre på behandling`() {
         val saksnummre: List<BehandlingsflytSak> = listOf(
-            BehandlingsflytSak("1234", getPeriode()),
-            BehandlingsflytSak("5678", getPeriode())
+            BehandlingsflytSak("1234", getPeriode(), null),
+            BehandlingsflytSak("5678", getPeriode(), null)
         )
 
         every { behandlingsflytKlient.finnSaker(any()) } returns saksnummre

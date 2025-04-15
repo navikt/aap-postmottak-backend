@@ -31,7 +31,14 @@ interface BehandlingsflytGateway : Gateway {
 data class BehandlingsflytSak(
     val saksnummer: String,
     val periode: Periode,
+    val resultat: Resultat?
 )
+
+enum class Resultat {
+    INNVILGELSE,
+    AVSLAG,
+    TRUKKET,
+}
 
 object DokumentTilMeldingParser {
     fun parseTilMelding(dokument: String?, innsendingType: InnsendingType): Melding? {

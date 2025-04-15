@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.Resultat
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import org.slf4j.LoggerFactory
@@ -45,6 +46,6 @@ class SaksnummerInfoKrav(
 
 fun BehandlingsflytSak.tilSaksinfo(): Saksinfo {
     return Saksinfo(
-        saksnummer, periode
+        saksnummer, periode, resultat == Resultat.AVSLAG
     )
 }

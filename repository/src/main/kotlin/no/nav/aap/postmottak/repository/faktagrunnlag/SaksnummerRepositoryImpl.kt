@@ -29,7 +29,8 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection): Saksnummer
             setRowMapper { row ->
                 Saksinfo(
                     row.getString("saksnummer"),
-                    row.getPeriode("periode")
+                    row.getPeriode("periode"),
+                    row.getBoolean("avslag")
                 )
             }
         }
@@ -50,14 +51,16 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection): Saksnummer
             INSERT INTO SAKER_PAA_BEHANDLING (
                 INNHENTEDE_SAKER_FOR_BEHANDLING_ID,
                 SAKSNUMMER, 
-                PERIODE) 
-                VALUES (?, ?, ?::daterange) 
+                PERIODE,
+                AVSLAG) 
+                VALUES (?, ?, ?::daterange, ?) 
         """.trimIndent(), saksinfo
         ) {
             setParams {
                 setLong(1, id)
                 setString(2, it.saksnummer)
                 setPeriode(3, it.periode)
+                setBoolean(4, it.avslag)
             }
         }
     }
