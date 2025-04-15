@@ -9,11 +9,7 @@ data class SafRespons(
     val data: SafData?,
     val errors: List<GraphQLError>? = null,
     val extensions: GraphQLExtensions? = null,
-) {
-    fun hasErrors(): Boolean {
-        return errors?.isNotEmpty() ?: false
-    }
-}
+)
 
 data class SafData(
     val journalpost: SafJournalpost?,

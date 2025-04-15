@@ -1,7 +1,5 @@
 package no.nav.aap.postmottak.klient.saf.graphql
 
-import SafResponseHandler
-
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
