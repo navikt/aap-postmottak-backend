@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 val ktorVersion = "3.1.2"
-val komponenterVersjon = "1.0.218"
+val komponenterVersjon = "1.0.220"
 val kafkaVersion = "3.7.0"
 val tilgangVersjon = "1.0.49"
 val behandlingsflytVersjon = "0.0.214"
@@ -79,7 +79,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("com.zaxxer:HikariCP:6.3.0")
-    implementation("org.flywaydb:flyway-database-postgresql:11.7.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.7.1")
     runtimeOnly("org.postgresql:postgresql:42.7.5")
     // Auditlogging
     runtimeOnly(group = "com.papertrailapp", name = "logback-syslog4j", version = "1.0.0")
@@ -106,6 +106,6 @@ dependencies {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("io.mockk:mockk:1.13.17")
+    testImplementation("io.mockk:mockk:1.14.0")
     testImplementation(kotlin("test"))
 }

@@ -2,7 +2,7 @@ plugins {
     id("postmottak.conventions")
 }
 
-val komponenterVersjon = "1.0.218"
+val komponenterVersjon = "1.0.220"
 val behandlingsflytVersjon = "0.0.256"
 val ktorVersion = "3.1.2"
 val tilgangVersjon = "1.0.49"
@@ -24,7 +24,7 @@ dependencies {
     api("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     api("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
     compileOnly("io.ktor:ktor-http-jvm:$ktorVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:11.7.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.7.1")
 
     implementation(kotlin("reflect"))
     implementation("com.zaxxer:HikariCP:6.3.0")
@@ -48,6 +48,6 @@ dependencies {
     testImplementation(project(":api"))
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
-    testImplementation("io.mockk:mockk:1.13.17")
+    testImplementation("io.mockk:mockk:1.14.0")
     testImplementation("org.testcontainers:postgresql:1.20.6")
 }
