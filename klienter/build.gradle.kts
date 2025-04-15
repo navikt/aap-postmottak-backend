@@ -23,12 +23,12 @@ dependencies {
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
     implementation("no.nav.aap.api.intern:kontrakt:$apiInternVersjon")
 
-
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
     implementation("ch.qos.logback:logback-classic:1.5.18")
 
+    implementation("io.getunleash:unleash-client-java:10.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
