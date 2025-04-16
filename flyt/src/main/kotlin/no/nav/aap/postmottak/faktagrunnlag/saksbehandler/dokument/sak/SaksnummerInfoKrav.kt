@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak
 
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -45,6 +46,6 @@ class SaksnummerInfoKrav(
 
 fun BehandlingsflytSak.tilSaksinfo(): Saksinfo {
     return Saksinfo(
-        saksnummer, periode
+        saksnummer, periode, resultat == ResultatKode.AVSLAG
     )
 }

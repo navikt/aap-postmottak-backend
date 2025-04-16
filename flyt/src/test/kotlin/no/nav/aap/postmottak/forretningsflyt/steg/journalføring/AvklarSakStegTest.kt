@@ -58,7 +58,7 @@ class AvklarSakStegTest {
         every { behandlingsflytClient.finnEllerOpprettSak(any(), any()) } returns BehandlingsflytSak(
             "saksnummer", Periode(
                 LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)
-            )
+            ), null
         )
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
@@ -198,7 +198,7 @@ class AvklarSakStegTest {
         every { behandlingsflytClient.finnEllerOpprettSak(any(), any()) } returns BehandlingsflytSak(
             "saksnummer", Periode(
                 LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)
-            )
+            ), null
         )
         
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))

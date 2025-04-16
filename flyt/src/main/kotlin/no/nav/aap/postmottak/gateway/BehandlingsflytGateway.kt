@@ -5,6 +5,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.AnnetRelevantDoku
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.MeldekortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.lookup.gateway.Gateway
@@ -31,6 +32,7 @@ interface BehandlingsflytGateway : Gateway {
 data class BehandlingsflytSak(
     val saksnummer: String,
     val periode: Periode,
+    val resultat: ResultatKode?
 )
 
 object DokumentTilMeldingParser {

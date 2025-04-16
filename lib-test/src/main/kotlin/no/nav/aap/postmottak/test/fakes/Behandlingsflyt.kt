@@ -27,7 +27,7 @@ fun Application.behandlingsflytFake(
             call.respond(
                 BehandlingsflytSak(
                     "123321123",
-                    Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
+                    Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null
                 )
             )
         }
@@ -41,7 +41,7 @@ fun Application.behandlingsflytFake(
                     listOf(
                         BehandlingsflytSak(
                             "123321123",
-                            Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
+                            Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null
                         )
                     )
                 )

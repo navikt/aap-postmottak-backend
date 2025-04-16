@@ -4,5 +4,6 @@ import no.nav.aap.komponenter.type.Periode
 
 data class Saksinfo(
     val saksnummer: String,
-    val periode: Periode
+    val periode: Periode,
+    val avslag: Boolean = false
 )

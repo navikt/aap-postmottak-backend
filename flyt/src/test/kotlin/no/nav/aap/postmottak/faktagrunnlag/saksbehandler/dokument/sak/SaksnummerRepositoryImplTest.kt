@@ -22,8 +22,8 @@ class SaksnummerRepositoryImplTest {
 
     fun getPeriode() = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31))
     val saksinfo: List<Saksinfo> = listOf(
-        BehandlingsflytSak("sak: 1", getPeriode()).tilSaksinfo(),
-        BehandlingsflytSak("sak: 2", getPeriode()).tilSaksinfo()
+        BehandlingsflytSak("sak: 1", getPeriode(), null).tilSaksinfo(),
+        BehandlingsflytSak("sak: 2", getPeriode(), null).tilSaksinfo()
     )
 
     @AfterEach
