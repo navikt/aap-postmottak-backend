@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
@@ -22,9 +23,10 @@ class DigitaliserDokumentStegTest {
     val struktureringsvurderingRepository: DigitaliseringsvurderingRepository = mockk(relaxed = true)
     val journalpostRepo: JournalpostRepository = mockk()
     val dokumentGateway: DokumentGateway = mockk()
+    val saksnummerRepository: SaksnummerRepository = mockk()
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        struktureringsvurderingRepository, journalpostRepo, dokumentGateway
+        struktureringsvurderingRepository, journalpostRepo, dokumentGateway,saksnummerRepository
     )
 
     @Test
