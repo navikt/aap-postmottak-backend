@@ -7,7 +7,7 @@ import no.nav.aap.postmottak.exception.FlytOperasjonException
 class BehandlingUnderProsesseringException : FlytOperasjonException,
     RuntimeException("Behandlingen har prosesseringsjobber som venter eller har feilet. Vent til disse er ferdig prosesserte") {
     override fun status(): HttpStatusCode {
-        return HttpStatusCode.Conflict
+        return HttpStatusCode.NotImplemented
     }
 
     override fun body(): ErrorRespons {

@@ -126,6 +126,6 @@ class AvklarTemaSteg(
 
     private fun eksistererAvslagPåSak(behandlingId: BehandlingId): Boolean {
         val kelvinSaker = saksnummerRepository.hentKelvinSaker(behandlingId)
-        return kelvinSaker.any{ it.avslag }
+        return kelvinSaker.any { it.avslag }
     }
 }
