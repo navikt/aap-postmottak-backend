@@ -2,8 +2,8 @@ plugins {
     id("postmottak.conventions")
 }
 
-val komponenterVersjon = "1.0.220"
-val behandlingsflytVersjon = "0.0.197"
+val komponenterVersjon = "1.0.226"
+val behandlingsflytVersjon = "0.0.256"
 val junitVersjon = "5.12.2"
 
 dependencies {
@@ -16,7 +16,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
-    implementation("org.flywaydb:flyway-database-postgresql:11.7.1")
+    implementation("org.flywaydb:flyway-database-postgresql:11.7.2")
     runtimeOnly("org.postgresql:postgresql:42.7.5")
 
     testImplementation(project(":lib-test"))

@@ -61,6 +61,7 @@ import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboClient
 import no.nav.aap.postmottak.klient.statistikk.StatistikkKlient
+import no.nav.aap.postmottak.klient.unleash.UnleashService
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.mottak.kafka.Stream
@@ -208,6 +209,7 @@ private fun registerGateways() {
         .register<AapInternApiKlient>()
         .register<StatistikkKlient>()
         .register<VeilarbarenaKlient>()
+        .register<UnleashService>()
         .status()
 }
 

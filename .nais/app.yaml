@@ -68,6 +68,8 @@ spec:
     path: /actuator/metrics
   secureLogs:
     enabled: true
+  envFrom:
+    - secret: kelvin-unleash-api-token
   accessPolicy:
     {{#if inbound.rules}}
     inbound:
@@ -79,8 +81,9 @@ spec:
     {{/if}}
     outbound:
       external:
+        - host: aap-unleash-api.nav.cloud.nais.io
         {{#each outbound.external}}
-             - host: {{this.host}}
+        - host: {{this.host}}
         {{/each}}
       rules:
         {{#each outbound.rules}}
