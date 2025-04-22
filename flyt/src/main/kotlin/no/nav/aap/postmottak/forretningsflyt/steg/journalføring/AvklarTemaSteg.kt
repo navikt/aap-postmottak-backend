@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
@@ -51,9 +50,6 @@ class AvklarTemaSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
             ?: error("Journalpost mangler i AvklarTemaSteg")
-
-        if (eksistererAvslagPåSak(kontekst.behandlingId)) throw AvslagException()
-
         if (journalpost.erUgyldig()) return Fullført
 
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
@@ -122,10 +118,5 @@ class AvklarTemaSteg(
     private fun skalLegeerklæringTilAap(behandlingId: BehandlingId): Boolean {
         val kelvinSaker = saksnummerRepository.hentKelvinSaker(behandlingId)
         return kelvinSaker.isNotEmpty()
-    }
-
-    private fun eksistererAvslagPåSak(behandlingId: BehandlingId): Boolean {
-        val kelvinSaker = saksnummerRepository.hentKelvinSaker(behandlingId)
-        return kelvinSaker.any { it.avslag }
     }
 }

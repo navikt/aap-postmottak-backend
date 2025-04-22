@@ -4,9 +4,11 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -15,6 +17,7 @@ import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -25,7 +28,8 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 class DigitaliserDokumentSteg(
     private val digitaliseringsvurderingRepository: DigitaliseringsvurderingRepository,
     private val journalpostRepository: JournalpostRepository,
-    private val dokumentGateway: DokumentGateway
+    private val dokumentGateway: DokumentGateway,
+    private val saksnummerRepository: SaksnummerRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(connection: DBConnection): BehandlingSteg {
@@ -33,7 +37,8 @@ class DigitaliserDokumentSteg(
             return DigitaliserDokumentSteg(
                 repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
-                GatewayProvider.provide(DokumentGateway::class)
+                GatewayProvider.provide(DokumentGateway::class),
+                repositoryProvider.provide(SaksnummerRepository::class)
             )
         }
 
@@ -49,6 +54,7 @@ class DigitaliserDokumentSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
 
+        if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) throw AvslagException()
 
         if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort() || journalpost.erDigitalKlage()) {
             val dokument =
@@ -91,5 +97,4 @@ class DigitaliserDokumentSteg(
         return brevkodeTilInnsendingMap[Brevkoder.fraKode(brevkode)]
             ?: throw IllegalStateException("Kan ikke automatisk behanlde journalposter av type $brevkode")
     }
-
 }
