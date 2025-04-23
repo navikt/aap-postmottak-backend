@@ -119,4 +119,8 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection): Saksnummer
         }
     }
 
+    override fun eksistererAvslagPåTidligereBehandling(behandlingId: BehandlingId): Boolean {
+        val kelvinSaker = hentKelvinSaker(behandlingId)
+        return kelvinSaker.any { it.avslag }
+    }
 }

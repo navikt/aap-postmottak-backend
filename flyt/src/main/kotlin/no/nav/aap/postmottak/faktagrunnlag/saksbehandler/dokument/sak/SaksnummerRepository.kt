@@ -11,4 +11,5 @@ interface SaksnummerRepository: Repository {
     )
     fun lagreSakVurdering(behandlingId: BehandlingId, saksvurdering: Saksvurdering)
     fun hentSakVurdering(behandlingId: BehandlingId): Saksvurdering?
+    fun eksistererAvslagPåTidligereBehandling(behandlingId: BehandlingId): Boolean
 }
