@@ -8,9 +8,9 @@ import io.mockk.verify
 import no.nav.aap.WithDependencies
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.lookup.gateway.Factory
-import no.nav.aap.lookup.gateway.GatewayProvider
-import no.nav.aap.lookup.gateway.GatewayRegistry
+import no.nav.aap.komponenter.gateway.Factory
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor

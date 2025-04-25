@@ -10,7 +10,7 @@ import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb

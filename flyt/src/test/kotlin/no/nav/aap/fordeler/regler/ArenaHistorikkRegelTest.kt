@@ -1,8 +1,8 @@
 package no.nav.aap.fordeler.regler
 
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.lookup.gateway.Factory
-import no.nav.aap.lookup.gateway.GatewayRegistry
+import no.nav.aap.komponenter.gateway.Factory
+import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.SafJournalpost

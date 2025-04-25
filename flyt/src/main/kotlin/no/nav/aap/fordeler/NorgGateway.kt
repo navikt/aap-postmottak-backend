@@ -1,6 +1,6 @@
 package no.nav.aap.fordeler
 
-import no.nav.aap.lookup.gateway.Gateway
+import no.nav.aap.komponenter.gateway.Gateway
 import no.nav.aap.postmottak.gateway.Oppgavetype
 
 interface NorgGateway : Gateway {

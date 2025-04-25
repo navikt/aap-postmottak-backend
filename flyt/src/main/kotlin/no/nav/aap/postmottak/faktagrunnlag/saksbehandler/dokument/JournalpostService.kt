@@ -1,8 +1,8 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.postmottak.faktagrunnlag.register.PersonService
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway

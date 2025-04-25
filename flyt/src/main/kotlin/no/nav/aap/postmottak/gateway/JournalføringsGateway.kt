@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.gateway
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.aap.lookup.gateway.Gateway
+import no.nav.aap.komponenter.gateway.Gateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId

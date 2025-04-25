@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.graphql
 
-import no.nav.aap.lookup.gateway.GatewayProvider
-import no.nav.aap.lookup.gateway.GatewayRegistry
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tilJournalpost
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident

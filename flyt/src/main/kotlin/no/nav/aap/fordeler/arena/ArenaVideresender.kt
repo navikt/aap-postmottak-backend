@@ -9,7 +9,7 @@ import no.nav.aap.fordeler.arena.jobber.SendTilArenaKjørelisteBehandling
 import no.nav.aap.fordeler.arena.jobber.medArenaVideresenderKontekst
 import no.nav.aap.fordeler.arena.jobber.opprettArenaVideresenderKontekst
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService

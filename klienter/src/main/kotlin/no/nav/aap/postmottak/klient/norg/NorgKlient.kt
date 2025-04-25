@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.klient.norg
 import no.nav.aap.fordeler.Diskresjonskode
 import no.nav.aap.fordeler.NorgGateway
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.get
@@ -10,7 +11,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
-import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.Oppgavetype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Behandlingstema
