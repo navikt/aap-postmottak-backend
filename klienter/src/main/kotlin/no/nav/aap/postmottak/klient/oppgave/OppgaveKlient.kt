@@ -1,12 +1,12 @@
 package no.nav.aap.postmottak.klient.oppgave
 
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.OppgaveGateway
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse

@@ -1,6 +1,6 @@
 package no.nav.aap
 
-import no.nav.aap.lookup.gateway.Factory
+import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.StatistikkGateway
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import org.slf4j.LoggerFactory

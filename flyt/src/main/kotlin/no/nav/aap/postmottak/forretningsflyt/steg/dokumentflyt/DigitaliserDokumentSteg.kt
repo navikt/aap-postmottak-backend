@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -17,7 +17,6 @@ import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost

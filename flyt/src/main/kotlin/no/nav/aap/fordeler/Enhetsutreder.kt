@@ -1,6 +1,6 @@
 package no.nav.aap.fordeler
 
-import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.EgenAnsattGateway
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningType

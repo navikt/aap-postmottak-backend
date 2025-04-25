@@ -1,13 +1,13 @@
 package no.nav.aap.postmottak.klient.saf
 
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import no.nav.aap.lookup.gateway.Factory
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentOboGateway

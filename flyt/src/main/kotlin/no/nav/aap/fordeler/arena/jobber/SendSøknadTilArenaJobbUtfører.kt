@@ -4,7 +4,7 @@ import no.nav.aap.fordeler.arena.ArenaGateway
 import no.nav.aap.fordeler.arena.ArenaOppgaveType
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput

@@ -5,9 +5,9 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.lookup.gateway.GatewayProvider
-import no.nav.aap.lookup.gateway.GatewayRegistry
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringsGateway

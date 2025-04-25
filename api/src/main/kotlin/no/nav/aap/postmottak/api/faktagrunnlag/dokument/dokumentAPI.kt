@@ -4,8 +4,8 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.auth.token
-import no.nav.aap.lookup.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.gateway.DokumentOboGateway
@@ -74,7 +74,7 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
                         .hentJournalpost(JournalpostId(journalpostId.referanse), token)
                 // TODO: Rydd opp i dette
                 val identer =
-                    listOf(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).filterNotNull().distinct()
+                    listOfNotNull(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).distinct()
                 val personer = GatewayProvider.provide(PersondataGateway::class).hentPersonBolk(identer)
                 val søker = personer?.getOrDefault(journalpost.bruker?.id, null)
                 val avsender = personer?.getOrDefault(journalpost.avsenderMottaker?.id, null)

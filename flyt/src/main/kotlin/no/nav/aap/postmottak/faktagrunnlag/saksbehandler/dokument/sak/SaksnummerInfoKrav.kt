@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak
 
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.lookup.gateway.GatewayProvider
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
@@ -12,9 +12,6 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(SaksnummerInfoKrav::class.java)
 
 class SaksnummerInfoKrav(
     private val saksnummerRepository: SaksnummerRepository,

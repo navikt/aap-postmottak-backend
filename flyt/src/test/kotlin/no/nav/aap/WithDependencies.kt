@@ -1,7 +1,7 @@
 package no.nav.aap
 
 import io.mockk.mockk
-import no.nav.aap.lookup.gateway.GatewayRegistry
+import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.klient.AapInternApiKlient
