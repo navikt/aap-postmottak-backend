@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 
 class AvklarTemaRepositoryImplTest {
 
-    private val dataSource = InitTestDatabase.dataSource
+    private val dataSource = InitTestDatabase.freshDatabase()
 
     @AfterEach
     fun afterEach() {

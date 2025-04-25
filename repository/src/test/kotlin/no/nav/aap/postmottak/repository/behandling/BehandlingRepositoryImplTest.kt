@@ -14,14 +14,14 @@ class BehandlingRepositoryImplTest {
 
     @AfterEach
     fun clean() {
-        InitTestDatabase.dataSource.transaction {
+        InitTestDatabase.freshDatabase().transaction {
             it.execute("""TRUNCATE BEHANDLING CASCADE""")
         }
     }
 
     @Test
     fun opprettBehandling() {
-        InitTestDatabase.dataSource.transaction {
+        InitTestDatabase.freshDatabase().transaction {
             val repository = BehandlingRepositoryImpl(it)
 
             val journalpostId = JournalpostId(11111)
@@ -70,7 +70,7 @@ class BehandlingRepositoryImplTest {
     )
 
     private fun <T> inContext(block: Context.() -> T): T {
-        return InitTestDatabase.dataSource.transaction {
+        return InitTestDatabase.freshDatabase().transaction {
             val context =
                 Context(BehandlingRepositoryImpl(it))
             context.let(block)

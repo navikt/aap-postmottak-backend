@@ -37,13 +37,13 @@ class AvklaringsbehovOrkestratorTest {
 
     @AfterEach
     fun afterEach() {
-        InitTestDatabase.dataSource.transaction { it.execute("TRUNCATE behandling CASCADE ") }
+        InitTestDatabase.freshDatabase().transaction { it.execute("TRUNCATE behandling CASCADE ") }
     }
 
 
     @Test
     fun `behandlingHendelseService dot stoppet blir kalt når en behandling er satt på vent`() {
-        val uthentedeJobber = InitTestDatabase.dataSource.transaction { connection ->
+        val uthentedeJobber = InitTestDatabase.freshDatabase().transaction { connection ->
             val behandlingHendelseService =
                 BehandlingHendelseServiceImpl(
                     FlytJobbRepository(connection),

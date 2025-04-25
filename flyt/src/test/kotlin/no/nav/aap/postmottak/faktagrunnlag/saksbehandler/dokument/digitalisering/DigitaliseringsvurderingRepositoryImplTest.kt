@@ -14,13 +14,13 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class DigitaliseringsvurderingRepositoryImplTest {
+internal class DigitaliseringsvurderingRepositoryImplTest {
 
-    val dataSource = InitTestDatabase.dataSource
+    private val dataSource = InitTestDatabase.freshDatabase()
 
     @AfterEach
     fun clean() {
-        InitTestDatabase.dataSource.transaction {
+        dataSource.transaction {
             it.execute("""TRUNCATE BEHANDLING CASCADE""")
         }
     }
@@ -141,7 +141,7 @@ class DigitaliseringsvurderingRepositoryImplTest {
     )
 
     private fun <T> inContext(block: Context.() -> T): T {
-        return InitTestDatabase.dataSource.transaction {
+        return dataSource.transaction {
             val context = Context(DigitaliseringsvurderingRepositoryImpl(it), BehandlingRepositoryImpl(it))
             context.let(block)
         }

@@ -62,9 +62,9 @@ import java.time.LocalDate
 @Fakes
 class Flyttest : WithDependencies {
     companion object {
-        private val dataSource = InitTestDatabase.dataSource
+        private val dataSource = InitTestDatabase.freshDatabase()
         private val hendelsesMottak = TestHendelsesMottak(dataSource)
-        private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
+        private val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle())
         private val util =
             TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
 
