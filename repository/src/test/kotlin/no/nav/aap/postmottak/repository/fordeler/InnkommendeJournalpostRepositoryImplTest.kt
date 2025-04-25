@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class InnkommendeJournalpostRepositoryImplTest {
-    private val dataSource = InitTestDatabase.dataSource
+    private val dataSource = InitTestDatabase.freshDatabase()
 
     @BeforeEach
     fun beforeEach() {

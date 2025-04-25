@@ -41,8 +41,10 @@ import java.time.LocalDate
 @Fakes
 class ArenaOppgaveFlytTest : WithDependencies {
 
+
     companion object {
-        private val motor = Motor(InitTestDatabase.dataSource, 2, jobber = ProsesseringsJobber.alle())
+        private val dataSource = InitTestDatabase.freshDatabase()
+        private val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle())
 
         @JvmStatic
         @BeforeAll
@@ -60,7 +62,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
             motor.stop()
         }
 
-        val dataSource = InitTestDatabase.dataSource
         private val util =
             TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
     }

@@ -24,16 +24,18 @@ import java.time.LocalDate
 
 class JournalpostRepositoryImplTest {
 
+    private val dataSource = InitTestDatabase.freshDatabase()
+
     @AfterEach
     fun afterEach() {
-        InitTestDatabase.dataSource.transaction {
+        dataSource.transaction {
             it.execute("TRUNCATE BEHANDLING CASCADE")
         }
     }
 
     @Test
     fun `Kan lagre og hente journalpost`() {
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             // Setup
             val behandlingRepository = BehandlingRepositoryImpl(connection)
 
@@ -57,7 +59,7 @@ class JournalpostRepositoryImplTest {
 
     @Test
     fun `Henter nyeste journalpost når det er flere på en behandling`() {
-        val behandlingid = InitTestDatabase.dataSource.transaction { connection ->
+        val behandlingid = dataSource.transaction { connection ->
             // Setup
             val behandlingRepository = BehandlingRepositoryImpl(connection)
 
@@ -72,7 +74,7 @@ class JournalpostRepositoryImplTest {
 
             behandlingid
         }
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             val journalpostRepository = JournalpostRepositoryImpl(connection)
             val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
             journalpostRepository.lagre(genererJournalpost(person, tema = "YOLO"))

@@ -37,7 +37,7 @@ class DynamiskStegGruppeVisningServiceTest {
 
     @Test
     fun `Skal vise steg 'overlever til fagsystem' for søknad`() {
-        InitTestDatabase.dataSource.transaction { connection ->
+        InitTestDatabase.freshDatabase().transaction { connection ->
             // Arrange
             val journalpostRepository = JournalpostRepositoryImpl(connection)
             val behandlingRepository = BehandlingRepositoryImpl(connection)

@@ -4,7 +4,7 @@ class AvklaringsbehovAPIKtTest {
 /*
     @Test
     fun test() = testApplication {
-        val dataSource = InitTestDatabase.dataSource
+        val dataSource = InitTestDatabase.freshDatabase()
         routing {
             apiRoute {
                 avklaringsbehovApi(dataSource)

@@ -18,7 +18,7 @@ import java.time.LocalDate
 
 class SaksnummerRepositoryImplTest {
 
-    val dataSource = InitTestDatabase.dataSource
+    val dataSource = InitTestDatabase.freshDatabase()
 
     fun getPeriode() = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31))
     val saksinfo: List<Saksinfo> = listOf(
