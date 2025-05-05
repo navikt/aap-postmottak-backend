@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.test
 
 import java.io.BufferedReader
-import java.io.IOException
 import java.io.InputStreamReader
 import java.util.*
 
@@ -43,18 +42,22 @@ object FiktivtNavnGenerator {
         }
 
         private fun loadNames(resourceName: String): List<String> {
-            try {
-                BufferedReader(InputStreamReader(FiktivtNavnGenerator::class.java.getResourceAsStream(resourceName))).use { br ->
-                    val resultat: MutableList<String> =
-                        ArrayList()
-                    var strLine: String
-                    while ((br.readLine().also { strLine = it }) != null) {
-                        resultat.add(strLine.uppercase(Locale.getDefault()))
-                    }
-                    return resultat
+            // Try multiple class loaders to find the resource
+            val resourceStream = Thread.currentThread().contextClassLoader.getResourceAsStream(resourceName)
+                ?: Navnelager::class.java.classLoader.getResourceAsStream(resourceName)
+                ?: FiktivtNavnGenerator::class.java.classLoader.getResourceAsStream(resourceName)
+                ?: FiktivtNavnGenerator::class.java.getResourceAsStream(resourceName)
+                ?: throw RuntimeException("Resource not found: $resourceName")
+
+            BufferedReader(InputStreamReader(resourceStream)).use { br ->
+                val resultat: MutableList<String> =
+                    ArrayList()
+                var strLine: String? = br.readLine()
+                while (strLine != null) {
+                    resultat.add(strLine.uppercase(Locale.getDefault()))
+                    strLine = br.readLine()
                 }
-            } catch (e: IOException) {
-                throw RuntimeException(e)
+                return resultat
             }
         }
     }
