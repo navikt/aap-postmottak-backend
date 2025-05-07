@@ -38,6 +38,6 @@ dependencies {
     testImplementation(project(":lib-test"))
     testImplementation("io.ktor:ktor-server-netty:$ktorVersion")
     constraints {
-        implementation("io.netty:netty-common:4.2.0.Final")
+        implementation("io.netty:netty-common:4.2.1.Final")
     }
 }
