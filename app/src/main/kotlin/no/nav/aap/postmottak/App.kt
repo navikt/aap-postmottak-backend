@@ -91,9 +91,10 @@ fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e ->
         LoggerFactory.getLogger(App::class.java).error("Uhåndtert feil.", e)
     }
+    val serverPort = System.getenv("HTTP_PORT")?.toInt() ?: 8080
     embeddedServer(Netty, configure = {
         connector {
-            port = 8080
+            port = serverPort
         }
         connectionGroupSize = 8
         workerGroupSize = 8
