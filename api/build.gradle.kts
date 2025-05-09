@@ -5,7 +5,7 @@ plugins {
 val junitVersjon = "5.12.2"
 val ktorVersion = "3.1.3"
 val komponenterVersjon = "1.0.238"
-val tilgangVersjon = "1.0.63"
+val tilgangVersjon = "1.0.64"
 val behandlingsflytVersjon = "0.0.256"
 
 dependencies {
