@@ -1,11 +1,14 @@
 package no.nav.aap.postmottak.hendelse.avløp
 
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.kontrakt.hendelse.AvklaringsbehovHendelseDto
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
@@ -18,15 +21,22 @@ private val log = LoggerFactory.getLogger(BehandlingHendelseServiceImpl::class.j
 
 class BehandlingHendelseServiceImpl(
     private val flytJobbRepository: FlytJobbRepository,
-    private val journalpostRepository: JournalpostRepository
+    private val journalpostRepository: JournalpostRepository,
+    private val behandlingFlytGateway: BehandlingsflytGateway
 ) : BehandlingHendelseService {
 
     override fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
 
         val ident = journalpostRepository.hentHvisEksisterer(behandling.id)!!.person.aktivIdent().identifikator
 
+        // TODO kun i dev inntil den er verifisert
+        val nyesteSakForBruker = if (!Miljø.erProd()) {
+            behandlingFlytGateway.finnSaker(Ident(ident)).maxByOrNull { it.periode.tom }
+        } else null
+
         val hendelse = DokumentflytStoppetHendelse(
             journalpostId = behandling.journalpostId,
+            saksnummer = nyesteSakForBruker?.saksnummer,
             ident = ident,
             referanse = behandling.referanse.referanse, // TODO må håndtere referanseendring i oppgave
             behandlingType = behandling.typeBehandling,
