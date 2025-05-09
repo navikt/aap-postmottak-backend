@@ -5,6 +5,7 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
@@ -15,6 +16,7 @@ import no.nav.aap.postmottak.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.BehandlingReferanseService
@@ -62,7 +64,8 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource) {
                                 connection,
                                 BehandlingHendelseServiceImpl(
                                     flytJobbRepository,
-                                    journalpostRepository
+                                    journalpostRepository,
+                                    GatewayProvider.provide(BehandlingsflytGateway::class),
                                 )
                             ),
                         ).håndtere(
