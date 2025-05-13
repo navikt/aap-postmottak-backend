@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
@@ -25,7 +26,8 @@ class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
     override val restClient: RestClient<InputStream> = RestClient(
         config = ClientConfig(scope),
         OnBehalfOfTokenProvider,
-        responseHandler = SafResponseHandler()
+        responseHandler = SafResponseHandler(),
+        prometheus = PrometheusProvider.prometheus
     )
 
     companion object : Factory<SafGraphqlOboClient> {
@@ -45,7 +47,8 @@ class SafGraphqlClientCredentialsClient : SafGraphqlKlient(), JournalpostGateway
     override val restClient: RestClient<InputStream> = RestClient(
         config = ClientConfig(scope),
         ClientCredentialsTokenProvider,
-        responseHandler = SafResponseHandler()
+        responseHandler = SafResponseHandler(),
+        prometheus = PrometheusProvider.prometheus
     )
 
     companion object : Factory<SafGraphqlClientCredentialsClient> {
