@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.hendelse.avløp
 
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
@@ -28,11 +27,7 @@ class BehandlingHendelseServiceImpl(
     override fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
 
         val ident = journalpostRepository.hentHvisEksisterer(behandling.id)!!.person.aktivIdent().identifikator
-
-        // TODO kun i dev inntil den er verifisert
-        val nyesteSakForBruker = if (!Miljø.erProd()) {
-            behandlingFlytGateway.finnSaker(Ident(ident)).maxByOrNull { it.periode.tom }
-        } else null
+        val nyesteSakForBruker = behandlingFlytGateway.finnSaker(Ident(ident)).maxByOrNull { it.periode.tom }
 
         val hendelse = DokumentflytStoppetHendelse(
             journalpostId = behandling.journalpostId,
