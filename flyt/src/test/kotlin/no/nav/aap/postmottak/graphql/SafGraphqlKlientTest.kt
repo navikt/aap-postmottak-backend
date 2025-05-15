@@ -1,7 +1,10 @@
 package no.nav.aap.postmottak.graphql
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tilJournalpost
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
@@ -19,6 +22,7 @@ import java.util.*
 class SafGraphqlKlientTest {
     @BeforeEach
     fun setup() {
+        PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
         GatewayRegistry.register(SafGraphqlClientCredentialsClient::class)
     }
 
