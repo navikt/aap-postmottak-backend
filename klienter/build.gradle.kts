@@ -3,7 +3,7 @@ val ktorVersion = "3.1.3"
 val tilgangVersjon = "0.0.94"
 val jacksonVersion = "2.19.0"
 val junitVersion = "5.11.3"
-val behandlingsflytVersjon = "0.0.256"
+val behandlingsflytVersjon = "0.0.301"
 val apiInternVersjon = "0.0.8"
 
 plugins {
