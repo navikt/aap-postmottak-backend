@@ -6,7 +6,6 @@ import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.post
@@ -38,11 +37,7 @@ class ArenaKlient : ArenaGateway {
     override fun harAktivSak(ident: Ident) = nyesteAktiveSak(ident) != null
 
     override fun nyesteAktiveSak(ident: Ident): String? {
-        val request = GetRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "text/plain")
-            )
-        )
+        val request = GetRequest()
         val nyesteSakUrl = url.resolve("arena/nyesteaktivesak/${ident.identifikator}")
         return client.get(nyesteSakUrl, request)
     }
