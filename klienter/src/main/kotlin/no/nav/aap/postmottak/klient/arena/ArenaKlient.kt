@@ -40,7 +40,6 @@ class ArenaKlient : ArenaGateway {
     override fun nyesteAktiveSak(ident: Ident): String? {
         val request = GetRequest(
             additionalHeaders = listOf(
-                Header("Content-Type", "application/json"),
                 Header("Accept", "text/plain")
             )
         )
