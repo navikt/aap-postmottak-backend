@@ -80,7 +80,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("com.zaxxer:HikariCP:6.3.0")
     implementation("org.flywaydb:flyway-database-postgresql:11.8.2")
-    runtimeOnly("org.postgresql:postgresql:42.7.5")
+    runtimeOnly("org.postgresql:postgresql:42.7.6")
     // Auditlogging
     runtimeOnly(group = "com.papertrailapp", name = "logback-syslog4j", version = "1.0.0")
     
