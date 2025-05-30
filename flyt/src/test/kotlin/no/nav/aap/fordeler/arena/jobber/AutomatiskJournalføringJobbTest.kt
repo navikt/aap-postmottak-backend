@@ -20,6 +20,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedD
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
+import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
@@ -38,9 +39,11 @@ class AutomatiskJournalføringJobbTest {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
     val joarkClientMock = mockk<JoarkClient>(relaxed = true)
     val journalpostServiceMock = mockk<JournalpostService>(relaxed = true)
+    val gosysOppgaveKlientMock = mockk<GosysOppgaveKlient>(relaxed = true)
     val enhetsutrederMock = mockk<Enhetsutreder>(relaxed = true)
     val automatiskJournalføringJobb = AutomatiskJournalføringJobbUtfører(
         joarkClientMock,
+        gosysOppgaveKlientMock,
         flytJobbRepositoryMock,
         journalpostServiceMock,
         enhetsutrederMock

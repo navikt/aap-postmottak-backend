@@ -12,12 +12,14 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.Fagsystem
+import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
 import org.slf4j.LoggerFactory
 
 class AutomatiskJournalføringJobbUtfører(
     private val joarkClient: JournalføringsGateway,
+    private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val flytJobbRepository: FlytJobbRepository,
     journalpostService: JournalpostService,
     private val enhetsutreder: Enhetsutreder,
@@ -28,6 +30,7 @@ class AutomatiskJournalføringJobbUtfører(
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return AutomatiskJournalføringJobbUtfører(
                 GatewayProvider.provide(JournalføringsGateway::class),
+                GatewayProvider.provide(GosysOppgaveGateway::class),
                 FlytJobbRepository(connection),
                 JournalpostService.konstruer(connection),
                 Enhetsutreder.konstruer(),
@@ -56,7 +59,7 @@ class AutomatiskJournalføringJobbUtfører(
             )
             return
         }
-        
+
         log.info("Automatisk journalfører journalpost ${kontekst.journalpostId} på sak ${kontekst.saksnummer} ")
         joarkClient.førJournalpostPåFagsak(
             journalpost.journalpostId,
@@ -65,6 +68,9 @@ class AutomatiskJournalføringJobbUtfører(
             fagsystem = Fagsystem.AO01
         )
         joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
+
+        gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
+            .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
     }
 
 }
