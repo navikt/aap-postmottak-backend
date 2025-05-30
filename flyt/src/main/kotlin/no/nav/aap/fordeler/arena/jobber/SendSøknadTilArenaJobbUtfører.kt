@@ -43,7 +43,7 @@ class SendSøknadTilArenaJobbUtfører(
     override fun utførArena(input: JobbInput, journalpost: JournalpostMedDokumentTitler) {
         val kontekst = input.getArenaVideresenderKontekst()
 
-        if (input.antallRetriesForsøkt() >= 2) {
+        if (input.antallRetriesForsøkt() >= 3) {
             log.info("Forsøk på opprettelse av oppgave i Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb((kontekst))
         } else if (kontekst.navEnhet != null && !arenaKlient.harAktivSak(kontekst.ident)) {

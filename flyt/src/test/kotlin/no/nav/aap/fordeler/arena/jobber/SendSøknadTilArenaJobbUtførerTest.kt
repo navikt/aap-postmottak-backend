@@ -102,7 +102,7 @@ class SendSøknadTilArenaJobbUtførerTest {
             jobbKontekst
         ))
 
-        every { jobbInput.antallRetriesForsøkt() } returns 2
+        every { jobbInput.antallRetriesForsøkt() } returns 3
 
         sendSøknadTilArenaJobb.utfør(jobbInput)
 
