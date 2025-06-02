@@ -5,7 +5,7 @@ val komponenterVersjon = "1.0.247"
 val kafkaVersion = "3.7.0"
 val tilgangVersjon = "1.0.70"
 val behandlingsflytVersjon = "0.0.307"
-val junitVersjon = "5.12.2"
+val junitVersjon = "5.13.0"
 
 plugins {
     id("postmottak.conventions")
