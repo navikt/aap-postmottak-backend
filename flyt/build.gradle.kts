@@ -25,7 +25,7 @@ dependencies {
     api("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     api("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
     compileOnly("io.ktor:ktor-http-jvm:$ktorVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:11.8.2")
+    implementation("org.flywaydb:flyway-database-postgresql:11.9.0")
 
     implementation(kotlin("reflect"))
     implementation("com.zaxxer:HikariCP:6.3.0")
