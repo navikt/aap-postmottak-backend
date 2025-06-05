@@ -45,6 +45,7 @@ class FordelingVideresendJobbUtførerTest {
         val jobbInput = JobbInput(FordelingVideresendJobbUtfører)
             .forSak(journalpostId.referanse)
             .medJournalpostId(journalpostId)
+            .medInnkommendeJournalpostId(1L)
         fordelingVideresendJobbUtfører.utfør(jobbInput)
 
         assertThat(

@@ -42,7 +42,7 @@ class SendTilArenaKjørelisteBehandling(
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (input.antallRetriesForsøkt() >= 2) {
-            log.info("Forsøk på sending av kjøreliste til Arena feilet ${input.antallRetriesForsøkt()+1}, oppretter manuell oppgave")
+            log.info("Forsøk på sending av kjøreliste til Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb(kontekst)
             return
         }
@@ -55,15 +55,16 @@ class SendTilArenaKjørelisteBehandling(
         opprettAutomatiskJournalføringsjobb(kontekst, sakId)
     }
 
-    private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst, arenaSakId :String) {
+    private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst, arenaSakId: String) {
         flytJobbRepository.leggTil(
             JobbInput(AutomatiskJournalføringJobbUtfører)
                 .medAutomatiskJournalføringKontekst(
                     AutomatiskJournalføringKontekst(
-                    journalpostId = kontekst.journalpostId,
-                    ident = kontekst.ident,
-                    saksnummer = arenaSakId,
-                )
+                        journalpostId = kontekst.journalpostId,
+                        innkommendeJournalpostId = kontekst.innkommendeJournalpostId,
+                        ident = kontekst.ident,
+                        saksnummer = arenaSakId,
+                    )
                 )
                 .medCallId()
         )

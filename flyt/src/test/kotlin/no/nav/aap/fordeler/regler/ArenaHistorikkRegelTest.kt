@@ -58,7 +58,7 @@ class JoarkMock : JournalpostGateway {
         TODO("Not yet implemented")
     }
 
-    override fun hentSaker(ident: String): List<SafSak> {
+    override fun hentSaker(fnr: String): List<SafSak> {
         return emptyList()
     }
 

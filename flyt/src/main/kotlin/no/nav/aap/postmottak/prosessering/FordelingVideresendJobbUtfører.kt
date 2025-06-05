@@ -54,6 +54,7 @@ class FordelingVideresendJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
+        val innkommendeJournalpostId = input.getInnkommendeJournalpostId()
         val regelResultat = regelRepository.hentRegelresultat(journalpostId)
         requireNotNull(regelResultat) { "Fant ikke regelresultat for journalpostId=$journalpostId" }
 
@@ -67,7 +68,10 @@ class FordelingVideresendJobbUtfører(
             routeTilKelvin(journalpostId)
             prometheus.fordelingsCounter(Fagsystem.kelvin).increment()
         } else {
-            arenaVideresender.videresendJournalpostTilArena(journalpostId)
+            arenaVideresender.videresendJournalpostTilArena(
+                journalpostId,
+                innkommendeJournalpostId = innkommendeJournalpostId
+            )
             prometheus.fordelingsCounter(Fagsystem.arena).increment()
         }
     }

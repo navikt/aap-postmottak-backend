@@ -57,7 +57,7 @@ class AutomatiskJournalføringJobbTest {
         GatewayRegistry.register(SafGraphqlClientCredentialsClient::class)
         GatewayRegistry.register(PdlGraphqlKlient::class)
     }
-    
+
     @Test
     fun `Skal opprette manuell journalføirngsjobb dersom automatisk journalføring har feilet 2 ganger`() {
         val journalpostId = JournalpostId(1)
@@ -86,13 +86,16 @@ class AutomatiskJournalføringJobbTest {
 
         val jobbKontekst = AutomatiskJournalføringKontekst(
             journalpostId = journalpostId,
+            innkommendeJournalpostId = 1L,
             ident = Ident("123"),
             saksnummer = "123",
         )
 
-        val jobbInput = spyk(JobbInput(AutomatiskJournalføringJobbUtfører).medAutomatiskJournalføringKontekst(
-            jobbKontekst
-        ))
+        val jobbInput = spyk(
+            JobbInput(AutomatiskJournalføringJobbUtfører).medAutomatiskJournalføringKontekst(
+                jobbKontekst
+            )
+        )
 
         every { journalpostServiceMock.hentJournalpostMedDokumentTitler(any()) } returns journalpost
         every { enhetsutrederMock.finnJournalføringsenhet(any()) } returns "4491"
@@ -103,7 +106,11 @@ class AutomatiskJournalføringJobbTest {
         verify(exactly = 1) {
             flytJobbRepositoryMock.leggTil(withArg {
                 assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type())
-                assertThat(it.getArenaVideresenderKontekst()).isEqualTo(journalpost.opprettArenaVideresenderKontekst("4491"))
+                assertThat(it.getArenaVideresenderKontekst()).isEqualTo(
+                    journalpost.opprettArenaVideresenderKontekst(
+                        "4491", innkommendeJournalpostId = 1L,
+                    )
+                )
             })
         }
     }

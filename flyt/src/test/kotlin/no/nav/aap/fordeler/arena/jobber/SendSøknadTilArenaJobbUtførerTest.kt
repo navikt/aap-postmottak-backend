@@ -34,6 +34,7 @@ class SendSøknadTilArenaJobbUtførerTest {
         
         val jobbKontekst =   ArenaVideresenderKontekst(
             journalpostId = journalpostId,
+            innkommendeJournalpostId = 1L,
             ident = Ident("123"),
             hoveddokumenttittel = "Hoveddokument",
             vedleggstitler = listOf("Vedlegg"),
@@ -59,6 +60,7 @@ class SendSøknadTilArenaJobbUtførerTest {
         
         val jobbKontekst =   ArenaVideresenderKontekst(
             journalpostId = journalpostId,
+            innkommendeJournalpostId = 1L,
             ident = Ident("123"),
             hoveddokumenttittel = "Hoveddokument",
             vedleggstitler = listOf("Vedlegg"),
@@ -77,6 +79,7 @@ class SendSøknadTilArenaJobbUtførerTest {
             assertThat(it.type()).isEqualTo(AutomatiskJournalføringJobbUtfører.type())
             assertThat(it.getAutomatiskJournalføringKontekst()).isEqualTo(AutomatiskJournalføringKontekst(
                 journalpostId = journalpostId,
+                innkommendeJournalpostId = 1L,
                 ident = jobbKontekst.ident,
                 saksnummer = "sakId"
             ))
@@ -92,6 +95,7 @@ class SendSøknadTilArenaJobbUtførerTest {
 
         val jobbKontekst =   ArenaVideresenderKontekst(
             journalpostId = journalpostId,
+            innkommendeJournalpostId = 1L,
             ident = Ident("123"),
             hoveddokumenttittel = "Hoveddokument",
             vedleggstitler = listOf("Vedlegg"),

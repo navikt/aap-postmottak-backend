@@ -123,7 +123,7 @@ class FordelingRegelJobbUtfører(
             }
         }
 
-        innkommendeJournalpostRepository.lagre(
+        val id = innkommendeJournalpostRepository.lagre(
             InnkommendeJournalpost(
                 journalpostId = JournalpostId(safJournalpost.journalpostId),
                 brevkode = safJournalpost.hoveddokument()?.brevkode,
@@ -139,15 +139,16 @@ class FordelingRegelJobbUtfører(
         ).increment()
         
         if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
-            opprettVideresendJobb(journalpostId)
+            opprettVideresendJobb(id, journalpostId)
         }
     }
 
-    private fun opprettVideresendJobb(journalpostId: JournalpostId) {
+    private fun opprettVideresendJobb(innkommendeJournalpostId: Long, journalpostId: JournalpostId) {
         flytJobbRepository.leggTil(
             JobbInput(FordelingVideresendJobbUtfører)
                 .forSak(journalpostId.referanse)
                 .medJournalpostId(journalpostId)
+                .medInnkommendeJournalpostId(innkommendeJournalpostId)
                 .medCallId()
         )
     }

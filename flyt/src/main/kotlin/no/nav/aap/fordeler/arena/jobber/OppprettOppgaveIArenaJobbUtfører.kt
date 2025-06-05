@@ -71,6 +71,7 @@ class OppprettOppgaveIArenaJobbUtfører(
                 .medAutomatiskJournalføringKontekst(
                     AutomatiskJournalføringKontekst(
                         journalpostId = kontekst.journalpostId,
+                        innkommendeJournalpostId = kontekst.innkommendeJournalpostId,
                         ident = kontekst.ident,
                         saksnummer = arenaSakId,
                     )

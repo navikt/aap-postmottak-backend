@@ -55,7 +55,12 @@ class AutomatiskJournalføringJobbUtfører(
             val enhet = enhetsutreder.finnJournalføringsenhet(journalpost)
             flytJobbRepository.leggTil(
                 JobbInput(ManuellJournalføringJobbUtfører)
-                    .medArenaVideresenderKontekst(journalpost.opprettArenaVideresenderKontekst(enhet))
+                    .medArenaVideresenderKontekst(
+                        journalpost.opprettArenaVideresenderKontekst(
+                            enhet,
+                            kontekst.innkommendeJournalpostId
+                        )
+                    )
             )
             return
         }

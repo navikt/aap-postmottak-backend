@@ -36,6 +36,7 @@ class ManuellJournalføringJobbTest {
         
         val kontekst =   ArenaVideresenderKontekst(
             journalpostId = JournalpostId(1),
+            innkommendeJournalpostId = 1L,
             ident = Ident("123"),
             hoveddokumenttittel = "Hoveddokument",
             vedleggstitler = listOf("Vedlegg"),

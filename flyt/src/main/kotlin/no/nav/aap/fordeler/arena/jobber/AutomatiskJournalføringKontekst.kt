@@ -7,9 +7,10 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 data class AutomatiskJournalføringKontekst(
     override val journalpostId: JournalpostId,
+    override val innkommendeJournalpostId: Long,
     val ident: Ident,
     val saksnummer: String,
-) : ArenaBaseKontekst(journalpostId) {}
+) : ArenaBaseKontekst(journalpostId, innkommendeJournalpostId) {}
 
 
 fun JobbInput.getAutomatiskJournalføringKontekst() = DefaultJsonMapper.fromJson(this.payload(), AutomatiskJournalføringKontekst::class.java)

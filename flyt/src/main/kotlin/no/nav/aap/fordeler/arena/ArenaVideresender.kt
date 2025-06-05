@@ -38,7 +38,7 @@ class ArenaVideresender(
         )
     }
 
-    fun videresendJournalpostTilArena(journalpostId: JournalpostId) {
+    fun videresendJournalpostTilArena(journalpostId: JournalpostId, innkommendeJournalpostId: Long) {
         val journalpost = journalpostService.hentJournalpostMedDokumentTitler(journalpostId)
         
         if (journalpost.status == Journalstatus.JOURNALFOERT) {
@@ -49,9 +49,9 @@ class ArenaVideresender(
             return
         }
         
-        val videresenderKontekst = opprettArenaVideresenderKontekst(journalpost)
+        val videresenderKontekst = opprettArenaVideresenderKontekst(journalpost, innkommendeJournalpostId)
         if (videresenderKontekst.navEnhet == null) {
-            sendTilManuellJournalføring(journalpost)
+            sendTilManuellJournalføring(journalpost, innkommendeJournalpostId)
             return
         }
 
@@ -61,50 +61,50 @@ class ArenaVideresender(
                 joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
             }
 
-            Brevkoder.SØKNAD.kode -> sendSøknadTilArena(journalpost)
-            Brevkoder.STANDARD_ETTERSENDING.kode -> opprettOppagvePåEksisterendeSak(journalpost)
-            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> opprettOppagvePåEksisterendeSak(journalpost)
-            Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> sendTiArenaKjøreliste(journalpost)// Håndteres af jfr-arena
+            Brevkoder.SØKNAD.kode -> sendSøknadTilArena(journalpost, innkommendeJournalpostId)
+            Brevkoder.STANDARD_ETTERSENDING.kode -> opprettOppagvePåEksisterendeSak(journalpost, innkommendeJournalpostId)
+            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> opprettOppagvePåEksisterendeSak(journalpost, innkommendeJournalpostId)
+            Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> sendTiArenaKjøreliste(journalpost, innkommendeJournalpostId)// Håndteres af jfr-arena
             else -> {
-                sendTilManuellJournalføring(journalpost)
+                sendTilManuellJournalføring(journalpost, innkommendeJournalpostId)
             }
         }
     }
 
-    private fun sendSøknadTilArena(journalpost: JournalpostMedDokumentTitler) {
+    private fun sendSøknadTilArena(journalpost: JournalpostMedDokumentTitler, innkomendeJournalpostId: Long) {
         flytJobbRepository.leggTil(
             JobbInput(SendSøknadTilArenaJobbUtfører).medArenaVideresenderKontekst(
-                opprettArenaVideresenderKontekst(journalpost)
+                opprettArenaVideresenderKontekst(journalpost, innkomendeJournalpostId)
             )
         )
     }
 
-    private fun sendTiArenaKjøreliste(journalpost: JournalpostMedDokumentTitler) {
+    private fun sendTiArenaKjøreliste(journalpost: JournalpostMedDokumentTitler, innkomendeJournalpostId: Long) {
         flytJobbRepository.leggTil(
             JobbInput(SendTilArenaKjørelisteBehandling).medArenaVideresenderKontekst(
-                opprettArenaVideresenderKontekst(journalpost)
+                opprettArenaVideresenderKontekst(journalpost, innkomendeJournalpostId)
             )
         )
     }
 
-    private fun opprettOppagvePåEksisterendeSak(journalpost: JournalpostMedDokumentTitler) {
+    private fun opprettOppagvePåEksisterendeSak(journalpost: JournalpostMedDokumentTitler, innkommendeJournalpostId: Long) {
         flytJobbRepository.leggTil(
             JobbInput(OppprettOppgaveIArenaJobbUtfører).medArenaVideresenderKontekst(
-                opprettArenaVideresenderKontekst(journalpost)
+                opprettArenaVideresenderKontekst(journalpost, innkommendeJournalpostId = innkommendeJournalpostId)
             )
         )
     }
 
-    private fun sendTilManuellJournalføring(journalpost: JournalpostMedDokumentTitler) {
+    private fun sendTilManuellJournalføring(journalpost: JournalpostMedDokumentTitler, innkommendeJournalpostId: Long) {
         flytJobbRepository.leggTil(
             JobbInput(ManuellJournalføringJobbUtfører)
-                .medArenaVideresenderKontekst(opprettArenaVideresenderKontekst(journalpost))
+                .medArenaVideresenderKontekst(opprettArenaVideresenderKontekst(journalpost, innkommendeJournalpostId = innkommendeJournalpostId))
         )
     }
 
-    private fun opprettArenaVideresenderKontekst(journalpost: JournalpostMedDokumentTitler): ArenaVideresenderKontekst {
+    private fun opprettArenaVideresenderKontekst(journalpost: JournalpostMedDokumentTitler, innkommendeJournalpostId: Long): ArenaVideresenderKontekst {
         val enhet = enhetsutreder.finnJournalføringsenhet(journalpost)
-        return journalpost.opprettArenaVideresenderKontekst(enhet)
+        return journalpost.opprettArenaVideresenderKontekst(enhet, innkommendeJournalpostId = innkommendeJournalpostId)
     }
 
 }
