@@ -1,4 +1,4 @@
-val komponenterVersjon = "1.0.261"
+val komponenterVersjon = "1.0.269"
 val ktorVersion = "3.2.0"
 val tilgangVersjon = "0.0.94"
 val jacksonVersion = "2.19.1"
