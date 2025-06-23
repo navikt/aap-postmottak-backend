@@ -34,7 +34,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.assertj:assertj-core:3.27.3")
-    testImplementation("io.mockk:mockk:1.14.2")
+    testImplementation("io.mockk:mockk:1.14.4")
     testImplementation(project(":lib-test"))
     testImplementation("io.ktor:ktor-server-netty:$ktorVersion")
     constraints {
