@@ -46,13 +46,18 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_16
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
         tier: {{sql.tier}}
-        diskAutoresize: {{sql.diskAutoresize}}
+        diskAutoresize: true
         highAvailability: {{sql.highAvailability}}
         pointInTimeRecovery: {{sql.pointInTimeRecovery}}
         databases:
           - name: postmottak
             envVarPrefix: DB_POSTMOTTAK
+            users:
+              - name: datastream
   liveness:
     path: /actuator/live
     initialDelay: 3

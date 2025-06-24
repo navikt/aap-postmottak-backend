@@ -2,7 +2,6 @@ ingres: "https://aap-postmottak-backend.intern.dev.nav.no"
 
 sql:
   tier: db-f1-micro
-  diskAutoresize: false
   highAvailability: false
   pointInTimeRecovery: false
 
