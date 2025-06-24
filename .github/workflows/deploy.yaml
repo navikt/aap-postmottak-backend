@@ -75,10 +75,7 @@ jobs:
                 Endringer siden sist:
                 ${{ steps.notes.outputs.CHANGELOG }}
 
-  deploy:
-    strategy:
-        matrix:
-            cluster: [ dev, prod ]
+  deploy-dev:
     ## push til main eller etter branch (e.g. dependabot) er merget
     permissions:
       contents: read
@@ -87,6 +84,19 @@ jobs:
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     secrets: inherit
     with:
-      cluster: ${{ matrix.cluster }}-gcp
+      cluster: dev-gcp
       manifest: .nais/app.yaml
-      vars: .nais/${{matrix.cluster}}.yaml
+      vars: .nais/dev.yaml
+
+  deploy-prod:
+    ## push til main eller etter branch (e.g. dependabot) er merget
+    permissions:
+      contents: read
+      id-token: write
+    needs: deploy-dev
+    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
+    secrets: inherit
+    with:
+      cluster: prod-gcp
+      manifest: .nais/app.yaml
+      vars: .nais/prod.yaml
