@@ -8,11 +8,8 @@ metadata:
     sub: postmottak
 spec:
   image: {{image}}
-  # Setter utrullingsstrategi til Recreate for test. Settes til default før prodsetting
-#  strategy:
-#    type: Recreate
   ingresses:
-      - {{ingres}}
+    - {{ingres}}
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: {{replicas.disableAutoScaling}}
@@ -29,20 +26,20 @@ spec:
       enabled: true
       runtime: "java"
     logging:
-        destinations:
-            - id: elastic
-            - id: loki
+      destinations:
+        - id: elastic
+        - id: loki
   azure:
-      application:
-          enabled: true
-          allowAllUsers: true
-          claims:
-              extra:
-                  - "NAVident"
-                  - "azp_name"
+    application:
+      enabled: true
+      allowAllUsers: true
+      claims:
+        extra:
+          - "NAVident"
+          - "azp_name"
   kafka:
-      pool: {{kafka.pool}}
-      streams: true
+    pool: {{kafka.pool}}
+    streams: true
   gcp:
     sqlInstances:
       - type: POSTGRES_16
