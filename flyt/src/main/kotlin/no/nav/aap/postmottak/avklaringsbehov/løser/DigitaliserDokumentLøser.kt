@@ -49,8 +49,10 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
             behandlingId,
             digitaliseringsvurdering
         )
-        if (dokument is KlageV0){
-            val overleveringVurdering = OverleveringVurdering(skalOverleveresTilKelvin = dokument.skalOppretteNyBehandling)
+        if (dokument is KlageV0) {
+            val overleveringVurdering = OverleveringVurdering(
+                skalOverleveresTilKelvin = dokument.skalOppretteNyBehandling == true
+            )
             overleveringVurderingRepository.lagre(behandlingId, overleveringVurdering)
         }
 
