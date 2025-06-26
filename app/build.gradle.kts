@@ -57,7 +57,7 @@ dependencies {
     implementation("io.ktor:ktor-server-double-receive-jvm:3.2.0")
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.19.1")
-    implementation("no.nav:ktor-openapi-generator:1.0.113")
+    implementation("no.nav:ktor-openapi-generator:1.0.115")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
