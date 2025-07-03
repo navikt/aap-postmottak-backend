@@ -6,10 +6,6 @@ import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.WithDependencies
-import no.nav.aap.fordeler.Diskresjonskode
-import no.nav.aap.fordeler.NavEnhet
-import no.nav.aap.fordeler.NorgGateway
-import no.nav.aap.fordeler.VeilarbarenaGateway
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.gateway.Factory
@@ -20,18 +16,13 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.EgenAnsattGateway
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningOgAdressebeskyttelse
 import no.nav.aap.postmottak.gateway.Navn
 import no.nav.aap.postmottak.gateway.NavnMedIdent
-import no.nav.aap.postmottak.gateway.Oppgavetype
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
-import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
-import no.nav.aap.postmottak.klient.nom.NomKlient
-import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
@@ -61,9 +52,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
             PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
             GatewayRegistry.register<PdlKlientSpy>()
                 .register<ArenaKlientSpy>()
-                .register<NomKlientSpy>()
-                .register<NorgKlientSpy>()
-                .register<VeilarbarenaKlientSpy>()
 
             motor.start()
         }
@@ -182,48 +170,4 @@ class ArenaKlientSpy : ArenaGateway {
         TODO("Not yet implemented")
     }
 
-}
-
-class NomKlientSpy : EgenAnsattGateway {
-    companion object : Factory<NomKlient> {
-        val klient = spyk(NomKlient.konstruer())
-        override fun konstruer() = klient
-    }
-
-    override fun erEgenAnsatt(ident: Ident): Boolean {
-        TODO("Not yet implemented")
-    }
-}
-
-class NorgKlientSpy : NorgGateway {
-    companion object : Factory<NorgGateway> {
-        val klient = spyk(NorgKlient.konstruer())
-        override fun konstruer() = klient
-    }
-
-    override fun hentAktiveEnheter(): List<NavEnhet> {
-        TODO("Not yet implemented")
-    }
-
-    override fun finnArbeidsfordelingsEnhet(
-        geografiskTilknytning: String?,
-        erNavansatt: Boolean,
-        diskresjonskode: Diskresjonskode,
-        behandlingstema: String,
-        behandlingstype: String?,
-        oppgavetype: Oppgavetype?
-    ): NavEnhet? {
-        TODO("Not yet implemented")
-    }
-}
-
-class VeilarbarenaKlientSpy : VeilarbarenaGateway {
-    companion object : Factory<VeilarbarenaKlient> {
-        val klient = spyk(VeilarbarenaKlient.konstruer())
-        override fun konstruer() = klient
-    }
-
-    override fun hentOppfølgingsenhet(personident: String): NavEnhet? {
-        TODO("Not yet implemented")
-    }
 }
