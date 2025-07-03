@@ -34,6 +34,7 @@ class Enhetsutreder(
     fun finnJournalføringsenhet(journalpost: Journalpost): NavEnhet? {
         val journalførendeEnhet = journalpost.journalførendeEnhet
         if (journalførendeEnhet != null && journalførendeEnhet != "9999" && erNavEnhetAktiv(journalførendeEnhet)) {
+            log.info("Journalpost ${journalpost.journalpostId} har allerede journalførende enhet ($journalførendeEnhet)")
             return journalførendeEnhet
         }
         val personAttributter = finnPersonAttributter(journalpost.person)
@@ -45,7 +46,9 @@ class Enhetsutreder(
             behandlingstema = finnBehandlingstema(journalpost),
             behandlingstype = finnBehandlingstype(journalpost),
             oppgavetype = Oppgavetype.JOURNALFØRING
-        )
+        ).also {
+            log.info("Fant enhet $it for journalpost ${journalpost.journalpostId}")
+        }
     }
 
     fun finnEnhetMedOppfølgingskontor(person: Person): EnhetMedOppfølgingsKontor {

@@ -2,10 +2,12 @@ package no.nav.aap.postmottak.prosessering
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.FordelerRegelService
 import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
+import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.fordeler.ÅrsakTilStatus
@@ -34,6 +36,7 @@ class FordelingRegelJobbUtfører(
     private val regelService: FordelerRegelService,
     private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
+    private val enhetsutreder: Enhetsutreder,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) : JobbUtfører {
     private val log = LoggerFactory.getLogger(FordelingRegelJobbUtfører::class.java)
@@ -47,6 +50,7 @@ class FordelingRegelJobbUtfører(
                 FordelerRegelService(connection),
                 repositoryProvider.provide(InnkommendeJournalpostRepository::class),
                 GatewayProvider.provide(GosysOppgaveGateway::class),
+                Enhetsutreder.konstruer(),
                 PrometheusProvider.prometheus
             )
         }
@@ -130,6 +134,7 @@ class FordelingRegelJobbUtfører(
                 behandlingstema = safJournalpost.behandlingstema,
                 status = statusMedÅrsakOgRegelresultat.status,
                 årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
+                enhet = hentEnhet(safJournalpost),
                 regelresultat = statusMedÅrsakOgRegelresultat.regelresultat
             )
         )
@@ -137,9 +142,19 @@ class FordelingRegelJobbUtfører(
             brevkode = safJournalpost.hoveddokument()?.brevkode,
             filtype = safJournalpost.originalFiltype()
         ).increment()
-        
+
         if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
             opprettVideresendJobb(id, journalpostId)
+        }
+    }
+
+    private fun hentEnhet(safJournalpost: SafJournalpost): NavEnhet? {
+        return if (safJournalpost.bruker?.id == null) {
+            log.warn("Journalpost med id=${safJournalpost.journalpostId} mangler bruker – kan ikke utlede enhet")
+            null
+        } else {
+            val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
+            enhetsutreder.finnJournalføringsenhet(journalpost)
         }
     }
 

@@ -24,7 +24,8 @@ data class InnkommendeJournalpost(
     val behandlingstema: String?,
     val status: InnkommendeJournalpostStatus,
     val regelresultat: Regelresultat? = null,
-    val årsakTilStatus: ÅrsakTilStatus? = null
+    val årsakTilStatus: ÅrsakTilStatus? = null,
+    val enhet: NavEnhet? = null,
 ) {
     init {
         if (status == InnkommendeJournalpostStatus.EVALUERT && regelresultat == null) {
