@@ -2,9 +2,10 @@ package no.nav.aap.fordeler.arena.jobber
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import no.nav.aap.fordeler.Enhetsutreder
+import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -21,8 +22,8 @@ class AutomatiskJournalføringJobbUtfører(
     private val joarkClient: JournalføringsGateway,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val flytJobbRepository: FlytJobbRepository,
+    private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
     journalpostService: JournalpostService,
-    private val enhetsutreder: Enhetsutreder,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : ArenaJobbutførerBase(journalpostService) {
 
@@ -32,8 +33,8 @@ class AutomatiskJournalføringJobbUtfører(
                 GatewayProvider.provide(JournalføringsGateway::class),
                 GatewayProvider.provide(GosysOppgaveGateway::class),
                 FlytJobbRepository(connection),
+                RepositoryProvider(connection).provide(InnkommendeJournalpostRepository::class),
                 JournalpostService.konstruer(connection),
-                Enhetsutreder.konstruer(),
                 PrometheusProvider.prometheus
             )
         }
@@ -52,7 +53,8 @@ class AutomatiskJournalføringJobbUtfører(
         val kontekst = input.getAutomatiskJournalføringKontekst()
 
         if (input.antallRetriesForsøkt() >= retries()) {
-            val enhet = enhetsutreder.finnJournalføringsenhet(journalpost)
+            val enhet = innkommendeJournalpostRepository.hent(journalpost.journalpostId).enhet
+
             flytJobbRepository.leggTil(
                 JobbInput(ManuellJournalføringJobbUtfører)
                     .medArenaVideresenderKontekst(

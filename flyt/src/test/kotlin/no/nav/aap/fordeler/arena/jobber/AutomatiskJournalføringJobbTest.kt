@@ -4,7 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
-import no.nav.aap.fordeler.Enhetsutreder
+import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
@@ -40,13 +40,15 @@ class AutomatiskJournalføringJobbTest {
     val joarkClientMock = mockk<JoarkClient>(relaxed = true)
     val journalpostServiceMock = mockk<JournalpostService>(relaxed = true)
     val gosysOppgaveKlientMock = mockk<GosysOppgaveKlient>(relaxed = true)
-    val enhetsutrederMock = mockk<Enhetsutreder>(relaxed = true)
+
+    //    val enhetsutrederMock = mockk<Enhetsutreder>(relaxed = true)
+    val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepository>(relaxed = true)
     val automatiskJournalføringJobb = AutomatiskJournalføringJobbUtfører(
         joarkClientMock,
         gosysOppgaveKlientMock,
         flytJobbRepositoryMock,
+        innkommendeJournalpostRepository,
         journalpostServiceMock,
-        enhetsutrederMock
     )
 
     @BeforeEach
@@ -98,7 +100,9 @@ class AutomatiskJournalføringJobbTest {
         )
 
         every { journalpostServiceMock.hentJournalpostMedDokumentTitler(any()) } returns journalpost
-        every { enhetsutrederMock.finnJournalføringsenhet(any()) } returns "4491"
+        every { innkommendeJournalpostRepository.hent(journalpost.journalpostId) } returns mockk {
+            every { enhet } returns "4491"
+        }
         every { jobbInput.antallRetriesForsøkt() } returns 3
 
         automatiskJournalføringJobb.utfør(jobbInput)

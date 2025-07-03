@@ -3,7 +3,7 @@ package no.nav.aap.fordeler.arena
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.fordeler.Enhetsutreder
+import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.arena.jobber.ArenaVideresenderKontekst
 import no.nav.aap.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.OppprettOppgaveIArenaJobbUtfører
@@ -26,13 +26,13 @@ class ArenaVideresenderTest {
     val journalpostService: JournalpostService = mockk()
     val joarkClient: JournalføringsGateway = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
-    val enhetsutreder: Enhetsutreder = mockk(relaxed = true)
+    val innkommendeJournalpostRepository: InnkommendeJournalpostRepository = mockk(relaxed = true)
 
     val arenaVideresender = ArenaVideresender(
         journalpostService,
         joarkClient,
         flytJobbRepository,
-        enhetsutreder,
+        innkommendeJournalpostRepository,
     )
 
     @Test
@@ -48,7 +48,9 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.MOTTATT
 
         }
-        every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns "enhet"
+        every { innkommendeJournalpostRepository.hent(journalpostId_) } returns mockk {
+            every { enhet } returns "enhet"
+        }
 
         every { journalpostService.hentJournalpostMedDokumentTitler(journalpostId_) } returns journalpost
 
@@ -63,7 +65,6 @@ class ArenaVideresenderTest {
 
     @Test
     fun `når journalpost er en søknad, skal en SendSøknadTilArenaJobb opprettes`() {
-
         val actualKontekst = ArenaVideresenderKontekst(
             journalpostId = JournalpostId(1),
             innkommendeJournalpostId = 1L,
@@ -83,7 +84,9 @@ class ArenaVideresenderTest {
         }
 
         every { journalpostService.hentJournalpostMedDokumentTitler(actualKontekst.journalpostId) } returns journalpost
-        every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns actualKontekst.navEnhet
+        every { innkommendeJournalpostRepository.hent(actualKontekst.journalpostId) } returns mockk {
+            every { enhet } returns actualKontekst.navEnhet
+        }
 
         arenaVideresender.videresendJournalpostTilArena(
             actualKontekst.journalpostId, innkommendeJournalpostId = 1L
@@ -119,7 +122,9 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.MOTTATT
         }
 
-        every { enhetsutreder.finnJournalføringsenhet(any()) } returns arenaVideresenderKontekst.navEnhet
+        every { innkommendeJournalpostRepository.hent(arenaVideresenderKontekst.journalpostId) } returns mockk {
+            every { enhet } returns arenaVideresenderKontekst.navEnhet
+        }
 
         every { journalpostService.hentJournalpostMedDokumentTitler(arenaVideresenderKontekst.journalpostId) } returns journalpost
 
@@ -160,7 +165,9 @@ class ArenaVideresenderTest {
         }
 
         every { journalpostService.hentJournalpostMedDokumentTitler(actualKontekst.journalpostId) } returns journalpost
-        every { enhetsutreder.finnJournalføringsenhet(journalpost) } returns actualKontekst.navEnhet
+        every { innkommendeJournalpostRepository.hent(actualKontekst.journalpostId) } returns mockk {
+            every { enhet } returns actualKontekst.navEnhet
+        }
 
         arenaVideresender.videresendJournalpostTilArena(actualKontekst.journalpostId, innkommendeJournalpostId = 1L)
 

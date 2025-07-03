@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.prosessering
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.FordelerRegelService
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
@@ -23,20 +24,21 @@ import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class FordelingRegelJobbUtførerTest {
+internal class FordelingRegelJobbUtførerTest {
+    private val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
+    private val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepositoryImpl>(relaxed = true)
+    private val regelService = mockk<FordelerRegelService>(relaxed = true)
+    private val journalpostService = mockk<JournalpostService>(relaxed = true)
+    private val gosysOppgaveGateway = mockk<GosysOppgaveGateway>(relaxed = true)
+    private val enhetsutreder = mockk<Enhetsutreder>()
 
-    val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
-    val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepositoryImpl>(relaxed = true)
-    val regelService = mockk<FordelerRegelService>(relaxed = true)
-    val journalpostService = mockk<JournalpostService>(relaxed = true)
-    val gosysOppgaveGateway = mockk<GosysOppgaveGateway>(relaxed = true)
-
-    val fordelingRegelJobbUtfører = FordelingRegelJobbUtfører(
+    private val fordelingRegelJobbUtfører = FordelingRegelJobbUtfører(
         flytJobbRepository,
         journalpostService,
-        regelService = regelService,
-        innkommendeJournalpostRepository = innkommendeJournalpostRepository,
+        regelService,
+        innkommendeJournalpostRepository,
         gosysOppgaveGateway,
+        enhetsutreder
     )
 
     @Test
@@ -54,7 +56,7 @@ class FordelingRegelJobbUtførerTest {
     @Test
     fun `når jobben er utført finnes det et regel resultat for journalposten`() {
         val journalpostId = JournalpostId(1L)
-        
+
         val journalpost = SafJournalpost(
             journalpostId = journalpostId.referanse,
             bruker = Bruker(
@@ -78,6 +80,7 @@ class FordelingRegelJobbUtførerTest {
 
         val regelResultat = Regelresultat(mapOf("yolo" to true))
 
+        every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns journalpost
         every { regelService.evaluer(any()) } returns regelResultat
 
@@ -100,7 +103,7 @@ class FordelingRegelJobbUtførerTest {
             })
         }
     }
-    
+
     @Test
     fun `Skal returnere tidlig dersom journalposten har blitt evaluert før`() {
         val journalpostId = JournalpostId(1L)
@@ -139,6 +142,7 @@ class FordelingRegelJobbUtførerTest {
             relevanteDatoer = emptyList()
         )
 
+        every { enhetsutreder.finnJournalføringsenhet(any()) } returns "5678"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns journalpost
 
         fordelingRegelJobbUtfører.utfør(

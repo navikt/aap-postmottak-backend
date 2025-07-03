@@ -1,6 +1,6 @@
 package no.nav.aap.fordeler.arena
 
-import no.nav.aap.fordeler.Enhetsutreder
+import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.arena.jobber.ArenaVideresenderKontekst
 import no.nav.aap.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.OppprettOppgaveIArenaJobbUtfører
@@ -10,6 +10,7 @@ import no.nav.aap.fordeler.arena.jobber.medArenaVideresenderKontekst
 import no.nav.aap.fordeler.arena.jobber.opprettArenaVideresenderKontekst
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
@@ -27,15 +28,17 @@ class ArenaVideresender(
     val journalpostService: JournalpostService,
     val joarkClient: JournalføringsGateway,
     val flytJobbRepository: FlytJobbRepository,
-    val enhetsutreder: Enhetsutreder,
+    val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
 ) {
     companion object {
-        fun konstruer(connection: DBConnection) = ArenaVideresender(
-            JournalpostService.konstruer(connection),
-            GatewayProvider.provide(JournalføringsGateway::class),
-            FlytJobbRepository(connection),
-            Enhetsutreder.konstruer(),
-        )
+        fun konstruer(connection: DBConnection): ArenaVideresender {
+            return ArenaVideresender(
+                JournalpostService.konstruer(connection),
+                GatewayProvider.provide(JournalføringsGateway::class),
+                FlytJobbRepository(connection),
+                RepositoryProvider(connection).provide(InnkommendeJournalpostRepository::class),
+            )
+        }
     }
 
     fun videresendJournalpostTilArena(journalpostId: JournalpostId, innkommendeJournalpostId: Long) {
@@ -103,7 +106,7 @@ class ArenaVideresender(
     }
 
     private fun opprettArenaVideresenderKontekst(journalpost: JournalpostMedDokumentTitler, innkommendeJournalpostId: Long): ArenaVideresenderKontekst {
-        val enhet = enhetsutreder.finnJournalføringsenhet(journalpost)
+        val enhet = innkommendeJournalpostRepository.hent(journalpost.journalpostId).enhet
         return journalpost.opprettArenaVideresenderKontekst(enhet, innkommendeJournalpostId = innkommendeJournalpostId)
     }
 
