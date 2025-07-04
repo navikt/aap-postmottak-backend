@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -18,7 +17,7 @@ import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.BrevkoderHelper
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
@@ -60,7 +59,7 @@ class DigitaliserDokumentSteg(
                 if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) hentOriginalDokumentFraSaf(
                     journalpost
                 ) else null
-            val innsending = getInnsendingForBrevkode(journalpost.hoveddokumentbrevkode)
+            val innsending = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
             val validertDokument =
                 DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
             digitaliseringsvurderingRepository.lagre(
@@ -82,18 +81,5 @@ class DigitaliserDokumentSteg(
             journalpost.journalpostId,
             strukturertDokument.dokumentInfoId
         ).dokument.readBytes()
-    }
-
-    private fun getInnsendingForBrevkode(brevkode: String): InnsendingType {
-        val brevkodeTilInnsendingMap = mapOf(
-            Brevkoder.SØKNAD to InnsendingType.SØKNAD,
-            Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING,
-            Brevkoder.MELDEKORT to InnsendingType.MELDEKORT,
-            Brevkoder.MELDEKORT_KORRIGERING to InnsendingType.MELDEKORT,
-            Brevkoder.KLAGE to InnsendingType.KLAGE
-        )
-
-        return brevkodeTilInnsendingMap[Brevkoder.fraKode(brevkode)]
-            ?: throw IllegalStateException("Kan ikke automatisk behanlde journalposter av type $brevkode")
     }
 }

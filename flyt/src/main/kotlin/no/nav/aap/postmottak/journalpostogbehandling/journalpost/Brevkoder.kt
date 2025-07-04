@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.journalpostogbehandling.journalpost
 
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+
 /**
  * NB: Behandlingstypene er hentet fra felles kodeverk - og må oppdateres dersom kodeverket endres.
  * Behandlingstypene er hentet fra TemaSkjemaRuting.
@@ -35,4 +37,20 @@ enum class Behandlingstype(val kode: String) {
     KLAGE("ae0058"),
     EU_EØS_PRAKSISENDRING("ae0237"),
     UTLAND("ae0106");
+}
+
+object BrevkoderHelper {
+    fun mapTilInnsendingType(brevkode: String): InnsendingType {
+        val brevkodeTilInnsendingMap = mapOf(
+            Brevkoder.SØKNAD to InnsendingType.SØKNAD,
+            Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING,
+            Brevkoder.MELDEKORT to InnsendingType.MELDEKORT,
+            Brevkoder.MELDEKORT_KORRIGERING to InnsendingType.MELDEKORT,
+            Brevkoder.KLAGE to InnsendingType.KLAGE
+        )
+
+        return brevkodeTilInnsendingMap[Brevkoder.fraKode(brevkode)]
+            ?: throw IllegalStateException("Uhåndtert kode '$brevkode' – kan ikke mappe til InnsendingType")
+    }
+
 }

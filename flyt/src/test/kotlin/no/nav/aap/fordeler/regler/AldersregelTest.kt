@@ -17,7 +17,7 @@ class AldersregelTest {
     fun `Journalpost for person yngre enn 60 år skal til Kelvin`(){
         val fødselsdato = LocalDate.of(1960,2, 15)
         val nåDato = LocalDate.of(2020, 2, 14)
-        assert(Aldersregel().vurder(AldersregelInput(fødselsdato, nåDato)))
+        assertTrue(Aldersregel().vurder(AldersregelInput(fødselsdato, nåDato)))
     }
 
     @Test
