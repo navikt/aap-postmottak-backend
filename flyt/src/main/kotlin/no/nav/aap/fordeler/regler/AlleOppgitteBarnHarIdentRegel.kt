@@ -37,7 +37,9 @@ class AlleOppgitteBarnHarIdentRegel : Regel<OppgitteBarnRegelInput> {
     override fun regelNavn(): String = this::class.simpleName!!
 
     override fun vurder(input: OppgitteBarnRegelInput): Boolean {
-        return input.oppgitteBarn?.barn?.none { it.ident == null } ?: true
+        val oppgitteBarn = input.oppgitteBarn?.barn.orEmpty()
+
+        return oppgitteBarn.none { it.ident == null }
     }
 
 }
