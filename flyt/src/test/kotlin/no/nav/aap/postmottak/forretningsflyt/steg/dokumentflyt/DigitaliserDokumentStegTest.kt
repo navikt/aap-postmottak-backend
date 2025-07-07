@@ -68,7 +68,7 @@ class DigitaliserDokumentStegTest {
         val journalpostJson = """{
             |"yrkesskade": "Nei",
             |"student": {"erStudent": "Nei", "kommeTilbake": "Nei"},
-            |"oppgitteBarn": {"identer": []}
+            |"oppgitteBarn": {"identer": [], "barn": []}
             |}""".trimMargin()
 
         every { journalpost.erDigitalSøknad() } returns true
@@ -86,7 +86,6 @@ class DigitaliserDokumentStegTest {
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
         assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
-
     }
 
     @Test
