@@ -27,7 +27,7 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:1.5.18")
 
-    implementation("io.getunleash:unleash-client-java:11.0.0")
+    implementation("io.getunleash:unleash-client-java:11.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
