@@ -1,21 +1,21 @@
 package no.nav.aap.postmottak.flyt
 
-import no.nav.aap.postmottak.flyt.steg.FlytSteg
-import no.nav.aap.postmottak.flyt.steg.StegOrkestrator
-import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
+import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegKonstruktør
+import no.nav.aap.postmottak.flyt.steg.StegOrkestrator
+import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FlytOrkestrator::class.java)
@@ -44,7 +44,11 @@ class FlytOrkestrator(
     fun opprettKontekst(behandlingId: BehandlingId): FlytKontekst {
         val behandling = behandlingRepository.hent(behandlingId)
 
-        return FlytKontekst(journalpostId = behandling.journalpostId, behandlingId = behandling.id, behandlingType = behandling.typeBehandling)
+        return FlytKontekst(
+            journalpostId = behandling.journalpostId,
+            behandlingId = behandling.id,
+            behandlingType = behandling.typeBehandling
+        )
     }
 
     fun forberedBehandling(kontekst: FlytKontekst) {
@@ -121,11 +125,13 @@ class FlytOrkestrator(
         var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
         while (true) {
-            val result = StegOrkestrator(                aktivtSteg = gjeldendeSteg,
+            val result = StegOrkestrator(
+                aktivtSteg = gjeldendeSteg,
                 informasjonskravGrunnlag = informasjonskravGrunnlag,
                 behandlingFlytRepository = behandlingFlytRepository,
                 avklaringsbehovRepository = avklaringsbehovRepository,
-                stegKonstruktør = stegKonstruktør).utfør(
+                stegKonstruktør = stegKonstruktør
+            ).utfør(
                 kontekst,
                 behandling,
                 behandlingFlyt.faktagrunnlagForGjeldendeSteg()
@@ -159,9 +165,9 @@ class FlytOrkestrator(
     }
 
     private fun validerAtAvklaringsBehovErLukkede(avklaringsbehovene: Avklaringsbehovene) {
-        assert(
-            avklaringsbehovene.åpne().isEmpty()
-        ) { "Behandlingen er avsluttet, men det finnes åpne avklaringsbehov." }
+        check(avklaringsbehovene.åpne().isEmpty()) {
+            "Behandlingen er avsluttet, men det finnes åpne avklaringsbehov."
+        }
     }
 
     private fun utledNesteSteg(
@@ -238,7 +244,7 @@ class FlytOrkestrator(
 
     private fun validerPlassering(
         behandlingFlyt: BehandlingFlyt,
-        åpneAvklaringsbehov: List <Avklaringsbehov>
+        åpneAvklaringsbehov: List<Avklaringsbehov>
     ) {
         val nesteSteg = behandlingFlyt.aktivtStegType()
         val uhåndterteBehov = åpneAvklaringsbehov
