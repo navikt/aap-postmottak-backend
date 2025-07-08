@@ -16,9 +16,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
  **/
 class AlleOppgitteBarnHarIdentRegel : Regel<OppgitteBarnRegelInput> {
     companion object : RegelFactory<OppgitteBarnRegelInput> {
-        // TODO:
-        //  Skru av dev når det er testet OK
-        override val erAktiv = miljøConfig(prod = true, dev = true)
+        override val erAktiv = miljøConfig(prod = true, dev = false)
 
         override fun medDataInnhenting(connection: DBConnection?): RegelMedInputgenerator<OppgitteBarnRegelInput> {
             requireNotNull(connection)
