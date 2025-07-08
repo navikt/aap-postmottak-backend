@@ -11,6 +11,10 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.hendelseType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.mottak.JoarkRegel.erIkkeKanalEESSI
+import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaAAP
+import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaEndretFraAAP
+import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusMottatt
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
@@ -46,10 +50,6 @@ class TransactionProvider(
 
 
 const val JOARK_TOPIC = "teamdokumenthandtering.aapen-dok-journalfoering"
-private const val TEMA = "AAP"
-private const val MOTTATT = "MOTTATT"
-private const val EESSI = "EESSI"
-
 
 class JoarkKafkaHandler(
     config: StreamsConfig,
@@ -65,16 +65,14 @@ class JoarkKafkaHandler(
     init {
         val journalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
         val streamBuilder = StreamsBuilder()
+
         streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
-            .filter { _, record -> record.journalpostStatus == MOTTATT }
-            .filter { _, record -> record.mottaksKanal != EESSI }
+            .filter(harStatusMottatt)
+            .filter(erIkkeKanalEESSI)
             .peek { _, record -> prometheus.hendelseType(record) }
             .split()
-            .branch(
-                { _, record -> record.temaGammelt == TEMA && record.temaNytt != TEMA },
-                Branched.withConsumer(::temaendringTopology)
-            )
-            .branch({ _, record -> record.temaNytt == TEMA }, Branched.withConsumer(::nyJournalpost))
+            .branch(erTemaEndretFraAAP, Branched.withConsumer(::temaendringTopology))
+            .branch(erTemaAAP, Branched.withConsumer(::nyJournalpost))
 
         topology = streamBuilder.build()
     }
@@ -123,5 +121,24 @@ class JoarkKafkaHandler(
             )
         }
     }
+
+}
+
+object JoarkRegel {
+    private const val TEMA_AAP = "AAP"
+    private const val MOTTATT = "MOTTATT"
+    private const val EESSI = "EESSI"
+
+    val harStatusMottatt: (String, JournalfoeringHendelseRecord) -> Boolean =
+        { _, record -> record.journalpostStatus == MOTTATT }
+
+    val erIkkeKanalEESSI: (String, JournalfoeringHendelseRecord) -> Boolean =
+        { _, record -> record.mottaksKanal != EESSI }
+
+    val erTemaEndretFraAAP: (String, JournalfoeringHendelseRecord) -> Boolean =
+        { _, record -> record.temaGammelt == TEMA_AAP && record.temaNytt != TEMA_AAP }
+
+    val erTemaAAP: (String, JournalfoeringHendelseRecord) -> Boolean =
+        { _, record -> record.temaNytt == TEMA_AAP }
 
 }
