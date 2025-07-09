@@ -36,5 +36,5 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1")
     implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
 
-    implementation("com.nimbusds:nimbus-jose-jwt:10.3")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.3.1")
 }
