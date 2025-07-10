@@ -13,7 +13,6 @@ import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThr
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
 
-fun replaceThread(message: Any) = ReplaceThread(message)
 class ReplaceThread(message: Any) : RuntimeException(message.toString())
 
 /**

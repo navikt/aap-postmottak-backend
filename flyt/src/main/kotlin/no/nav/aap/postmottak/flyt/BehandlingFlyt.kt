@@ -6,7 +6,6 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.ÅrsakTilBehandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import java.util.*
 
 
 /**
@@ -224,19 +223,12 @@ class BehandlingFlytBuilder {
         return this
     }
 
-    fun sluttÅOppdatereFaktagrunnlag(): BehandlingFlytBuilder {
-        oppdaterFaktagrunnlag = false
-        return this
-    }
-
     fun build(): BehandlingFlyt {
         if (buildt) {
             throw IllegalStateException("[Utvikler feil] Builder er allerede bygget")
         }
         buildt = true
 
-        return BehandlingFlyt(
-            Collections.unmodifiableList(flyt)
-        )
+        return BehandlingFlyt(flyt.toList())
     }
 }

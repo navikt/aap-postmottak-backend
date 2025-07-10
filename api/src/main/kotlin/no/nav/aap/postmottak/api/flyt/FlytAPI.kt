@@ -5,8 +5,6 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
-import no.nav.aap.postmottak.hendelse.mottak.BehandlingHendelseHåndterer
-import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -15,7 +13,6 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbStatus
 import no.nav.aap.motor.api.JobbInfoDto
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
-import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
@@ -23,21 +20,22 @@ import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.postmottak.flyt.flate.visning.Visning
 import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.hendelse.mottak.BehandlingHendelseHåndterer
+import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
-import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.BehandlingReferanseService
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
+import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.MDC
-import no.nav.aap.tilgang.Operasjon
 import javax.sql.DataSource
 
 
@@ -89,10 +87,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                         flyt.stegene().groupBy { steg -> steg.gruppe }
                     val aktivtSteg = behandling.aktivtSteg()
                     var erFullført = true
-                    val avklaringsbehovene = avklaringsbehov(
-                        avklaringsbehovRepository,
-                        behandling.id
-                    )
+                    val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
 
                     val alleAvklaringsbehovInkludertFrivillige = FrivilligeAvklaringsbehov(
                         avklaringsbehovene,
@@ -137,25 +132,9 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                 respond(dto)
             }
         }
-        route("/{referanse}/resultat") {
-            authorizedGet<BehandlingsreferansePathParam, BehandlingResultatDto>(
-                AuthorizationParamPathConfig(
-                    journalpostPathParam = JournalpostPathParam(
-                        "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource)
-                    )
-                )
-            ) { req ->
-                val dto = dataSource.transaction(readOnly = true) { connection ->
-
-                    BehandlingResultatDto()
-                }
-                respond(dto)
-            }
-        }
 
         route("/{referanse}/sett-på-vent") {
-            authorizedPost<BehandlingsreferansePathParam, BehandlingResultatDto, SettPåVentRequest>(
+            authorizedPost<BehandlingsreferansePathParam, Unit, SettPåVentRequest>(
                 AuthorizationParamPathConfig(
                     Operasjon.SAKSBEHANDLE,
                     journalpostPathParam = JournalpostPathParam(
@@ -212,7 +191,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
 
                     val behandling = behandlingRepository.hent(request)
 
-                    val avklaringsbehovene = avklaringsbehov(avklaringsbehovRepository, behandling.id)
+                    val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
 
                     val ventepunkter = avklaringsbehovene.hentVentepunkter()
                     if (avklaringsbehovene.erSattPåVent()) {
@@ -241,10 +220,8 @@ private fun hentFeilmeldingHvisBehov(
     jobbId: Long,
     flytJobbRepository: FlytJobbRepository
 ): String? {
-    if (status == JobbStatus.FEILET) {
-        return flytJobbRepository.hentFeilmeldingForOppgave(jobbId)
-    }
-    return null
+    return if (status == JobbStatus.FEILET) flytJobbRepository.hentFeilmeldingForOppgave(jobbId)
+    else null
 }
 
 private fun utledStatus(oppgaver: List<JobbInput>): ProsesseringStatus {
@@ -265,22 +242,15 @@ private fun utledVisning(
     val jobber = status in listOf(ProsesseringStatus.JOBBER, ProsesseringStatus.FEILET)
     val påVent = alleAvklaringsbehovInkludertFrivillige.erSattPåVent()
 
-    if (jobber) {
-        return Visning(
+    return if (jobber) {
+        Visning(
             visVentekort = påVent,
             readOnly = true,
         )
     } else {
-        return Visning(
+        Visning(
             visVentekort = påVent,
             readOnly = behandlingStatus.erAvsluttet(),
         )
     }
-}
-
-private fun avklaringsbehov(
-    avklaringsbehovRepository: AvklaringsbehovRepository,
-    behandlingId: BehandlingId
-): Avklaringsbehovene {
-    return avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
 }

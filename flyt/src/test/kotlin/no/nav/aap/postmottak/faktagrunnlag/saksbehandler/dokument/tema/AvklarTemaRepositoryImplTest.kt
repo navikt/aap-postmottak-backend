@@ -59,7 +59,6 @@ class AvklarTemaRepositoryImplTest {
 
     @Test
     fun `hvis to vurderinger blir lagt på samme sak blir den første deaktivert`() {
-        val saksnummer = "234234"
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { avklarTemaRepository.lagreTemaAvklaring(behandlingId, false, Tema.UKJENT) }
         inContext { avklarTemaRepository.lagreTemaAvklaring(behandlingId, true, Tema.AAP) }

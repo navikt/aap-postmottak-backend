@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.tema
 
-
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
@@ -16,11 +15,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsrefer
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
-import org.slf4j.LoggerFactory
 import java.net.URI
 import javax.sql.DataSource
-
-val log = LoggerFactory.getLogger("AvklarTemaApi")
 
 fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
     route("/api/behandling/{referanse}") {
@@ -56,7 +52,6 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource) {
         }
     }
 }
-
 
 data class EndreTemaResponse(
     val redirectUrl: String

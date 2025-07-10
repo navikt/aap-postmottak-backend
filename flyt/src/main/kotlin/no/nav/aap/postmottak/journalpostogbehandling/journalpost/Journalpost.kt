@@ -125,9 +125,6 @@ open class Dokument(
     val brevkode: String,
     val varianter: List<Variant>
 ) {
-    fun finnFiltype(variantformat: Variantformat): Filtype? =
-        varianter.find { it.variantformat == variantformat }?.filtype
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

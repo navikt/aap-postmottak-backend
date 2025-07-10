@@ -8,8 +8,6 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.tilgang.Rolle
 import java.time.LocalDate
 import java.time.Period
-import java.util.*
-import java.util.stream.Collectors
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
@@ -61,10 +59,8 @@ enum class Definisjon(
 
 
         init {
-            val unikeKoder =
-                Arrays.stream(entries.toTypedArray())
-                    .map { it.kode }
-                    .collect(Collectors.toSet())
+            val unikeKoder = entries.map(Definisjon::kode).toSet()
+
             // Burde dette vært en unit test?
             check(unikeKoder.size == entries.size) { "Gjenbrukt koder for Avklaringsbehov" }
 
