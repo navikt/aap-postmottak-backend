@@ -9,7 +9,7 @@ val junitVersjon = "5.13.1"
 
 plugins {
     id("postmottak.conventions")
-    id("io.ktor.plugin") version "3.2.0"
+    id("io.ktor.plugin") version "3.2.1"
 }
 
 application {
