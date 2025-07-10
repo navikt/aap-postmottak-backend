@@ -54,7 +54,7 @@ class DigitaliserDokumentSteg(
 
         if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) throw AvslagException()
 
-        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort() || journalpost.erDigitalKlage()) {
+        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
             val dokument =
                 if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) hentOriginalDokumentFraSaf(
                     journalpost
