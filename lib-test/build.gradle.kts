@@ -1,4 +1,4 @@
-val ktorVersion = "3.2.1"
+val ktorVersion = "3.2.2"
 val komponenterVersjon = "1.0.282"
 val behandlingsflytVersjon = "0.0.362"
 val tilgangVersjon = "1.0.96"
