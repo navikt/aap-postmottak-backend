@@ -26,16 +26,15 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource) {
                 )
             )
         ) { req ->
-            val response = dataSource.transaction(readOnly = true) {
-                val repositoryProvider = RepositoryProvider(it)
+            val response = dataSource.transaction(readOnly = true) { connection ->
+                val repositoryProvider = RepositoryProvider(connection)
                 val saksnummerRepository = repositoryProvider.provide(SaksnummerRepository::class)
                 val behandling = repositoryProvider.provide(BehandlingRepository::class).hent(req)
+
                 val saksvurdering = saksnummerRepository.hentSakVurdering(behandling.id)
                 val relaterteSaker = saksnummerRepository.hentKelvinSaker(behandling.id)
 
-                val journalpost = dataSource.transaction(readOnly = true) {
-                    RepositoryProvider(it).provide(JournalpostRepository::class).hentHvisEksisterer(req)
-                }
+                val journalpost = repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(req)
                 requireNotNull(journalpost) { "Journalpost ikke funnet" }
 
                 AvklarSakGrunnlagDto(
