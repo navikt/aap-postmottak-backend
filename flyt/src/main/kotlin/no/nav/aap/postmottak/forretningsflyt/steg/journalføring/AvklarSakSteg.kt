@@ -97,7 +97,7 @@ class AvklarSakSteg(
     private fun avklarFagSakMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {
         val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
             Ident(journalpost.person.aktivIdent().identifikator),
-            journalpost.mottattDato()
+            journalpost.mottattDato
         ).saksnummer
         saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer, false))
     }

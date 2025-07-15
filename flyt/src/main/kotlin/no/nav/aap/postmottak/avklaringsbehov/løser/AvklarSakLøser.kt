@@ -51,7 +51,7 @@ class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Avk
         }
         val saksnummer = behandlingsflytGateway.finnEllerOpprettSak(
             Ident(journalpost.person.aktivIdent().identifikator),
-            journalpost.mottattDato()
+            journalpost.mottattDato
         ).saksnummer
         saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer,  false, opprettetNy = true))
     }

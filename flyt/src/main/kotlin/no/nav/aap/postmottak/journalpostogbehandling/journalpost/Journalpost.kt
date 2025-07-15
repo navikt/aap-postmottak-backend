@@ -33,14 +33,6 @@ open class Journalpost(
         }
     }
     
-    fun behandlingstema(): String? = behandlingstema
-    
-    fun status(): Journalstatus = status
-
-    fun dokumenter(): List<Dokument> = dokumenter
-
-    fun mottattDato() = mottattDato
-
     // TODO: Bør ikke denne sjekke hoveddokumentet - ikke bare returere første treff?
     fun finnOriginal(): Dokument? = dokumenter.find { dokument ->
         dokument.varianter.any { variant -> variant.variantformat == Variantformat.ORIGINAL }

@@ -53,8 +53,8 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setLong(1, journalpost.journalpostId.referanse)
                 setString(2, journalpost.journalførendeEnhet)
                 setLong(3, journalpost.person.id)
-                setString(4, journalpost.status().name)
-                setLocalDate(5, journalpost.mottattDato())
+                setString(4, journalpost.status.name)
+                setLocalDate(5, journalpost.mottattDato)
                 setLocalDateTime(6, journalpost.mottattTid)
                 setString(7, journalpost.tema)
                 setEnumName(8, journalpost.kanal)
@@ -67,7 +67,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
         val dokumentQuery = """
                 INSERT INTO DOKUMENT (JOURNALPOST_ID, DOKUMENT_INFO_ID, BREVKODE, VARIANTFORMAT, FILTYPE) VALUES (?, ?, ?, ?, ?)
             """.trimIndent()
-        connection.executeBatch(dokumentQuery, journalpost.dokumenter().flatMap { DbDokument.fraDokument(it) }) {
+        connection.executeBatch(dokumentQuery, journalpost.dokumenter.flatMap { DbDokument.fraDokument(it) }) {
             setParams { dokument ->
                 setLong(1, journalpostId)
                 setString(2, dokument.dokumentInfoId.dokumentInfoId)
