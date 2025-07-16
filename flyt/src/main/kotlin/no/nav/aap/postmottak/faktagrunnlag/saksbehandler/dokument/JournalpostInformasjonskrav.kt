@@ -56,6 +56,7 @@ class JournalpostInformasjonskrav(
 
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val temaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+
         return saksnummerVurdering?.saksnummer != journalpost.saksnummer 
                 || temaVurdering?.tema != Tema.fraString(journalpost.tema)
     }

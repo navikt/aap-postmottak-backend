@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafDatoType
 import no.nav.aap.postmottak.gateway.SafJournalpost
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.AvsenderMottaker
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
@@ -103,6 +104,7 @@ fun SafJournalpost.tilJournalpostMedDokumentTitler(person: Person): JournalpostM
         status = journalpost.journalstatus ?: Journalstatus.UKJENT,
         tema = journalpost.tema,
         behandlingstema = journalpost.behandlingstema,
+        tittel = journalpost.tittel,
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,
         mottattTid = mottattTid,
@@ -126,6 +128,7 @@ fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
         Dokument(
             dokumentInfoId = dokument.dokumentInfoId.let(::DokumentInfoId),
             brevkode = dokument.brevkode ?: "Ukjent",
+            tittel = dokument.tittel ?: "Dokument uten tittel",
             varianter = dokument.dokumentvarianter?.map {
                 Variant(
                     Filtype.valueOf(it.filtype),
@@ -141,9 +144,13 @@ fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
         status = journalpost.journalstatus ?: Journalstatus.UKJENT,
         tema = journalpost.tema,
         behandlingstema = journalpost.behandlingstema,
+        tittel = "Tittel på journalposten",
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,
         mottattTid = mottattTid,
+        avsenderMottaker = journalpost.avsenderMottaker?.let {
+            AvsenderMottaker(it.id, it.type?.name, it.navn)
+        },
         dokumenter = dokumenter,
         kanal = journalpost.kanal,
         saksnummer = sak?.fagsakId,

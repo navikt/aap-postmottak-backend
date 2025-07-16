@@ -40,7 +40,10 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource) {
                 AvklarSakGrunnlagDto(
                     vurdering = saksvurdering?.let { AvklarSakVurderingDto.toDto(saksvurdering) },
                     saksinfo = relaterteSaker.map { SaksInfoDto(it.saksnummer, it.periode) },
-                    brevkode = journalpost.hoveddokumentbrevkode
+                    brevkode = journalpost.hoveddokumentbrevkode,
+                    journalposttittel = journalpost.tittel,
+                    dokumenter = journalpost.dokumenter,
+                    avsenderMottaker = journalpost.avsenderMottaker,
                 )
             }
             respond(response)

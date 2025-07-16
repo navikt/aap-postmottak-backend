@@ -189,6 +189,7 @@ class EnhetsutrederTest {
             person = personMedIDent(ident),
             tema = "AAP",
             behandlingstema = null,
+            tittel = "Tittel på journalposten",
             fagsystem = null,
             saksnummer = null,
             journalførendeEnhet = null,
@@ -196,6 +197,7 @@ class EnhetsutrederTest {
             kanal = KanalFraKodeverk.NAV_NO,
             mottattDato = LocalDate.of(2025, 1, 1),
             mottattTid = LocalDate.of(2025, 1, 1).atStartOfDay(),
+            avsenderMottaker = null,
             dokumenter = listOf(Dokument(
                 brevkode = Brevkoder.KLAGE.kode,
                 dokumentInfoId = DokumentInfoId("1"),

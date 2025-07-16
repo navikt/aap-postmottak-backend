@@ -146,11 +146,13 @@ class JournalpostInformasjonskravTest {
         mottattTid: LocalDateTime = mottattDato.atStartOfDay(),
         fagsystem: String? = null,
         saksnummer: String? = null,
-        behandlingstema: String? = null
+        behandlingstema: String? = null,
+        tittel: String? = null,
     ): Journalpost {
         return Journalpost(
             journalpostId = journalpostId,
             person = person,
+            avsenderMottaker = null,
             dokumenter = dokumenter,
             journalførendeEnhet = journalførendeEnhet,
             tema = tema,
@@ -160,7 +162,8 @@ class JournalpostInformasjonskravTest {
             mottattTid = mottattTid,
             fagsystem = fagsystem,
             saksnummer = saksnummer,
-            behandlingstema = behandlingstema
+            behandlingstema = behandlingstema,
+            tittel = tittel
         )
     }
 }

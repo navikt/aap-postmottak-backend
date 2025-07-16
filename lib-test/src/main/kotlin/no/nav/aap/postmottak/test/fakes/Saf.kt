@@ -70,6 +70,7 @@ fun Application.safFake(
                             "type": "FNR"
                           },
                           ${getAvsenderMottaker(journalpostId.toLong())}
+                          "tittel": "Søknad om AAP",
                           "journalstatus": "${finnStatus(journalpostId.toLong())}",
                           "journalførendeEnhet": {"nr": 3001},
                           "mottattDato": "2021-12-01",
@@ -101,7 +102,8 @@ private fun getAvsenderMottaker(journalpostId: Long) =
         UTEN_AVSENDER_MOTTAKER.referanse -> ""
         else -> """"avsenderMottaker": {
             "id": "213453452",
-            "type": "FNR"
+            "type": "FNR",
+            "navn": "Test Testesen"
         },"""
     }
 
