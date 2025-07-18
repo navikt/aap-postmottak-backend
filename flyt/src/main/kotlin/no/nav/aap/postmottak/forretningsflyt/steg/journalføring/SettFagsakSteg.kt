@@ -42,7 +42,7 @@ class SettFagsakSteg(
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
         requireNotNull(journalpost)
         if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT) return Fullført
-        
+
         val temaavklaring = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         requireNotNull(temaavklaring) {
             "Tema skal være avklart før SettFagsakSteg"
@@ -56,12 +56,21 @@ class SettFagsakSteg(
         requireNotNull(saksvurdering)
 
         if (saksvurdering.generellSak) {
-            joarkKlient.førJournalpostPåGenerellSak(journalpost, temaavklaring.tema.name)
+            joarkKlient.førJournalpostPåGenerellSak(
+                journalpost = journalpost,
+                tema = temaavklaring.tema.name,
+                tittel = saksvurdering.journalposttittel,
+                avsenderMottaker = saksvurdering.avsenderMottaker,
+                dokumenter = saksvurdering.dokumenter
+            )
         } else {
             joarkKlient.førJournalpostPåFagsak(
-                journalpost.journalpostId,
-                journalpost.person.aktivIdent(),
-                saksvurdering.saksnummer!!
+                journalpostId = journalpost.journalpostId,
+                ident = journalpost.person.aktivIdent(),
+                fagsakId = saksvurdering.saksnummer!!,
+                tittel = saksvurdering.journalposttittel,
+                avsenderMottaker = saksvurdering.avsenderMottaker,
+                dokumenter = saksvurdering.dokumenter
             )
         }
 

@@ -12,6 +12,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
@@ -72,12 +73,14 @@ class JoarkClient(
         ident: Ident,
         fagsakId: String,
         tema: String,
-        fagsystem: Fagsystem
+        fagsystem: Fagsystem,
+        tittel: String?,
+        avsenderMottaker: AvsenderMottakerDto?,
+        dokumenter: List<ForenkletDokument>?,
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
         val request = PutRequest(
             OppdaterJournalpostRequest(
-                journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
                 sak = JournalpostSak(
                     fagsakId = fagsakId,
                     fagsaksystem = fagsystem,
@@ -86,17 +89,24 @@ class JoarkClient(
                 bruker = JournalpostBruker(
                     id = ident.identifikator
                 ),
-                avsenderMottaker = hentAvsenderMottakerOmNødvendig(journalpostId)
+                tittel = tittel,
+                avsenderMottaker = avsenderMottaker ?: hentAvsenderMottakerOmNødvendig(journalpostId),
+                dokumenter = dokumenter
             )
         )
         client.put(path, request) { _, _ -> }
     }
 
-    override fun førJournalpostPåGenerellSak(journalpost: Journalpost, tema: String) {
+    override fun førJournalpostPåGenerellSak(
+        journalpost: Journalpost,
+        tema: String,
+        tittel: String?,
+        avsenderMottaker: AvsenderMottakerDto?,
+        dokumenter: List<ForenkletDokument>?
+    ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
         val request = PutRequest(
             OppdaterJournalpostRequest(
-                journalfoerendeEnhet = MASKINELL_JOURNALFØRING_ENHET,
                 sak = JournalpostSak(
                     sakstype = Sakstype.GENERELL_SAK,
                     fagsaksystem = null
@@ -105,7 +115,9 @@ class JoarkClient(
                 bruker = JournalpostBruker(
                     id = journalpost.person.aktivIdent().identifikator
                 ),
-                avsenderMottaker = hentAvsenderMottakerOmNødvendig(journalpost.journalpostId)
+                tittel = tittel,
+                avsenderMottaker = avsenderMottaker ?: hentAvsenderMottakerOmNødvendig(journalpost.journalpostId),
+                dokumenter = dokumenter
             )
         )
         client.put(path, request) { _, _ -> }
@@ -132,7 +144,6 @@ class JoarkClient(
                 id = safJournalpost.bruker?.id!!,
                 idType = bruker.type!!,
                 navn = navn?.fulltNavn(),
-                erLikBruker = true
             )
         } else {
             null

@@ -3,12 +3,16 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
+import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -30,15 +34,26 @@ class SettFagsakStegTest {
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(true, Tema.AAP)
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
-        val saksnummer = "saksnummer"
-        every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer
+        val vurdering = Saksvurdering(
+            "12345",
+            journalposttittel = "Tittel",
+            avsenderMottaker = AvsenderMottakerDto("id", BrukerIdType.FNR, "navn"),
+            dokumenter = listOf(ForenkletDokument("123", "hoveddokument tittel"))
+        )
+
+        every { saksnummerRepository.hentSakVurdering(any()) } returns vurdering
 
         settFagsakSteg.utfør(mockk(relaxed = true))
 
-        verify(exactly = 1) { joark.førJournalpostPåFagsak(
-            journalpost.journalpostId,
-            journalpost.person.aktivIdent(),
-            saksnummer)
+        verify(exactly = 1) {
+            joark.førJournalpostPåFagsak(
+                journalpost.journalpostId,
+                journalpost.person.aktivIdent(),
+                vurdering.saksnummer!!,
+                tittel = vurdering.journalposttittel,
+                avsenderMottaker = vurdering.avsenderMottaker,
+                dokumenter = vurdering.dokumenter
+            )
         }
     }
 

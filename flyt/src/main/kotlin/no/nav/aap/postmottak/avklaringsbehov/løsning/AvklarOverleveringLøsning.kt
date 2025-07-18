@@ -20,6 +20,6 @@ class AvklarOverleveringLøsning(
     ) val behovstype: String = AVKLAR_OVERLEVERING_KODE
 ) : AvklaringsbehovLøsning {
     override fun løs(connection: DBConnection, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
-        return AvklarOverleveringLøser(connection).løs(kontekst, this)
+        return AvklarOverleveringLøser.konstruer(connection).løs(kontekst, this)
     }
 }

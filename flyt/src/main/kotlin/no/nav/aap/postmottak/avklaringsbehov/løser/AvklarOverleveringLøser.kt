@@ -8,9 +8,9 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.Over
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
-class AvklarOverleveringLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarOverleveringLøsning> {
-    private val repositoryProvider = RepositoryProvider(connection)
-    private val avklarOverleveringRepository = repositoryProvider.provide(OverleveringVurderingRepository::class)
+class AvklarOverleveringLøser(
+    private val avklarOverleveringRepository: OverleveringVurderingRepository
+) : AvklaringsbehovsLøser<AvklarOverleveringLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarOverleveringLøsning): LøsningsResultat {
         avklarOverleveringRepository.lagre(
@@ -22,5 +22,12 @@ class AvklarOverleveringLøser(val connection: DBConnection) : AvklaringsbehovsL
 
     override fun forBehov(): Definisjon {
         return Definisjon.AVKLAR_OVERLEVERING
+    }
+
+    companion object : LøserKonstruktør<AvklarOverleveringLøsning> {
+        override fun konstruer(connection: DBConnection): AvklaringsbehovsLøser<AvklarOverleveringLøsning> {
+            return AvklarOverleveringLøser(RepositoryProvider(connection)
+                .provide(OverleveringVurderingRepository::class))
+        }
     }
 }

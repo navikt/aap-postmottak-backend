@@ -58,7 +58,7 @@ class ArenaVideresenderTest {
             journalpostId_, innkommendeJournalpostId = 1L,
         )
 
-        verify(exactly = 1) { joarkClient.førJournalpostPåGenerellSak(journalpost, "OPP") }
+        verify(exactly = 1) { joarkClient.førJournalpostPåGenerellSak(journalpost, "OPP", null, null, null) }
         verify(exactly = 1) { joarkClient.ferdigstillJournalpostMaskinelt(journalpostId_) }
 
     }
