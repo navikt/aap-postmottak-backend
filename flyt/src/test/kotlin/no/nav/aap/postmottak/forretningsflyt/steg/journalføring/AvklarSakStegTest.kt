@@ -76,7 +76,6 @@ class AvklarSakStegTest {
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.erDigitaltMeldekort() } returns false
         every { journalpost.erUgyldig() } returns false
-        every { journalpost.erDigitalKlage() } returns false
         every { journalpost.tema } returns "AAP"
         every { journalpost.status } returns Journalstatus.MOTTATT
 
@@ -177,36 +176,4 @@ class AvklarSakStegTest {
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
 
-    @Disabled("Automatisk behandling kan ikke skje så lenge det er manuell rutine for å skrive brev om mottatt klage")
-    @Test
-    fun `Hvis det kun finnes én sak kan klage behandles automatisk`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.erDigitalSøknad() } returns false
-        every { journalpost.erDigitalLegeerklæring() } returns false
-        every { journalpost.erDigitaltMeldekort() } returns false
-        every { journalpost.erDigitalKlage() } returns true
-        every { journalpost.tema } returns "AAP"
-        every { journalpost.erUgyldig() } returns false
-        every { journalpost.status } returns Journalstatus.MOTTATT
-        every { journalpost.person } returns Person(1L, UUID.randomUUID(), listOf(Ident("ident")))
-
-        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
-
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk())
-        every { saksnummerRepository.hentSakVurdering(any()) } returns null
-
-        every { behandlingsflytClient.finnEllerOpprettSak(any(), any()) } returns BehandlingsflytSak(
-            "saksnummer", Periode(
-                LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)
-            ), null
-        )
-        
-        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
-
-        verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        verify(exactly = 1) { saksnummerRepository.lagreSakVurdering(any(), any()) }
-
-        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
-
-    }
 }

@@ -54,12 +54,6 @@ open class Journalpost(
         } && erDigital()
     }
 
-    fun erDigitalKlage(): Boolean {
-        return dokumenter.any {
-            it.brevkode == Brevkoder.KLAGE.kode
-        } && erDigital()
-    }
-
     fun erDigitaltMeldekort(): Boolean {
         val meldekortkoder = listOf(Brevkoder.MELDEKORT.kode, Brevkoder.MELDEKORT_KORRIGERING.kode)
         return dokumenter.any { it.brevkode in meldekortkoder } && erDigital()
