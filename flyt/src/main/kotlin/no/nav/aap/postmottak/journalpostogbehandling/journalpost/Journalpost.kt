@@ -12,9 +12,11 @@ open class Journalpost(
     val journalførendeEnhet: String?,
     val tema: String,
     val behandlingstema: String?,
+    val tittel: String?,
     val status: Journalstatus,
     val mottattDato: LocalDate,
     val mottattTid: LocalDateTime?,
+    val avsenderMottaker: AvsenderMottaker?,
     val dokumenter: List<Dokument> = emptyList(),
     val kanal: KanalFraKodeverk,
     val saksnummer: String?,
@@ -32,7 +34,7 @@ open class Journalpost(
             it.brevkode == Brevkoder.SØKNAD.kode
         }
     }
-    
+
     // TODO: Bør ikke denne sjekke hoveddokumentet - ikke bare returere første treff?
     fun finnOriginal(): Dokument? = dokumenter.find { dokument ->
         dokument.varianter.any { variant -> variant.variantformat == Variantformat.ORIGINAL }
@@ -51,7 +53,7 @@ open class Journalpost(
             it.brevkode == Brevkoder.LEGEERKLÆRING.kode
         } && erDigital()
     }
-    
+
     fun erDigitalKlage(): Boolean {
         return dokumenter.any {
             it.brevkode == Brevkoder.KLAGE.kode
@@ -108,14 +110,15 @@ open class Journalpost(
     }
 
     override fun toString(): String {
-        return "Journalpost(journalpostId=$journalpostId, person=$person, journalførendeEnhet=$journalførendeEnhet, tema='$tema', behandlingstema=$behandlingstema, status=$status, mottattDato=$mottattDato, dokumenter=$dokumenter, kanal=$kanal, saksnummer=$saksnummer, fagsystem=$fagsystem)"
+        return "Journalpost(journalpostId=$journalpostId, person=$person, journalførendeEnhet=$journalførendeEnhet, tema='$tema', behandlingstema=$behandlingstema, status=$status, mottattDato=$mottattDato, avsenderMottaker=$avsenderMottaker, dokumenter=$dokumenter, kanal=$kanal, saksnummer=$saksnummer, fagsystem=$fagsystem)"
     }
 }
 
-open class Dokument(
+open class Dokument (
     val dokumentInfoId: DokumentInfoId,
     val brevkode: String,
-    val varianter: List<Variant>
+    val tittel: String? = null,
+    val varianter: List<Variant>,
 ) {
     fun finnFiltype(variantformat: Variantformat): Filtype? =
         varianter.find { it.variantformat == variantformat }?.filtype
@@ -128,6 +131,7 @@ open class Dokument(
 
         if (dokumentInfoId != other.dokumentInfoId) return false
         if (brevkode != other.brevkode) return false
+        if (tittel != other.tittel) return false
         if (varianter != other.varianter) return false
 
         return true
@@ -136,12 +140,13 @@ open class Dokument(
     override fun hashCode(): Int {
         var result = dokumentInfoId.hashCode()
         result = 31 * result + brevkode.hashCode()
+        result = 31 * result + tittel.hashCode()
         result = 31 * result + varianter.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "Dokument(dokumentInfoId=$dokumentInfoId, brevkode='$brevkode', varianter=$varianter)"
+        return "Dokument(dokumentInfoId=$dokumentInfoId, brevkode='$brevkode', tittel='$tittel', varianter=$varianter)"
     }
 }
 
@@ -157,3 +162,9 @@ enum class Filtype {
 enum class Variantformat {
     ARKIV, FULLVERSJON, PRODUKSJON, PRODUKSJON_DLF, SLADDET, ORIGINAL
 }
+
+data class AvsenderMottaker(
+    val id: String?,
+    val idType: String?,
+    val navn: String? = null,
+)

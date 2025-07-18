@@ -57,7 +57,12 @@ internal class AlleOppgitteBarnHarIdentRegelTest {
         val dokumentId = DokumentInfoId("1")
         val journalpost = opprettJournalpost(
             journalpostId,
-            Dokument(dokumentId, brevkode.kode, listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL)))
+            Dokument(
+                dokumentId,
+                brevkode.kode,
+                "Dokument med tittel",
+                listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL))
+            )
         )
 
         every { journalpostService.hentJournalpost(journalpostId) } returns journalpost
@@ -82,7 +87,12 @@ internal class AlleOppgitteBarnHarIdentRegelTest {
 
         every { journalpostService.hentJournalpost(journalpostId) } returns opprettJournalpost(
             journalpostId,
-            Dokument(dokumentId, Brevkoder.SØKNAD.kode, listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL)))
+            Dokument(
+                dokumentId,
+                Brevkoder.SØKNAD.kode,
+                "Dokument med tittel",
+                listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL))
+            )
         )
         every { dokumentGateway.hentDokument(journalpostId, dokumentId) } returns opprettSafResponse(null)
 
@@ -113,7 +123,12 @@ internal class AlleOppgitteBarnHarIdentRegelTest {
 
         every { journalpostService.hentJournalpost(journalpostId) } returns opprettJournalpost(
             journalpostId,
-            Dokument(dokumentId, Brevkoder.SØKNAD.kode, listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL)))
+            Dokument(
+                dokumentId,
+                Brevkoder.SØKNAD.kode,
+                "Dokument med tittel",
+                listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL))
+            )
         )
         every { dokumentGateway.hentDokument(journalpostId, dokumentId) } returns opprettSafResponse(oppgitteBarn)
 
@@ -145,7 +160,12 @@ internal class AlleOppgitteBarnHarIdentRegelTest {
 
         every { journalpostService.hentJournalpost(journalpostId) } returns opprettJournalpost(
             journalpostId,
-            Dokument(dokumentId, Brevkoder.SØKNAD.kode, listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL)))
+            Dokument(
+                dokumentId,
+                Brevkoder.SØKNAD.kode,
+                "Dokument med tittel",
+                listOf(Variant(Filtype.JSON, Variantformat.ORIGINAL))
+            )
         )
         every { dokumentGateway.hentDokument(journalpostId, dokumentId) } returns opprettSafResponse(oppgitteBarn)
 
@@ -171,9 +191,11 @@ internal class AlleOppgitteBarnHarIdentRegelTest {
             journalførendeEnhet = null,
             tema = "AAP",
             behandlingstema = null,
+            tittel = "Tittel pa journalposten",
             status = Journalstatus.JOURNALFOERT,
             mottattDato = LocalDate.now(),
             mottattTid = LocalDateTime.now(),
+            avsenderMottaker = null,
             dokumenter = listOfNotNull(
                 dokument,
                 Dokument(

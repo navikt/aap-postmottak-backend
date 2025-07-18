@@ -1,23 +1,20 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
-import no.nav.aap.postmottak.flyt.steg.FlytSteg
-import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
+import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(SettFagsakSteg::class.java)
 
 class SettFagsakSteg(
     private val journalpostRepository: JournalpostRepository,

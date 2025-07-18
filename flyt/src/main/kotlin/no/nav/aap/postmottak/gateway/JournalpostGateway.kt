@@ -259,6 +259,12 @@ data class AvsenderMottaker(
      * @example: [AvsenderMottakerIdType.FNR]
      */
     val type: AvsenderMottakerIdType?,
+
+    /**
+     * Navnet på personen eller organisasjonen som er
+     * avsender eller mottaker av dokumentene på journalposten.
+     */
+    val navn: String?
 )
 
 enum class AvsenderMottakerIdType {

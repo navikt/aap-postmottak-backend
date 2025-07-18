@@ -90,16 +90,19 @@ class JournalpostTest {
         status = Journalstatus.MOTTATT,
         tema = "AAP",
         behandlingstema = null,
+        tittel = "Tittel på journalposten",
         mottattDato = LocalDate.of(2021, 1, 1),
         mottattTid = LocalDate.of(2021, 1, 1).atStartOfDay(),
         journalførendeEnhet = "YOLO",
         kanal = KanalFraKodeverk.UKJENT,
         saksnummer = null,
         fagsystem = null,
+        avsenderMottaker = null,
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "Brev",
                 dokumentInfoId = DokumentInfoId("1"),
+                tittel = "Viktig brev til bruker",
                 varianter = listOf(
                     Variant(
                         filtype = Filtype.JSON,
@@ -110,6 +113,7 @@ class JournalpostTest {
             Dokument(
                 brevkode = "Vedleg",
                 dokumentInfoId = DokumentInfoId("2"),
+                tittel = "Vedlegg 1",
                 varianter = listOf(
                     Variant(
                         filtype = Filtype.PDF,
@@ -120,6 +124,7 @@ class JournalpostTest {
             Dokument(
                 brevkode = "Kattebilde",
                 dokumentInfoId = DokumentInfoId("3"),
+                tittel = "Vedlegg 2",
                 varianter = listOf(
                     Variant(
                         filtype = Filtype.PDF,

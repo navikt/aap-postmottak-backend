@@ -82,7 +82,8 @@ class AutomatiskJournalføringJobbTest {
             mottattTid = LocalDateTime.now(),
             fagsystem = null,
             saksnummer = null,
-            behandlingstema = null
+            behandlingstema = null,
+            tittel = "Tittel på journalposten"
         )
 
 

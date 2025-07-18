@@ -6,6 +6,7 @@ import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.AvsenderMottaker
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class JournalpostRepositoryImplTest {
+internal class JournalpostRepositoryImplTest {
 
     private val dataSource = InitTestDatabase.freshDatabase()
 
@@ -96,16 +97,19 @@ class JournalpostRepositoryImplTest {
         journalførendeEnhet = "YOLO",
         tema = tema,
         behandlingstema = null,
+        tittel = "Tittel på journalposten",
         status = Journalstatus.MOTTATT,
         mottattDato = LocalDate.of(2021, 1, 1),
         mottattTid = LocalDate.of(2021, 1, 1).atStartOfDay(),
         kanal = KanalFraKodeverk.UKJENT,
         saksnummer = "saksnummer",
         fagsystem = Fagsystem.KELVIN.name,
+        avsenderMottaker = AvsenderMottaker("id", "FNR", "Navn"),
         dokumenter = dokumenter ?: listOf(
             Dokument(
                 brevkode = "NAV 11-13.05",
                 dokumentInfoId = DokumentInfoId("1"),
+                tittel = "Søknad om AAP",
                 varianter = listOf(
                     Variant(
                         filtype = Filtype.JSON,
@@ -116,6 +120,7 @@ class JournalpostRepositoryImplTest {
             Dokument(
                 dokumentInfoId = DokumentInfoId("2"),
                 brevkode = "NAV 11-13.05",
+                tittel = "Vedlegg til søknad",
                 varianter = listOf(
                     Variant(
                         filtype = Filtype.JSON,

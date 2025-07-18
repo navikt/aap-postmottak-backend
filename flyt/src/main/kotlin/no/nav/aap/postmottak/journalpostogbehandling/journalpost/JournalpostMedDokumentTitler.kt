@@ -7,15 +7,18 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 
+// TODO: Rydde opp i dette. Unødvendig med eget objekt for dokument med titler
 class JournalpostMedDokumentTitler(
     journalpostId: JournalpostId,
     person: Person,
     journalførendeEnhet: String?,
     tema: String,
     behandlingstema: String?,
+    tittel: String?,
     status: Journalstatus,
     mottattDato: LocalDate,
     mottattTid: LocalDateTime?,
+    avsenderMottaker: AvsenderMottaker? = null,
     dokumenter: List<DokumentMedTittel> = emptyList(),
     kanal: KanalFraKodeverk,
     saksnummer: String?,
@@ -26,27 +29,29 @@ class JournalpostMedDokumentTitler(
     journalførendeEnhet,
     tema,
     behandlingstema,
+    tittel,
     status,
     mottattDato,
     mottattTid,
+    avsenderMottaker,
     dokumenter,
     kanal,
     saksnummer,
     fagsystem
 ) {
 
-    fun getHoveddokumenttittel() = (hoveddokument as DokumentMedTittel).tittel
+    fun getHoveddokumenttittel(): String = (hoveddokument as DokumentMedTittel).tittel ?: "Dokument uten tittel"
 
-    fun getVedleggTitler() = dokumenter.filter { it != hoveddokument }
+    fun getVedleggTitler(): List<String> = dokumenter.filter { it != hoveddokument }
         .map { it as DokumentMedTittel }
-        .map { it.tittel }
+        .map { it.tittel ?: "Dokument uten tittel" }
 
 }
 
 class DokumentMedTittel(
     dokumentInfoId: DokumentInfoId,
     brevkode: String,
-    val tittel: String,
+    tittel: String,
     varianter: List<Variant>
-) : Dokument(dokumentInfoId, brevkode, varianter)
+) : Dokument(dokumentInfoId, brevkode, tittel, varianter)
 

@@ -7,6 +7,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.AvsenderMottaker
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
@@ -21,14 +22,16 @@ data class DbDokument(
     val brevkode: String,
     val filtype: Filtype,
     val variantformat: Variantformat,
-    ){
+    val tittel: String?,
+) {
     companion object {
         fun fraDokument(dokument: Dokument) = dokument.varianter.map {
             DbDokument(
                 dokument.dokumentInfoId,
                 dokument.brevkode,
                 it.filtype,
-                it.variantformat
+                it.variantformat,
+                dokument.tittel ?: "Dokument uten tittel"
             )
         }
     }
@@ -37,16 +40,16 @@ data class DbDokument(
 class JournalpostRepositoryImpl(private val connection: DBConnection) : JournalpostRepository {
     private val personRepositoryImpl = PersonRepositoryImpl(connection)
 
-    companion object: Factory<JournalpostRepositoryImpl> {
+    companion object : Factory<JournalpostRepositoryImpl> {
         override fun konstruer(connection: DBConnection): JournalpostRepositoryImpl {
             return JournalpostRepositoryImpl(connection)
-        }   
+        }
     }
-    
+
     override fun lagre(journalpost: Journalpost) {
         val query = """
-            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, MOTTATT_TID, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM, BEHANDLINGSTEMA)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, MOTTATT_TID, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM, BEHANDLINGSTEMA, TITTEL)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
@@ -61,11 +64,13 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setString(9, journalpost.saksnummer.toString())
                 setString(10, journalpost.fagsystem)
                 setString(11, journalpost.behandlingstema)
+                setString(12, journalpost.tittel)
             }
         }
 
         val dokumentQuery = """
-                INSERT INTO DOKUMENT (JOURNALPOST_ID, DOKUMENT_INFO_ID, BREVKODE, VARIANTFORMAT, FILTYPE) VALUES (?, ?, ?, ?, ?)
+                INSERT INTO DOKUMENT (JOURNALPOST_ID, DOKUMENT_INFO_ID, BREVKODE, VARIANTFORMAT, FILTYPE, TITTEL) 
+                VALUES (?, ?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeBatch(dokumentQuery, journalpost.dokumenter.flatMap { DbDokument.fraDokument(it) }) {
             setParams { dokument ->
@@ -74,6 +79,18 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setString(3, dokument.brevkode)
                 setEnumName(4, dokument.variantformat)
                 setEnumName(5, dokument.filtype)
+                setString(6, dokument.tittel)
+            }
+        }
+
+        connection.execute(
+            "INSERT INTO AVSENDERMOTTAKER (JOURNALPOST_ID, IDENT, IDENT_TYPE, NAVN) VALUES (?, ?, ?, ?)",
+        ) {
+            setParams {
+                setLong(1, journalpostId)
+                setString(2, journalpost.avsenderMottaker?.id)
+                setString(3, journalpost.avsenderMottaker?.idType)
+                setString(4, journalpost.avsenderMottaker?.navn)
             }
         }
     }
@@ -131,10 +148,12 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             journalførendeEnhet = row.getStringOrNull("JOURNALFORENDE_ENHET"),
             status = Journalstatus.valueOf(row.getString("STATUS")),
             tema = row.getString("TEMA"),
+            tittel = row.getStringOrNull("TITTEL"),
             mottattDato = row.getLocalDate("MOTTATT_DATO"),
             mottattTid = row.getLocalDateTimeOrNull("MOTTATT_TID"),
             kanal = row.getEnum("KANAL"),
             saksnummer = row.getStringOrNull("SAKSNUMMER"),
+            avsenderMottaker = hentAvsenderMottaker(row.getLong("ID")),
             dokumenter = hentDokumenter(row.getLong("ID")),
             fagsystem = row.getStringOrNull("FAGSYSTEM"),
             behandlingstema = row.getStringOrNull("BEHANDLINGSTEMA")
@@ -155,13 +174,32 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                     variantformat = it.getEnum("VARIANTFORMAT"),
                     filtype = it.getEnum("FILTYPE"),
                     brevkode = it.getString("BREVKODE"),
+                    tittel = it.getStringOrNull("TITTEL"),
                 )
             }
-        }.groupBy { Dokument(it.dokumentInfoId, it.brevkode, emptyList()) }
+        }.groupBy { Dokument(it.dokumentInfoId, it.brevkode, it.tittel, emptyList()) }
             .map { (key, value) -> Dokument(
                 key.dokumentInfoId,
                 key.brevkode,
+                key.tittel,
                 value.map { Variant(it.filtype, it.variantformat) })
             }
+    }
+
+    private fun hentAvsenderMottaker(journalpostId: Long): AvsenderMottaker {
+        val query = "SELECT * FROM AVSENDERMOTTAKER WHERE JOURNALPOST_ID = ?"
+
+        return connection.queryList(query) {
+            setParams {
+                setLong(1, journalpostId)
+            }
+            setRowMapper {
+                AvsenderMottaker(
+                    id = it.getStringOrNull("IDENT"),
+                    idType = it.getStringOrNull("IDENT_TYPE"),
+                    navn = it.getStringOrNull("NAVN"),
+                )
+            }
+        }.single()
     }
 }

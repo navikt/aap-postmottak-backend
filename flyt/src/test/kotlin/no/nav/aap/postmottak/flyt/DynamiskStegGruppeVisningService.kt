@@ -50,6 +50,8 @@ class DynamiskStegGruppeVisningServiceTest {
                 status = Journalstatus.MOTTATT,
                 tema = "AAP",
                 behandlingstema = null,
+                tittel = "Tittel pa journalposten",
+                avsenderMottaker = null,
                 dokumenter = listOf(
                     Dokument(
                         brevkode = "NAV 11-13.05",
