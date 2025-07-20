@@ -11,8 +11,10 @@ import io.ktor.server.routing.*
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.klient.behandlingsflyt.FinnSaker
 import java.time.LocalDate
+import java.util.*
 
 fun Application.behandlingsflytFake(
 ) {
@@ -50,6 +52,21 @@ fun Application.behandlingsflytFake(
 
         post("/api/hendelse/send") {
             call.respond(HttpStatusCode.NoContent)
+        }
+
+        post("/api/sak/{saksnummer}/finnBehandlingerAvType") {
+            call.respond(
+                listOf(
+                    Klagebehandling(
+                        behandlingsreferanse = UUID.randomUUID(),
+                        opprettetDato = LocalDate.of(2025, 5, 1)
+                    ),
+                    Klagebehandling(
+                        behandlingsreferanse = UUID.randomUUID(),
+                        opprettetDato = LocalDate.of(2025, 6, 20)
+                    )
+                )
+            )
         }
     }
 

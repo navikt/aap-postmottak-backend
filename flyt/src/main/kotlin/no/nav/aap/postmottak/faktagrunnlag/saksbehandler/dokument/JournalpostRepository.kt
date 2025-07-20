@@ -8,7 +8,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 interface JournalpostRepository: Repository {
     fun hentHvisEksisterer(behandlingId: BehandlingId): Journalpost?
-    fun hentHvisEksisterer(journalpostId: Behandlingsreferanse): Journalpost?
+    fun hentHvisEksisterer(behandlingsreferanse: Behandlingsreferanse): Journalpost?
     fun hentHvisEksisterer(journalpostId: JournalpostId): Journalpost?
     fun lagre(journalpost: Journalpost)
 }
