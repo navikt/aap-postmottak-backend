@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.strukturering
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.postmottak.gateway.Klagebehandling
 import java.time.LocalDate
 
 data class DigitaliseringvurderingDto(
@@ -10,6 +11,7 @@ data class DigitaliseringvurderingDto(
 )
 
 data class DigitaliseringGrunnlagDto(
+    val klagebehandlinger: List<Klagebehandling>,
     val erPapir: Boolean,
     val vurdering: DigitaliseringvurderingDto?
 )

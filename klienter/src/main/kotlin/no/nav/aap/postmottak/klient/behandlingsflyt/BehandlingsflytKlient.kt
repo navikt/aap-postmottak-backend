@@ -17,6 +17,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlKlient
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDate
 import java.time.LocalDateTime
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.TypeBehandling as BehandlingsflytTypeBehandling
 
 class BehandlingsflytKlient : BehandlingsflytGateway {
     private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
@@ -105,6 +107,17 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
         client.post<Innsending, Unit>(url, request)
     }
 
+    override fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling> {
+        val url = url.resolve("/api/sak/${saksnummer}/finnBehandlingerAvType")
+        val request = PostRequest(
+            body = BehandlingsflytTypeBehandling.Klage,
+            additionalHeaders = listOf(
+                Header("Accept", "application/json")
+            )
+        )
+        return client.post<BehandlingsflytTypeBehandling, List<Klagebehandling>>(url, request) ?: emptyList()
+    }
+
 }
 
 fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {
@@ -115,4 +128,3 @@ fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {
         else -> Kanal.DIGITAL
     }
 }
-

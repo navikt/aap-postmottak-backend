@@ -2,10 +2,11 @@ package no.nav.aap.postmottak.gateway
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.AnnetRelevantDokumentV0
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.MeldekortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.MeldekortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.gateway.Gateway
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -15,6 +16,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.Kanal
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 import kotlin.text.Charsets.UTF_8
 
 interface BehandlingsflytGateway : Gateway {
@@ -28,12 +30,18 @@ interface BehandlingsflytGateway : Gateway {
         saksnummer: String,
         melding: Melding?
     )
+    fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling>
 }
 
 data class BehandlingsflytSak(
     val saksnummer: String,
     val periode: Periode,
     val resultat: ResultatKode?
+)
+
+data class Klagebehandling(
+    val behandlingsreferanse: UUID,
+    val opprettetDato: LocalDate
 )
 
 object DokumentTilMeldingParser {

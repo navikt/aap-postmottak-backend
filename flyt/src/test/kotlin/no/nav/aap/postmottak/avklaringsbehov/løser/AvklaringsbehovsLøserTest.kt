@@ -3,12 +3,14 @@ package no.nav.aap.postmottak.avklaringsbehov.løser
 import io.mockk.mockk
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -70,4 +72,7 @@ class BehandlingsflytGatewayMock : BehandlingsflytGateway {
         TODO("Not yet implemented")
     }
 
+    override fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling> {
+        TODO("Not yet implemented")
+    }
 }
