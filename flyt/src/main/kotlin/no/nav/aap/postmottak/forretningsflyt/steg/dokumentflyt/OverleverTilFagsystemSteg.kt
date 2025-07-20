@@ -60,6 +60,7 @@ class OverleverTilFagsystemSteg(
                 InnsendingType.SØKNAD,
                 InnsendingType.LEGEERKLÆRING,
                 InnsendingType.MELDEKORT,
+                InnsendingType.KLAGE
             )
         ) {
             val vurdering = OverleveringVurdering(true)

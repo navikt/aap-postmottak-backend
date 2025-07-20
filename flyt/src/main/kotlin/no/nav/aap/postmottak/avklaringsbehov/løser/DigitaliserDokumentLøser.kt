@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
@@ -9,7 +8,6 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsnin
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
@@ -49,12 +47,6 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
             behandlingId,
             digitaliseringsvurdering
         )
-        if (dokument is KlageV0) {
-            val overleveringVurdering = OverleveringVurdering(
-                skalOverleveresTilKelvin = dokument.skalOppretteNyBehandling == true
-            )
-            overleveringVurderingRepository.lagre(behandlingId, overleveringVurdering)
-        }
 
         return LøsningsResultat("Dokument er kategorisert og digitalisert")
     }
