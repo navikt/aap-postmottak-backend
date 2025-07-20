@@ -3,7 +3,7 @@ plugins {
 }
 
 val komponenterVersjon = "1.0.288"
-val behandlingsflytVersjon = "0.0.379"
+val behandlingsflytVersjon = "0.0.380"
 val junitVersjon = "5.13.1"
 
 dependencies {
