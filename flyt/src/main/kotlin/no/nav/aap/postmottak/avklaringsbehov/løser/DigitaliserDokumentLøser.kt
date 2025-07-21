@@ -14,12 +14,12 @@ import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
-class DigitaliserDokumentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
-    val repositoryProvider = RepositoryProvider(connection)
-    val struktureringsvurderingRepository = repositoryProvider.provide(DigitaliseringsvurderingRepository::class)
-    val journalpostRepository = repositoryProvider.provide(JournalpostRepository::class)
-    val sakVurderingRepository = repositoryProvider.provide(SaksnummerRepository::class)
-    val overleveringVurderingRepository = repositoryProvider.provide(OverleveringVurderingRepository::class)
+class DigitaliserDokumentLøser(
+    val struktureringsvurderingRepository: DigitaliseringsvurderingRepository,
+    val journalpostRepository: JournalpostRepository,
+    val sakVurderingRepository: SaksnummerRepository,
+    val overleveringVurderingRepository: OverleveringVurderingRepository,
+) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
         val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId)!!
@@ -53,5 +53,18 @@ class DigitaliserDokumentLøser(val connection: DBConnection) : Avklaringsbehovs
 
     override fun forBehov(): Definisjon {
         return Definisjon.DIGITALISER_DOKUMENT
+    }
+
+    companion object : LøserKonstruktør<DigitaliserDokumentLøsning> {
+        override fun konstruer(connection: DBConnection): AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
+            val repositoryProvider = RepositoryProvider(connection)
+
+            return DigitaliserDokumentLøser(
+                repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
+                repositoryProvider.provide(JournalpostRepository::class),
+                repositoryProvider.provide(SaksnummerRepository::class),
+                repositoryProvider.provide(OverleveringVurderingRepository::class),
+            )
+        }
     }
 }

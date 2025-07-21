@@ -101,7 +101,7 @@ private fun getAvsenderMottaker(journalpostId: Long) =
     when (journalpostId) {
         UTEN_AVSENDER_MOTTAKER.referanse -> ""
         else -> """"avsenderMottaker": {
-            "id": "213453452",
+            "id": "21345345210",
             "type": "FNR",
             "navn": "Test Testesen"
         },"""

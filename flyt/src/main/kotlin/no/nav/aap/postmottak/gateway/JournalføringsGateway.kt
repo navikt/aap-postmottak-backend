@@ -2,13 +2,30 @@ package no.nav.aap.postmottak.gateway
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.aap.komponenter.gateway.Gateway
+import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
-interface JournalføringsGateway: Gateway {
-    fun førJournalpostPåFagsak(journalpostId: JournalpostId, ident: Ident, fagsakId: String, tema: String = "AAP", fagsystem: Fagsystem = Fagsystem.KELVIN)
-    fun førJournalpostPåGenerellSak(journalpost: Journalpost, tema: String = "AAP")
+interface JournalføringsGateway : Gateway {
+    fun førJournalpostPåFagsak(
+        journalpostId: JournalpostId,
+        ident: Ident,
+        fagsakId: String,
+        tema: String = "AAP",
+        fagsystem: Fagsystem = Fagsystem.KELVIN,
+        tittel: String? = null,
+        avsenderMottaker: AvsenderMottakerDto? = null,
+        dokumenter: List<ForenkletDokument>? = null
+    )
+
+    fun førJournalpostPåGenerellSak(
+        journalpost: Journalpost,
+        tema: String = "AAP",
+        tittel: String? = null,
+        avsenderMottaker: AvsenderMottakerDto? = null,
+        dokumenter: List<ForenkletDokument>? = null
+    )
     fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId)
     fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String)
 }
@@ -19,20 +36,21 @@ data class FerdigstillRequest(
 
 data class OppdaterJournalpostRequest(
     val behandlingstema: String? = null,
-    val journalfoerendeEnhet: String,
     val sak: JournalpostSak,
     val tema: String,
     val bruker: JournalpostBruker,
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    val avsenderMottaker: AvsenderMottakerDto?
+    val tittel: String?,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val avsenderMottaker: AvsenderMottakerDto?,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val dokumenter: List<ForenkletDokument>?
 )
 
 data class AvsenderMottakerDto(
     val id: String,
     val idType: BrukerIdType,
     val navn: String? = null,
-    val land: String? = null,
-    val erLikBruker: Boolean? = null,
 )
 
 enum class Fagsystem {

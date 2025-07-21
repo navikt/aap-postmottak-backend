@@ -21,7 +21,7 @@ class AvklarTemaLøsning(
     ) val behovstype: String = AVKLAR_TEMA_KODE
 ) : AvklaringsbehovLøsning {
     override fun løs(connection: DBConnection, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
-        return AvklarTemaLøser(connection).løs(kontekst, this)
+        return AvklarTemaLøser.konstruer(connection).løs(kontekst, this)
     }
 }
 

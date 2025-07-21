@@ -17,22 +17,39 @@ import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(AvklarSakLøser::class.java)
 
-class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
+class AvklarSakLøser(
+    private val saksnummerRepository: SaksnummerRepository,
+    private val journalpostRepository: JournalpostRepository,
+    private val behandlingsflytGateway: BehandlingsflytGateway,
+) : AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
 
-    private val repositoryProvider = RepositoryProvider(connection)
-    private val gatewayProvider = GatewayProvider
-    private val saksnummerRepository = repositoryProvider.provide(SaksnummerRepository::class)
-    private val journalpostRepository = repositoryProvider.provide(JournalpostRepository::class)
-    private val behandlingsflytGateway = gatewayProvider.provide(BehandlingsflytGateway::class)
+    companion object : LøserKonstruktør<AvklarSaksnummerLøsning>{
+        override fun konstruer(connection: DBConnection): AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
+            val repositoryProvider = RepositoryProvider(connection)
+
+            return AvklarSakLøser(
+                repositoryProvider.provide(SaksnummerRepository::class),
+                repositoryProvider.provide(JournalpostRepository::class),
+                GatewayProvider.provide(BehandlingsflytGateway::class),
+            )
+        }
+    }
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarSaksnummerLøsning): LøsningsResultat {
         if (løsning.opprettNySak) {
             if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.kontekst.behandlingId)) throw AvslagException()
 
             log.info("Spør behandlingsflyt om å finne eller opprette ny sak")
-            avklarFagSakMaskinelt(kontekst.kontekst.behandlingId)
+            avklarFagSakMaskinelt(kontekst.kontekst.behandlingId, løsning)
         } else {
-            val saksvurdering = Saksvurdering(løsning.saksnummer, løsning.førPåGenerellSak)
+            val saksvurdering = Saksvurdering(
+                saksnummer = løsning.saksnummer,
+                generellSak = løsning.førPåGenerellSak,
+                opprettetNy = false,
+                journalposttittel = løsning.journalposttittel,
+                avsenderMottaker = løsning.avsenderMottaker,
+                dokumenter = løsning.dokumenter
+            )
             saksnummerRepository.lagreSakVurdering(kontekst.kontekst.behandlingId, saksvurdering)
         }
 
@@ -43,16 +60,27 @@ class AvklarSakLøser(val connection: DBConnection) : AvklaringsbehovsLøser<Avk
         return Definisjon.AVKLAR_SAK
     }
 
-    private fun avklarFagSakMaskinelt(behandlingId: BehandlingId) {
+    private fun avklarFagSakMaskinelt(behandlingId: BehandlingId, løsning: AvklarSaksnummerLøsning) {
         val journalpost = journalpostRepository.hentHvisEksisterer(behandlingId)
             ?: error("Fant ikke journalpost for behandling $behandlingId")
         require(journalpost.hoveddokumentbrevkode == "Ukjent" || journalpost.erSøknad()) {
             "Det skal kun være mulig å opprette ny sak for søknad"
         }
+
         val saksnummer = behandlingsflytGateway.finnEllerOpprettSak(
             Ident(journalpost.person.aktivIdent().identifikator),
             journalpost.mottattDato
         ).saksnummer
-        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer,  false, opprettetNy = true))
+
+        val saksvurdering = Saksvurdering(
+            saksnummer = saksnummer,
+            generellSak = false,
+            opprettetNy = true,
+            journalposttittel = løsning.journalposttittel,
+            avsenderMottaker = løsning.avsenderMottaker,
+            dokumenter = løsning.dokumenter,
+        )
+
+        saksnummerRepository.lagreSakVurdering(behandlingId, saksvurdering)
     }
 }

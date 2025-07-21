@@ -27,7 +27,7 @@ class DigitaliserDokumentLøsning(
     ) val behovstype: String = DIGITALISER_DOKUMENT_KODE
 ) : AvklaringsbehovLøsning {
     override fun løs(connection: DBConnection, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
-        return DigitaliserDokumentLøser(connection).løs(kontekst, this)
+        return DigitaliserDokumentLøser.konstruer(connection).løs(kontekst, this)
     }
 }
 

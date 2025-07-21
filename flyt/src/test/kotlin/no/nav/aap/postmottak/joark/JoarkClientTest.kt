@@ -50,7 +50,14 @@ class JoarkClientTest {
             identer = listOf(Ident("12345678"))
         )
         every { journalpost.journalpostId } returns JournalpostId(1)
-        joarkClient.førJournalpostPåFagsak(journalpost.journalpostId, journalpost.person.aktivIdent(), "213412")
+        joarkClient.førJournalpostPåFagsak(
+            journalpost.journalpostId,
+            journalpost.person.aktivIdent(),
+            "213412",
+            tittel = null,
+            avsenderMottaker = null,
+            dokumenter = null
+        )
     }
 
     @Test
@@ -65,7 +72,7 @@ class JoarkClientTest {
         )
         every { journalpost.journalpostId } returns JournalpostId(1)
 
-        joarkClient.førJournalpostPåGenerellSak(journalpost)
+        joarkClient.førJournalpostPåGenerellSak(journalpost, tittel = null, avsenderMottaker = null, dokumenter = null)
     }
 
     @Test
@@ -93,7 +100,14 @@ class JoarkClientTest {
 
         assertThat(safJournalpost.avsenderMottaker).isNull()
 
-        joarkClient.førJournalpostPåFagsak(UTEN_AVSENDER_MOTTAKER, DEFAULT_IDENT, "2344")
+        joarkClient.førJournalpostPåFagsak(
+            UTEN_AVSENDER_MOTTAKER,
+            DEFAULT_IDENT,
+            "2344",
+            tittel = null,
+            avsenderMottaker = null,
+            dokumenter = null
+        )
 
         verify {
             restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->

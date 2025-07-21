@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.companionObjectInstance
 
 class AvklaringsbehovsLøserTest {
     @BeforeEach
@@ -40,9 +40,24 @@ class AvklaringsbehovsLøserTest {
     @Test
     fun `alle subtyper skal ha unik verdi`() {
         val utledSubtypes = AvklaringsbehovsLøser::class.sealedSubclasses
-        val løsningSubtypes = utledSubtypes.map { it.primaryConstructor!!.call(mockk<DBConnection>()).forBehov() }.toSet()
+        val løsningSubtypes = utledSubtypes.map { (it.companionObjectInstance as LøserKonstruktør<*>).konstruer(mockk<DBConnection>()).forBehov() }.toSet()
 
         Assertions.assertThat(løsningSubtypes).hasSize(utledSubtypes.size)
+    }
+
+    @Test
+    fun `alle subtyper skal ha unik verdi 2`() {
+        val forventedeLøsere = setOf(
+            AvklarOverleveringLøser::class,
+            AvklarSakLøser::class,
+            AvklarTemaLøser::class,
+            DigitaliserDokumentLøser::class,
+            SattPåVentLøser::class,
+        )
+
+        val utledSubtypes = AvklaringsbehovsLøser::class.sealedSubclasses.toSet()
+
+        Assertions.assertThat(utledSubtypes).isEqualTo(forventedeLøsere)
     }
 }
 

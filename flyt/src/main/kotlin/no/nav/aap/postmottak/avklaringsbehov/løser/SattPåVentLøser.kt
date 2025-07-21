@@ -14,4 +14,10 @@ class SattPåVentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<S
     override fun forBehov(): Definisjon {
         return Definisjon.MANUELT_SATT_PÅ_VENT
     }
+
+    companion object : LøserKonstruktør<SattPåVentLøsning> {
+        override fun konstruer(connection: DBConnection): AvklaringsbehovsLøser<SattPåVentLøsning> {
+            return SattPåVentLøser(connection)
+        }
+    }
 }
