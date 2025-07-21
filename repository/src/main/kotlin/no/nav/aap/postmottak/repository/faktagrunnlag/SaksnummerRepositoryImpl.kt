@@ -80,7 +80,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 setString(1, saksvurdering.saksnummer)
                 setBoolean(2, saksvurdering.generellSak)
                 setBoolean(3, saksvurdering.opprettetNy)
-                setString(4, saksvurdering.journalposttittel?.let(DefaultJsonMapper::toJson))
+                setString(4, saksvurdering.journalposttittel)
                 setString(5, saksvurdering.avsenderMottaker?.let(DefaultJsonMapper::toJson))
                 setString(6, saksvurdering.dokumenter?.let(DefaultJsonMapper::toJson))
             }
