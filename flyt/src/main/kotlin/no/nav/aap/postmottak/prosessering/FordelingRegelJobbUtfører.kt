@@ -79,7 +79,8 @@ class FordelingRegelJobbUtfører(
                 log.info("Journalposten har status ${safJournalpost.journalstatus} - behandler ikke videre")
                 StatusMedÅrsakOgRegelresultat(
                     InnkommendeJournalpostStatus.IGNORERT,
-                    ÅrsakTilStatus.ALLEREDE_JOURNALFØRT)
+                    ÅrsakTilStatus.ALLEREDE_JOURNALFØRT
+                )
             }
 
             safJournalpost.journalstatus == Journalstatus.UTGAAR -> {
@@ -152,6 +153,9 @@ class FordelingRegelJobbUtfører(
         return if (safJournalpost.bruker?.id == null) {
             log.warn("Journalpost med id=${safJournalpost.journalpostId} mangler bruker – kan ikke utlede enhet")
             null
+        } else if (safJournalpost.bruker.type == BrukerIdType.ORGNR) {
+            log.warn("Journalpost med id=${safJournalpost.journalpostId} har bruker med idType ORGNR – kan ikke utlede enhet")
+            null
         } else {
             val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
             enhetsutreder.finnJournalføringsenhet(journalpost)
@@ -171,7 +175,7 @@ class FordelingRegelJobbUtfører(
     private fun opprettFordelingsOppgaveHvisIkkeEksisterer(journalpost: SafJournalpost, årsak: ÅrsakTilStatus) {
         val tittel = journalpost.hoveddokument()?.tittel
             ?: throw IllegalStateException("Fant ingen dokumenter i journalposten")
-        
+
         gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
             journalpostId = JournalpostId(journalpost.journalpostId),
             personIdent = null,
