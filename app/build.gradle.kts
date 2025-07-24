@@ -79,7 +79,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
-    implementation("com.zaxxer:HikariCP:6.3.0")
+    implementation("com.zaxxer:HikariCP:6.3.2")
     implementation("org.flywaydb:flyway-database-postgresql:11.10.3")
     runtimeOnly("org.postgresql:postgresql:42.7.7")
     // Auditlogging
