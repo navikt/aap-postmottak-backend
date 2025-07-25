@@ -27,7 +27,7 @@ open class Journalpost(
         get() = hoveddokument.brevkode
 
     val hoveddokument: Dokument
-        get() = dokumenter.minBy { it.dokumentInfoId.dokumentInfoId }
+        get() = dokumenter.first()
 
     fun erSøknad(): Boolean {
         return dokumenter.any {
