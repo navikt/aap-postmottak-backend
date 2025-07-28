@@ -137,9 +137,6 @@ object JoarkRegel {
     val erIkkeKanalEESSI: (String, JournalfoeringHendelseRecord) -> Boolean =
         { _, record -> record.mottaksKanal != EESSI }
 
-    val erTemaEndretFraAAP: (String, JournalfoeringHendelseRecord) -> Boolean =
-        { _, record -> record.temaGammelt == TEMA_AAP && record.temaNytt != TEMA_AAP }
-
     val erTemaAAP: (String, JournalfoeringHendelseRecord) -> Boolean =
         { _, record -> record.temaNytt == TEMA_AAP }
 

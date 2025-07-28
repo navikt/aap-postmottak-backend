@@ -52,24 +52,6 @@ internal class JoarkRegelTest {
     }
 
     @Test
-    fun `Sjekk regel for erTemaEndretFraAAP`() {
-        assertTrue(
-            JoarkRegel.erTemaEndretFraAAP("id", record(temaGammelt = "AAP", temaNytt = "XYZ")),
-            "Tema endret fra AAP til XYZ skal gi true"
-        )
-
-        assertFalse(
-            JoarkRegel.erTemaEndretFraAAP("id", record(temaGammelt = "AAP", temaNytt = "AAP")),
-            "Tema endret fra AAP til AAP skal gi false"
-        )
-
-        assertFalse(
-            JoarkRegel.erTemaEndretFraAAP("id", record(temaGammelt = "OPP", temaNytt = "AAP")),
-            "Tema endret til AAP skal gi false"
-        )
-    }
-
-    @Test
     fun `Sjekk regel erTemaAAP`() {
         assertTrue(
             JoarkRegel.erTemaAAP("id", record(temaNytt = "AAP")),

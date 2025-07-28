@@ -16,6 +16,7 @@ object ProsesseringsJobber {
             StoppetHendelseJobbUtfører,
             GjenopptaBehandlingJobbUtfører,
             FordelingRegelJobbUtfører,
+            OppryddingJobbUtfører,
             FordelingVideresendJobbUtfører,
             SendSøknadTilArenaJobbUtfører,
             ManuellJournalføringJobbUtfører,
