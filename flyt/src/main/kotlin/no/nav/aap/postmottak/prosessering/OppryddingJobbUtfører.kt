@@ -62,7 +62,7 @@ class OppryddingJobbUtfører(
             behandleAlleredeMottatt(journalpostId)
         } else {
             log.info("Journalpost $journalpostId er journalført utenfor Kelvin")
-            opprettBehandlingForDigitalisering(journalpostId)
+            opprettNyBehandling(journalpostId)
         }
     }
 
@@ -83,7 +83,7 @@ class OppryddingJobbUtfører(
 
         if (digitaliseringsbehandling == null) {
             log.info("Ingen digitaliseringsbehandling funnet for journalpostId=$journalpostId - oppretter ny")
-            opprettBehandlingForDigitalisering(journalpostId)
+            opprettNyBehandling(journalpostId)
             return
         }
 
@@ -92,16 +92,16 @@ class OppryddingJobbUtfører(
 
         if (eksisterendeVurdering == null) {
             log.info("Fant ingen vurdering for digitalisering av journalpost $journalpostId")
-            opprettBehandlingForDigitalisering(journalpostId)
+            opprettNyBehandling(journalpostId)
         } else {
             log.info("Journalpost $journalpostId har allerede en vurdering for digitalisering")
         }
     }
 
-    private fun opprettBehandlingForDigitalisering(journalpostId: JournalpostId) {
+    private fun opprettNyBehandling(journalpostId: JournalpostId) {
         log.info("Oppretter behandling for digitalisering av journalpost $journalpostId")
 
-        val behandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
+        val behandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
                 .forBehandling(journalpostId.referanse, behandling.id).medCallId()
