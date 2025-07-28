@@ -1,14 +1,15 @@
 package no.nav.aap.postmottak.mottak
 
+import io.mockk.called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -43,10 +44,28 @@ class JoarkKafkaHandlerTest {
     }
 
     @Test
-    fun `verifiser mottak av temaendringer og avlevering`() {
+    fun `verifiser mottak av temaendringer`() {
         val config = config()
         setUpStreamsMock(config) {
             val hendelseRecord = lagHendelseRecord(nyttTema = "IKKE AAP", gammeltTema = "AAP")
+
+            pipeInput("key", hendelseRecord)
+
+            Thread.sleep(100)
+
+            verify {
+                flytJobbRepository wasNot called
+                behandlingRepository wasNot called
+            }
+        }
+
+    }
+
+    @Test
+    fun `verifiser mottak av journalført journalpost`() {
+        val config = config()
+        setUpStreamsMock(config) {
+            val hendelseRecord = lagHendelseRecord(nyttTema = "AAP", gammeltTema = "IDK", jpStatus = "JOURNALFOERT")
 
             every { behandlingRepository.opprettBehandling(any(), any()) } returns mockk<BehandlingId>(relaxed = true)
 

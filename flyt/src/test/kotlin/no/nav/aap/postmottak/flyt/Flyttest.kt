@@ -106,7 +106,7 @@ class Flyttest : WithDependencies {
         }
         util.ventPåSvar()
         val behandlinger = dataSource.transaction(readOnly = true) {
-            BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
+            BehandlingRepositoryImpl(it).hentAlleBehandlinger(journalpostId)
         }
         assertThat(behandlinger).isNotEmpty
     }
@@ -129,7 +129,7 @@ class Flyttest : WithDependencies {
         util.ventPåSvar(journalpostId.referanse, behandlingId.id)
 
         dataSource.transaction(readOnly = true) { connection ->
-            val behandlinger = BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
+            val behandlinger = BehandlingRepositoryImpl(connection).hentAlleBehandlinger(journalpostId)
             assertThat(behandlinger).hasSize(1)
             assertThat(
                 behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
@@ -166,7 +166,7 @@ class Flyttest : WithDependencies {
 
         util.ventPåSvar()
         val behandlinger = dataSource.transaction(readOnly = true) { connection ->
-            BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
+            BehandlingRepositoryImpl(connection).hentAlleBehandlinger(journalpostId)
         }
         assertThat(behandlinger).hasSize(2)
         assertThat(
@@ -231,7 +231,7 @@ class Flyttest : WithDependencies {
 
         util.ventPåSvar()
         val behandlinger = dataSource.transaction(readOnly = true) {
-            RepositoryProvider(it).provide(BehandlingRepository::class).hentAlleBehandlingerForSak(journalpostId)
+            RepositoryProvider(it).provide(BehandlingRepository::class).hentAlleBehandlinger(journalpostId)
         }
 
         assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
@@ -273,7 +273,7 @@ class Flyttest : WithDependencies {
         util.ventPåSvar()
         val behandling = dataSource.transaction(readOnly = true) { connection ->
             val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
-            behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
+            behandlingRepository.hentAlleBehandlinger(journalpostId)
                 .find { it.typeBehandling == TypeBehandling.Journalføring }!!
         }
 
@@ -303,7 +303,7 @@ class Flyttest : WithDependencies {
 
         var behandling = dataSource.transaction(readOnly = true) { connection ->
             val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
-            val behandling = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
+            val behandling = behandlingRepository.hentAlleBehandlinger(journalpostId)
                 .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }!!
             behandling
         }
@@ -407,7 +407,7 @@ class Flyttest : WithDependencies {
         util.ventPåSvar(journalpostId.referanse, behandlingId.id)
 
         val behandlinger = dataSource.transaction(readOnly = true) { connection ->
-            BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
+            BehandlingRepositoryImpl(connection).hentAlleBehandlinger(journalpostId)
         }
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
@@ -433,7 +433,7 @@ class Flyttest : WithDependencies {
         util.ventPåSvar(journalpostId.referanse, behandlingId.id)
 
         val behandlinger = dataSource.transaction(readOnly = true) { connection ->
-            BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
+            BehandlingRepositoryImpl(connection).hentAlleBehandlinger(journalpostId)
         }
         assertThat(behandlinger).hasSize(1)
         assertThat(

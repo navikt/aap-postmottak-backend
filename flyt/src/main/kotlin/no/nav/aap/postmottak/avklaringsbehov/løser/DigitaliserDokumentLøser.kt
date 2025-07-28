@@ -8,7 +8,6 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsnin
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
@@ -18,11 +17,12 @@ class DigitaliserDokumentLøser(
     val struktureringsvurderingRepository: DigitaliseringsvurderingRepository,
     val journalpostRepository: JournalpostRepository,
     val sakVurderingRepository: SaksnummerRepository,
-    val overleveringVurderingRepository: OverleveringVurderingRepository,
 ) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId)!!
+        val behandlingId = kontekst.kontekst.behandlingId
+
+        val journalpost = journalpostRepository.hentHvisEksisterer(behandlingId)!!
         require((løsning.søknadsdato == null) xor (løsning.kategori == InnsendingType.SØKNAD)) {
             "Søknadsdato skal kun settes for søknader"
         }
@@ -30,7 +30,6 @@ class DigitaliserDokumentLøser(
             "Søknadsdato kan ikke være etter registrert dato"
         }
 
-        val behandlingId = kontekst.kontekst.behandlingId
         val avklartSak = sakVurderingRepository.hentSakVurdering(behandlingId)
         require(!(løsning.kategori == InnsendingType.KLAGE && avklartSak?.opprettetNy!!)) {
             "Klage skal knyttes mot eksisterende sak"
@@ -63,7 +62,6 @@ class DigitaliserDokumentLøser(
                 repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
-                repositoryProvider.provide(OverleveringVurderingRepository::class),
             )
         }
     }

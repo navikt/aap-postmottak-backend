@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.prosessering
 
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -115,7 +116,12 @@ internal class FordelingRegelJobbUtførerTest {
                 .medJournalpostId(journalpostId)
         )
 
-        verify(exactly = 0) { regelService.evaluer(any()) }
+        verify(exactly = 1) { innkommendeJournalpostRepository.eksisterer(journalpostId) }
+        verify {
+            regelService wasNot Called
+            journalpostService wasNot Called
+            gosysOppgaveGateway wasNot Called
+        }
     }
 
     @Test
@@ -158,9 +164,7 @@ internal class FordelingRegelJobbUtførerTest {
                 orgnr = "orgnr",
                 beskrivelse = "tittel"
             )
-        }
 
-        verify {
             innkommendeJournalpostRepository.lagre(withArg {
                 assertThat(it.journalpostId).isEqualTo(journalpostId)
                 assertThat(it.status).isEqualTo(InnkommendeJournalpostStatus.GOSYS_FDR)
@@ -170,6 +174,7 @@ internal class FordelingRegelJobbUtførerTest {
 
         verify(exactly = 0) {
             flytJobbRepository.leggTil(any())
+            journalpostService.tilJournalpostMedDokumentTitler(any())
         }
     }
 }

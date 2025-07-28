@@ -12,7 +12,7 @@ interface BehandlingRepository: Repository {
 
     fun hent(referanse: Behandlingsreferanse): Behandling
 
-    fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling>
+    fun hentAlleBehandlinger(journalpostId: JournalpostId): List<Behandling>
 
     fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling
 }

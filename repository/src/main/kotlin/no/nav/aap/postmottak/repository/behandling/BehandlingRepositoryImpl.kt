@@ -146,14 +146,14 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
 
     }
 
-    override fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling> {
+    override fun hentAlleBehandlinger(journalpostId: JournalpostId): List<Behandling> {
         val query = """
             SELECT * FROM BEHANDLING
             WHERE journalpost_id = ?
         """.trimIndent()
 
         return connection.queryList(query) {
-            setParams { setLong(1, saksnummer.referanse) }
+            setParams { setLong(1, journalpostId.referanse) }
             setRowMapper(::mapBehandling)
         }
     }

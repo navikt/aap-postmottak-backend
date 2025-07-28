@@ -13,11 +13,11 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReposi
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.JoarkRegel.erIkkeKanalEESSI
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaAAP
-import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaEndretFraAAP
+import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusJournalført
 import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusMottatt
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
-import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.prosessering.OppryddingJobbUtfører
 import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -67,19 +67,14 @@ class JoarkKafkaHandler(
         val streamBuilder = StreamsBuilder()
 
         streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
-            .filter(harStatusMottatt)
+            .filter(erTemaAAP)
             .filter(erIkkeKanalEESSI)
             .peek { _, record -> prometheus.hendelseType(record) }
             .split()
-            .branch(erTemaEndretFraAAP, Branched.withConsumer(::temaendringTopology))
-            .branch(erTemaAAP, Branched.withConsumer(::nyJournalpost))
+            .branch(harStatusMottatt, Branched.withConsumer(::nyJournalpost))
+            .branch(harStatusJournalført, Branched.withConsumer(::ferdigstiltJournalpost))
 
         topology = streamBuilder.build()
-    }
-
-    private fun temaendringTopology(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream.mapValues { record -> JournalpostId(record.journalpostId) }
-            .foreach { _, record -> håndterTemaendring(record) }
     }
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
@@ -88,14 +83,21 @@ class JoarkKafkaHandler(
         }
     }
 
-    private fun håndterTemaendring(journalpostId: JournalpostId) {
-        log.info("Mottatt temaendring på journalpost $journalpostId")
+    private fun ferdigstiltJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
+        stream.foreach { _, record ->
+            opprettOppryddingJobb(record.journalpostId.let(::JournalpostId), record.hendelsesType)
+        }
+    }
+
+    private fun opprettOppryddingJobb(journalpostId: JournalpostId, hendelsesType: String) {
+        log.info("Mottok journalført journalpost $journalpostId, hendelsesType: $hendelsesType")
+
         transactionProvider.inTransaction {
             try {
-                val behandling = behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
                 flytJobbRepository.leggTil(
-                    JobbInput(ProsesserBehandlingJobbUtfører)
-                        .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id.id).medCallId()
+                    JobbInput(OppryddingJobbUtfører)
+                        .forSak(journalpostId.referanse)
+                        .medJournalpostId(journalpostId)
                 )
             } catch (e: Exception) {
                 when (e) {
@@ -109,13 +111,13 @@ class JoarkKafkaHandler(
 
     private fun opprettFordelingRegelJobb(
         journalpostId: JournalpostId,
-        hendelse: String,
+        hendelsesType: String,
     ) {
-        log.info("Mottatt ny journalpost: $journalpostId, hendelse: $hendelse")
-        transactionProvider.inTransaction {
+        log.info("Mottatt ny journalpost: $journalpostId, hendelsesType: $hendelsesType")
 
+        transactionProvider.inTransaction {
             flytJobbRepository.leggTil(
-                JobbInput(FordelingRegelJobbUtfører) 
+                JobbInput(FordelingRegelJobbUtfører)
                     .forSak(journalpostId.referanse)
                     .medJournalpostId(journalpostId)
             )
@@ -141,4 +143,6 @@ object JoarkRegel {
     val erTemaAAP: (String, JournalfoeringHendelseRecord) -> Boolean =
         { _, record -> record.temaNytt == TEMA_AAP }
 
+    val harStatusJournalført: (String, JournalfoeringHendelseRecord) -> Boolean =
+        { _, record -> record.journalpostStatus == "JOURNALFOERT" }
 }

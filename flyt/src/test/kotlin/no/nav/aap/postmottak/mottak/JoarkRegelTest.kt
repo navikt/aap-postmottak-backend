@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.mottak
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.mottak.JoarkRegel.erIkkeKanalEESSI
+import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusJournalført
 import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusMottatt
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -20,6 +21,19 @@ internal class JoarkRegelTest {
 
         assertFalse(
             harStatusMottatt("id", record(journalpostStatus = "FERDIGSTILT")),
+            "Skal gi false når status ikke er MOTTATT"
+        )
+    }
+
+    @Test
+    fun `Sjekk regel harStatusJournalført`() {
+        assertTrue(
+            harStatusJournalført("id", record(journalpostStatus = "JOURNALFOERT")),
+            "Skal gi true når status er JOURNALFOERT"
+        )
+
+        assertFalse(
+            harStatusJournalført("id", record(journalpostStatus = "MOTTATT")),
             "Skal gi false når status ikke er MOTTATT"
         )
     }

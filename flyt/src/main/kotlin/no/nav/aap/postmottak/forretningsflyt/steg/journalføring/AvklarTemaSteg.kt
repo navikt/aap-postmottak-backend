@@ -71,25 +71,20 @@ class AvklarTemaSteg(
             }
         } else {
             if (venterPåBehandlingIGosys(journalpost, temavurdering)) {
-                val aktivIdent = journalpost.person.aktivIdent()
-                GatewayProvider.provide(GosysOppgaveGateway::class)
-                    .opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpost.journalpostId, aktivIdent.identifikator)
-                FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
-            } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) {
-                log.info("Journalpost har endret tema. Nytt tema er: ${journalpost.tema}")
-                gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
-                    .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
-                return Fullført
-            } else Fullført
+                log.info("Oppretter oppgave i Gosys for journalpost ${journalpost.journalpostId}")
+
+                gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
+                    journalpostId = journalpost.journalpostId,
+                    personident = journalpost.person.aktivIdent().identifikator
+                )
+            }
+
+            Fullført
         }
     }
 
     private fun venterPåBehandlingIGosys(journalpost: Journalpost, temavurdering: TemaVurdering): Boolean {
         return journalpost.tema == "AAP" && temavurdering.tema == Tema.UKJENT
-    }
-
-    private fun erFerdigBehandletIGosys(journalpost: Journalpost, temavurdering: TemaVurdering): Boolean {
-        return journalpost.tema != "AAP" && temavurdering.tema == Tema.UKJENT
     }
 
     private fun avklarTemaMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {
