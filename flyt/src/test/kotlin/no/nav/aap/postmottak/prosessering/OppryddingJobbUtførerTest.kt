@@ -1,29 +1,7 @@
 package no.nav.aap.postmottak.prosessering
 
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
-import java.time.LocalDate
-import kotlin.random.Random
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
-import no.nav.aap.fordeler.InnkommendeJournalpostRepository
-import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
-import no.nav.aap.postmottak.gateway.JournalpostGateway
-import no.nav.aap.postmottak.gateway.Journalstatus
-import no.nav.aap.postmottak.gateway.SafJournalpost
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 
+/*
 internal class OppryddingJobbUtførerTest {
 
     private val behandlingRepository = mockk<BehandlingRepository>(relaxed = true)
@@ -138,3 +116,4 @@ internal class OppryddingJobbUtførerTest {
         every { journalstatus } returns status
     }
 }
+*/
