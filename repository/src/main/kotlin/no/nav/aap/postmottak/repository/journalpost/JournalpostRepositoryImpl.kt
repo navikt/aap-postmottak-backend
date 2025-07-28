@@ -186,7 +186,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             }
     }
 
-    private fun hentAvsenderMottaker(journalpostId: Long): AvsenderMottaker {
+    private fun hentAvsenderMottaker(journalpostId: Long): AvsenderMottaker? {
         val query = "SELECT * FROM AVSENDERMOTTAKER WHERE JOURNALPOST_ID = ?"
 
         return connection.queryList(query) {
@@ -200,6 +200,6 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                     navn = it.getStringOrNull("NAVN"),
                 )
             }
-        }.single()
+        }.singleOrNull()
     }
 }
