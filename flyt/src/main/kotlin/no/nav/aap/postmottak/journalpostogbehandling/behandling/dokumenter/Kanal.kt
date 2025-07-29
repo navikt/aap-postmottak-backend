@@ -126,5 +126,11 @@ enum class KanalFraKodeverk {
     /**
      * Forsendelsen har ingen kjent kanal.
      */
-    UKJENT
+    UKJENT;
+
+    fun erDigitalKanal() = when (this) {
+        NAV_NO, NAV_NO_CHAT, ALTINN, EESSI -> true
+        else -> false
+    }
+
 }
