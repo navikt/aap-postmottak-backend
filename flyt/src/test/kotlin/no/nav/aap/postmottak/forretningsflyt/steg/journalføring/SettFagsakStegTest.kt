@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -52,6 +53,37 @@ class SettFagsakStegTest {
                 vurdering.saksnummer!!,
                 tittel = vurdering.journalposttittel,
                 avsenderMottaker = vurdering.avsenderMottaker,
+                dokumenter = vurdering.dokumenter
+            )
+        }
+    }
+
+    @Test
+    fun `Skal sette avsenderMottaker til null hvis journalpost er digitalt innsendt`() {
+        val journalpost: Journalpost = mockk(relaxed = true) {
+            every { kanal } returns KanalFraKodeverk.NAV_NO
+        }
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(true, Tema.AAP)
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+
+        val vurdering = Saksvurdering(
+            "12345",
+            journalposttittel = "Tittel",
+            avsenderMottaker = AvsenderMottakerDto("id", BrukerIdType.FNR, "navn"),
+            dokumenter = listOf(ForenkletDokument("123", "hoveddokument tittel"))
+        )
+
+        every { saksnummerRepository.hentSakVurdering(any()) } returns vurdering
+
+        settFagsakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 1) {
+            joark.førJournalpostPåFagsak(
+                journalpost.journalpostId,
+                journalpost.person.aktivIdent(),
+                vurdering.saksnummer!!,
+                tittel = vurdering.journalposttittel,
+                avsenderMottaker = null,
                 dokumenter = vurdering.dokumenter
             )
         }
