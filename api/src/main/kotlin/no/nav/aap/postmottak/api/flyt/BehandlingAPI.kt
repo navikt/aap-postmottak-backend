@@ -14,12 +14,9 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
-import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.FrivilligeAvklaringsbehov
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
@@ -47,8 +44,10 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                     val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
                     val avklaringsbehovRepository = repositoryProvider.provide(AvklaringsbehovRepository::class)
 
-                    val behandling = behandling(behandlingRepository, req)
+                    val behandling = behandlingRepository.hent(req)
                     val flyt = utledType(behandling.typeBehandling).flyt()
+                    val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
+
                     DetaljertBehandlingDTO(
                         referanse = req,
                         type = behandling.typeBehandling.name,
@@ -57,10 +56,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                         skalForberede = behandling.harIkkeVærtAktivitetIDetSiste(),
 
                         avklaringsbehov = FrivilligeAvklaringsbehov(
-                            avklaringsbehov(
-                                avklaringsbehovRepository,
-                                behandling.id
-                            ),
+                            avklaringsbehovene,
                             flyt,
                             behandling.aktivtSteg()
                         ).alle().map { avklaringsbehov ->
@@ -99,8 +95,8 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                     val taSkriveLåsRepository = repositoryProvider.provide(TaSkriveLåsRepository::class)
                     val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
                     val lås = taSkriveLåsRepository.lås(req)
-                    
-                    val behandling = behandling(behandlingRepository, req)
+
+                    val behandling = behandlingRepository.hent(req)
                     val flytJobbRepository = FlytJobbRepository(connection)
 
                     if (!behandling.status()
@@ -141,14 +137,6 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
             respond(referanse)
         }
     }
-}
-
-private fun behandling(behandlingRepository: BehandlingRepository, req: BehandlingsreferansePathParam): Behandling {
-    return behandlingRepository.hent(req)
-}
-
-private fun avklaringsbehov(avklaringsbehovRepository: AvklaringsbehovRepository, behandlingId: BehandlingId): Avklaringsbehovene {
-    return avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
 }
 
 class JournalpostDto(

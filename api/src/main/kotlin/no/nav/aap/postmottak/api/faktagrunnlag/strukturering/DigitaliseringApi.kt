@@ -37,15 +37,12 @@ fun NormalOpenAPIRoute.digitaliseringApi(dataSource: DataSource) {
                 val digitaliseringsvurdering = repositoryProvider.provide(DigitaliseringsvurderingRepository::class)
                     .hentHvisEksisterer(behandling.id)
 
-                val journalpost =
-                    RepositoryProvider(it).provide(JournalpostRepository::class).hentHvisEksisterer(req)
+                val journalpost = repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(req)
 
                 requireNotNull(journalpost) { "Journalpost ikke funnet" }
 
-                val saksnummer = dataSource.transaction(readOnly = true) {
-                    RepositoryProvider(it).provide(SaksnummerRepository::class)
-                        .hentSakVurdering(behandling.id)?.saksnummer
-                }
+                val saksnummer = repositoryProvider.provide(SaksnummerRepository::class)
+                    .hentSakVurdering(behandling.id)?.saksnummer
 
                 requireNotNull(saksnummer) { "Kun journalposter som er journalført på Kelvin-sak skal digitaliseres" }
                 val klagebehandlinger = GatewayProvider.provide(BehandlingsflytGateway::class)
