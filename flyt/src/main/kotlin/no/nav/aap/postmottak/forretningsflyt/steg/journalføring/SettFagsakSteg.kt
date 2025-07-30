@@ -55,7 +55,7 @@ class SettFagsakSteg(
         val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         requireNotNull(saksvurdering)
 
-        val avsenderMottaker = saksvurdering.avsenderMottaker?.takeIf { journalpost.kanal.erDigitalKanal() }
+        val avsenderMottaker = saksvurdering.avsenderMottaker?.takeUnless { journalpost.kanal.erDigitalKanal() }
 
         if (saksvurdering.generellSak) {
             joarkKlient.førJournalpostPåGenerellSak(
