@@ -144,7 +144,7 @@ fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
         status = journalpost.journalstatus ?: Journalstatus.UKJENT,
         tema = journalpost.tema,
         behandlingstema = journalpost.behandlingstema,
-        tittel = "Tittel på journalposten",
+        tittel = journalpost.tittel,
         journalførendeEnhet = journalpost.journalfoerendeEnhet,
         mottattDato = mottattDato,
         mottattTid = mottattTid,
