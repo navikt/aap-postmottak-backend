@@ -55,12 +55,14 @@ class SettFagsakSteg(
         val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         requireNotNull(saksvurdering)
 
+        val avsenderMottaker = saksvurdering.avsenderMottaker?.takeIf { journalpost.kanal.erDigitalKanal() }
+
         if (saksvurdering.generellSak) {
             joarkKlient.førJournalpostPåGenerellSak(
                 journalpost = journalpost,
                 tema = temaavklaring.tema.name,
                 tittel = saksvurdering.journalposttittel,
-                avsenderMottaker = saksvurdering.avsenderMottaker,
+                avsenderMottaker = avsenderMottaker,
                 dokumenter = saksvurdering.dokumenter
             )
         } else {
@@ -69,7 +71,7 @@ class SettFagsakSteg(
                 ident = journalpost.person.aktivIdent(),
                 fagsakId = saksvurdering.saksnummer!!,
                 tittel = saksvurdering.journalposttittel,
-                avsenderMottaker = saksvurdering.avsenderMottaker,
+                avsenderMottaker = avsenderMottaker,
                 dokumenter = saksvurdering.dokumenter
             )
         }
