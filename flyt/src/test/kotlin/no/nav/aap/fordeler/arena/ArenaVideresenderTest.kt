@@ -15,7 +15,7 @@ import no.nav.aap.postmottak.gateway.JournalføringsGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -39,7 +39,7 @@ class ArenaVideresenderTest {
     fun `når journalpost er en legeerklæring, skal journalposten journalføres med tema OPP`() {
 
         val journalpostId_ = JournalpostId(1)
-        val journalpost: JournalpostMedDokumentTitler = mockk<JournalpostMedDokumentTitler> {
+        val journalpost: Journalpost = mockk<Journalpost> {
             every { hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
             every { journalpostId } returns journalpostId_
             every { getHoveddokumenttittel() } returns "Hoveddokumenttittel"
@@ -52,7 +52,7 @@ class ArenaVideresenderTest {
             every { enhet } returns "enhet"
         }
 
-        every { journalpostService.hentJournalpostMedDokumentTitler(journalpostId_) } returns journalpost
+        every { journalpostService.hentJournalpost(journalpostId_) } returns journalpost
 
         arenaVideresender.videresendJournalpostTilArena(
             journalpostId_, innkommendeJournalpostId = 1L,
@@ -74,7 +74,7 @@ class ArenaVideresenderTest {
             vedleggstitler = listOf("vedleggtitler")
         )
 
-        val journalpost: JournalpostMedDokumentTitler = mockk {
+        val journalpost: Journalpost = mockk {
             every { hoveddokumentbrevkode } returns Brevkoder.SØKNAD.kode
             every { journalpostId } returns actualKontekst.journalpostId
             every { person } returns mockk { every { aktivIdent() } returns actualKontekst.ident }
@@ -83,7 +83,7 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.MOTTATT
         }
 
-        every { journalpostService.hentJournalpostMedDokumentTitler(actualKontekst.journalpostId) } returns journalpost
+        every { journalpostService.hentJournalpost(actualKontekst.journalpostId) } returns journalpost
         every { innkommendeJournalpostRepository.hent(actualKontekst.journalpostId) } returns mockk {
             every { enhet } returns actualKontekst.navEnhet
         }
@@ -113,7 +113,7 @@ class ArenaVideresenderTest {
             navEnhet = "Utland"
         )
 
-        val journalpost: JournalpostMedDokumentTitler = mockk {
+        val journalpost: Journalpost = mockk {
             every { journalpostId } returns arenaVideresenderKontekst.journalpostId
             every { person } returns Person(1, UUID.randomUUID(), listOf(arenaVideresenderKontekst.ident))
             every { hoveddokumentbrevkode } returns Brevkoder.STANDARD_ETTERSENDING.kode
@@ -126,7 +126,7 @@ class ArenaVideresenderTest {
             every { enhet } returns arenaVideresenderKontekst.navEnhet
         }
 
-        every { journalpostService.hentJournalpostMedDokumentTitler(arenaVideresenderKontekst.journalpostId) } returns journalpost
+        every { journalpostService.hentJournalpost(arenaVideresenderKontekst.journalpostId) } returns journalpost
 
         arenaVideresender.videresendJournalpostTilArena(
             arenaVideresenderKontekst.journalpostId,
@@ -155,7 +155,7 @@ class ArenaVideresenderTest {
             vedleggstitler = listOf("vedleggtitler")
         )
 
-        val journalpost: JournalpostMedDokumentTitler = mockk {
+        val journalpost: Journalpost = mockk {
             every { hoveddokumentbrevkode } returns "something else"
             every { journalpostId } returns actualKontekst.journalpostId
             every { person } returns mockk { every { aktivIdent() } returns actualKontekst.ident }
@@ -164,7 +164,7 @@ class ArenaVideresenderTest {
             every { status } returns Journalstatus.MOTTATT
         }
 
-        every { journalpostService.hentJournalpostMedDokumentTitler(actualKontekst.journalpostId) } returns journalpost
+        every { journalpostService.hentJournalpost(actualKontekst.journalpostId) } returns journalpost
         every { innkommendeJournalpostRepository.hent(actualKontekst.journalpostId) } returns mockk {
             every { enhet } returns actualKontekst.navEnhet
         }
@@ -184,12 +184,12 @@ class ArenaVideresenderTest {
     fun `Allerede journalførte journalposter skal ikke føre til nye oppgaver i Arena eller Gosys`() {
 
         val journalpostId_ = JournalpostId(1)
-        val journalpost: JournalpostMedDokumentTitler = mockk {
+        val journalpost: Journalpost = mockk {
             every { journalpostId } returns journalpostId_
             every { status } returns Journalstatus.JOURNALFOERT
         }
 
-        every { journalpostService.hentJournalpostMedDokumentTitler(journalpostId_) } returns journalpost
+        every { journalpostService.hentJournalpost(journalpostId_) } returns journalpost
 
         arenaVideresender.videresendJournalpostTilArena(
             journalpostId_, innkommendeJournalpostId = 1L,

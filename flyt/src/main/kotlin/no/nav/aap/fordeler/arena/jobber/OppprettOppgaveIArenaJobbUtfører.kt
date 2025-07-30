@@ -10,7 +10,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.slf4j.LoggerFactory
 
 class OppprettOppgaveIArenaJobbUtfører(
@@ -40,7 +40,7 @@ class OppprettOppgaveIArenaJobbUtfører(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun utførArena(input: JobbInput, journalpost: JournalpostMedDokumentTitler) {
+    override fun utførArena(input: JobbInput, journalpost: Journalpost) {
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (kontekst.navEnhet == null || input.antallRetriesForsøkt() >= 2) {

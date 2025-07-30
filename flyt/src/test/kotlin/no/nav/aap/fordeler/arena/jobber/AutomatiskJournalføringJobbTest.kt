@@ -13,10 +13,10 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
@@ -63,10 +63,10 @@ class AutomatiskJournalføringJobbTest {
     @Test
     fun `Skal opprette manuell journalføirngsjobb dersom automatisk journalføring har feilet 2 ganger`() {
         val journalpostId = JournalpostId(1)
-        val journalpost = JournalpostMedDokumentTitler(
+        val journalpost = Journalpost(
             journalpostId = journalpostId,
             dokumenter = listOf(
-                DokumentMedTittel(
+                Dokument(
                     DokumentInfoId("123"),
                     "NAV 11.13-05",
                     "Hoveddokument",
@@ -83,7 +83,8 @@ class AutomatiskJournalføringJobbTest {
             fagsystem = null,
             saksnummer = null,
             behandlingstema = null,
-            tittel = "Tittel på journalposten"
+            tittel = "Tittel på journalposten",
+            avsenderMottaker = null
         )
 
 
@@ -100,7 +101,7 @@ class AutomatiskJournalføringJobbTest {
             )
         )
 
-        every { journalpostServiceMock.hentJournalpostMedDokumentTitler(any()) } returns journalpost
+        every { journalpostServiceMock.hentJournalpost(any()) } returns journalpost
         every { innkommendeJournalpostRepository.hent(journalpost.journalpostId) } returns mockk {
             every { enhet } returns "4491"
         }
@@ -112,9 +113,7 @@ class AutomatiskJournalføringJobbTest {
             flytJobbRepositoryMock.leggTil(withArg {
                 assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type())
                 assertThat(it.getArenaVideresenderKontekst()).isEqualTo(
-                    journalpost.opprettArenaVideresenderKontekst(
-                        "4491", innkommendeJournalpostId = 1L,
-                    )
+                    ArenaVideresenderKontekst.fra(journalpost, "4491", innkommendeJournalpostId = 1L)
                 )
             })
         }

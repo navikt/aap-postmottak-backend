@@ -9,24 +9,24 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class ManuellJournalføringJobbTest {
-    val gosysMock = mockk<GosysOppgaveGateway>(relaxed = true)
-    val journalpostServiceMock = mockk<JournalpostService>()
-    val journalpostMock = mockk<JournalpostMedDokumentTitler>()
+    private val gosysMock = mockk<GosysOppgaveGateway>(relaxed = true)
+    private val journalpostServiceMock = mockk<JournalpostService>()
+    private val journalpostMock = mockk<Journalpost>()
 
-    val manuellJournalføringJobb = ManuellJournalføringJobbUtfører(
+    private val manuellJournalføringJobb = ManuellJournalføringJobbUtfører(
         gosysMock,
         journalpostServiceMock,
     )
 
     @BeforeEach
     fun beforeEach() {
-        every { journalpostServiceMock.hentJournalpostMedDokumentTitler(any()) } returns journalpostMock
+        every { journalpostServiceMock.hentJournalpost(any()) } returns journalpostMock
     }
     
     @Test
