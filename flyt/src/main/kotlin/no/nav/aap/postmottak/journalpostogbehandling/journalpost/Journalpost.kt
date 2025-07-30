@@ -70,7 +70,7 @@ data class Journalpost(
     fun getHoveddokumenttittel(): String = hoveddokument.tittel ?: "Dokument uten tittel"
 
     fun getVedleggTitler(): List<String> = dokumenter
-        .filter { it.dokumentInfoId != hoveddokument.dokumentInfoId }
+        .filter { it != hoveddokument }
         .map { it.tittel ?: "Dokument uten tittel" }
 }
 
