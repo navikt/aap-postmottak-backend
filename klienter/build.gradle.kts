@@ -1,9 +1,4 @@
-val komponenterVersjon = "1.0.296"
-val ktorVersion = "3.2.2"
 val jacksonVersion = "2.19.1"
-val junitVersion = "5.11.3"
-val behandlingsflytVersjon = "0.0.380"
-val apiInternVersjon = "0.0.9"
 
 plugins {
     id("postmottak.conventions")
@@ -16,11 +11,11 @@ dependencies {
     // TODO: undersøk om vi kan bruke en enklere algoritme for arbeidsdager
     implementation("no.bekk.bekkopen:nocommons:0.16.0")
     
-    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
-    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
-    implementation("no.nav.aap.api.intern:kontrakt:$apiInternVersjon")
+    implementation(libs.httpklient)
+    implementation(libs.infrastructure)
+    implementation(libs.dbconnect)
+    implementation(libs.behandlingsflytKontrakt)
+    implementation(libs.apiInternKontrakt)
 
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -30,12 +25,10 @@ dependencies {
     implementation("io.getunleash:unleash-client-java:11.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation(libs.bundles.junit)
     testImplementation("io.mockk:mockk:1.14.5")
     testImplementation(project(":lib-test"))
-    testImplementation("io.ktor:ktor-server-netty:$ktorVersion")
+    testImplementation(libs.ktorServerNetty)
     constraints {
         implementation("io.netty:netty-common:4.2.3.Final")
     }

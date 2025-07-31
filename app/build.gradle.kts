@@ -1,15 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val ktorVersion = "3.2.2"
-val komponenterVersjon = "1.0.296"
 val kafkaVersion = "3.7.0"
-val tilgangVersjon = "1.0.96"
-val behandlingsflytVersjon = "0.0.380"
-val junitVersjon = "5.13.1"
 
 plugins {
     id("postmottak.conventions")
-    id("io.ktor.plugin") version "3.2.2"
+    alias(libs.plugins.ktor)
 }
 
 application {
@@ -53,8 +48,7 @@ fun getCheckedOutGitCommitHash(): String {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-server-double-receive-jvm:3.2.2")
+    implementation(libs.ktorSerializationJackson)
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.19.1")
     implementation("no.nav:ktor-openapi-generator:1.0.119")
@@ -69,16 +63,16 @@ dependencies {
     implementation(project(":api"))
     implementation(project(":flyt"))
 
-    implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
-    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
-    implementation("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
-    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
+    implementation(libs.tilgangPlugin)
+    implementation(libs.behandlingsflytKontrakt)
+    implementation(libs.tilgangKontrakt)
+    implementation(libs.httpklient)
+    implementation(libs.infrastructure)
+    implementation(libs.dbconnect)
+    implementation(libs.dbmigrering)
+    implementation(libs.motor)
+    implementation(libs.motorApi)
+    implementation(libs.server)
     implementation("com.zaxxer:HikariCP:6.3.0")
     implementation("org.flywaydb:flyway-database-postgresql:11.10.3")
     runtimeOnly("org.postgresql:postgresql:42.7.7")
@@ -96,11 +90,9 @@ dependencies {
 
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
 
-    testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
+    testImplementation(libs.dbtest)
     testImplementation(project(":lib-test"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersjon")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersjon")
-    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation(libs.bundles.junit)
     testImplementation("org.testcontainers:postgresql:1.21.3")
     constraints {
         implementation("org.apache.commons:commons-compress:1.27.1") {

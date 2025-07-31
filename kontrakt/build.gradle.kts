@@ -4,16 +4,12 @@ plugins {
     `java-library`
 }
 
-val tilgangVersjon = "1.0.96"
-
 dependencies {
     api("com.fasterxml.jackson.core:jackson-annotations:2.19.1")
     api("no.nav:ktor-openapi-generator:1.0.119")
-    compileOnly("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
+    compileOnly(libs.tilgangKontrakt)
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.1")
-    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation(libs.bundles.junit)
 }
 
 group = "no.nav.aap.postmottak"

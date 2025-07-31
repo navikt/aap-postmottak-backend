@@ -2,29 +2,23 @@ plugins {
     id("postmottak.conventions")
 }
 
-val komponenterVersjon = "1.0.296"
-val behandlingsflytVersjon = "0.0.380"
-val ktorVersion = "3.2.2"
-val tilgangVersjon = "1.0.96"
-val junitVersjon = "5.13.1"
 val kafkaVersion = "3.7.0"
-val apiInternVersjon = "0.0.9"
 
 dependencies {
     api(project(":kontrakt"))
-    api("no.nav.aap.kelvin:motor:$komponenterVersjon")
-    api("no.nav.aap.kelvin:gateway:$komponenterVersjon")
-    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
-    implementation("no.nav.aap.api.intern:kontrakt:$apiInternVersjon")
-    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:verdityper:$komponenterVersjon")
-    api("no.nav.aap.tilgang:plugin:$tilgangVersjon")
-    api("no.nav.aap.tilgang:api-kontrakt:$tilgangVersjon")
-    compileOnly("io.ktor:ktor-http-jvm:$ktorVersion")
+    api(libs.motor)
+    api(libs.gateway)
+    implementation(libs.behandlingsflytKontrakt)
+    implementation(libs.apiInternKontrakt)
+    implementation(libs.dbconnect)
+    implementation(libs.infrastructure)
+    implementation(libs.httpklient)
+    implementation(libs.server)
+    implementation(libs.motorApi)
+    implementation(libs.verdityper)
+    api(libs.tilgangPlugin)
+    api(libs.tilgangKontrakt)
+    compileOnly(libs.ktorHttpJvm)
     implementation("org.flywaydb:flyway-database-postgresql:11.10.3")
 
     implementation(kotlin("reflect"))
@@ -38,17 +32,14 @@ dependencies {
     implementation("io.confluent:kafka-streams-avro-serde:7.7.1")
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersjon")
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersjon")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersjon")
-    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation(libs.bundles.junit)
     testImplementation(project(":lib-test"))
     testImplementation(project(":repository"))
     testImplementation(project(":klienter"))
     testImplementation(project(":api"))
-    testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
-    testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
+    testImplementation(libs.dbtest)
+    testImplementation(libs.motorTestUtils)
     testImplementation("io.mockk:mockk:1.14.5")
     testImplementation("org.testcontainers:postgresql:1.21.3")
 }
