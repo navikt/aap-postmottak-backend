@@ -15,7 +15,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.Kanal
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentMedTittel
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -131,7 +130,7 @@ class JournalpostInformasjonskravTest {
         journalpostId: JournalpostId,
         person: Person = Person(1, UUID.randomUUID(), listOf(Ident("12345678901"))),
         dokumenter: List<Dokument> = listOf(
-            DokumentMedTittel(
+            Dokument(
                 DokumentInfoId("45426854351"),
                 "NAV 11.13-05",
                 "Dokumenttittel",

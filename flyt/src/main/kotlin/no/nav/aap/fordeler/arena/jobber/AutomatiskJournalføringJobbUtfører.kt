@@ -15,7 +15,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.JournalføringsGateway
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.slf4j.LoggerFactory
 
 class AutomatiskJournalføringJobbUtfører(
@@ -49,7 +49,7 @@ class AutomatiskJournalføringJobbUtfører(
 
     private var log = LoggerFactory.getLogger(this::class.java)
 
-    override fun utførArena(input: JobbInput, journalpost: JournalpostMedDokumentTitler) {
+    override fun utførArena(input: JobbInput, journalpost: Journalpost) {
         val kontekst = input.getAutomatiskJournalføringKontekst()
 
         if (input.antallRetriesForsøkt() >= retries()) {
@@ -58,10 +58,7 @@ class AutomatiskJournalføringJobbUtfører(
             flytJobbRepository.leggTil(
                 JobbInput(ManuellJournalføringJobbUtfører)
                     .medArenaVideresenderKontekst(
-                        journalpost.opprettArenaVideresenderKontekst(
-                            enhet,
-                            kontekst.innkommendeJournalpostId
-                        )
+                        ArenaVideresenderKontekst.fra(journalpost, enhet, kontekst.innkommendeJournalpostId)
                     )
             )
             return

@@ -6,7 +6,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-open class Journalpost(
+data class Journalpost(
     val journalpostId: JournalpostId,
     val person: Person,
     val journalførendeEnhet: String?,
@@ -67,82 +67,19 @@ open class Journalpost(
     fun erUgyldig(): Boolean =
         status in listOf(Journalstatus.AVBRUTT, Journalstatus.FEILREGISTRERT, Journalstatus.UTGAAR)
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    fun getHoveddokumenttittel(): String = hoveddokument.tittel ?: "Dokument uten tittel"
 
-        other as Journalpost
-
-        if (journalpostId != other.journalpostId) return false
-        if (person != other.person) return false
-        if (journalførendeEnhet != other.journalførendeEnhet) return false
-        if (tema != other.tema) return false
-        if (behandlingstema != other.behandlingstema) return false
-        if (status != other.status) return false
-        if (mottattDato != other.mottattDato) return false
-        if (dokumenter != other.dokumenter) return false
-        if (kanal != other.kanal) return false
-        if (saksnummer != other.saksnummer) return false
-        if (fagsystem != other.fagsystem) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = journalpostId.hashCode()
-        result = 31 * result + person.hashCode()
-        result = 31 * result + (journalførendeEnhet?.hashCode() ?: 0)
-        result = 31 * result + tema.hashCode()
-        result = 31 * result + (behandlingstema?.hashCode() ?: 0)
-        result = 31 * result + status.hashCode()
-        result = 31 * result + mottattDato.hashCode()
-        result = 31 * result + dokumenter.hashCode()
-        result = 31 * result + kanal.hashCode()
-        result = 31 * result + (saksnummer?.hashCode() ?: 0)
-        result = 31 * result + (fagsystem?.hashCode() ?: 0)
-        return result
-    }
-
-    override fun toString(): String {
-        return "Journalpost(journalpostId=$journalpostId, person=$person, journalførendeEnhet=$journalførendeEnhet, tema='$tema', behandlingstema=$behandlingstema, status=$status, mottattDato=$mottattDato, avsenderMottaker=$avsenderMottaker, dokumenter=$dokumenter, kanal=$kanal, saksnummer=$saksnummer, fagsystem=$fagsystem)"
-    }
+    fun getVedleggTitler(): List<String> = dokumenter
+        .filter { it != hoveddokument }
+        .map { it.tittel ?: "Dokument uten tittel" }
 }
 
-open class Dokument (
+data class Dokument(
     val dokumentInfoId: DokumentInfoId,
     val brevkode: String,
     val tittel: String? = null,
     val varianter: List<Variant>,
-) {
-    fun finnFiltype(variantformat: Variantformat): Filtype? =
-        varianter.find { it.variantformat == variantformat }?.filtype
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Dokument
-
-        if (dokumentInfoId != other.dokumentInfoId) return false
-        if (brevkode != other.brevkode) return false
-        if (tittel != other.tittel) return false
-        if (varianter != other.varianter) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = dokumentInfoId.hashCode()
-        result = 31 * result + brevkode.hashCode()
-        result = 31 * result + tittel.hashCode()
-        result = 31 * result + varianter.hashCode()
-        return result
-    }
-
-    override fun toString(): String {
-        return "Dokument(dokumentInfoId=$dokumentInfoId, brevkode='$brevkode', tittel='$tittel', varianter=$varianter)"
-    }
-}
+)
 
 data class Variant(
     val filtype: Filtype,

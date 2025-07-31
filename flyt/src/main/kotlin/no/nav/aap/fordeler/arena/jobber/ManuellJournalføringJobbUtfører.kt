@@ -10,10 +10,7 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.JournalpostMedDokumentTitler
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(ManuellJournalføringJobbUtfører::class.java)
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 
 class ManuellJournalføringJobbUtfører(
     private val gosysOppgaveGateway: GosysOppgaveGateway,
@@ -42,9 +39,9 @@ class ManuellJournalføringJobbUtfører(
 
     }
 
-    override fun utførArena(input: JobbInput, journalpost: JournalpostMedDokumentTitler) {
+    override fun utførArena(input: JobbInput, journalpost: Journalpost) {
         val kontekst = input.getArenaVideresenderKontekst()
-        
+
         if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 3) {
             gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
                 kontekst.journalpostId,
