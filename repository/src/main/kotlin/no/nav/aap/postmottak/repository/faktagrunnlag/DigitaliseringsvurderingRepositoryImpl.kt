@@ -67,7 +67,7 @@ class DigitaliseringsvurderingRepositoryImpl(private val connection: DBConnectio
         }
     }
 
-    override fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+    override fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         connection.execute(
             """
             INSERT INTO DIGITALISERINGSVURDERING_GRUNNLAG (DIGITALISERINGSAVKLARING_ID, BEHANDLING_ID)
@@ -75,8 +75,8 @@ class DigitaliseringsvurderingRepositoryImpl(private val connection: DBConnectio
         """.trimIndent()
         ) {
             setParams {
-                setLong(1, tilBehandlingId.id)
-                setLong(2, fraBehandlingId.id)
+                setLong(1, tilBehandling.id)
+                setLong(2, fraBehandling.id)
             }
         }
     }

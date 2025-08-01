@@ -124,7 +124,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
         }
     }
 
-    override fun kopier(fraBehandlingId: BehandlingId, tilBehandlingId: BehandlingId) {
+    override fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
         connection.execute(
             """
             INSERT INTO SAKSVURDERING_GRUNNLAG (SAKSNUMMER_AVKLARING_ID, BEHANDLING_ID)
@@ -132,8 +132,8 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
         """.trimIndent()
         ) {
             setParams {
-                setLong(1, tilBehandlingId.id)
-                setLong(2, fraBehandlingId.id)
+                setLong(1, tilBehandling.id)
+                setLong(2, fraBehandling.id)
             }
         }
     }
