@@ -58,11 +58,11 @@ fun Application.behandlingsflytFake(
             call.respond(
                 listOf(
                     Klagebehandling(
-                        behandlingsreferanse = UUID.randomUUID(),
+                        behandlingsReferanse = UUID.randomUUID(),
                         opprettetDato = LocalDate.of(2025, 5, 1)
                     ),
                     Klagebehandling(
-                        behandlingsreferanse = UUID.randomUUID(),
+                        behandlingsReferanse = UUID.randomUUID(),
                         opprettetDato = LocalDate.of(2025, 6, 20)
                     )
                 )
