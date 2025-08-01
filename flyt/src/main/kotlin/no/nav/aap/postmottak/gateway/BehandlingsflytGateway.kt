@@ -40,7 +40,7 @@ data class BehandlingsflytSak(
 )
 
 data class Klagebehandling(
-    val behandlingsreferanse: UUID,
+    val behandlingsReferanse: UUID,
     val opprettetDato: LocalDate
 )
 
