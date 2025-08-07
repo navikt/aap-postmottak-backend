@@ -1,4 +1,4 @@
-val jacksonVersion = "2.19.1"
+val jacksonVersion = "2.19.2"
 
 plugins {
     id("postmottak.conventions")
