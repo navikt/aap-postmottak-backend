@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.unleash
+package no.nav.aap.unleash
 
 interface FeatureToggle {
     fun key(): String

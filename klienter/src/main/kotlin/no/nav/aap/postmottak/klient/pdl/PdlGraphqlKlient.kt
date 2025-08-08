@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.klient.pdl
 
 import PdlResponseHandler
-import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -49,7 +48,7 @@ class PdlGraphqlKlient : PersondataGateway {
         personidenter: List<String>
     ): Map<String, NavnMedIdent?>? {
         val request = PdlRequest.hentPersonBolk(personidenter)
-        val response = runBlocking { graphqlQuery(request, null) }
+        val response = graphqlQuery(request, null)
         val data = response.data?.hentPersonBolk
         if (data == null) {
             return null
@@ -82,7 +81,7 @@ class PdlGraphqlKlient : PersondataGateway {
         currentToken: OidcToken? = null
     ): HentPersonResult? {
         val request = PdlRequest.hentPerson(personident)
-        val response = runBlocking { graphqlQuery(request, currentToken) }
+        val response = graphqlQuery(request, currentToken)
         return response.data?.hentPerson
     }
 
@@ -90,14 +89,14 @@ class PdlGraphqlKlient : PersondataGateway {
         personident: String,
     ): GeografiskTilknytning? {
         val request = PdlRequest.hentGeografiskTilknytning(personident)
-        val response = runBlocking { graphqlQuery(request, null) }
+        val response = graphqlQuery(request, null)
         return response.data?.hentGeografiskTilknytning
     }
 
     override fun hentAdressebeskyttelseOgGeolokasjon(ident: Ident): GeografiskTilknytningOgAdressebeskyttelse {
         log.info("Henter adressebeskyttelse og geografisk tilknytning")
         val request = PdlRequest.hentAdressebeskyttelseOgGeografiskTilknytning(ident)
-        val response = runBlocking { graphqlQuery(request, null) }
+        val response = graphqlQuery(request, null)
 
         val data = response.data ?: error("Unexpected response from PDL: ${response.errors}")
         return GeografiskTilknytningOgAdressebeskyttelse(
@@ -112,7 +111,7 @@ class PdlGraphqlKlient : PersondataGateway {
 
     fun hentAlleIdenterForPerson(ident: String, currentToken: OidcToken? = null): List<Ident> {
         val request = PdlRequest.hentAlleIdenterForPerson(ident)
-        val response = runBlocking { graphqlQuery(request, currentToken) }
+        val response = graphqlQuery(request, currentToken)
 
         return response.data
             ?.hentIdenter

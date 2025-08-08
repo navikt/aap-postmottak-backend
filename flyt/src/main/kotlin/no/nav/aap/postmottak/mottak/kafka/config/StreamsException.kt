@@ -13,7 +13,6 @@ import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThr
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
 
-fun replaceThread(message: Any) = ReplaceThread(message)
 class ReplaceThread(message: Any) : RuntimeException(message.toString())
 
 /**
@@ -26,7 +25,7 @@ class EntryPointExceptionHandler : DeserializationExceptionHandler {
         context: ProcessorContext,
         record: ConsumerRecord<ByteArray, ByteArray>,
         exception: Exception,
-    ): DeserializationExceptionHandler.DeserializationHandlerResponse {
+    ): ConsumerHandler {
         secureLog.warn(
             """
                Exception deserializing record
@@ -56,7 +55,7 @@ class EntryPointExceptionHandler : DeserializationExceptionHandler {
 class ProcessingExceptionHandler : StreamsUncaughtExceptionHandler {
     override fun handle(
         exception: Throwable,
-    ): StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse {
+    ): StreamHandler {
         return when (exception.cause) {
             is ReplaceThread -> logAndReplaceThread(exception)
             else -> logAndShutdownClient(exception)
@@ -65,14 +64,14 @@ class ProcessingExceptionHandler : StreamsUncaughtExceptionHandler {
 
     private fun logAndReplaceThread(
         err: Throwable,
-    ): StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse {
+    ): StreamHandler {
         secureLog.error("Feil ved prosessering av record, logger og leser neste record", err)
         return StreamHandler.REPLACE_THREAD
     }
 
     private fun logAndShutdownClient(
         err: Throwable,
-    ): StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse {
+    ): StreamHandler {
         secureLog.error("Uventet feil, logger og avslutter client", err)
         return StreamHandler.SHUTDOWN_CLIENT
     }
@@ -87,7 +86,7 @@ class ExitPointExceptionHandler : ProductionExceptionHandler {
     override fun handle(
         record: ProducerRecord<ByteArray, ByteArray>,
         exception: Exception,
-    ): ProductionExceptionHandler.ProductionExceptionHandlerResponse {
+    ): ProducerHandler {
         secureLog.error("Feil i streams, logger og leser neste record", exception)
         return ProducerHandler.FAIL
     }

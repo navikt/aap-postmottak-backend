@@ -10,8 +10,8 @@ import java.util.*
 data class StreamsConfig(
     val applicationId: String = requiredConfigForKey("KAFKA_STREAMS_APPLICATION_ID") + "-v2",
     val brokers: String = requiredConfigForKey("KAFKA_BROKERS"),
-    val ssl: SslConfig? = SslConfig(),
-    val schemaRegistry: SchemaRegistryConfig? = SchemaRegistryConfig(),
+    val ssl: SslConfig = SslConfig(),
+    val schemaRegistry: SchemaRegistryConfig = SchemaRegistryConfig(),
     val compressionType: String = "snappy",
     val additionalProperties: Properties = Properties(),
 ) {
@@ -19,8 +19,8 @@ data class StreamsConfig(
         this[StreamsConfig.APPLICATION_ID_CONFIG] = applicationId
         this[CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG] = brokers
 
-        ssl?.let { putAll(it.properties()) }
-        schemaRegistry?.let { putAll(it.properties()) }
+        putAll(ssl.properties())
+        putAll(schemaRegistry.properties())
         putAll(additionalProperties)
 
         /* Exception handler when leaving the stream, e.g. serialization */

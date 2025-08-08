@@ -35,8 +35,7 @@ internal data class PdlRequest(val query: String, val variables: Variables) {
 }
 
 
-private const val identer = "\$identer"
-val PERSON_BOLK_QUERY = """
+val PERSON_BOLK_QUERY = $$"""
     query($identer: [ID!]!) {
         hentPersonBolk(identer: $identer) {
             ident,
@@ -55,8 +54,7 @@ val PERSON_BOLK_QUERY = """
     }
 """.trimIndent()
 
-private const val ident = "\$ident"
-val PERSON_QUERY = """
+val PERSON_QUERY = $$"""
     query($ident: ID!) {
         hentPerson(ident: $ident) {
              navn(historikk: false) {
@@ -74,7 +72,7 @@ val PERSON_QUERY = """
     }
 """.trimIndent()
 
-val IDENT_QUERY = """
+val IDENT_QUERY = $$"""
     query($ident: ID!) {
         hentIdenter(ident: $ident, historikk: true) {
             identer {
@@ -86,7 +84,7 @@ val IDENT_QUERY = """
     }
 """.trimIndent()
 
-val ADRESSEBESKYTTELSE_QUERY = """
+val ADRESSEBESKYTTELSE_QUERY = $$"""
      query($ident: ID!) {
       hentPerson(ident: $ident) {
         adressebeskyttelse(historikk: false) {
@@ -103,7 +101,7 @@ val ADRESSEBESKYTTELSE_QUERY = """
     }   
 """.trimIndent()
 
-val GEOGRAFISK_TILKNYTNING_QUERY = """
+val GEOGRAFISK_TILKNYTNING_QUERY = $$"""
     query($ident: ID!) {
         hentGeografiskTilknytning(ident: $ident) {
             gtType

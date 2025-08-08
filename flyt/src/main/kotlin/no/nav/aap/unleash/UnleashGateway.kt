@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.unleash
+package no.nav.aap.unleash
 
 import no.nav.aap.komponenter.gateway.Gateway
 

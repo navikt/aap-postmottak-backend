@@ -2,8 +2,8 @@ package no.nav.aap.postmottak.klient.unleash
 
 import io.getunleash.DefaultUnleash
 import io.getunleash.util.UnleashConfig
-import no.nav.aap.behandlingsflyt.unleash.FeatureToggle
-import no.nav.aap.behandlingsflyt.unleash.UnleashGateway
+import no.nav.aap.unleash.FeatureToggle
+import no.nav.aap.unleash.UnleashGateway
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 
