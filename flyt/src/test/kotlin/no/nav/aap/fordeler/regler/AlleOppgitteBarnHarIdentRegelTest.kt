@@ -115,9 +115,22 @@ internal class AlleOppgitteBarnHarIdentRegelTest {
         val dokumentId = DokumentInfoId("1")
         val oppgitteBarn = OppgitteBarn(
             emptySet(), listOf(
-                ManueltOppgittBarn(ident = Ident("33221101234")),
-                ManueltOppgittBarn(navn = "navn", ident = Ident("33221101234")),
-                ManueltOppgittBarn(ident = Ident("33221101234"), fødselsdato = LocalDate.now()),
+                ManueltOppgittBarn(
+                    ident = Ident("33221101234"),
+                    navn = "Jon Jonni",
+                    fødselsdato = LocalDate.of(1990, 1, 1),
+                    relasjon = ManueltOppgittBarn.Relasjon.FOSTERFORELDER
+                ),
+                ManueltOppgittBarn(
+                    navn = "navn", ident = Ident("33221101234"),
+                    fødselsdato = LocalDate.of(1990, 1, 1),
+                    relasjon = ManueltOppgittBarn.Relasjon.FOSTERFORELDER
+                ),
+                ManueltOppgittBarn(
+                    ident = Ident("33221101234"), fødselsdato = LocalDate.now(),
+                    navn = "Jon Jonni",
+                    relasjon = ManueltOppgittBarn.Relasjon.FOSTERFORELDER
+                ),
             )
         )
 
@@ -152,9 +165,22 @@ internal class AlleOppgitteBarnHarIdentRegelTest {
 
         val oppgitteBarn = OppgitteBarn(
             emptySet(), listOf(
-                ManueltOppgittBarn(ident = Ident("33221101234")),
-                ManueltOppgittBarn(navn = "navn", ident = Ident("33221101234")),
-                ManueltOppgittBarn(fødselsdato = LocalDate.now()), // Mangler ident
+                ManueltOppgittBarn(
+                    ident = Ident("33221101234"),
+                    navn = "Jon Jonni",
+                    fødselsdato = LocalDate.of(1990, 1, 1),
+                    relasjon = ManueltOppgittBarn.Relasjon.FOSTERFORELDER
+                ),
+                ManueltOppgittBarn(
+                    navn = "navn", ident = Ident("33221101234"),
+                    fødselsdato = LocalDate.of(1990, 1, 1),
+                    relasjon = ManueltOppgittBarn.Relasjon.FOSTERFORELDER
+                ),
+                ManueltOppgittBarn(
+                    fødselsdato = LocalDate.now(),
+                    navn = "Jon Jonni",
+                    relasjon = ManueltOppgittBarn.Relasjon.FOSTERFORELDER
+                ), // Mangler ident
             )
         )
 
