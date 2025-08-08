@@ -76,9 +76,7 @@ class JoarkKafkaHandlerTest {
         topologyTestDriver.createInputTopic(
             JOARK_TOPIC,
             Serdes.String().serializer(),
-            JournalfoeringHendelseAvro(config).avroserdes.serializer(),
-            java.time.Instant.now(),
-            java.time.Duration.ZERO
+            JournalfoeringHendelseAvro(config).avroserdes.serializer()
         )
             .apply(block)
         topologyTestDriver.close()
