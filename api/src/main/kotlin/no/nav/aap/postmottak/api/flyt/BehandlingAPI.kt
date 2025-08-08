@@ -102,7 +102,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                     if (!behandling.status()
                             .erAvsluttet() && behandling.harIkkeVærtAktivitetIDetSiste() && flytJobbRepository.hentJobberForBehandling(
                             behandling.id.toLong()
-                        ).isEmpty()
+                        ).none { it.type() == ProsesserBehandlingJobbUtfører.type }
                     ) {
                         flytJobbRepository.leggTil(
                             JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(

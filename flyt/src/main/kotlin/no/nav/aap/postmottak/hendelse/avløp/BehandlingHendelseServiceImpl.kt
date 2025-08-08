@@ -62,7 +62,7 @@ class BehandlingHendelseServiceImpl(
 
         log.info("Legger til flytjobber og stoppethendelse for oppgave for behandling: ${behandling.id}")
         flytJobbRepository.leggTil(
-            JobbInput(jobb = StoppetHendelseJobbUtfører).medPayload(payload)
+            JobbInput(jobb = StoppetHendelseJobbUtfører).medPayload(payload).forBehandling(behandling.journalpostId.referanse, behandling.id.id)
         )
 
     }

@@ -30,6 +30,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.Operasjon
@@ -59,6 +60,8 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                     val flytJobbRepository = FlytJobbRepository(connection)
                     val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
                     val jobber = flytJobbRepository.hentJobberForBehandling(behandling.id.toLong())
+                        .filter { it.type() == ProsesserBehandlingJobbUtfører.type }
+
                     val prosessering =
                         Prosessering(
                             utledStatus(jobber),
