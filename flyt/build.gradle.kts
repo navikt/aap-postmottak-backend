@@ -2,7 +2,7 @@ plugins {
     id("postmottak.conventions")
 }
 
-val kafkaVersion = "3.7.0"
+val kafkaVersion = "4.0.0"
 
 dependencies {
     api(project(":kontrakt"))
@@ -29,7 +29,11 @@ dependencies {
     implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
     implementation("org.apache.avro:avro:1.12.0")
-    implementation("io.confluent:kafka-streams-avro-serde:7.7.1")
+    implementation("io.confluent:kafka-streams-avro-serde:7.7.1") {
+        exclude(group = "org.apache.kafka", module = "kafka-clients")
+        exclude(group = "org.apache.kafka", module = "kafka-streams")
+        exclude(group = "org.apache.kafka", module = "kafka_2.13")
+    }
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
 
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
