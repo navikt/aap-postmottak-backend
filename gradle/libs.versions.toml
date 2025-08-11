@@ -1,6 +1,6 @@
 [versions]
 ktor = "3.2.3"
-komponenter = "1.0.308"
+komponenter = "1.0.315"
 tilgang = "1.0.104"
 apiIntern = "0.0.9"
 behandlingsflyt = "0.0.401"
