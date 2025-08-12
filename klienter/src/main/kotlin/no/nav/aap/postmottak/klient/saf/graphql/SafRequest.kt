@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.saf.graphql
+package no.nav.aap.postmottak.klient.saf.graphql
 
 import no.nav.aap.postmottak.klient.graphql.asQuery
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -19,9 +19,7 @@ internal data class SafRequest(val query: String, val variables: Variables) {
     }
 }
 
-private const val journalpostId = "\$journalpostId"
-
-private val journalpost = """
+private val journalpost = $$"""
     query($journalpostId: String!) {
         journalpost(journalpostId: $journalpostId) {
             journalpostId
@@ -66,9 +64,7 @@ private val journalpost = """
     }
 """.trimIndent()
 
-private const val fnr = "\$fnr"
-
-private val saker = """
+private val saker = $$"""
     query($fnr: String!) {
         saker(brukerId: {id: $fnr, type: FNR}) {
             tema

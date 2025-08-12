@@ -1,5 +1,5 @@
 # aap-postmottak-backend
-Postmottak tar imot og håndterer journalposter på tema AAP
+Postmottak tar imot og håndterer journalposter på tema AAP.
 
 ### API-dokumentasjon
 APIene er dokumentert med [Swagger](https://aap-postmottak-backend.intern.dev.nav.no/swagger-ui/index.html)
@@ -29,4 +29,4 @@ For at det skal kjøre lokalt må du gjøre følgende:
 Etter dette vil appen kjøre mot reelle data. Her kan du velge om du vil koble deg på gjennom autentisert frontend eller
 f.eks. gyldig token med cURL e.l.
 
-OBS: Krever at du har `EnvFile`-plugin i IntelliJ. 
+OBS: Krever at du har `EnvFile`-plugin i IntelliJ.

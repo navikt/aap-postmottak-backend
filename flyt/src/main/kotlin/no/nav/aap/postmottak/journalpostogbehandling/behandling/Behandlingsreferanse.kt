@@ -7,5 +7,5 @@ import java.util.*
 open class Behandlingsreferanse(@JsonValue open val referanse: UUID)
 
 data class BehandlingsreferansePathParam(
-    @PathParam("referanse") override val referanse: UUID
+    @param:PathParam("referanse") override val referanse: UUID
 ): Behandlingsreferanse(referanse)

@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.test.modell
 
-import no.nav.aap.postmottak.faktagrunnlag.register.barn.Dødsdato
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.test.FiktivtNavnGenerator
@@ -15,11 +14,10 @@ fun genererIdent(fødselsdato: LocalDate): Ident {
 class TestPerson(
     val fødselsdato: Fødselsdato = Fødselsdato(LocalDate.now().minusYears(19)),
     val identer: Set<Ident> = setOf(genererIdent(fødselsdato.toLocalDate())),
-    val dødsdato: Dødsdato? = null,
     val barn: List<TestPerson> = emptyList(),
     val navn: PersonNavn = FiktivtNavnGenerator.genererNavn(),
 ) {
     override fun toString(): String {
-        return "TestPerson(fødselsdato=$fødselsdato, identer=$identer, dødsdato=$dødsdato, barn=$barn, navn=$navn"
+        return "TestPerson(fødselsdato=$fødselsdato, identer=$identer, barn=$barn, navn=$navn"
     }
 }

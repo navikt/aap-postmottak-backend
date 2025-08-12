@@ -27,9 +27,6 @@ class BehandlingHendelseHåndterer(connection: DBConnection) {
                 avklaringsbehovOrkestrator.settBehandlingPåVent(key, hendelse)
             }
 
-            else -> {
-                avklaringsbehovOrkestrator.taAvVentHvisPåVentOgFortsettProsessering(key)
-            }
         }
     }
 }

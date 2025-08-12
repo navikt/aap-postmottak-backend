@@ -16,7 +16,6 @@ import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.SafSak
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.saf.graphql.SafRequest
 import no.nav.aap.postmottak.saf.graphql.SafRespons
 import org.slf4j.LoggerFactory
 import java.io.InputStream
