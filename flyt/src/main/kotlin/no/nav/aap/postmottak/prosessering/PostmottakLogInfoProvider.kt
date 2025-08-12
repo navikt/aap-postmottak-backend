@@ -9,8 +9,7 @@ object PostmottakLogInfoProvider : JobbLogInfoProvider {
 
     override fun hentInformasjon(connection: DBConnection, jobbInput: JobbInput): LogInformasjon? {
 
-        val behandlingId = jobbInput.behandlingIdOrNull()
-        if (behandlingId == null) return null
+        val behandlingId = jobbInput.behandlingIdOrNull() ?: return null
 
         val query = """
             SELECT referanse
@@ -20,7 +19,7 @@ object PostmottakLogInfoProvider : JobbLogInfoProvider {
 
         return connection.queryFirst(query) {
             setParams {
-                setLong(1, behandlingId.toLong())
+                setLong(1, behandlingId)
             }
             setRowMapper { row ->
                 LogInformasjon(

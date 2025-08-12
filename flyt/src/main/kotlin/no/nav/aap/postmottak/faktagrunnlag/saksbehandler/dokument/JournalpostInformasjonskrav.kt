@@ -41,7 +41,7 @@ class JournalpostInformasjonskrav(
         val journalpost = journalpostService.hentJournalpost(kontekst.journalpostId)
 
         if (persistertJournalpost != journalpost) {
-            log.info("Fant endringer i journalpost")
+            log.info("Fant endringer i journalpost med ID ${journalpost.journalpostId}.")
             journalpostRepository.lagre(journalpost)
             return if (erEndringerRelevante(kontekst, journalpost)) ENDRET else IKKE_ENDRET
         }
@@ -57,9 +57,9 @@ class JournalpostInformasjonskrav(
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val temaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
-        return saksnummerVurdering?.saksnummer != journalpost.saksnummer 
+        return saksnummerVurdering?.saksnummer != journalpost.saksnummer
                 || temaVurdering?.tema != Tema.fraString(journalpost.tema)
     }
-    
+
 }
 
