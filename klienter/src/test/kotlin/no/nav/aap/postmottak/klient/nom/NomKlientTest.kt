@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.klient.nom
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.postmottak.PrometheusProvider

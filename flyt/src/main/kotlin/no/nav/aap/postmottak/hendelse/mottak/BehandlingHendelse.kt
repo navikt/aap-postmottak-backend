@@ -1,3 +1,3 @@
 package no.nav.aap.postmottak.hendelse.mottak
 
-interface BehandlingHendelse
+sealed interface BehandlingHendelse

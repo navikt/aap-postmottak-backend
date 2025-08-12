@@ -10,10 +10,10 @@ import no.nav.aap.tilgang.plugin.kontrakt.Journalpostreferanse
 @Response(statusCode = 202)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LøsAvklaringsbehovPåBehandling(
-    @JsonProperty(value = "referanse", required = true) val referanse: Behandlingsreferanse,
-    @JsonProperty(value = "behandlingVersjon", required = true, defaultValue = "0") val behandlingVersjon: Long,
-    @JsonProperty(value = "behov", required = true) val behov: AvklaringsbehovLøsning,
-    @JsonProperty(value = "ingenEndringIGruppe") val ingenEndringIGruppe: Boolean?,
+    @param:JsonProperty(value = "referanse", required = true) val referanse: Behandlingsreferanse,
+    @param:JsonProperty(value = "behandlingVersjon", required = true, defaultValue = "0") val behandlingVersjon: Long,
+    @param:JsonProperty(value = "behov", required = true) val behov: AvklaringsbehovLøsning,
+    @param:JsonProperty(value = "ingenEndringIGruppe") val ingenEndringIGruppe: Boolean?,
 ) : Journalpostreferanse {
     override fun hentAvklaringsbehovKode(): String {
         return behov.definisjon().kode.name

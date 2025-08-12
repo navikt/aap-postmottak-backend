@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter
 
 /**
  * Kopiert fra https://github.com/navikt/saf/blob/master/app/src/main/resources/schemas/saf.graphqls#L675
- * Ikke til bruk internt i koden, kun for oversettelse til [Kanal].
+ * Ikke til bruk internt i koden, kun for oversettelse til [KanalFraKodeverk].
  */
 enum class KanalFraKodeverk {
     /**
