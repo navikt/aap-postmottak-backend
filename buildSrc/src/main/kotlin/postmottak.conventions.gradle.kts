@@ -35,6 +35,9 @@ testing {
 tasks.test {
     useJUnitPlatform()
     maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 kotlin {
