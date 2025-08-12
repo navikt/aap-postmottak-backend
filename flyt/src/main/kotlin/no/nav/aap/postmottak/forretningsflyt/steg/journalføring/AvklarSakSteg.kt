@@ -55,12 +55,13 @@ class AvklarSakSteg(
          * Må da lagre ned fagsystem i saksvurdering. Hvis fagsystem er Arena: opprett en jobb for ArenaVideresending,
          * og no-op resten av denne journalføringsflyten basert på fagsystem
          */
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        requireNotNull(journalpost)
+        val journalpost =
+            requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Journalpost mangler i AvklarSakSteg." }
+
         if (journalpost.erUgyldig()) return Fullført
 
-        val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
-        requireNotNull(temavurdering) { "Tema skal være avklart før AvklarSakSteg" }
+        val temavurdering =
+            requireNotNull(avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)) { { "Tema skal være avklart før AvklarSakSteg" } }
 
         if (temavurdering.tema == Tema.UKJENT) {
             return Fullført

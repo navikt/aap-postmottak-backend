@@ -39,12 +39,11 @@ class SettFagsakSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        requireNotNull(journalpost)
+        val journalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId))
+
         if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT) return Fullført
 
-        val temaavklaring = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
-        requireNotNull(temaavklaring) {
+        val temaavklaring = requireNotNull(avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)) {
             "Tema skal være avklart før SettFagsakSteg"
         }
 
@@ -52,8 +51,7 @@ class SettFagsakSteg(
             return Fullført
         }
 
-        val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
-        requireNotNull(saksvurdering)
+        val saksvurdering = requireNotNull(saksnummerRepository.hentSakVurdering(kontekst.behandlingId))
 
         val avsenderMottaker = saksvurdering.avsenderMottaker?.takeUnless { journalpost.kanal.erDigitalKanal() }
 
@@ -78,5 +76,4 @@ class SettFagsakSteg(
 
         return Fullført
     }
-
 }

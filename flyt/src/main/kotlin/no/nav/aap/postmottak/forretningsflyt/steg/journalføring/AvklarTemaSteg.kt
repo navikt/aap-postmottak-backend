@@ -56,7 +56,7 @@ class AvklarTemaSteg(
 
         return if (temavurdering == null) {
             if (journalpost.tema != "AAP") {
-                log.info("Journalposten har blitt endret utenfra")
+                log.info("Journalposten med ID ${journalpost.journalpostId} har blitt endret utenfra. Tema er ikke AAP.")
                 avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(false, Tema.UKJENT))
                 Fullført
             } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
@@ -64,7 +64,7 @@ class AvklarTemaSteg(
                 Fullført
             } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
                 avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(true, Tema.AAP))
-                log.info("Journalpost har alt blitt journalført på tema AAP. Setter temaavklaring maskinelt til AAP")
+                log.info("Journalpost har allerede blitt journalført på tema AAP. Setter temaavklaring maskinelt til AAP")
                 Fullført
             } else {
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
@@ -76,7 +76,7 @@ class AvklarTemaSteg(
                     .opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpost.journalpostId, aktivIdent.identifikator)
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) {
-                log.info("Journalpost har endret tema. Nytt tema er: ${journalpost.tema}")
+                log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
                 gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
                     .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
                 return Fullført
@@ -95,19 +95,20 @@ class AvklarTemaSteg(
     private fun avklarTemaMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {
         if (journalpost.erDigitalLegeerklæring()) {
             if (skalLegeerklæringTilAap(behandlingId)) {
-                log.info("Avklarer maskinelt - Legeerklæring skal til AAP")
+                log.info("Avklarer tema for legeerklæring ${journalpost.journalpostId} maskinelt - Legeerklæring skal til AAP.")
                 avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
             } else {
-                log.info("Avklarer maskinelt - Legeerklæring skal ikke til AAP")
+                log.info("Avklarer tema for legeerklærling ${journalpost.journalpostId} maskinelt - Legeerklæring skal ikke til AAP")
                 avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = false, Tema.OPP))
             }
         } else if (journalpost.erDigitalSøknad()) {
-            log.info("Avklarer maskinelt - Legeerklæring skal til AAP")
+            log.info("Avklarer søknad maskinelt, skal til AAP. JournalpostId ${journalpost.journalpostId}.")
             avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
         } else if (journalpost.erDigitaltMeldekort()) {
+            log.info("Avklarer digital meldekort maskinelt. JournalpostId ${journalpost.journalpostId}.")
             avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
         } else {
-            throw IllegalStateException("Journalpost er ikke en digital søknad, legeerklæring eller meldekort")
+            throw IllegalStateException("Journalpost er ikke en digital søknad, legeerklæring eller meldekort. JournalpostId ${journalpost.journalpostId}.")
         }
     }
 

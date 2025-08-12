@@ -52,8 +52,9 @@ class VideresendSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        requireNotNull(journalpost) { "Journalpost skal eksistere før VideresendSteg" }
+        val journalpost =
+            requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Journalpost skal eksistere før VideresendSteg" }
+
         if (journalpost.erUgyldig()) {
             log.info("Journalpost skal ikke behandles - har status ${journalpost.status}")
             return Fullført
@@ -63,7 +64,7 @@ class VideresendSteg(
             log.info("Journalpost er journalført på annet fagsystem - videresender ikke")
             return Fullført
         }
-        
+
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val avklarTemaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 

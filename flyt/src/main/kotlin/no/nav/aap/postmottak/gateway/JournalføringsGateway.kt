@@ -39,11 +39,11 @@ data class OppdaterJournalpostRequest(
     val sak: JournalpostSak,
     val tema: String,
     val bruker: JournalpostBruker,
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
     val tittel: String?,
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
     val avsenderMottaker: AvsenderMottakerDto?,
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
     val dokumenter: List<ForenkletDokument>?
 )
 
