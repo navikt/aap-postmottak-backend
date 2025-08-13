@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -33,15 +33,14 @@ class VideresendSteg(
     private val kopierer: GrunnlagKopierer
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            val repositoryProvider = RepositoryProvider(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): BehandlingSteg {
             return VideresendSteg(
-                repositoryProvider.provide(SaksnummerRepository::class),
-                repositoryProvider.provide(AvklarTemaRepository::class),
-                repositoryProvider.provide(BehandlingRepository::class),
-                repositoryProvider.provide(JournalpostRepository::class),
-                FlytJobbRepository(connection),
-                GrunnlagKopierer(connection)
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
+               repositoryProvider.provide(),
+                GrunnlagKopierer(repositoryProvider)
             )
         }
 

@@ -1,12 +1,14 @@
 package no.nav.aap.postmottak.flyt
 
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
+import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlagImpl
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
-import no.nav.aap.postmottak.flyt.steg.StegKonstruktør
 import no.nav.aap.postmottak.flyt.steg.StegOrkestrator
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
@@ -33,13 +35,25 @@ private val log = LoggerFactory.getLogger(FlytOrkestrator::class.java)
  *
  */
 class FlytOrkestrator(
-    private val stegKonstruktør: StegKonstruktør,
     private val informasjonskravGrunnlag: InformasjonskravGrunnlag,
     private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val behandlingRepository: BehandlingRepository,
     private val behandlingFlytRepository: BehandlingFlytRepository,
-    private val behandlingHendelseService: BehandlingHendelseServiceImpl
+    private val behandlingHendelseService: BehandlingHendelseServiceImpl,
+    private val stegOrkestrator: StegOrkestrator
 ) {
+    
+    constructor(
+        repositoryProvider: RepositoryProvider,
+        gatewayProvider: GatewayProvider,
+    ) : this (
+        informasjonskravGrunnlag = InformasjonskravGrunnlagImpl(repositoryProvider, gatewayProvider),
+        avklaringsbehovRepository = repositoryProvider.provide(),
+        behandlingRepository = repositoryProvider.provide(),
+        behandlingFlytRepository = repositoryProvider.provide(),
+        behandlingHendelseService = BehandlingHendelseServiceImpl(repositoryProvider, gatewayProvider),
+        stegOrkestrator = StegOrkestrator(repositoryProvider, gatewayProvider)
+    )
 
     fun opprettKontekst(behandlingId: BehandlingId): FlytKontekst {
         val behandling = behandlingRepository.hent(behandlingId)
@@ -128,13 +142,8 @@ class FlytOrkestrator(
         var gjeldendeSteg = behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
         while (true) {
-            val result = StegOrkestrator(
+            val result = stegOrkestrator.utfør(
                 aktivtSteg = gjeldendeSteg,
-                informasjonskravGrunnlag = informasjonskravGrunnlag,
-                behandlingFlytRepository = behandlingFlytRepository,
-                avklaringsbehovRepository = avklaringsbehovRepository,
-                stegKonstruktør = stegKonstruktør
-            ).utfør(
                 kontekst,
                 behandling,
                 behandlingFlyt.faktagrunnlagForGjeldendeSteg()
@@ -222,12 +231,8 @@ class FlytOrkestrator(
                 }
                 return
             }
-            StegOrkestrator(
-                aktivtSteg = neste, informasjonskravGrunnlag = informasjonskravGrunnlag,
-                behandlingFlytRepository = behandlingFlytRepository,
-                avklaringsbehovRepository = avklaringsbehovRepository,
-                stegKonstruktør = stegKonstruktør
-            ).utførTilbakefør(
+            stegOrkestrator.utførTilbakefør(
+                aktivtSteg = neste,
                 kontekst = kontekst,
                 behandling = behandling
             )

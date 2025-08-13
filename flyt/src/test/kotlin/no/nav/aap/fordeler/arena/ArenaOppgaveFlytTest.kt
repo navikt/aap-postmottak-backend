@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.WithDependencies
+import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.gateway.Factory
@@ -40,11 +41,10 @@ import java.time.LocalDate
 
 @Fakes
 class ArenaOppgaveFlytTest : WithDependencies {
-
-
+    
     companion object {
         private val dataSource = InitTestDatabase.freshDatabase()
-        private val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle())
+        private val motor = Motor(dataSource, 2, repositoryRegistry = repositoryRegistry, jobber = ProsesseringsJobber.alle())
 
         @JvmStatic
         @BeforeAll
@@ -63,7 +63,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
 
         private val util =
-            TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
+            TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
     }
 
     @Test

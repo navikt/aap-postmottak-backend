@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -23,13 +22,12 @@ class SettFagsakSteg(
     private val joarkKlient: JournalføringsGateway
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            val repositoryProvider = RepositoryProvider(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
             return SettFagsakSteg(
-                repositoryProvider.provide(JournalpostRepository::class),
-                repositoryProvider.provide(SaksnummerRepository::class),
-                repositoryProvider.provide(AvklarTemaRepository::class),
-                GatewayProvider.provide(JournalføringsGateway::class)
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
+                GatewayProvider.provide()
             )
         }
 

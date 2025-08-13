@@ -1,11 +1,11 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løsning.SattPåVentLøsning
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 
-class SattPåVentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<SattPåVentLøsning> {
+class SattPåVentLøser(private val repositoryProvider: RepositoryProvider) : AvklaringsbehovsLøser<SattPåVentLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: SattPåVentLøsning): LøsningsResultat {
         return LøsningsResultat("Tatt av vent")
@@ -16,8 +16,8 @@ class SattPåVentLøser(val connection: DBConnection) : AvklaringsbehovsLøser<S
     }
 
     companion object : LøserKonstruktør<SattPåVentLøsning> {
-        override fun konstruer(connection: DBConnection): AvklaringsbehovsLøser<SattPåVentLøsning> {
-            return SattPåVentLøser(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider): AvklaringsbehovsLøser<SattPåVentLøsning> {
+            return SattPåVentLøser(repositoryProvider)
         }
     }
 }

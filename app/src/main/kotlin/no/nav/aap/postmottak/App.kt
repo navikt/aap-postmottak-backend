@@ -28,10 +28,10 @@ import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.komponenter.server.plugins.NavIdentInterceptor
-import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
@@ -68,17 +68,7 @@ import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.mottakStream
 import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
-import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
-import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
-import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
-import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
-import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
-import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
+import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.testApi
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -99,11 +89,12 @@ fun main() {
         connectionGroupSize = 8
         workerGroupSize = 8
         callGroupSize = 16
-    }) { server(DbConfig()) }.start(wait = true)
+    }) { server(DbConfig(), postgresRepositoryRegistry) }.start(wait = true)
 }
 
 internal fun Application.server(
-    dbConfig: DbConfig
+    dbConfig: DbConfig,
+    repositoryRegistry: RepositoryRegistry
 ) {
     PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
@@ -155,12 +146,11 @@ internal fun Application.server(
 
     val dataSource = initDatasource(dbConfig, PrometheusProvider.prometheus)
     Migrering.migrate(dataSource)
-    val motor = startMotor(dataSource)
+    val motor = startMotor(dataSource, repositoryRegistry)
 
     registerGateways()
-    registerRepositories()
-
-    val mottakStream = mottakStream(dataSource)
+    
+    val mottakStream = mottakStream(dataSource, repositoryRegistry)
 
     routing {
         authenticate(AZURE) {
@@ -168,17 +158,17 @@ internal fun Application.server(
 
             apiRouting {
                 configApi()
-                behandlingApi(dataSource)
-                flytApi(dataSource)
-                avklaringsbehovApi(dataSource)
-                dokumentApi(dataSource)
-                avklarTemaApi(dataSource)
-                finnSakApi(dataSource)
-                digitaliseringApi(dataSource)
-                overleveringApi(dataSource)
+                behandlingApi(dataSource, repositoryRegistry)
+                flytApi(dataSource, repositoryRegistry)
+                avklaringsbehovApi(dataSource, repositoryRegistry)
+                dokumentApi(dataSource, repositoryRegistry)
+                avklarTemaApi(dataSource, repositoryRegistry)
+                finnSakApi(dataSource, repositoryRegistry)
+                digitaliseringApi(dataSource, repositoryRegistry)
+                overleveringApi(dataSource, repositoryRegistry)
                 motorApi(dataSource)
-                testApi(dataSource)
-                auditlogApi(dataSource)
+                testApi(dataSource, repositoryRegistry)
+                auditlogApi(dataSource, repositoryRegistry)
             }
         }
         actuator(motor, mottakStream)
@@ -214,30 +204,14 @@ private fun registerGateways() {
         .status()
 }
 
-private fun registerRepositories() {
-    RepositoryRegistry
-        .register<AvklaringsbehovRepositoryImpl>()
-        .register<BehandlingRepositoryImpl>()
-        .register<AvklarTemaRepositoryImpl>()
-        .register<SaksnummerRepositoryImpl>()
-        .register<DigitaliseringsvurderingRepositoryImpl>()
-        .register<JournalpostRepositoryImpl>()
-        .register<TaSkriveLåsRepositoryImpl>()
-        .register<PersonRepositoryImpl>()
-        .register<InnkommendeJournalpostRepositoryImpl>()
-        .register<RegelRepositoryImpl>()
-        .register<OverleveringVurderingRepositoryImpl>()
-        .status()
-}
-
-
-fun Application.startMotor(dataSource: DataSource): Motor {
+fun Application.startMotor(dataSource: DataSource, repositoryRegistry: RepositoryRegistry): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
         logInfoProvider = PostmottakLogInfoProvider,
         jobber = ProsesseringsJobber.alle(),
         prometheus = PrometheusProvider.prometheus,
+        repositoryRegistry = repositoryRegistry,
     )
 
     dataSource.transaction { dbConnection ->

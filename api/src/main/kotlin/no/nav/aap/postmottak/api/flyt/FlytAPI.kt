@@ -7,7 +7,7 @@ import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.bruker
-import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbStatus
@@ -40,25 +40,25 @@ import org.slf4j.MDC
 import javax.sql.DataSource
 
 
-fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
             authorizedGet<BehandlingsreferansePathParam, BehandlingFlytOgTilstandDto>(
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource)
+                        journalpostIdFraBehandlingResolver(dataSource = dataSource, repositoryRegistry = repositoryRegistry)
                     )
                 )
             ) { req ->
                 val dto = dataSource.transaction { connection ->
-                    val repositoryProvider = RepositoryProvider(connection)
-                    val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
-                    val avklaringsbehovRepository = repositoryProvider.provide(AvklaringsbehovRepository::class)
+                    val repositoryProvider = repositoryRegistry.provider(connection)
+                    val behandlingRepository: BehandlingRepository = repositoryProvider.provide()
+                    val avklaringsbehovRepository: AvklaringsbehovRepository = repositoryProvider.provide()
 
                     var behandling = behandlingRepository.hent(req)
                     val flytJobbRepository = FlytJobbRepository(connection)
-                    val gruppeVisningService = DynamiskStegGruppeVisningService(connection)
+                    val gruppeVisningService = DynamiskStegGruppeVisningService(repositoryProvider)
                     val jobber = flytJobbRepository.hentJobberForBehandling(behandling.id.toLong())
                         .filter { it.type() == ProsesserBehandlingJobbUtfører.type }
 
@@ -140,7 +140,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource)
+                        journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                     )
                 )
             ) { req ->
@@ -158,13 +158,13 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                     Operasjon.SAKSBEHANDLE,
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
-                        resolver = journalpostIdFraBehandlingResolver(dataSource),
+                        resolver = journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource),
                     ),
                     avklaringsbehovKode = Definisjon.MANUELT_SATT_PÅ_VENT.kode.name
                 )
             ) { request, body ->
                 dataSource.transaction { connection ->
-                    val repositoryProvider = RepositoryProvider(connection)
+                    val repositoryProvider = repositoryRegistry.provider(connection)
                     val taSkriveLåsRepository = repositoryProvider.provide(TaSkriveLåsRepository::class)
                     val lås = taSkriveLåsRepository.lås(request)
                     BehandlingTilstandValidator(
@@ -177,7 +177,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
 
 
                     MDC.putCloseable("behandlingId", lås.id.toString()).use {
-                        BehandlingHendelseHåndterer(connection).håndtere(
+                        BehandlingHendelseHåndterer(repositoryRegistry.provider(connection)).håndtere(
                             key = lås.id,
                             hendelse = BehandlingSattPåVent(
                                 frist = body.frist,
@@ -198,13 +198,13 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource) {
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource)
+                        journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                     )
                 )
             ) { request ->
 
                 val dto = dataSource.transaction(readOnly = true) { connection ->
-                    val repositoryProvider = RepositoryProvider(connection)
+                    val repositoryProvider = repositoryRegistry.provider(connection)
                     val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
                     val avklaringsbehovRepository = repositoryProvider.provide(AvklaringsbehovRepository::class)
 

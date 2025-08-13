@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -33,8 +32,7 @@ class AvklarSakSteg(
     private val avklarTemaRepository: AvklarTemaRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            val repositoryProvider = RepositoryProvider(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
             return AvklarSakSteg(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),

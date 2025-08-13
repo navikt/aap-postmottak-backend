@@ -5,11 +5,11 @@ import no.nav.aap.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.OppprettOppgaveIArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendTilArenaKjørelisteBehandling
-import no.nav.aap.motor.Jobb
+import no.nav.aap.motor.JobbSpesifikasjon
 
 object ProsesseringsJobber {
 
-    fun alle(): List<Jobb> {
+    fun alle(): List<JobbSpesifikasjon> {
         // Legger her alle oppgavene som skal utføres i systemet
         return listOf(
             ProsesserBehandlingJobbUtfører,

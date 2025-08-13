@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
@@ -30,8 +29,7 @@ class DigitaliserDokumentSteg(
     private val saksnummerRepository: SaksnummerRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
-            val repositoryProvider = RepositoryProvider(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
             return DigitaliserDokumentSteg(
                 repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),

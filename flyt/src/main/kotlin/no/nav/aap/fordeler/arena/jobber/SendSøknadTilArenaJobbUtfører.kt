@@ -3,12 +3,12 @@ package no.nav.aap.fordeler.arena.jobber
 import no.nav.aap.fordeler.arena.ArenaGateway
 import no.nav.aap.fordeler.arena.ArenaOppgaveType
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.motor.ProviderJobbSpesifikasjon
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.slf4j.LoggerFactory
@@ -19,22 +19,22 @@ class SendSøknadTilArenaJobbUtfører(
     journalpostService: JournalpostService
 ) : ArenaJobbutførerBase(journalpostService) {
 
-    companion object : Jobb {
-        override fun konstruer(connection: DBConnection): JobbUtfører {
+    companion object : ProviderJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
             return SendSøknadTilArenaJobbUtfører(
-                FlytJobbRepository(connection),
+                repositoryProvider.provide(),
                 GatewayProvider.provide(ArenaGateway::class),
-                JournalpostService.konstruer(connection)
+                JournalpostService.konstruer(repositoryProvider, GatewayProvider)
             )
         }
 
-        override fun type() = "arena.søknad"
+        override val type = "arena.søknad"
 
-        override fun navn() = "Søknad til Arean Håndterer"
+        override val navn = "Søknad til Arean Håndterer"
 
-        override fun beskrivelse() = "Oppretter sak i Arena for ny søknad"
+        override val beskrivelse = "Oppretter sak i Arena for ny søknad"
 
-        override fun retries() = 4
+        override val retries = 4
 
     }
 
@@ -56,7 +56,7 @@ class SendSøknadTilArenaJobbUtfører(
                 oppgaveType = ArenaOppgaveType.STARTVEDTAK
             )
             val respons = arenaKlient.opprettArenaOppgave(request)
-            requireNotNull(respons.arenaSakId) {"Mangler saksnummer fra Arena"}
+            requireNotNull(respons.arenaSakId) { "Mangler saksnummer fra Arena" }
             log.info("Opprettet oppgave med id ${respons.oppgaveId} på sak ${respons.arenaSakId}")
             opprettAutomatiskJournalføringsjobb(kontekst, respons.arenaSakId)
         } else {

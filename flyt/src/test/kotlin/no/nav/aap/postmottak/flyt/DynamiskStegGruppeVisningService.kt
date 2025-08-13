@@ -2,10 +2,12 @@ package no.nav.aap.postmottak.flyt
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.lookup.repository.RepositoryRegistry
+import no.nav.aap.komponenter.repository.RepositoryRegistry
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
@@ -22,25 +24,23 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRe
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class DynamiskStegGruppeVisningServiceTest {
-    @BeforeEach
-    fun setup() {
-        RepositoryRegistry
-            .register<JournalpostRepositoryImpl>()
-            .register<AvklarTemaRepositoryImpl>()
-            .register<DigitaliseringsvurderingRepositoryImpl>()
-    }
+    val repositoryRegistry = RepositoryRegistry()
+        .register<JournalpostRepositoryImpl>()
+        .register<AvklarTemaRepositoryImpl>()
+        .register<DigitaliseringsvurderingRepositoryImpl>()
+        .register<BehandlingRepositoryImpl>()
 
     @Test
     fun `Skal vise steg 'overlever til fagsystem' for søknad`() {
         InitTestDatabase.freshDatabase().transaction { connection ->
             // Arrange
-            val journalpostRepository = JournalpostRepositoryImpl(connection)
-            val behandlingRepository = BehandlingRepositoryImpl(connection)
+            val repositoryProvider = repositoryRegistry.provider(connection)
+            val journalpostRepository: JournalpostRepository = repositoryProvider.provide()
+            val behandlingRepository: BehandlingRepository = repositoryProvider.provide()
 
             val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
             val journalpost = Journalpost(
@@ -75,7 +75,7 @@ class DynamiskStegGruppeVisningServiceTest {
                 behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
             journalpostRepository.lagre(journalpost)
 
-            val service = DynamiskStegGruppeVisningService(connection)
+            val service = DynamiskStegGruppeVisningService(repositoryProvider)
 
             val gruppe = StegGruppe.OVERLEVER_TIL_FAGSYSTEM
 

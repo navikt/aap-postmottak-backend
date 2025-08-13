@@ -1,7 +1,8 @@
 package no.nav.aap.postmottak.faktagrunnlag
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 
 interface Informasjonskravkonstruktør {
-    fun konstruer(connection: DBConnection): Informasjonskrav
+    fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): Informasjonskrav
 }

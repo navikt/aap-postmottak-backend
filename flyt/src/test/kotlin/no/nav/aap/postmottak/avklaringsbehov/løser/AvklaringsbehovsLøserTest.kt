@@ -1,13 +1,12 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
-import io.mockk.mockk
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.behandlingsflyt.test.MockConnection
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayRegistry
-import no.nav.aap.lookup.repository.RepositoryRegistry
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Klagebehandling
@@ -27,20 +26,25 @@ import java.time.LocalDateTime
 import kotlin.reflect.full.companionObjectInstance
 
 class AvklaringsbehovsLøserTest {
+    val repositoryRegistry = RepositoryRegistry().register<SaksnummerRepositoryImpl>()
+        .register<AvklarTemaRepositoryImpl>()
+        .register<DigitaliseringsvurderingRepositoryImpl>()
+        .register<JournalpostRepositoryImpl>()
+        .register<OverleveringVurderingRepositoryImpl>()
+
     @BeforeEach
     fun setup() {
-        RepositoryRegistry.register<SaksnummerRepositoryImpl>()
-            .register<AvklarTemaRepositoryImpl>()
-            .register<DigitaliseringsvurderingRepositoryImpl>()
-            .register<JournalpostRepositoryImpl>()
-            .register<OverleveringVurderingRepositoryImpl>()
         GatewayRegistry.register<BehandlingsflytGatewayMock>()
     }
 
     @Test
     fun `alle subtyper skal ha unik verdi`() {
         val utledSubtypes = AvklaringsbehovsLøser::class.sealedSubclasses
-        val løsningSubtypes = utledSubtypes.map { (it.companionObjectInstance as LøserKonstruktør<*>).konstruer(mockk<DBConnection>()).forBehov() }.toSet()
+        val løsningSubtypes = utledSubtypes.map {
+            (it.companionObjectInstance as LøserKonstruktør<*>)
+                .konstruer(repositoryRegistry.provider(MockConnection().toDBConnection()))
+                .forBehov()
+        }.toSet()
 
         Assertions.assertThat(løsningSubtypes).hasSize(utledSubtypes.size)
     }

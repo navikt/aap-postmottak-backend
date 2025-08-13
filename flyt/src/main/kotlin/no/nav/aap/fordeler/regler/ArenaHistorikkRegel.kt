@@ -1,13 +1,13 @@
 package no.nav.aap.fordeler.regler
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
     companion object : RegelFactory<ArenaHistorikkRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = true)
-        override fun medDataInnhenting(connection: DBConnection?) =
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
             RegelMedInputgenerator(ArenaHistorikkRegel(), ArenaSakRegelInputGenerator())
     }
 

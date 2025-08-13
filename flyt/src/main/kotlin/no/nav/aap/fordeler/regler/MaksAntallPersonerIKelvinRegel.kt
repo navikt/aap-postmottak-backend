@@ -1,7 +1,7 @@
 package no.nav.aap.fordeler.regler
 
 import no.nav.aap.fordeler.RegelRepository
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
@@ -10,12 +10,12 @@ private val log = LoggerFactory.getLogger(MaksAntallPersonerIKelvinRegel::class.
 class MaksAntallPersonerIKelvinRegel(private val maksAntallPersoner: Int) : Regel<MaksAntallPersonerIKelvinRegelInput> {
     companion object : RegelFactory<MaksAntallPersonerIKelvinRegelInput> {
         override val erAktiv = miljøConfig(prod = false, dev = false)
-        override fun medDataInnhenting(connection: DBConnection?): RegelMedInputgenerator<MaksAntallPersonerIKelvinRegelInput> {
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?): RegelMedInputgenerator<MaksAntallPersonerIKelvinRegelInput> {
             val maksAntallPersoner = 46
-            requireNotNull(connection)
+            requireNotNull(repositoryProvider)
             return RegelMedInputgenerator(
                 MaksAntallPersonerIKelvinRegel(maksAntallPersoner),
-                MaksAntallPersonerIKelvinRegelInputGenerator(connection)
+                MaksAntallPersonerIKelvinRegelInputGenerator(repositoryProvider)
             )
         }
     }
@@ -30,10 +30,10 @@ class MaksAntallPersonerIKelvinRegel(private val maksAntallPersoner: Int) : Rege
     }
 }
 
-class MaksAntallPersonerIKelvinRegelInputGenerator(private val connection: DBConnection) :
+class MaksAntallPersonerIKelvinRegelInputGenerator(private val repositoryProvider: RepositoryProvider) :
     InputGenerator<MaksAntallPersonerIKelvinRegelInput> {
     override fun generer(input: RegelInput): MaksAntallPersonerIKelvinRegelInput {
-        val personerMedJournalpostVideresendtTilKelvin = RepositoryProvider(connection).provide(RegelRepository::class)
+        val personerMedJournalpostVideresendtTilKelvin = repositoryProvider.provide(RegelRepository::class)
             .hentPersonerMedJournalpostVideresendtTilKelvin()
         return MaksAntallPersonerIKelvinRegelInput(
             personerMedJournalpostVideresendtTilKelvin

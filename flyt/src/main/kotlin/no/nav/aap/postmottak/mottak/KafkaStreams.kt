@@ -5,7 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
-import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.hendelseType
@@ -36,12 +36,14 @@ class TransactionContext(
 )
 
 class TransactionProvider(
-    val datasource: DataSource
+    val datasource: DataSource,
+    val repositoryRegistry: RepositoryRegistry
 ) {
     fun inTransaction(block: TransactionContext.() -> Unit) {
         datasource.transaction {
+            val behandlingRepository: BehandlingRepository = repositoryRegistry.provider(it).provide()
             TransactionContext(
-                RepositoryProvider(it).provide(BehandlingRepository::class),
+                behandlingRepository,
                 FlytJobbRepository(it),
             ).let(block)
         }
@@ -54,7 +56,8 @@ const val JOARK_TOPIC = "teamdokumenthandtering.aapen-dok-journalfoering"
 class JoarkKafkaHandler(
     config: StreamsConfig,
     datasource: DataSource,
-    private val transactionProvider: TransactionProvider = TransactionProvider(datasource),
+    repositoryRegistry: RepositoryRegistry,
+    private val transactionProvider: TransactionProvider = TransactionProvider(datasource, repositoryRegistry),
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) {
 
@@ -101,6 +104,7 @@ class JoarkKafkaHandler(
                 when (e) {
                     is VerdiIkkeFunnetException,
                     is NoSuchElementException -> log.info("Fant ikke åpen behandling for journalpost $journalpostId")
+
                     else -> throw e
                 }
             }
@@ -115,7 +119,7 @@ class JoarkKafkaHandler(
         transactionProvider.inTransaction {
 
             flytJobbRepository.leggTil(
-                JobbInput(FordelingRegelJobbUtfører) 
+                JobbInput(FordelingRegelJobbUtfører)
                     .forSak(journalpostId.referanse)
                     .medJournalpostId(journalpostId)
             )

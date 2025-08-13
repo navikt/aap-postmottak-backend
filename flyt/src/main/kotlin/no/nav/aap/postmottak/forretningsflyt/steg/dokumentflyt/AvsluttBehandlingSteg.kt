@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -10,7 +11,7 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 class AvsluttBehandlingSteg private constructor() : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(connection: DBConnection): BehandlingSteg {
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
             return AvsluttBehandlingSteg()
         }
 

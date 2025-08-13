@@ -7,7 +7,7 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
@@ -20,18 +20,18 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.digitaliseringApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.digitaliseringApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
     route("/api/behandling/{referanse}/grunnlag/digitalisering") {
         authorizedGet<BehandlingsreferansePathParam, DigitaliseringGrunnlagDto>(
             AuthorizationParamPathConfig(
                 journalpostPathParam = JournalpostPathParam(
                     "referanse",
-                    journalpostIdFraBehandlingResolver(dataSource)
+                    journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                 )
             )
         ) { req ->
             val (journalpost, klagebehandlinger, digitaliseringsvurdering) = dataSource.transaction(readOnly = true) {
-                val repositoryProvider = RepositoryProvider(it)
+                val repositoryProvider = repositoryRegistry.provider(it)
                 val behandling = repositoryProvider.provide(BehandlingRepository::class).hent(req)
 
                 val digitaliseringsvurdering = repositoryProvider.provide(DigitaliseringsvurderingRepository::class)

@@ -3,13 +3,12 @@ package no.nav.aap.fordeler.arena.jobber
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.motor.ProviderJobbSpesifikasjon
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.Fagsystem
@@ -27,23 +26,23 @@ class AutomatiskJournalføringJobbUtfører(
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : ArenaJobbutførerBase(journalpostService) {
 
-    companion object : Jobb {
-        override fun konstruer(connection: DBConnection): JobbUtfører {
+    companion object : ProviderJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
             return AutomatiskJournalføringJobbUtfører(
                 GatewayProvider.provide(JournalføringsGateway::class),
                 GatewayProvider.provide(GosysOppgaveGateway::class),
-                FlytJobbRepository(connection),
-                RepositoryProvider(connection).provide(InnkommendeJournalpostRepository::class),
-                JournalpostService.konstruer(connection),
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
+                JournalpostService.konstruer(repositoryProvider, GatewayProvider),
                 PrometheusProvider.prometheus
             )
         }
 
-        override fun type() = "arena.automatiskjournalføring"
+        override val type = "arena.automatiskjournalføring"
 
-        override fun navn() = "Automatisk journalfører"
+        override val navn = "Automatisk journalfører"
 
-        override fun beskrivelse() = "Journalfører journalposter som kan behandles automatisk"
+        override val beskrivelse = "Journalfører journalposter som kan behandles automatisk"
 
     }
 
@@ -52,7 +51,7 @@ class AutomatiskJournalføringJobbUtfører(
     override fun utførArena(input: JobbInput, journalpost: Journalpost) {
         val kontekst = input.getAutomatiskJournalføringKontekst()
 
-        if (input.antallRetriesForsøkt() >= retries()) {
+        if (input.antallRetriesForsøkt() >= retries) {
             val enhet = innkommendeJournalpostRepository.hent(journalpost.journalpostId).enhet
 
             flytJobbRepository.leggTil(

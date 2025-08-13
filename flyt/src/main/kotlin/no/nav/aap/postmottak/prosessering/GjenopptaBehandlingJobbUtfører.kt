@@ -1,12 +1,12 @@
 package no.nav.aap.postmottak.prosessering
 
-import no.nav.aap.postmottak.forretningsflyt.gjenopptak.GjenopptakRepository
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.motor.ProviderJobbSpesifikasjon
 import no.nav.aap.motor.cron.CronExpression
+import no.nav.aap.postmottak.forretningsflyt.gjenopptak.GjenopptakRepository
 
 class GjenopptaBehandlingJobbUtfører(
     private val gjenopptakRepository: GjenopptakRepository,
@@ -19,7 +19,7 @@ class GjenopptaBehandlingJobbUtfører(
         behandlingerForGjennopptak.forEach { journalpostOgBehandling ->
             val jobberPåBehandling = flytJobbRepository.hentJobberForBehandling(journalpostOgBehandling.behandlingId.id)
 
-            if (jobberPåBehandling.none { it.type() == ProsesserBehandlingJobbUtfører.type() }) {
+            if (jobberPåBehandling.none { it.type() == ProsesserBehandlingJobbUtfører.type }) {
                 flytJobbRepository.leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(
                         sakID = journalpostOgBehandling.journalpostId.referanse,
@@ -30,28 +30,21 @@ class GjenopptaBehandlingJobbUtfører(
         }
     }
 
-    companion object : Jobb {
-        override fun konstruer(connection: DBConnection): JobbUtfører {
+    companion object : ProviderJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
             return GjenopptaBehandlingJobbUtfører(
-                GjenopptakRepository(connection),
-                FlytJobbRepository(connection)
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
             )
         }
 
-        override fun type(): String {
-            return "batch.gjenopptaBehandlinger"
-        }
+        override val type: String = "batch.gjenopptaBehandlinger"
 
-        override fun navn(): String {
-            return "Gjenoppta behandling"
-        }
+        override val navn: String = "Gjenoppta behandling"
 
-        override fun beskrivelse(): String {
-            return "Finner behandlinger som er satt på vent og fristen har løpt ut. Gjenopptar behandlingen av disse slik at saksbehandler kan fortsette på saksbehandling av saken"
-        }
+        override val beskrivelse: String =
+            "Finner behandlinger som er satt på vent og fristen har løpt ut. Gjenopptar behandlingen av disse slik at saksbehandler kan fortsette på saksbehandling av saken"
 
-        override fun cron(): CronExpression {
-            return CronExpression.create("0 0 7 * * *")
-        }
+        override val cron: CronExpression = CronExpression.create("0 0 7 * * *")
     }
 }

@@ -7,7 +7,6 @@ import no.nav.aap.fordeler.arena.jobber.OppprettOppgaveIArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendTilArenaKjørelisteBehandling
 import no.nav.aap.fordeler.arena.jobber.medArenaVideresenderKontekst
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
@@ -30,12 +29,12 @@ class ArenaVideresender(
     val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
 ) {
     companion object {
-        fun konstruer(connection: DBConnection): ArenaVideresender {
+        fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): ArenaVideresender {
             return ArenaVideresender(
-                JournalpostService.konstruer(connection),
-                GatewayProvider.provide(JournalføringsGateway::class),
-                FlytJobbRepository(connection),
-                RepositoryProvider(connection).provide(InnkommendeJournalpostRepository::class),
+                JournalpostService.konstruer(repositoryProvider, gatewayProvider),
+                gatewayProvider.provide(),
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
             )
         }
     }
@@ -64,9 +63,20 @@ class ArenaVideresender(
             }
 
             Brevkoder.SØKNAD.kode -> sendSøknadTilArena(journalpost, innkommendeJournalpostId)
-            Brevkoder.STANDARD_ETTERSENDING.kode -> opprettOppagvePåEksisterendeSak(journalpost, innkommendeJournalpostId)
-            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> opprettOppagvePåEksisterendeSak(journalpost, innkommendeJournalpostId)
-            Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> sendTiArenaKjøreliste(journalpost, innkommendeJournalpostId)// Håndteres af jfr-arena
+            Brevkoder.STANDARD_ETTERSENDING.kode -> opprettOppagvePåEksisterendeSak(
+                journalpost,
+                innkommendeJournalpostId
+            )
+
+            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> opprettOppagvePåEksisterendeSak(
+                journalpost,
+                innkommendeJournalpostId
+            )
+
+            Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> sendTiArenaKjøreliste(
+                journalpost,
+                innkommendeJournalpostId
+            )// Håndteres af jfr-arena
             else -> {
                 sendTilManuellJournalføring(journalpost, innkommendeJournalpostId)
             }
@@ -100,11 +110,19 @@ class ArenaVideresender(
     private fun sendTilManuellJournalføring(journalpost: Journalpost, innkommendeJournalpostId: Long) {
         flytJobbRepository.leggTil(
             JobbInput(ManuellJournalføringJobbUtfører)
-                .medArenaVideresenderKontekst(opprettArenaVideresenderKontekst(journalpost, innkommendeJournalpostId = innkommendeJournalpostId))
+                .medArenaVideresenderKontekst(
+                    opprettArenaVideresenderKontekst(
+                        journalpost,
+                        innkommendeJournalpostId = innkommendeJournalpostId
+                    )
+                )
         )
     }
 
-    private fun opprettArenaVideresenderKontekst(journalpost: Journalpost, innkommendeJournalpostId: Long): ArenaVideresenderKontekst {
+    private fun opprettArenaVideresenderKontekst(
+        journalpost: Journalpost,
+        innkommendeJournalpostId: Long
+    ): ArenaVideresenderKontekst {
         val enhet = innkommendeJournalpostRepository.hent(journalpost.journalpostId).enhet
 
         return ArenaVideresenderKontekst.fra(journalpost, enhet, innkommendeJournalpostId = innkommendeJournalpostId)

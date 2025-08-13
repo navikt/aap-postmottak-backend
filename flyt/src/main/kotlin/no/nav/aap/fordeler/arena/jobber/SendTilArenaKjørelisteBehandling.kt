@@ -1,12 +1,12 @@
 package no.nav.aap.fordeler.arena.jobber
 
 import no.nav.aap.fordeler.arena.ArenaGateway
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.motor.ProviderJobbSpesifikasjon
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.slf4j.LoggerFactory
@@ -17,22 +17,22 @@ class SendTilArenaKjørelisteBehandling(
     journalpostService: JournalpostService
 ) : ArenaJobbutførerBase(journalpostService) {
 
-    companion object : Jobb {
-        override fun konstruer(connection: DBConnection): JobbUtfører {
+    companion object : ProviderJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
             return SendTilArenaKjørelisteBehandling(
-                FlytJobbRepository(connection),
-                GatewayProvider.provide(ArenaGateway::class),
-                JournalpostService.konstruer(connection)
+                repositoryProvider.provide(),
+                GatewayProvider.provide(),
+                JournalpostService.konstruer(repositoryProvider, GatewayProvider)
             )
         }
 
-        override fun type() = "arena.kjøreliste"
+        override val type = "arena.kjøreliste"
 
-        override fun navn() = "Kjøreliste til Arean Håndterer"
+        override val navn = "Kjøreliste til Arean Håndterer"
 
-        override fun beskrivelse() = "Behandle kjoereliste og opprett oppgave"
+        override val beskrivelse = "Behandle kjoereliste og opprett oppgave"
 
-        override fun retries() = 4
+        override val retries = 4
 
     }
 

@@ -1,37 +1,44 @@
 package no.nav.aap.postmottak.avklaringsbehov
 
-import no.nav.aap.behandlingsflyt.flyt.steg.internal.StegKonstruktørImpl
-import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.auth.Bruker
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.flyt.FlytOrkestrator
-import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.SattPåVentLøsning
-import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlagImpl
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
+import no.nav.aap.postmottak.flyt.FlytOrkestrator
+import no.nav.aap.postmottak.flyt.utledType
+import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
+import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import org.slf4j.LoggerFactory
 
 class AvklaringsbehovOrkestrator(
-    private val connection: DBConnection, private val behandlingHendelseService: BehandlingHendelseServiceImpl
+    private val repositoryProvider: RepositoryProvider,
+    private val behandlingHendelseService: BehandlingHendelseServiceImpl,
+    private val avklaringsbehovRepository: AvklaringsbehovRepository,
+    private val behandlingRepository: BehandlingRepository,
+    private val flytJobbRepository: FlytJobbRepository,
+    private val flytOrkestrator: FlytOrkestrator
 ) {
-    private val repositoryProvider = RepositoryProvider(connection)
-    private val avklaringsbehovRepository = repositoryProvider.provide(AvklaringsbehovRepository::class)
-    private val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
-    private val flytJobbRepository = FlytJobbRepository(connection)
 
     private val log = LoggerFactory.getLogger(AvklaringsbehovOrkestrator::class.java)
+
+    constructor(repositoryProvider: RepositoryProvider) : this(
+        repositoryProvider,
+        behandlingHendelseService = BehandlingHendelseServiceImpl(repositoryProvider, GatewayProvider),
+        avklaringsbehovRepository = repositoryProvider.provide(),
+        behandlingRepository = repositoryProvider.provide(),
+        flytJobbRepository = repositoryProvider.provide(),
+        flytOrkestrator = FlytOrkestrator(repositoryProvider, GatewayProvider)
+    )
 
     fun taAvVentHvisPåVentOgFortsettProsessering(behandlingId: BehandlingId) {
         val behandling = behandlingRepository.hent(behandlingId)
@@ -113,12 +120,6 @@ class AvklaringsbehovOrkestrator(
         )
 
         // løses det behov som fremtvinger tilbakehopp?
-        val flytOrkestrator = FlytOrkestrator(            stegKonstruktør = StegKonstruktørImpl(connection),
-            behandlingRepository = behandlingRepository,
-            behandlingFlytRepository = repositoryProvider.provide(BehandlingFlytRepository::class),
-            avklaringsbehovRepository = avklaringsbehovRepository,
-            informasjonskravGrunnlag = InformasjonskravGrunnlagImpl(connection),
-            behandlingHendelseService = behandlingHendelseService)
         flytOrkestrator.forberedLøsingAvBehov(definisjoner, behandling, kontekst)
 
         // Bør ideelt kalle på
@@ -129,7 +130,7 @@ class AvklaringsbehovOrkestrator(
         kontekst: FlytKontekst, avklaringsbehovene: Avklaringsbehovene, it: AvklaringsbehovLøsning, bruker: Bruker
     ) {
         avklaringsbehovene.leggTilFrivilligHvisMangler(it.definisjon(), bruker)
-        val løsningsResultat = it.løs(connection, AvklaringsbehovKontekst(bruker, kontekst))
+        val løsningsResultat = it.løs(repositoryProvider, AvklaringsbehovKontekst(bruker, kontekst))
 
         avklaringsbehovene.løsAvklaringsbehov(
             it.definisjon(), løsningsResultat.begrunnelse, bruker.ident, løsningsResultat.kreverToTrinn

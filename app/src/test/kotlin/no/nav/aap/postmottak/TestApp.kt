@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
+import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.AzurePortHolder
 import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.fakes.PAPIR_SØKNAD
@@ -40,7 +41,7 @@ fun main() {
         // jdbc URL contains the host and port and database name.
         println("jdbcUrl: ${postgres.jdbcUrl}. Password: ${postgres.password}. Username: ${postgres.username}.")
         server(
-            dbConfig
+            dbConfig, postgresRepositoryRegistry
         )
 
         val datasource = initDatasource(dbConfig, SimpleMeterRegistry())
@@ -57,7 +58,8 @@ fun main() {
 }
 
 private fun opprettBehandlingAvklarTeam(connection: DBConnection) {
-    val behandling = BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
+    val behandling =
+        BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
 
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)

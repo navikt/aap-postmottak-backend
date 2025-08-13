@@ -1,8 +1,9 @@
 package no.nav.aap.fordeler.regler
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
+import no.nav.aap.lookup.repository.RepositoryProvider
 
 sealed interface Regel<T> {
     fun regelNavn(): String
@@ -23,7 +24,7 @@ class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGe
 
 sealed interface RegelFactory<T> {
     val erAktiv: Boolean
-    fun medDataInnhenting(connection: DBConnection? = null): RegelMedInputgenerator<T>
+    fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider? = null): RegelMedInputgenerator<T>
 }
 
 fun miljøConfig(prod: Boolean, dev:Boolean) = when (Miljø.er()) {
