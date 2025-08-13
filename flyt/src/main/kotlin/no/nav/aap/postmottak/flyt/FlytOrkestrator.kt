@@ -51,7 +51,12 @@ class FlytOrkestrator(
         )
     }
 
-    fun forberedBehandling(kontekst: FlytKontekst) {
+    fun forberedOgProsesserBehandling(kontekst: FlytKontekst) {
+        forberedBehandling(kontekst)
+        prosesserBehandling(kontekst)
+    }
+
+    private fun forberedBehandling(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
@@ -67,6 +72,7 @@ class FlytOrkestrator(
             behov.forEach { avklaringsbehovene.løsAvklaringsbehov(it.definisjon, "", SYSTEMBRUKER.ident) }
             // Hvis fortsatt på vent
             if (avklaringsbehovene.erSattPåVent()) {
+                log.info("Behandlingen er på vent, skipper forberedelse.")
                 return // Bail out
             } else {
                 // Behandlingen er tatt av vent pga frist og flyten flyttes tilbake til steget hvor den sto på vent
@@ -100,14 +106,11 @@ class FlytOrkestrator(
         tilbakefør(kontekst, behandling, tilbakeføringsflyt, avklaringsbehovene)
     }
 
-    fun prosesserBehandling(kontekst: FlytKontekst) {
+    private fun prosesserBehandling(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
 
         avklaringsbehovene.validateTilstand(behandling = behandling)
-
-        // TODO: Vurdere om det hendelser som trigger prosesserBehandling
-        //  (f.eks ankommet dokument) skal ta behandling av vent
 
         // fjerner av ventepunkt med utløpt frist
         if (avklaringsbehovene.erSattPåVent()) {

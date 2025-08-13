@@ -16,6 +16,7 @@ import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
+import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
@@ -27,6 +28,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTem
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -50,10 +52,10 @@ import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT
 import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM
 import no.nav.aap.postmottak.test.fakes.UGYLDIG_STATUS
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -61,6 +63,7 @@ import java.time.LocalDate
 
 @Fakes
 class Flyttest : WithDependencies {
+
     companion object {
         private val dataSource = InitTestDatabase.freshDatabase()
         private val hendelsesMottak = TestHendelsesMottak(dataSource)
@@ -85,67 +88,52 @@ class Flyttest : WithDependencies {
 
     @AfterEach
     fun afterEach() {
-        dataSource.transaction {
-            it.execute(
+        dataSource.connection.use { conn ->
+            conn.prepareStatement(
                 """
-            TRUNCATE BEHANDLING CASCADE;
-            TRUNCATE innkommende_journalpost CASCADE;
-            TRUNCATE regel_evaluering CASCADE;
-        """.trimIndent()
-            )
+                DO $$
+                DECLARE
+                    r RECORD;
+                BEGIN
+                    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT LIKE 'flyway_%') LOOP
+                        EXECUTE 'TRUNCATE TABLE public.' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE';
+                    END LOOP;
+                END;
+                $$;
+            """.trimIndent()
+            ).use { it.execute() }
         }
     }
 
     @Test
     fun fordel() {
         val journalpostId = DIGITAL_SØKNAD_ID
-        dataSource.transaction {
-            FlytJobbRepository(it).leggTil(
-                JobbInput(FordelingRegelJobbUtfører).medJournalpostId(journalpostId)
-            )
-        }
-        util.ventPåSvar()
-        val behandlinger = dataSource.transaction(readOnly = true) {
-            BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
-        }
+
+        triggFordelingJobb(journalpostId)
+
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(behandlinger).isNotEmpty
     }
 
     @Test
     fun `Helautomatisk flyt for legeerklæring som ikke skal til Kelvin`() {
         val journalpostId = LEGEERKLÆRING_IKKE_TIL_KELVIN
-        val behandlingId = dataSource.transaction { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class)
-                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-        }
-        dataSource.transaction { connection ->
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-            behandlingId
-        }
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+        triggProsesserBehandling(journalpostId, behandlingId)
 
-        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
 
-        dataSource.transaction(readOnly = true) { connection ->
-            val behandlinger = BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
-            assertThat(behandlinger).hasSize(1)
-            assertThat(
-                behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
-                1
-            )
-
-        }
+        assertThat(behandlinger).hasSize(1)
+        assertThat(
+            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
+            1
+        )
     }
 
     @Test
     fun `Helautomatisk flyt for digital legeerklæring som skal til Kelvin`() {
         val journalpostId = LEGEERKLÆRING
-        val behandlingId = dataSource.transaction { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class)
-                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-        }
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         dataSource.transaction { connection ->
             SaksnummerRepositoryImpl(connection).lagreKelvinSak(
@@ -156,18 +144,9 @@ class Flyttest : WithDependencies {
                 )
             )
         }
-        dataSource.transaction { connection ->
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-            behandlingId
-        }
+        triggProsesserBehandling(journalpostId, behandlingId)
 
-        util.ventPåSvar()
-        val behandlinger = dataSource.transaction(readOnly = true) { connection ->
-            BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
-        }
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(behandlinger).hasSize(2)
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
@@ -181,26 +160,17 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Flyt for journalpost som er blitt behandlet i gosys`() {
-        val (journalpostId, behandlingId) = dataSource.transaction { connection ->
-            val journalpostId = ANNET_TEMA
-            val behandlingId = RepositoryProvider(connection).provide(BehandlingRepository::class)
-                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-            Pair(journalpostId, behandlingId)
-        }
+        val journalpostId = ANNET_TEMA
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+
         dataSource.transaction { connection ->
             val repositoryProvider = RepositoryProvider(connection)
             repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, false, Tema.UKJENT)
-
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
         }
 
-        util.ventPåSvar()
-        val behandling = dataSource.transaction(readOnly = true) { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
-        }
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        val behandling = hentBehandling(behandlingId)
         assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
 
         val jobber: List<String> = dataSource.transaction { connection ->
@@ -210,52 +180,31 @@ class Flyttest : WithDependencies {
         }
 
         assertThat(jobber).hasSize(0)
-
     }
-
 
     @Test
     fun `Full helautomatisk flyt for søknad`() {
         val journalpostId = DIGITAL_SØKNAD_ID
-        val behandlingId = dataSource.transaction {
-            RepositoryProvider(it).provide(BehandlingRepository::class)
-                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-        }
-        dataSource.transaction {
-            FlytJobbRepository(it).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-            behandlingId
-        }
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+        triggProsesserBehandling(journalpostId, behandlingId)
 
-        util.ventPåSvar()
-        val behandlinger = dataSource.transaction(readOnly = true) {
-            RepositoryProvider(it).provide(BehandlingRepository::class).hentAlleBehandlingerForSak(journalpostId)
-        }
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
 
         assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
     }
 
+
     @Test
     fun `kjører en manuell søknad igjennom hele flyten`() {
-        val (behandlingId, journalpostId) = dataSource.transaction { connection ->
-            val journalpostId = JournalpostId(1)
-            Pair(opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId), journalpostId)
+        val journalpostId = JournalpostId(1)
+        val behandlingId = dataSource.transaction { connection ->
+            opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId)
         }
 
-        dataSource.transaction { connection ->
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-            behandlingId
-        }
+        triggProsesserBehandling(journalpostId, behandlingId)
 
-        util.ventPåSvar()
-        val behandling = dataSource.transaction(readOnly = true) { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
-        }
+        val behandling = hentBehandling(behandlingId)
+
         assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
     }
 
@@ -263,56 +212,40 @@ class Flyttest : WithDependencies {
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
         val journalpostId = JournalpostId(1L)
 
-        dataSource.transaction { connection ->
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(FordelingRegelJobbUtfører).forSak(journalpostId.referanse).medJournalpostId(journalpostId)
-                    .medCallId()
-            )
-        }
+        triggFordelingJobb(journalpostId)
 
-        util.ventPåSvar()
-        val behandling = dataSource.transaction(readOnly = true) { connection ->
-            val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
-            behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
-                .find { it.typeBehandling == TypeBehandling.Journalføring }!!
-        }
+        val alleBehandlinger = alleBehandlingerForJournalpost(journalpostId)
+        val behandling = alleBehandlinger
+            .find { it.typeBehandling == TypeBehandling.Journalføring }!!
 
         assertNotNull(behandling)
+        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        assertThat(behandling.journalpostId).isEqualTo(journalpostId)
     }
 
     @Test
     fun `Blir satt på vent for etterspørring av informasjon`() {
         val journalpostId = JournalpostId(2L)
-        val behandlingId = dataSource.transaction { connection ->
-            val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
-            behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-        }
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         dataSource.transaction { connection ->
             AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
             SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
         }
-        dataSource.transaction { connection ->
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-        }
+        triggProsesserBehandling(journalpostId, behandlingId)
 
-        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+        val alleBehandlinger = alleBehandlingerForJournalpost(journalpostId)
+        var behandling = alleBehandlinger
+            .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }!!
 
-        var behandling = dataSource.transaction(readOnly = true) { connection ->
-            val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
-            val behandling = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
-                .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }!!
-            behandling
-        }
+        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
-        util.ventPåSvar()
         val alleAvklaringsbehov = dataSource.transaction(readOnly = true) { connection ->
             hentAvklaringsbehov(behandling.id, connection).alle()
         }
-        assertThat(alleAvklaringsbehov).anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.DIGITALISER_DOKUMENT) }
+        assertThat(alleAvklaringsbehov)
+            .extracting(Avklaringsbehov::erÅpent, Avklaringsbehov::definisjon)
+            .containsExactly(tuple(true, Definisjon.DIGITALISER_DOKUMENT))
 
         hendelsesMottak.håndtere(
             behandling.id, BehandlingSattPåVent(
@@ -337,17 +270,14 @@ class Flyttest : WithDependencies {
         assertThat(dto).isNotNull
         assertThat(dto?.frist).isNotNull
 
-
         val alleAvklaringsbehov2 = dataSource.transaction(readOnly = true) { connection ->
             hentAvklaringsbehov(behandling.id, connection).alle()
         }
-        assertThat(alleAvklaringsbehov2).anySatisfy { assertTrue(it.erÅpent() && it.definisjon == Definisjon.MANUELT_SATT_PÅ_VENT) }
+        assertThat(alleAvklaringsbehov2)
+            .extracting(Avklaringsbehov::erÅpent, Avklaringsbehov::definisjon)
+            .contains(tuple(true, Definisjon.MANUELT_SATT_PÅ_VENT))
 
-
-        behandling = dataSource.transaction(readOnly = true) { connection ->
-            val behandlingRepository = RepositoryProvider(connection).provide(BehandlingRepository::class)
-            behandlingRepository.hent(behandling.id)
-        }
+        behandling = hentBehandling(behandling.id)
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
         val alleAvklaringsbehov3 = dataSource.transaction(readOnly = true) { connection ->
@@ -360,24 +290,12 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Skal ikke opprette dokumentflyt dersom journalposten har ugyldig status`() {
-        val (behandlingId, journalpostId) = dataSource.transaction { connection ->
-            val journalpostId = UGYLDIG_STATUS
-            val behandlingId = RepositoryProvider(connection).provide(BehandlingRepository::class)
-                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-            Pair(behandlingId, journalpostId)
-        }
-        dataSource.transaction { connection ->
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-        }
+        val journalpostId = UGYLDIG_STATUS
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
-        util.ventPåSvar()
+        triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandling = dataSource.transaction(readOnly = true) { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
-        }
+        val behandling = hentBehandling(behandlingId)
         assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
 
         val jobber: List<String> = dataSource.transaction {
@@ -386,29 +304,15 @@ class Flyttest : WithDependencies {
             }
         }
         assertThat(jobber).hasSize(0)
-
-
     }
 
     @Test
     fun `Skal videresende dersom journalposten ble journalført utenfor postmottak med tema AAP på Kelvin fagsak `() {
         val journalpostId = STATUS_JOURNALFØRT
-        val behandlingId = dataSource.transaction { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class)
-                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-        }
-        dataSource.transaction { connection ->
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-        }
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+        triggProsesserBehandling(journalpostId, behandlingId)
 
-        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
-
-        val behandlinger = dataSource.transaction(readOnly = true) { connection ->
-            BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
-        }
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
             1
@@ -419,22 +323,11 @@ class Flyttest : WithDependencies {
     @Test
     fun `Skal ikke videresende dersom journalposten ble journalført utenfor postmottak med tema AAP, men på annet fagsystem`() {
         val journalpostId = STATUS_JOURNALFØRT_ANNET_FAGSYSTEM
-        val behandlingId = dataSource.transaction { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class)
-                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-        }
-        dataSource.transaction { connection ->
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-        }
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
-        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+        triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = dataSource.transaction(readOnly = true) { connection ->
-            BehandlingRepositoryImpl(connection).hentAlleBehandlingerForSak(journalpostId)
-        }
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(behandlinger).hasSize(1)
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
@@ -442,6 +335,45 @@ class Flyttest : WithDependencies {
         )
 
     }
+
+    private fun alleBehandlingerForJournalpost(journalpostId: JournalpostId): List<Behandling> =
+        dataSource.transaction(readOnly = true) {
+            BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
+        }
+
+    private fun triggProsesserBehandling(
+        journalpostId: JournalpostId,
+        behandlingId: BehandlingId
+    ) {
+        dataSource.transaction { connection ->
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId.referanse, behandlingId.id)
+                    .medCallId()
+            )
+        }
+        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+    }
+
+    private fun opprettJournalføringsBehandling(journalpostId: JournalpostId): BehandlingId =
+        dataSource.transaction { connection ->
+            RepositoryProvider(connection).provide(BehandlingRepository::class)
+                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+        }
+
+    private fun triggFordelingJobb(journalpostId: JournalpostId) {
+        dataSource.transaction { connection ->
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(FordelingRegelJobbUtfører).forSak(journalpostId.referanse).medJournalpostId(journalpostId)
+                    .medCallId()
+            )
+        }
+        util.ventPåSvar(journalpostId.referanse)
+    }
+
+    private fun hentBehandling(behandlingId: BehandlingId): Behandling =
+        dataSource.transaction(readOnly = true) { connection ->
+            RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
+        }
 
 
     private fun opprettManuellBehandlingMedAlleAvklaringer(
