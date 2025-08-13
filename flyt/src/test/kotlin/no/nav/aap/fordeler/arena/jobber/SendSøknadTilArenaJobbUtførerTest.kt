@@ -47,7 +47,7 @@ class SendSøknadTilArenaJobbUtførerTest {
         sendSøknadTilArenaJobb.utfør(jobbInput)
         
         verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
-            assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type())
+            assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type)
             assertThat(it.getArenaVideresenderKontekst()).isEqualTo(jobbKontekst)
         })}
     }
@@ -76,7 +76,7 @@ class SendSøknadTilArenaJobbUtførerTest {
         sendSøknadTilArenaJobb.utfør(jobbInput)
         
         verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
-            assertThat(it.type()).isEqualTo(AutomatiskJournalføringJobbUtfører.type())
+            assertThat(it.type()).isEqualTo(AutomatiskJournalføringJobbUtfører.type)
             assertThat(it.getAutomatiskJournalføringKontekst()).isEqualTo(AutomatiskJournalføringKontekst(
                 journalpostId = journalpostId,
                 innkommendeJournalpostId = 1L,
@@ -111,7 +111,7 @@ class SendSøknadTilArenaJobbUtførerTest {
         sendSøknadTilArenaJobb.utfør(jobbInput)
 
         verify(exactly = 1) {flytJobbRepositoryMock.leggTil(withArg{
-            assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type())
+            assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type)
             assertThat(it.getArenaVideresenderKontekst()).isEqualTo(jobbKontekst)
         })}
     }

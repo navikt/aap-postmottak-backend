@@ -13,6 +13,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
+import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.AfterAll
@@ -63,7 +64,7 @@ class ApiTest {
 
         // Starter server
         private val server = embeddedServer(Netty, port = 0) {
-            server(dbConfig = dbConfig)
+            server(dbConfig = dbConfig, postgresRepositoryRegistry)
         }
 
         @JvmStatic

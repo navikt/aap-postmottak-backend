@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak
 
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
@@ -19,8 +18,7 @@ class SaksnummerInfoKrav(
     private val journalpostRepository: JournalpostRepository
 ) : Informasjonskrav {
     companion object : Informasjonskravkonstruktør {
-        override fun konstruer(connection: DBConnection): Informasjonskrav {
-            val repositoryProvider = RepositoryProvider(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): Informasjonskrav {
             return SaksnummerInfoKrav(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 GatewayProvider.provide(BehandlingsflytGateway::class),

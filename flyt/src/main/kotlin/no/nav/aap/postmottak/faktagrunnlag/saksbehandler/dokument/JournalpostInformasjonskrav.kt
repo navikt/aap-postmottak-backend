@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.ENDRET
@@ -24,11 +24,10 @@ class JournalpostInformasjonskrav(
 
 
     companion object : Informasjonskravkonstruktør {
-        override fun konstruer(connection: DBConnection): JournalpostInformasjonskrav {
-            val repositoryProvider = RepositoryProvider(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JournalpostInformasjonskrav {
             return JournalpostInformasjonskrav(
                 repositoryProvider.provide(JournalpostRepository::class),
-                JournalpostService.konstruer(connection),
+                JournalpostService.konstruer(repositoryProvider, gatewayProvider),
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(AvklarTemaRepository::class)
             )

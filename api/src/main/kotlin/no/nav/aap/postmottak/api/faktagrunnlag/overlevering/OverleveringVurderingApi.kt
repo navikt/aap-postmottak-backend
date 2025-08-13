@@ -4,7 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
@@ -14,18 +14,18 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.overleveringApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.overleveringApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
     route("/api/behandling/{referanse}/grunnlag/overlevering") {
         authorizedGet<BehandlingsreferansePathParam, OverleveringGrunnlagDto>(
             AuthorizationParamPathConfig(
                 journalpostPathParam = JournalpostPathParam(
                     "referanse",
-                    journalpostIdFraBehandlingResolver(dataSource)
+                    journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                 )
             )
         ) { req ->
             val vurdering = dataSource.transaction(readOnly = true) {
-                val repositoryProvider = RepositoryProvider(it)
+                val repositoryProvider = repositoryRegistry.provider(it)
                 val behandlingId = repositoryProvider.provide(BehandlingRepository::class).hent(req).id
                 repositoryProvider.provide(OverleveringVurderingRepository::class).hentHvisEksisterer(behandlingId)
             }

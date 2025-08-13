@@ -10,7 +10,7 @@ import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
-import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
@@ -28,19 +28,19 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
     route("/api/behandling") {
         route("/{referanse}") {
             authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource)
+                        journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                     )
                 )
             ) { req ->
                 val dto = dataSource.transaction(readOnly = true) { connection ->
-                    val repositoryProvider = RepositoryProvider(connection)
+                    val repositoryProvider = repositoryRegistry.provider(connection)
                     val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
                     val avklaringsbehovRepository = repositoryProvider.provide(AvklaringsbehovRepository::class)
 
@@ -86,12 +86,12 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource)
+                        journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                     )
                 )
             ) { req ->
                 dataSource.transaction { connection ->
-                    val repositoryProvider = RepositoryProvider(connection)
+                    val repositoryProvider = repositoryRegistry.provider(connection)
                     val taSkriveLåsRepository = repositoryProvider.provide(TaSkriveLåsRepository::class)
                     val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
                     val lås = taSkriveLåsRepository.lås(req)
@@ -123,7 +123,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource) {
                 if (Miljø.er() != MiljøKode.LOKALT) {
                     throw IllegalStateException("Behandling kan kun opprettes manuelt i lokalt miljø")
                 }
-                val repositoryProvider = RepositoryProvider(connection)
+                val repositoryProvider = repositoryRegistry.provider(connection)
                 val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
                 
                 val behandlingId =

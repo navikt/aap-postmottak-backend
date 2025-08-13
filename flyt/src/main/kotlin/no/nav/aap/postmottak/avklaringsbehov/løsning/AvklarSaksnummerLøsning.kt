@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.avklaringsbehov.løsning
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeName
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løser.AvklarSakLøser
 import no.nav.aap.postmottak.avklaringsbehov.løser.LøsningsResultat
@@ -25,8 +25,8 @@ class AvklarSaksnummerLøsning(
         defaultValue = AVKLAR_SAKSNUMMER_KODE
     ) val behovstype: String = AVKLAR_SAKSNUMMER_KODE
 ) : AvklaringsbehovLøsning {
-    override fun løs(connection: DBConnection, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
-        return AvklarSakLøser.konstruer(connection).løs(kontekst, this)
+    override fun løs(repositoryProvider: RepositoryProvider, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
+        return AvklarSakLøser.konstruer(repositoryProvider).løs(kontekst, this)
     }
 }
 

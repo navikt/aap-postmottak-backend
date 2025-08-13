@@ -1,11 +1,11 @@
 package no.nav.aap.postmottak.prosessering
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.motor.Jobb
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.motor.ProviderJobbSpesifikasjon
 import no.nav.aap.postmottak.gateway.OppgaveGateway
 import no.nav.aap.postmottak.gateway.StatistikkGateway
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
@@ -26,21 +26,15 @@ class StoppetHendelseJobbUtfører private constructor() : JobbUtfører {
         GatewayProvider.provide(StatistikkGateway::class).avgiHendelse(hendelse)
     }
 
-    companion object : Jobb {
-        override fun konstruer(connection: DBConnection): JobbUtfører {
+    companion object : ProviderJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
             return StoppetHendelseJobbUtfører()
         }
 
-        override fun type(): String {
-            return "flyt.hendelse"
-        }
+        override val type: String = "flyt.hendelse"
 
-        override fun navn(): String {
-            return "Oppgavehendelse"
-        }
+        override val navn: String = "Oppgavehendelse"
 
-        override fun beskrivelse(): String {
-            return "Produsere hendelse til oppgave"
-        }
+        override val beskrivelse: String = "Produsere hendelse til oppgave"
     }
 }

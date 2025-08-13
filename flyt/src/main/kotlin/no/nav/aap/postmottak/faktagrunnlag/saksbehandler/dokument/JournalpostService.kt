@@ -1,8 +1,8 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.register.PersonService
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
@@ -25,11 +25,11 @@ class JournalpostService(
     private val personService: PersonService
 ) {
     companion object {
-        fun konstruer(connection: DBConnection): JournalpostService {
+        fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JournalpostService {
             return JournalpostService(
-                GatewayProvider.provide(JournalpostGateway::class),
-                GatewayProvider.provide(JournalpostOboGateway::class),
-                PersonService.konstruer(connection)
+                gatewayProvider.provide(),
+                gatewayProvider.provide(),
+                PersonService.konstruer(repositoryProvider, gatewayProvider)
             )
         }
     }

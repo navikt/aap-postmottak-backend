@@ -1,16 +1,20 @@
 package no.nav.aap.postmottak.flyt.steg
 
+import no.nav.aap.behandlingsflyt.flyt.steg.internal.StegKonstruktørImpl
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
+import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlagImpl
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
-import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
@@ -30,17 +34,26 @@ private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
  * @see no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus:        Teknisk markør for avslutting av steget
  */
 class StegOrkestrator(
-    private val aktivtSteg: FlytSteg,
     private val informasjonskravGrunnlag: InformasjonskravGrunnlag,
+    private val behandlingRepository: BehandlingRepository,
     private val behandlingFlytRepository: BehandlingFlytRepository,
     private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val stegKonstruktør: StegKonstruktør
 ) {
 
-
-    private val behandlingSteg = stegKonstruktør.konstruer(aktivtSteg)
+    constructor(
+        repositoryProvider: RepositoryProvider,
+        gatewayProvider: GatewayProvider,
+    ) : this(
+        informasjonskravGrunnlag = InformasjonskravGrunnlagImpl(repositoryProvider, gatewayProvider),
+        behandlingRepository = repositoryProvider.provide(),
+        behandlingFlytRepository = repositoryProvider.provide(),
+        avklaringsbehovRepository = repositoryProvider.provide(),
+        stegKonstruktør = StegKonstruktørImpl(repositoryProvider, gatewayProvider)
+    )
 
     fun utfør(
+        aktivtSteg: FlytSteg,
         kontekst: FlytKontekst,
         behandling: Behandling,
         faktagrunnlagForGjeldendeSteg: List<Informasjonskravkonstruktør>
@@ -50,6 +63,7 @@ class StegOrkestrator(
 
         while (true) {
             val resultat = utførTilstandsEndring(
+                aktivtSteg,
                 kontekst,
                 gjeldendeStegStatus,
                 behandling,
@@ -57,7 +71,7 @@ class StegOrkestrator(
             )
             if (gjeldendeStegStatus in setOf(StegStatus.START, StegStatus.OPPDATER_FAKTAGRUNNLAG)) {
                 // Legger denne her slik at vi får savepoint på at vi har byttet steg, slik at vi starter opp igjen på rett sted når prosessen dras i gang igjen
-                stegKonstruktør.markerSavepoint()
+                behandlingRepository.markerSavepoint()
             }
 
             if (gjeldendeStegStatus == StegStatus.AVSLUTTER) {
@@ -72,29 +86,33 @@ class StegOrkestrator(
     }
 
     fun utførTilbakefør(
+        aktivtSteg: FlytSteg,
         kontekst: FlytKontekst,
         behandling: Behandling
     ): Transisjon {
-        return utførTilstandsEndring(kontekst, StegStatus.TILBAKEFØRT, behandling, listOf())
+        return utførTilstandsEndring(aktivtSteg, kontekst, StegStatus.TILBAKEFØRT, behandling, listOf())
     }
 
     private fun utførTilstandsEndring(
+        aktivtSteg: FlytSteg,
         kontekst: FlytKontekst,
         nesteStegStatus: StegStatus,
         behandling: Behandling,
         faktagrunnlagForGjeldendeSteg: List<Informasjonskravkonstruktør>
     ): Transisjon {
+        val behandlingSteg = stegKonstruktør.konstruer(aktivtSteg)
+
         log.debug(
             "Behandler steg({}) med status({})",
             aktivtSteg.type(),
             nesteStegStatus
         )
         val transisjon = when (nesteStegStatus) {
-            StegStatus.UTFØRER -> behandleSteg(kontekst)
+            StegStatus.UTFØRER -> behandleSteg(aktivtSteg, behandlingSteg, kontekst)
             StegStatus.OPPDATER_FAKTAGRUNNLAG -> oppdaterFaktagrunnlag(kontekst, faktagrunnlagForGjeldendeSteg)
-            StegStatus.AVKLARINGSPUNKT -> harAvklaringspunkt(aktivtSteg.type(), kontekst.behandlingId)
+            StegStatus.AVKLARINGSPUNKT -> harAvklaringspunkt(aktivtSteg, kontekst.behandlingId)
             StegStatus.AVSLUTTER -> Fortsett
-            StegStatus.TILBAKEFØRT -> behandleStegBakover(kontekst)
+            StegStatus.TILBAKEFØRT -> behandleStegBakover(kontekst, behandlingSteg)
             else -> Fortsett
         }
 
@@ -114,8 +132,12 @@ class StegOrkestrator(
         )
         return Fortsett
     }
-    
-    private fun behandleSteg(kontekst: FlytKontekst): Transisjon {
+
+    private fun behandleSteg(
+        aktivtSteg: FlytSteg,
+        behandlingSteg: BehandlingSteg,
+        kontekst: FlytKontekst
+    ): Transisjon {
         val kontekstMedPerioder = FlytKontekstMedPerioder(
             behandlingId = kontekst.behandlingId,
             behandlingType = kontekst.behandlingType,
@@ -138,7 +160,12 @@ class StegOrkestrator(
             )
             val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekstMedPerioder.behandlingId)
             resultat.ventebehov().forEach {
-                avklaringsbehovene.leggTil(definisjoner = listOf(it.definisjon), stegType = aktivtSteg.type(), frist = it.frist, grunn = it.grunn)
+                avklaringsbehovene.leggTil(
+                    definisjoner = listOf(it.definisjon),
+                    stegType = aktivtSteg.type(),
+                    frist = it.frist,
+                    grunn = it.grunn
+                )
             }
         }
 
@@ -146,7 +173,7 @@ class StegOrkestrator(
     }
 
     private fun harAvklaringspunkt(
-        steg: StegType,
+        aktivtSteg: FlytSteg,
         behandlingId: BehandlingId
     ): Transisjon {
         val relevanteAvklaringsbehov =
@@ -155,14 +182,16 @@ class StegOrkestrator(
                 .filter { behov -> behov.skalLøsesISteg(aktivtSteg.type()) }
 
 
-        if (relevanteAvklaringsbehov.any { behov -> behov.skalStoppeHer(steg) }) {
+        if (relevanteAvklaringsbehov.any { behov -> behov.skalStoppeHer(aktivtSteg.type()) }) {
             return Stopp
         }
 
         return Fortsett
     }
 
-    private fun behandleStegBakover(kontekst: FlytKontekst): Transisjon {
+    private fun behandleStegBakover(
+        kontekst: FlytKontekst, behandlingSteg: BehandlingSteg,
+    ): Transisjon {
         behandlingSteg.vedTilbakeføring(kontekst)
         return Fortsett
     }

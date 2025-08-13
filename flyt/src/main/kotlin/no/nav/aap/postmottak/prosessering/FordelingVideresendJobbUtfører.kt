@@ -4,12 +4,12 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.fordeler.RegelRepository
 import no.nav.aap.fordeler.arena.ArenaVideresender
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.motor.ProviderJobbSpesifikasjon
 import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
@@ -30,25 +30,24 @@ class FordelingVideresendJobbUtfører(
     val journalpostService: JournalpostService,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
-    companion object : Jobb {
+    companion object : ProviderJobbSpesifikasjon {
 
-        override fun konstruer(connection: DBConnection): JobbUtfører {
-            val repositoryProvider = RepositoryProvider(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
             return FordelingVideresendJobbUtfører(
-                repositoryProvider.provide(BehandlingRepository::class),
-                repositoryProvider.provide(RegelRepository::class),
-                FlytJobbRepository(connection),
-                ArenaVideresender.konstruer(connection),
-                JournalpostService.konstruer(connection),
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
+                repositoryProvider.provide(),
+                ArenaVideresender.konstruer(repositoryProvider, GatewayProvider),
+                JournalpostService.konstruer(repositoryProvider, GatewayProvider),
                 PrometheusProvider.prometheus,
             )
         }
 
-        override fun type() = "fordel.videresend"
+        override val type = "fordel.videresend"
 
-        override fun navn() = "Prosesser videresending"
+        override val navn = "Prosesser videresending"
 
-        override fun beskrivelse() = "Videresend journalpost"
+        override val beskrivelse = "Videresend journalpost"
 
     }
 

@@ -94,7 +94,7 @@ class ArenaVideresenderTest {
 
         verify {
             flytJobbRepository.leggTil(withArg {
-                assertEquals(it.type(), SendSøknadTilArenaJobbUtfører.type())
+                assertEquals(it.type(), SendSøknadTilArenaJobbUtfører.type)
                 assertEquals(it.getArenaVideresenderKontekst(), actualKontekst)
             })
         }
@@ -135,7 +135,7 @@ class ArenaVideresenderTest {
 
         verify(exactly = 1) {
             flytJobbRepository.leggTil(withArg {
-                assertEquals(it.type(), OppprettOppgaveIArenaJobbUtfører.type())
+                assertEquals(it.type(), OppprettOppgaveIArenaJobbUtfører.type)
                 assertEquals(it.getArenaVideresenderKontekst(), arenaVideresenderKontekst)
             })
         }
@@ -173,7 +173,7 @@ class ArenaVideresenderTest {
 
         verify {
             flytJobbRepository.leggTil(withArg {
-                assertEquals(it.type(), ManuellJournalføringJobbUtfører.type())
+                assertEquals(it.type(), ManuellJournalføringJobbUtfører.type)
                 assertEquals(it.getArenaVideresenderKontekst(), actualKontekst)
             })
         }

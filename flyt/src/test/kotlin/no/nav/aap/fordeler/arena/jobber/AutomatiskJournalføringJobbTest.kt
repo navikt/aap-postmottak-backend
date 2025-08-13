@@ -6,7 +6,6 @@ import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.gateway.GatewayRegistry
-import no.nav.aap.lookup.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
@@ -25,9 +24,6 @@ import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -53,9 +49,6 @@ class AutomatiskJournalføringJobbTest {
 
     @BeforeEach
     fun setup() {
-        RepositoryRegistry.register(JournalpostRepositoryImpl::class)
-        RepositoryRegistry.register(BehandlingRepositoryImpl::class)
-        RepositoryRegistry.register(PersonRepositoryImpl::class)
         GatewayRegistry.register(SafGraphqlClientCredentialsClient::class)
         GatewayRegistry.register(PdlGraphqlKlient::class)
     }
@@ -111,7 +104,7 @@ class AutomatiskJournalføringJobbTest {
 
         verify(exactly = 1) {
             flytJobbRepositoryMock.leggTil(withArg {
-                assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type())
+                assertThat(it.type()).isEqualTo(ManuellJournalføringJobbUtfører.type)
                 assertThat(it.getArenaVideresenderKontekst()).isEqualTo(
                     ArenaVideresenderKontekst.fra(journalpost, "4491", innkommendeJournalpostId = 1L)
                 )

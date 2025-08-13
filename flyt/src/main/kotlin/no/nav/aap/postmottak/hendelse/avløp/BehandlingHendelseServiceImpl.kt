@@ -1,6 +1,8 @@
 package no.nav.aap.postmottak.hendelse.avløp
 
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
@@ -23,6 +25,12 @@ class BehandlingHendelseServiceImpl(
     private val journalpostRepository: JournalpostRepository,
     private val behandlingFlytGateway: BehandlingsflytGateway
 ) : BehandlingHendelseService {
+
+    constructor(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : this(
+        flytJobbRepository = repositoryProvider.provide(),
+        journalpostRepository = repositoryProvider.provide(),
+        behandlingFlytGateway = gatewayProvider.provide(),
+    )
 
     override fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
 
@@ -62,7 +70,8 @@ class BehandlingHendelseServiceImpl(
 
         log.info("Legger til flytjobber og stoppethendelse for oppgave for behandling: ${behandling.id}")
         flytJobbRepository.leggTil(
-            JobbInput(jobb = StoppetHendelseJobbUtfører).medPayload(payload).forBehandling(behandling.journalpostId.referanse, behandling.id.id)
+            JobbInput(jobb = StoppetHendelseJobbUtfører).medPayload(payload)
+                .forBehandling(behandling.journalpostId.referanse, behandling.id.id)
         )
 
     }

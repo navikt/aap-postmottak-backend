@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.faktagrunnlag.register
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.PersondataGateway
@@ -9,10 +8,10 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 
 class PersonService(private val personRepository: PersonRepository, private val persondataGateway: PersondataGateway) {
     companion object {
-        fun konstruer(connection: DBConnection): PersonService {
+        fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): PersonService {
             return PersonService(
-                RepositoryProvider(connection).provide(PersonRepository::class),
-                GatewayProvider.provide(PersondataGateway::class)
+                repositoryProvider.provide(),
+                gatewayProvider.provide()
             )
         }
     }
@@ -27,7 +26,4 @@ class PersonService(private val personRepository: PersonRepository, private val 
 
         return person
     }
-    
-    
-
 }

@@ -1,7 +1,7 @@
 package no.nav.aap.fordeler.regler
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -13,7 +13,7 @@ class Aldersregel : Regel<AldersregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = true)
         const val MIN_ALDER = 22
         const val MAX_ALDER = 59
-        override fun medDataInnhenting(connection: DBConnection?) =
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
             RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator())
     }
 

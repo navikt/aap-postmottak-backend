@@ -6,7 +6,8 @@ import no.nav.aap.fordeler.regler.KelvinSakRegel
 import no.nav.aap.fordeler.regler.Regel
 import no.nav.aap.fordeler.regler.RegelFactory
 import no.nav.aap.fordeler.regler.RegelInput
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
@@ -37,18 +38,18 @@ data class Regelresultat(val regelMap: RegelMap) {
     }
 }
 
-class FordelerRegelService(private val connection: DBConnection) {
+class FordelerRegelService(private val repositoryProvider: RepositoryProvider, private val gatewayProvider: GatewayProvider) {
     fun evaluer(input: RegelInput): Regelresultat {
-        return hentAktiveRegler(connection)
+        return hentAktiveRegler(repositoryProvider, gatewayProvider)
             .associate { regel ->
                 regel.regelNavn() to regel.vurder(input)
             }.let(::Regelresultat)
     }
 
-    private fun hentAktiveRegler(connection: DBConnection): List<Regel<RegelInput>> =
+    private fun hentAktiveRegler(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): List<Regel<RegelInput>> =
         RegelFactory::class.sealedSubclasses
             .mapNotNull { it.objectInstance }
             .filter { it.erAktiv }
-            .map { it.medDataInnhenting(connection) }
+            .map { it.medDataInnhenting(repositoryProvider = repositoryProvider, gatewayProvider = gatewayProvider) }
 
 }

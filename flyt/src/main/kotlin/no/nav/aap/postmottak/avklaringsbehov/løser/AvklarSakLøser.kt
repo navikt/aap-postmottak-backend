@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
@@ -24,8 +23,7 @@ class AvklarSakLøser(
 ) : AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
 
     companion object : LøserKonstruktør<AvklarSaksnummerLøsning>{
-        override fun konstruer(connection: DBConnection): AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
-            val repositoryProvider = RepositoryProvider(connection)
+        override fun konstruer(repositoryProvider: RepositoryProvider): AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
 
             return AvklarSakLøser(
                 repositoryProvider.provide(SaksnummerRepository::class),

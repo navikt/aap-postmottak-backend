@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarOverleveringLøsning
@@ -25,9 +24,9 @@ class AvklarOverleveringLøser(
     }
 
     companion object : LøserKonstruktør<AvklarOverleveringLøsning> {
-        override fun konstruer(connection: DBConnection): AvklaringsbehovsLøser<AvklarOverleveringLøsning> {
-            return AvklarOverleveringLøser(RepositoryProvider(connection)
-                .provide(OverleveringVurderingRepository::class))
+        override fun konstruer(repositoryProvider: RepositoryProvider): AvklaringsbehovsLøser<AvklarOverleveringLøsning> {
+            return AvklarOverleveringLøser(repositoryProvider
+                .provide())
         }
     }
 }

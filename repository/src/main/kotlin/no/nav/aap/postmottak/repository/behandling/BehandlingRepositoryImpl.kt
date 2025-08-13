@@ -1,17 +1,17 @@
 package no.nav.aap.postmottak.repository.behandling
 
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Params
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.lookup.repository.Factory
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -176,14 +176,18 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
+    override fun markerSavepoint() {
+        connection.markerSavepoint()
+    }
 
-private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {
-    return connection.queryFirst(query) {
-        setParams(params)
-        setRowMapper {
-            mapBehandling(it)
+
+    private fun utførHentQuery(query: String, params: Params.() -> Unit): Behandling {
+        return connection.queryFirst(query) {
+            setParams(params)
+            setRowMapper {
+                mapBehandling(it)
+            }
         }
     }
-}
 
 }

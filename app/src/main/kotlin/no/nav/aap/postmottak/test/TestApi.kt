@@ -10,6 +10,7 @@ import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
@@ -36,13 +37,13 @@ data class FinnEntitetRequest(
 
 private val log = LoggerFactory.getLogger("no.nav.aap.postmottak.backend.test")
 
-fun NormalOpenAPIRoute.testApi(datasource: DataSource) {
+fun NormalOpenAPIRoute.testApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
     val miljø = Miljø.er()
     if (miljø == MiljøKode.DEV || miljø == MiljøKode.LOKALT) {
         route("/test/hentAlleBehandlinger") {
             @Suppress("UnauthorizedGet")
             get<Unit, List<BehandlingsListe>> {
-                val response = datasource.transaction {
+                val response = dataSource.transaction {
                     it.queryList(
                         """SELECT referanse as ref, steg, behandling.journalpost_id, behandling.OPPRETTET_TID, behandling.status as status FROM BEHANDLING
                             LEFT JOIN STEG_HISTORIKK ON STEG_HISTORIKK.BEHANDLING_ID = BEHANDLING.ID AND aktiv = true

@@ -1,17 +1,18 @@
 package no.nav.aap.postmottak.flyt.flate.visning
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.repository.RepositoryProvider
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
-import kotlin.reflect.full.primaryConstructor
 
-class DynamiskStegGruppeVisningService(private val connection: DBConnection) {
+class DynamiskStegGruppeVisningService(private val repositoryProvider: RepositoryProvider) {
 
     private val utledere = mutableMapOf<StegGruppe, StegGruppeVisningUtleder>()
 
     init {
         StegGruppeVisningUtleder::class.sealedSubclasses.forEach { utleder ->
-            val visningUtleder = utleder.primaryConstructor!!.call(connection)
+            val visningUtleder = utleder.constructors
+                .find { it.parameters.singleOrNull()?.type?.classifier == RepositoryProvider::class }!!
+                .call(repositoryProvider)
             utledere[visningUtleder.gruppe()] = visningUtleder
         }
     }

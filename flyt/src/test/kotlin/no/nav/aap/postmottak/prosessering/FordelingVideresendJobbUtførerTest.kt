@@ -56,7 +56,7 @@ class FordelingVideresendJobbUtførerTest {
             flytJobbRepositoryMock.leggTil(
                 withArg {
                     assertThat(it.sakId()).isEqualTo(journalpostId.referanse)
-                    assertThat(it.type()).isEqualTo(ProsesserBehandlingJobbUtfører.type())
+                    assertThat(it.type()).isEqualTo(ProsesserBehandlingJobbUtfører.type)
                 }
             )
         }

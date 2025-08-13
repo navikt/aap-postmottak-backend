@@ -4,13 +4,14 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedPost
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.auditlogApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.auditlogApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
     route("/api/journalpost") {
         route("/{referanse}/auditlog") {
             authorizedPost<JournalpostId, Unit, Unit>(
@@ -19,7 +20,7 @@ fun NormalOpenAPIRoute.auditlogApi(dataSource: DataSource) {
                         "referanse"
                     )
                 ),
-                DefaultAuditLogConfig.fraJournalpostPathParam("referanse", dataSource)
+                DefaultAuditLogConfig.fraJournalpostPathParam("referanse", dataSource, repositoryRegistry)
             ) { _, _ ->
                 respondWithStatus(HttpStatusCode.Accepted)
             }

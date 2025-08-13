@@ -2,8 +2,8 @@ package no.nav.aap.fordeler.regler
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.OppgitteBarn
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
@@ -18,10 +18,11 @@ class AlleOppgitteBarnHarIdentRegel : Regel<OppgitteBarnRegelInput> {
     companion object : RegelFactory<OppgitteBarnRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
 
-        override fun medDataInnhenting(connection: DBConnection?): RegelMedInputgenerator<OppgitteBarnRegelInput> {
-            requireNotNull(connection)
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?): RegelMedInputgenerator<OppgitteBarnRegelInput> {
+            requireNotNull(gatewayProvider)
+            requireNotNull(repositoryProvider)
 
-            val journalpostService = JournalpostService.konstruer(connection)
+            val journalpostService = JournalpostService.konstruer(repositoryProvider, gatewayProvider)
             val dokumentGateway = GatewayProvider.provide(DokumentGateway::class)
 
             return RegelMedInputgenerator(

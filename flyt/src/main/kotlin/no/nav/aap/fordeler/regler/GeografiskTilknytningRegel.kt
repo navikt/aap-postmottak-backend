@@ -1,7 +1,7 @@
 package no.nav.aap.fordeler.regler
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
 import no.nav.aap.postmottak.gateway.GeografiskTilknytningType
 import no.nav.aap.postmottak.gateway.PersondataGateway
@@ -10,7 +10,7 @@ class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
     companion object : RegelFactory<GeografiskTilknytningRegelInput> {
         // Bruk enhetsregel i stedet
         override val erAktiv = miljøConfig(prod = false, dev = false)
-        override fun medDataInnhenting(connection: DBConnection?) =
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
             RegelMedInputgenerator(GeografiskTilknytningRegel(), GeografiskTilknytningRegelInputGenerator())
     }
 

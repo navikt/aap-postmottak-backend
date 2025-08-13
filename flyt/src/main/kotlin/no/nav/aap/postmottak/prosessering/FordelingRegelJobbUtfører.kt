@@ -11,13 +11,12 @@ import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.fordeler.ÅrsakTilStatus
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.motor.ProviderJobbSpesifikasjon
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.BrukerIdType
@@ -41,25 +40,24 @@ class FordelingRegelJobbUtfører(
 ) : JobbUtfører {
     private val log = LoggerFactory.getLogger(FordelingRegelJobbUtfører::class.java)
 
-    companion object : Jobb {
-        override fun konstruer(connection: DBConnection): JobbUtfører {
-            val repositoryProvider = RepositoryProvider(connection)
+    companion object : ProviderJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
             return FordelingRegelJobbUtfører(
-                FlytJobbRepository(connection),
-                JournalpostService.konstruer(connection),
-                FordelerRegelService(connection),
-                repositoryProvider.provide(InnkommendeJournalpostRepository::class),
-                GatewayProvider.provide(GosysOppgaveGateway::class),
+                repositoryProvider.provide(),
+                JournalpostService.konstruer(repositoryProvider, GatewayProvider),
+                FordelerRegelService(repositoryProvider, GatewayProvider),
+                repositoryProvider.provide(),
+                GatewayProvider.provide(),
                 Enhetsutreder.konstruer(),
                 PrometheusProvider.prometheus
             )
         }
 
-        override fun type() = "fordel.innkommende"
+        override val type = "fordel.innkommende"
 
-        override fun navn() = "Prosesser fordeling"
+        override val navn = "Prosesser fordeling"
 
-        override fun beskrivelse() = "Vurderer mottaker av innkommende journalpost"
+        override val beskrivelse = "Vurderer mottaker av innkommende journalpost"
 
     }
 

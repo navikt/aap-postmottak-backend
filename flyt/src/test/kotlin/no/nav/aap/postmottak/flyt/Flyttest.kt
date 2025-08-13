@@ -3,12 +3,12 @@ package no.nav.aap.postmottak.flyt
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.WithDependencies
+import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
@@ -66,10 +66,10 @@ class Flyttest : WithDependencies {
 
     companion object {
         private val dataSource = InitTestDatabase.freshDatabase()
-        private val hendelsesMottak = TestHendelsesMottak(dataSource)
-        private val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle())
+        private val hendelsesMottak = TestHendelsesMottak(dataSource, repositoryRegistry)
+        private val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle(), repositoryRegistry = repositoryRegistry)
         private val util =
-            TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
+            TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
 
 
         @JvmStatic
@@ -164,7 +164,7 @@ class Flyttest : WithDependencies {
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         dataSource.transaction { connection ->
-            val repositoryProvider = RepositoryProvider(connection)
+            val repositoryProvider = repositoryRegistry.provider(connection)
             repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, false, Tema.UKJENT)
         }
 
@@ -356,7 +356,7 @@ class Flyttest : WithDependencies {
 
     private fun opprettJournalføringsBehandling(journalpostId: JournalpostId): BehandlingId =
         dataSource.transaction { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class)
+            repositoryRegistry.provider(connection).provide(BehandlingRepository::class)
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
         }
 
@@ -372,14 +372,14 @@ class Flyttest : WithDependencies {
 
     private fun hentBehandling(behandlingId: BehandlingId): Behandling =
         dataSource.transaction(readOnly = true) { connection ->
-            RepositoryProvider(connection).provide(BehandlingRepository::class).hent(behandlingId)
+            repositoryRegistry.provider(connection).provide(BehandlingRepository::class).hent(behandlingId)
         }
 
 
     private fun opprettManuellBehandlingMedAlleAvklaringer(
         connection: DBConnection, journalpostId: JournalpostId
     ): BehandlingId {
-        val repositoryProvider = RepositoryProvider(connection)
+        val repositoryProvider = repositoryRegistry.provider(connection)
         val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
         val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 

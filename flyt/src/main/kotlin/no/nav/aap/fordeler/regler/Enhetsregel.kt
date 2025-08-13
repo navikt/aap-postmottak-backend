@@ -2,7 +2,8 @@ package no.nav.aap.fordeler.regler
 
 import no.nav.aap.fordeler.EnhetMedOppfølgingsKontor
 import no.nav.aap.fordeler.Enhetsutreder
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(Enhetsregel::class.java)
@@ -14,7 +15,7 @@ class Enhetsregel : Regel<EnhetsregelInput> {
 
     companion object : RegelFactory<EnhetsregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
-        override fun medDataInnhenting(connection: DBConnection?) = RegelMedInputgenerator(Enhetsregel(), EnhetsregelInputGenerator())
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) = RegelMedInputgenerator(Enhetsregel(), EnhetsregelInputGenerator())
     }
 
     override fun vurder(input: EnhetsregelInput): Boolean {

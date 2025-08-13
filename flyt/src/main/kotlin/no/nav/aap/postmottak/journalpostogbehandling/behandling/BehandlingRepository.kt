@@ -15,5 +15,8 @@ interface BehandlingRepository: Repository {
     fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling>
 
     fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling
+
+    fun markerSavepoint()
+
 }
 

@@ -1,6 +1,7 @@
 package no.nav.aap.fordeler.regler
 
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 
 data class SøknadRegelInput(
@@ -14,7 +15,7 @@ data class SøknadRegelInput(
 class SøknadRegel : Regel<SøknadRegelInput> {
     companion object : RegelFactory<SøknadRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
-        override fun medDataInnhenting(connection: DBConnection?) =
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
             RegelMedInputgenerator(SøknadRegel(), SøknadRegelInputGenerator())
     }
 

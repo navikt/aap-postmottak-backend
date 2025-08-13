@@ -6,7 +6,7 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.auth.token
-import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.gateway.DokumentOboGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
@@ -24,7 +24,7 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
     route("/api/dokumenter") {
         route("/{journalpostId}/{dokumentinfoId}") {
             authorizedGet<HentDokumentDTO, DokumentResponsDTO>(
@@ -59,12 +59,12 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource) {
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource)
+                        journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                     )
                 )
             ) { req ->
                 val journalpostId = dataSource.transaction(readOnly = true) { connection ->
-                    val repositoryProvider = RepositoryProvider(connection)
+                    val repositoryProvider = repositoryRegistry.provider(connection)
                     repositoryProvider.provide(BehandlingRepository::class).hent(req).journalpostId
                 }
 

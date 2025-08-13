@@ -16,13 +16,14 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 class ArenaHistorikkRegelTest {
+    
     @Test
     fun `Dersom bruker har sak i Arena, skal regelen returnere false`() {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident("12345678901")))
 
         GatewayRegistry.register(JoarkMock::class).register(ApiInternMock::class)
-        val regelMedInputGenerator = ArenaHistorikkRegel.medDataInnhenting()
+        val regelMedInputGenerator = ArenaHistorikkRegel.medDataInnhenting(null, null)
         val res = regelMedInputGenerator.vurder(
             RegelInput(
                 person = person,
