@@ -3,7 +3,7 @@ ktor = "3.2.3"
 komponenter = "1.0.315"
 tilgang = "1.0.104"
 apiIntern = "0.0.9"
-behandlingsflyt = "0.0.401"
+behandlingsflyt = "0.0.405"
 junit = "5.13.4"
 
 [libraries]
