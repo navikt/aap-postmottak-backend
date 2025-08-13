@@ -6,6 +6,7 @@ import no.nav.aap.postmottak.flyt.BehandlingFlyt
 import no.nav.aap.postmottak.flyt.BehandlingFlytBuilder
 import no.nav.aap.postmottak.flyt.BehandlingType
 import no.nav.aap.postmottak.forretningsflyt.steg.StartBehandlingSteg
+import no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt.AvsluttBehandlingSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarSakSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarTemaSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.JournalføringSteg
@@ -20,5 +21,6 @@ object Journalføringsflyt : BehandlingType {
         .medSteg(steg = SettFagsakSteg)
         .medSteg(steg = JournalføringSteg)
         .medSteg(steg = VideresendSteg)
+        .medSteg(steg = AvsluttBehandlingSteg)
         .build()
 }
