@@ -1,4 +1,4 @@
-FROM debian:12-slim AS locale
+FROM debian:13-slim AS locale
 
 # Sakset og tilpasset til NO fra https://github.com/docker-library/postgres/blob/master/17/bookworm/Dockerfile
 # make the "nb_NO.UTF-8" locale so app will be utf-8 enabled by default
