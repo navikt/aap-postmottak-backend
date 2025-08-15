@@ -9,8 +9,8 @@ class JournalfoeringHendelseAvro(config: StreamsConfig) {
     val avroserdes: SpecificAvroSerde<JournalfoeringHendelseRecord>
 
     init {
-        val schemaProperties = config.schemaRegistry?.properties() ?: error("missing required schema config")
-        val sslProperties = config.ssl?.properties() ?: error("missing required ssl config")
+        val schemaProperties = config.schemaRegistry.properties()
+        val sslProperties = config.ssl.properties()
         avroserdes = SpecificAvroSerde<JournalfoeringHendelseRecord>()
         avroserdes.configure((schemaProperties.toMap() + sslProperties.toMap()), false)
     }

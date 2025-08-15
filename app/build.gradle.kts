@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val kafkaVersion = "3.7.0"
+val kafkaVersion = "4.0.0"
 
 plugins {
     id("postmottak.conventions")
@@ -85,7 +85,7 @@ dependencies {
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
     implementation("org.apache.avro:avro:1.12.0")
 
-    implementation("io.confluent:kafka-streams-avro-serde:7.7.1")
+    implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
 
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
