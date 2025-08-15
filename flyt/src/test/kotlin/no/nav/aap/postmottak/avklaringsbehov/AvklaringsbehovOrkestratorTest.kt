@@ -4,8 +4,6 @@ import io.mockk.mockk
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepositoryImpl
@@ -15,6 +13,7 @@ import no.nav.aap.postmottak.flyt.FlytOrkestrator
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.klient.createGatewayProvider
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.StoppetHendelseJobbUtfører
@@ -25,25 +24,21 @@ import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class AvklaringsbehovOrkestratorTest {
+    private val gatewayProvider = createGatewayProvider {
+        register<BehandlingsflytGatewayMock>()
+    }
+    
+    
     private val repositoryRegistry = RepositoryRegistry().register<PersonRepositoryImpl>()
         .register<JournalpostRepositoryImpl>()
         .register<PersonRepositoryImpl>()
         .register<BehandlingRepositoryImpl>()
         .register<AvklaringsbehovRepositoryImpl>()
         .register<FlytJobbRepositoryImpl>()
-
-    companion object {
-        @JvmStatic
-        @BeforeAll
-        fun beforeAll() {
-            GatewayRegistry.register<BehandlingsflytGatewayMock>()
-        }
-    }
 
     @AfterEach
     fun afterEach() {
@@ -68,7 +63,8 @@ class AvklaringsbehovOrkestratorTest {
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                FlytOrkestrator(repositoryProvider, GatewayProvider)
+                FlytOrkestrator(repositoryProvider, gatewayProvider),
+                gatewayProvider
             )
 
             val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)

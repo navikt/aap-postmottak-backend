@@ -26,18 +26,20 @@ class AvklaringsbehovOrkestrator(
     private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val behandlingRepository: BehandlingRepository,
     private val flytJobbRepository: FlytJobbRepository,
-    private val flytOrkestrator: FlytOrkestrator
+    private val flytOrkestrator: FlytOrkestrator,
+    private val gatewayProvider: GatewayProvider
 ) {
 
     private val log = LoggerFactory.getLogger(AvklaringsbehovOrkestrator::class.java)
 
-    constructor(repositoryProvider: RepositoryProvider) : this(
+    constructor(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : this(
         repositoryProvider,
-        behandlingHendelseService = BehandlingHendelseServiceImpl(repositoryProvider, GatewayProvider),
+        behandlingHendelseService = BehandlingHendelseServiceImpl(repositoryProvider, gatewayProvider),
         avklaringsbehovRepository = repositoryProvider.provide(),
         behandlingRepository = repositoryProvider.provide(),
         flytJobbRepository = repositoryProvider.provide(),
-        flytOrkestrator = FlytOrkestrator(repositoryProvider, GatewayProvider)
+        flytOrkestrator = FlytOrkestrator(repositoryProvider, gatewayProvider),
+        gatewayProvider
     )
 
     fun taAvVentHvisPåVentOgFortsettProsessering(behandlingId: BehandlingId) {
@@ -130,7 +132,7 @@ class AvklaringsbehovOrkestrator(
         kontekst: FlytKontekst, avklaringsbehovene: Avklaringsbehovene, it: AvklaringsbehovLøsning, bruker: Bruker
     ) {
         avklaringsbehovene.leggTilFrivilligHvisMangler(it.definisjon(), bruker)
-        val løsningsResultat = it.løs(repositoryProvider, AvklaringsbehovKontekst(bruker, kontekst))
+        val løsningsResultat = it.løs(repositoryProvider, gatewayProvider,AvklaringsbehovKontekst(bruker, kontekst))
 
         avklaringsbehovene.løsAvklaringsbehov(
             it.definisjon(), løsningsResultat.begrunnelse, bruker.ident, løsningsResultat.kreverToTrinn

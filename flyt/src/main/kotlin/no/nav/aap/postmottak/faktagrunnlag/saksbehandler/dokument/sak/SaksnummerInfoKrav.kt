@@ -21,7 +21,7 @@ class SaksnummerInfoKrav(
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): Informasjonskrav {
             return SaksnummerInfoKrav(
                 repositoryProvider.provide(SaksnummerRepository::class),
-                GatewayProvider.provide(BehandlingsflytGateway::class),
+                gatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(JournalpostRepository::class)
             )
         }

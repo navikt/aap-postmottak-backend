@@ -10,7 +10,6 @@ import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
-import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
@@ -37,7 +36,7 @@ data class FinnEntitetRequest(
 
 private val log = LoggerFactory.getLogger("no.nav.aap.postmottak.backend.test")
 
-fun NormalOpenAPIRoute.testApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
+fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
     val miljø = Miljø.er()
     if (miljø == MiljøKode.DEV || miljø == MiljøKode.LOKALT) {
         route("/test/hentAlleBehandlinger") {

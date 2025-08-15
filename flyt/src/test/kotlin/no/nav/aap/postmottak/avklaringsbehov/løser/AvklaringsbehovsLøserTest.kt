@@ -5,13 +5,13 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.test.MockConnection
 import no.nav.aap.komponenter.gateway.Factory
-import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.klient.createGatewayProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
@@ -19,7 +19,6 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepos
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -32,17 +31,16 @@ class AvklaringsbehovsLøserTest {
         .register<JournalpostRepositoryImpl>()
         .register<OverleveringVurderingRepositoryImpl>()
 
-    @BeforeEach
-    fun setup() {
-        GatewayRegistry.register<BehandlingsflytGatewayMock>()
-    }
-
     @Test
     fun `alle subtyper skal ha unik verdi`() {
         val utledSubtypes = AvklaringsbehovsLøser::class.sealedSubclasses
         val løsningSubtypes = utledSubtypes.map {
             (it.companionObjectInstance as LøserKonstruktør<*>)
-                .konstruer(repositoryRegistry.provider(MockConnection().toDBConnection()))
+                .konstruer(
+                    repositoryRegistry.provider(MockConnection().toDBConnection()),
+                    createGatewayProvider {
+                        register<BehandlingsflytGatewayMock>()
+                    })
                 .forBehov()
         }.toSet()
 

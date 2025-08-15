@@ -28,7 +28,10 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
+fun NormalOpenAPIRoute.behandlingApi(
+    dataSource: DataSource,
+    repositoryRegistry: RepositoryRegistry,
+) {
     route("/api/behandling") {
         route("/{referanse}") {
             authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(
@@ -125,7 +128,7 @@ fun NormalOpenAPIRoute.behandlingApi(dataSource: DataSource, repositoryRegistry:
                 }
                 val repositoryProvider = repositoryRegistry.provider(connection)
                 val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
-                
+
                 val behandlingId =
                     behandlingRepository.opprettBehandling(JournalpostId(body.referanse), TypeBehandling.Journalføring)
                 FlytJobbRepository(connection).leggTil(

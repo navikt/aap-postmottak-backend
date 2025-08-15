@@ -8,7 +8,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.motor.ProviderJobbSpesifikasjon
+import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.Fagsystem
@@ -26,14 +26,14 @@ class AutomatiskJournalføringJobbUtfører(
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : ArenaJobbutførerBase(journalpostService) {
 
-    companion object : ProviderJobbSpesifikasjon {
-        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
+    companion object : ProvidersJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
             return AutomatiskJournalføringJobbUtfører(
-                JournalføringService(GatewayProvider),
-                GatewayProvider.provide(GosysOppgaveGateway::class),
+                JournalføringService(gatewayProvider),
+                gatewayProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                JournalpostService.konstruer(repositoryProvider, GatewayProvider),
+                JournalpostService.konstruer(repositoryProvider, gatewayProvider),
                 PrometheusProvider.prometheus
             )
         }

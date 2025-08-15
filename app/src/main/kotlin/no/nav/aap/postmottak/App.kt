@@ -23,7 +23,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
-import no.nav.aap.komponenter.gateway.GatewayRegistry
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
@@ -46,21 +46,7 @@ import no.nav.aap.postmottak.api.flyt.flytApi
 import no.nav.aap.postmottak.avklaringsbehov.flate.avklaringsbehovApi
 import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.postmottak.exception.FlytOperasjonException
-import no.nav.aap.postmottak.klient.AapInternApiKlient
-import no.nav.aap.postmottak.klient.arena.ArenaKlient
-import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
-import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
-import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
-import no.nav.aap.postmottak.klient.nom.NomKlient
-import no.nav.aap.postmottak.klient.norg.NorgKlient
-import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
-import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
-import no.nav.aap.postmottak.klient.saf.SafOboRestClient
-import no.nav.aap.postmottak.klient.saf.SafRestClient
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboClient
-import no.nav.aap.postmottak.klient.statistikk.StatistikkKlient
-import no.nav.aap.postmottak.klient.unleash.UnleashService
+import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.mottak.kafka.Stream
@@ -88,12 +74,15 @@ fun main() {
         connectionGroupSize = 8
         workerGroupSize = 8
         callGroupSize = 16
-    }) { server(DbConfig(), postgresRepositoryRegistry) }.start(wait = true)
+    }) {
+        server(DbConfig(), postgresRepositoryRegistry, defaultGatewayProvider())
+    }.start(wait = true)
 }
 
 internal fun Application.server(
     dbConfig: DbConfig,
-    repositoryRegistry: RepositoryRegistry
+    repositoryRegistry: RepositoryRegistry,
+    gatewayProvider: GatewayProvider
 ) {
     PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
@@ -145,10 +134,9 @@ internal fun Application.server(
 
     val dataSource = initDatasource(dbConfig, PrometheusProvider.prometheus)
     Migrering.migrate(dataSource)
-    val motor = startMotor(dataSource, repositoryRegistry)
+    val motor = startMotor(dataSource, repositoryRegistry, gatewayProvider)
 
-    registerGateways()
-    
+
     val mottakStream = mottakStream(dataSource, repositoryRegistry)
 
     routing {
@@ -158,15 +146,15 @@ internal fun Application.server(
             apiRouting {
                 configApi()
                 behandlingApi(dataSource, repositoryRegistry)
-                flytApi(dataSource, repositoryRegistry)
-                avklaringsbehovApi(dataSource, repositoryRegistry)
-                dokumentApi(dataSource, repositoryRegistry)
+                flytApi(dataSource, repositoryRegistry, gatewayProvider)
+                avklaringsbehovApi(dataSource, repositoryRegistry, gatewayProvider)
+                dokumentApi(dataSource, repositoryRegistry, gatewayProvider)
                 avklarTemaApi(dataSource, repositoryRegistry)
                 finnSakApi(dataSource, repositoryRegistry)
-                digitaliseringApi(dataSource, repositoryRegistry)
+                digitaliseringApi(dataSource, repositoryRegistry, gatewayProvider)
                 overleveringApi(dataSource, repositoryRegistry)
                 motorApi(dataSource)
-                testApi(dataSource, repositoryRegistry)
+                testApi(dataSource)
                 auditlogApi(dataSource, repositoryRegistry)
             }
         }
@@ -182,27 +170,11 @@ private suspend fun ApplicationCall.respondWithError(exception: ApiException) {
     )
 }
 
-private fun registerGateways() {
-    GatewayRegistry
-        .register<OppgaveKlient>()
-        .register<GosysOppgaveKlient>()
-        .register<SafGraphqlClientCredentialsClient>()
-        .register<SafGraphqlOboClient>()
-        .register<SafOboRestClient>()
-        .register<SafRestClient>()
-        .register<BehandlingsflytKlient>()
-        .register<NomKlient>()
-        .register<ArenaKlient>()
-        .register<PdlGraphqlKlient>()
-        .register<NorgKlient>()
-        .register<AapInternApiKlient>()
-        .register<StatistikkKlient>()
-        .register<VeilarbarenaKlient>()
-        .register<UnleashService>()
-        .status()
-}
-
-fun Application.startMotor(dataSource: DataSource, repositoryRegistry: RepositoryRegistry): Motor {
+fun Application.startMotor(
+    dataSource: DataSource,
+    repositoryRegistry: RepositoryRegistry,
+    gatewayProvider: GatewayProvider
+): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
@@ -210,6 +182,7 @@ fun Application.startMotor(dataSource: DataSource, repositoryRegistry: Repositor
         jobber = ProsesseringsJobber.alle(),
         prometheus = PrometheusProvider.prometheus,
         repositoryRegistry = repositoryRegistry,
+        gatewayProvider = gatewayProvider
     )
 
     dataSource.transaction { dbConnection ->

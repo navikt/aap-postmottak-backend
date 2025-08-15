@@ -31,6 +31,7 @@ import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -66,8 +67,16 @@ class Flyttest : WithDependencies {
 
     companion object {
         private val dataSource = InitTestDatabase.freshDatabase()
-        private val hendelsesMottak = TestHendelsesMottak(dataSource, repositoryRegistry)
-        private val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle(), repositoryRegistry = repositoryRegistry)
+        private val gatewayProvider = defaultGatewayProvider()
+        private val hendelsesMottak = TestHendelsesMottak(dataSource, repositoryRegistry, gatewayProvider)
+        private val motor =
+            Motor(
+                dataSource,
+                2,
+                jobber = ProsesseringsJobber.alle(),
+                repositoryRegistry = repositoryRegistry,
+                gatewayProvider = gatewayProvider
+            )
         private val util =
             TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
 

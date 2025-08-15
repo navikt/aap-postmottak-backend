@@ -22,13 +22,16 @@ class AvklarSakLøser(
     private val behandlingsflytGateway: BehandlingsflytGateway,
 ) : AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
 
-    companion object : LøserKonstruktør<AvklarSaksnummerLøsning>{
-        override fun konstruer(repositoryProvider: RepositoryProvider): AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
+    companion object : LøserKonstruktør<AvklarSaksnummerLøsning> {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
 
             return AvklarSakLøser(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
-                GatewayProvider.provide(BehandlingsflytGateway::class),
+                gatewayProvider.provide(BehandlingsflytGateway::class),
             )
         }
     }

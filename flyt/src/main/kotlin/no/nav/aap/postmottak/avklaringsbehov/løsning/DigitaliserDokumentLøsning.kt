@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeName
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løser.DigitaliserDokumentLøser
@@ -26,8 +27,8 @@ class DigitaliserDokumentLøsning(
         defaultValue = DIGITALISER_DOKUMENT_KODE
     ) val behovstype: String = DIGITALISER_DOKUMENT_KODE
 ) : AvklaringsbehovLøsning {
-    override fun løs(repositoryProvider: RepositoryProvider, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
-        return DigitaliserDokumentLøser.konstruer(repositoryProvider).løs(kontekst, this)
+    override fun løs(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
+        return DigitaliserDokumentLøser.konstruer(repositoryProvider, gatewayProvider).løs(kontekst, this)
     }
 }
 
