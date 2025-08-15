@@ -10,12 +10,11 @@ import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.BrukerIdType
-import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -35,13 +34,12 @@ class JoarkClientTest {
     fun setup() {
         PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
         GatewayRegistry.register(SafGraphqlClientCredentialsClient::class)
-        GatewayRegistry.register(JoarkClient::class)
         GatewayRegistry.register(PdlGraphqlKlient::class)
     }
 
     @Test
     fun `før journalpost på fagsak`() {
-        val joarkClient = GatewayProvider.provide(JournalføringsGateway::class)
+        val joarkClient = JournalføringService(GatewayProvider)
 
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.person } returns Person(
@@ -62,8 +60,7 @@ class JoarkClientTest {
 
     @Test
     fun `før journalpost på generell sak`() {
-        val joarkClient = GatewayProvider.provide(JournalføringsGateway::class)
-
+        val joarkClient = JournalføringService(GatewayProvider)
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.person } returns Person(
             123,
@@ -77,8 +74,7 @@ class JoarkClientTest {
 
     @Test
     fun `ferdigstillJournalpost happy path`() {
-        val joarkClient = GatewayProvider.provide(JournalføringsGateway::class)
-
+        val joarkClient = JournalføringService(GatewayProvider)
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.person } returns Person(
             123,
@@ -94,7 +90,7 @@ class JoarkClientTest {
     fun `avsenderMottaker blir satt til samme som bruker dersom den mangler`() {
 
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
-        val joarkClient = JoarkClient.konstruer(restClient, SafGraphqlClientCredentialsClient(), PdlGraphqlKlient())
+        val joarkClient = JournalføringService.konstruer(restClient, SafGraphqlClientCredentialsClient(), PdlGraphqlKlient())
 
         val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(UTEN_AVSENDER_MOTTAKER)
 

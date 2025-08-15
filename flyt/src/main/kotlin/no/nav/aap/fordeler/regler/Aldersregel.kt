@@ -9,12 +9,13 @@ import java.time.Period
 
 class Aldersregel : Regel<AldersregelInput> {
     private val log = LoggerFactory.getLogger(Aldersregel::class.java)
+
     companion object : RegelFactory<AldersregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = true)
         const val MIN_ALDER = 22
         const val MAX_ALDER = 59
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
-            RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator())
+            RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator(requireNotNull(gatewayProvider)))
     }
 
     override fun vurder(input: AldersregelInput): Boolean {
@@ -32,12 +33,12 @@ class Aldersregel : Regel<AldersregelInput> {
 
 }
 
-class AldersregelInputGenerator : InputGenerator<AldersregelInput> {
+class AldersregelInputGenerator(private val gatewayProvider: GatewayProvider) : InputGenerator<AldersregelInput> {
     override fun generer(input: RegelInput): AldersregelInput {
         val fnr = input.person.aktivIdent().identifikator
         val fødselsdato =
-            GatewayProvider.provide(PersondataGateway::class).hentFødselsdato(fnr)
-        
+            gatewayProvider.provide(PersondataGateway::class).hentFødselsdato(fnr)
+
         return AldersregelInput(fødselsdato, LocalDate.now())
     }
 }

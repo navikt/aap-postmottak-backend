@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -20,7 +21,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
-import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -33,7 +33,7 @@ import java.util.*
 
 class AutomatiskJournalføringJobbTest {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
-    val joarkClientMock = mockk<JoarkClient>(relaxed = true)
+    val joarkClientMock = mockk<JournalføringService>(relaxed = true)
     val journalpostServiceMock = mockk<JournalpostService>(relaxed = true)
     val gosysOppgaveKlientMock = mockk<GosysOppgaveKlient>(relaxed = true)
 

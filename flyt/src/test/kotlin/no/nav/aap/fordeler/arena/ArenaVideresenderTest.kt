@@ -11,7 +11,7 @@ import no.nav.aap.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.getArenaVideresenderKontekst
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
-import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
@@ -24,7 +24,7 @@ import java.util.*
 
 class ArenaVideresenderTest {
     val journalpostService: JournalpostService = mockk()
-    val joarkClient: JournalføringsGateway = mockk(relaxed = true)
+    val joarkClient: JournalføringService = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
     val innkommendeJournalpostRepository: InnkommendeJournalpostRepository = mockk(relaxed = true)
 

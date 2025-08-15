@@ -8,7 +8,10 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
     companion object : RegelFactory<ArenaHistorikkRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
-            RegelMedInputgenerator(ArenaHistorikkRegel(), ArenaSakRegelInputGenerator())
+            RegelMedInputgenerator(
+                ArenaHistorikkRegel(),
+                ArenaSakRegelInputGenerator(requireNotNull(gatewayProvider))
+            )
     }
 
     override fun vurder(input: ArenaHistorikkRegelInput): Boolean {
@@ -21,9 +24,10 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
     }
 }
 
-class ArenaSakRegelInputGenerator : InputGenerator<ArenaHistorikkRegelInput> {
+class ArenaSakRegelInputGenerator(private val gatewayProvider: GatewayProvider) :
+    InputGenerator<ArenaHistorikkRegelInput> {
     override fun generer(input: RegelInput): ArenaHistorikkRegelInput {
-        val harAapSakIArena = GatewayProvider.provide(AapInternApiGateway::class).harAapSakIArena(input.person)
+        val harAapSakIArena = gatewayProvider.provide(AapInternApiGateway::class).harAapSakIArena(input.person)
         return ArenaHistorikkRegelInput(harAapSakIArena.eksisterer)
     }
 }

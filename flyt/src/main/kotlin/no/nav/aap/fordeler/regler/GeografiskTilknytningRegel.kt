@@ -11,7 +11,10 @@ class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
         // Bruk enhetsregel i stedet
         override val erAktiv = miljøConfig(prod = false, dev = false)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
-            RegelMedInputgenerator(GeografiskTilknytningRegel(), GeografiskTilknytningRegelInputGenerator())
+            RegelMedInputgenerator(
+                GeografiskTilknytningRegel(),
+                GeografiskTilknytningRegelInputGenerator(requireNotNull(gatewayProvider))
+            )
     }
 
     override fun vurder(input: GeografiskTilknytningRegelInput): Boolean {
@@ -50,12 +53,13 @@ class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
     }
 }
 
-class GeografiskTilknytningRegelInputGenerator : InputGenerator<GeografiskTilknytningRegelInput> {
+class GeografiskTilknytningRegelInputGenerator(private val gatewayProvider: GatewayProvider) :
+    InputGenerator<GeografiskTilknytningRegelInput> {
     private val godkjenteGeografiskeTilknytninger = emptyList<GeografiskTilknytning>()
 
     override fun generer(input: RegelInput): GeografiskTilknytningRegelInput {
         val geografiskTilknytning =
-            GatewayProvider.provide(PersondataGateway::class)
+            gatewayProvider.provide(PersondataGateway::class)
                 .hentGeografiskTilknytning(input.person.aktivIdent().identifikator)
         return GeografiskTilknytningRegelInput(geografiskTilknytning, godkjenteGeografiskeTilknytninger)
     }

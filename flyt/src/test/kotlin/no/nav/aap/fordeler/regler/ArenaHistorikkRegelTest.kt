@@ -2,6 +2,7 @@ package no.nav.aap.fordeler.regler
 
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.komponenter.gateway.Factory
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.gateway.JournalpostGateway
@@ -23,7 +24,7 @@ class ArenaHistorikkRegelTest {
         val person = Person(1, UUID.randomUUID(), listOf(Ident("12345678901")))
 
         GatewayRegistry.register(JoarkMock::class).register(ApiInternMock::class)
-        val regelMedInputGenerator = ArenaHistorikkRegel.medDataInnhenting(null, null)
+        val regelMedInputGenerator = ArenaHistorikkRegel.medDataInnhenting(null, gatewayProvider = GatewayProvider)
         val res = regelMedInputGenerator.vurder(
             RegelInput(
                 person = person,

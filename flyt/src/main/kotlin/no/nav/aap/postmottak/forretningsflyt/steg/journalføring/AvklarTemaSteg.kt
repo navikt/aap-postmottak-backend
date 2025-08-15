@@ -34,7 +34,7 @@ class AvklarTemaSteg(
             return AvklarTemaSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                GatewayProvider.provide(),
+                gatewayProvider.provide(),
                 repositoryProvider.provide()
             )
         }

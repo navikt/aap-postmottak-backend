@@ -13,12 +13,12 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
-import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.slf4j.LoggerFactory
 
 class AutomatiskJournalføringJobbUtfører(
-    private val joarkClient: JournalføringsGateway,
+    private val joarkClient: JournalføringService,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val flytJobbRepository: FlytJobbRepository,
     private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
@@ -29,7 +29,7 @@ class AutomatiskJournalføringJobbUtfører(
     companion object : ProviderJobbSpesifikasjon {
         override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
             return AutomatiskJournalføringJobbUtfører(
-                GatewayProvider.provide(JournalføringsGateway::class),
+                JournalføringService(GatewayProvider),
                 GatewayProvider.provide(GosysOppgaveGateway::class),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),

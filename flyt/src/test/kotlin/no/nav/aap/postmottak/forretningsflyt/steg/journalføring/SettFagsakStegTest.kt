@@ -13,7 +13,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurde
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.gateway.BrukerIdType
-import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -25,7 +25,7 @@ class SettFagsakStegTest {
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepository = mockk()
     val avklarTemaRepository: AvklarTemaRepository = mockk()
-    val joark: JournalføringsGateway = mockk(relaxed = true)
+    val joark: JournalføringService = mockk(relaxed = true)
 
     val settFagsakSteg = SettFagsakSteg(journalpostRepository, saksnummerRepository, avklarTemaRepository, joark)
 
