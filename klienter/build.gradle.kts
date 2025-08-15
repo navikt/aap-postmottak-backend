@@ -29,7 +29,4 @@ dependencies {
     testImplementation("io.mockk:mockk:1.14.5")
     testImplementation(project(":lib-test"))
     testImplementation(libs.ktorServerNetty)
-    constraints {
-        implementation("io.netty:netty-common:4.2.3.Final")
-    }
 }
