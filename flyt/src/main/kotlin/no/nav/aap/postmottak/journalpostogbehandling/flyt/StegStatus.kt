@@ -5,21 +5,16 @@ enum class StegStatus {
      * Teknisk status
      */
     START,
-    
+
     /**
-    * Teknisk status
-    */
+     * Teknisk status
+     */
     OPPDATER_FAKTAGRUNNLAG,
-    
+
     /**
      * Utfører forettningslogikken i steget
      */
     UTFØRER,
-
-    /**
-     * Venter på en gitt hendelse
-     */
-    VENTER_PÅ_CALLBACK,
 
     /**
      * Punkt for å vente på avklaringsbehov
