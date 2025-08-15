@@ -30,6 +30,6 @@ dependencies {
     testImplementation(project(":lib-test"))
     testImplementation(libs.ktorServerNetty)
     constraints {
-        implementation("io.netty:netty-common:4.2.3.Final")
+        implementation("io.netty:netty-common:4.2.4.Final")
     }
 }
