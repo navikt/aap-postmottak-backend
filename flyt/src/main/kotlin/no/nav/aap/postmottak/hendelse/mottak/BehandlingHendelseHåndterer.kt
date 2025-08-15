@@ -1,13 +1,14 @@
 package no.nav.aap.postmottak.hendelse.mottak
 
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 
-class BehandlingHendelseHåndterer(repositoryProvider: RepositoryProvider) {
+class BehandlingHendelseHåndterer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) {
 
     private val avklaringsbehovOrkestrator = AvklaringsbehovOrkestrator(
-        repositoryProvider
+        repositoryProvider, gatewayProvider
     )
 
     fun håndtere(key: BehandlingId, hendelse: BehandlingHendelse) {

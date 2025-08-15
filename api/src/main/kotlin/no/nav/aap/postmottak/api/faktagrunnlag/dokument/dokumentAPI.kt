@@ -24,7 +24,11 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
+fun NormalOpenAPIRoute.dokumentApi(
+    dataSource: DataSource,
+    repositoryRegistry: RepositoryRegistry,
+    gatewayProvider: GatewayProvider
+) {
     route("/api/dokumenter") {
         route("/{journalpostId}/{dokumentinfoId}") {
             authorizedGet<HentDokumentDTO, DokumentResponsDTO>(
@@ -38,7 +42,7 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource, repositoryRegistry: R
                 val dokumentInfoId = req.dokumentinfoId
 
                 val token = token()
-                val gateway = GatewayProvider.provide(DokumentOboGateway::class)
+                val gateway = gatewayProvider.provide<DokumentOboGateway>()
                 val dokumentRespons =
                     gateway.hentDokument(
                         JournalpostId(journalpostId),
@@ -65,17 +69,17 @@ fun NormalOpenAPIRoute.dokumentApi(dataSource: DataSource, repositoryRegistry: R
             ) { req ->
                 val journalpostId = dataSource.transaction(readOnly = true) { connection ->
                     val repositoryProvider = repositoryRegistry.provider(connection)
-                    repositoryProvider.provide(BehandlingRepository::class).hent(req).journalpostId
+                    repositoryProvider.provide<BehandlingRepository>().hent(req).journalpostId
                 }
 
                 val token = token()
                 val journalpost =
-                    GatewayProvider.provide(JournalpostOboGateway::class)
+                    gatewayProvider.provide(JournalpostOboGateway::class)
                         .hentJournalpost(JournalpostId(journalpostId.referanse), token)
                 // TODO: Rydd opp i dette
                 val identer =
                     listOfNotNull(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).distinct()
-                val personer = GatewayProvider.provide(PersondataGateway::class).hentPersonBolk(identer)
+                val personer = gatewayProvider.provide<PersondataGateway>().hentPersonBolk(identer)
                 val søker = personer?.getOrDefault(journalpost.bruker?.id, null)
                 val avsender = personer?.getOrDefault(journalpost.avsenderMottaker?.id, null)
                 respond(

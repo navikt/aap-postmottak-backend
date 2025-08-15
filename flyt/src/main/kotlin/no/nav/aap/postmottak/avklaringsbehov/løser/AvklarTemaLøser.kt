@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
@@ -28,7 +29,7 @@ class AvklarTemaLøser(private val avklarTemaRepository: AvklarTemaRepository) :
     }
 
     companion object : LøserKonstruktør<AvklarTemaLøsning> {
-        override fun konstruer(repositoryProvider: RepositoryProvider): AvklaringsbehovsLøser<AvklarTemaLøsning> {
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): AvklaringsbehovsLøser<AvklarTemaLøsning> {
             return AvklarTemaLøser(repositoryProvider.provide())
         }
     }

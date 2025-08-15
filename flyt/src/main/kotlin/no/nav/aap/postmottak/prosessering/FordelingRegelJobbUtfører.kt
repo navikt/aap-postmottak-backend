@@ -16,7 +16,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.motor.ProviderJobbSpesifikasjon
+import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.BrukerIdType
@@ -40,15 +40,15 @@ class FordelingRegelJobbUtfører(
 ) : JobbUtfører {
     private val log = LoggerFactory.getLogger(FordelingRegelJobbUtfører::class.java)
 
-    companion object : ProviderJobbSpesifikasjon {
-        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
+    companion object : ProvidersJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
             return FordelingRegelJobbUtfører(
                 repositoryProvider.provide(),
-                JournalpostService.konstruer(repositoryProvider, GatewayProvider),
-                FordelerRegelService(repositoryProvider, GatewayProvider),
+                JournalpostService.konstruer(repositoryProvider, gatewayProvider),
+                FordelerRegelService(repositoryProvider, gatewayProvider),
                 repositoryProvider.provide(),
-                GatewayProvider.provide(),
-                Enhetsutreder.konstruer(GatewayProvider),
+                gatewayProvider.provide(),
+                Enhetsutreder.konstruer(gatewayProvider),
                 PrometheusProvider.prometheus
             )
         }

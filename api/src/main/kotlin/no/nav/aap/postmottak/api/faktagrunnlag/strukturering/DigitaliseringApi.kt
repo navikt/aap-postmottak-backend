@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.strukturering
 
-
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
@@ -20,7 +19,11 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.digitaliseringApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
+fun NormalOpenAPIRoute.digitaliseringApi(
+    dataSource: DataSource,
+    repositoryRegistry: RepositoryRegistry,
+    gatewayProvider: GatewayProvider
+) {
     route("/api/behandling/{referanse}/grunnlag/digitalisering") {
         authorizedGet<BehandlingsreferansePathParam, DigitaliseringGrunnlagDto>(
             AuthorizationParamPathConfig(
@@ -32,12 +35,12 @@ fun NormalOpenAPIRoute.digitaliseringApi(dataSource: DataSource, repositoryRegis
         ) { req ->
             val (journalpost, klagebehandlinger, digitaliseringsvurdering) = dataSource.transaction(readOnly = true) {
                 val repositoryProvider = repositoryRegistry.provider(it)
-                val behandling = repositoryProvider.provide(BehandlingRepository::class).hent(req)
+                val behandling = repositoryProvider.provide<BehandlingRepository>().hent(req)
 
-                val digitaliseringsvurdering = repositoryProvider.provide(DigitaliseringsvurderingRepository::class)
+                val digitaliseringsvurdering = repositoryProvider.provide<DigitaliseringsvurderingRepository>()
                     .hentHvisEksisterer(behandling.id)
 
-                val journalpost = repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(req)
+                val journalpost = repositoryProvider.provide<JournalpostRepository>().hentHvisEksisterer(req)
 
                 requireNotNull(journalpost) { "Journalpost ikke funnet" }
 
@@ -45,7 +48,7 @@ fun NormalOpenAPIRoute.digitaliseringApi(dataSource: DataSource, repositoryRegis
                     .hentSakVurdering(behandling.id)?.saksnummer
 
                 requireNotNull(saksnummer) { "Kun journalposter som er journalført på Kelvin-sak skal digitaliseres" }
-                val klagebehandlinger = GatewayProvider.provide(BehandlingsflytGateway::class)
+                val klagebehandlinger = gatewayProvider.provide<BehandlingsflytGateway>()
                     .finnKlagebehandlinger(saksnummer = Saksnummer(saksnummer))
 
                 Triple(journalpost, klagebehandlinger, digitaliseringsvurdering)

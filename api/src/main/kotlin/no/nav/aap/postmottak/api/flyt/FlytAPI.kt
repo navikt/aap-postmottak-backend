@@ -6,6 +6,7 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
@@ -39,8 +40,7 @@ import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.MDC
 import javax.sql.DataSource
 
-
-fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
+fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry, gatewayProvider: GatewayProvider) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
             authorizedGet<BehandlingsreferansePathParam, BehandlingFlytOgTilstandDto>(
@@ -177,7 +177,7 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: Repos
 
 
                     MDC.putCloseable("behandlingId", lås.id.toString()).use {
-                        BehandlingHendelseHåndterer(repositoryRegistry.provider(connection)).håndtere(
+                        BehandlingHendelseHåndterer(repositoryRegistry.provider(connection), gatewayProvider).håndtere(
                             key = lås.id,
                             hendelse = BehandlingSattPåVent(
                                 frist = body.frist,

@@ -1,10 +1,11 @@
 package no.nav.aap.postmottak.prosessering
 
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.motor.ProviderJobbSpesifikasjon
+import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 import no.nav.aap.motor.cron.CronExpression
 import no.nav.aap.postmottak.forretningsflyt.gjenopptak.GjenopptakRepository
 
@@ -30,8 +31,8 @@ class GjenopptaBehandlingJobbUtfører(
         }
     }
 
-    companion object : ProviderJobbSpesifikasjon {
-        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
+    companion object : ProvidersJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
             return GjenopptaBehandlingJobbUtfører(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),

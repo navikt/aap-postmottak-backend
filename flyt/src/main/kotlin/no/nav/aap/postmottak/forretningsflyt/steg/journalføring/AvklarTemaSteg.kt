@@ -30,7 +30,10 @@ class AvklarTemaSteg(
     private val saksnummerRepository: SaksnummerRepository,
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): BehandlingSteg {
             return AvklarTemaSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
@@ -70,8 +73,7 @@ class AvklarTemaSteg(
         } else {
             if (venterPåBehandlingIGosys(journalpost, temavurdering)) {
                 val aktivIdent = journalpost.person.aktivIdent()
-                GatewayProvider.provide(GosysOppgaveGateway::class)
-                    .opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpost.journalpostId, aktivIdent.identifikator)
+                gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpost.journalpostId, aktivIdent.identifikator)
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) {
                 log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")

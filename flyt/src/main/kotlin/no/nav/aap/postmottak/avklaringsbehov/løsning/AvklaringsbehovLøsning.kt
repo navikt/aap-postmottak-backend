@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.avklaringsbehov.løsning
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løser.LøsningsResultat
@@ -12,12 +13,22 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 sealed interface AvklaringsbehovLøsning {
     fun definisjon(): Definisjon {
         if (this.javaClass.isAnnotationPresent(JsonTypeName::class.java)) {
-            return Definisjon.entries.first { it.kode == AvklaringsbehovKode.valueOf(this.javaClass.getDeclaredAnnotation(JsonTypeName::class.java).value) }
+            return Definisjon.entries.first {
+                it.kode == AvklaringsbehovKode.valueOf(
+                    this.javaClass.getDeclaredAnnotation(
+                        JsonTypeName::class.java
+                    ).value
+                )
+            }
         }
         throw IllegalStateException("Utvikler-feil:" + this.javaClass.getSimpleName() + " er uten JsonTypeName annotation.")
     }
 
-    fun løs(repositoryProvider: RepositoryProvider, kontekst: AvklaringsbehovKontekst): LøsningsResultat
+    fun løs(
+        repositoryProvider: RepositoryProvider,
+        gatewayProvider: GatewayProvider,
+        kontekst: AvklaringsbehovKontekst
+    ): LøsningsResultat
 }
 
 fun utledSubtypes(): List<Class<*>> {

@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
@@ -13,5 +14,5 @@ sealed interface AvklaringsbehovsLøser<in T : AvklaringsbehovLøsning> {
 }
 
 interface LøserKonstruktør<T: AvklaringsbehovLøsning> {
-    fun konstruer(repositoryProvider: RepositoryProvider): AvklaringsbehovsLøser<T>
+    fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): AvklaringsbehovsLøser<T>
 }

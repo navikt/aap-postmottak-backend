@@ -9,7 +9,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.motor.ProviderJobbSpesifikasjon
+import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
@@ -30,15 +30,15 @@ class FordelingVideresendJobbUtfører(
     val journalpostService: JournalpostService,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
-    companion object : ProviderJobbSpesifikasjon {
+    companion object : ProvidersJobbSpesifikasjon {
 
-        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
             return FordelingVideresendJobbUtfører(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                ArenaVideresender.konstruer(repositoryProvider, GatewayProvider),
-                JournalpostService.konstruer(repositoryProvider, GatewayProvider),
+                ArenaVideresender.konstruer(repositoryProvider, gatewayProvider),
+                JournalpostService.konstruer(repositoryProvider, gatewayProvider),
                 PrometheusProvider.prometheus,
             )
         }

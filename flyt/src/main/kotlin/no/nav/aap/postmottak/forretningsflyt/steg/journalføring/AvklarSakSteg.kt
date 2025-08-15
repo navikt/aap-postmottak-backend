@@ -36,7 +36,7 @@ class AvklarSakSteg(
             return AvklarSakSteg(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
-                GatewayProvider.provide(BehandlingsflytGateway::class),
+                gatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(AvklarTemaRepository::class)
             )
         }

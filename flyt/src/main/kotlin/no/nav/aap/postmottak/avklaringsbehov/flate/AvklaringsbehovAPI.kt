@@ -5,6 +5,7 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
@@ -23,7 +24,11 @@ import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.MDC
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
+fun NormalOpenAPIRoute.avklaringsbehovApi(
+    dataSource: DataSource,
+    repositoryRegistry: RepositoryRegistry,
+    gatewayProvider: GatewayProvider
+) {
     route("/api/behandling") {
         route("/løs-behov") {
             authorizedPost<Unit, LøsAvklaringsbehovPåBehandling, LøsAvklaringsbehovPåBehandling>(
@@ -55,7 +60,8 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(dataSource: DataSource, repositoryRegi
                             behandlingRepository,
                             avklaringsbehovRepository,
                             AvklaringsbehovOrkestrator(
-                                repositoryProvider
+                                repositoryProvider,
+                                gatewayProvider
                             ),
                         ).håndtere(
                             key = behandling.id,

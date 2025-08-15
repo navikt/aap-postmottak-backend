@@ -10,8 +10,6 @@ import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.gateway.Factory
-import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
@@ -24,6 +22,7 @@ import no.nav.aap.postmottak.gateway.NavnMedIdent
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
@@ -41,18 +40,26 @@ import java.time.LocalDate
 
 @Fakes
 class ArenaOppgaveFlytTest : WithDependencies {
-    
     companion object {
+        private val gatewayProvider = defaultGatewayProvider {
+            register<PdlKlientSpy>()
+            register<ArenaKlientSpy>()
+        }
+        
         private val dataSource = InitTestDatabase.freshDatabase()
-        private val motor = Motor(dataSource, 2, repositoryRegistry = repositoryRegistry, jobber = ProsesseringsJobber.alle())
+        private val motor =
+            Motor(
+                dataSource,
+                2,
+                repositoryRegistry = repositoryRegistry,
+                gatewayProvider = gatewayProvider,
+                jobber = ProsesseringsJobber.alle()
+            )
 
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
             PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-            GatewayRegistry.register<PdlKlientSpy>()
-                .register<ArenaKlientSpy>()
-
             motor.start()
         }
 
@@ -70,8 +77,8 @@ class ArenaOppgaveFlytTest : WithDependencies {
     fun `happycase for søknad, oppretter sak i arena og journalfører automatsik`() {
         val journalpostId = PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
 
-        val persondataGateway = GatewayProvider.provide(PersondataGateway::class)
-        val arenaGateway = GatewayProvider.provide(ArenaGateway::class)
+        val persondataGateway = gatewayProvider.provide(PersondataGateway::class)
+        val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
 
         every { persondataGateway.hentFødselsdato(any()) } returns LocalDate.now().minusYears(70)
         every { arenaGateway.harAktivSak(any()) } returns false
@@ -94,8 +101,8 @@ class ArenaOppgaveFlytTest : WithDependencies {
     fun `happycase for søknad oppretter sak i arena og journalfører automatsik`() {
         val journalpostId = SØKNAD_ETTERSENDELSE
 
-        val persondataGateway = GatewayProvider.provide(PersondataGateway::class)
-        val arenaGateway = GatewayProvider.provide(ArenaGateway::class)
+        val persondataGateway = gatewayProvider.provide(PersondataGateway::class)
+        val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
 
         every { persondataGateway.hentFødselsdato(any()) } returns LocalDate.now().minusYears(70)
         every { arenaGateway.harAktivSak(any()) } returns false

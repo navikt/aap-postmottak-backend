@@ -8,7 +8,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.motor.ProviderJobbSpesifikasjon
+import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.slf4j.LoggerFactory
@@ -19,12 +19,12 @@ class OppprettOppgaveIArenaJobbUtfører(
     journalpostService: JournalpostService
 ) : ArenaJobbutførerBase(journalpostService) {
 
-    companion object : ProviderJobbSpesifikasjon {
-        override fun konstruer(repositoryProvider: RepositoryProvider): JobbUtfører {
+    companion object : ProvidersJobbSpesifikasjon {
+        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
             return OppprettOppgaveIArenaJobbUtfører(
                 repositoryProvider.provide(),
-                GatewayProvider.provide(ArenaGateway::class),
-                JournalpostService.konstruer(repositoryProvider, GatewayProvider)
+                gatewayProvider.provide(),
+                JournalpostService.konstruer(repositoryProvider, gatewayProvider)
             )
         }
 

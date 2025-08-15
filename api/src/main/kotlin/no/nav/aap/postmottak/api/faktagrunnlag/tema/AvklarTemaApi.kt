@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.tema
 
-
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
@@ -39,8 +38,9 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource, repositoryRegistry:
                         repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(behandling.id)
                     require(journalpost != null) { "Fant ikke journalpost" }
                     val arkivDokumenter = journalpost.finnArkivVarianter()
-                    AvklarTemaGrunnlagDto(repositoryProvider.provide(AvklarTemaRepository::class)
-                        .hentTemaAvklaring(behandling.id)?.skalTilAap?.let(::AvklarTemaVurderingDto),
+                    AvklarTemaGrunnlagDto(
+                        repositoryProvider.provide(AvklarTemaRepository::class)
+                            .hentTemaAvklaring(behandling.id)?.skalTilAap?.let(::AvklarTemaVurderingDto),
                         arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId })
                 }
                 respond(grunnlag)
