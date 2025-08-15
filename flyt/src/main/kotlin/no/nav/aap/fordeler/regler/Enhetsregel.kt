@@ -7,6 +7,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(Enhetsregel::class.java)
+
 class Enhetsregel : Regel<EnhetsregelInput> {
     private val godkjenteEnheter = listOf(
         Enhet.NAV_ASKER,
@@ -15,7 +16,11 @@ class Enhetsregel : Regel<EnhetsregelInput> {
 
     companion object : RegelFactory<EnhetsregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
-        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) = RegelMedInputgenerator(Enhetsregel(), EnhetsregelInputGenerator())
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
+            RegelMedInputgenerator(
+                Enhetsregel(),
+                EnhetsregelInputGenerator(requireNotNull(gatewayProvider))
+            )
     }
 
     override fun vurder(input: EnhetsregelInput): Boolean {
@@ -31,9 +36,9 @@ class Enhetsregel : Regel<EnhetsregelInput> {
 }
 
 
-class EnhetsregelInputGenerator : InputGenerator<EnhetsregelInput> {
+class EnhetsregelInputGenerator(private val gatewayProvider: GatewayProvider) : InputGenerator<EnhetsregelInput> {
     override fun generer(input: RegelInput): EnhetsregelInput {
-        val enheter = Enhetsutreder.konstruer().finnEnhetMedOppfølgingskontor(input.person)
+        val enheter = Enhetsutreder.konstruer(gatewayProvider).finnEnhetMedOppfølgingskontor(input.person)
         return EnhetsregelInput(enheter)
     }
 }

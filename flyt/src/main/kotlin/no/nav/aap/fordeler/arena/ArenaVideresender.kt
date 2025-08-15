@@ -12,7 +12,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
-import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -24,7 +24,7 @@ private val log = LoggerFactory.getLogger(ArenaVideresender::class.java)
 
 class ArenaVideresender(
     val journalpostService: JournalpostService,
-    val joarkClient: JournalføringsGateway,
+    val joarkClient: JournalføringService,
     val flytJobbRepository: FlytJobbRepository,
     val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
 ) {
@@ -32,7 +32,7 @@ class ArenaVideresender(
         fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): ArenaVideresender {
             return ArenaVideresender(
                 JournalpostService.konstruer(repositoryProvider, gatewayProvider),
-                gatewayProvider.provide(),
+                JournalføringService(gatewayProvider),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
             )

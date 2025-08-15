@@ -1,9 +1,9 @@
-package no.nav.aap.postmottak.klient.joark
+package no.nav.aap.postmottak.gateway
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -13,16 +13,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
-import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
-import no.nav.aap.postmottak.gateway.Fagsystem
-import no.nav.aap.postmottak.gateway.FerdigstillRequest
-import no.nav.aap.postmottak.gateway.JournalføringsGateway
-import no.nav.aap.postmottak.gateway.JournalpostBruker
-import no.nav.aap.postmottak.gateway.JournalpostGateway
-import no.nav.aap.postmottak.gateway.JournalpostSak
-import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
-import no.nav.aap.postmottak.gateway.PersondataGateway
-import no.nav.aap.postmottak.gateway.Sakstype
 import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -32,51 +22,48 @@ import java.net.URI
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
-class JoarkClient(
+class JournalføringService(
     private val client: RestClient<InputStream>,
     private val safGraphqlKlient: JournalpostGateway,
     private val persondataGateway: PersondataGateway,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
-) : JournalføringsGateway {
+) {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
 
-    companion object : Factory<JoarkClient> {
-        override fun konstruer(): JoarkClient {
-            val restClient = RestClient.withDefaultResponseHandler(
-                config = ClientConfig(
-                    scope = requiredConfigForKey("integrasjon.joark.scope"),
-                ),
-                tokenProvider = ClientCredentialsTokenProvider,
-                prometheus = PrometheusProvider.prometheus,
-            )
-            return JoarkClient(
-                restClient,
-                GatewayProvider.provide(JournalpostGateway::class),
-                GatewayProvider.provide(PersondataGateway::class),
-                PrometheusProvider.prometheus
-            )
-        }
-
+    companion object {
         fun konstruer(
             restClient: RestClient<InputStream>,
             safGraphqlKlient: JournalpostGateway,
             persondataGateway: PersondataGateway,
             prometheus: MeterRegistry = SimpleMeterRegistry()
-        ): JoarkClient {
-            return JoarkClient(restClient, safGraphqlKlient, persondataGateway, prometheus)
+        ): JournalføringService {
+            return JournalføringService(restClient, safGraphqlKlient, persondataGateway, prometheus)
         }
     }
 
-    override fun førJournalpostPåFagsak(
+    constructor(gatewayProvider: GatewayProvider) : this(
+        safGraphqlKlient = gatewayProvider.provide(JournalpostGateway::class),
+        persondataGateway = gatewayProvider.provide(PersondataGateway::class),
+        prometheus = PrometheusProvider.prometheus,
+        client = RestClient.withDefaultResponseHandler(
+            config = ClientConfig(
+                scope = requiredConfigForKey("integrasjon.joark.scope"),
+            ),
+            tokenProvider = ClientCredentialsTokenProvider,
+            prometheus = PrometheusProvider.prometheus
+        )
+    )
+
+     fun førJournalpostPåFagsak(
         journalpostId: JournalpostId,
         ident: Ident,
         fagsakId: String,
-        tema: String,
-        fagsystem: Fagsystem,
-        tittel: String?,
-        avsenderMottaker: AvsenderMottakerDto?,
-        dokumenter: List<ForenkletDokument>?,
+        tema: String = "AAP",
+        fagsystem: Fagsystem = Fagsystem.KELVIN,
+        tittel: String? = null,
+        avsenderMottaker: AvsenderMottakerDto? = null,
+        dokumenter: List<ForenkletDokument>? = null,
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
         val request = PutRequest(
@@ -97,12 +84,12 @@ class JoarkClient(
         client.put(path, request) { _, _ -> }
     }
 
-    override fun førJournalpostPåGenerellSak(
+     fun førJournalpostPåGenerellSak(
         journalpost: Journalpost,
-        tema: String,
-        tittel: String?,
-        avsenderMottaker: AvsenderMottakerDto?,
-        dokumenter: List<ForenkletDokument>?
+        tema: String = "AAP",
+        tittel: String? = null,
+        avsenderMottaker: AvsenderMottakerDto? = null,
+        dokumenter: List<ForenkletDokument>? = null
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
         val request = PutRequest(
@@ -123,11 +110,11 @@ class JoarkClient(
         client.put(path, request) { _, _ -> }
     }
 
-    override fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId) {
+     fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId) {
         ferdigstillJournalpost(journalpostId, MASKINELL_JOURNALFØRING_ENHET)
     }
 
-    override fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String) {
+     fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/$journalpostId/ferdigstill")
         val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet))
         client.patch(path, request) { _, _ -> }
@@ -151,3 +138,42 @@ class JoarkClient(
     }
 }
 
+data class FerdigstillRequest(
+    val journalfoerendeEnhet: String
+)
+
+data class OppdaterJournalpostRequest(
+    val behandlingstema: String? = null,
+    val sak: JournalpostSak,
+    val tema: String,
+    val bruker: JournalpostBruker,
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
+    val tittel: String?,
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
+    val avsenderMottaker: AvsenderMottakerDto?,
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
+    val dokumenter: List<ForenkletDokument>?
+)
+
+data class AvsenderMottakerDto(
+    val id: String,
+    val idType: BrukerIdType,
+    val navn: String? = null,
+)
+
+enum class Fagsystem {
+    KELVIN,
+    AO01, // Arena
+    FS22 // Generell sak
+}
+
+data class JournalpostSak(
+    val sakstype: Sakstype = Sakstype.FAGSAK,
+    val fagsakId: String? = null,
+    val fagsaksystem: Fagsystem? = Fagsystem.KELVIN
+)
+
+data class JournalpostBruker(
+    val id: String,
+    val idType: String = "FNR"
+)

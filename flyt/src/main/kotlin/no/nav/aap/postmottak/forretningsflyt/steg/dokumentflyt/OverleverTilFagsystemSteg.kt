@@ -33,7 +33,7 @@ class OverleverTilFagsystemSteg(
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
             return OverleverTilFagsystemSteg(
                 repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
-                GatewayProvider.provide(BehandlingsflytGateway::class),
+                gatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(OverleveringVurderingRepository::class)

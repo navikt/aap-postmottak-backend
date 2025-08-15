@@ -33,7 +33,7 @@ class DigitaliserDokumentSteg(
             return DigitaliserDokumentSteg(
                 repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
-                GatewayProvider.provide(DokumentGateway::class),
+                gatewayProvider.provide(DokumentGateway::class),
                 repositoryProvider.provide(SaksnummerRepository::class)
             )
         }

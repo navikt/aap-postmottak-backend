@@ -8,7 +8,10 @@ class KelvinSakRegel : Regel<KelvinSakRegelInput> {
     companion object : RegelFactory<KelvinSakRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
-            RegelMedInputgenerator(KelvinSakRegel(), KelvinSakRegelInputGenerator())
+            RegelMedInputgenerator(
+                KelvinSakRegel(),
+                KelvinSakRegelInputGenerator(requireNotNull(gatewayProvider))
+            )
     }
 
     override fun vurder(input: KelvinSakRegelInput) = input.kelvinSaker.isNotEmpty()
@@ -18,9 +21,9 @@ class KelvinSakRegel : Regel<KelvinSakRegelInput> {
     }
 }
 
-class KelvinSakRegelInputGenerator : InputGenerator<KelvinSakRegelInput> {
+class KelvinSakRegelInputGenerator(private val gatewayProvider: GatewayProvider) : InputGenerator<KelvinSakRegelInput> {
     override fun generer(input: RegelInput): KelvinSakRegelInput {
-        val sakerFraKelvin = GatewayProvider.provide(BehandlingsflytGateway::class).finnSaker(input.person.aktivIdent())
+        val sakerFraKelvin = gatewayProvider.provide<BehandlingsflytGateway>().finnSaker(input.person.aktivIdent())
         return KelvinSakRegelInput(sakerFraKelvin.map { it.saksnummer })
     }
 }

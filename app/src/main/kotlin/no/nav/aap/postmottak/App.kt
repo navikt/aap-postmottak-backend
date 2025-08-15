@@ -51,7 +51,6 @@ import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
-import no.nav.aap.postmottak.klient.joark.JoarkClient
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
 import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
@@ -192,7 +191,6 @@ private fun registerGateways() {
         .register<SafOboRestClient>()
         .register<SafRestClient>()
         .register<BehandlingsflytKlient>()
-        .register<JoarkClient>()
         .register<NomKlient>()
         .register<ArenaKlient>()
         .register<PdlGraphqlKlient>()

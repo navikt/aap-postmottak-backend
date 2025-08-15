@@ -10,7 +10,7 @@ import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.kontrakt.steg.StegType
@@ -19,7 +19,7 @@ class SettFagsakSteg(
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
-    private val joarkKlient: JournalføringsGateway
+    private val journalføringService: JournalføringService
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
@@ -27,7 +27,7 @@ class SettFagsakSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                GatewayProvider.provide()
+                JournalføringService(gatewayProvider)
             )
         }
 
@@ -54,7 +54,7 @@ class SettFagsakSteg(
         val avsenderMottaker = saksvurdering.avsenderMottaker?.takeUnless { journalpost.kanal.erDigitalKanal() }
 
         if (saksvurdering.generellSak) {
-            joarkKlient.førJournalpostPåGenerellSak(
+            journalføringService.førJournalpostPåGenerellSak(
                 journalpost = journalpost,
                 tema = temaavklaring.tema.name,
                 tittel = saksvurdering.journalposttittel,
@@ -62,7 +62,7 @@ class SettFagsakSteg(
                 dokumenter = saksvurdering.dokumenter
             )
         } else {
-            joarkKlient.førJournalpostPåFagsak(
+            journalføringService.førJournalpostPåFagsak(
                 journalpostId = journalpost.journalpostId,
                 ident = journalpost.person.aktivIdent(),
                 fagsakId = saksvurdering.saksnummer!!,

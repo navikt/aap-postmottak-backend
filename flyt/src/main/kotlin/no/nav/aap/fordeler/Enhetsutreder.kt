@@ -22,11 +22,11 @@ class Enhetsutreder(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     companion object {
-        fun konstruer(): Enhetsutreder {
-            val norgKlient = GatewayProvider.provide(NorgGateway::class)
-            val pdlKlient = GatewayProvider.provide(PersondataGateway::class)
-            val nomKlient = GatewayProvider.provide(EgenAnsattGateway::class)
-            val veilarbarenaKlient = GatewayProvider.provide(VeilarbarenaGateway::class)
+        fun konstruer(gatewayProvider: GatewayProvider): Enhetsutreder {
+            val norgKlient = gatewayProvider.provide(NorgGateway::class)
+            val pdlKlient = gatewayProvider.provide(PersondataGateway::class)
+            val nomKlient = gatewayProvider.provide(EgenAnsattGateway::class)
+            val veilarbarenaKlient = gatewayProvider.provide(VeilarbarenaGateway::class)
             return Enhetsutreder(norgKlient, pdlKlient, nomKlient, veilarbarenaKlient)
         }
     }

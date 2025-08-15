@@ -23,7 +23,7 @@ class AlleOppgitteBarnHarIdentRegel : Regel<OppgitteBarnRegelInput> {
             requireNotNull(repositoryProvider)
 
             val journalpostService = JournalpostService.konstruer(repositoryProvider, gatewayProvider)
-            val dokumentGateway = GatewayProvider.provide(DokumentGateway::class)
+            val dokumentGateway = gatewayProvider.provide(DokumentGateway::class)
 
             return RegelMedInputgenerator(
                 AlleOppgitteBarnHarIdentRegel(),

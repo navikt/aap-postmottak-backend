@@ -4,12 +4,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.Fullført
-import no.nav.aap.postmottak.gateway.JournalføringsGateway
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,7 +19,7 @@ class JournalføringStegTest {
 
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
     val journalpostRepository: JournalpostRepository = mockk()
-    val joark: JournalføringsGateway = mockk(relaxed = true)
+    val joark: JournalføringService = mockk(relaxed = true)
     val avklarTemaRepository: AvklarTemaRepository = mockk(relaxed = true)
 
     val journalføringSteg = JournalføringSteg(

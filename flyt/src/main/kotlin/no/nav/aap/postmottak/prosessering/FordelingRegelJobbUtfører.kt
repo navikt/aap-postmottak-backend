@@ -48,7 +48,7 @@ class FordelingRegelJobbUtfører(
                 FordelerRegelService(repositoryProvider, GatewayProvider),
                 repositoryProvider.provide(),
                 GatewayProvider.provide(),
-                Enhetsutreder.konstruer(),
+                Enhetsutreder.konstruer(GatewayProvider),
                 PrometheusProvider.prometheus
             )
         }
