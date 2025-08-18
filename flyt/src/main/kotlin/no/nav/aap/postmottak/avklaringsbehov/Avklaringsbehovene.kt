@@ -15,7 +15,7 @@ import java.time.LocalDate
 private val log = LoggerFactory.getLogger(Avklaringsbehovene::class.java)
 
 class Avklaringsbehovene(
-    private val repository: AvklaringsbehovOperasjonerRepository,
+    private val repository: AvklaringsbehovRepository,
     private val behandlingId: BehandlingId
 ) : AvklaringsbehoveneDecorator {
     private var avklaringsbehovene: MutableList<Avklaringsbehov> = repository.hent(behandlingId).toMutableList()

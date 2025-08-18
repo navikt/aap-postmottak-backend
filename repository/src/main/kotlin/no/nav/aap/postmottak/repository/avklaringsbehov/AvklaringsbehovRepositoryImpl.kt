@@ -1,24 +1,22 @@
 package no.nav.aap.postmottak.repository.avklaringsbehov
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.Row
+import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
-import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOperasjonerRepository
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.Endring
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.avklaringsbehov.ÅrsakTilRetur
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.dbconnect.Row
-import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : AvklaringsbehovRepository,
-    AvklaringsbehovOperasjonerRepository {
+class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : AvklaringsbehovRepository {
 
     companion object : Factory<AvklaringsbehovRepositoryImpl> {
         override fun konstruer(connection: DBConnection): AvklaringsbehovRepositoryImpl {
