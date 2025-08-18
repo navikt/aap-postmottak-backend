@@ -1,10 +1,11 @@
 package no.nav.aap.postmottak.journalpostogbehandling.behandling
 
 import no.nav.aap.lookup.repository.Repository
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
-interface BehandlingRepository: Repository {
+interface BehandlingRepository : Repository {
 
     fun opprettBehandling(journalpostId: JournalpostId, typeBehandling: TypeBehandling): BehandlingId
 
@@ -17,6 +18,10 @@ interface BehandlingRepository: Repository {
     fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling
 
     fun markerSavepoint()
+
+    fun oppdaterBehandlingStatus(behandlingId: BehandlingId, status: Status)
+
+    fun loggBesøktSteg(behandlingId: BehandlingId, tilstand: StegTilstand)
 
 }
 

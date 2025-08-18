@@ -12,7 +12,6 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegOrkestrator
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
@@ -38,7 +37,6 @@ class FlytOrkestrator(
     private val informasjonskravGrunnlag: InformasjonskravGrunnlag,
     private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val behandlingRepository: BehandlingRepository,
-    private val behandlingFlytRepository: BehandlingFlytRepository,
     private val behandlingHendelseService: BehandlingHendelseServiceImpl,
     private val stegOrkestrator: StegOrkestrator
 ) {
@@ -46,11 +44,10 @@ class FlytOrkestrator(
     constructor(
         repositoryProvider: RepositoryProvider,
         gatewayProvider: GatewayProvider,
-    ) : this (
+    ) : this(
         informasjonskravGrunnlag = InformasjonskravGrunnlagImpl(repositoryProvider, gatewayProvider),
         avklaringsbehovRepository = repositoryProvider.provide(),
         behandlingRepository = repositoryProvider.provide(),
-        behandlingFlytRepository = repositoryProvider.provide(),
         behandlingHendelseService = BehandlingHendelseServiceImpl(repositoryProvider, gatewayProvider),
         stegOrkestrator = StegOrkestrator(repositoryProvider, gatewayProvider)
     )
@@ -157,7 +154,7 @@ class FlytOrkestrator(
             if (!result.kanFortsette() || neste == null) {
                 if (neste == null) {
                     // Avslutter behandling
-                    behandlingFlytRepository.oppdaterBehandlingStatus(
+                    behandlingRepository.oppdaterBehandlingStatus(
                         behandlingId = behandling.id,
                         status = Status.AVSLUTTET
                     )

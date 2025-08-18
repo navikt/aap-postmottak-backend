@@ -1,14 +1,13 @@
 package no.nav.aap.postmottak.flyt.steg
 
-import no.nav.aap.postmottak.flyt.steg.internal.StegKonstruktørImpl
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlagImpl
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
+import no.nav.aap.postmottak.flyt.steg.internal.StegKonstruktørImpl
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
@@ -36,7 +35,6 @@ private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
 class StegOrkestrator(
     private val informasjonskravGrunnlag: InformasjonskravGrunnlag,
     private val behandlingRepository: BehandlingRepository,
-    private val behandlingFlytRepository: BehandlingFlytRepository,
     private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val stegKonstruktør: StegKonstruktør
 ) {
@@ -47,7 +45,6 @@ class StegOrkestrator(
     ) : this(
         informasjonskravGrunnlag = InformasjonskravGrunnlagImpl(repositoryProvider, gatewayProvider),
         behandlingRepository = repositoryProvider.provide(),
-        behandlingFlytRepository = repositoryProvider.provide(),
         avklaringsbehovRepository = repositoryProvider.provide(),
         stegKonstruktør = StegKonstruktørImpl(repositoryProvider, gatewayProvider)
     )
@@ -202,10 +199,10 @@ class StegOrkestrator(
     ) {
         val førStatus = behandling.status()
         behandling.visit(nyStegTilstand)
-        behandlingFlytRepository.loggBesøktSteg(behandlingId = behandling.id, nyStegTilstand)
+        behandlingRepository.loggBesøktSteg(behandlingId = behandling.id, nyStegTilstand)
         val etterStatus = nyStegTilstand.steg().status
         if (førStatus != etterStatus) {
-            behandlingFlytRepository.oppdaterBehandlingStatus(behandlingId = behandling.id, status = etterStatus)
+            behandlingRepository.oppdaterBehandlingStatus(behandlingId = behandling.id, status = etterStatus)
         }
     }
 }

@@ -6,7 +6,6 @@ import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingFlytRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
@@ -18,7 +17,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDateTime
 import java.util.*
 
-class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository, BehandlingFlytRepository {
+class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository {
     companion object : Factory<BehandlingRepositoryImpl> {
         override fun konstruer(connection: DBConnection): BehandlingRepositoryImpl {
             return BehandlingRepositoryImpl(connection)
