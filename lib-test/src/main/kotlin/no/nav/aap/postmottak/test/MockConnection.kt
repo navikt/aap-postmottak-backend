@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.test
+package no.nav.aap.postmottak.test
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import java.sql.Blob

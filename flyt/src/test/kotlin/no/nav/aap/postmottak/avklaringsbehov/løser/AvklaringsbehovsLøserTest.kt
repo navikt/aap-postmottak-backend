@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.avklaringsbehov.løser
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
-import no.nav.aap.behandlingsflyt.test.MockConnection
+import no.nav.aap.postmottak.test.MockConnection
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway

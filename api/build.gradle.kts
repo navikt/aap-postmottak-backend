@@ -6,7 +6,6 @@ dependencies {
     api(project(":flyt"))
     implementation(libs.dbconnect)
     implementation(libs.infrastructure)
-    implementation(libs.httpklient)
     implementation(libs.server)
     implementation(libs.motorApi)
     implementation(libs.verdityper)

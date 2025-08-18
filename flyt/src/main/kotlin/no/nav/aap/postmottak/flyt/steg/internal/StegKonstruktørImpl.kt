@@ -1,4 +1,4 @@
-package no.nav.aap.behandlingsflyt.flyt.steg.internal
+package no.nav.aap.postmottak.flyt.steg.internal
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.repository.RepositoryProvider
