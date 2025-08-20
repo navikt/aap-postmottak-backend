@@ -54,8 +54,8 @@ class FordelingVideresendJobbUtfører(
     override fun utfør(input: JobbInput) {
         val journalpostId = input.getJournalpostId()
         val innkommendeJournalpostId = input.getInnkommendeJournalpostId()
-        val regelResultat = regelRepository.hentRegelresultat(journalpostId)
-        requireNotNull(regelResultat) { "Fant ikke regelresultat for journalpostId=$journalpostId" }
+        val regelResultat =
+            requireNotNull(regelRepository.hentRegelresultat(journalpostId)) { "Fant ikke regelresultat for journalpostId=$journalpostId" }
 
         val safJournalpost = journalpostService.hentSafJournalpost(journalpostId)
         if (safJournalpost.journalstatus == Journalstatus.JOURNALFOERT) {

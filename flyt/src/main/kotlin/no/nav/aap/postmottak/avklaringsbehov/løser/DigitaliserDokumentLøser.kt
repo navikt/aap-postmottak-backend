@@ -8,7 +8,6 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsnin
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
@@ -18,11 +17,10 @@ class DigitaliserDokumentLøser(
     val struktureringsvurderingRepository: DigitaliseringsvurderingRepository,
     val journalpostRepository: JournalpostRepository,
     val sakVurderingRepository: SaksnummerRepository,
-    val overleveringVurderingRepository: OverleveringVurderingRepository,
 ) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId)!!
+        val journalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId))
         require((løsning.søknadsdato == null) xor (løsning.kategori == InnsendingType.SØKNAD)) {
             "Søknadsdato skal kun settes for søknader"
         }
@@ -56,12 +54,14 @@ class DigitaliserDokumentLøser(
     }
 
     companion object : LøserKonstruktør<DigitaliserDokumentLøsning> {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
             return DigitaliserDokumentLøser(
                 repositoryProvider.provide<DigitaliseringsvurderingRepository>(),
                 repositoryProvider.provide<JournalpostRepository>(),
                 repositoryProvider.provide<SaksnummerRepository>(),
-                repositoryProvider.provide<OverleveringVurderingRepository>(),
             )
         }
     }

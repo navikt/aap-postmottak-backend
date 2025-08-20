@@ -25,10 +25,11 @@ data class OpprettOppgaveRequest(
     val fristFerdigstillelse: LocalDate? = null
 )
 
+const val SISTE_ARBEIDSTIME = 12
+
+private fun Int.dagerTilFrist() = if (this < SISTE_ARBEIDSTIME) 1 else 2
 
 fun finnStandardOppgavefrist(nå: LocalDateTime = now()): LocalDate {
-    val SISTE_ARBEIDSTIME = 12
-    fun Int.dagerTilFrist() = if (this < SISTE_ARBEIDSTIME) 1 else 2
     return with(nå)
     {
         addWorkingDaysToDate(

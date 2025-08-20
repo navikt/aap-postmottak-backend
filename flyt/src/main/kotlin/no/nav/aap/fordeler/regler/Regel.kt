@@ -14,7 +14,7 @@ sealed interface InputGenerator<T> {
     fun generer(input: RegelInput): T
 }
 
-class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGenerator<T>): Regel<RegelInput> {
+class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGenerator<T>) : Regel<RegelInput> {
     override fun regelNavn(): String = regel.regelNavn()
     override fun vurder(input: RegelInput): Boolean {
         val regelInput = inputGenerator.generer(input)
@@ -24,10 +24,13 @@ class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGe
 
 sealed interface RegelFactory<T> {
     val erAktiv: Boolean
-    fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider? = null): RegelMedInputgenerator<T>
+    fun medDataInnhenting(
+        repositoryProvider: RepositoryProvider?,
+        gatewayProvider: GatewayProvider? = null
+    ): RegelMedInputgenerator<T>
 }
 
-fun miljøConfig(prod: Boolean, dev:Boolean) = when (Miljø.er()) {
+fun miljøConfig(prod: Boolean, dev: Boolean) = when (Miljø.er()) {
     MiljøKode.PROD -> prod
     MiljøKode.DEV -> dev
     else -> dev

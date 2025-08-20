@@ -12,11 +12,11 @@ abstract class ArenaJobbutførerBase(val journalpostService: JournalpostService)
     private val log = LoggerFactory.getLogger(javaClass)
 
     final override fun utfør(input: JobbInput) {
-        val journalpostId = input.getBaseKOntekst().journalpostId
+        val journalpostId = input.getBaseKontekst().journalpostId
         val journalpost = journalpostService.hentJournalpost(journalpostId)
 
         if (journalpost.status != Journalstatus.MOTTATT) {
-            log.info("Journalpost $journalpostId har status ${journalpost.status}. Avbryer behandling.")
+            log.info("Journalpost $journalpostId har status ${journalpost.status}. Avbryter behandling.")
             return
         }
 

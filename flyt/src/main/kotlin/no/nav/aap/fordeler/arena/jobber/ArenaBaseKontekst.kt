@@ -6,4 +6,4 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 open class ArenaBaseKontekst(open val journalpostId: JournalpostId, open val innkommendeJournalpostId: Long)
 
-fun JobbInput.getBaseKOntekst() = DefaultJsonMapper.fromJson(this.payload(), ArenaBaseKontekst::class.java)
+fun JobbInput.getBaseKontekst() = DefaultJsonMapper.fromJson(this.payload(), ArenaBaseKontekst::class.java)
