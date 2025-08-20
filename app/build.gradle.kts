@@ -73,7 +73,7 @@ dependencies {
     implementation(libs.motor)
     implementation(libs.motorApi)
     implementation(libs.server)
-    implementation("com.zaxxer:HikariCP:7.0.1")
+    implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.flywaydb:flyway-database-postgresql:11.11.1")
     runtimeOnly("org.postgresql:postgresql:42.7.7")
     // Auditlogging
