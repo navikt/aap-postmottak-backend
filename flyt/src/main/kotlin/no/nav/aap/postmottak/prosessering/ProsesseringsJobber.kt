@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.prosessering
 
 import no.nav.aap.fordeler.arena.jobber.AutomatiskJournalføringJobbUtfører
+import no.nav.aap.fordeler.arena.jobber.JoarkAvstemmerJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.ManuellJournalføringJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.OppprettOppgaveIArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
@@ -21,7 +22,8 @@ object ProsesseringsJobber {
             ManuellJournalføringJobbUtfører,
             AutomatiskJournalføringJobbUtfører,
             SendTilArenaKjørelisteBehandling,
-            OppprettOppgaveIArenaJobbUtfører
+            OppprettOppgaveIArenaJobbUtfører,
+            JoarkAvstemmerJobbUtfører
         )
     }
 }

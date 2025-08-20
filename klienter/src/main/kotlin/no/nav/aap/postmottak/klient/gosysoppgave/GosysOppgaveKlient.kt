@@ -25,6 +25,9 @@ import java.net.URI
 
 private val log = LoggerFactory.getLogger(GosysOppgaveKlient::class.java)
 
+/**
+ * https://oppgave.intern.dev.nav.no/ for Swagger
+ */
 class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) : GosysOppgaveGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.oppgaveapi.url"))
     val config = ClientConfig(
@@ -56,10 +59,10 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
 
     private fun opprettOppgaveHvisIkkeEksisterer(oppgaveRequest: OpprettOppgaveRequest) {
         val oppgaver = finnOppgaverForJournalpost(
-            JournalpostId(oppgaveRequest.journalpostId.toLong()),
-            listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING),
-            null,
-            Statuskategori.AAPEN
+            journalpostId = JournalpostId(oppgaveRequest.journalpostId.toLong()),
+            oppgavetyper = listOf(Oppgavetype.JOURNALFØRING, Oppgavetype.FORDELING),
+            tema = null,
+            statuskategori = Statuskategori.AAPEN
         )
 
         if (oppgaver.isNotEmpty()) {
@@ -67,7 +70,7 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
             return
         }
 
-        log.info("Oppretter oppave (${oppgaveRequest.oppgavetype}) for journalpost ${oppgaveRequest.journalpostId} i gosys")
+        log.info("Oppretter oppave (${oppgaveRequest.oppgavetype}) for journalpost ${oppgaveRequest.journalpostId} i Gosys.")
 
         val path = url.resolve("/api/v1/oppgaver")
         val request = PostRequest(oppgaveRequest)
@@ -113,13 +116,17 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
     }
 
     override fun opprettJournalføringsOppgaveHvisIkkeEksisterer(
-        journalpostId: JournalpostId, personIdent: Ident, beskrivelse: String, tildeltEnhetsnr: String
+        journalpostId: JournalpostId,
+        personIdent: Ident?,
+        beskrivelse: String,
+        tildeltEnhetsnr: String?,
+        behandlingstema: String?
     ) {
         opprettOppgaveHvisIkkeEksisterer(
             OpprettOppgaveRequest(
                 oppgavetype = Oppgavetype.JOURNALFØRING.verdi,
                 journalpostId = journalpostId.toString(),
-                personident = personIdent.identifikator,
+                personident = personIdent?.identifikator,
                 beskrivelse = beskrivelse,
                 tildeltEnhetsnr = tildeltEnhetsnr,
                 fristFerdigstillelse = finnStandardOppgavefrist()

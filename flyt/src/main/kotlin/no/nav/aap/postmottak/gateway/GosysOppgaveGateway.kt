@@ -7,7 +7,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 interface GosysOppgaveGateway : Gateway {
     fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String)
     fun finnOppgaverForJournalpost(
-        journalpostId: JournalpostId, 
+        journalpostId: JournalpostId,
         oppgavetyper: List<Oppgavetype> = listOf(Oppgavetype.JOURNALFØRING),
         tema: String?,
         statuskategori: Statuskategori = Statuskategori.AAPEN
@@ -16,12 +16,18 @@ interface GosysOppgaveGateway : Gateway {
     fun ferdigstillOppgave(oppgaveId: Long)
     fun opprettJournalføringsOppgaveHvisIkkeEksisterer(
         journalpostId: JournalpostId,
-        personIdent: Ident,
+        personIdent: Ident?,
         beskrivelse: String,
-        tildeltEnhetsnr: String
+        tildeltEnhetsnr: String?,
+        behandlingstema: String? = null
     )
 
-    fun opprettFordelingsOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, orgnr: String? = null, personIdent: Ident?, beskrivelse: String)
+    fun opprettFordelingsOppgaveHvisIkkeEksisterer(
+        journalpostId: JournalpostId,
+        orgnr: String? = null,
+        personIdent: Ident?,
+        beskrivelse: String
+    )
 }
 
 enum class Oppgavetype(val verdi: String) {
