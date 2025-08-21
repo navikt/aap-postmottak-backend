@@ -12,19 +12,20 @@ dependencies {
     testImplementation(libs.bundles.junit)
 }
 
-group = "no.nav.aap.postmottak"
-
-apply(plugin = "maven-publish")
 apply(plugin = "java-library")
 
 java {
     withSourcesJar()
 }
 
+apply(plugin = "maven-publish")
+
+group = "no.nav.aap.postmottak"
+version = findProperty("version")?.toString() ?: "0.0.0"
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            version = project.findProperty("version")?.toString() ?: "0.0.0"
             from(components["java"])
         }
     }
