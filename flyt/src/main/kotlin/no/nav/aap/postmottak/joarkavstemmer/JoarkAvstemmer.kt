@@ -43,12 +43,12 @@ class JoarkAvstemmer(
             return
         }
 
-        if (regelResultat.skalTilKelvin()) {
+        if (regelResultat.gikkTilKelvin()) {
             log.error("Fant ubehandlet journalpost eldre enn 5 dager som skal til Kelvin. ID: ${journalpostId}. Dato opprettet: ${journalpost.datoOpprettet}.")
         } else {
             val uthentet = journalpostGateway.hentJournalpost(journalpostId)
             val ident = uthentet.bruker?.id
-            log.info("Fant ubehandlet journalpost. Oppretter Gosys-oppgave. JournalpostId: ${journalpostId}.")
+            log.info("Fant ubehandlet journalpost. Oppretter Gosys-oppgave. JournalpostId: ${journalpostId}. Systemnavn: ${regelResultat.systemNavn}")
 
             if (unleashGateway.isEnabled(PostmottakFeature.AvstemMotJoark)) {
                 gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(

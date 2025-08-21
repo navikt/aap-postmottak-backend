@@ -17,6 +17,8 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
         }
     }
 
+    private class RegelsettResultatRad(val regelNavn: String, val resultat: Boolean, val systemNavn: String?)
+
     override fun hentRegelresultat(journalpostId: JournalpostId): Regelresultat? {
         return connection.queryList(
             """
@@ -28,12 +30,17 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
         ) {
             setParams { setLong(1, journalpostId.referanse) }
             setRowMapper { row ->
-                row.getString("REGEL_NAVN") to row.getBoolean("RESULTAT")
+                RegelsettResultatRad(
+                    row.getString("REGEL_NAVN"),
+                    row.getBoolean("RESULTAT"),
+                    row.getString("SYSTEM_NAVN")
+                )
             }
         }.let {
             if (it.isEmpty()) null else Regelresultat(
-                it.toMap(),
-                forJournalpost = journalpostId.referanse
+                regelMap = it.associate { Pair(it.regelNavn, it.resultat) },
+                forJournalpost = journalpostId.referanse,
+                systemNavn = it.firstOrNull()?.systemNavn,
             )
         }
     }
@@ -48,10 +55,18 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
         ) {
             setParams { setLong(1, innkommendeJournalpostId) }
             setRowMapper { row ->
-                row.getString("REGEL_NAVN") to row.getBoolean("RESULTAT")
+                RegelsettResultatRad(
+                    row.getString("REGEL_NAVN"),
+                    row.getBoolean("RESULTAT"),
+                    row.getString("SYSTEM_NAVN")
+                )
             }
         }.let {
-            if (it.isEmpty()) null else Regelresultat(it.toMap(), forJournalpost = innkommendeJournalpostId)
+            if (it.isEmpty()) null else Regelresultat(
+                regelMap = it.associate { Pair(it.regelNavn, it.resultat) },
+                forJournalpost = innkommendeJournalpostId,
+                systemNavn = it.firstOrNull()?.systemNavn,
+            )
         }
     }
 

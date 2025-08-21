@@ -84,8 +84,7 @@ class JoarkAvstemmerTest {
 
     @Test
     fun `for journalposter som skal behandles i kelvin, logges error`() {
-        val regelresultat = mockk<Regelresultat>()
-        every { regelresultat.skalTilKelvin() } returns true
+        val regelresultat = Regelresultat(mapOf(), 1, "KELVIN")
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns regelresultat
 
         val listAppender = opprettListAppender()
@@ -101,8 +100,7 @@ class JoarkAvstemmerTest {
 
     @Test
     fun `oppretter oppgave i gosys for gamle journalposter som skal til Arena`() {
-        val regelresultat = mockk<Regelresultat>()
-        every { regelresultat.skalTilKelvin() } returns false
+        val regelresultat = Regelresultat(mapOf(), 1, "ARENA")
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns regelresultat
 
         every { journalpostGateway.hentJournalpost(any()) } returns journalpost(1)

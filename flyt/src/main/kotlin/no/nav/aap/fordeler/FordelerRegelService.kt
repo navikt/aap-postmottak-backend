@@ -14,7 +14,10 @@ private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
 
 typealias RegelMap = Map<String, Boolean>
 
-data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long) {
+/**
+ * @param systemNavn Systemet regelen ble evaluert til å tilhøre da regelen ble kjørt.
+ */
+data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val systemNavn: String? = null) {
 
     fun skalTilKelvin(): Boolean {
         val sakFinnesIKelvin =
@@ -38,6 +41,10 @@ data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long) {
                 }"
             )
         }
+    }
+
+    fun gikkTilKelvin(): Boolean {
+        return systemNavn == "KELVIN"
     }
 }
 

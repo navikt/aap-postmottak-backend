@@ -63,7 +63,8 @@ class InnkommendeJournalpostRepositoryImplTest {
                     "ErIkkeAnkeRegel" to true,
                     "yolo" to true
                 ),
-                forJournalpost = journalpostId.referanse
+                forJournalpost = journalpostId.referanse,
+                systemNavn = "KELVIN"
             )
         )
 
