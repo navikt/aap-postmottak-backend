@@ -82,7 +82,6 @@ dependencies {
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
     implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
-    implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
     implementation("org.apache.avro:avro:1.12.0")
 
     implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
