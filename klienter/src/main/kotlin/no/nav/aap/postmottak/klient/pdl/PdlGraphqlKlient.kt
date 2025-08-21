@@ -65,7 +65,7 @@ class PdlGraphqlKlient : PersondataGateway {
 
     override fun hentFødselsdato(personident: String): LocalDate? {
         val data = hentPerson(personident)
-        return data?.foedselsdato?.first { !it.metadata.historisk }?.foedselsdato
+        return data?.foedselsdato?.firstOrNull { !it.metadata.historisk }?.foedselsdato
     }
 
     override fun hentNavn(personident: String): Navn? {
