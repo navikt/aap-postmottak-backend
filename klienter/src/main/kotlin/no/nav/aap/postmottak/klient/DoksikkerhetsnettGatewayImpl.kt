@@ -10,7 +10,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
 import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
 import no.nav.aap.postmottak.gateway.JournalpostFraDoksikkerhetsnett
-import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import java.net.URI
 
 /**
@@ -38,6 +37,9 @@ class DoksikkerhetsnettGatewayImpl : DoksikkerhetsnettGateway {
     override fun finnMottatteJournalposterEldreEnn(antallDagerGamle: Int): List<JournalpostFraDoksikkerhetsnett> {
         val resolvedUrl =
             url.resolve("/rest/journalpostapi/v1/finnMottatteJournalposter?tema=AAP&antallDagerGamle=$antallDagerGamle")
-        return requireNotNull(client.get<List<JournalpostFraDoksikkerhetsnett>>(resolvedUrl, GetRequest()))
+        return requireNotNull(client.get<FinnMottatteJournalposterResponse>(resolvedUrl, GetRequest())).journalposter
     }
 }
+
+// Respons her: https://github.com/navikt/dokarkiv/blob/ac7f895d29c458474cf012e1aadeb517951608f1/journalpost/src/main/java/no/nav/dokarkiv/journalpost/v1/api/finnMottatteJournalposter/FinnMottatteJournalposterResponse.java
+private data class FinnMottatteJournalposterResponse(val journalposter: List<JournalpostFraDoksikkerhetsnett>)
