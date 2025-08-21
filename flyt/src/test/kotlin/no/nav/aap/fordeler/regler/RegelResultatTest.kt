@@ -21,7 +21,8 @@ class RegelResultatTest {
                 "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to false,
                 "MaksAntallPersonerIKelvinRegel" to false,
-            )
+            ),
+            forJournalpost = 123L
         )
 
         assertThat(regelResultat.skalTilKelvin()).isTrue()
@@ -36,7 +37,8 @@ class RegelResultatTest {
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "MaksAntallPersonerIKelvinRegel" to true,
-            )
+            ),
+            forJournalpost = 123L
         )
 
         assertThat(regelResultat.skalTilKelvin()).isTrue()
@@ -51,7 +53,8 @@ class RegelResultatTest {
                 "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to true,
                 "MaksAntallPersonerIKelvinRegel" to true,
-            )
+            ),
+            forJournalpost = 123L
         )
 
         assertThat(regelResultat.skalTilKelvin()).isFalse()
@@ -66,7 +69,8 @@ class RegelResultatTest {
                 "ErIkkeAnkeRegel" to false,
                 "GeografiskTilknytningRegel" to true,
                 "MaksAntallPersonerIKelvinRegel" to true,
-            )
+            ),
+            forJournalpost = 123L
         )
 
         assertThat(regelResultat.skalTilKelvin()).isFalse()
@@ -81,7 +85,8 @@ class RegelResultatTest {
                 "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to false,
                 "MaksAntallPersonerIKelvinRegel" to true
-            )
+            ),
+            forJournalpost = 123L
         )
 
         assertThat(regelResultat.skalTilKelvin()).isFalse()
@@ -95,7 +100,8 @@ class RegelResultatTest {
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "SøknadRegel" to false
-            )
+            ),
+            forJournalpost = 123L
         )
 
         assertThat(annetDokumentUtenKelvinSak.skalTilKelvin()).isFalse()
@@ -106,7 +112,8 @@ class RegelResultatTest {
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "SøknadRegel" to true,
-            )
+            ),
+            forJournalpost = 123L
         )
         assertThat(søknadUtenKelvinSak.skalTilKelvin()).isTrue()
 
@@ -116,7 +123,8 @@ class RegelResultatTest {
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "SøknadRegel" to false,
-            )
+            ),
+            forJournalpost = 123L
         )
         assertThat(annetDokumentMedKelvinSak.skalTilKelvin()).isTrue()
 

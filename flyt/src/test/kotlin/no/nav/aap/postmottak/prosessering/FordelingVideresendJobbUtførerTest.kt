@@ -37,7 +37,8 @@ class FordelingVideresendJobbUtførerTest {
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "KelvinSakRegel" to false
-            )
+            ),
+            forJournalpost = 1L
         )
         val journalpostId = JournalpostId(1)
         every { regelRepositoryMock.hentRegelresultat(journalpostId) } returns regelResultat

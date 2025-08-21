@@ -78,7 +78,7 @@ internal class FordelingRegelJobbUtførerTest {
             relevanteDatoer = emptyList()
         )
 
-        val regelResultat = Regelresultat(mapOf("yolo" to true))
+        val regelResultat = Regelresultat(mapOf("yolo" to true), forJournalpost = journalpostId.referanse)
 
         every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns journalpost

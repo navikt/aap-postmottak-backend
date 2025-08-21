@@ -31,7 +31,10 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
                 row.getString("REGEL_NAVN") to row.getBoolean("RESULTAT")
             }
         }.let {
-            if (it.isEmpty()) null else Regelresultat(it.toMap())
+            if (it.isEmpty()) null else Regelresultat(
+                it.toMap(),
+                forJournalpost = journalpostId.referanse
+            )
         }
     }
 
@@ -48,7 +51,7 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
                 row.getString("REGEL_NAVN") to row.getBoolean("RESULTAT")
             }
         }.let {
-            if (it.isEmpty()) null else Regelresultat(it.toMap())
+            if (it.isEmpty()) null else Regelresultat(it.toMap(), forJournalpost = innkommendeJournalpostId)
         }
     }
 

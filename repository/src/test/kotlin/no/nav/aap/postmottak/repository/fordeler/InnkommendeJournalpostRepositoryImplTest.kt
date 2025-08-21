@@ -62,7 +62,8 @@ class InnkommendeJournalpostRepositoryImplTest {
                     "ErIkkeReisestønadRegel" to true,
                     "ErIkkeAnkeRegel" to true,
                     "yolo" to true
-                )
+                ),
+                forJournalpost = journalpostId.referanse
             )
         )
 
@@ -106,7 +107,8 @@ class InnkommendeJournalpostRepositoryImplTest {
                     "ErIkkeReisestønadRegel" to true,
                     "ErIkkeAnkeRegel" to true,
                     "yolo" to true
-                )
+                ),
+                forJournalpost = journalpostId.referanse
             )
         )
         assertFalse(dataSource.transaction { connection ->
