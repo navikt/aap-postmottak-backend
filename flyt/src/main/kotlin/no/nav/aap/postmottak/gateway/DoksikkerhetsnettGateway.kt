@@ -13,6 +13,6 @@ data class JournalpostFraDoksikkerhetsnett(
     val mottaksKanal: String?,
     val tema: String,
     val behandlingstema: String?,
-    val journalforendeEnhet: String,
+    val journalforendeEnhet: String?,
     val datoOpprettet: OffsetDateTime,
 )

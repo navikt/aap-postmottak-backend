@@ -7,7 +7,6 @@ import no.nav.aap.postmottak.gateway.JournalpostFraDoksikkerhetsnett
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.unleash.FeatureToggle
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -63,7 +62,7 @@ class JoarkAvstemmer(
         }
     }
 
-    private fun tildeltEnhetsnr(journalforendeEnhet: String): String? {
+    private fun tildeltEnhetsnr(journalforendeEnhet: String?): String? {
         if (journalforendeEnhet == "9999") {
             return null
         }
