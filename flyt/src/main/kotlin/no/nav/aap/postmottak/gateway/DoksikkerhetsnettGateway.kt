@@ -9,8 +9,8 @@ interface DoksikkerhetsnettGateway : Gateway {
 
 data class JournalpostFraDoksikkerhetsnett(
     val journalpostId: Long,
-    val journalstatus: String,
-    val mottakskanal: String?,
+    val journalStatus: String,
+    val mottaksKanal: String?,
     val tema: String,
     val behandlingstema: String?,
     val journalforendeEnhet: String,

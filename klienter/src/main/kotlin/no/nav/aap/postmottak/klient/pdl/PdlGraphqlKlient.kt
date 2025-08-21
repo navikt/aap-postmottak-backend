@@ -98,7 +98,7 @@ class PdlGraphqlKlient : PersondataGateway {
         val data = response.data ?: error("Unexpected response from PDL: ${response.errors}")
         return GeografiskTilknytningOgAdressebeskyttelse(
             geografiskTilknytning = data.hentGeografiskTilknytning ?: error("Geografisk tilknytning mangler"),
-            adressebeskyttelse = data.hentPerson?.adressebeskyttelse ?: emptyList()
+            adressebeskyttelse = data.hentPerson?.adressebeskyttelse.orEmpty()
         )
     }
 
@@ -115,7 +115,7 @@ class PdlGraphqlKlient : PersondataGateway {
             ?.identer
             ?.filter { it.gruppe == PdlGruppe.FOLKEREGISTERIDENT }
             ?.map { Ident(identifikator = it.ident, aktivIdent = it.historisk.not()) }
-            ?: emptyList()
+            .orEmpty()
     }
 
     private fun graphqlQuery(query: PdlRequest, currentToken: OidcToken? = null): PdlResponse {

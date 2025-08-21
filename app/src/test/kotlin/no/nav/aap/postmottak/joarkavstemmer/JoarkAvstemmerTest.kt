@@ -147,8 +147,8 @@ class JoarkAvstemmerTest {
     private fun journalpostFraDoksikkerhetsnett(): JournalpostFraDoksikkerhetsnett {
         return JournalpostFraDoksikkerhetsnett(
             journalpostId = counter.incrementAndGet().toLong(),
-            journalstatus = "XXX",
-            mottakskanal = "XXX",
+            journalStatus = "XXX",
+            mottaksKanal = "XXX",
             tema = "AAP",
             behandlingstema = "AAP",
             journalforendeEnhet = "FFFF",
