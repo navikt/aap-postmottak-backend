@@ -28,7 +28,7 @@ data class HentPersonBolkResult(
 )
 
 data class PdlPerson(
-    val navn: List<Navn>, 
+    val navn: List<Navn>,
     val folkeregisteridentifikator: List<Identifikasjonsnummer>,
     val code: Code?     //Denne er påkrevd ved hentPersonBolk
 )
@@ -39,7 +39,7 @@ data class HentPersonResult(
     val adressebeskyttelse: List<Gradering>? = null
 )
 
-data class Fødselsdato(val foedselsdato: LocalDate, val metadata: HistoriskMetadata)
+data class Fødselsdato(val foedselsdato: LocalDate?, val metadata: HistoriskMetadata)
 
 enum class Code {
     ok, not_found, bad_request

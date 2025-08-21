@@ -49,10 +49,7 @@ class PdlGraphqlKlient : PersondataGateway {
     ): Map<String, NavnMedIdent?>? {
         val request = PdlRequest.hentPersonBolk(personidenter)
         val response = graphqlQuery(request, null)
-        val data = response.data?.hentPersonBolk
-        if (data == null) {
-            return null
-        }
+        val data = response.data?.hentPersonBolk ?: return null
 
         return data.associateBy(
             { it.ident },
