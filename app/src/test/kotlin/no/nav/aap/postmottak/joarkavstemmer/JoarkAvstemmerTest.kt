@@ -29,7 +29,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicInteger
 
 @ExtendWith(MockKExtension::class)
@@ -152,7 +152,7 @@ class JoarkAvstemmerTest {
             tema = "AAP",
             behandlingstema = "AAP",
             journalforendeEnhet = "FFFF",
-            datoOpprettet = LocalDate.now().minusDays(10)
+            datoOpprettet = LocalDateTime.now().minusDays(10)
         )
     }
 
