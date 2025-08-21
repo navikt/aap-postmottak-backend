@@ -37,7 +37,7 @@ class DoksikkerhetsnettGatewayImpl : DoksikkerhetsnettGateway {
 
     override fun finnMottatteJournalposterEldreEnn(antallDagerGamle: Int): List<JournalpostFraDoksikkerhetsnett> {
         val resolvedUrl =
-            url.resolve("/rest/intern/journalpostapi/v1/finnMottatteJournalposter?tema=AAP&antallDagerGamle=$antallDagerGamle")
+            url.resolve("/rest/journalpostapi/v1/finnMottatteJournalposter?tema=AAP&antallDagerGamle=$antallDagerGamle")
         return requireNotNull(client.get<List<JournalpostFraDoksikkerhetsnett>>(resolvedUrl, GetRequest()))
     }
 }
