@@ -6,12 +6,17 @@ import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.JournalpostFraDoksikkerhetsnett
 import no.nav.aap.postmottak.gateway.JournalpostGateway
+import no.nav.aap.postmottak.gateway.Oppgavetype
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 /**
  * Prøver å replikere logikken her: https://confluence.adeo.no/spaces/BOA/pages/366859456/doksikkerhetsnett
@@ -31,31 +36,51 @@ class JoarkAvstemmer(
 
         log.info("Fant ${eldreJournalpost.size} journalposter eldre enn 5 dager.")
 
-        eldreJournalpost.forEach {
-            avstemJournalPost(it)
-        }
+        eldreJournalpost
+            // Vi gjør samme filtreringen i no.nav.aap.postmottak.mottak.JoarkKafkaHandler.
+            .filter { it.mottaksKanal != KanalFraKodeverk.EESSI.name }
+            .forEach {
+                avstemJournalPost(it)
+            }
     }
 
-    private fun loggUavstemt(melding: String) {
+    private fun loggUavstemt(melding: String, journalpostId: JournalpostId, kanal: String?, datoOpprettet: LocalDate) {
         val level = if (Miljø.erProd()) Level.ERROR else Level.INFO
-        return log.makeLoggingEventBuilder(level).setMessage(melding).log()
+        val msg = "$melding Kanal: $kanal. JournalpostId: $journalpostId"
+        return log.makeLoggingEventBuilder(level).setMessage(msg).log()
     }
 
     private fun avstemJournalPost(journalpost: JournalpostFraDoksikkerhetsnett) {
         val journalpostId = JournalpostId(journalpost.journalpostId)
         val regelResultat = regelRepository.hentRegelresultat(journalpostId)
 
-        if (regelResultat == null) {
-            loggUavstemt("Fant ikke regelresultat for journalpostId=$journalpostId. Har ikke nok informasjon til å fullføre. Dato opprettet: ${journalpost.datoOpprettet}.")
+        val finnesEksisterendeOppgaverForJournalpost = finnesEksisterendeOppgaverForJournalpost(journalpostId)
+        if (finnesEksisterendeOppgaverForJournalpost && regelResultat == null) {
+            log.info("Finnes eksisterende Gosys-oppgave for journalpostId=$journalpostId, og har heller ikke regelresultat. Avbryter.")
             return
         }
 
-        if (regelResultat.gikkTilKelvin()) {
-            loggUavstemt("Fant ubehandlet journalpost eldre enn 5 dager som skal til Kelvin. ID: ${journalpostId}. Dato opprettet: ${journalpost.datoOpprettet}.")
-        } else {
+        if (regelResultat == null && !eldreEnnKelvin(journalpost)) {
+            log.info("Fant ikke regelresultat for journalpostId=$journalpostId. Har ikke nok informasjon til å fullføre. Dato opprettet: ${journalpost.datoOpprettet}. Kanal: ${journalpost.mottaksKanal}.")
+            return
+        } else if (regelResultat == null) {
+            loggUavstemt(
+                "Fant ikke regelresultat for journalpostId. Har ikke nok informasjon til å fullføre.",
+                journalpostId,
+                journalpost.mottaksKanal,
+                journalpost.datoOpprettet.toLocalDate()
+            )
+        } else if (regelResultat.gikkTilKelvin()) {
+            loggUavstemt(
+                "Fant ubehandlet journalpost eldre enn 5 dager som skal til Kelvin.",
+                journalpostId,
+                journalpost.mottaksKanal,
+                journalpost.datoOpprettet.toLocalDate()
+            )
+        } else if (!finnesEksisterendeOppgaverForJournalpost) {
             val uthentet = journalpostGateway.hentJournalpost(journalpostId)
             val ident = uthentet.bruker?.id
-            log.info("Fant ubehandlet journalpost som ikke skal til Kelvin. Oppretter Gosys-oppgave. JournalpostId: ${journalpostId}. Systemnavn: ${regelResultat.systemNavn}")
+            log.info("Fant ubehandlet journalpost som ikke skal til Kelvin. Oppretter Gosys-oppgave. JournalpostId: ${journalpostId}. Systemnavn: ${regelResultat.systemNavn}. Alder på journalpost: ${journalpost.datoOpprettet}")
 
             if (unleashGateway.isEnabled(PostmottakFeature.AvstemMotJoark)) {
                 gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
@@ -66,7 +91,24 @@ class JoarkAvstemmer(
                     behandlingstema = journalpost.behandlingstema,
                 )
             }
+        } else {
+            log.info("Det finnes allerede en Gosys-oppgave for journalpostId=$journalpostId. Avbryter.")
         }
+    }
+
+    private fun eldreEnnKelvin(journalpost: JournalpostFraDoksikkerhetsnett): Boolean =
+        journalpost.datoOpprettet.isAfter(
+            OffsetDateTime.of(
+                LocalDate.of(2025, 4, 1).atStartOfDay(), ZoneOffset.UTC
+            )
+        )
+
+    private fun finnesEksisterendeOppgaverForJournalpost(journalpostId: JournalpostId): Boolean {
+        return gosysOppgaveGateway.finnOppgaverForJournalpost(
+            journalpostId = journalpostId, tema = "AAP", oppgavetyper = listOf(
+                Oppgavetype.JOURNALFØRING
+            )
+        ).isNotEmpty()
     }
 
     private fun tildeltEnhetsnr(journalforendeEnhet: String?): String? {

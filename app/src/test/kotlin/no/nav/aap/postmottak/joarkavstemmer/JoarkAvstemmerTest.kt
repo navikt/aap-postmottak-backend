@@ -69,7 +69,24 @@ class JoarkAvstemmerTest {
     }
 
     @Test
+    fun `om det finnes gosys-oppgaver og journalposten ikke har vært innom kelvin, `() {
+        every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf(1L)
+        every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns null
+
+        verify(exactly = 0) {
+            gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        }
+    }
+
+    @Test
     fun `om det ikke finnes regelresultat, logges feil`() {
+        every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns null
         val listAppender = opprettListAppender()
 
@@ -85,6 +102,7 @@ class JoarkAvstemmerTest {
 
     @Test
     fun `for journalposter som skal behandles i kelvin, logges error`() {
+        every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
         val regelresultat = Regelresultat(mapOf(), 1, "KELVIN")
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns regelresultat
 
@@ -103,6 +121,7 @@ class JoarkAvstemmerTest {
     fun `oppretter oppgave i gosys for gamle journalposter som skal til Arena`() {
         val regelresultat = Regelresultat(mapOf(), 1, "ARENA")
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns regelresultat
+        every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
 
         every { journalpostGateway.hentJournalpost(any()) } returns journalpost(1)
 
