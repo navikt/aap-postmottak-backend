@@ -111,7 +111,7 @@ class FordelingRegelJobbUtfører(
 
             else -> {
                 val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
-
+                log.info("Evaluerer journalpost med ID ${journalpost.journalpostId}. Brevkode: ${journalpost.hoveddokumentbrevkode}.")
                 val res = regelService.evaluer(
                     RegelInput(
                         safJournalpost.journalpostId,
