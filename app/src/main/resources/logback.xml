@@ -24,6 +24,8 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
 
+    <logger name="no.nav.aap.komponenter.httpklient.httpclient.tokenprovider" level="WARN"/>
+
     <appender name="auditLogger" class="com.papertrailapp.logback.Syslog4jAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <pattern>%m%n%xEx</pattern>
