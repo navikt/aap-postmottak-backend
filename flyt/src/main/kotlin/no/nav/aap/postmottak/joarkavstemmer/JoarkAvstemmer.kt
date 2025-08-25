@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.joarkavstemmer
 
 import no.nav.aap.fordeler.RegelRepository
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.JournalpostFraDoksikkerhetsnett
@@ -10,6 +11,9 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 /**
  * Prøver å replikere logikken her: https://confluence.adeo.no/spaces/BOA/pages/366859456/doksikkerhetsnett
@@ -37,6 +41,22 @@ class JoarkAvstemmer(
     private fun avstemJournalPost(journalpost: JournalpostFraDoksikkerhetsnett) {
         val journalpostId = JournalpostId(journalpost.journalpostId)
         val regelResultat = regelRepository.hentRegelresultat(journalpostId)
+
+        if (journalpost.datoOpprettet.isBefore(
+                OffsetDateTime.of(
+                    LocalDate.of(2025, 4, 1).atStartOfDay(),
+                    ZoneOffset.UTC
+                )
+            ) && !Miljø.erProd()
+        ) {
+            gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                journalpostId = journalpostId,
+                personIdent = null,
+                beskrivelse = "Automatisk gjenopprettet oppgave",
+                tildeltEnhetsnr = tildeltEnhetsnr(journalpost.journalforendeEnhet),
+                behandlingstema = journalpost.behandlingstema,
+            )
+        }
 
         if (regelResultat == null) {
             log.error("Fant ikke regelresultat for journalpostId=$journalpostId. Har ikke nok informasjon til å fullføre. Dato opprettet: ${journalpost.datoOpprettet}.")
