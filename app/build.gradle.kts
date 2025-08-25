@@ -77,7 +77,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:11.11.2")
     runtimeOnly("org.postgresql:postgresql:42.7.7")
     // Auditlogging
-    runtimeOnly(group = "com.papertrailapp", name = "logback-syslog4j", version = "1.0.0")
+    runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
     
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
