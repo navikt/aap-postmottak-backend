@@ -8,7 +8,6 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
-import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import no.nav.aap.fordeler.RegelRepository
@@ -65,6 +64,8 @@ class JoarkAvstemmerTest {
         )
         every { doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(any()) } returns journalpostFraDoksikkerhetsnetts
         every { journalpostGateway.hentJournalpost(any()) } returns journalpost(journalpostFraDoksikkerhetsnetts.first().journalpostId)
+
+        System.setProperty("NAIS_CLUSTER_NAME", "NAIS-PROD")
     }
 
     @Test
