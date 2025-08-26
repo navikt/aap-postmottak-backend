@@ -386,7 +386,7 @@ object FakeServers : AutoCloseable {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                this@pesysFake.log.info("Inntekt :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                this@pesysFake.log.info("PESYS :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
                 call.respond(
                     status = HttpStatusCode.InternalServerError,
                     message = ErrorRespons(cause.message)
