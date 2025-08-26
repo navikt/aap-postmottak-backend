@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 data class UførePeriode(
     val uforegradFom: LocalDate? = null,
     val uforegradTom: LocalDate? = null,
-    val uforegrad: Int,
+    val uforegrad: Int?,
     val uforetidspunkt: LocalDate? = null,
     val virkningstidspunkt: LocalDate
 )
@@ -77,7 +77,7 @@ class UføreRegisterKlient() : UføreRegisterGateway {
         return uføreperioder.map {
             Uføre(
                 virkningstidspunkt = it.virkningstidspunkt,
-                uføregrad = Prosent(it.uforegrad)
+                uføregrad = it.uforegrad
             )
         }
     }

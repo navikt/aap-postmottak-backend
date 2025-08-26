@@ -25,11 +25,11 @@ class ErIkkeGradertUføreRegel : Regel<GradertUføreRegelInput> {
                 GradertUføreRegelInputGenerator(requireNotNull(gatewayProvider))
             )
         }
-
     }
 
     override fun vurder(input: GradertUføreRegelInput): Boolean {
-        if (input.uførePerioder.isEmpty()) {
+        val relevantePerioder = input.uførePerioder.filter { it.uføregrad != null && it.uføregrad > 0 }
+        if (relevantePerioder.isEmpty()) {
             return true
         } else {
             log.info("Fant periode i PESYS med gradert uføre, returnerer false")

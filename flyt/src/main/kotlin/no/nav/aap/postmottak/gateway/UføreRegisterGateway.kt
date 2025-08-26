@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.gateway
 
 import no.nav.aap.komponenter.gateway.Gateway
-import no.nav.aap.komponenter.verdityper.Prosent
 import java.time.LocalDate
 
 interface UføreRegisterGateway : Gateway {
@@ -13,7 +12,7 @@ interface UføreRegisterGateway : Gateway {
 
 data class Uføre(
     val virkningstidspunkt: LocalDate,
-    val uføregrad: Prosent
+    val uføregrad: Int?
 )
 
 data class UføreRequest (
