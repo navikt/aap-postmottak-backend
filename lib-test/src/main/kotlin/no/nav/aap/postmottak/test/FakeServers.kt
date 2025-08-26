@@ -18,6 +18,9 @@ import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.gateway.UføreHistorikkRespons
+import no.nav.aap.postmottak.gateway.UførePeriode
+import no.nav.aap.postmottak.gateway.UføreRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import no.nav.aap.postmottak.test.fakes.aapInternApiFake
@@ -57,6 +60,7 @@ object FakeServers : AutoCloseable {
     val norgFake = embeddedServer(Netty, port = 0, module = { norgFake() })
     val staistikkFake = embeddedServer(Netty, port = 0, module = { statistikkFake() })
     val veilarbarena = embeddedServer(Netty, port = 0, module = { veilarbarena() })
+    val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() })
 
     internal val statistikkHendelser = mutableListOf<DokumentflytStoppetHendelse>()
 
@@ -132,6 +136,10 @@ object FakeServers : AutoCloseable {
         System.setProperty("integrasjon.veilarbarena.url", "http://localhost:${veilarbarena.port()}")
         System.setProperty("integrasjon.veilarbarena.scope", "scope")
 
+        // PESYS
+        System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
+        System.setProperty("integrasjon.pesys.scope", "scope")
+
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
             TestPerson(
@@ -179,6 +187,7 @@ object FakeServers : AutoCloseable {
         norgFake.start()
         staistikkFake.start()
         veilarbarena.start()
+        pesysFake.start()
 
         println("AZURE PORT ${azure.port()}")
 
@@ -206,6 +215,7 @@ object FakeServers : AutoCloseable {
         norgFake.stop()
         staistikkFake.stop()
         veilarbarena.stop()
+        pesysFake.stop()
     }
 
     fun leggTil(person: TestPerson) {
@@ -368,6 +378,50 @@ object FakeServers : AutoCloseable {
         }
     }
 
+    private fun Application.pesysFake() {
+        install(ContentNegotiation) {
+            jackson {
+                registerModule(JavaTimeModule())
+            }
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@pesysFake.log.info("Inntekt :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
+            }
+        }
+        routing() {
+            post("/pen/api/uforetrygd/uforehistorikk/perioder") {
+                val body = call.receive<UføreRequest>()
+                val hentPerson = fakePersoner[body.fnr]
+                if (hentPerson == null) {
+                    call.respond(HttpStatusCode.NotFound, "Fant ikke person med fnr ${body.fnr}")
+                    return@post
+                }
+                val uføregrad = hentPerson.uføre
+                if (uføregrad == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                } else {
+                    call.respond(
+                        HttpStatusCode.OK, UføreHistorikkRespons(
+                            uforeperioder = listOf(
+                                UførePeriode(
+                                    uforegrad = uføregrad,
+                                    uforegradTom = null,
+                                    uforegradFom = null,
+                                    uforetidspunkt = null,
+                                    virkningstidspunkt = LocalDate.parse(body.dato)
+                                )
+                            )
+                        )
+                    )
+                }
+            }
+        }
+    }
 
     data class TestToken(
         val access_token: String,
