@@ -46,7 +46,7 @@ class JoarkAvstemmer(
 
     private fun loggUavstemt(melding: String, journalpostId: JournalpostId, kanal: String?, datoOpprettet: LocalDate) {
         val level = if (Miljø.erProd()) Level.ERROR else Level.INFO
-        val msg = "$melding Kanal: $kanal. JournalpostId: $journalpostId"
+        val msg = "$melding Kanal: $kanal. JournalpostId: $journalpostId. Dato opprettet: $datoOpprettet"
         return log.makeLoggingEventBuilder(level).setMessage(msg).log()
     }
 
@@ -90,6 +90,7 @@ class JoarkAvstemmer(
                     tildeltEnhetsnr = tildeltEnhetsnr(journalpost.journalforendeEnhet),
                     behandlingstema = journalpost.behandlingstema,
                 )
+                log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")
             }
         } else {
             log.info("Det finnes allerede en Gosys-oppgave for journalpostId=$journalpostId. Avbryter.")
