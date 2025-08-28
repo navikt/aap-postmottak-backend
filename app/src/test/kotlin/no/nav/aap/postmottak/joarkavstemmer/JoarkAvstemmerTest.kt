@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level.ERROR
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -151,7 +152,8 @@ class JoarkAvstemmerTest {
         journalpostGateway = journalpostGateway,
         unleashGateway = object : UnleashGateway {
             override fun isEnabled(featureToggle: FeatureToggle): Boolean = true
-        }
+        },
+        meterRegistry = SimpleMeterRegistry()
     )
 
     private fun opprettListAppender(): ListAppender<ILoggingEvent> {

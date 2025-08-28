@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.joarkavstemmer
 
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.fordeler.RegelRepository
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
@@ -10,6 +11,7 @@ import no.nav.aap.postmottak.gateway.Oppgavetype
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.ubehandledeJournalposterCounter
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -26,7 +28,8 @@ class JoarkAvstemmer(
     private val regelRepository: RegelRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val journalpostGateway: JournalpostGateway,
-    private val unleashGateway: UnleashGateway
+    private val unleashGateway: UnleashGateway,
+    private val meterRegistry: MeterRegistry
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -60,10 +63,11 @@ class JoarkAvstemmer(
             return
         }
 
-        if (regelResultat == null && !eldreEnnKelvin(journalpost)) {
+        if (regelResultat == null && eldreEnnKelvin(journalpost)) {
             log.info("Fant ikke regelresultat for journalpostId=$journalpostId. Har ikke nok informasjon til å fullføre. Dato opprettet: ${journalpost.datoOpprettet}. Kanal: ${journalpost.mottaksKanal}.")
             return
         } else if (regelResultat == null) {
+            meterRegistry.ubehandledeJournalposterCounter("UKJENT").increment()
             loggUavstemt(
                 "Fant ikke regelresultat for journalpostId. Har ikke nok informasjon til å fullføre.",
                 journalpostId,
@@ -71,6 +75,7 @@ class JoarkAvstemmer(
                 journalpost.datoOpprettet.toLocalDate()
             )
         } else if (regelResultat.gikkTilKelvin()) {
+            meterRegistry.ubehandledeJournalposterCounter("KELVIN").increment()
             loggUavstemt(
                 "Fant ubehandlet journalpost eldre enn 5 dager som skal til Kelvin.",
                 journalpostId,
@@ -82,6 +87,7 @@ class JoarkAvstemmer(
             val ident = uthentet.bruker?.id
             log.info("Fant ubehandlet journalpost som ikke skal til Kelvin. Oppretter Gosys-oppgave. JournalpostId: ${journalpostId}. Systemnavn: ${regelResultat.systemNavn}. Alder på journalpost: ${journalpost.datoOpprettet}")
 
+            meterRegistry.ubehandledeJournalposterCounter("ARENA").increment()
             if (unleashGateway.isEnabled(PostmottakFeature.AvstemMotJoark)) {
                 gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
                     journalpostId = journalpostId,
@@ -93,12 +99,13 @@ class JoarkAvstemmer(
                 log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")
             }
         } else {
-            log.info("Det finnes allerede en Gosys-oppgave for journalpostId=$journalpostId. Avbryter.")
+            meterRegistry.ubehandledeJournalposterCounter("ARENA").increment()
+            log.info("Det finnes allerede en Gosys-oppgave for journalpostId=$journalpostId. Dato opprettet: ${journalpost.datoOpprettet}. Avbryter.")
         }
     }
 
     private fun eldreEnnKelvin(journalpost: JournalpostFraDoksikkerhetsnett): Boolean =
-        journalpost.datoOpprettet.isAfter(
+        journalpost.datoOpprettet.isBefore(
             OffsetDateTime.of(
                 LocalDate.of(2025, 4, 1).atStartOfDay(), ZoneOffset.UTC
             )

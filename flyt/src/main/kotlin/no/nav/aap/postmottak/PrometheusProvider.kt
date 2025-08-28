@@ -44,6 +44,9 @@ fun MeterRegistry.journalføringCounter(type: JournalføringsType, enhet: NavEnh
     )
 }
 
+fun MeterRegistry.ubehandledeJournalposterCounter(kildesystem: String): Counter =
+    this.counter("postmottak_journalposter_ubehandlet", listOf(Tag.of("kildesystem", kildesystem)))
+
 enum class Fagsystem {
     arena,
     kelvin
