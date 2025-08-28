@@ -30,6 +30,9 @@ outbound:
     - application: statistikk
     - application: skjermede-personer-pip
       namespace: nom
+    - application: pensjon-pen-q2
+      namespace: pensjon-q2
+      cluster: dev-fss
   external:
     - host: saf.dev-fss-pub.nais.io
     - host: dokarkiv.dev-fss-pub.nais.io
@@ -37,6 +40,7 @@ outbound:
     - host: pdl-api.dev-fss-pub.nais.io
     - host: aap-fss-proxy.dev-fss-pub.nais.io
     - host: veilarbarena.dev-fss-pub.nais.io
+    - host: pensjon-pen-q2.dev-fss-pub.nais.io
 
 env:
   - name: INTEGRASJON_SAF_URL_GRAPHQL
@@ -97,3 +101,7 @@ env:
     value: https://veilarbarena.dev-fss-pub.nais.io
   - name: INTEGRASJON_VEILARBARENA_SCOPE
     value: api://dev-fss.pto.veilarbarena/.default
+  - name: INTEGRASJON_PESYS_URL
+    value: https://pensjon-pen-q2.dev-fss-pub.nais.io
+  - name: INTEGRASJON_PESYS_SCOPE
+    value: api://dev-fss.pensjon-q2.pensjon-pen-q2/.default
