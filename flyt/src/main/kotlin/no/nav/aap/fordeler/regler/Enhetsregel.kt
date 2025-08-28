@@ -4,22 +4,32 @@ import no.nav.aap.fordeler.EnhetMedOppfølgingsKontor
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.kontrakt.enhet.GodkjentEnhet
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(Enhetsregel::class.java)
 
-class Enhetsregel : Regel<EnhetsregelInput> {
-    private val godkjenteEnheter = listOf(
-        Enhet.NAV_ASKER,
-        Enhet.SYFA_INNLANDET
-    )
+class Enhetsregel(
+    unleashGateway: UnleashGateway
+) : Regel<EnhetsregelInput> {
+
+    private val godkjenteEnheter = if (unleashGateway.isEnabled(PostmottakFeature.VestVikenOgInnlandet)) {
+        GodkjentEnhet.entries
+    } else {
+        listOf(
+            GodkjentEnhet.NAV_ASKER,
+            GodkjentEnhet.SYFA_INNLANDET
+        )
+    }
 
     companion object : RegelFactory<EnhetsregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
             RegelMedInputgenerator(
-                Enhetsregel(),
-                EnhetsregelInputGenerator(requireNotNull(gatewayProvider))
+                Enhetsregel(requireNotNull(gatewayProvider).provide()),
+                EnhetsregelInputGenerator(gatewayProvider)
             )
     }
 
@@ -46,8 +56,3 @@ class EnhetsregelInputGenerator(private val gatewayProvider: GatewayProvider) : 
 data class EnhetsregelInput(
     val enheter: EnhetMedOppfølgingsKontor
 )
-
-enum class Enhet(val enhetNr: String) {
-    NAV_ASKER("0220"),
-    SYFA_INNLANDET("0491")
-}
