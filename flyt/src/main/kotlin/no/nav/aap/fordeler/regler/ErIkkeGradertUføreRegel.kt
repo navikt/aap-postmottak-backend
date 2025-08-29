@@ -13,7 +13,7 @@ import java.time.LocalDate
  **/
 class ErIkkeGradertUføreRegel : Regel<GradertUføreRegelInput> {
     companion object : RegelFactory<GradertUføreRegelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = true)
+        override val erAktiv = miljøConfig(prod = true, dev = true)
         private val log = LoggerFactory.getLogger(javaClass)
 
         override fun medDataInnhenting(
