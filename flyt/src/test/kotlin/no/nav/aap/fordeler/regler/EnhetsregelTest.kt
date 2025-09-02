@@ -2,8 +2,6 @@ package no.nav.aap.fordeler.regler
 
 import no.nav.aap.fordeler.EnhetMedOppfølgingsKontor
 import no.nav.aap.postmottak.kontrakt.enhet.GodkjentEnhet
-import no.nav.aap.unleash.FeatureToggle
-import no.nav.aap.unleash.UnleashGateway
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -21,7 +19,7 @@ class EnhetsregelTest {
                 oppfølgingsenhet = null,
                 norgEnhet = enhet.enhetNr))
 
-        val resultat = Enhetsregel(FakeUnleash).vurder(input)
+        val resultat = Enhetsregel().vurder(input)
         assertTrue(resultat)
     }
 
@@ -32,7 +30,7 @@ class EnhetsregelTest {
                 oppfølgingsenhet = GodkjentEnhet.NAV_ASKER.enhetNr,
                 norgEnhet = NAV_MOSS))
         
-        val resultat = Enhetsregel(FakeUnleash).vurder(input)
+        val resultat = Enhetsregel().vurder(input)
         assertTrue(resultat)
     }
 
@@ -43,11 +41,7 @@ class EnhetsregelTest {
                 oppfølgingsenhet = null,
                 norgEnhet = NAV_MOSS))
 
-        val resultat = Enhetsregel(FakeUnleash).vurder(input)
+        val resultat = Enhetsregel().vurder(input)
         assertFalse(resultat)
-    }
-
-    object FakeUnleash : UnleashGateway {
-        override fun isEnabled(featureToggle: FeatureToggle): Boolean = true
     }
 }

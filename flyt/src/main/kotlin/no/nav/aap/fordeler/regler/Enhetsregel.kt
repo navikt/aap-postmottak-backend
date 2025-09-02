@@ -5,31 +5,20 @@ import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.kontrakt.enhet.GodkjentEnhet
-import no.nav.aap.unleash.PostmottakFeature
-import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(Enhetsregel::class.java)
 
-class Enhetsregel(
-    unleashGateway: UnleashGateway
-) : Regel<EnhetsregelInput> {
+class Enhetsregel : Regel<EnhetsregelInput> {
 
-    private val godkjenteEnheter = if (unleashGateway.isEnabled(PostmottakFeature.VestVikenOgInnlandet)) {
-        GodkjentEnhet.entries
-    } else {
-        listOf(
-            GodkjentEnhet.NAV_ASKER,
-            GodkjentEnhet.SYFA_INNLANDET
-        )
-    }
+    private val godkjenteEnheter = GodkjentEnhet.entries
 
     companion object : RegelFactory<EnhetsregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
             RegelMedInputgenerator(
-                Enhetsregel(requireNotNull(gatewayProvider).provide()),
-                EnhetsregelInputGenerator(gatewayProvider)
+                Enhetsregel(),
+                EnhetsregelInputGenerator(requireNotNull(gatewayProvider))
             )
     }
 
