@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val kafkaVersion = "4.0.0"
+val kafkaVersion = "4.1.0"
 
 plugins {
     id("postmottak.conventions")
