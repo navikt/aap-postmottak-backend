@@ -13,10 +13,10 @@ import java.util.stream.Collectors
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class Definisjon(
-    @JsonProperty("kode") val kode: AvklaringsbehovKode,
+    @param:JsonProperty("kode") val kode: AvklaringsbehovKode,
     val type: BehovType,
     @JsonIgnore private val defaultFrist: Period = Period.ZERO,
-    @JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
+    @param:JsonProperty("løsesISteg") val løsesISteg: StegType = StegType.UDEFINERT,
     val kreverToTrinn: Boolean = false,
     val løsesAv: List<Rolle> = listOf(Rolle.SAKSBEHANDLER_NASJONAL)
 ) {

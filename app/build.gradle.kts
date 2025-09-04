@@ -1,7 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val kafkaVersion = "4.0.0"
-
 plugins {
     id("postmottak.conventions")
     alias(libs.plugins.ktor)
@@ -78,16 +76,16 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql:42.7.7")
     // Auditlogging
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
-    
-    // kafka
-    implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
-    implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
+
+    // Kafka
+    implementation(libs.kafkaClients)
+    implementation(libs.kafkaStreams)
     implementation("org.apache.avro:avro:1.12.0")
 
     implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
 
-    testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
+    testImplementation(libs.kafkaStreamsTestUtils)
 
     testImplementation(libs.dbtest)
     testImplementation(project(":lib-test"))

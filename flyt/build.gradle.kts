@@ -2,7 +2,7 @@ plugins {
     id("postmottak.conventions")
 }
 
-val kafkaVersion = "3.7.0"
+val kafkaVersion = "4.0.0"
 
 dependencies {
     api(project(":kontrakt"))
@@ -24,12 +24,11 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("com.zaxxer:HikariCP:7.0.2")
 
-    // kafka
-    implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
-    implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
-    implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
+    // Kafka
+    implementation(libs.kafkaClients)
+    implementation(libs.kafkaStreams)
     implementation("org.apache.avro:avro:1.12.0")
-    implementation("io.confluent:kafka-streams-avro-serde:7.7.1")
+    implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
 
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
