@@ -19,7 +19,7 @@ dependencies {
     api(libs.tilgangPlugin)
     api(libs.tilgangKontrakt)
     compileOnly(libs.ktorHttpJvm)
-    implementation("org.flywaydb:flyway-database-postgresql:11.11.2")
+    implementation("org.flywaydb:flyway-database-postgresql:11.12.0")
 
     implementation(kotlin("reflect"))
     implementation("com.zaxxer:HikariCP:7.0.2")
