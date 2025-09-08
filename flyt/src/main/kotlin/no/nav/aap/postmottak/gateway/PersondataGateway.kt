@@ -42,7 +42,7 @@ enum class GeografiskTilknytningType{
 }
 
 data class GeografiskTilknytningOgAdressebeskyttelse(
-    val geografiskTilknytning: GeografiskTilknytning,
+    val geografiskTilknytning: GeografiskTilknytning?,
     val adressebeskyttelse: List<Gradering>
 )
 

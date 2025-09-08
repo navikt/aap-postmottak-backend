@@ -45,7 +45,7 @@ class PdlTest {
     fun `Kan parse geografiskTilknytning`() {
         val test = PdlGraphqlKlient().hentAdressebeskyttelseOgGeolokasjon(Ident("1234"))
         assertThat(test.adressebeskyttelse).isEqualTo(listOf(Gradering(Adressebeskyttelseskode.UGRADERT)))
-        assertThat(test.geografiskTilknytning.gtType).isEqualTo(GeografiskTilknytningType.KOMMUNE)
-        assertThat(test.geografiskTilknytning.gtKommune).isEqualTo("3207")
+        assertThat(test.geografiskTilknytning?.gtType).isEqualTo(GeografiskTilknytningType.KOMMUNE)
+        assertThat(test.geografiskTilknytning?.gtKommune).isEqualTo("3207")
     }
 }
