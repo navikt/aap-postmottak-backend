@@ -20,7 +20,7 @@ class AvklarSaksnummerLøsning(
     val journalposttittel: String? = null,
     val avsenderMottaker: AvsenderMottakerDto? = null,
     val dokumenter: List<ForenkletDokument>? = null,
-    @JsonProperty(
+    @param:JsonProperty(
         "behovstype",
         required = true,
         defaultValue = AVKLAR_SAKSNUMMER_KODE

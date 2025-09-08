@@ -13,15 +13,19 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AVKLAR_TEMA_KODE
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = AVKLAR_TEMA_KODE)
 class AvklarTemaLøsning(
-    @JsonProperty("skalTilAap", required = true)
+    @param:JsonProperty("skalTilAap", required = true)
     val skalTilAap: Boolean,
-    @JsonProperty(
+    @param:JsonProperty(
         "behovstype",
         required = true,
         defaultValue = AVKLAR_TEMA_KODE
     ) val behovstype: String = AVKLAR_TEMA_KODE
 ) : AvklaringsbehovLøsning {
-    override fun løs(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
+    override fun løs(
+        repositoryProvider: RepositoryProvider,
+        gatewayProvider: GatewayProvider,
+        kontekst: AvklaringsbehovKontekst
+    ): LøsningsResultat {
         return AvklarTemaLøser.konstruer(repositoryProvider, gatewayProvider).løs(kontekst, this)
     }
 }

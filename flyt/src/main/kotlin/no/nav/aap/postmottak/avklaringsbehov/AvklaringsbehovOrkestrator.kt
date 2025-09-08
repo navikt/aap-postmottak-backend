@@ -132,7 +132,7 @@ class AvklaringsbehovOrkestrator(
         kontekst: FlytKontekst, avklaringsbehovene: Avklaringsbehovene, it: AvklaringsbehovLøsning, bruker: Bruker
     ) {
         avklaringsbehovene.leggTilFrivilligHvisMangler(it.definisjon(), bruker)
-        val løsningsResultat = it.løs(repositoryProvider, gatewayProvider,AvklaringsbehovKontekst(bruker, kontekst))
+        val løsningsResultat = it.løs(repositoryProvider, gatewayProvider, AvklaringsbehovKontekst(bruker, kontekst))
 
         avklaringsbehovene.løsAvklaringsbehov(
             it.definisjon(), løsningsResultat.begrunnelse, bruker.ident, løsningsResultat.kreverToTrinn

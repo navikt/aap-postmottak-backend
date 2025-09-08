@@ -68,7 +68,7 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
 
     override fun finnSaker(ident: Ident): List<BehandlingsflytSak> {
         log.info("Finn saker for person i behandlingsflyt")
-        return runBlocking { finn(ident) }
+        return finn(ident)
     }
 
     private fun finn(ident: Ident): List<BehandlingsflytSak> {

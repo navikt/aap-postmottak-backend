@@ -15,19 +15,23 @@ import java.time.LocalDate
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = DIGITALISER_DOKUMENT_KODE)
 class DigitaliserDokumentLøsning(
-    @JsonProperty(required = true)
+    @param:JsonProperty(required = true)
     val kategori: InnsendingType,
-    @JsonProperty(required = true)
+    @param:JsonProperty(required = true)
     val strukturertDokument: String?,
-    @JsonProperty(required = true)
+    @param:JsonProperty(required = true)
     val søknadsdato: LocalDate?,
-    @JsonProperty(
+    @param:JsonProperty(
         "behovstype",
         required = true,
         defaultValue = DIGITALISER_DOKUMENT_KODE
     ) val behovstype: String = DIGITALISER_DOKUMENT_KODE
 ) : AvklaringsbehovLøsning {
-    override fun løs(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
+    override fun løs(
+        repositoryProvider: RepositoryProvider,
+        gatewayProvider: GatewayProvider,
+        kontekst: AvklaringsbehovKontekst
+    ): LøsningsResultat {
         return DigitaliserDokumentLøser.konstruer(repositoryProvider, gatewayProvider).løs(kontekst, this)
     }
 }

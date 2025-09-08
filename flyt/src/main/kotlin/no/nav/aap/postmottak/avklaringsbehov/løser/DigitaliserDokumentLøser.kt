@@ -12,12 +12,15 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksnummer
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import org.slf4j.LoggerFactory
 
 class DigitaliserDokumentLøser(
     val struktureringsvurderingRepository: DigitaliseringsvurderingRepository,
     val journalpostRepository: JournalpostRepository,
     val sakVurderingRepository: SaksnummerRepository,
 ) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
         val journalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId))
@@ -34,6 +37,7 @@ class DigitaliserDokumentLøser(
             "Klage skal knyttes mot eksisterende sak"
         }
 
+        log.info("Parser dokument med journalpostId ${journalpost.journalpostId}.")
         val dokument = DokumentTilMeldingParser.parseTilMelding(løsning.strukturertDokument, løsning.kategori)
 
         val digitaliseringsvurdering = Digitaliseringsvurdering(
