@@ -73,7 +73,11 @@ class Enhetsutreder(
         val adressebeskyttelseOgGeoTilknytning = pdlKlient.hentAdressebeskyttelseOgGeolokasjon(person.aktivIdent())
 
         val geografiskTilknytning =
-            mapGeografiskTilknytningTilKode(adressebeskyttelseOgGeoTilknytning.geografiskTilknytning)
+            adressebeskyttelseOgGeoTilknytning.geografiskTilknytning?.let {
+                mapGeografiskTilknytningTilKode(
+                    adressebeskyttelseOgGeoTilknytning.geografiskTilknytning
+                )
+            }
         val diskresjonskode =
             adressebeskyttelseOgGeoTilknytning.adressebeskyttelse.firstOrNull()?.gradering?.tilDiskresjonskode()
                 ?: Diskresjonskode.ANY

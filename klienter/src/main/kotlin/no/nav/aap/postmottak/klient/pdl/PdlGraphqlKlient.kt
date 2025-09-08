@@ -97,7 +97,7 @@ class PdlGraphqlKlient : PersondataGateway {
 
         val data = response.data ?: error("Unexpected response from PDL: ${response.errors}")
         return GeografiskTilknytningOgAdressebeskyttelse(
-            geografiskTilknytning = data.hentGeografiskTilknytning ?: error("Geografisk tilknytning mangler"),
+            geografiskTilknytning = data.hentGeografiskTilknytning,
             adressebeskyttelse = data.hentPerson?.adressebeskyttelse.orEmpty()
         )
     }
