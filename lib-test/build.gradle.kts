@@ -22,5 +22,5 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
     implementation(libs.bundles.junit)
 
-    implementation("com.nimbusds:nimbus-jose-jwt:10.4.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.5")
 }
