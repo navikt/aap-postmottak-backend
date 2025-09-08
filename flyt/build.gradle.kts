@@ -29,7 +29,7 @@ dependencies {
     implementation(libs.kafkaStreams)
     implementation("org.apache.avro:avro:1.12.0")
     implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
-    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:08271806")
+    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.6")
 
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation(libs.bundles.junit)
