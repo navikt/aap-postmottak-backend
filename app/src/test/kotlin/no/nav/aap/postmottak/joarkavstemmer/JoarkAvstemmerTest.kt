@@ -145,6 +145,58 @@ class JoarkAvstemmerTest {
         }
     }
 
+    @Test
+    fun `om det feiler å opprette gosys-oppgave forsøker man en gang til med oppgavetype og tildeltenhetsnr lik null`() {
+        val regelresultat = Regelresultat(mapOf(), 1, "ARENA")
+        every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns regelresultat
+        every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
+
+        every { journalpostGateway.hentJournalpost(any()) } returns journalpost(1)
+
+        every {
+            gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                JournalpostId(1),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } throws Exception("Noe feilet")
+        every {
+            gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                JournalpostId(1),
+                any(),
+                any(),
+                null,
+                null
+            )
+        } just runs
+
+        val listAppender = opprettListAppender()
+
+        val avstemmer = joarkAvstemmer()
+
+        avstemmer.avstem()
+
+        verify(exactly = 1) {
+            gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                any(), any(), any(), any(), "AAP"
+            )
+        }
+
+        verify(exactly = 1) {
+            gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                any(), any(), any(), null, null,
+            )
+        }
+
+        val loggMeldinger = listAppender.list
+
+        assertThat(loggMeldinger).anySatisfy { loggMelding ->
+            assertThat(loggMelding.formattedMessage).contains("Oppretter Gosys-oppgave.")
+        }
+    }
+
     private fun joarkAvstemmer(): JoarkAvstemmer = JoarkAvstemmer(
         doksikkerhetsnettGateway = doksikkerhetsnettGateway,
         regelRepository = regelRepository,
