@@ -89,13 +89,24 @@ class JoarkAvstemmer(
 
             meterRegistry.ubehandledeJournalposterCounter("ARENA").increment()
             if (unleashGateway.isEnabled(PostmottakFeature.AvstemMotJoark)) {
-                gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
-                    journalpostId = journalpostId,
-                    personIdent = ident?.let(::Ident),
-                    beskrivelse = "Automatisk gjenopprettet oppgave",
-                    tildeltEnhetsnr = tildeltEnhetsnr(journalpost.journalforendeEnhet),
-                    behandlingstema = journalpost.behandlingstema,
-                )
+                try {
+                    gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                        journalpostId = journalpostId,
+                        personIdent = ident?.let(::Ident),
+                        beskrivelse = "Automatisk gjenopprettet oppgave",
+                        tildeltEnhetsnr = tildeltEnhetsnr(journalpost.journalforendeEnhet),
+                        behandlingstema = journalpost.behandlingstema,
+                    )
+                } catch (e: Exception) {
+                    log.info("Feilet opprettelse av Gosys-oppgave for journalpostId=$journalpostId. Forsøk 1 feilet. Forsøk nr 2 med tildeltEnhetsnr=null og behandlingstema=null. Exception: ${e.message}.")
+                    gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                        journalpostId = journalpostId,
+                        personIdent = ident?.let(::Ident),
+                        beskrivelse = "Automatisk gjenopprettet oppgave. Forsøk 1 feilet.",
+                        tildeltEnhetsnr = null,
+                        behandlingstema = null,
+                    )
+                }
                 log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")
             }
         } else {
