@@ -1,8 +1,8 @@
 package no.nav.aap.postmottak.joarkavstemmer
 
-import io.ktor.server.plugins.BadRequestException
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.fordeler.RegelRepository
+import no.nav.aap.komponenter.httpklient.httpclient.error.BadRequestHttpResponsException
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
@@ -98,7 +98,7 @@ class JoarkAvstemmer(
                         tildeltEnhetsnr = tildeltEnhetsnr(journalpost.journalforendeEnhet),
                         behandlingstema = journalpost.behandlingstema,
                     )
-                } catch (e: BadRequestException) {
+                } catch (e: BadRequestHttpResponsException) {
                     log.info("Feilet opprettelse av Gosys-oppgave for journalpostId=$journalpostId. Forsøk 1 feilet. Forsøk nr 2 med tildeltEnhetsnr=null og behandlingstema=null. Exception: ${e.message}.")
                     gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
                         journalpostId = journalpostId,
@@ -107,7 +107,7 @@ class JoarkAvstemmer(
                         tildeltEnhetsnr = null,
                         behandlingstema = null,
                     )
-                } catch (e: BadRequestException) {
+                } catch (e: BadRequestHttpResponsException) {
                     log.error("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId. ", e)
                 }
                 log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")

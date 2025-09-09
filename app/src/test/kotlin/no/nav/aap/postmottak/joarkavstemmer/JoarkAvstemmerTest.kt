@@ -13,6 +13,7 @@ import io.mockk.runs
 import io.mockk.verify
 import no.nav.aap.fordeler.RegelRepository
 import no.nav.aap.fordeler.Regelresultat
+import no.nav.aap.komponenter.httpklient.httpclient.error.BadRequestHttpResponsException
 import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.JournalpostFraDoksikkerhetsnett
@@ -161,7 +162,7 @@ class JoarkAvstemmerTest {
                 any(),
                 any()
             )
-        } throws Exception("Noe feilet")
+        } throws BadRequestHttpResponsException("Noe feilet")
         every {
             gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
                 JournalpostId(1),
