@@ -198,6 +198,41 @@ class JoarkAvstemmerTest {
         }
     }
 
+    @Test
+    fun `om opprettelse av journalføringsoppgave feiler, lages det fordelingsoppgave`() {
+        val regelresultat = Regelresultat(mapOf(), 1, "ARENA")
+        every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns regelresultat
+        every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
+        every { gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(any(), any(), any(), any()) } just runs
+
+        every {
+            gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                JournalpostId(1),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } throws BadRequestHttpResponsException("Noe feilet")
+
+        val listAppender = opprettListAppender()
+
+        val avstemmer = joarkAvstemmer()
+
+        avstemmer.avstem()
+
+        verify(exactly = 1) {
+            gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
+                any(), any(), any(), any()
+            )
+        }
+        val loggMeldinger = listAppender.list
+
+        assertThat(loggMeldinger).anySatisfy { loggMelding ->
+            assertThat(loggMelding.formattedMessage).contains("Feilet på tredje forsøk. Lager fordelingsoppgave.")
+        }
+    }
+
     private fun joarkAvstemmer(): JoarkAvstemmer = JoarkAvstemmer(
         doksikkerhetsnettGateway = doksikkerhetsnettGateway,
         regelRepository = regelRepository,

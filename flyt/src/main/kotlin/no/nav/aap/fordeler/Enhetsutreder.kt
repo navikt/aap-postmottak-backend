@@ -97,10 +97,10 @@ class Enhetsutreder(
     }
 
     private fun erNavEnhetAktiv(navEnhet: NavEnhet): Boolean {
-        return navEnhet in hentAkriveEnheter()
+        return navEnhet in hentAktiveEnheter()
     }
 
-    private fun hentAkriveEnheter(): List<NavEnhet> {
+    private fun hentAktiveEnheter(): List<NavEnhet> {
         return norgKlient.hentAktiveEnheter()
     }
 

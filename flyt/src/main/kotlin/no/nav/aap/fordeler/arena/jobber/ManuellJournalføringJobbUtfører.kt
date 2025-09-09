@@ -11,12 +11,15 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import org.slf4j.LoggerFactory
 
 class ManuellJournalføringJobbUtfører(
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     journalpostService: JournalpostService,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : ArenaJobbutførerBase(journalpostService) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : ProvidersJobbSpesifikasjon {
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
@@ -43,6 +46,7 @@ class ManuellJournalføringJobbUtfører(
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 3) {
+            log.info("Oppretter journalføringsoppgave for journalpost med id ${kontekst.journalpostId} for enhet ${kontekst.navEnhet}.")
             gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
                 kontekst.journalpostId,
                 kontekst.ident,
@@ -50,6 +54,7 @@ class ManuellJournalføringJobbUtfører(
                 kontekst.navEnhet
             )
         } else {
+            log.info("Oppretter fordelingsoppgave for journalpost med id ${kontekst.journalpostId}.")
             gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
                 journalpostId = kontekst.journalpostId,
                 personIdent = kontekst.ident,

@@ -70,7 +70,7 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
             return
         }
 
-        log.info("Oppretter oppave (${oppgaveRequest.oppgavetype}) for journalpost ${oppgaveRequest.journalpostId} i Gosys.")
+        log.info("Oppretter oppgave (${oppgaveRequest.oppgavetype}) for journalpost ${oppgaveRequest.journalpostId} i Gosys.")
 
         val path = url.resolve("/api/v1/oppgaver")
         val request = PostRequest(oppgaveRequest)

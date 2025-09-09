@@ -109,7 +109,13 @@ class JoarkAvstemmer(
                             behandlingstema = null,
                         )
                     } catch (e: BadRequestHttpResponsException) {
-                        log.error("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId. ", e)
+                        log.info("Feilet på tredje forsøk. Lager fordelingsoppgave. Ident-null: ${ident == null}.")
+                        gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
+                            journalpostId = journalpostId,
+                            personIdent = ident?.let(::Ident),
+                            beskrivelse = "Manglende journalføring - ${uthentet.tittel}",
+                        )
+                        log.error("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId.", e)
                     }
                 }
                 log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")

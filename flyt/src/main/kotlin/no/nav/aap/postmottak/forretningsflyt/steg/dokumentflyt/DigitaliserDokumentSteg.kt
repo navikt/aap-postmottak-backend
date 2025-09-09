@@ -29,7 +29,10 @@ class DigitaliserDokumentSteg(
     private val saksnummerRepository: SaksnummerRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): BehandlingSteg {
             return DigitaliserDokumentSteg(
                 repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
@@ -47,8 +50,7 @@ class DigitaliserDokumentSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val struktureringsvurdering =
             digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        requireNotNull(journalpost)
+        val journalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId))
 
         if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) throw AvslagException()
 
