@@ -99,16 +99,18 @@ class JoarkAvstemmer(
                         behandlingstema = journalpost.behandlingstema,
                     )
                 } catch (e: BadRequestHttpResponsException) {
-                    log.info("Feilet opprettelse av Gosys-oppgave for journalpostId=$journalpostId. Forsøk 1 feilet. Forsøk nr 2 med tildeltEnhetsnr=null og behandlingstema=null. Exception: ${e.message}.")
-                    gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
-                        journalpostId = journalpostId,
-                        personIdent = ident?.let(::Ident),
-                        beskrivelse = "Automatisk gjenopprettet oppgave. Forsøk 1 feilet.",
-                        tildeltEnhetsnr = null,
-                        behandlingstema = null,
-                    )
-                } catch (e: BadRequestHttpResponsException) {
-                    log.error("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId. ", e)
+                    try {
+                        log.info("Feilet opprettelse av Gosys-oppgave for journalpostId=$journalpostId. Forsøk 1 feilet. Forsøk nr 2 med tildeltEnhetsnr=null og behandlingstema=null. Exception: ${e.message}.")
+                        gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                            journalpostId = journalpostId,
+                            personIdent = ident?.let(::Ident),
+                            beskrivelse = "Automatisk gjenopprettet oppgave. Forsøk 1 feilet.",
+                            tildeltEnhetsnr = null,
+                            behandlingstema = null,
+                        )
+                    } catch (e: BadRequestHttpResponsException) {
+                        log.error("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId. ", e)
+                    }
                 }
                 log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")
             }
