@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.ktorSerializationJackson)
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
-    implementation("no.nav:ktor-openapi-generator:1.0.122")
+    implementation("no.nav:ktor-openapi-generator:1.0.123")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.3")
