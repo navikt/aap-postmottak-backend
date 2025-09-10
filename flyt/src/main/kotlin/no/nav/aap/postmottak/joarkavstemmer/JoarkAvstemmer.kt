@@ -115,7 +115,7 @@ class JoarkAvstemmer(
                             personIdent = ident?.let(::Ident),
                             beskrivelse = "Manglende journalføring - ${uthentet.tittel}",
                         )
-                        log.error("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId.", e)
+                        log.warn("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId.", e)
                     }
                 }
                 log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")
