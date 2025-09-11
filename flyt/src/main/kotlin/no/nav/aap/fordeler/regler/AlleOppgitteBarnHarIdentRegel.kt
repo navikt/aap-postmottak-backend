@@ -3,12 +3,14 @@ package no.nav.aap.fordeler.regler
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.OppgitteBarn
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.BrevkoderHelper
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import org.slf4j.LoggerFactory
 
 /**
  * Frem til Kelvin har støtte for å håndtere oppgitte barn som mangler ident,
@@ -18,7 +20,10 @@ class AlleOppgitteBarnHarIdentRegel : Regel<OppgitteBarnRegelInput> {
     companion object : RegelFactory<OppgitteBarnRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
 
-        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?): RegelMedInputgenerator<OppgitteBarnRegelInput> {
+        override fun medDataInnhenting(
+            repositoryProvider: RepositoryProvider?,
+            gatewayProvider: GatewayProvider?
+        ): RegelMedInputgenerator<OppgitteBarnRegelInput> {
             requireNotNull(gatewayProvider)
             requireNotNull(repositoryProvider)
 
@@ -48,6 +53,8 @@ class AlleOppgitteBarnHarIdentRegelInputGenerator(
     private val dokumentGateway: DokumentGateway,
 ) : InputGenerator<OppgitteBarnRegelInput> {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun generer(input: RegelInput): OppgitteBarnRegelInput {
         val journalpost = journalpostService
             .hentJournalpost(JournalpostId(input.journalpostId))
@@ -64,7 +71,16 @@ class AlleOppgitteBarnHarIdentRegelInputGenerator(
 
             val innsending = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
 
-            val søknad = DokumentTilMeldingParser.parseTilMelding(dokumentBytes, innsending) as SøknadV0
+            val søknad = try {
+                DokumentTilMeldingParser.parseTilMelding(dokumentBytes, innsending) as SøknadV0
+            } catch (e: DeserializationException) {
+                if (e.cause?.message?.contains("Ugyldig identifikator") == true) {
+                    log.warn("Feil i parsing av identer fra søknad. Returnerer at ident mangler", e)
+                    return OppgitteBarnRegelInput(null)
+                } else {
+                    throw e
+                }
+            }
 
             OppgitteBarnRegelInput(søknad.oppgitteBarn)
         } else {
