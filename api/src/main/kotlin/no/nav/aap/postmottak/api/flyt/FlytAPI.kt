@@ -143,8 +143,8 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: Repos
                         journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                     )
                 )
-            ) { req ->
-                val dto = dataSource.transaction(readOnly = true) { connection ->
+            ) { _ ->
+                val dto = dataSource.transaction(readOnly = true) { _ ->
 
                     BehandlingResultatDto()
                 }

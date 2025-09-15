@@ -20,6 +20,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.BrevkoderHelper
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import org.slf4j.LoggerFactory
 
 
 class DigitaliserDokumentSteg(
@@ -28,6 +29,9 @@ class DigitaliserDokumentSteg(
     private val dokumentGateway: DokumentGateway,
     private val saksnummerRepository: SaksnummerRepository
 ) : BehandlingSteg {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : FlytSteg {
         override fun konstruer(
             repositoryProvider: RepositoryProvider,
@@ -50,7 +54,8 @@ class DigitaliserDokumentSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val struktureringsvurdering =
             digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
-        val journalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId))
+        val journalpost =
+            requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId}" }
 
         if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) throw AvslagException()
 
@@ -60,6 +65,9 @@ class DigitaliserDokumentSteg(
                     journalpost
                 ) else null
             val innsending = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
+
+            log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsending.")
+
             val validertDokument =
                 DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
             digitaliseringsvurderingRepository.lagre(
