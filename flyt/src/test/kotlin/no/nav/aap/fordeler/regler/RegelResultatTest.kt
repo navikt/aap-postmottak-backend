@@ -13,6 +13,23 @@ class RegelResultatTest {
     }
 
     @Test
+    fun `ManueltOverstyrtTilArenaRegel skal overstyre alle andre regler`() {
+        val regelResultat = Regelresultat(
+            mapOf(
+                "ManueltOverstyrtTilArenaRegel" to true,
+                "KelvinSakRegel" to true,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+                "GeografiskTilknytningRegel" to true,
+                "MaksAntallPersonerIKelvinRegel" to true,
+            ),
+            forJournalpost = 123L
+        )
+
+        assertThat(regelResultat.skalTilKelvin()).isFalse()
+    }
+
+    @Test
     fun `KelvinSakRegel skal overstyre alle andre regler bortsett fra reisestønad og anke`() {
         val regelResultat = Regelresultat(
             mapOf(

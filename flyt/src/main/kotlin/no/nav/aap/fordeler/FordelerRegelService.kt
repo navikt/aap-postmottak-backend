@@ -6,6 +6,7 @@ import no.nav.aap.fordeler.regler.KelvinSakRegel
 import no.nav.aap.fordeler.regler.Regel
 import no.nav.aap.fordeler.regler.RegelFactory
 import no.nav.aap.fordeler.regler.RegelInput
+import no.nav.aap.fordeler.regler.ManueltOverstyrtTilArenaRegel
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import org.slf4j.LoggerFactory
@@ -20,6 +21,11 @@ typealias RegelMap = Map<String, Boolean>
 data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val systemNavn: String? = null) {
 
     fun skalTilKelvin(): Boolean {
+        val manueltOverstyrtTilArena = regelMap[ManueltOverstyrtTilArenaRegel::class.simpleName] ?: false
+        if (manueltOverstyrtTilArena) {
+            return false
+        }
+
         val sakFinnesIKelvin =
             requireNotNull(regelMap[KelvinSakRegel::class.simpleName]) { "Mangler resultat fra ${KelvinSakRegel::class.simpleName}. JournalpostId: $forJournalpost" }
         val erIkkeReisestønad =
