@@ -34,6 +34,7 @@ class RegelResultatTest {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to true,
+                "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to false,
@@ -50,6 +51,7 @@ class RegelResultatTest {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to false,
+                "ManueltOverstyrtTilArenaRegel" to false,
                 "GeografiskTilknytningRegel" to true,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
@@ -67,6 +69,7 @@ class RegelResultatTest {
             mapOf(
                 "KelvinSakRegel" to true,
                 "ErIkkeReisestønadRegel" to false,
+                "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to true,
                 "MaksAntallPersonerIKelvinRegel" to true,
@@ -82,6 +85,7 @@ class RegelResultatTest {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to true,
+                "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to false,
                 "GeografiskTilknytningRegel" to true,
@@ -99,6 +103,7 @@ class RegelResultatTest {
             mapOf(
                 "KelvinSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
+                "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to false,
                 "MaksAntallPersonerIKelvinRegel" to true
@@ -116,6 +121,7 @@ class RegelResultatTest {
                 "KelvinSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
+                "ManueltOverstyrtTilArenaRegel" to false,
                 "SøknadRegel" to false
             ),
             forJournalpost = 123L
@@ -128,6 +134,7 @@ class RegelResultatTest {
                 "KelvinSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
+                "ManueltOverstyrtTilArenaRegel" to false,
                 "SøknadRegel" to true,
             ),
             forJournalpost = 123L
@@ -139,6 +146,7 @@ class RegelResultatTest {
                 "KelvinSakRegel" to true,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
+                "ManueltOverstyrtTilArenaRegel" to false,
                 "SøknadRegel" to false,
             ),
             forJournalpost = 123L

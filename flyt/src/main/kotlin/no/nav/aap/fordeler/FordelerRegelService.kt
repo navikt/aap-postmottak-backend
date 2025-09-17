@@ -37,7 +37,7 @@ data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val s
             log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
             return true
         }
-        val reglerTilEvaluering = regelMap.filter { it.key != KelvinSakRegel::class.simpleName }
+        val reglerTilEvaluering = regelMap.filter { it.key != KelvinSakRegel::class.simpleName && it.key != ManueltOverstyrtTilArenaRegel::class.simpleName }
         return reglerTilEvaluering.values.all { it }.also {
             log.info(
                 "Skal til Kelvin: $it. ${
