@@ -43,7 +43,7 @@ class JournalpostService(
     }
 
     fun tilJournalpostMedDokumentTitler(safJournalpost: SafJournalpost): Journalpost {
-        requireNotNull(safJournalpost.bruker?.id) { "Journalpost har ikke brukerid" }
+        requireNotNull(safJournalpost.bruker?.id) { "Journalpost ${safJournalpost.journalpostId} har ikke brukerid" }
         val person = personService.finnOgOppdaterPerson(safJournalpost.bruker.id)
         return safJournalpost.tilJournalpost(person)
     }
@@ -64,7 +64,7 @@ fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
     val mottattTid = journalpost.relevanteDatoer
         ?.find { dato -> dato?.datotype == SafDatoType.DATO_REGISTRERT }
         ?.dato
-        ?: error("Fant ikke dato")
+        ?: error("Fant ikke dato for journalpost ${journalpost.journalpostId}.")
     val mottattDato = mottattTid.toLocalDate()
 
     val dokumenter = journalpost.dokumenter?.filterNotNull()?.map { dokument ->

@@ -84,7 +84,7 @@ class DigitaliserDokumentSteg(
 
     private fun hentOriginalDokumentFraSaf(journalpost: Journalpost): ByteArray {
         val strukturertDokument = journalpost.finnOriginal()
-        requireNotNull(strukturertDokument) { "Finner ikke strukturert dokument" }
+        requireNotNull(strukturertDokument) { "Finner ikke strukturert dokument for journalpostId ${journalpost.journalpostId}" }
         return dokumentGateway.hentDokument(
             journalpost.journalpostId,
             strukturertDokument.dokumentInfoId
