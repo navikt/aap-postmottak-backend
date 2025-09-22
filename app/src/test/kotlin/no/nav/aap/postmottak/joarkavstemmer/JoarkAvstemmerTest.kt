@@ -90,6 +90,14 @@ class JoarkAvstemmerTest {
     fun `om det ikke finnes regelresultat, logges feil`() {
         every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns null
+        every {
+            gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } just runs
         val listAppender = opprettListAppender()
 
         joarkAvstemmer().avstem()
@@ -99,6 +107,10 @@ class JoarkAvstemmerTest {
         assertThat(loggMeldinger).anySatisfy { loggMelding ->
             assertThat(loggMelding.formattedMessage).contains("Fant ikke regelresultat for journalpost")
             assertThat(loggMelding.level).isEqualTo(ERROR)
+        }
+
+        verify(exactly = 1) {
+            gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(any(), any(), any(), any())
         }
     }
 
