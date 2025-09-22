@@ -70,10 +70,17 @@ class JoarkAvstemmer(
         } else if (regelResultat == null) {
             meterRegistry.ubehandledeJournalposterCounter("UKJENT").increment()
             loggUavstemt(
-                "Fant ikke regelresultat for journalpostId. Har ikke nok informasjon til å fullføre.",
+                "Fant ikke regelresultat for journalpostId. Har ikke nok informasjon til å fullføre. Oppretter fordelingsoppgave.",
                 journalpostId,
                 journalpost.mottaksKanal,
                 journalpost.datoOpprettet.toLocalDate()
+            )
+            val uthentet = journalpostGateway.hentJournalpost(journalpostId)
+            val ident = uthentet.bruker?.id
+            gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
+                journalpostId = journalpostId,
+                personIdent = ident?.let(::Ident),
+                beskrivelse = "Manglende journalføring - ${uthentet.tittel}",
             )
         } else if (regelResultat.gikkTilKelvin()) {
             meterRegistry.ubehandledeJournalposterCounter("KELVIN").increment()
