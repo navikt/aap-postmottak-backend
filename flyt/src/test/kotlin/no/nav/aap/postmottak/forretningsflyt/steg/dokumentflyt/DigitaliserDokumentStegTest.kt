@@ -144,6 +144,10 @@ class DigitaliserDokumentStegTest {
         assertEquals(FantAvklaringsbehov::class.simpleName, stegresultat::class.simpleName)
         val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.DIGITALISER_DOKUMENT)
+
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns mockk(relaxed = true)
+        val stegresultatIgjen = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+        assertEquals(Fullført::class.simpleName, stegresultatIgjen::class.simpleName)
     }
 
 }

@@ -72,6 +72,10 @@ class DigitaliserDokumentSteg(
             val validertDokument = try {
                 DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
             } catch (e: DeserializationException) {
+                // Hvis dokument allerede er digitalisert, fullfør steg
+                if (struktureringsvurdering != null) {
+                    return Fullført
+                }
                 log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsending, error: ${e.message}")
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
             }
