@@ -116,4 +116,38 @@ class DigitaliserDokumentStegTest {
         assertThrows<AvslagException>{ digitaliserDokumentSteg.utfør(mockk(relaxed = true)) }
     }
 
+    @Test
+    fun `lager manuell digitaliseringsoppgave hvis barn oppgitt i søknad har ugyldig ident`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpostJson = """{
+            |"yrkesskade": "Nei",
+            |"student": {"erStudent": "Nei", "kommeTilbake": "Nei"},
+            |"oppgitteBarn": {"identer": [], "barn": [{"navn": "barn", "fødselsdato": "2022-12-12", "ident": {"identifikator": "123456"}, "relasjon": "FORELDER"}]}
+            |}""".trimMargin()
+
+        every { journalpost.erDigitalSøknad() } returns true
+        every { journalpost.journalpostId }
+        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.SØKNAD.kode
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every {
+            dokumentGateway.hentDokument(
+                journalpost.journalpostId,
+                any()
+            ).dokument
+        } returns ByteArrayInputStream(journalpostJson.toByteArray())
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(FantAvklaringsbehov::class.simpleName, stegresultat::class.simpleName)
+        val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.DIGITALISER_DOKUMENT)
+
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns mockk(relaxed = true)
+        val stegresultatIgjen = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+        assertEquals(Fullført::class.simpleName, stegresultatIgjen::class.simpleName)
+    }
+
 }

@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -68,8 +69,16 @@ class DigitaliserDokumentSteg(
 
             log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsending.")
 
-            val validertDokument =
+            val validertDokument = try {
                 DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
+            } catch (e: DeserializationException) {
+                // Hvis dokument allerede er digitalisert, fullfør steg
+                if (struktureringsvurdering != null) {
+                    return Fullført
+                }
+                log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsending, error: ${e.message}")
+                return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
+            }
             digitaliseringsvurderingRepository.lagre(
                 kontekst.behandlingId, Digitaliseringsvurdering(innsending, validertDokument, null)
             )
