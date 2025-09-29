@@ -5,7 +5,7 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import kotlin.random.Random
-import no.nav.aap.komponenter.httpklient.auth.Bruker
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning

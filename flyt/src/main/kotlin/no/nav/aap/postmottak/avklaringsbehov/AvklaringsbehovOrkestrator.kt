@@ -1,13 +1,11 @@
 package no.nav.aap.postmottak.avklaringsbehov
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.httpklient.auth.Bruker
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
-import no.nav.aap.postmottak.avklaringsbehov.løsning.SattPåVentLøsning
 import no.nav.aap.postmottak.flyt.FlytOrkestrator
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
@@ -41,24 +39,6 @@ class AvklaringsbehovOrkestrator(
         flytOrkestrator = FlytOrkestrator(repositoryProvider, gatewayProvider),
         gatewayProvider
     )
-
-    fun taAvVentHvisPåVentOgFortsettProsessering(behandlingId: BehandlingId) {
-        val behandling = behandlingRepository.hent(behandlingId)
-        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
-        avklaringsbehovene.validateTilstand(behandling = behandling)
-
-        val kontekst = behandling.flytKontekst()
-        if (avklaringsbehovene.erSattPåVent()) {
-            løsAvklaringsbehov(
-                kontekst = kontekst,
-                avklaringsbehovene = avklaringsbehovene,
-                avklaringsbehov = SattPåVentLøsning(),
-                bruker = SYSTEMBRUKER,
-                behandling = behandling
-            )
-        }
-        fortsettProsessering(kontekst)
-    }
 
     fun løsAvklaringsbehovOgFortsettProsessering(
         kontekst: FlytKontekst,

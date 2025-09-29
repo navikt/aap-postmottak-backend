@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.hendelse.mottak
 
-import no.nav.aap.komponenter.httpklient.auth.Bruker
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import java.time.LocalDate
 

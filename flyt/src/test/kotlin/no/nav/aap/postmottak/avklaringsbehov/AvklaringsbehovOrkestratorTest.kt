@@ -4,7 +4,7 @@ import io.mockk.mockk
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import no.nav.aap.komponenter.httpklient.auth.Bruker
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepositoryImpl
 import no.nav.aap.postmottak.avklaringsbehov.løser.BehandlingsflytGatewayMock

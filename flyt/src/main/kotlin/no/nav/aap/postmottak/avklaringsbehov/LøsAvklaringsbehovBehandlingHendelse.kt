@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.avklaringsbehov
 
-import no.nav.aap.komponenter.httpklient.auth.Bruker
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 
 class LøsAvklaringsbehovBehandlingHendelse(

@@ -25,6 +25,7 @@ tasks {
     }
 
     withType<ShadowJar> {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
     }
 }
@@ -49,7 +50,7 @@ dependencies {
     implementation(libs.ktorSerializationJackson)
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
-    implementation("no.nav:ktor-openapi-generator:1.0.124")
+    implementation(libs.ktorOpenApiGen)
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.4")

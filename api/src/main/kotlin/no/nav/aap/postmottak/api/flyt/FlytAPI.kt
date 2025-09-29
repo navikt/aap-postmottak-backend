@@ -7,8 +7,8 @@ import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.httpklient.auth.bruker
 import no.nav.aap.komponenter.repository.RepositoryRegistry
+import no.nav.aap.komponenter.server.auth.bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbStatus
