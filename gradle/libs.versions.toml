@@ -2,7 +2,7 @@
 ktor = "3.3.0"
 komponenter = "1.0.375"
 tilgang = "1.0.128"
-apiIntern = "0.0.17"
+apiIntern = "0.0.18"
 behandlingsflyt = "0.0.446"
 junit = "5.13.4"
 kafka = "4.0.0"
