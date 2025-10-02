@@ -1,7 +1,9 @@
 package no.nav.aap.postmottak.test
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.nimbusds.jwt.JWTParser
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -46,6 +48,7 @@ private val logger = LoggerFactory.getLogger(FakesExtension::class.java)
 object FakeServers : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(FakeServers::class.java)
     val azure = embeddedServer(Netty, port = AzurePortHolder.getPort()) { azureFake() }
+    val texas = embeddedServer(Netty, port = 0) { texasFakes() }
     private val oppgave = embeddedServer(Netty, port = 0, module = { oppgaveFake() })
     val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
     val saf = embeddedServer(Netty, port = 0, module = { safFake() })
@@ -140,6 +143,9 @@ object FakeServers : AutoCloseable {
         System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
         System.setProperty("integrasjon.pesys.scope", "scope")
 
+        // Texas
+        System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token")
+
         // testpersoner
         val BARNLØS_PERSON_30ÅR =
             TestPerson(
@@ -173,6 +179,7 @@ object FakeServers : AutoCloseable {
         }
 
         azure.start()
+        texas.start()
         setAzureProperties()
         oppgave.start()
         saf.start()
@@ -202,6 +209,7 @@ object FakeServers : AutoCloseable {
             return
         }
         azure.stop()
+        texas.stop()
         oppgave.stop()
         saf.stop()
         joark.stop()
@@ -332,6 +340,34 @@ object FakeServers : AutoCloseable {
             }
             get("/jwks") {
                 call.respond(AZURE_JWKS)
+            }
+        }
+    }
+
+    private fun Application.texasFakes() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@texasFakes.log.info("TEXAS :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
+            }
+        }
+        routing {
+            post("/token") {
+                val body = call.receive<JsonNode>()
+                val NAVident = JWTParser.parse(body["user_token"].asText())
+                    .jwtClaimsSet
+                    .getClaimAsString("NAVident")
+                val token = AzureTokenGen(
+                    issuer = body["identity_provider"].asText(),
+                    audience = body["target"].asText(),
+                ).generate(false, azp = "postmottak", NAVident)
+                call.respond(TestToken(access_token = token))
             }
         }
     }

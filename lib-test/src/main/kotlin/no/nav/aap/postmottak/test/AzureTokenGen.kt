@@ -24,18 +24,22 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
         return signedJWT
     }
 
-    private fun claims(isApp: Boolean): JWTClaimsSet {
+    private fun claims(isApp: Boolean, azp: String, navIdent: String?): JWTClaimsSet {
         val builder =  JWTClaimsSet
             .Builder()
             .subject(UUID.randomUUID().toString())
             .issuer(issuer)
             .audience(audience)
             .expirationTime(LocalDateTime.now().plusHours(4).toDate())
-            .claim("NAVident", "Lokalsaksbehandler")
-            .claim("azp_name", "azp")
+            .claim("NAVident", navIdent ?: "Lokalsaksbehandler")
+            .claim("azp_name", azp)
+
         if (isApp) {
-            builder.claim("idtyp", "app")
+            builder
+                .claim("idtyp", "app")
+                .claim("azp", azp)
         }
+
         return builder.build()
     }
 
@@ -43,8 +47,8 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
         return Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
     }
 
-    fun generate(isApp: Boolean): String {
-        return signed(claims(isApp)).serialize()
+    fun generate(isApp: Boolean, azp: String = "azp", navIdent: String? = null): String {
+        return signed(claims(isApp, azp, navIdent)).serialize()
     }
 }
 
