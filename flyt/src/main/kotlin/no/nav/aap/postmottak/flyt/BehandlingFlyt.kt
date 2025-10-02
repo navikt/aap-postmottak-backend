@@ -89,8 +89,11 @@ class BehandlingFlyt private constructor(
         return aIndex < bIndex
     }
 
-    fun compareable(): StegComparator {
-        return StegComparator(flyt)
+    /** Sorter avklaringsbehov i samme rekkefølgen som stegene behovet løses i.
+     * Steg som løses i ukjente steg, plasseres bakerst. */
+    val stegComparator: Comparator<StegType> by lazy {
+        val rekkefølge = flyt.mapIndexed { i, steg -> steg.steg.type() to i }.toMap()
+        compareBy { rekkefølge[it] ?: rekkefølge.size }
     }
 
     internal fun erStegFørEllerLik(stegA: StegType, stegB: StegType): Boolean {
@@ -131,7 +134,7 @@ class BehandlingFlyt private constructor(
     }
 
     fun skalTilStegForBehov(avklaringsbehov: List<Avklaringsbehov>): StegType? {
-        return avklaringsbehov.map { it.løsesISteg() }.minWithOrNull(compareable())
+        return avklaringsbehov.map { it.løsesISteg() }.minWithOrNull(stegComparator)
     }
 
     internal fun skalTilStegForBehov(avklaringsbehov: Avklaringsbehov?): StegType? {
@@ -144,7 +147,7 @@ class BehandlingFlyt private constructor(
     fun tilbakeflytEtterEndringer(oppdaterteGrunnlagstype: List<Informasjonskravkonstruktør>): BehandlingFlyt {
         val skalTilSteg =
             flyt.filter { it.kravliste.any { at -> oppdaterteGrunnlagstype.contains(at) } }.map { it.steg.type() }
-                .minWithOrNull(compareable())
+                .minWithOrNull(stegComparator)
 
         return utletTilbakeflytTilSteg(skalTilSteg)
     }
