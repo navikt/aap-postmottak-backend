@@ -4,7 +4,7 @@ komponenter = "1.0.378"
 tilgang = "1.0.128"
 apiIntern = "0.0.19"
 behandlingsflyt = "0.0.446"
-junit = "5.13.4"
+junit = "6.0.0"
 kafka = "4.0.0"
 ktorOpenApiGen = "1.0.125"
 
