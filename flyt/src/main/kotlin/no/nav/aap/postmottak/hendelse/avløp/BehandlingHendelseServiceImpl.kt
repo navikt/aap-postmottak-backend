@@ -54,6 +54,7 @@ class BehandlingHendelseServiceImpl(
                             tidsstempel = endring.tidsstempel,
                             endretAv = endring.endretAv,
                             frist = endring.frist,
+                            begrunnelse = endring.begrunnelse,
                             årsakTilSattPåVent = when (endring.grunn) {
                                 ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER
                                 ÅrsakTilSettPåVent.VENTER_PÅ_SVAR_FRA_BRUKER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_SVAR_FRA_BRUKER

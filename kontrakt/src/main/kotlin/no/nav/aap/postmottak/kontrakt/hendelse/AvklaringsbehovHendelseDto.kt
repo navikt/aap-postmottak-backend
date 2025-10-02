@@ -16,7 +16,8 @@ data class EndringDTO(
     val tidsstempel: LocalDateTime = LocalDateTime.now(),
     val frist: LocalDate? = null,
     val årsakTilSattPåVent: ÅrsakTilSettPåVent? = null,
-    val endretAv: String
+    val endretAv: String,
+    val begrunnelse: String? = null
 )
 
 enum class ÅrsakTilSettPåVent {
