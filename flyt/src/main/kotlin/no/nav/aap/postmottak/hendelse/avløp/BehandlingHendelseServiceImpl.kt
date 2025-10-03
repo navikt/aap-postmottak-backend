@@ -8,6 +8,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
@@ -44,26 +45,28 @@ class BehandlingHendelseServiceImpl(
             referanse = behandling.referanse.referanse, // TODO må håndtere referanseendring i oppgave
             behandlingType = behandling.typeBehandling,
             status = behandling.status(),
-            avklaringsbehov = avklaringsbehovene.alle().map { avklaringsbehov ->
-                AvklaringsbehovHendelseDto(
-                    avklaringsbehovDefinisjon = avklaringsbehov.definisjon,
-                    status = avklaringsbehov.status(),
-                    endringer = avklaringsbehov.historikk.map { endring ->
-                        EndringDTO(
-                            status = endring.status,
-                            tidsstempel = endring.tidsstempel,
-                            endretAv = endring.endretAv,
-                            frist = endring.frist,
-                            begrunnelse = endring.begrunnelse,
-                            årsakTilSattPåVent = when (endring.grunn) {
-                                ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER
-                                ÅrsakTilSettPåVent.VENTER_PÅ_SVAR_FRA_BRUKER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_SVAR_FRA_BRUKER
-                                null -> null
-                                else -> TODO("Skal ikke kunne skje: ${endring.grunn}")
-                            }
-                        )
-                    })
-            },
+            avklaringsbehov = avklaringsbehovene.alle()
+                .sortedWith(compareBy((utledType(behandling.typeBehandling)).flyt().stegComparator) { it.funnetISteg })
+                .map { avklaringsbehov ->
+                    AvklaringsbehovHendelseDto(
+                        avklaringsbehovDefinisjon = avklaringsbehov.definisjon,
+                        status = avklaringsbehov.status(),
+                        endringer = avklaringsbehov.historikk.map { endring ->
+                            EndringDTO(
+                                status = endring.status,
+                                tidsstempel = endring.tidsstempel,
+                                endretAv = endring.endretAv,
+                                frist = endring.frist,
+                                begrunnelse = endring.begrunnelse,
+                                årsakTilSattPåVent = when (endring.grunn) {
+                                    ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER
+                                    ÅrsakTilSettPåVent.VENTER_PÅ_SVAR_FRA_BRUKER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_SVAR_FRA_BRUKER
+                                    null -> null
+                                    else -> TODO("Skal ikke kunne skje: ${endring.grunn}")
+                                }
+                            )
+                        })
+                },
             opprettetTidspunkt = behandling.opprettetTidspunkt,
             hendelsesTidspunkt = LocalDateTime.now(),
         )
