@@ -6,7 +6,7 @@ apiIntern = "0.0.19"
 behandlingsflyt = "0.0.446"
 junit = "5.13.4"
 kafka = "4.0.0"
-ktorOpenApiGen = "1.0.125"
+ktorOpenApiGen = "1.0.128"
 
 [libraries]
 ktorServerContentNegotation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
