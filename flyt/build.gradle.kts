@@ -39,6 +39,6 @@ dependencies {
     testImplementation(project(":api"))
     testImplementation(libs.dbtest)
     testImplementation(libs.motorTestUtils)
-    testImplementation("io.mockk:mockk:1.14.5")
+    testImplementation("io.mockk:mockk:1.14.6")
     testImplementation("org.testcontainers:postgresql:1.21.3")
 }
