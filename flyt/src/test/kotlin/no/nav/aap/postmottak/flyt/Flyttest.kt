@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.flyt
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.FakeUnlesh
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
@@ -9,6 +10,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
@@ -17,8 +19,13 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovHendelseHåndterer
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
+import no.nav.aap.postmottak.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
+import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
+import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
@@ -44,6 +51,7 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
+import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.ANNET_TEMA
 import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
@@ -67,7 +75,9 @@ class Flyttest : WithDependencies {
 
     companion object {
         private val dataSource = InitTestDatabase.freshDatabase()
-        private val gatewayProvider = defaultGatewayProvider()
+        private val gatewayProvider = defaultGatewayProvider {
+            register(FakeUnlesh::class)
+        }
         private val hendelsesMottak = TestHendelsesMottak(dataSource, repositoryRegistry, gatewayProvider)
         private val motor =
             Motor(
@@ -342,7 +352,41 @@ class Flyttest : WithDependencies {
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
             1
         )
+    }
 
+    @Test
+    fun `hvis tema ikke skal være AAP, så lukkes behandlingen`() {
+        val journalpostId = JournalpostId(12213123L)
+
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
+
+        hentBehandling(behandlingId).løsAvklaringsBehov(
+            AvklarTemaLøsning(
+                skalTilAap = false,
+            )
+        )
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        sjekkÅpentAvklaringsbehov(behandlingId, null)
+
+
+        val behandlinger2 = alleBehandlingerForJournalpost(journalpostId)
+        assertThat(behandlinger2).hasSize(1).first().extracting(Behandling::status).isEqualTo(Status.AVSLUTTET)
+    }
+
+    private fun sjekkÅpentAvklaringsbehov(behandlingId: BehandlingId, behov: Definisjon?) {
+        val åpneBehov = dataSource.transaction { connection ->
+            hentAvklaringsbehov(behandlingId, connection).åpne()
+        }
+
+        if (behov == null) {
+            assertThat(åpneBehov).isEmpty()
+        } else {
+            assertThat(åpneBehov).extracting<Definisjon> { it.definisjon }.containsExactly(behov)
+        }
     }
 
     private fun alleBehandlingerForJournalpost(journalpostId: JournalpostId): List<Behandling> =
@@ -407,6 +451,28 @@ class Flyttest : WithDependencies {
 
     private fun hentAvklaringsbehov(behandlingId: BehandlingId, connection: DBConnection): Avklaringsbehovene {
         return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
+    }
+
+    private fun Behandling.løsAvklaringsBehov(
+        avklaringsBehovLøsning: AvklaringsbehovLøsning,
+        bruker: Bruker = Bruker("SAKSBEHANDLER"),
+        ingenEndringIGruppe: Boolean = false
+    ): Behandling {
+        dataSource.transaction {
+            AvklaringsbehovHendelseHåndterer(
+                BehandlingRepositoryImpl(it),
+                AvklaringsbehovRepositoryImpl(it),
+                AvklaringsbehovOrkestrator(postgresRepositoryRegistry.provider(it), gatewayProvider),
+            ).håndtere(
+                this.id, LøsAvklaringsbehovBehandlingHendelse(
+                    løsning = avklaringsBehovLøsning,
+                    behandlingVersjon = this.versjon,
+                    bruker = bruker,
+                    ingenEndringIGruppe = ingenEndringIGruppe
+                )
+            )
+        }
+        return hentBehandling(this.id)
     }
 
 }

@@ -32,7 +32,10 @@ class AvklarSakSteg(
     private val avklarTemaRepository: AvklarTemaRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): BehandlingSteg {
             return AvklarSakSteg(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
@@ -102,6 +105,6 @@ class AvklarSakSteg(
     }
 
     private fun avklarGenerellSakMaskinelt(behandlingId: BehandlingId) {
-        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(null, true))
+        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer = null, generellSak = true))
     }
 }

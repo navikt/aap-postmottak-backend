@@ -19,6 +19,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPeriode
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(AvklarTemaSteg::class.java)
@@ -28,6 +30,7 @@ class AvklarTemaSteg(
     private val avklarTemaRepository: AvklarTemaRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val saksnummerRepository: SaksnummerRepository,
+    private val unleashGateway: UnleashGateway,
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -38,7 +41,8 @@ class AvklarTemaSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 gatewayProvider.provide(),
-                repositoryProvider.provide()
+                repositoryProvider.provide(),
+                gatewayProvider.provide()
             )
         }
 
@@ -71,16 +75,24 @@ class AvklarTemaSteg(
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             }
         } else {
-            if (venterPåBehandlingIGosys(journalpost, temavurdering)) {
-                val aktivIdent = journalpost.person.aktivIdent()
-                gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpost.journalpostId, aktivIdent.identifikator)
-                FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
-            } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) {
-                log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
-                gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
-                    .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
+            if (unleashGateway.isEnabled(PostmottakFeature.LukkPostmottakEndreTemaBehandlinger)) {
                 return Fullført
-            } else Fullført
+            } else {
+
+                if (venterPåBehandlingIGosys(journalpost, temavurdering)) { // tema fortsatt AAP
+                    val aktivIdent = journalpost.person.aktivIdent()
+                    gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
+                        journalpost.journalpostId,
+                        aktivIdent.identifikator
+                    )
+                    FantAvklaringsbehov(Definisjon.AVKLAR_TEMA) /// -> endre til Fullført
+                } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) { // har endret tema, fjern denne blokka
+                    log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
+                    gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
+                        .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
+                    return Fullført
+                } else Fullført
+            }
         }
     }
 
