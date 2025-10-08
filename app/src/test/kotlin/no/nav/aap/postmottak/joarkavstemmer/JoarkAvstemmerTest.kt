@@ -23,8 +23,6 @@ import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.unleash.FeatureToggle
-import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -250,9 +248,6 @@ class JoarkAvstemmerTest {
         regelRepository = regelRepository,
         gosysOppgaveGateway = gosysOppgaveGateway,
         journalpostGateway = journalpostGateway,
-        unleashGateway = object : UnleashGateway {
-            override fun isEnabled(featureToggle: FeatureToggle): Boolean = true
-        },
         meterRegistry = SimpleMeterRegistry()
     )
 

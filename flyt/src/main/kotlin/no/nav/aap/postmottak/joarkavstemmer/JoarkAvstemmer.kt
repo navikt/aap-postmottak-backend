@@ -13,8 +13,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.ubehandledeJournalposterCounter
-import no.nav.aap.unleash.PostmottakFeature
-import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.time.LocalDate
@@ -29,7 +27,6 @@ class JoarkAvstemmer(
     private val regelRepository: RegelRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val journalpostGateway: JournalpostGateway,
-    private val unleashGateway: UnleashGateway,
     private val meterRegistry: MeterRegistry
 ) {
 
@@ -96,37 +93,35 @@ class JoarkAvstemmer(
             log.info("Fant ubehandlet journalpost som ikke skal til Kelvin. Oppretter Gosys-oppgave. JournalpostId: ${journalpostId}. Systemnavn: ${regelResultat.systemNavn}. Alder på journalpost: ${journalpost.datoOpprettet}")
 
             meterRegistry.ubehandledeJournalposterCounter("ARENA").increment()
-            if (unleashGateway.isEnabled(PostmottakFeature.AvstemMotJoark)) {
+            try {
+                gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+                    journalpostId = journalpostId,
+                    personIdent = ident?.let(::Ident),
+                    beskrivelse = "Automatisk gjenopprettet oppgave",
+                    tildeltEnhetsnr = tildeltEnhetsnr(journalpost.journalforendeEnhet),
+                    behandlingstema = journalpost.behandlingstema,
+                )
+            } catch (e: BadRequestHttpResponsException) {
                 try {
+                    log.info("Feilet opprettelse av Gosys-oppgave for journalpostId=$journalpostId. Forsøk 1 feilet. Forsøk nr 2 med tildeltEnhetsnr=null og behandlingstema=null. Exception: ${e.message}.")
                     gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
                         journalpostId = journalpostId,
                         personIdent = ident?.let(::Ident),
-                        beskrivelse = "Automatisk gjenopprettet oppgave",
-                        tildeltEnhetsnr = tildeltEnhetsnr(journalpost.journalforendeEnhet),
-                        behandlingstema = journalpost.behandlingstema,
+                        beskrivelse = "Automatisk gjenopprettet oppgave. Forsøk 1 feilet.",
+                        tildeltEnhetsnr = null,
+                        behandlingstema = null,
                     )
                 } catch (e: BadRequestHttpResponsException) {
-                    try {
-                        log.info("Feilet opprettelse av Gosys-oppgave for journalpostId=$journalpostId. Forsøk 1 feilet. Forsøk nr 2 med tildeltEnhetsnr=null og behandlingstema=null. Exception: ${e.message}.")
-                        gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
-                            journalpostId = journalpostId,
-                            personIdent = ident?.let(::Ident),
-                            beskrivelse = "Automatisk gjenopprettet oppgave. Forsøk 1 feilet.",
-                            tildeltEnhetsnr = null,
-                            behandlingstema = null,
-                        )
-                    } catch (e: BadRequestHttpResponsException) {
-                        log.info("Feilet på tredje forsøk. Lager fordelingsoppgave. Ident-null: ${ident == null}.")
-                        gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
-                            journalpostId = journalpostId,
-                            personIdent = ident?.let(::Ident),
-                            beskrivelse = "Manglende journalføring - ${uthentet.tittel}",
-                        )
-                        log.warn("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId.", e)
-                    }
+                    log.info("Feilet på tredje forsøk. Lager fordelingsoppgave. Ident-null: ${ident == null}.")
+                    gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
+                        journalpostId = journalpostId,
+                        personIdent = ident?.let(::Ident),
+                        beskrivelse = "Manglende journalføring - ${uthentet.tittel}",
+                    )
+                    log.warn("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId.", e)
                 }
-                log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")
             }
+            log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")
         } else {
             meterRegistry.ubehandledeJournalposterCounter("ARENA").increment()
             log.info("Det finnes allerede en Gosys-oppgave for journalpostId=$journalpostId. Dato opprettet: ${journalpost.datoOpprettet}. Avbryter.")

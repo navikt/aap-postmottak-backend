@@ -32,7 +32,6 @@ class JoarkAvstemmerJobbUtfører(
             regelRepository = regelRepository,
             gosysOppgaveGateway = gosysOppgaveGateway,
             journalpostGateway = journalpostGateway,
-            unleashGateway = unleashGateway,
             meterRegistry = meterRegistry
         ).avstem()
     }
