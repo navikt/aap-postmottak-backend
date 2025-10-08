@@ -143,7 +143,7 @@ fun NormalOpenAPIRoute.behandlingApi(
 }
 
 class JournalpostDto(
-    @JsonProperty(
+    @param:JsonProperty(
         "referanse", required = true,
         defaultValue = "0"
     ) val referanse: Long
