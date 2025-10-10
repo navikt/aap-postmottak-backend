@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.flyt
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.FakeUnlesh
+import no.nav.aap.FakeUnleash
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
@@ -76,7 +76,7 @@ class Flyttest : WithDependencies {
     companion object {
         private val dataSource = InitTestDatabase.freshDatabase()
         private val gatewayProvider = defaultGatewayProvider {
-            register(FakeUnlesh::class)
+            register(FakeUnleash::class)
         }
         private val hendelsesMottak = TestHendelsesMottak(dataSource, repositoryRegistry, gatewayProvider)
         private val motor =
