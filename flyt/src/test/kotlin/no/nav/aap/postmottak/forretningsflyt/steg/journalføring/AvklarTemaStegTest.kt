@@ -3,8 +3,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
-import no.nav.aap.FakeUnlesh
+import no.nav.aap.FakeUnleash
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
@@ -39,7 +38,7 @@ class AvklarTemaStegTest {
             avklarTemaRepository = avklarTemaRepository,
             gosysOppgaveGateway = gosysOppgaveKlient,
             saksnummerRepository = saksnummerRepository,
-            unleashGateway = FakeUnlesh
+            unleashGateway = FakeUnleash
         )
 
 
