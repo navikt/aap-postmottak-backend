@@ -7,3 +7,17 @@ services:
       - '5441:5432'
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
+  texas:
+    image: ghcr.io/nais/texas:latest
+    ports:
+      - "7165:7165"
+    environment:
+      AZURE_ENABLED: "true"
+      BIND_ADDRESS: "0.0.0.0:7165"
+      DOWNSTREAM_APP_NAME: postmottak-backend
+      DOWNSTREAM_APP_NAMESPACE: aap
+      DOWNSTREAM_APP_CLUSTER: dev-gcp
+      NAIS_POD_NAME: postmottak-backend-lokal
+    restart: on-failure
+    env_file:
+      - .env.dev-gcp

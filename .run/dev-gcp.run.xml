@@ -36,6 +36,9 @@
       <env name="INTEGRASJON_VEILARBARENA_URL" value="https://veilarbarena.dev-fss-pub.nais.io" />
       <env name="INTEGRASJON_VEILARBARENA_SCOPE" value="api://dev-fss.pto.veilarbarena/.default" />
       <env name="GOSYS_URL" value="https://gosys-q2.dev.intern.nav.no/gosys" />
+      <env name="NAIS_TOKEN_ENDPOINT" value="http://host.docker.internal:7165/api/v1/token" />
+      <env name="NAIS_TOKEN_EXCHANGE_ENDPOINT" value="http://host.docker.internal:7165/api/v1/token/exchange" />
+      <env name="NAIS_TOKEN_INTROSPECTION_ENDPOINT" value="http://host.docker.internal:7165/api/v1/introspect" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="no.nav.aap.postmottak.AppKt" />
     <module name="postmottak.app.main" />
