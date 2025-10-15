@@ -55,7 +55,7 @@ class JournalføringService(
         )
     )
 
-     fun førJournalpostPåFagsak(
+    fun førJournalpostPåFagsak(
         journalpostId: JournalpostId,
         ident: Ident,
         fagsakId: String,
@@ -84,7 +84,7 @@ class JournalføringService(
         client.put(path, request) { _, _ -> }
     }
 
-     fun førJournalpostPåGenerellSak(
+    fun førJournalpostPåGenerellSak(
         journalpost: Journalpost,
         tema: String = "AAP",
         tittel: String? = null,
@@ -110,11 +110,11 @@ class JournalføringService(
         client.put(path, request) { _, _ -> }
     }
 
-     fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId) {
+    fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId) {
         ferdigstillJournalpost(journalpostId, MASKINELL_JOURNALFØRING_ENHET)
     }
 
-     fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String) {
+    fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/$journalpostId/ferdigstill")
         val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet))
         client.patch(path, request) { _, _ -> }
@@ -126,10 +126,10 @@ class JournalføringService(
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker
         val navn = persondataGateway.hentNavn(bruker?.id!!)
-        return if (avsenderMottaker?.id == null) {
+        return if (avsenderMottaker?.id == null && bruker.type in listOf(BrukerIdType.FNR, BrukerIdType.ORGNR)) {
             AvsenderMottakerDto(
                 id = safJournalpost.bruker?.id!!,
-                idType = bruker.type!!,
+                idType = AvsenderMottakerDto.IdType.valueOf(bruker.type?.name!!),
                 navn = navn?.fulltNavn(),
             )
         } else {
@@ -156,10 +156,24 @@ data class OppdaterJournalpostRequest(
 )
 
 data class AvsenderMottakerDto(
-    val id: String,
-    val idType: BrukerIdType,
+    val id: String?,
+    val idType: IdType?,
     val navn: String? = null,
-)
+) {
+    /**
+     * Navn må være satt ELLER både id og idType må være satt
+     * Helst bør alle tre være satt
+     * Se https://confluence.adeo.no/spaces/BOA/pages/313346834/oppdaterJournalpost
+     **/
+    fun erGyldig(): Boolean = navn != null || (id != null && idType != null)
+
+    /**
+     * Dokarkiv aksepterer kun disse ved oppdatering/ferdigstilling av journalpost
+     **/
+    enum class IdType {
+        FNR, ORGNR, HPRNR, UTL_ORG,
+    }
+}
 
 enum class Fagsystem {
     KELVIN,

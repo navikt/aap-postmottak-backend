@@ -19,7 +19,7 @@ data class Saksvurdering(
             require(journalposttittel.isNotBlank()) { "Journalposttittel kan ikke være tom" }
         }
         if (avsenderMottaker != null) {
-            require(avsenderMottaker.id.isNotBlank()) { "AvsenderMottaker må ha id" }
+            require(avsenderMottaker.erGyldig()) { "AvsenderMottaker er ikke gyldig" }
         }
         if (dokumenter != null) {
             require(dokumenter.isNotEmpty()) { "Dokumenter kan ikke være tom" }

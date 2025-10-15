@@ -9,7 +9,7 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.BrukerIdType
+import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
@@ -109,7 +109,7 @@ class JoarkClientTest {
             restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->
                 val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
                 assertThat(avsenderMottaker?.id).isEqualTo(DEFAULT_IDENT.identifikator)
-                assertThat(avsenderMottaker?.idType).isEqualTo(BrukerIdType.FNR)
+                assertThat(avsenderMottaker?.idType).isEqualTo(AvsenderMottakerDto.IdType.FNR)
                 assertThat(avsenderMottaker?.navn).isEqualTo("Ola Normann")
             }, any())
         }

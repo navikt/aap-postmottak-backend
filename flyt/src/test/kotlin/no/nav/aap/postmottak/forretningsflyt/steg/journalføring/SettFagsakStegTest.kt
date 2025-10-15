@@ -12,7 +12,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
-import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -38,7 +37,7 @@ class SettFagsakStegTest {
         val vurdering = Saksvurdering(
             "12345",
             journalposttittel = "Tittel",
-            avsenderMottaker = AvsenderMottakerDto("id", BrukerIdType.FNR, "navn"),
+            avsenderMottaker = AvsenderMottakerDto("id", AvsenderMottakerDto.IdType.FNR, "navn"),
             dokumenter = listOf(ForenkletDokument("123", "hoveddokument tittel"))
         )
 
@@ -69,7 +68,7 @@ class SettFagsakStegTest {
         val vurdering = Saksvurdering(
             "12345",
             journalposttittel = "Tittel",
-            avsenderMottaker = AvsenderMottakerDto("id", BrukerIdType.FNR, "navn"),
+            avsenderMottaker = AvsenderMottakerDto("id", AvsenderMottakerDto.IdType.FNR, "navn"),
             dokumenter = listOf(ForenkletDokument("123", "hoveddokument tittel"))
         )
 
