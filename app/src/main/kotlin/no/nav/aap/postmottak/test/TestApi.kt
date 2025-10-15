@@ -46,6 +46,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                     it.queryList(
                         """SELECT referanse as ref, steg, behandling.journalpost_id, behandling.OPPRETTET_TID, behandling.status as status FROM BEHANDLING
                             LEFT JOIN STEG_HISTORIKK ON STEG_HISTORIKK.BEHANDLING_ID = BEHANDLING.ID AND aktiv = true
+                            ORDER BY opprettet_tid DESC
                             LIMIT 150
                         """.trimMargin()
                     ) {
