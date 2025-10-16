@@ -27,7 +27,7 @@ dependencies {
     // Kafka
     implementation(libs.kafkaClients)
     implementation(libs.kafkaStreams)
-    implementation("org.apache.avro:avro:1.12.0")
+    implementation("org.apache.avro:avro:1.12.1")
     implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:873c5cdd")
 
