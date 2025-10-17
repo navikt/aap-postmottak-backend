@@ -5,7 +5,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.SKJERMET_IDENT
+import no.nav.aap.postmottak.test.fakes.TestIdenter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ class NomKlientTest {
     @Test
     fun erEgenAnsatt() {
         val client = NomKlient()
-        val actual = client.erEgenAnsatt(SKJERMET_IDENT)
+        val actual = client.erEgenAnsatt(TestIdenter.SKJERMET_IDENT)
 
         assertThat(actual).isTrue()
     }

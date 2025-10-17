@@ -19,8 +19,8 @@ import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.DEFAULT_IDENT
-import no.nav.aap.postmottak.test.fakes.UTEN_AVSENDER_MOTTAKER
+import no.nav.aap.postmottak.test.fakes.TestIdenter
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -90,15 +90,16 @@ class JoarkClientTest {
     fun `avsenderMottaker blir satt til samme som bruker dersom den mangler`() {
 
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
-        val joarkClient = JournalføringService.konstruer(restClient, SafGraphqlClientCredentialsClient(), PdlGraphqlKlient())
+        val joarkClient =
+            JournalføringService.konstruer(restClient, SafGraphqlClientCredentialsClient(), PdlGraphqlKlient())
 
-        val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(UTEN_AVSENDER_MOTTAKER)
+        val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(TestJournalposter.UTEN_AVSENDER_MOTTAKER)
 
         assertThat(safJournalpost.avsenderMottaker).isNull()
 
         joarkClient.førJournalpostPåFagsak(
-            UTEN_AVSENDER_MOTTAKER,
-            DEFAULT_IDENT,
+            TestJournalposter.UTEN_AVSENDER_MOTTAKER,
+            TestIdenter.DEFAULT_IDENT,
             "2344",
             tittel = null,
             avsenderMottaker = null,
@@ -108,7 +109,7 @@ class JoarkClientTest {
         verify {
             restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->
                 val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
-                assertThat(avsenderMottaker?.id).isEqualTo(DEFAULT_IDENT.identifikator)
+                assertThat(avsenderMottaker?.id).isEqualTo(TestIdenter.DEFAULT_IDENT.identifikator)
                 assertThat(avsenderMottaker?.idType).isEqualTo(AvsenderMottakerDto.IdType.FNR)
                 assertThat(avsenderMottaker?.navn).isEqualTo("Ola Normann")
             }, any())

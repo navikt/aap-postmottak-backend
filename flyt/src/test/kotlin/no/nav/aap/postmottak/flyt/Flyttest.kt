@@ -60,13 +60,7 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.ANNET_TEMA
-import no.nav.aap.postmottak.test.fakes.DIGITAL_SØKNAD_ID
-import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING
-import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING_IKKE_TIL_KELVIN
-import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT
-import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM
-import no.nav.aap.postmottak.test.fakes.UGYLDIG_STATUS
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -106,14 +100,21 @@ class Flyttest : WithDependencies {
         private val hendelsesMottak = TestHendelsesMottak(dataSource, repositoryRegistry, gatewayProvider)
         private val motor =
             Motor(
-                dataSource,
-                2,
+                dataSource = dataSource,
+                antallKammer = 2,
                 jobber = ProsesseringsJobber.alle(),
                 repositoryRegistry = repositoryRegistry,
                 gatewayProvider = gatewayProvider
             )
         private val util =
             TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
+
+        private lateinit var config: StreamsConfig
+
+        private lateinit var producer: KafkaProducer<String, JournalfoeringHendelseRecord>
+
+        private lateinit var stream: MottakStream
+
 
         @JvmStatic
         @BeforeAll
@@ -125,50 +126,54 @@ class Flyttest : WithDependencies {
 
             admin.createTopics(listOf(NewTopic(JOARK_TOPIC, 1, 1))).all().get()
             admin.close()
+
+            config = StreamsConfig(
+                applicationId = "postmottak",
+                brokers = kafka.bootstrapServers,
+                ssl = SslConfig(
+                    truststorePath = "",
+                    keystorePath = "",
+                    credstorePsw = "",
+                    securityProtocol = "PLAINTEXT"
+                ),
+                schemaRegistry = SchemaRegistryConfig(url = "mock://dummy", user = "", password = "")
+            )
+
+
+            producer = KafkaProducer<String, JournalfoeringHendelseRecord>(Properties().apply {
+                put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.bootstrapServers)
+                put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().javaClass)
+                put(
+                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                    JournalfoeringHendelseAvro(config).avroserdes.serializer().javaClass
+                )
+                put("schema.registry.url", "mock://dummy")
+            })
+
+            stream =
+                MottakStream(
+                    JoarkKafkaHandler(
+                        config,
+                        dataSource,
+                        repositoryRegistry = repositoryRegistry,
+                        prometheus = PrometheusProvider.prometheus
+                    ).topology, config
+                )
+            stream.start()
         }
 
         @AfterAll
         @JvmStatic
         internal fun afterAll() {
             motor.stop()
+            producer.close()
+            stream.close()
         }
     }
 
-    private lateinit var config: StreamsConfig
-
-    private lateinit var producer: KafkaProducer<String, JournalfoeringHendelseRecord>
-
-    private lateinit var stream: MottakStream
-
     @BeforeEach
     fun beforeEach() {
-        config = StreamsConfig(
-            applicationId = "postmottak",
-            brokers = kafka.bootstrapServers,
-            ssl = SslConfig(truststorePath = "", keystorePath = "", credstorePsw = "", securityProtocol = "PLAINTEXT"),
-            schemaRegistry = SchemaRegistryConfig(url = "mock://dummy", user = "", password = "")
-        )
 
-        producer = KafkaProducer<String, JournalfoeringHendelseRecord>(Properties().apply {
-            put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.bootstrapServers)
-            put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().javaClass)
-            put(
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                JournalfoeringHendelseAvro(config).avroserdes.serializer().javaClass
-            )
-            put("schema.registry.url", "mock://dummy")
-        })
-
-        stream =
-            MottakStream(
-                JoarkKafkaHandler(
-                    config,
-                    dataSource,
-                    repositoryRegistry = repositoryRegistry,
-                    prometheus = PrometheusProvider.prometheus
-                ).topology, config
-            )
-        stream.start()
 
     }
 
@@ -190,8 +195,7 @@ class Flyttest : WithDependencies {
             ).use { it.execute() }
         }
 
-        producer.close()
-        stream.close()
+
     }
 
     fun leggJournalpostPåKafka(journalfoeringHendelseRecord: JournalfoeringHendelseRecord) {
@@ -200,34 +204,39 @@ class Flyttest : WithDependencies {
         producer.flush()
     }
 
-    @Test
-    fun `digital søknad blir automatisk behandlet`() {
-        val journalpostID = DIGITAL_SØKNAD_ID
-
-        val recordValue = JournalfoeringHendelseRecord().apply {
+    fun journalfoeringHendelseRecord(): JournalfoeringHendelseRecord {
+        return JournalfoeringHendelseRecord().apply {
             hendelsesId = "1"
             hendelsesType = "3"
             journalpostStatus = "MOTTATT"
             temaGammelt = "ds"
             temaNytt = "AAP"
-            journalpostId = journalpostID.referanse
+            journalpostId = 0L
             mottaksKanal = "323"
             kanalReferanseId = "323"
             behandlingstema = "2323"
         }
+    }
+
+    @Test
+    fun `digital søknad blir automatisk behandlet`() {
+        val journalpostID = TestJournalposter.DIGITAL_SØKNAD_ID
+
+        val recordValue = journalfoeringHendelseRecord().apply {
+            journalpostId = journalpostID.referanse
+        }
 
         leggJournalpostPåKafka(recordValue)
 
-        Thread.sleep(2_000)
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostID).also { require(it.size > 1)}
+        }
 
-        util.ventPåSvar(sakId = journalpostID.referanse)
-
-        val behandlinger = alleBehandlingerForJournalpost(journalpostID)
         assertThat(behandlinger).hasSize(2)
             .extracting<TypeBehandling> { it.typeBehandling }
             .containsExactlyInAnyOrder(TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
 
-        val behandling = behandlinger.first()
+        val behandling = behandlinger!!.first()
 
         val åpneAvklaringsbehov = hentAvklaringsbehov(behandling)
         assertThat(åpneAvklaringsbehov).isEmpty()
@@ -235,7 +244,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun fordel() {
-        val journalpostId = DIGITAL_SØKNAD_ID
+        val journalpostId = TestJournalposter.DIGITAL_SØKNAD_ID
 
         triggFordelingJobb(journalpostId)
 
@@ -245,7 +254,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Helautomatisk flyt for legeerklæring som ikke skal til Kelvin`() {
-        val journalpostId = LEGEERKLÆRING_IKKE_TIL_KELVIN
+        val journalpostId = TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
 
@@ -260,7 +269,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Helautomatisk flyt for digital legeerklæring som skal til Kelvin`() {
-        val journalpostId = LEGEERKLÆRING
+        val journalpostId = TestJournalposter.LEGEERKLÆRING
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         dataSource.transaction { connection ->
@@ -288,7 +297,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Flyt for journalpost som er blitt behandlet i gosys`() {
-        val journalpostId = ANNET_TEMA
+        val journalpostId = TestJournalposter.ANNET_TEMA
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         dataSource.transaction { connection ->
@@ -312,7 +321,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Full helautomatisk flyt for søknad`() {
-        val journalpostId = DIGITAL_SØKNAD_ID
+        val journalpostId = TestJournalposter.DIGITAL_SØKNAD_ID
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
 
@@ -418,7 +427,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Skal ikke opprette dokumentflyt dersom journalposten har ugyldig status`() {
-        val journalpostId = UGYLDIG_STATUS
+        val journalpostId = TestJournalposter.UGYLDIG_STATUS
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         triggProsesserBehandling(journalpostId, behandlingId)
@@ -436,7 +445,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Skal videresende dersom journalposten ble journalført utenfor postmottak med tema AAP på Kelvin fagsak `() {
-        val journalpostId = STATUS_JOURNALFØRT
+        val journalpostId = TestJournalposter.STATUS_JOURNALFØRT
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
 
@@ -450,7 +459,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Skal ikke videresende dersom journalposten ble journalført utenfor postmottak med tema AAP, men på annet fagsystem`() {
-        val journalpostId = STATUS_JOURNALFØRT_ANNET_FAGSYSTEM
+        val journalpostId = TestJournalposter.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         triggProsesserBehandling(journalpostId, behandlingId)
@@ -467,9 +476,17 @@ class Flyttest : WithDependencies {
     fun `hvis tema ikke skal være AAP, så lukkes behandlingen`() {
         val journalpostId = JournalpostId(12213123L)
 
-        val behandlingId = opprettJournalføringsBehandling(journalpostId)
-        triggProsesserBehandling(journalpostId, behandlingId)
+        val record = journalfoeringHendelseRecord().apply { this.journalpostId = journalpostId.referanse }
+        leggJournalpostPåKafka(record)
 
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+        }!!
+
+        assertThat(behandlinger).hasSize(1)
+        val behandlingId = behandlinger.first().id
+
+        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
         sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
 
         hentBehandling(behandlingId)
@@ -486,6 +503,20 @@ class Flyttest : WithDependencies {
 //
 //        val behandlinger3 = alleBehandlingerForJournalpost(journalpostId)
 //        assertThat(behandlinger3).hasSize(2).last().extracting(Behandling::status).isEqualTo(Status.AVSLUTTET)
+    }
+
+    private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {
+        val start = System.currentTimeMillis()
+        var lastError: Throwable? = null
+        while (System.currentTimeMillis() - start < maksSekunder * 1000) {
+            try {
+                return block()
+            } catch (e: Throwable) {
+                lastError = e
+                Thread.sleep(100)
+            }
+        }
+        return null
     }
 
     private fun sjekkÅpentAvklaringsbehov(behandlingId: BehandlingId, behov: Definisjon?) {

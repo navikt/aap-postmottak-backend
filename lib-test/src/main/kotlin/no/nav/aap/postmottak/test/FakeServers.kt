@@ -426,6 +426,7 @@ object FakeServers : AutoCloseable {
         }
     }
 
+    @Suppress("PropertyName")
     data class TestToken(
         val access_token: String,
         val refresh_token: String = "very.secure.token",

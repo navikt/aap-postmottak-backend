@@ -29,8 +29,7 @@ import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
-import no.nav.aap.postmottak.test.fakes.SØKNAD_ETTERSENDELSE
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -45,7 +44,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
             register<PdlKlientSpy>()
             register<ArenaKlientSpy>()
         }
-        
+
         private val dataSource = InitTestDatabase.freshDatabase()
         private val motor =
             Motor(
@@ -75,7 +74,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
     @Test
     fun `happycase for søknad, oppretter sak i arena og journalfører automatsik`() {
-        val journalpostId = PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
+        val journalpostId = TestJournalposter.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
 
         val persondataGateway = gatewayProvider.provide(PersondataGateway::class)
         val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
@@ -99,7 +98,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
     @Test
     fun `happycase for søknad oppretter sak i arena og journalfører automatsik`() {
-        val journalpostId = SØKNAD_ETTERSENDELSE
+        val journalpostId = TestJournalposter.SØKNAD_ETTERSENDELSE
 
         val persondataGateway = gatewayProvider.provide(PersondataGateway::class)
         val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
