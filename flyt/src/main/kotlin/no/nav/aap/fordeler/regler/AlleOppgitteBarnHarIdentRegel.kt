@@ -21,12 +21,9 @@ class AlleOppgitteBarnHarIdentRegel : Regel<OppgitteBarnRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
 
         override fun medDataInnhenting(
-            repositoryProvider: RepositoryProvider?,
-            gatewayProvider: GatewayProvider?
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
         ): RegelMedInputgenerator<OppgitteBarnRegelInput> {
-            requireNotNull(gatewayProvider)
-            requireNotNull(repositoryProvider)
-
             val journalpostService = JournalpostService.konstruer(repositoryProvider, gatewayProvider)
             val dokumentGateway = gatewayProvider.provide(DokumentGateway::class)
 

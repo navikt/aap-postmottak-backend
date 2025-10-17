@@ -12,17 +12,18 @@ import java.time.LocalDate
  *  men det tar tid før denne er på plass. I mellomtiden ønsker vi å unngå at slike saker kommer inn i Kelvin.
  **/
 class ErIkkeGradertUføreRegel : Regel<GradertUføreRegelInput> {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : RegelFactory<GradertUføreRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = true)
-        private val log = LoggerFactory.getLogger(javaClass)
 
         override fun medDataInnhenting(
-            repositoryProvider: RepositoryProvider?,
-            gatewayProvider: GatewayProvider?
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
         ): RegelMedInputgenerator<GradertUføreRegelInput> {
             return RegelMedInputgenerator(
                 ErIkkeGradertUføreRegel(),
-                GradertUføreRegelInputGenerator(requireNotNull(gatewayProvider))
+                GradertUføreRegelInputGenerator(gatewayProvider)
             )
         }
     }

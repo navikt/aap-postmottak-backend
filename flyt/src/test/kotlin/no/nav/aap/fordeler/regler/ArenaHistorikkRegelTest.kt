@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler.regler
 
+import io.mockk.mockk
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -17,14 +18,14 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 class ArenaHistorikkRegelTest {
-    
+
     @Test
     fun `Dersom bruker har sak i Arena, skal regelen returnere false`() {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident("12345678901")))
 
         GatewayRegistry.register(JoarkMock::class).register(ApiInternMock::class)
-        val regelMedInputGenerator = ArenaHistorikkRegel.medDataInnhenting(null, gatewayProvider = GatewayProvider)
+        val regelMedInputGenerator = ArenaHistorikkRegel.medDataInnhenting(mockk(), gatewayProvider = GatewayProvider)
         val res = regelMedInputGenerator.vurder(
             RegelInput(
                 person = person,

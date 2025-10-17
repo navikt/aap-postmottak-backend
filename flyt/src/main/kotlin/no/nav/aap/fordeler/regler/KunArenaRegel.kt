@@ -6,7 +6,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 class KunArenaRegel : Regel<Unit> {
     companion object : RegelFactory<Unit> {
         override val erAktiv = miljøConfig(prod = false, dev = false)
-        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(KunArenaRegel(), KunArenaRegelInputGenerator())
     }
 

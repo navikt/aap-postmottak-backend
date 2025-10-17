@@ -70,9 +70,9 @@ class Enhetsregel(
 
     companion object : RegelFactory<EnhetsregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
-        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(
-                Enhetsregel(requireNotNull(gatewayProvider).provide()),
+                Enhetsregel(gatewayProvider.provide()),
                 EnhetsregelInputGenerator(gatewayProvider)
             )
     }

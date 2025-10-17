@@ -9,6 +9,8 @@ import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.fordeler.regler.ManueltOverstyrtTilArenaRegel
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.regelresultat
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
@@ -37,7 +39,9 @@ data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val s
             log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
             return true
         }
-        val reglerTilEvaluering = regelMap.filter { it.key != KelvinSakRegel::class.simpleName && it.key != ManueltOverstyrtTilArenaRegel::class.simpleName }
+        val reglerTilEvaluering =
+            regelMap.filter { it.key != KelvinSakRegel::class.simpleName && it.key != ManueltOverstyrtTilArenaRegel::class.simpleName }
+
         return reglerTilEvaluering.values.all { it }.also {
             log.info(
                 "Skal til Kelvin: $it. ${
@@ -61,8 +65,13 @@ class FordelerRegelService(
     fun evaluer(input: RegelInput): Regelresultat {
         return hentAktiveRegler(repositoryProvider, gatewayProvider)
             .associate { regel ->
+                val regelResultat = regel.vurder(input)
+                PrometheusProvider.prometheus.regelresultat(regelResultat, regel.regelNavn())
                 regel.regelNavn() to regel.vurder(input)
-            }.let { Regelresultat(it, input.journalpostId) }
+            }
+            .let {
+                Regelresultat(it, input.journalpostId)
+            }
     }
 
     private fun hentAktiveRegler(

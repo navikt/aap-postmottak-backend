@@ -10,10 +10,10 @@ class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
     companion object : RegelFactory<GeografiskTilknytningRegelInput> {
         // Bruk enhetsregel i stedet
         override val erAktiv = miljøConfig(prod = false, dev = false)
-        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(
                 GeografiskTilknytningRegel(),
-                GeografiskTilknytningRegelInputGenerator(requireNotNull(gatewayProvider))
+                GeografiskTilknytningRegelInputGenerator(gatewayProvider)
             )
     }
 
@@ -42,10 +42,10 @@ class GeografiskTilknytningRegel : Regel<GeografiskTilknytningRegelInput> {
     private fun parseKommune(geografiskTilknytning: GeografiskTilknytning): String? {
         if (geografiskTilknytning.gtKommune.isNullOrEmpty()) {
             val bydel = geografiskTilknytning.gtBydel?.substring(0, 4)
-            if (bydel.isNullOrEmpty()) {
-                return null
+            return if (bydel.isNullOrEmpty()) {
+                null
             } else {
-                return bydel
+                bydel
             }
         } else {
             return geografiskTilknytning.gtKommune

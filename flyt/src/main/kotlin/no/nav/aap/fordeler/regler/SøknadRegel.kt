@@ -8,14 +8,14 @@ data class SøknadRegelInput(
     val brevkode: Brevkoder
 )
 
-/* Denne aktiveres dersom vi ønsker at Kelvin-sak kun skal opprettes for søknad.
-   Dvs. at eventuelle andre dokumenter som sendes inn før søknad vil havne i Gosys. 
-   Påfølgende dokumenter vil havne i Kelvin, ettersom KelvinSakRegel overstyrer.
+/** Denne aktiveres dersom vi ønsker at Kelvin-sak kun skal opprettes for søknad.
+ *  Dvs. at eventuelle andre dokumenter som sendes inn før søknad vil havne i Gosys.
+ *  Påfølgende dokumenter vil havne i Kelvin, ettersom KelvinSakRegel overstyrer.
  */
 class SøknadRegel : Regel<SøknadRegelInput> {
     companion object : RegelFactory<SøknadRegelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
-        override fun medDataInnhenting(repositoryProvider: RepositoryProvider?, gatewayProvider: GatewayProvider?) =
+        override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(SøknadRegel(), SøknadRegelInputGenerator())
     }
 
