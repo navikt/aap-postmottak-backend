@@ -26,7 +26,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
     testImplementation(libs.bundles.junit)
-    testImplementation("io.mockk:mockk:1.14.6")
+    testImplementation(libs.mockk)
     testImplementation(project(":lib-test"))
     testImplementation(libs.ktorServerNetty)
 }

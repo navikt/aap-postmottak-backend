@@ -43,6 +43,13 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.mottak.JOARK_TOPIC
+import no.nav.aap.postmottak.mottak.JoarkKafkaHandler
+import no.nav.aap.postmottak.mottak.JournalfoeringHendelseAvro
+import no.nav.aap.postmottak.mottak.kafka.MottakStream
+import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
+import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
+import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
@@ -60,21 +67,39 @@ import no.nav.aap.postmottak.test.fakes.LEGEERKLÆRING_IKKE_TIL_KELVIN
 import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT
 import no.nav.aap.postmottak.test.fakes.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM
 import no.nav.aap.postmottak.test.fakes.UGYLDIG_STATUS
+import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
+import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.clients.admin.AdminClientConfig
+import org.apache.kafka.clients.admin.NewTopic
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.Serdes
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.kafka.KafkaContainer
 import java.time.LocalDate
+import java.util.*
 
 
 @Fakes
+@Testcontainers
 class Flyttest : WithDependencies {
 
     companion object {
         private val dataSource = InitTestDatabase.freshDatabase()
+
+        @Container
+        private val kafka = KafkaContainer("apache/kafka-native:3.8.0")
+
         private val gatewayProvider = defaultGatewayProvider {
             register(FakeUnleash::class)
         }
@@ -90,12 +115,16 @@ class Flyttest : WithDependencies {
         private val util =
             TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
 
-
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
             motor.start()
             PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
+            val admin = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to kafka.bootstrapServers))
+
+            admin.createTopics(listOf(NewTopic(JOARK_TOPIC, 1, 1))).all().get()
+            admin.close()
         }
 
         @AfterAll
@@ -103,6 +132,44 @@ class Flyttest : WithDependencies {
         internal fun afterAll() {
             motor.stop()
         }
+    }
+
+    private lateinit var config: StreamsConfig
+
+    private lateinit var producer: KafkaProducer<String, JournalfoeringHendelseRecord>
+
+    private lateinit var stream: MottakStream
+
+    @BeforeEach
+    fun beforeEach() {
+        config = StreamsConfig(
+            applicationId = "postmottak",
+            brokers = kafka.bootstrapServers,
+            ssl = SslConfig(truststorePath = "", keystorePath = "", credstorePsw = "", securityProtocol = "PLAINTEXT"),
+            schemaRegistry = SchemaRegistryConfig(url = "mock://dummy", user = "", password = "")
+        )
+
+        producer = KafkaProducer<String, JournalfoeringHendelseRecord>(Properties().apply {
+            put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.bootstrapServers)
+            put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().javaClass)
+            put(
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                JournalfoeringHendelseAvro(config).avroserdes.serializer().javaClass
+            )
+            put("schema.registry.url", "mock://dummy")
+        })
+
+        stream =
+            MottakStream(
+                JoarkKafkaHandler(
+                    config,
+                    dataSource,
+                    repositoryRegistry = repositoryRegistry,
+                    prometheus = PrometheusProvider.prometheus
+                ).topology, config
+            )
+        stream.start()
+
     }
 
     @AfterEach
@@ -122,6 +189,48 @@ class Flyttest : WithDependencies {
             """.trimIndent()
             ).use { it.execute() }
         }
+
+        producer.close()
+        stream.close()
+    }
+
+    fun leggJournalpostPåKafka(journalfoeringHendelseRecord: JournalfoeringHendelseRecord) {
+        val record = ProducerRecord(JOARK_TOPIC, "key", journalfoeringHendelseRecord)
+        producer.send(record)
+        producer.flush()
+    }
+
+    @Test
+    fun `digital søknad blir automatisk behandlet`() {
+        val journalpostID = DIGITAL_SØKNAD_ID
+
+        val recordValue = JournalfoeringHendelseRecord().apply {
+            hendelsesId = "1"
+            hendelsesType = "3"
+            journalpostStatus = "MOTTATT"
+            temaGammelt = "ds"
+            temaNytt = "AAP"
+            journalpostId = journalpostID.referanse
+            mottaksKanal = "323"
+            kanalReferanseId = "323"
+            behandlingstema = "2323"
+        }
+
+        leggJournalpostPåKafka(recordValue)
+
+        Thread.sleep(2_000)
+
+        util.ventPåSvar(sakId = journalpostID.referanse)
+
+        val behandlinger = alleBehandlingerForJournalpost(journalpostID)
+        assertThat(behandlinger).hasSize(2)
+            .extracting<TypeBehandling> { it.typeBehandling }
+            .containsExactlyInAnyOrder(TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
+
+        val behandling = behandlinger.first()
+
+        val åpneAvklaringsbehov = hentAvklaringsbehov(behandling)
+        assertThat(åpneAvklaringsbehov).isEmpty()
     }
 
     @Test
@@ -363,18 +472,20 @@ class Flyttest : WithDependencies {
 
         sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
 
-        hentBehandling(behandlingId).løsAvklaringsBehov(
-            AvklarTemaLøsning(
-                skalTilAap = false,
-            )
-        )
+        hentBehandling(behandlingId)
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false))
         triggProsesserBehandling(journalpostId, behandlingId)
 
         sjekkÅpentAvklaringsbehov(behandlingId, null)
 
-
         val behandlinger2 = alleBehandlingerForJournalpost(journalpostId)
         assertThat(behandlinger2).hasSize(1).first().extracting(Behandling::status).isEqualTo(Status.AVSLUTTET)
+
+//        val behandlingId2 = opprettJournalføringsBehandling(journalpostId)
+//        triggProsesserBehandling(journalpostId, behandlingId2)
+//
+//        val behandlinger3 = alleBehandlingerForJournalpost(journalpostId)
+//        assertThat(behandlinger3).hasSize(2).last().extracting(Behandling::status).isEqualTo(Status.AVSLUTTET)
     }
 
     private fun sjekkÅpentAvklaringsbehov(behandlingId: BehandlingId, behov: Definisjon?) {
@@ -451,6 +562,12 @@ class Flyttest : WithDependencies {
 
     private fun hentAvklaringsbehov(behandlingId: BehandlingId, connection: DBConnection): Avklaringsbehovene {
         return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
+    }
+
+    private fun hentAvklaringsbehov(behandling: Behandling): List<Avklaringsbehov> {
+        return dataSource.transaction(readOnly = true) { connection ->
+            hentAvklaringsbehov(behandling.id, connection).åpne()
+        }
     }
 
     private fun Behandling.løsAvklaringsBehov(

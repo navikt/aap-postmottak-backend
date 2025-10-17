@@ -35,8 +35,7 @@ internal class FakesExtension : BeforeAllCallback, ParameterResolver,
 
         val parameterizedType = parameter.parameterizedType
         if (parameterizedType is ParameterizedType) {
-            val firstParamType = parameterizedType.actualTypeArguments[0]
-            return when (firstParamType) {
+            return when (val firstParamType = parameterizedType.actualTypeArguments[0]) {
                 is Class<*> -> {
                     firstParamType == DokumentflytStoppetHendelse::class.java
                 }

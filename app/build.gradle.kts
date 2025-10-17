@@ -91,12 +91,12 @@ dependencies {
     testImplementation(libs.dbtest)
     testImplementation(project(":lib-test"))
     testImplementation(libs.bundles.junit)
-    testImplementation("org.testcontainers:postgresql:1.21.3")
+    testImplementation(libs.testcontainersPostgres)
     constraints {
         implementation("org.apache.commons:commons-compress:1.28.0") {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("io.mockk:mockk:1.14.6")
+    testImplementation(libs.mockk)
     testImplementation(kotlin("test"))
 }

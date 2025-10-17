@@ -40,6 +40,8 @@ dependencies {
     testImplementation(project(":api"))
     testImplementation(libs.dbtest)
     testImplementation(libs.motorTestUtils)
-    testImplementation("io.mockk:mockk:1.14.6")
-    testImplementation("org.testcontainers:postgresql:1.21.3")
+    testImplementation(libs.mockk)
+    testImplementation(libs.testcontainersPostgres)
+    testImplementation(libs.testcontainersKafka)
+    testImplementation(libs.testcontainersJunit)
 }

@@ -19,5 +19,6 @@
     <logger name="no.nav" level="INFO" />
     <logger name="io.confluent" level="WARN" />
     <logger name="no.nav.aap.komponenter.dbconnect" level="ERROR" />
+    <logger name="org.apache.kafka" level="WARN" />
 
 </configuration>
