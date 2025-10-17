@@ -11,7 +11,6 @@ object FakeUnleash : UnleashGateway {
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
             PostmottakFeature.LukkPostmottakEndreTemaBehandlinger -> true
-            PostmottakFeature.Oppskalering13oktober -> true
         }
     }
 }
