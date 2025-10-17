@@ -66,7 +66,7 @@ class FordelerRegelService(
         return hentAktiveRegler(repositoryProvider, gatewayProvider)
             .associate { regel ->
                 val regelResultat = regel.vurder(input)
-                PrometheusProvider.prometheus.regelresultat(regelResultat, regel.regelNavn())
+                PrometheusProvider.prometheus.regelresultat(regelResultat, regel.regelNavn()).increment()
                 regel.regelNavn() to regel.vurder(input)
             }
             .let {
