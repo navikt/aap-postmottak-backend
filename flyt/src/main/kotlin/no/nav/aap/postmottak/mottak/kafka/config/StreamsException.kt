@@ -3,9 +3,9 @@ package no.nav.aap.postmottak.mottak.kafka.config
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler
+import org.apache.kafka.streams.errors.ErrorHandlerContext
 import org.apache.kafka.streams.errors.ProductionExceptionHandler
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler
-import org.apache.kafka.streams.processor.ProcessorContext
 import org.slf4j.LoggerFactory
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler.DeserializationHandlerResponse as ConsumerHandler
 import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExceptionHandlerResponse as ProducerHandler
@@ -22,7 +22,7 @@ class ReplaceThread(message: Any) : RuntimeException(message.toString())
  */
 class EntryPointExceptionHandler : DeserializationExceptionHandler {
     override fun handle(
-        context: ProcessorContext,
+        context: ErrorHandlerContext,
         record: ConsumerRecord<ByteArray, ByteArray>,
         exception: Exception,
     ): ConsumerHandler {
@@ -84,6 +84,7 @@ class ProcessingExceptionHandler : StreamsUncaughtExceptionHandler {
  */
 class ExitPointExceptionHandler : ProductionExceptionHandler {
     override fun handle(
+        context: ErrorHandlerContext,
         record: ProducerRecord<ByteArray, ByteArray>,
         exception: Exception,
     ): ProducerHandler {

@@ -65,19 +65,6 @@ class JournalpostTest {
         assertThat(hovedkode).isEqualTo("Brev")
     }
 
-    @Test
-    fun getDokumentNavn() {
-    }
-
-    @Test
-    fun erDigitalSøknad() {
-    }
-
-    @Test
-    fun erDigital() {
-    }
-
-
     fun genererJournalpost(
         dokumenter: List<Dokument>? = null
     ) = Journalpost(

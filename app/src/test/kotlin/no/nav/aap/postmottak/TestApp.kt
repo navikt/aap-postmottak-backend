@@ -19,7 +19,7 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.AzurePortHolder
 import no.nav.aap.postmottak.test.FakeServers
-import no.nav.aap.postmottak.test.fakes.PAPIR_SØKNAD
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.time.Duration
@@ -110,7 +110,7 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
 
 private fun opprettBehandlingPapirSøknadKategoriser(connection: DBConnection) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
-    val journalpostId = JournalpostId(PAPIR_SØKNAD.referanse)
+    val journalpostId = JournalpostId(TestJournalposter.PAPIR_SØKNAD.referanse)
 
     val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
     AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)

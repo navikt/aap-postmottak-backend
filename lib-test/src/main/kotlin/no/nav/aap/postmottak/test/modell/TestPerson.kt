@@ -14,11 +14,10 @@ fun genererIdent(fødselsdato: LocalDate): Ident {
 class TestPerson(
     val fødselsdato: Fødselsdato = Fødselsdato(LocalDate.now().minusYears(19)),
     val identer: Set<Ident> = setOf(genererIdent(fødselsdato.toLocalDate())),
-    val barn: List<TestPerson> = emptyList(),
     val navn: PersonNavn = FiktivtNavnGenerator.genererNavn(),
     var uføre: Int? = null,
 ) {
     override fun toString(): String {
-        return "TestPerson(fødselsdato=$fødselsdato, identer=$identer, barn=$barn, navn=$navn"
+        return "TestPerson(fødselsdato=$fødselsdato, identer=$identer, navn=$navn"
     }
 }

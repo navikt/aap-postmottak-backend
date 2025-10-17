@@ -21,7 +21,7 @@ fun Application.nomFake() {
     routing {
         post("/skjermet") {
             val personident = call.receive<EgenansattRequest>().personident
-            call.respond(personident == SKJERMET_IDENT.identifikator)
+            call.respond(personident == TestIdenter.SKJERMET_IDENT.identifikator)
         }
     }
 

@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.saf
+package no.nav.aap.postmottak.klient.saf
 
 import io.mockk.every
 import io.mockk.mockk

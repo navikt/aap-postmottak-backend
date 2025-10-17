@@ -36,7 +36,7 @@ fun Application.behandlingsflytFake(
 
         post("/api/sak/ekstern/finn") {
             val body = DefaultJsonMapper.fromJson<FinnSaker>(call.receiveText())
-            if (body.ident == IDENT_UTEN_SAK_I_KELVIN.identifikator) {
+            if (body.ident == TestIdenter.IDENT_UTEN_SAK_I_KELVIN.identifikator) {
                 call.respond(emptyList<BehandlingsflytSak>())
             } else {
                 call.respond(

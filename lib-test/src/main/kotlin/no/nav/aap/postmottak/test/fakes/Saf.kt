@@ -33,7 +33,7 @@ fun Application.safFake(
             )
             val journalpost = call.parameters["journalpostId"]?.toLong()
             when (journalpost) {
-                DIGITAL_SØKNAD_ID.referanse -> {
+                TestJournalposter.DIGITAL_SØKNAD_ID.referanse -> {
                     call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     call.respondText("""{"yrkesskade":"nei", "student":{"erStudent": "nei"}}""")
                 }
@@ -99,7 +99,7 @@ fun Application.safFake(
 
 private fun getAvsenderMottaker(journalpostId: Long) =
     when (journalpostId) {
-        UTEN_AVSENDER_MOTTAKER.referanse -> ""
+        TestJournalposter.UTEN_AVSENDER_MOTTAKER.referanse -> ""
         else -> """"avsenderMottaker": {
             "id": "21345345210",
             "type": "FNR",
@@ -109,14 +109,14 @@ private fun getAvsenderMottaker(journalpostId: Long) =
 
 private fun finnKanal(journalpostId: Long) =
     when (journalpostId) {
-        DIGITAL_SØKNAD_ID.referanse -> KanalFraKodeverk.NAV_NO.name
-        PAPIR_SØKNAD.referanse -> KanalFraKodeverk.SKAN_NETS.name
+        TestJournalposter.DIGITAL_SØKNAD_ID.referanse -> KanalFraKodeverk.NAV_NO.name
+        TestJournalposter.PAPIR_SØKNAD.referanse -> KanalFraKodeverk.SKAN_NETS.name
         else -> KanalFraKodeverk.UKJENT.name
     }
 
 private fun finnTema(journalpostId: Long) =
     when (journalpostId) {
-        ANNET_TEMA.referanse -> "ANNET"
+        TestJournalposter.ANNET_TEMA.referanse -> "ANNET"
         else -> "AAP"
     }
 
@@ -136,7 +136,7 @@ private fun getDokumenter(journalpostId: Long): String {
         """
 
     return when (journalpostId) {
-        DIGITAL_SØKNAD_ID.referanse -> """
+        TestJournalposter.DIGITAL_SØKNAD_ID.referanse -> """
         {
             "tittel": "Dokumenttittel",
             "dokumentInfoId": "4542685451",
@@ -150,7 +150,7 @@ private fun getDokumenter(journalpostId: Long): String {
         }
     """
 
-        SØKNAD_ETTERSENDELSE.referanse -> """       
+        TestJournalposter.SØKNAD_ETTERSENDELSE.referanse -> """       
         {
             "tittel": "Dokumenttittel",
             "dokumentInfoId": "4542685451",
@@ -164,8 +164,8 @@ private fun getDokumenter(journalpostId: Long): String {
         }
         """
 
-        LEGEERKLÆRING.referanse -> legeerklæring
-        LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> legeerklæring
+        TestJournalposter.LEGEERKLÆRING.referanse -> legeerklæring
+        TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> legeerklæring
 
         else -> """ {
             "tittel": "Dokumenttittel",
@@ -196,11 +196,12 @@ private fun getDokumenter(journalpostId: Long): String {
 
 private fun finnSak(journalpostId: Long) =
     when (journalpostId) {
-        STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> """{
+        TestJournalposter.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> """{
             "fagsakId": "123456",
             "fagsaksystem": "${Fagsystem.FS22.name}",
             "sakstype": "${Sakstype.GENERELL_SAK.name}"
         }"""
+
         else -> "null"
     }
 
@@ -215,14 +216,17 @@ private fun ingenSakerRespons() =
 
 private fun finnStatus(journalpostId: Long) =
     when (journalpostId) {
-        UGYLDIG_STATUS.referanse -> "UTGAAR"
-        STATUS_JOURNALFØRT.referanse, STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> "JOURNALFOERT"
+        TestJournalposter.UGYLDIG_STATUS.referanse -> "UTGAAR"
+        TestJournalposter.STATUS_JOURNALFØRT.referanse, TestJournalposter.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> "JOURNALFOERT"
         else -> "MOTTATT"
     }
 
 private fun finnBruker(journalpostId: Long) =
     when (journalpostId) {
-        SØKNAD_ETTERSENDELSE.referanse, PERSON_UTEN_SAK_I_BEHANDLINGSFLYT.referanse, LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> IDENT_UTEN_SAK_I_KELVIN.identifikator
-        PERSON_MED_SAK_I_ARENA.referanse -> IDENT_MED_SAK_I_ARENA.identifikator
-        else -> DEFAULT_IDENT.identifikator
+        TestJournalposter.SØKNAD_ETTERSENDELSE.referanse,
+        TestJournalposter.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT.referanse,
+        TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> TestIdenter.IDENT_UTEN_SAK_I_KELVIN.identifikator
+
+        TestJournalposter.PERSON_MED_SAK_I_ARENA.referanse -> TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator
+        else -> TestIdenter.DEFAULT_IDENT.identifikator
     }

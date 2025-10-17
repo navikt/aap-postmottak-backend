@@ -15,7 +15,7 @@ fun Application.aapInternApiFake() {
     routing {
         post("/sakerByFnr") {
             val reqBody = call.receive<SakerRequest>()
-            if (reqBody.personidentifikatorer.contains(IDENT_MED_SAK_I_ARENA.identifikator)) {
+            if (reqBody.personidentifikatorer.contains(TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator)) {
                 call.respond(
                     """[
                     {
@@ -35,7 +35,7 @@ fun Application.aapInternApiFake() {
         }
         post("/arena/person/aap/eksisterer") {
             val reqBody = call.receive<SakerRequest>()
-            if (reqBody.personidentifikatorer.contains(IDENT_MED_SAK_I_ARENA.identifikator)) {
+            if (reqBody.personidentifikatorer.contains(TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator)) {
                 call.respond("""{"eksisterer": true}""")
 
             }

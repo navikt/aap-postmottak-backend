@@ -4,7 +4,6 @@ package no.nav.aap.postmottak.mottak
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -53,6 +52,9 @@ class TransactionProvider(
 
 const val JOARK_TOPIC = "teamdokumenthandtering.aapen-dok-journalfoering"
 
+/**
+ * Dokumentasjon på hendelsene finnes her: https://confluence.adeo.no/spaces/BOA/pages/432217891/Joarkhendelser
+ */
 class JoarkKafkaHandler(
     config: StreamsConfig,
     datasource: DataSource,
@@ -94,19 +96,14 @@ class JoarkKafkaHandler(
     private fun håndterTemaendring(journalpostId: JournalpostId) {
         log.info("Mottatt temaendring på journalpost $journalpostId")
         transactionProvider.inTransaction {
-            try {
-                val behandling = behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
+            val behandling = behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
+            if (behandling != null) {
                 flytJobbRepository.leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
                         .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id.id).medCallId()
                 )
-            } catch (e: Exception) {
-                when (e) {
-                    is VerdiIkkeFunnetException,
-                    is NoSuchElementException -> log.info("Fant ikke åpen behandling for journalpost $journalpostId")
-
-                    else -> throw e
-                }
+            } else {
+                log.info("Fant ikke åpen behandling for journalpost $journalpostId")
             }
         }
     }
@@ -129,6 +126,7 @@ class JoarkKafkaHandler(
 }
 
 object JoarkRegel {
+    // Mulige verdier for tema: https://confluence.adeo.no/spaces/BOA/pages/316396024/Tema
     private const val TEMA_AAP = "AAP"
     private const val MOTTATT = "MOTTATT"
     private const val EESSI = "EESSI"

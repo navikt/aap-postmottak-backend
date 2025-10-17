@@ -29,8 +29,9 @@ dependencies {
     implementation(libs.kafkaStreams)
     implementation("org.apache.avro:avro:1.12.1")
     implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
-    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:873c5cdd")
+    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.6")
 
+    // https://github.com/navikt/teamdokumenthandtering-avro-schemas
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation(libs.bundles.junit)
     testImplementation(project(":lib-test"))
@@ -39,6 +40,8 @@ dependencies {
     testImplementation(project(":api"))
     testImplementation(libs.dbtest)
     testImplementation(libs.motorTestUtils)
-    testImplementation("io.mockk:mockk:1.14.6")
-    testImplementation("org.testcontainers:postgresql:1.21.3")
+    testImplementation(libs.mockk)
+    testImplementation(libs.testcontainersPostgres)
+    testImplementation(libs.testcontainersKafka)
+    testImplementation(libs.testcontainersJunit)
 }

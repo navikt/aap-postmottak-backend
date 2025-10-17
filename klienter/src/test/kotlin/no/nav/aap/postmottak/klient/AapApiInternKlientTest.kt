@@ -6,7 +6,7 @@ import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.IDENT_MED_SAK_I_ARENA
+import no.nav.aap.postmottak.test.fakes.TestIdenter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -27,7 +27,7 @@ class AapApiInternKlientTest {
 
     @Test
     fun `Kan parse PersonEksistererIAAPArena`() {
-        val res = apiIntern.harAapSakIArena(Person(1, UUID.randomUUID(), listOf(IDENT_MED_SAK_I_ARENA)))
+        val res = apiIntern.harAapSakIArena(Person(1, UUID.randomUUID(), listOf(TestIdenter.IDENT_MED_SAK_I_ARENA)))
 
         assertThat(res).isEqualTo(
             PersonEksistererIAAPArena(true)

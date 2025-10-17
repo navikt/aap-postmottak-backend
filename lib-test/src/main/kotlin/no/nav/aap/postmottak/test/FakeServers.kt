@@ -17,13 +17,11 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
-import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.gateway.UføreHistorikkRespons
 import no.nav.aap.postmottak.gateway.UførePeriode
 import no.nav.aap.postmottak.gateway.UføreRequest
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import no.nav.aap.postmottak.test.fakes.aapInternApiFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
@@ -145,31 +143,6 @@ object FakeServers : AutoCloseable {
 
         // Texas
         System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token")
-
-        // testpersoner
-        val BARNLØS_PERSON_30ÅR =
-            TestPerson(
-                identer = setOf(Ident("12345678910", true)),
-                fødselsdato = Fødselsdato(
-                    LocalDate.now().minusYears(30),
-                ),
-            )
-        val BARNLØS_PERSON_18ÅR =
-            TestPerson(
-                identer = setOf(Ident("42346734567", true)),
-                fødselsdato = Fødselsdato(LocalDate.now().minusYears(18).minusDays(10)),
-            )
-        val PERSON_MED_BARN_65ÅR =
-            TestPerson(
-                identer = setOf(Ident("86322434234", true)),
-                fødselsdato = Fødselsdato(LocalDate.now().minusYears(65)),
-                barn = listOf(
-                    BARNLØS_PERSON_18ÅR, BARNLØS_PERSON_30ÅR
-                ),
-            )
-
-        // Legg til alle testpersoner
-        listOf(PERSON_MED_BARN_65ÅR).forEach { leggTil(it) }
     }
 
     fun start() {
@@ -225,12 +198,6 @@ object FakeServers : AutoCloseable {
         veilarbarena.stop()
         pesysFake.stop()
     }
-
-    fun leggTil(person: TestPerson) {
-        person.identer.forEach { fakePersoner[it.identifikator] = person }
-        person.barn.forEach { leggTil(it) }
-    }
-
 
     private fun Application.oppgaveFake() {
         install(ContentNegotiation) {
@@ -459,6 +426,7 @@ object FakeServers : AutoCloseable {
         }
     }
 
+    @Suppress("PropertyName")
     data class TestToken(
         val access_token: String,
         val refresh_token: String = "very.secure.token",

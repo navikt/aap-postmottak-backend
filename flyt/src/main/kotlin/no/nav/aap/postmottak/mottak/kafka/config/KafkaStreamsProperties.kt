@@ -61,9 +61,10 @@ data class SslConfig(
     private val truststorePath: String = requiredConfigForKey("KAFKA_TRUSTSTORE_PATH"),
     private val keystorePath: String = requiredConfigForKey("KAFKA_KEYSTORE_PATH"),
     private val credstorePsw: String = requiredConfigForKey("KAFKA_CREDSTORE_PASSWORD"),
+    private val securityProtocol: String = "SSL",
 ) {
     fun properties() = Properties().apply {
-        this[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = "SSL"
+        this[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = securityProtocol
         this[SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG] = "JKS"
         this[SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG] = truststorePath
         this[SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG] = credstorePsw
