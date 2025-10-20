@@ -10,7 +10,7 @@ object FakeUnleash : UnleashGateway {
 
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
-            PostmottakFeature.LukkPostmottakEndreTemaBehandlinger -> true
+            PostmottakFeature.LukkPostmottakEndreTemaBehandlinger -> false
         }
     }
 }
