@@ -73,7 +73,7 @@ class ArenaVideresender(
                 innkommendeJournalpostId
             )
 
-            Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> sendTiArenaKjøreliste(
+            Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE.kode -> sendTilArenaKjøreliste(
                 journalpost,
                 innkommendeJournalpostId
             )// Håndteres af jfr-arena
@@ -91,7 +91,7 @@ class ArenaVideresender(
         )
     }
 
-    private fun sendTiArenaKjøreliste(journalpost: Journalpost, innkomendeJournalpostId: Long) {
+    private fun sendTilArenaKjøreliste(journalpost: Journalpost, innkomendeJournalpostId: Long) {
         flytJobbRepository.leggTil(
             JobbInput(SendTilArenaKjørelisteBehandling).medArenaVideresenderKontekst(
                 opprettArenaVideresenderKontekst(journalpost, innkomendeJournalpostId)

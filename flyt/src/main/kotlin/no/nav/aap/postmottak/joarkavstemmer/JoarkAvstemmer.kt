@@ -20,7 +20,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 /**
- * Prøver å replikere logikken her: https://confluence.adeo.no/spaces/BOA/pages/366859456/doksikkerhetsnett
+ * Prøver å replikere logikken her: [Confluence Doksikkerhetsnett](https://confluence.adeo.no/spaces/BOA/pages/366859456/doksikkerhetsnett)
  */
 class JoarkAvstemmer(
     private val doksikkerhetsnettGateway: DoksikkerhetsnettGateway,

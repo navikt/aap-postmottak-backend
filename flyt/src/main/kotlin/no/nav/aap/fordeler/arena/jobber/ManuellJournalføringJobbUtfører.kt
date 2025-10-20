@@ -11,6 +11,7 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.retriesExceeded
 import org.slf4j.LoggerFactory
 
 class ManuellJournalføringJobbUtfører(
@@ -36,7 +37,7 @@ class ManuellJournalføringJobbUtfører(
 
         override val navn = "Manuell journalføring"
 
-        override val beskrivelse = "Oppretter oppgave for manuell journalføring"
+        override val beskrivelse = "Oppretter oppgave for manuell journalføring i Gosys."
 
         override val retries = 6
 
@@ -46,6 +47,7 @@ class ManuellJournalføringJobbUtfører(
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (kontekst.navEnhet != null && input.antallRetriesForsøkt() < 3) {
+            prometheus.retriesExceeded(type).increment()
             log.info("Oppretter journalføringsoppgave for journalpost med id ${kontekst.journalpostId} for enhet ${kontekst.navEnhet}.")
             gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
                 kontekst.journalpostId,

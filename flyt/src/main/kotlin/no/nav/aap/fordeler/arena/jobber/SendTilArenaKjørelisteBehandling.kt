@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler.arena.jobber
 
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.fordeler.arena.ArenaGateway
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -7,14 +8,17 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.ProvidersJobbSpesifikasjon
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.retriesExceeded
 import org.slf4j.LoggerFactory
 
 class SendTilArenaKjørelisteBehandling(
     private val flytJobbRepository: FlytJobbRepository,
     private val arenaKlient: ArenaGateway,
-    journalpostService: JournalpostService
+    journalpostService: JournalpostService,
+    val prometheus: MeterRegistry
 ) : ArenaJobbutførerBase(journalpostService) {
 
     companion object : ProvidersJobbSpesifikasjon {
@@ -22,7 +26,8 @@ class SendTilArenaKjørelisteBehandling(
             return SendTilArenaKjørelisteBehandling(
                 repositoryProvider.provide(),
                 gatewayProvider.provide(),
-                JournalpostService.konstruer(repositoryProvider, gatewayProvider)
+                JournalpostService.konstruer(repositoryProvider, gatewayProvider),
+                PrometheusProvider.prometheus,
             )
         }
 
@@ -33,7 +38,6 @@ class SendTilArenaKjørelisteBehandling(
         override val beskrivelse = "Behandle kjoereliste og opprett oppgave"
 
         override val retries = 4
-
     }
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -42,7 +46,8 @@ class SendTilArenaKjørelisteBehandling(
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (input.antallRetriesForsøkt() >= 2) {
-            log.info("Forsøk på sending av kjøreliste til Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
+            prometheus.retriesExceeded(type).increment()
+            log.warn("Forsøk på sending av kjøreliste til Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb(kontekst)
             return
         }

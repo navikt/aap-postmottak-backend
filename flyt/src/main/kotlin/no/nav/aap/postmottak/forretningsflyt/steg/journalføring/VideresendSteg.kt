@@ -33,13 +33,16 @@ class VideresendSteg(
     private val kopierer: GrunnlagKopierer
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): BehandlingSteg {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): BehandlingSteg {
             return VideresendSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-               repositoryProvider.provide(),
+                repositoryProvider.provide(),
                 GrunnlagKopierer(repositoryProvider)
             )
         }
@@ -65,9 +68,9 @@ class VideresendSteg(
         }
 
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
-        val avklarTemaVurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+        val avklarTemaVurdering =
+            requireNotNull(avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)) { "Tema skal være avklart før VideresendSteg. BehandlingId ${kontekst.behandlingId}" }
 
-        requireNotNull(avklarTemaVurdering) { "Tema skal være avklart før VideresendSteg" }
 
         if (!avklarTemaVurdering.skalTilAap) {
             return Fullført

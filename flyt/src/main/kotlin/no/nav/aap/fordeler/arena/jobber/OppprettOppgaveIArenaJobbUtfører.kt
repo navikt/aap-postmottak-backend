@@ -9,8 +9,10 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.ProvidersJobbSpesifikasjon
+import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.retriesExceeded
 import org.slf4j.LoggerFactory
 
 class OppprettOppgaveIArenaJobbUtfører(
@@ -44,6 +46,7 @@ class OppprettOppgaveIArenaJobbUtfører(
         val kontekst = input.getArenaVideresenderKontekst()
 
         if (kontekst.navEnhet == null || input.antallRetriesForsøkt() >= 2) {
+            prometheus.retriesExceeded(type).increment()
             log.info("Forsøk på opprettelse av oppgave i Arena feilet ${input.antallRetriesForsøkt() + 1}, oppretter manuell oppgave")
             opprettManuellJournalføringsoppgavejobb(kontekst)
             return

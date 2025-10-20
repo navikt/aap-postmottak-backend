@@ -47,8 +47,11 @@ fun MeterRegistry.journalføringCounter(type: JournalføringsType, enhet: NavEnh
 fun MeterRegistry.ubehandledeJournalposterCounter(kildesystem: String): Counter =
     this.counter("postmottak_journalposter_ubehandlet", listOf(Tag.of("kildesystem", kildesystem)))
 
-fun MeterRegistry.regelresultat(tilKelvin: Boolean, regel: String) =
+fun MeterRegistry.regelresultat(tilKelvin: Boolean, regel: String): Counter =
     this.counter("postmottak_regelresultat", listOf(Tag.of("regel", regel), Tag.of("til_kelvin", tilKelvin.toString())))
+
+fun MeterRegistry.retriesExceeded(jobbType: String): Counter =
+    this.counter("postmottak_retries_exceeded", listOf(Tag.of("jobb_type", jobbType)))
 
 enum class Fagsystem {
     arena,

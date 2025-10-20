@@ -15,6 +15,7 @@ import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.retriesExceeded
 import org.slf4j.LoggerFactory
 
 class AutomatiskJournalføringJobbUtfører(
@@ -53,7 +54,7 @@ class AutomatiskJournalføringJobbUtfører(
 
         if (input.antallRetriesForsøkt() >= retries) {
             val enhet = innkommendeJournalpostRepository.hent(journalpost.journalpostId).enhet
-
+            prometheus.retriesExceeded(type).increment()
             log.info("Antall retries er større enn $retries. Oppretter manuell journalføring-jobb. Enhet: $enhet. JournalpostId: ${kontekst.journalpostId}")
             flytJobbRepository.leggTil(
                 JobbInput(ManuellJournalføringJobbUtfører)
