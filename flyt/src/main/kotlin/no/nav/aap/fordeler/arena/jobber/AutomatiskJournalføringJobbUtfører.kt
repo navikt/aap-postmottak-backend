@@ -54,6 +54,7 @@ class AutomatiskJournalføringJobbUtfører(
         if (input.antallRetriesForsøkt() >= retries) {
             val enhet = innkommendeJournalpostRepository.hent(journalpost.journalpostId).enhet
 
+            log.info("Antall retries er større enn $retries. Oppretter manuell journalføring-jobb. Enhet: $enhet. JournalpostId: ${kontekst.journalpostId}")
             flytJobbRepository.leggTil(
                 JobbInput(ManuellJournalføringJobbUtfører)
                     .medArenaVideresenderKontekst(

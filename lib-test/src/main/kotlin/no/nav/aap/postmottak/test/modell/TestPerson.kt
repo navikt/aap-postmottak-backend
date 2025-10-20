@@ -17,4 +17,6 @@ class TestPerson(
     override fun toString(): String {
         return "TestPerson(fødselsdato=$fødselsdato, identer=$identer"
     }
+
+    fun aktivIdent(): Ident = identer.find { it.aktivIdent }!!
 }

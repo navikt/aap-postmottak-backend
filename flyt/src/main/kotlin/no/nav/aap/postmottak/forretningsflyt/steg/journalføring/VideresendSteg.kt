@@ -84,6 +84,8 @@ class VideresendSteg(
         val dokumentbehandlingId =
             behandlingRepository.opprettBehandling(behandling.journalpostId, TypeBehandling.DokumentHåndtering)
         kopierer.overfør(kontekst.behandlingId, dokumentbehandlingId)
+
+        log.info("Legger til prosesseringsjobb.")
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
                 .forBehandling(behandling.journalpostId.referanse, dokumentbehandlingId.id).medCallId()

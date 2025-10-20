@@ -66,7 +66,7 @@ class FordelingRegelJobbUtfører(
 
         // TODO: Denne kan være problematisk hvis vi skal støtte at journalførte dokumenter skal kunne sendes inn til Kelvin
         if (innkommendeJournalpostRepository.eksisterer(journalpostId)) {
-            log.info("Journalposten har allerede blitt evaluert - behandler ikke videre")
+            log.info("Journalposten med ID (${journalpostId}) har allerede blitt evaluert - behandler ikke videre")
             return
         }
 

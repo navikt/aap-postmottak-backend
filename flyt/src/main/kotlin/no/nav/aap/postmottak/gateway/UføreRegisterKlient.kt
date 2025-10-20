@@ -63,6 +63,7 @@ class UføreRegisterKlient() : UføreRegisterGateway {
                 request = httpRequest
             )
         } catch (e: IkkeFunnetException) {
+            // Dette kan også bety at ingen uføregrad er registrert (om man skal tro Pesysfake-implementasjonen)
             log.info("Fant ikke person i PESYS. Returnerer null. Message: ${e.message}")
             return null
         }

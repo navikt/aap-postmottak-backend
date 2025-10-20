@@ -29,7 +29,7 @@ import java.time.temporal.ChronoUnit
 fun main() {
     val postgres = postgreSQLContainer()
     AzurePortHolder.setPort(8071)
-    FakeServers.start()
+    FakeServers().start()
 
     // Starter server
     embeddedServer(Netty, port = 8070) {

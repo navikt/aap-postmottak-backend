@@ -53,8 +53,8 @@ class AvklarTemaSteg(
     }
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-            ?: error("Journalpost mangler i AvklarTemaSteg")
+        val journalpost =
+            requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Journalpost for behandling ${kontekst.behandlingId} mangler i AvklarTemaSteg" }
         if (journalpost.erUgyldig()) return Fullført
 
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)

@@ -1,17 +1,11 @@
 package no.nav.aap.postmottak.test
 
-import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
-import org.junit.jupiter.api.extension.BeforeAllCallback
-import org.junit.jupiter.api.extension.BeforeEachCallback
-import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ParameterContext
-import org.junit.jupiter.api.extension.ParameterResolver
+import org.junit.jupiter.api.extension.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.lang.reflect.ParameterizedType
 
-internal class FakesExtension : BeforeAllCallback, ParameterResolver,
-    BeforeEachCallback {
+internal class FakesExtension : BeforeAllCallback,
+    BeforeEachCallback, ParameterResolver {
 
     private val log: Logger = LoggerFactory.getLogger(FakeServers::class.java)
 
@@ -19,48 +13,27 @@ internal class FakesExtension : BeforeAllCallback, ParameterResolver,
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
     }
 
+    private val fakeServers = FakeServers()
+
     override fun beforeAll(context: ExtensionContext) {
-        FakeServers.start()
+        FakeServers().start()
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        FakeServers.statistikkHendelser.clear()
+
     }
 
     override fun supportsParameter(
         parameterContext: ParameterContext,
         extensionContext: ExtensionContext
     ): Boolean {
-        val parameter = parameterContext.parameter
-
-        val parameterizedType = parameter.parameterizedType
-        if (parameterizedType is ParameterizedType) {
-            return when (val firstParamType = parameterizedType.actualTypeArguments[0]) {
-                is Class<*> -> {
-                    firstParamType == DokumentflytStoppetHendelse::class.java
-                }
-
-                else -> {
-                    return false
-                }
-            }
-        }
-        return false
+        return parameterContext.parameter.type == FakePersoner::class.java
     }
 
     override fun resolveParameter(
         parameterContext: ParameterContext,
         extensionContext: ExtensionContext
     ): Any {
-        if (parameterContext.parameter.type == List::class.java) {
-            val parameterizedType = parameterContext.parameter.parameterizedType
-            if (parameterizedType is ParameterizedType) {
-                val firstArg = parameterizedType.actualTypeArguments[0]
-                if (firstArg == DokumentflytStoppetHendelse::class.java) {
-                    return FakeServers.statistikkHendelser
-                }
-            }
-        }
-        throw IllegalArgumentException("Not supported parameter type")
+        return fakeServers.fakePersoner
     }
 }

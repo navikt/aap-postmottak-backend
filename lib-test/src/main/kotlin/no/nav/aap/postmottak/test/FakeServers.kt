@@ -42,13 +42,18 @@ import java.util.concurrent.atomic.AtomicInteger
 private const val POSTMOTTAK_BACKEND = "postmottak-backend"
 private val logger = LoggerFactory.getLogger(FakesExtension::class.java)
 
+class FakePersoner(val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()) {
+    fun leggTil(testPerson: TestPerson) {
+        fakePersoner[testPerson.aktivIdent().identifikator] = testPerson
+    }
+}
 
-object FakeServers : AutoCloseable {
+class FakeServers : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(FakeServers::class.java)
     val azure = embeddedServer(Netty, port = AzurePortHolder.getPort()) { azureFake() }
     val texas = embeddedServer(Netty, port = 0) { texasFakes() }
     private val oppgave = embeddedServer(Netty, port = 0, module = { oppgaveFake() })
-    val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()
+    val fakePersoner: FakePersoner = FakePersoner()
     val saf = embeddedServer(Netty, port = 0, module = { safFake() })
     val joark = embeddedServer(Netty, port = 0, module = { joarkFake() })
     val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
@@ -62,8 +67,6 @@ object FakeServers : AutoCloseable {
     val staistikkFake = embeddedServer(Netty, port = 0, module = { statistikkFake() })
     val veilarbarena = embeddedServer(Netty, port = 0, module = { veilarbarena() })
     val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() })
-
-    internal val statistikkHendelser = mutableListOf<DokumentflytStoppetHendelse>()
 
     private val started = AtomicBoolean(false)
 
@@ -402,7 +405,7 @@ object FakeServers : AutoCloseable {
         routing() {
             post("/pen/api/uforetrygd/uforehistorikk/perioder") {
                 val body = call.receive<UføreRequest>()
-                val hentPerson = fakePersoner[body.fnr]
+                val hentPerson = fakePersoner.fakePersoner[body.fnr]
                 if (hentPerson == null) {
                     call.respond(HttpStatusCode.NotFound, "Fant ikke person med fnr ${body.fnr}")
                     return@post
