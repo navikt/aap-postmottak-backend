@@ -85,6 +85,9 @@ object FakeServers : AutoCloseable {
 
         System.setProperty("gosys.url", "http://localhost:3000/")
 
+        System.setProperty("unleash.server.api.url", "http://dummy")
+        System.setProperty("unleash.server.api.token", "dummy")
+
         // Oppgave
         System.setProperty("integrasjon.oppgave.scope", "oppgave")
         System.setProperty("integrasjon.oppgave.url", "http://localhost:${oppgave.port()}")
