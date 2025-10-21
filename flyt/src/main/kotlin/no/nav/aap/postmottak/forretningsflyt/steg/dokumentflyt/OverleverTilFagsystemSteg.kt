@@ -30,7 +30,10 @@ class OverleverTilFagsystemSteg(
     private val overleveringVurderingRepository: OverleveringVurderingRepository,
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): BehandlingSteg {
             return OverleverTilFagsystemSteg(
                 repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 gatewayProvider.provide(BehandlingsflytGateway::class),
@@ -47,10 +50,9 @@ class OverleverTilFagsystemSteg(
 
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val digitaliseringsvurdering =
-            digitaliseringsviurdeirngrepository.hentHvisEksisterer(kontekst.behandlingId)
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        requireNotNull(journalpost) { "Journalpost mangler i OverleverTilFagsystemSteg" }
-        requireNotNull(digitaliseringsvurdering) { "Digitaliseringsvurdering mangler i OverleverTilFagsystemSteg" }
+            requireNotNull(digitaliseringsviurdeirngrepository.hentHvisEksisterer(kontekst.behandlingId)) { "Digitaliseringsvurdering mangler for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
+        val journalpost =
+            requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
 
         var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
 

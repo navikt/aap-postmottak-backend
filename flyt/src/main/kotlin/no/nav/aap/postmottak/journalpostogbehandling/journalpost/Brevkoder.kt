@@ -40,7 +40,11 @@ enum class Behandlingstype(val kode: String) {
 }
 
 object BrevkoderHelper {
-    fun mapTilInnsendingType(brevkode: String): InnsendingType {
+    /**
+     * Forsøker å mappe brevkode til innsendingstype. Null betyr at
+     * man ikke har funnet noen passende innsendingtype.
+     */
+    fun mapTilInnsendingType(brevkode: String): InnsendingType? {
         val brevkodeTilInnsendingMap = mapOf(
             Brevkoder.SØKNAD to InnsendingType.SØKNAD,
             Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING,
@@ -50,7 +54,6 @@ object BrevkoderHelper {
         )
 
         return brevkodeTilInnsendingMap[Brevkoder.fraKode(brevkode)]
-            ?: throw IllegalStateException("Uhåndtert kode '$brevkode' – kan ikke mappe til InnsendingType")
     }
 
 }

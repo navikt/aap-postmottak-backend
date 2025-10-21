@@ -40,14 +40,16 @@ fun NormalOpenAPIRoute.digitaliseringApi(
                 val digitaliseringsvurdering = repositoryProvider.provide<DigitaliseringsvurderingRepository>()
                     .hentHvisEksisterer(behandling.id)
 
-                val journalpost = repositoryProvider.provide<JournalpostRepository>().hentHvisEksisterer(req)
+                val journalpost =
+                    requireNotNull(
+                        repositoryProvider.provide<JournalpostRepository>().hentHvisEksisterer(req)
+                    ) { "Journalpost ikke funnet. Req: ${req.referanse}." }
 
-                requireNotNull(journalpost) { "Journalpost ikke funnet" }
+                val saksnummer = requireNotNull(
+                    repositoryProvider.provide(SaksnummerRepository::class)
+                        .hentSakVurdering(behandling.id)?.saksnummer
+                ) { "Kun journalposter som er journalført på Kelvin-sak skal digitaliseres. BehandlingID: ${req.referanse}." }
 
-                val saksnummer = repositoryProvider.provide(SaksnummerRepository::class)
-                    .hentSakVurdering(behandling.id)?.saksnummer
-
-                requireNotNull(saksnummer) { "Kun journalposter som er journalført på Kelvin-sak skal digitaliseres" }
                 val klagebehandlinger = gatewayProvider.provide<BehandlingsflytGateway>()
                     .finnKlagebehandlinger(saksnummer = Saksnummer(saksnummer))
 

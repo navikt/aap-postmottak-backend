@@ -65,22 +65,26 @@ class DigitaliserDokumentSteg(
                 if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) hentOriginalDokumentFraSaf(
                     journalpost
                 ) else null
-            val innsending = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
+            val innsendingType = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
 
-            log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsending.")
+            if (innsendingType == null) {
+                return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
+            }
+
+            log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsendingType.")
 
             val validertDokument = try {
-                DokumentTilMeldingParser.parseTilMelding(dokument, innsending)?.serialiser()
+                DokumentTilMeldingParser.parseTilMelding(dokument, innsendingType)?.serialiser()
             } catch (e: DeserializationException) {
                 // Hvis dokument allerede er digitalisert, fullfør steg
                 if (struktureringsvurdering != null) {
                     return Fullført
                 }
-                log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsending, error: ${e.message}")
+                log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsendingType, error: ${e.message}")
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
             }
             digitaliseringsvurderingRepository.lagre(
-                kontekst.behandlingId, Digitaliseringsvurdering(innsending, validertDokument, null)
+                kontekst.behandlingId, Digitaliseringsvurdering(innsendingType, validertDokument, null)
             )
 
             return Fullført

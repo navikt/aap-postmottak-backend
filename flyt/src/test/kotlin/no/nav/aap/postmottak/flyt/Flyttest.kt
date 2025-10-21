@@ -6,9 +6,11 @@ import no.nav.aap.FakeUnleash
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.motor.FlytJobbRepository
@@ -24,8 +26,10 @@ import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
+import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
+import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
@@ -34,10 +38,13 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurder
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -58,9 +65,14 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
+import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
+import no.nav.aap.postmottak.test.FakePersoner
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.TestIdenter
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -81,6 +93,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.kafka.KafkaContainer
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -173,8 +186,6 @@ class Flyttest : WithDependencies {
 
     @BeforeEach
     fun beforeEach() {
-
-
     }
 
     @AfterEach
@@ -194,8 +205,6 @@ class Flyttest : WithDependencies {
             """.trimIndent()
             ).use { it.execute() }
         }
-
-
     }
 
     fun leggJournalpostPåKafka(journalfoeringHendelseRecord: JournalfoeringHendelseRecord) {
@@ -229,7 +238,7 @@ class Flyttest : WithDependencies {
         leggJournalpostPåKafka(recordValue)
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostID).also { require(it.size > 1)}
+            alleBehandlingerForJournalpost(journalpostID).also { require(it.size > 1) }
         }
 
         assertThat(behandlinger).hasSize(2)
@@ -343,6 +352,61 @@ class Flyttest : WithDependencies {
         val behandling = hentBehandling(behandlingId)
 
         assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+    }
+
+    @Test
+    fun `manuell digitalisering - først opprettes avklartema-behandling, så digitaliseringsbehandling`() {
+        val journalpostId = TestJournalposter.PAPIR_SØKNAD
+
+        val record = journalfoeringHendelseRecord()
+            .apply { this.journalpostId = journalpostId.referanse }
+        leggJournalpostPåKafka(record)
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+        }!!
+
+        assertThat(behandlinger).hasSize(1)
+        var behandling = behandlinger.first()
+        val behandlingId = behandling.id
+
+        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+
+        sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
+        behandling = behandling
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+            .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "123"))
+
+        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+        util.ventPåSvar(journalpostId.referanse)
+
+        val behandlinger2 = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+        }!!
+
+        assertThat(behandlinger2).hasSize(2)
+
+        val behandling2 = behandlinger2.first { it.id != behandlingId }
+        val behandling2Id = behandling2.id
+
+        sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
+
+        behandling2.løsAvklaringsBehov(
+            DigitaliserDokumentLøsning(
+                kategori = InnsendingType.SØKNAD,
+                strukturertDokument = DefaultJsonMapper.toJson(
+                    SøknadV0(
+                        student = null,
+                        yrkesskade = "NEI",
+                        oppgitteBarn = null,
+                        medlemskap = null,
+                    )
+                ),
+                søknadsdato = LocalDate.now().withYear(2019)
+            )
+        )
+
+        assertThat(behandling2.status()).isEqualTo(Status.AVSLUTTET)
     }
 
     @Test
@@ -620,6 +684,7 @@ class Flyttest : WithDependencies {
                 )
             )
         }
+        util.ventPåSvar(this.journalpostId.referanse, this.id.id)
         return hentBehandling(this.id)
     }
 

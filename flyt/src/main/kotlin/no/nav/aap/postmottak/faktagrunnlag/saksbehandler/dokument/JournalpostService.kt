@@ -77,9 +77,9 @@ fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
                     Filtype.valueOf(it.filtype),
                     Variantformat.valueOf(it.variantformat.name)
                 )
-            } ?: emptyList()
+            }.orEmpty()
         )
-    } ?: emptyList()
+    }.orEmpty()
 
     return Journalpost(
         person = person,

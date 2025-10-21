@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
@@ -9,9 +10,11 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
+import no.nav.aap.postmottak.flyt.steg.FantVentebehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
+import no.nav.aap.postmottak.flyt.steg.Ventebehov
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -78,14 +81,15 @@ class AvklarTemaSteg(
             if (unleashGateway.isEnabled(PostmottakFeature.LukkPostmottakEndreTemaBehandlinger)) {
                 return Fullført
             } else {
-
                 if (venterPåBehandlingIGosys(journalpost, temavurdering)) { // tema fortsatt AAP
                     val aktivIdent = journalpost.person.aktivIdent()
                     gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
                         journalpost.journalpostId,
                         aktivIdent.identifikator
                     )
-                    FantAvklaringsbehov(Definisjon.AVKLAR_TEMA) /// -> endre til Fullført
+
+//                    FantAvklaringsbehov(Definisjon.AVKLAR_TEMA) /// -> endre til Fullført
+                    FantVentebehov(Ventebehov(Definisjon.MANUELT_SATT_PÅ_VENT, ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER, null))
                 } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) { // har endret tema, fjern denne blokka
                     log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
                     gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")

@@ -63,12 +63,12 @@ class ArenaVideresender(
             }
 
             Brevkoder.SØKNAD.kode -> sendSøknadTilArena(journalpost, innkommendeJournalpostId)
-            Brevkoder.STANDARD_ETTERSENDING.kode -> opprettOppagvePåEksisterendeSak(
+            Brevkoder.STANDARD_ETTERSENDING.kode -> opprettOppgavePåEksisterendeSak(
                 journalpost,
                 innkommendeJournalpostId
             )
 
-            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> opprettOppagvePåEksisterendeSak(
+            Brevkoder.SØKNAD_OM_REISESTØNAD.kode -> opprettOppgavePåEksisterendeSak(
                 journalpost,
                 innkommendeJournalpostId
             )
@@ -99,7 +99,7 @@ class ArenaVideresender(
         )
     }
 
-    private fun opprettOppagvePåEksisterendeSak(journalpost: Journalpost, innkommendeJournalpostId: Long) {
+    private fun opprettOppgavePåEksisterendeSak(journalpost: Journalpost, innkommendeJournalpostId: Long) {
         flytJobbRepository.leggTil(
             JobbInput(OppprettOppgaveIArenaJobbUtfører).medArenaVideresenderKontekst(
                 opprettArenaVideresenderKontekst(journalpost, innkommendeJournalpostId = innkommendeJournalpostId)

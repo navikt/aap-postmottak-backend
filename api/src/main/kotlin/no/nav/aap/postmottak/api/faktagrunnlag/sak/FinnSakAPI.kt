@@ -33,8 +33,10 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
                 val saksvurdering = saksnummerRepository.hentSakVurdering(behandling.id)
                 val relaterteSaker = saksnummerRepository.hentKelvinSaker(behandling.id)
 
-                val journalpost = repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(req)
-                requireNotNull(journalpost) { "Journalpost ikke funnet" }
+                val journalpost =
+                    requireNotNull(
+                        repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(req)
+                    ) { "Journalpost ikke funnet. Behandling: ${req.referanse}" }
 
                 AvklarSakGrunnlagDto(
                     vurdering = saksvurdering?.let { AvklarSakVurderingDto.toDto(saksvurdering) },

@@ -66,10 +66,10 @@ class AlleOppgitteBarnHarIdentRegelInputGenerator(
                 .dokument
                 .readBytes()
 
-            val innsending = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
+            val innsendingType = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
 
             val søknad = try {
-                DokumentTilMeldingParser.parseTilMelding(dokumentBytes, innsending) as SøknadV0
+                DokumentTilMeldingParser.parseTilMelding(dokumentBytes, requireNotNull(innsendingType) { "Ingen gyldig innsendingstype. Brevkode: ${journalpost.hoveddokumentbrevkode}"}) as SøknadV0
             } catch (e: DeserializationException) {
                 if (e.cause?.message?.contains("Ugyldig identifikator") == true) {
                     log.warn("Feil i parsing av identer fra søknad. Returnerer at ident mangler", e)

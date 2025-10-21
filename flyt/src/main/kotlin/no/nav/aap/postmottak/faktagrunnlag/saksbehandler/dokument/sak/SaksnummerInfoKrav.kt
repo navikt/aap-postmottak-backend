@@ -18,7 +18,9 @@ class SaksnummerInfoKrav(
     private val journalpostRepository: JournalpostRepository
 ) : Informasjonskrav {
     companion object : Informasjonskravkonstruktør {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): Informasjonskrav {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider
+        ): Informasjonskrav {
             return SaksnummerInfoKrav(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 gatewayProvider.provide(BehandlingsflytGateway::class),
@@ -28,11 +30,13 @@ class SaksnummerInfoKrav(
     }
 
     override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
-        val journalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
-        requireNotNull(journalpost) { "Forventer journalpost" }
+        val journalpost =
+            requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Forventer journalpost for behandling ${kontekst.behandlingId}" }
 
-        val saker =  behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true)).map { it.tilSaksinfo() }
-       
+
+        val saker = behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true))
+            .map { it.tilSaksinfo() }
+
         saksnummerRepository.lagreKelvinSak(kontekst.behandlingId, saker)
         return IKKE_ENDRET
     }
