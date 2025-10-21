@@ -24,11 +24,11 @@ data class StreamsConfig(
         putAll(additionalProperties)
 
         /* Exception handler when leaving the stream, e.g. serialization */
-        this[StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG] =
+        this[StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG] =
             ExitPointExceptionHandler::class.java.name
 
         /*  Exception handler when entering the stream, e.g. deserialization */
-        this[StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG] =
+        this[StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG] =
             EntryPointExceptionHandler::class.java.name
 
         // Configuration for resilience

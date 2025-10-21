@@ -386,12 +386,12 @@ class Flyttest : WithDependencies {
 
         assertThat(behandlinger2).hasSize(2)
 
-        val behandling2 = behandlinger2.first { it.id != behandlingId }
+        var behandling2 = behandlinger2.first { it.id != behandlingId }
         val behandling2Id = behandling2.id
 
         sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
 
-        behandling2.løsAvklaringsBehov(
+        behandling2 = behandling2.løsAvklaringsBehov(
             DigitaliserDokumentLøsning(
                 kategori = InnsendingType.SØKNAD,
                 strukturertDokument = DefaultJsonMapper.toJson(
@@ -406,6 +406,7 @@ class Flyttest : WithDependencies {
             )
         )
 
+        sjekkÅpentAvklaringsbehov(behandling2Id, null)
         assertThat(behandling2.status()).isEqualTo(Status.AVSLUTTET)
     }
 

@@ -30,7 +30,7 @@ data class BehandlingsListe(
 )
 
 data class FinnEntitetRequest(
-    @PathParam("ident")
+    @param:PathParam("ident")
     val ident: String
 )
 
