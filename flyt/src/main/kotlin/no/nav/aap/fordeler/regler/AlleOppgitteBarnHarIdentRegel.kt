@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
  **/
 class AlleOppgitteBarnHarIdentRegel : Regel<OppgitteBarnRegelInput> {
     companion object : RegelFactory<OppgitteBarnRegelInput> {
-        override val erAktiv = miljøConfig(prod = true, dev = false)
+        override val erAktiv = miljøConfig(prod = false, dev = false)
 
         override fun medDataInnhenting(
             repositoryProvider: RepositoryProvider,
