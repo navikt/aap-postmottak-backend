@@ -55,35 +55,33 @@ class DigitaliserDokumentSteg(
     override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
         val struktureringsvurdering =
             digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
+
+        if (struktureringsvurdering != null) {
+            return Fullført
+        }
+
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId}" }
 
         if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) throw AvslagException()
 
+        // Prøv automatisk digitalisering av dokumenter som er digitale
         if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
             val dokument =
-                if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) hentOriginalDokumentFraSaf(
-                    journalpost
-                ) else null
+                if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
+                    hentOriginalDokumentFraSaf(journalpost)
+                } else null
             val innsendingType = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
-
-            if (innsendingType == null) {
-                log.info("Innsendingtype kjennes ikke til: ${journalpost.hoveddokumentbrevkode}.")
-                return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
-            }
 
             log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsendingType.")
 
             val validertDokument = try {
-                DokumentTilMeldingParser.parseTilMelding(dokument, innsendingType)?.serialiser()
+                DokumentTilMeldingParser.parseTilMelding(dokument, requireNotNull(innsendingType))?.serialiser()
             } catch (e: DeserializationException) {
-                // Hvis dokument allerede er digitalisert, fullfør steg
-                if (struktureringsvurdering != null) {
-                    return Fullført
-                }
                 log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsendingType, error: ${e.message}")
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
             }
+
             digitaliseringsvurderingRepository.lagre(
                 kontekst.behandlingId, Digitaliseringsvurdering(innsendingType, validertDokument, null)
             )
@@ -91,9 +89,7 @@ class DigitaliserDokumentSteg(
             return Fullført
         }
 
-        return if (struktureringsvurdering == null) {
-            FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
-        } else Fullført
+        return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
     }
 
     private fun hentOriginalDokumentFraSaf(journalpost: Journalpost): ByteArray {
