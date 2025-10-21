@@ -1,7 +1,5 @@
 package no.nav.aap.postmottak.klient.gosysoppgave
 
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -28,7 +26,7 @@ private val log = LoggerFactory.getLogger(GosysOppgaveKlient::class.java)
 /**
  * https://oppgave.intern.dev.nav.no/ for Swagger
  */
-class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) : GosysOppgaveGateway {
+class GosysOppgaveKlient : GosysOppgaveGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.oppgaveapi.url"))
     val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.oppgaveapi.scope"),
@@ -36,12 +34,12 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
-        prometheus = prometheus
+        prometheus = PrometheusProvider.prometheus
     )
 
     companion object : Factory<GosysOppgaveKlient> {
         override fun konstruer(): GosysOppgaveKlient {
-            return GosysOppgaveKlient(PrometheusProvider.prometheus)
+            return GosysOppgaveKlient()
         }
     }
 
@@ -83,10 +81,13 @@ class GosysOppgaveKlient(val prometheus: MeterRegistry = SimpleMeterRegistry()) 
         }
 
         if (oppgaveRequest.oppgavetype == Oppgavetype.JOURNALFØRING.verdi) {
-            prometheus.journalføringCounter(type = JournalføringsType.jfr, enhet = oppgaveRequest.tildeltEnhetsnr)
+            PrometheusProvider.prometheus.journalføringCounter(
+                type = JournalføringsType.jfr,
+                enhet = oppgaveRequest.tildeltEnhetsnr
+            )
                 .increment()
         } else if (oppgaveRequest.oppgavetype == Oppgavetype.FORDELING.verdi) {
-            prometheus.journalføringCounter(type = JournalføringsType.fdr).increment()
+            PrometheusProvider.prometheus.journalføringCounter(type = JournalføringsType.fdr).increment()
         }
     }
 

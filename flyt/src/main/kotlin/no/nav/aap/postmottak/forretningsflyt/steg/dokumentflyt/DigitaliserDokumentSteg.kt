@@ -68,6 +68,7 @@ class DigitaliserDokumentSteg(
             val innsendingType = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
 
             if (innsendingType == null) {
+                log.info("Innsendingtype kjennes ikke til: ${journalpost.hoveddokumentbrevkode}.")
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
             }
 
