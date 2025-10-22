@@ -2,7 +2,7 @@ plugins {
     id("postmottak.conventions")
 }
 
-val kafkaVersion = "4.0.0"
+val kafkaVersion = "4.1.0"
 
 dependencies {
     api(project(":kontrakt"))
