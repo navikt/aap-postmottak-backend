@@ -14,7 +14,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AVKLAR_OVERLEVERING_KODE
 @JsonTypeName(value = AVKLAR_OVERLEVERING_KODE)
 class AvklarOverleveringLøsning(
     val skalOverleveres: Boolean,
-    @JsonProperty(
+    @param:JsonProperty(
         "behovstype",
         required = true,
         defaultValue = AVKLAR_OVERLEVERING_KODE

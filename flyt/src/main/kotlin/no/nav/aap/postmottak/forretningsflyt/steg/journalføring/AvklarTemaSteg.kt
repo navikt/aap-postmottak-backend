@@ -18,7 +18,7 @@ import no.nav.aap.postmottak.flyt.steg.Ventebehov
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
@@ -55,7 +55,7 @@ class AvklarTemaSteg(
 
     }
 
-    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+    override fun utfør(kontekst: FlytKontekst): StegResultat {
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Journalpost for behandling ${kontekst.behandlingId} mangler i AvklarTemaSteg" }
         if (journalpost.erUgyldig()) return Fullført

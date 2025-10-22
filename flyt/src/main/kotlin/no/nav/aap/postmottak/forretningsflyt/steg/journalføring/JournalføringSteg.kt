@@ -11,7 +11,7 @@ import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.Journalstatus
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 class JournalføringSteg(
@@ -20,7 +20,10 @@ class JournalføringSteg(
     private val avklarTemaRepository: AvklarTemaRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : BehandlingSteg {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): BehandlingSteg {
             return JournalføringSteg(
                 repositoryProvider.provide(),
                 JournalføringService(gatewayProvider),
@@ -33,7 +36,7 @@ class JournalføringSteg(
         }
     }
 
-    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+    override fun utfør(kontekst: FlytKontekst): StegResultat {
         val journalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId))
 
         if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT) return Fullført

@@ -19,7 +19,7 @@ import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -49,7 +49,7 @@ class OverleverTilFagsystemStegTest {
         overleveringVurderingRepository,
     )
 
-    val kontekst: FlytKontekstMedPerioder = mockk(relaxed = true)
+    val kontekst: FlytKontekst = mockk(relaxed = true)
     val journalpost: Journalpost = mockk()
     val journalpostId: JournalpostId = JournalpostId(123)
     val behandling: Behandling = mockk()
@@ -77,7 +77,7 @@ class OverleverTilFagsystemStegTest {
 
     @Test
     fun `hvis søknad er manuelt strukturert, blir strukturert dokument sendt til behandlingsflyt`() {
-        val kontekst: FlytKontekstMedPerioder = mockk(relaxed = true)
+        val kontekst: FlytKontekst = mockk(relaxed = true)
         val struktureringsvurdering = Digitaliseringsvurdering(
             InnsendingType.SØKNAD, """{
             |"yrkesskade": "Nei",
@@ -162,9 +162,9 @@ class OverleverTilFagsystemStegTest {
             null
         )
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(true)
-        every {journalpost.mottattDato} returns mottattDato
+        every { journalpost.mottattDato } returns mottattDato
         every { journalpost.mottattTid } returns mottattDato.atStartOfDay()
-        
+
         val stegresultat = overførTilFagsystemSteg.utfør(kontekst)
         verify(exactly = 1) {
             behandlingsflytKlient.sendHendelse(

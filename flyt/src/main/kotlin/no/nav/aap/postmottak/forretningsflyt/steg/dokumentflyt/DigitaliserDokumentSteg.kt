@@ -16,7 +16,7 @@ import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.gateway.serialiser
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.BrevkoderHelper
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -52,7 +52,7 @@ class DigitaliserDokumentSteg(
 
     }
 
-    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+    override fun utfør(kontekst: FlytKontekst): StegResultat {
         val struktureringsvurdering =
             digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
 

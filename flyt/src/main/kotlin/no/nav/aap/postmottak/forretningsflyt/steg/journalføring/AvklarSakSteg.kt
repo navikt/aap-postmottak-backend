@@ -17,7 +17,7 @@ import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
@@ -50,7 +50,7 @@ class AvklarSakSteg(
 
     }
 
-    override fun utfør(kontekst: FlytKontekstMedPerioder): StegResultat {
+    override fun utfør(kontekst: FlytKontekst): StegResultat {
         /* 
          * TODO: Når vi skal tillate at person kan ha Arena-historikk må vi avklare manuelt dersom det finnes sak både i Arena og Kelvin. 
          * Må da lagre ned fagsystem i saksvurdering. Hvis fagsystem er Arena: opprett en jobb for ArenaVideresending,

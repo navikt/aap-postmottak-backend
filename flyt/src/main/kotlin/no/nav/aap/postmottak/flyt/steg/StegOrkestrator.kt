@@ -12,7 +12,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
@@ -136,11 +135,7 @@ class StegOrkestrator(
         behandlingSteg: BehandlingSteg,
         kontekst: FlytKontekst
     ): Transisjon {
-        val kontekstMedPerioder = FlytKontekstMedPerioder(
-            behandlingId = kontekst.behandlingId,
-            behandlingType = kontekst.behandlingType,
-        )
-        val stegResultat = behandlingSteg.utfør(kontekstMedPerioder)
+        val stegResultat = behandlingSteg.utfør(kontekst)
 
         val resultat = stegResultat.transisjon()
 
@@ -149,14 +144,14 @@ class StegOrkestrator(
                 "Fant avklaringsbehov: {}",
                 resultat.avklaringsbehov()
             )
-            val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekstMedPerioder.behandlingId)
+            val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
             avklaringsbehovene.leggTil(resultat.avklaringsbehov(), aktivtSteg.type())
         } else if (resultat is FunnetVentebehov) {
             log.info(
                 "Fant ventebehov: {}",
                 resultat.ventebehov()
             )
-            val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekstMedPerioder.behandlingId)
+            val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
             resultat.ventebehov().forEach {
                 avklaringsbehovene.leggTil(
                     definisjoner = listOf(it.definisjon),

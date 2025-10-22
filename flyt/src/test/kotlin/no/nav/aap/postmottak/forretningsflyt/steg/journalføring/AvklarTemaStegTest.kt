@@ -13,7 +13,7 @@ import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -44,7 +44,11 @@ class AvklarTemaStegTest {
 
     val journalpost: Journalpost = mockk(relaxed = true)
     val behandlingId = BehandlingId(10)
-    val kontekst = FlytKontekstMedPerioder(behandlingId = behandlingId, TypeBehandling.DokumentHåndtering)
+    val kontekst = FlytKontekst(
+        behandlingId = behandlingId,
+        behandlingType = TypeBehandling.DokumentHåndtering,
+        journalpostId = journalpost.journalpostId
+    )
 
 
     @BeforeEach
