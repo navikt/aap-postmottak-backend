@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.avklaringsbehov
 
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -22,20 +23,28 @@ class Avklaringsbehov(
         }
     }
 
-    internal fun reåpne(frist: LocalDate? = null, begrunnelse: String = "", grunn: ÅrsakTilSettPåVent? = null) {
+    internal fun reåpne(
+        frist: LocalDate? = null,
+        begrunnelse: String = "",
+        venteårsak: ÅrsakTilSettPåVent? = null,
+        bruker: Bruker = SYSTEMBRUKER
+    ) {
+        require(historikk.last().status.erAvsluttet())
+        if (definisjon.erVentebehov()) {
+            requireNotNull(frist)
+            requireNotNull(venteårsak)
+        }
         historikk += Endring(
             status = Status.OPPRETTET,
             begrunnelse = begrunnelse,
-            grunn = grunn,
+            grunn = venteårsak,
             frist = frist,
-            endretAv = SYSTEMBRUKER.ident
+            endretAv = bruker.ident
         )
     }
 
     fun erÅpent(): Boolean {
-        return status() in setOf(
-            Status.OPPRETTET, Status.SENDT_TILBAKE_FRA_BESLUTTER, Status.SENDT_TILBAKE_FRA_KVALITETSSIKRER
-        )
+        return status().erÅpent()
     }
 
     fun skalStoppeHer(stegType: StegType): Boolean {
@@ -58,7 +67,7 @@ class Avklaringsbehov(
     }
 
     fun erAvsluttet(): Boolean {
-        return status() == Status.AVSLUTTET
+        return status().erAvsluttet()
     }
 
     fun status(): Status {
@@ -89,7 +98,8 @@ class Avklaringsbehov(
     }
 
     fun frist(): LocalDate {
-        return requireNotNull(historikk.last { it.status == Status.OPPRETTET }.frist)
+        return requireNotNull(historikk.last { it.status == Status.OPPRETTET && it.frist != null }.frist)
+        { "Prøvde å finne frist, men historikk er tom. Definisjon $definisjon. Funnet i steg $funnetISteg. ID: $id. Historikk: $historikk." }
     }
 
     fun fristUtløpt(): Boolean {

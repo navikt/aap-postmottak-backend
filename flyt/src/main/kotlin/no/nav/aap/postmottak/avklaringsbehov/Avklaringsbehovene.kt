@@ -7,18 +7,17 @@ import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-
-private val log = LoggerFactory.getLogger(Avklaringsbehovene::class.java)
 
 class Avklaringsbehovene(
     private val repository: AvklaringsbehovRepository,
     private val behandlingId: BehandlingId
 ) : AvklaringsbehoveneDecorator {
-    private var avklaringsbehovene: MutableList<Avklaringsbehov> = repository.hent(behandlingId).toMutableList()
+    private val log = LoggerFactory.getLogger(javaClass)
+    private val avklaringsbehovene: List<Avklaringsbehov>
+        get() = repository.hent(behandlingId)
 
     fun ingenEndring(avklaringsbehov: Avklaringsbehov, bruker: String) {
         løsAvklaringsbehov(
@@ -44,7 +43,10 @@ class Avklaringsbehovene(
         repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
     }
 
-    fun leggTilFrivilligHvisMangler(definisjon: Definisjon, bruker: Bruker) {
+    fun leggTilFrivilligHvisMangler(
+        definisjon: Definisjon,
+        bruker: Bruker
+    ) {
         if (definisjon.erFrivillig()) {
             if (hentBehovForDefinisjon(definisjon) == null) {
                 // Legger til frivillig behov
@@ -66,18 +68,20 @@ class Avklaringsbehovene(
         grunn: ÅrsakTilSettPåVent? = null,
         bruker: Bruker = SYSTEMBRUKER
     ) {
+        log.info("Legger til avklaringsbehov :: {} - {}", definisjoner, stegType)
         definisjoner.forEach { definisjon ->
             val avklaringsbehov = hentBehovForDefinisjon(definisjon)
             if (avklaringsbehov != null) {
-                if (avklaringsbehov.erAvsluttet() || avklaringsbehov.status() == Status.AVBRUTT) {
-                    avklaringsbehov.reåpne(frist, begrunnelse, grunn)
+                if (avklaringsbehov.erAvsluttet()) {
+                    avklaringsbehov.reåpne(utledFrist(definisjon, frist), begrunnelse, grunn, bruker)
                     if (avklaringsbehov.erVentepunkt()) {
+                        // TODO: Vurdere om funnet steg bør ligge på endringen...
                         repository.endreVentepunkt(avklaringsbehov.id, avklaringsbehov.historikk.last(), stegType)
                     } else {
                         repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
                     }
                 } else {
-                    log.warn("Forsøkte å legge til et avklaringsbehov som allerede eksisterte")
+                    log.info("Forsøkte å legge til et avklaringsbehov som allerede eksisterte")
                 }
             } else {
                 repository.opprett(
@@ -93,7 +97,10 @@ class Avklaringsbehovene(
         }
     }
 
-    private fun utledFrist(definisjon: Definisjon, frist: LocalDate?): LocalDate? {
+    private fun utledFrist(
+        definisjon: Definisjon,
+        frist: LocalDate?
+    ): LocalDate? {
         if (definisjon.erVentebehov()) {
             return definisjon.utledFrist(frist)
         }
@@ -101,8 +108,11 @@ class Avklaringsbehovene(
     }
 
     override fun alle(): List<Avklaringsbehov> {
-        avklaringsbehovene = repository.hent(behandlingId).toMutableList()
-        return avklaringsbehovene.toList()
+        return avklaringsbehovene
+    }
+
+    override fun alleEkskludertVentebehov(): List<Avklaringsbehov> {
+        return avklaringsbehovene.filterNot { it.definisjon.erVentebehov() }
     }
 
     fun åpne(): List<Avklaringsbehov> {
@@ -117,7 +127,10 @@ class Avklaringsbehovene(
         return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraBeslutterTidligere() }
     }
 
-    fun validateTilstand(behandling: Behandling, avklaringsbehov: Definisjon? = null) {
+    fun validateTilstand(
+        behandling: Behandling,
+        avklaringsbehov: Definisjon? = null
+    ) {
         ValiderBehandlingTilstand.validerTilstandBehandling(
             behandling = behandling,
             avklaringsbehov = avklaringsbehov,
@@ -137,12 +150,8 @@ class Avklaringsbehovene(
                 )
             }
         if (uhåndterteBehov.isNotEmpty()) {
-            throw IllegalStateException("Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg'")
+            throw IllegalStateException("Har uhåndterte behov som skulle vært håndtert før nåværende steg = '$nesteSteg'. Behov: ${uhåndterteBehov.map { it.definisjon }}")
         }
-    }
-
-    override fun erSattPåVent(): Boolean {
-        return alle().any { avklaringsbehov -> avklaringsbehov.erVentepunkt() && avklaringsbehov.erÅpent() }
     }
 
     fun hentVentepunkterMedUtløptFrist(): List<Avklaringsbehov> {
@@ -153,4 +162,11 @@ class Avklaringsbehovene(
         return alle().filter { it.erVentepunkt() && it.erÅpent() }
     }
 
+    override fun erSattPåVent(): Boolean {
+        return alle().any { avklaringsbehov -> avklaringsbehov.erVentepunkt() && avklaringsbehov.erÅpent() }
+    }
+
+    override fun toString(): String {
+        return "Behov[${avklaringsbehovene.joinToString { it.toString() }}. For ID $behandlingId.]"
+    }
 }
