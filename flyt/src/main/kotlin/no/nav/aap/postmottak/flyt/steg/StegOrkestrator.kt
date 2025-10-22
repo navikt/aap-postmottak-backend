@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekstMedPerioder
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
@@ -53,7 +54,7 @@ class StegOrkestrator(
         aktivtSteg: FlytSteg,
         kontekst: FlytKontekst,
         behandling: Behandling,
-        faktagrunnlagForGjeldendeSteg: List<Informasjonskravkonstruktør>
+        faktagrunnlagForGjeldendeSteg: List<Pair<StegType, Informasjonskravkonstruktør>>
     ): Transisjon {
         var gjeldendeStegStatus = StegStatus.START
         log.info("Behandler steg '{}'", aktivtSteg.type())
@@ -95,7 +96,7 @@ class StegOrkestrator(
         kontekst: FlytKontekst,
         nesteStegStatus: StegStatus,
         behandling: Behandling,
-        faktagrunnlagForGjeldendeSteg: List<Informasjonskravkonstruktør>
+        faktagrunnlagForGjeldendeSteg: List<Pair<StegType, Informasjonskravkonstruktør>>
     ): Transisjon {
         val behandlingSteg = stegKonstruktør.konstruer(aktivtSteg)
 
@@ -121,7 +122,7 @@ class StegOrkestrator(
 
     private fun oppdaterFaktagrunnlag(
         kontekst: FlytKontekst,
-        faktagrunnlagForGjeldendeSteg: List<Informasjonskravkonstruktør>
+        faktagrunnlagForGjeldendeSteg: List<Pair<StegType, Informasjonskravkonstruktør>>
     ): Fortsett {
         informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
             faktagrunnlagForGjeldendeSteg,

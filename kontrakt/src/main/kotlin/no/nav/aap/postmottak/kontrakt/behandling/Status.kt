@@ -9,4 +9,6 @@ enum class Status {
     fun erAvsluttet(): Boolean {
         return AVSLUTTET == this || IVERKSETTES == this
     }
+
+    fun erÅpen(): Boolean = !erAvsluttet()
 }

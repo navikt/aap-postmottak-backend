@@ -101,7 +101,7 @@ class FlytOrkestrator(
 
         val oppdaterFaktagrunnlagForKravliste =
             informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
-                kravliste = behandlingFlyt.alleFaktagrunnlagFørGjeldendeSteg(),
+                kravkonstruktører = behandlingFlyt.alleFaktagrunnlagFørGjeldendeSteg(),
                 kontekst = kontekst
             )
 
