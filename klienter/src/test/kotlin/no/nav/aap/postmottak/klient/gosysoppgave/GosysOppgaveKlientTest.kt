@@ -1,5 +1,8 @@
 package no.nav.aap.postmottak.klient.gosysoppgave
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.Fakes
@@ -10,7 +13,9 @@ import java.time.LocalDateTime.of
 
 @Fakes
 class GosysOppgaveKlientTest {
-    
+    init {
+        PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    }
     val gosysOppgaveKlient = GosysOppgaveKlient()
 
     @Test

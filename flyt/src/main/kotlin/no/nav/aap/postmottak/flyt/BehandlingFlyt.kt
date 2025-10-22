@@ -5,12 +5,17 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.ÅrsakTilBehandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.util.*
 
 
 /**
- * Holder styr på den definerte behandlingsflyten og regner ut hvilket steg det skal flyttes
+ * Holder styr på den definerte behandlingsflyten og regner ut hvilket steg det skal flyttes.
+ *
+ * Synket med behandlingsflyt sin utgave av denne 22/10-25 + fjernet ubrukte metoder.
+ *
+ * Synking bør gjøres jevnlig.
  */
 class BehandlingFlyt private constructor(
     private val flyt: List<Behandlingsflytsteg>,
@@ -18,29 +23,43 @@ class BehandlingFlyt private constructor(
 ) {
     private var aktivtSteg: Behandlingsflytsteg? = flyt.firstOrNull()
 
+    /**
+     * @param oppdaterFaktagrunnlag Om faktagrunnlaget skal oppdateres for dette steget.
+     */
     class Behandlingsflytsteg(
         val steg: FlytSteg,
         val kravliste: List<Informasjonskravkonstruktør>,
         val oppdaterFaktagrunnlag: Boolean
-    )
+    ) {
+        override fun toString(): String {
+            return "Behandlingsflytsteg(kravliste=${kravliste.map { it }}, steg=${steg.type()}, oppdaterFaktagrunnlag=$oppdaterFaktagrunnlag)"
+        }
+    }
 
     constructor(flyt: List<Behandlingsflytsteg>) : this(
         flyt = flyt,
         parent = null
     )
 
-    fun faktagrunnlagForGjeldendeSteg(): List<Informasjonskravkonstruktør> {
-        return aktivtSteg?.kravliste ?: emptyList()
+    fun faktagrunnlagForGjeldendeSteg(): List<Pair<StegType, Informasjonskravkonstruktør>> {
+        return aktivtSteg
+            ?.let { steg -> steg.kravliste.map { steg.steg.type() to it } }
+            .orEmpty()
     }
 
-    fun alleFaktagrunnlagFørGjeldendeSteg(): List<Informasjonskravkonstruktør> {
+    /**
+     * Henter alle faktagrunnlag strengt før (altså, ikke inklusivt) gjeldende steg.
+     *
+     * @return Alle faktagrunnlag, i form av en liste av [Informasjonskravkonstruktør].
+     */
+    fun alleFaktagrunnlagFørGjeldendeSteg(): List<Pair<StegType, Informasjonskravkonstruktør>> {
         if (aktivtSteg?.oppdaterFaktagrunnlag != true) {
             return emptyList()
         }
 
         return flyt
             .takeWhile { it != aktivtSteg }
-            .flatMap { it.kravliste }
+            .flatMap { steg -> steg.kravliste.map { steg.steg.type() to it } }
     }
 
     fun forberedFlyt(aktivtSteg: StegType): FlytSteg {
@@ -76,10 +95,15 @@ class BehandlingFlyt private constructor(
     internal fun validerPlassering(skulleVærtIStegType: StegType) {
         val aktivtStegType = requireNotNull(aktivtSteg).steg.type()
         require(skulleVærtIStegType == aktivtStegType)
+        { "Aktivt steg $aktivtStegType er ikke lik det forventede steget $skulleVærtIStegType" }
     }
 
     private fun steg(nåværendeSteg: StegType): Behandlingsflytsteg {
-        return flyt[flyt.indexOfFirst { it.steg.type() == nåværendeSteg }]
+        return try {
+            flyt[flyt.indexOfFirst { it.steg.type() == nåværendeSteg }]
+        } catch (e: IndexOutOfBoundsException) {
+            throw IllegalArgumentException("Steg $nåværendeSteg finnes ikke i flyten", e)
+        }
     }
 
     fun erStegFør(stegA: StegType, stegB: StegType): Boolean {
@@ -122,7 +146,7 @@ class BehandlingFlyt private constructor(
 
     internal fun tilbakeflyt(avklaringsbehov: Avklaringsbehov?): BehandlingFlyt {
         if (avklaringsbehov == null) {
-            return tilbakeflyt(listOf())
+            return tilbakeflyt(emptyList())
         }
         return tilbakeflyt(listOf(avklaringsbehov))
     }
@@ -130,7 +154,7 @@ class BehandlingFlyt private constructor(
     internal fun tilbakeflyt(avklaringsbehov: List<Avklaringsbehov>): BehandlingFlyt {
         val skalTilSteg = skalTilStegForBehov(avklaringsbehov)
 
-        return utletTilbakeflytTilSteg(skalTilSteg)
+        return utledTilbakeflytTilSteg(skalTilSteg)
     }
 
     fun skalTilStegForBehov(avklaringsbehov: List<Avklaringsbehov>): StegType? {
@@ -144,15 +168,19 @@ class BehandlingFlyt private constructor(
         return skalTilStegForBehov(listOf(avklaringsbehov))
     }
 
-    fun tilbakeflytEtterEndringer(oppdaterteGrunnlagstype: List<Informasjonskravkonstruktør>): BehandlingFlyt {
+    fun tilbakeflytEtterEndringer(
+        oppdaterteGrunnlagstype: List<Informasjonskravkonstruktør>,
+    ): BehandlingFlyt {
         val skalTilSteg =
-            flyt.filter { it.kravliste.any { at -> oppdaterteGrunnlagstype.contains(at) } }.map { it.steg.type() }
+            flyt.filter { it.kravliste.any { at -> oppdaterteGrunnlagstype.contains(at) } }
+                .map { it.steg.type() }
+                .minus(StegType.entries.filter { it.status == Status.OPPRETTET }.toSet())
                 .minWithOrNull(stegComparator)
 
-        return utletTilbakeflytTilSteg(skalTilSteg)
+        return utledTilbakeflytTilSteg(skalTilSteg)
     }
 
-    private fun utletTilbakeflytTilSteg(skalTilSteg: StegType?): BehandlingFlyt {
+    private fun utledTilbakeflytTilSteg(skalTilSteg: StegType?): BehandlingFlyt {
         if (skalTilSteg == null) {
             return BehandlingFlyt(emptyList())
         }
@@ -169,7 +197,7 @@ class BehandlingFlyt private constructor(
         )
     }
 
-    fun erTom(): Boolean {
+    internal fun erTom(): Boolean {
         return flyt.isEmpty()
     }
 
@@ -185,17 +213,12 @@ class BehandlingFlyt private constructor(
     internal fun aktivtSteg(): FlytSteg {
         return requireNotNull(aktivtSteg).steg
     }
-}
 
-class StegComparator(private var flyt: List<BehandlingFlyt.Behandlingsflytsteg>) : Comparator<StegType> {
-    override fun compare(stegA: StegType?, stegB: StegType?): Int {
-        val aIndex = flyt.indexOfFirst { it.steg.type() == stegA }
-        val bIndex = flyt.indexOfFirst { it.steg.type() == stegB }
-
-        return aIndex.compareTo(bIndex)
+    override fun toString(): String {
+        return "BehandlingFlyt(aktivtSteg=$aktivtSteg, flyt=$flyt, parent=$parent)"
     }
-
 }
+
 
 class BehandlingFlytBuilder {
     private val flyt: MutableList<BehandlingFlyt.Behandlingsflytsteg> = mutableListOf()
@@ -209,26 +232,15 @@ class BehandlingFlytBuilder {
         informasjonskrav: List<Informasjonskravkonstruktør> = emptyList()
     ): BehandlingFlytBuilder {
         if (buildt) {
-            throw IllegalStateException("[Utvikler feil] Builder er allerede bygget")
+            throw IllegalStateException("[Utviklerfeil] Builder er allerede bygget")
         }
         if (StegType.UDEFINERT == steg.type()) {
-            throw IllegalStateException("[Utvikler feil] StegType UDEFINERT er ugyldig å legge til i flyten")
+            throw IllegalStateException("[Utviklerfeil] StegType UDEFINERT er ugyldig å legge til i flyten")
         }
-        this.flyt.add(
-            BehandlingFlyt.Behandlingsflytsteg(
-                steg,
-                informasjonskrav,
-                oppdaterFaktagrunnlag
-            )
-        )
+        this.flyt.add(BehandlingFlyt.Behandlingsflytsteg(steg, informasjonskrav, oppdaterFaktagrunnlag))
         kunRelevantVedÅrsakerHvisSattEllersIkke.forEach { endring ->
             this.endringTilSteg[endring] = steg.type()
         }
-        return this
-    }
-
-    fun sluttÅOppdatereFaktagrunnlag(): BehandlingFlytBuilder {
-        oppdaterFaktagrunnlag = false
         return this
     }
 
@@ -239,7 +251,7 @@ class BehandlingFlytBuilder {
         buildt = true
 
         return BehandlingFlyt(
-            Collections.unmodifiableList(flyt)
+            flyt = Collections.unmodifiableList(flyt),
         )
     }
 }
