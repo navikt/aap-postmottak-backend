@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.hendelseType
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.JoarkRegel.erIkkeKanalEESSI
@@ -38,12 +39,12 @@ class TransactionProvider(
     val datasource: DataSource,
     val repositoryRegistry: RepositoryRegistry
 ) {
-    fun inTransaction(block: TransactionContext.() -> Unit) {
-        datasource.transaction {
-            val behandlingRepository: BehandlingRepository = repositoryRegistry.provider(it).provide()
+    fun <A> inTransaction(readOnly: Boolean = false, block: TransactionContext.() -> A): A {
+        return datasource.transaction(readOnly = readOnly) {
+            val provider = repositoryRegistry.provider(it)
             TransactionContext(
-                behandlingRepository,
-                FlytJobbRepository(it),
+                provider.provide(),
+                provider.provide()
             ).let(block)
         }
     }
@@ -53,7 +54,7 @@ class TransactionProvider(
 const val JOARK_TOPIC = "teamdokumenthandtering.aapen-dok-journalfoering"
 
 /**
- * Dokumentasjon på hendelsene finnes her: https://confluence.adeo.no/spaces/BOA/pages/432217891/Joarkhendelser
+ * Dokumentasjon på hendelsene finnes på [Confluence](https://confluence.adeo.no/spaces/BOA/pages/432217891/Joarkhendelser)
  */
 class JoarkKafkaHandler(
     config: StreamsConfig,
@@ -98,14 +99,22 @@ class JoarkKafkaHandler(
         transactionProvider.inTransaction {
             val behandling = behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
             if (behandling != null) {
-                flytJobbRepository.leggTil(
-                    JobbInput(ProsesserBehandlingJobbUtfører)
-                        .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id.id).medCallId()
-                )
+                opprettTemaEndringJobb(journalpostId, behandling)
             } else {
                 log.info("Fant ikke åpen behandling for journalpost $journalpostId")
             }
         }
+    }
+
+    private fun TransactionContext.opprettTemaEndringJobb(
+        journalpostId: JournalpostId,
+        behandling: Behandling
+    ) {
+        flytJobbRepository.leggTil(
+            JobbInput(ProsesserBehandlingJobbUtfører)
+                .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id.id)
+                .medCallId()
+        )
     }
 
     private fun opprettFordelingRegelJobb(
@@ -114,7 +123,6 @@ class JoarkKafkaHandler(
     ) {
         log.info("Mottatt ny journalpost: $journalpostId, hendelse: $hendelse")
         transactionProvider.inTransaction {
-
             flytJobbRepository.leggTil(
                 JobbInput(FordelingRegelJobbUtfører)
                     .forSak(journalpostId.referanse)

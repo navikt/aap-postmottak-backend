@@ -2,8 +2,6 @@ plugins {
     id("postmottak.conventions")
 }
 
-val kafkaVersion = "4.0.0"
-
 dependencies {
     api(project(":kontrakt"))
     api(libs.motor)
@@ -32,7 +30,7 @@ dependencies {
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.6")
 
     // https://github.com/navikt/teamdokumenthandtering-avro-schemas
-    testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
+    testImplementation(libs.kafkaStreamsTestUtils)
     testImplementation(libs.bundles.junit)
     testImplementation(project(":lib-test"))
     testImplementation(project(":repository"))

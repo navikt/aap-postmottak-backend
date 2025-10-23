@@ -40,7 +40,7 @@ class FlytOrkestrator(
     private val behandlingHendelseService: BehandlingHendelseServiceImpl,
     private val stegOrkestrator: StegOrkestrator
 ) {
-    
+
     constructor(
         repositoryProvider: RepositoryProvider,
         gatewayProvider: GatewayProvider,
@@ -99,12 +99,16 @@ class FlytOrkestrator(
             }
         }
 
+        førTilbakeTilTidligsteÅpneAvklaringsbehov(avklaringsbehovene, behandlingFlyt, behandling, kontekst)
+
+        log.info("Oppdaterer faktagrunnlag for kravliste")
         val oppdaterFaktagrunnlagForKravliste =
             informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(
                 kravkonstruktører = behandlingFlyt.alleFaktagrunnlagFørGjeldendeSteg(),
                 kontekst = kontekst
             )
 
+        log.info("Sjekker om noe skal tilbakeføres etter oppdatering av informasjonskrav.")
         val tilbakeføringsflyt = behandlingFlyt.tilbakeflytEtterEndringer(oppdaterFaktagrunnlagForKravliste)
 
         if (!tilbakeføringsflyt.erTom()) {
@@ -173,6 +177,31 @@ class FlytOrkestrator(
         }
     }
 
+    private fun førTilbakeTilTidligsteÅpneAvklaringsbehov(
+        avklaringsbehovene: Avklaringsbehovene,
+        behandlingFlyt: BehandlingFlyt,
+        behandling: Behandling,
+        kontekst: FlytKontekst
+    ) {
+        val tidligsteÅpneAvklaringsbehov = avklaringsbehovene.åpne()
+            .minWithOrNull(compareBy(behandlingFlyt.stegComparator) { it.løsesISteg() })
+
+        if (tidligsteÅpneAvklaringsbehov != null) {
+            if (behandlingFlyt.erStegFør(tidligsteÅpneAvklaringsbehov.løsesISteg(), behandling.aktivtSteg())) {
+                log.error(
+                    """
+                    Behandlingen er i steg ${behandling.aktivtSteg()} og har passert det åpne
+                    avklaringsbehovet ${tidligsteÅpneAvklaringsbehov.definisjon} som skal løses i
+                    steg ${tidligsteÅpneAvklaringsbehov.løsesISteg()}. Med mindre det har skjedd
+                    en endring i rekkefølgen av stegene, så er dette en bug.
+                    """.trimIndent().replace("\n", " ")
+                )
+                val tilbakeflyt = behandlingFlyt.tilbakeflyt(tidligsteÅpneAvklaringsbehov)
+                tilbakefør(kontekst, behandling, tilbakeflyt, avklaringsbehovene)
+            }
+        }
+    }
+
     private fun validerAtAvklaringsBehovErLukkede(avklaringsbehovene: Avklaringsbehovene) {
         check(avklaringsbehovene.åpne().isEmpty()) {
             "Behandlingen er avsluttet, men det finnes åpne avklaringsbehov."
@@ -218,9 +247,8 @@ class FlytOrkestrator(
             return
         }
 
+        var neste: FlytSteg? = behandlingFlyt.aktivtSteg()
         while (true) {
-            val neste = behandlingFlyt.neste()
-
             if (neste == null) {
                 loggStopp(behandling, avklaringsbehovene)
                 if (harHeltStoppet) {
@@ -233,6 +261,7 @@ class FlytOrkestrator(
                 kontekst = kontekst,
                 behandling = behandling
             )
+            neste = behandlingFlyt.neste()
         }
     }
 

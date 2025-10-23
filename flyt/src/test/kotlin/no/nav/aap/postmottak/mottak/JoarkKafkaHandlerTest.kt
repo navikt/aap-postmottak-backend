@@ -2,9 +2,13 @@ package no.nav.aap.postmottak.mottak
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.verify
+import no.nav.aap.komponenter.repository.RepositoryProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
+import no.nav.aap.lookup.repository.Repository
 import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
@@ -23,18 +27,18 @@ class JoarkKafkaHandlerTest {
 
     val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
     val flytJobbRepository: FlytJobbRepository = mockk(relaxed = true)
-    val repositoryRegistry = RepositoryRegistry()
+    val repositoryRegistry = mockk<RepositoryRegistry>()
 
     @Test
     fun `verifiser mottagelse av joark event og oppretting regelfordelingjobb`() {
         val config = config()
-        setUpStreamsMock(config, repositoryRegistry) {
+        setUpStreamsMock(config) {
             val hendelseRecord = lagHendelseRecord()
 
             pipeInput("yolo", hendelseRecord)
 
             Thread.sleep(100)
-            
+
             verify(exactly = 1) {
                 flytJobbRepository.leggTil(withArg {
                     assertThat(it.type()).isEqualTo(FordelingRegelJobbUtfører.type)
@@ -47,10 +51,11 @@ class JoarkKafkaHandlerTest {
     @Test
     fun `verifiser mottak av temaendringer og avlevering`() {
         val config = config()
-        setUpStreamsMock(config, repositoryRegistry) {
+        setUpStreamsMock(config) {
             val hendelseRecord = lagHendelseRecord(nyttTema = "IKKE AAP", gammeltTema = "AAP")
 
-            every { behandlingRepository.opprettBehandling(any(), any()) } returns mockk<BehandlingId>(relaxed = true)
+            every { behandlingRepository.opprettBehandling(any(), any()) } returns BehandlingId(10L)
+            every { behandlingRepository.hentÅpenJournalføringsbehandling(any())} returns mockk(relaxed = true)
 
             pipeInput("yolo", hendelseRecord)
 
@@ -63,16 +68,14 @@ class JoarkKafkaHandlerTest {
 
     private fun setUpStreamsMock(
         config: StreamsConfig,
-        repositoryRegistry: RepositoryRegistry,
         block: TestInputTopic<String, JournalfoeringHendelseRecord>.() -> Unit
     ) {
-        val transactionProvider: TransactionProvider = mockk(relaxed = true)
-        every { transactionProvider.inTransaction(any()) } answers {
-            TransactionContext(
-                behandlingRepository,
-                flytJobbRepository
-            ).let(firstArg())
-        }
+        val transactionProvider = TransactionProvider(mockk(relaxed = true), repositoryRegistry)
+        every { behandlingRepository.hentÅpenJournalføringsbehandling(any())} returns null
+        val mockk = mockk<RepositoryProvider>()
+        every { mockk.provide<BehandlingRepository>() } returns behandlingRepository
+        every { mockk.provide<FlytJobbRepository>() } returns flytJobbRepository
+        every { repositoryRegistry.provider(any()) } returns mockk
 
         val joarkKafkaHandler = JoarkKafkaHandler(config, mockk(), repositoryRegistry, transactionProvider)
         val topologyTestDriver = TopologyTestDriver(joarkKafkaHandler.topology, config.streamsProperties())
