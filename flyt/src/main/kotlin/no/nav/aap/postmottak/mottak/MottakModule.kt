@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.mottak
 
-import io.ktor.server.application.*
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.komponenter.repository.RepositoryRegistry
@@ -11,7 +10,7 @@ import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import javax.sql.DataSource
 
-fun Application.mottakStream(dataSource: DataSource, repositoryRegistry: RepositoryRegistry): Stream {
+fun mottakStream(dataSource: DataSource, repositoryRegistry: RepositoryRegistry): Stream {
     if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
     val config = StreamsConfig()
     val stream =
@@ -24,8 +23,5 @@ fun Application.mottakStream(dataSource: DataSource, repositoryRegistry: Reposit
             ).topology, config
         )
     stream.start()
-    monitor.subscribe(ApplicationStopped) {
-        stream.close()
-    }
     return stream
 }

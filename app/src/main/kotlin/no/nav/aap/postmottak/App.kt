@@ -49,6 +49,7 @@ import no.nav.aap.postmottak.exception.FlytOperasjonException
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.mottak.JoarkKafkaHandler
 import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.mottakStream
 import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
@@ -138,6 +139,10 @@ internal fun Application.server(
 
 
     val mottakStream = mottakStream(dataSource, repositoryRegistry)
+
+    monitor.subscribe(ApplicationStopped) {
+        mottakStream.close()
+    }
 
     routing {
         authenticate(AZURE) {
