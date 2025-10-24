@@ -101,8 +101,20 @@ class JoarkKafkaHandler(
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.foreach { _, record ->
             val journalpostId = record.journalpostId.let(::JournalpostId)
-
-            opprettFordelingRegelJobb(journalpostId, record.hendelsesType)
+            val åpenBehandling = transactionProvider.inTransaction(readOnly = true) {
+                behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
+            }
+            if (åpenBehandling != null) {
+                transactionProvider.inTransaction {
+                    avklaringsbehovOrkestrator.taAvVentPgaGosys(åpenBehandling.id)
+                    triggProsesserBehandling(
+                        journalpostId,
+                        åpenBehandling
+                    )
+                }
+            } else {
+                opprettFordelingRegelJobb(journalpostId, record.hendelsesType)
+            }
         }
     }
 

@@ -5,6 +5,8 @@ import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.SYSTEMBRUKER
+import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.flyt.FlytOrkestrator
 import no.nav.aap.postmottak.flyt.utledType
@@ -17,6 +19,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 class AvklaringsbehovOrkestrator(
     private val repositoryProvider: RepositoryProvider,
@@ -132,6 +135,42 @@ class AvklaringsbehovOrkestrator(
             begrunnelse = hendelse.begrunnelse,
             grunn = hendelse.grunn,
             bruker = hendelse.bruker
+        )
+
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+        avklaringsbehovene.validerPlassering(behandling = behandling)
+        behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
+    }
+
+    fun settBehandlingPåVentForTemaEndring(behandlingId: BehandlingId) {
+        val behandling = behandlingRepository.hent(behandlingId)
+
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+
+        avklaringsbehovene.leggTil(
+            definisjoner = listOf(Definisjon.VENT_PA_GOSYS),
+            stegType = behandling.aktivtSteg(),
+            frist = LocalDate.now().plusWeeks(2),
+            begrunnelse = "Venter på behandling i Gosys.",
+            grunn = ÅrsakTilSettPåVent.VENTER_PÅ_BEHANDLING_I_GOSYS,
+            bruker = SYSTEMBRUKER
+        )
+
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+        avklaringsbehovene.validerPlassering(behandling = behandling)
+        behandlingHendelseService.stoppet(behandling, avklaringsbehovene)
+    }
+
+    fun taAvVentPgaGosys(behandlingId: BehandlingId) {
+        val behandling = behandlingRepository.hent(behandlingId)
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
+        avklaringsbehovene.validateTilstand(behandling = behandling)
+
+        avklaringsbehovene.løsAvklaringsbehov(
+            definisjon = Definisjon.VENT_PA_GOSYS,
+            begrunnelse = "Ny oppdatering på journalpost.",
+            endretAv = SYSTEMBRUKER.ident,
         )
 
         avklaringsbehovene.validateTilstand(behandling = behandling)

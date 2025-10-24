@@ -61,8 +61,9 @@ class BehandlingHendelseServiceImpl(
                                 årsakTilSattPåVent = when (endring.grunn) {
                                     ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER
                                     ÅrsakTilSettPåVent.VENTER_PÅ_SVAR_FRA_BRUKER -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_SVAR_FRA_BRUKER
+                                    ÅrsakTilSettPåVent.VENTER_PÅ_BEHANDLING_I_GOSYS -> no.nav.aap.postmottak.kontrakt.hendelse.ÅrsakTilSettPåVent.VENTER_PÅ_BEHANDLING_I_GOSYS
                                     null -> null
-                                    else -> TODO("Skal ikke kunne skje: ${endring.grunn}")
+                                    else -> error("Skal ikke kunne skje: ${endring.grunn}")
                                 }
                             )
                         })

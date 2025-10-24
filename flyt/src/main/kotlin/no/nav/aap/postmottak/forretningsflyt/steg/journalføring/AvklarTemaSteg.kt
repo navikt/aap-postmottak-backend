@@ -2,7 +2,6 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
@@ -10,11 +9,9 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
-import no.nav.aap.postmottak.flyt.steg.FantVentebehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
-import no.nav.aap.postmottak.flyt.steg.Ventebehov
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -22,8 +19,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.unleash.PostmottakFeature
-import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(AvklarTemaSteg::class.java)
@@ -32,8 +27,7 @@ class AvklarTemaSteg(
     private val journalpostRepository: JournalpostRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
-    private val saksnummerRepository: SaksnummerRepository,
-    private val unleashGateway: UnleashGateway,
+    private val saksnummerRepository: SaksnummerRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -44,8 +38,7 @@ class AvklarTemaSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 gatewayProvider.provide(),
-                repositoryProvider.provide(),
-                gatewayProvider.provide()
+                repositoryProvider.provide()
             )
         }
 
@@ -78,25 +71,20 @@ class AvklarTemaSteg(
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             }
         } else {
-            if (unleashGateway.isEnabled(PostmottakFeature.LukkPostmottakEndreTemaBehandlinger)) {
-                return Fullført
-            } else {
-                if (venterPåBehandlingIGosys(journalpost, temavurdering)) { // tema fortsatt AAP
-                    val aktivIdent = journalpost.person.aktivIdent()
-                    gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
-                        journalpost.journalpostId,
-                        aktivIdent.identifikator
-                    )
+            if (venterPåBehandlingIGosys(journalpost, temavurdering)) { // tema fortsatt AAP
+                val aktivIdent = journalpost.person.aktivIdent()
+                gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
+                    journalpost.journalpostId,
+                    aktivIdent.identifikator
+                )
 
-//                    FantAvklaringsbehov(Definisjon.AVKLAR_TEMA) /// -> endre til Fullført
-                    FantVentebehov(Ventebehov(Definisjon.MANUELT_SATT_PÅ_VENT, ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER, null))
-                } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) { // har endret tema, fjern denne blokka
-                    log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
-                    gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
-                        .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
-                    return Fullført
-                } else Fullført
-            }
+                FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
+            } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) { // har endret tema, fjern denne blokka
+                log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
+                gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
+                    .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
+                return Fullført
+            } else Fullført
         }
     }
 
@@ -124,7 +112,7 @@ class AvklarTemaSteg(
             log.info("Avklarer digital meldekort maskinelt. JournalpostId ${journalpost.journalpostId}.")
             avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
         } else {
-            throw IllegalStateException("Journalpost er ikke en digital søknad, legeerklæring eller meldekort. JournalpostId ${journalpost.journalpostId}.")
+            error("Journalpost er ikke en digital søknad, legeerklæring eller meldekort. JournalpostId ${journalpost.journalpostId}.")
         }
     }
 

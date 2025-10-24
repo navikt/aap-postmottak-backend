@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.avklaringsbehov.løser
 
 enum class ÅrsakTilSettPåVent {
     VENTER_PÅ_OPPLYSNINGER,
+    VENTER_PÅ_BEHANDLING_I_GOSYS,
     VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER,
     VENTER_PÅ_MEDISINSKE_OPPLYSNINGER,
     VENTER_PÅ_VURDERING_AV_ROL,
