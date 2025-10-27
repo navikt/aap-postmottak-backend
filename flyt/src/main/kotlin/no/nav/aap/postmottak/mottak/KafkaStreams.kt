@@ -21,6 +21,8 @@ import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.medJournalpostId
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
@@ -78,6 +80,8 @@ class JoarkKafkaHandler(
 
     val topology: Topology
 
+    val unleashGateway: UnleashGateway
+
     init {
         val journalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
         val streamBuilder = StreamsBuilder()
@@ -91,6 +95,8 @@ class JoarkKafkaHandler(
             .branch(erTemaAAP, Branched.withConsumer(::nyJournalpost))
 
         topology = streamBuilder.build()
+
+        unleashGateway = gatewayProvider.provide()
     }
 
     private fun temaendringTopology(stream: KStream<String, JournalfoeringHendelseRecord>) {
@@ -104,7 +110,7 @@ class JoarkKafkaHandler(
             val åpenBehandling = transactionProvider.inTransaction(readOnly = true) {
                 behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
             }
-            if (åpenBehandling != null) {
+            if (åpenBehandling != null && unleashGateway.isEnabled(PostmottakFeature.LukkPostmottakEndreTemaBehandlinger)) {
                 transactionProvider.inTransaction {
                     avklaringsbehovOrkestrator.taAvVentPgaGosys(åpenBehandling.id)
                     triggProsesserBehandling(

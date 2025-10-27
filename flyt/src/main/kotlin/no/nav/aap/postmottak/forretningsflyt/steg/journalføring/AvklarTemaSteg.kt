@@ -27,7 +27,7 @@ class AvklarTemaSteg(
     private val journalpostRepository: JournalpostRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
-    private val saksnummerRepository: SaksnummerRepository
+    private val saksnummerRepository: SaksnummerRepository,
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
