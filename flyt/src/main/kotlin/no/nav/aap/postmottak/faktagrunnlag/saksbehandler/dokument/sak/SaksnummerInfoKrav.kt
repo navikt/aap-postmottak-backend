@@ -34,7 +34,7 @@ class SaksnummerInfoKrav(
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Forventer journalpost for behandling ${kontekst.behandlingId}" }
 
 
-        val saker = behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator, true))
+        val saker = behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator))
             .map { it.tilSaksinfo() }
 
         saksnummerRepository.lagreKelvinSak(kontekst.behandlingId, saker)

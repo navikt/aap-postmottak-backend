@@ -169,6 +169,7 @@ class Flyttest : WithDependencies {
                         config,
                         dataSource,
                         repositoryRegistry = repositoryRegistry,
+                        gatewayProvider = gatewayProvider,
                         prometheus = PrometheusProvider.prometheus
                     ).topology, config
                 )

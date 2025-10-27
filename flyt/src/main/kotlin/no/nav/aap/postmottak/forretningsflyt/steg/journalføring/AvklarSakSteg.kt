@@ -71,7 +71,7 @@ class AvklarSakSteg(
             return Fullført
         } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
             if (journalpost.fagsystem != Fagsystem.KELVIN.name) {
-                log.info("Journalpost har blitt journalført på annet fagsystem, går videre til neste steg")
+                log.info("Journalpost ${journalpost.journalpostId} har blitt journalført på annet fagsystem, går videre til neste steg.")
                 return Fullført
             }
             log.info("Journalpost har alt blitt journalført på Kelvin-sak. Setter saksavklaring tilsvarende journalpost")
@@ -90,9 +90,7 @@ class AvklarSakSteg(
         } else if (saksnummerVurdering != null) {
             Fullført
         } else {
-            FantAvklaringsbehov(
-                Definisjon.AVKLAR_SAK
-            )
+            FantAvklaringsbehov(Definisjon.AVKLAR_SAK)
         }
     }
 

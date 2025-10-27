@@ -7,14 +7,14 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 
-class AvklarTemaRepositoryImpl(private val connection: DBConnection): AvklarTemaRepository {
+class AvklarTemaRepositoryImpl(private val connection: DBConnection) : AvklarTemaRepository {
 
     companion object : Factory<AvklarTemaRepositoryImpl> {
         override fun konstruer(connection: DBConnection): AvklarTemaRepositoryImpl {
             return AvklarTemaRepositoryImpl(connection)
         }
     }
-    
+
     override fun lagreTemaAvklaring(behandlingId: BehandlingId, vurdering: Boolean, tema: Tema) {
         val vurderingId = connection.executeReturnKey(
             """
@@ -27,7 +27,14 @@ class AvklarTemaRepositoryImpl(private val connection: DBConnection): AvklarTema
             }
         }
 
-        connection.execute("""UPDATE TEMAVURDERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ?""") {setParams { setLong(1, behandlingId.id) }}
+        connection.execute("""UPDATE TEMAVURDERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ?""") {
+            setParams {
+                setLong(
+                    1,
+                    behandlingId.id
+                )
+            }
+        }
 
         connection.execute("""INSERT INTO TEMAVURDERING_GRUNNLAG (BEHANDLING_ID, TEMAVURDERING_ID) VALUES (?, ?)""") {
             setParams { setLong(1, behandlingId.id); setLong(2, vurderingId) }
@@ -35,27 +42,32 @@ class AvklarTemaRepositoryImpl(private val connection: DBConnection): AvklarTema
     }
 
     override fun hentTemaAvklaring(behandlingId: BehandlingId): TemaVurdering? {
-        return connection.queryFirstOrNull("""
+        return connection.queryFirstOrNull(
+            """
             SELECT * FROM TEMAVURDERING_GRUNNLAG
             JOIN TEMAVURDERING ON TEMAVURDERING.ID = TEMAVURDERING_ID
             WHERE BEHANDLING_ID = ? AND AKTIV 
-        """.trimIndent()) {
+        """.trimIndent()
+        ) {
             setParams { setLong(1, behandlingId.toLong()) }
-            setRowMapper { row -> TemaVurdering (
-                row.getBoolean(
-                    "skal_til_aap"
-                ),
-                row.getEnum("tema")
-            )
+            setRowMapper { row ->
+                TemaVurdering(
+                    row.getBoolean(
+                        "skal_til_aap"
+                    ),
+                    row.getEnum("tema")
+                )
             }
         }
     }
 
     override fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
-        connection.execute("""
+        connection.execute(
+            """
             INSERT INTO TEMAVURDERING_GRUNNLAG (TEMAVURDERING_ID, BEHANDLING_ID) 
             SELECT TEMAVURDERING_ID, ? FROM TEMAVURDERING_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV 
-        """.trimIndent()) {
+        """.trimIndent()
+        ) {
             setParams {
                 setLong(1, tilBehandling.id)
                 setLong(2, fraBehandling.id)

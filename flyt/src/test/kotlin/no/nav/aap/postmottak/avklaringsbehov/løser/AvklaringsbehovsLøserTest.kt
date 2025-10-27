@@ -6,6 +6,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.postmottak.test.MockConnection
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.repository.RepositoryRegistry
+import no.nav.aap.motor.FlytJobbRepositoryImpl
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Klagebehandling
@@ -18,6 +19,7 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRe
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -25,11 +27,6 @@ import java.time.LocalDateTime
 import kotlin.reflect.full.companionObjectInstance
 
 class AvklaringsbehovsLøserTest {
-    val repositoryRegistry = RepositoryRegistry().register<SaksnummerRepositoryImpl>()
-        .register<AvklarTemaRepositoryImpl>()
-        .register<DigitaliseringsvurderingRepositoryImpl>()
-        .register<JournalpostRepositoryImpl>()
-        .register<OverleveringVurderingRepositoryImpl>()
 
     @Test
     fun `alle subtyper skal ha unik verdi`() {
@@ -37,7 +34,7 @@ class AvklaringsbehovsLøserTest {
         val løsningSubtypes = utledSubtypes.map {
             (it.companionObjectInstance as LøserKonstruktør<*>)
                 .konstruer(
-                    repositoryRegistry.provider(MockConnection().toDBConnection()),
+                    postgresRepositoryRegistry.provider(MockConnection().toDBConnection()),
                     createGatewayProvider {
                         register<BehandlingsflytGatewayMock>()
                     })

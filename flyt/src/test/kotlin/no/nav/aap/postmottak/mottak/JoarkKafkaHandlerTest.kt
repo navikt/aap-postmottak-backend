@@ -2,19 +2,21 @@ package no.nav.aap.postmottak.mottak
 
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.verify
+import no.nav.aap.FakeUnleash
 import no.nav.aap.komponenter.repository.RepositoryProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
-import no.nav.aap.lookup.repository.Repository
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
+import no.nav.aap.postmottak.test.Fakes
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TestInputTopic
@@ -23,6 +25,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 
+@Fakes
 class JoarkKafkaHandlerTest {
 
     val behandlingRepository: BehandlingRepository = mockk(relaxed = true)
@@ -55,7 +58,7 @@ class JoarkKafkaHandlerTest {
             val hendelseRecord = lagHendelseRecord(nyttTema = "IKKE AAP", gammeltTema = "AAP")
 
             every { behandlingRepository.opprettBehandling(any(), any()) } returns BehandlingId(10L)
-            every { behandlingRepository.hentÅpenJournalføringsbehandling(any())} returns mockk(relaxed = true)
+            every { behandlingRepository.hentÅpenJournalføringsbehandling(any()) } returns mockk(relaxed = true)
 
             pipeInput("yolo", hendelseRecord)
 
@@ -70,14 +73,20 @@ class JoarkKafkaHandlerTest {
         config: StreamsConfig,
         block: TestInputTopic<String, JournalfoeringHendelseRecord>.() -> Unit
     ) {
-        val transactionProvider = TransactionProvider(mockk(relaxed = true), repositoryRegistry)
-        every { behandlingRepository.hentÅpenJournalføringsbehandling(any())} returns null
-        val mockk = mockk<RepositoryProvider>()
-        every { mockk.provide<BehandlingRepository>() } returns behandlingRepository
-        every { mockk.provide<FlytJobbRepository>() } returns flytJobbRepository
-        every { repositoryRegistry.provider(any()) } returns mockk
+        val gatewayProvider = defaultGatewayProvider {
+            register(FakeUnleash::class)
+        }
+        val transactionProvider = TransactionProvider(mockk(relaxed = true), repositoryRegistry, gatewayProvider)
+        every { behandlingRepository.hentÅpenJournalføringsbehandling(any()) } returns null
+        val repositoryProvider = mockk<RepositoryProvider>()
+        every { repositoryProvider.provide<BehandlingRepository>() } returns behandlingRepository
+        every { repositoryProvider.provide<FlytJobbRepository>() } returns flytJobbRepository
+        every { repositoryProvider.provide<JournalpostRepository>() } returns mockk()
+        every { repositoryProvider.provide<AvklaringsbehovRepository>() } returns mockk()
+        every { repositoryRegistry.provider(any()) } returns repositoryProvider
 
-        val joarkKafkaHandler = JoarkKafkaHandler(config, mockk(), repositoryRegistry, transactionProvider)
+        val joarkKafkaHandler =
+            JoarkKafkaHandler(config, mockk(), repositoryRegistry, gatewayProvider, transactionProvider)
         val topologyTestDriver = TopologyTestDriver(joarkKafkaHandler.topology, config.streamsProperties())
         topologyTestDriver.createInputTopic(
             JOARK_TOPIC,
@@ -126,6 +135,4 @@ class JoarkKafkaHandlerTest {
             password = "",
         )
     )
-
-
 }

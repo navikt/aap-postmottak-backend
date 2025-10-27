@@ -4,9 +4,11 @@ package no.nav.aap.postmottak.mottak
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
 import no.nav.aap.postmottak.hendelseType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
@@ -33,18 +35,21 @@ import javax.sql.DataSource
 class TransactionContext(
     val behandlingRepository: BehandlingRepository,
     val flytJobbRepository: FlytJobbRepository,
+    val avklaringsbehovOrkestrator: AvklaringsbehovOrkestrator
 )
 
 class TransactionProvider(
     val datasource: DataSource,
-    val repositoryRegistry: RepositoryRegistry
+    val repositoryRegistry: RepositoryRegistry,
+    val gatewayProvider: GatewayProvider,
 ) {
     fun <A> inTransaction(readOnly: Boolean = false, block: TransactionContext.() -> A): A {
         return datasource.transaction(readOnly = readOnly) {
             val provider = repositoryRegistry.provider(it)
             TransactionContext(
                 provider.provide(),
-                provider.provide()
+                provider.provide(),
+                AvklaringsbehovOrkestrator(provider, gatewayProvider)
             ).let(block)
         }
     }
@@ -60,7 +65,12 @@ class JoarkKafkaHandler(
     config: StreamsConfig,
     datasource: DataSource,
     repositoryRegistry: RepositoryRegistry,
-    private val transactionProvider: TransactionProvider = TransactionProvider(datasource, repositoryRegistry),
+    gatewayProvider: GatewayProvider,
+    private val transactionProvider: TransactionProvider = TransactionProvider(
+        datasource,
+        repositoryRegistry,
+        gatewayProvider
+    ),
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) {
 
@@ -90,25 +100,30 @@ class JoarkKafkaHandler(
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
         stream.foreach { _, record ->
-            opprettFordelingRegelJobb(record.journalpostId.let(::JournalpostId), record.hendelsesType)
+            val journalpostId = record.journalpostId.let(::JournalpostId)
+
+            opprettFordelingRegelJobb(journalpostId, record.hendelsesType)
         }
     }
 
+    /**
+     * Skjer om journalposten har endret tema fra AAP. Dette er for å trigge en tema-endring-behandling.
+     */
     private fun håndterTemaendring(journalpostId: JournalpostId) {
         log.info("Mottatt temaendring på journalpost $journalpostId")
         transactionProvider.inTransaction {
             val behandling = behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
             if (behandling != null) {
-                opprettTemaEndringJobb(journalpostId, behandling)
+                triggProsesserBehandling(journalpostId, behandling)
             } else {
                 log.info("Fant ikke åpen behandling for journalpost $journalpostId")
             }
         }
     }
 
-    private fun TransactionContext.opprettTemaEndringJobb(
+    private fun TransactionContext.triggProsesserBehandling(
         journalpostId: JournalpostId,
-        behandling: Behandling
+        behandling: Behandling,
     ) {
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
@@ -142,6 +157,9 @@ object JoarkRegel {
     val harStatusMottatt: (String, JournalfoeringHendelseRecord) -> Boolean =
         { _, record -> record.journalpostStatus == MOTTATT }
 
+    /**
+     * Mottakskanal er dokumentert [her](https://confluence.adeo.no/spaces/BOA/pages/316396050/Mottakskanal).
+     */
     val erIkkeKanalEESSI: (String, JournalfoeringHendelseRecord) -> Boolean =
         { _, record -> record.mottaksKanal != EESSI }
 

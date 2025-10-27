@@ -20,9 +20,9 @@ class StoppetHendelseJobbUtfører private constructor(private val gatewayProvide
 
         val hendelse = DefaultJsonMapper.fromJson<DokumentflytStoppetHendelse>(payload)
 
-        log.info("Varsler hendelse til Oppgave: $hendelse")
+        log.info("Varsler hendelse til Oppgave. Journalpostid ${hendelse.journalpostId}")
         gatewayProvider.provide(OppgaveGateway::class).varsleHendelse(hendelse)
-        log.info("Avgir hendelse til statistikk.")
+        log.info("Avgir hendelse til statistikk. Journalpostid ${hendelse.journalpostId}")
         gatewayProvider.provide(StatistikkGateway::class).avgiHendelse(hendelse)
     }
 

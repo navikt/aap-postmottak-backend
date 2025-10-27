@@ -81,11 +81,9 @@ class FlytOrkestrator(
         if (avklaringsbehovene.erSattPåVent()) {
             val behov = avklaringsbehovene.hentVentepunkterMedUtløptFrist()
             behov.forEach { avklaringsbehovene.løsAvklaringsbehov(it.definisjon, "", SYSTEMBRUKER.ident) }
-            // Hvis fortsatt på vent
-            if (avklaringsbehovene.erSattPåVent()) {
-                log.info("Behandlingen er på vent, skipper forberedelse.")
-                return // Bail out
-            } else {
+
+            // Hvis ikke fortsatt på vent
+            if (!avklaringsbehovene.erSattPåVent()) {
                 // Behandlingen er tatt av vent pga frist og flyten flyttes tilbake til steget hvor den sto på vent
                 val tilbakeflyt = behandlingFlyt.tilbakeflyt(behov)
                 if (!tilbakeflyt.erTom()) {
@@ -131,11 +129,6 @@ class FlytOrkestrator(
         if (avklaringsbehovene.erSattPåVent()) {
             val behov = avklaringsbehovene.hentVentepunkterMedUtløptFrist()
             behov.forEach { avklaringsbehovene.løsAvklaringsbehov(it.definisjon, "", SYSTEMBRUKER.ident) }
-        }
-
-        // Hvis fortsatt på vent
-        if (avklaringsbehovene.erSattPåVent()) {
-            return // Bail out
         }
 
         val behandlingFlyt = utledFlytFra(behandling)
