@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
+import no.nav.aap.FakeUnleash
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
@@ -20,6 +21,7 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepos
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
+import no.nav.aap.postmottak.test.Fakes
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -37,6 +39,7 @@ class AvklaringsbehovsLøserTest {
                     postgresRepositoryRegistry.provider(MockConnection().toDBConnection()),
                     createGatewayProvider {
                         register<BehandlingsflytGatewayMock>()
+                        register<FakeUnleash>()
                     })
                 .forBehov()
         }.toSet()

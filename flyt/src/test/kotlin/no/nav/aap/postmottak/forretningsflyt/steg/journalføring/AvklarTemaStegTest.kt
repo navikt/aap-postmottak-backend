@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.aap.FakeUnleash
+import io.mockk.verify
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
@@ -37,8 +37,7 @@ class AvklarTemaStegTest {
             journalpostRepository = journalpostRepo,
             avklarTemaRepository = avklarTemaRepository,
             gosysOppgaveGateway = gosysOppgaveKlient,
-            saksnummerRepository = saksnummerRepository,
-            unleashGateway = FakeUnleash
+            saksnummerRepository = saksnummerRepository
         )
 
 
@@ -109,8 +108,8 @@ class AvklarTemaStegTest {
 
         val actual = avklarTemaSteg.utfør(kontekst)
 
-//        verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(1) }
-//        verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(2) }
+        verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(1) }
+        verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(2) }
         assertThat(actual).isEqualTo(Fullført)
         assertEquals(Fullført::class.simpleName, actual::class.simpleName)
     }

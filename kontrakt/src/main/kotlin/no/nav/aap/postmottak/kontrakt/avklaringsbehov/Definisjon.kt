@@ -25,6 +25,12 @@ enum class Definisjon(
         type = BehovType.VENTEPUNKT,
         defaultFrist = Period.ofWeeks(3),
     ),
+    VENT_PA_GOSYS(
+        kode = AvklaringsbehovKode.`1342`,
+        type = BehovType.VENTEPUNKT,
+        løsesISteg = StegType.AVKLAR_TEMA,
+        defaultFrist = Period.ofDays(5),
+    ),
     AVKLAR_TEMA(
         kode = AvklaringsbehovKode.`1339`,
         type = BehovType.MANUELT_PÅKREVD,

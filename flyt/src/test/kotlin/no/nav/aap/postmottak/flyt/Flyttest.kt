@@ -38,13 +38,10 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurder
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
-import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -65,8 +62,6 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
-import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
-import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakePersoner
 import no.nav.aap.postmottak.test.Fakes
@@ -93,7 +88,6 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.kafka.KafkaContainer
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 
 
@@ -208,10 +202,14 @@ class Flyttest : WithDependencies {
         }
     }
 
-    fun leggJournalpostPåKafka(journalfoeringHendelseRecord: JournalfoeringHendelseRecord) {
-        val record = ProducerRecord(JOARK_TOPIC, "key", journalfoeringHendelseRecord)
+    fun leggJournalpostPåKafka(block: JournalfoeringHendelseRecord.() -> Unit): JournalfoeringHendelseRecord {
+        val jRecord = journalfoeringHendelseRecord().apply(block)
+        val record = ProducerRecord(JOARK_TOPIC, "key", jRecord)
         producer.send(record)
         producer.flush()
+        Thread.sleep(200)
+        util.ventPåSvar()
+        return jRecord
     }
 
     fun journalfoeringHendelseRecord(): JournalfoeringHendelseRecord {
@@ -232,11 +230,9 @@ class Flyttest : WithDependencies {
     fun `digital søknad blir automatisk behandlet`() {
         val journalpostID = TestJournalposter.DIGITAL_SØKNAD_ID
 
-        val recordValue = journalfoeringHendelseRecord().apply {
+        leggJournalpostPåKafka {
             journalpostId = journalpostID.referanse
         }
-
-        leggJournalpostPåKafka(recordValue)
 
         val behandlinger = prøv {
             alleBehandlingerForJournalpost(journalpostID).also { require(it.size > 1) }
@@ -359,9 +355,7 @@ class Flyttest : WithDependencies {
     fun `manuell digitalisering - først opprettes avklartema-behandling, så digitaliseringsbehandling`() {
         val journalpostId = TestJournalposter.PAPIR_SØKNAD
 
-        val record = journalfoeringHendelseRecord()
-            .apply { this.journalpostId = journalpostId.referanse }
-        leggJournalpostPåKafka(record)
+        leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
 
         val behandlinger = prøv {
             alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
@@ -539,36 +533,53 @@ class Flyttest : WithDependencies {
     }
 
     @Test
-    fun `hvis tema ikke skal være AAP, så lukkes behandlingen`() {
+    fun `hvis tema ikke skal være AAP, så lukkes behandlingen`(fakePersoner: FakePersoner) {
+        val testPerson = TestPerson(identer = setOf(TestIdenter.DEFAULT_IDENT))
+        fakePersoner.leggTil(testPerson)
+
         val journalpostId = JournalpostId(12213123L)
 
-        val record = journalfoeringHendelseRecord().apply { this.journalpostId = journalpostId.referanse }
-        leggJournalpostPåKafka(record)
+        // Legg til journalpost på Kafka
+        leggJournalpostPåKafka {
+            this.journalpostId = journalpostId.referanse
+        }
 
         val behandlinger = prøv {
             alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
         }!!
 
         assertThat(behandlinger).hasSize(1)
-        val behandlingId = behandlinger.first().id
+        var behandling = behandlinger.first()
+        val behandlingId = behandling.id
 
         util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+
+        // Verifiser at vi stopper på AVKLAR_TEMA
         sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
 
-        hentBehandling(behandlingId)
+        behandling = behandling
             .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false))
-        triggProsesserBehandling(journalpostId, behandlingId)
+            .verifiserErPåVent {
+                assertThat(it).containsExactly(Definisjon.VENT_PA_GOSYS)
+            }
 
-        sjekkÅpentAvklaringsbehov(behandlingId, null)
+        // Samme journalpost kommer tilbake med tema AAP
+        leggJournalpostPåKafka {
+            this.journalpostId = journalpostId.referanse
+            this.temaNytt = "AAP"
+        }
 
-        val behandlinger2 = alleBehandlingerForJournalpost(journalpostId)
-        assertThat(behandlinger2).hasSize(1).first().extracting(Behandling::status).isEqualTo(Status.AVSLUTTET)
-
-//        val behandlingId2 = opprettJournalføringsBehandling(journalpostId)
-//        triggProsesserBehandling(journalpostId, behandlingId2)
-//
-//        val behandlinger3 = alleBehandlingerForJournalpost(journalpostId)
-//        assertThat(behandlinger3).hasSize(2).last().extracting(Behandling::status).isEqualTo(Status.AVSLUTTET)
+        behandling
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
+            .verifiserIkkePåVent()
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+            .løsAvklaringsBehov(
+                AvklarSaksnummerLøsning(saksnummer = "ABC")
+            )
+            .sjekkÅpentAvklaringsbehov(null)
+            .apply {
+                assertThat(this.status()).isEqualTo(Status.AVSLUTTET)
+            }
     }
 
     private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {
@@ -593,8 +604,30 @@ class Flyttest : WithDependencies {
         if (behov == null) {
             assertThat(åpneBehov).isEmpty()
         } else {
-            assertThat(åpneBehov).extracting<Definisjon> { it.definisjon }.containsExactly(behov)
+            assertThat(åpneBehov).extracting<Definisjon> { it.definisjon }.contains(behov)
         }
+    }
+
+    private fun Behandling.sjekkÅpentAvklaringsbehov(behov: Definisjon?): Behandling {
+        sjekkÅpentAvklaringsbehov(this.id, behov)
+        return this
+    }
+
+    fun Behandling.verifiserErPåVent(definisjon: (List<Definisjon>) -> Unit = {}): Behandling {
+        val åpneVenteBehov = dataSource.transaction { connection ->
+            hentAvklaringsbehov(this.id, connection).hentVentepunkter()
+        }
+        assertThat(åpneVenteBehov).isNotEmpty()
+        definisjon(åpneVenteBehov.map(Avklaringsbehov::definisjon))
+        return this
+    }
+
+    fun Behandling.verifiserIkkePåVent(): Behandling {
+        val åpneVenteBehov = dataSource.transaction { connection ->
+            hentAvklaringsbehov(this.id, connection).hentVentepunkter()
+        }
+        assertThat(åpneVenteBehov).isEmpty()
+        return this
     }
 
     private fun alleBehandlingerForJournalpost(journalpostId: JournalpostId): List<Behandling> =
