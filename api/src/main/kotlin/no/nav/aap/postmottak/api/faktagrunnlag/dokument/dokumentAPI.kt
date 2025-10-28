@@ -72,16 +72,16 @@ fun NormalOpenAPIRoute.dokumentApi(
                     repositoryProvider.provide<BehandlingRepository>().hent(req).journalpostId
                 }
 
-                val token = token()
                 val journalpost =
                     gatewayProvider.provide(JournalpostOboGateway::class)
-                        .hentJournalpost(JournalpostId(journalpostId.referanse), token)
+                        .hentJournalpost(JournalpostId(journalpostId.referanse), token())
                 // TODO: Rydd opp i dette
                 val identer =
                     listOfNotNull(journalpost.bruker?.id, journalpost.avsenderMottaker?.id).distinct()
                 val personer = gatewayProvider.provide<PersondataGateway>().hentPersonBolk(identer)
                 val søker = personer?.getOrDefault(journalpost.bruker?.id, null)
                 val avsender = personer?.getOrDefault(journalpost.avsenderMottaker?.id, null)
+
                 respond(
                     DokumentInfoResponsDTO(
                         journalpostId = journalpostId.referanse,
