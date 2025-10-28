@@ -29,7 +29,7 @@ enum class Definisjon(
         kode = AvklaringsbehovKode.`1342`,
         type = BehovType.VENTEPUNKT,
         løsesISteg = StegType.AVKLAR_TEMA,
-        defaultFrist = Period.ofDays(7),
+        defaultFrist = Period.ofDays(3),
     ),
     AVKLAR_TEMA(
         kode = AvklaringsbehovKode.`1339`,
