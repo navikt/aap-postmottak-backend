@@ -144,6 +144,7 @@ fun NormalOpenAPIRoute.flytApi(
                         visning = utledVisning(
                             alleAvklaringsbehovInkludertFrivillige = alleAvklaringsbehovInkludertFrivillige,
                             status = prosessering.status,
+                            typeBehandling = behandling.typeBehandling,
                             behandlingStatus = behandling.status()
                         ),
                         nesteBehandlingId = dokumentHåndteringBehnandlingId
@@ -275,6 +276,7 @@ private fun utledVisning(
     alleAvklaringsbehovInkludertFrivillige: FrivilligeAvklaringsbehov,
     status: ProsesseringStatus,
     behandlingStatus: Status,
+    typeBehandling: TypeBehandling
 ): Visning {
     val jobber = status in listOf(ProsesseringStatus.JOBBER, ProsesseringStatus.FEILET)
     val påVent = alleAvklaringsbehovInkludertFrivillige.erSattPåVent()
@@ -282,11 +284,13 @@ private fun utledVisning(
     return if (jobber) {
         Visning(
             visVentekort = påVent,
+            typeBehandling = typeBehandling,
             readOnly = true,
         )
     } else {
         Visning(
             visVentekort = påVent,
+            typeBehandling = typeBehandling,
             readOnly = behandlingStatus.erAvsluttet(),
         )
     }
