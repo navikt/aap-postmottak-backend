@@ -75,12 +75,18 @@ class DigitaliserDokumentSteg(
 
             log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsendingType.")
 
+            val logFeil = { msg: String? ->
+                log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsendingType, error: ${msg}")
+            }
             val validertDokument = try {
                 DokumentTilMeldingParser.parseTilMelding(
                     dokument,
                     requireNotNull(innsendingType) { "Innsendingtype kan ikke være null." })?.serialiser()
             } catch (e: DeserializationException) {
-                log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsendingType, error: ${e.message}")
+                logFeil(e.message)
+                return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
+            } catch (e: IllegalArgumentException) {
+                logFeil(e.message)
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
             }
 
