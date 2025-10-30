@@ -41,14 +41,21 @@ import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.MDC
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry, gatewayProvider: GatewayProvider) {
+fun NormalOpenAPIRoute.flytApi(
+    dataSource: DataSource,
+    repositoryRegistry: RepositoryRegistry,
+    gatewayProvider: GatewayProvider
+) {
     route("/api/behandling") {
         route("/{referanse}/flyt") {
             authorizedGet<BehandlingsreferansePathParam, BehandlingFlytOgTilstandDto>(
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
-                        journalpostIdFraBehandlingResolver(dataSource = dataSource, repositoryRegistry = repositoryRegistry)
+                        journalpostIdFraBehandlingResolver(
+                            dataSource = dataSource,
+                            repositoryRegistry = repositoryRegistry
+                        )
                     )
                 )
             ) { req ->
@@ -65,11 +72,12 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: Repos
 
 
                     // ved avsluttet journalføringsbehandling, finn id til dokumenthåndteringsbehandlingen som hører til samme journalpost
-                    val dokumentHåndteringBehnandlingId = if(behandling.typeBehandling == TypeBehandling.Journalføring && behandling.status() == Status.AVSLUTTET) {
-                        behandlingRepository.hentAlleBehandlingerForSak(behandling.journalpostId)
-                            .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }
-                            ?.referanse?.referanse
-                    } else null
+                    val dokumentHåndteringBehnandlingId =
+                        if (behandling.typeBehandling == TypeBehandling.Journalføring && behandling.status() == Status.AVSLUTTET) {
+                            behandlingRepository.hentAlleBehandlingerForSak(behandling.journalpostId)
+                                .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+                                ?.referanse?.referanse
+                        } else null
                     val prosessering =
                         Prosessering(
                             utledStatus(jobber),
