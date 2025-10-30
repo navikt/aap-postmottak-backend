@@ -29,6 +29,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegGruppe
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
@@ -62,6 +63,13 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: Repos
                     val jobber = flytJobbRepository.hentJobberForBehandling(behandling.id.toLong())
                         .filter { it.type() == ProsesserBehandlingJobbUtfører.type }
 
+
+                    // ved avsluttet journalføringsbehandling, finn id til dokumenthåndteringsbehandlingen som hører til samme journalpost
+                    val dokumentHåndteringBehnandlingId = if(behandling.typeBehandling == TypeBehandling.Journalføring && behandling.status() == Status.AVSLUTTET) {
+                        behandlingRepository.hentAlleBehandlingerForSak(behandling.journalpostId)
+                            .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+                            ?.referanse?.referanse
+                    } else null
                     val prosessering =
                         Prosessering(
                             utledStatus(jobber),
@@ -129,7 +137,8 @@ fun NormalOpenAPIRoute.flytApi(dataSource: DataSource, repositoryRegistry: Repos
                             alleAvklaringsbehovInkludertFrivillige = alleAvklaringsbehovInkludertFrivillige,
                             status = prosessering.status,
                             behandlingStatus = behandling.status()
-                        )
+                        ),
+                        nesteBehandlingId = dokumentHåndteringBehnandlingId
                     )
                 }
                 respond(dto)
