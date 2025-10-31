@@ -24,7 +24,10 @@ class JournalpostInformasjonskrav(
 
 
     companion object : Informasjonskravkonstruktør {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JournalpostInformasjonskrav {
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): JournalpostInformasjonskrav {
             return JournalpostInformasjonskrav(
                 repositoryProvider.provide(JournalpostRepository::class),
                 JournalpostService.konstruer(repositoryProvider, gatewayProvider),
@@ -40,9 +43,13 @@ class JournalpostInformasjonskrav(
         val journalpost = journalpostService.hentJournalpost(kontekst.journalpostId)
 
         if (persistertJournalpost != journalpost) {
-            log.info("Fant endringer i journalpost med ID ${journalpost.journalpostId}.")
             journalpostRepository.lagre(journalpost)
-            return if (erEndringerRelevante(kontekst, journalpost)) ENDRET else IKKE_ENDRET
+            val erEndringerRelevante = erEndringerRelevante(kontekst, journalpost)
+            if (erEndringerRelevante) {
+                log.info("Fant relevante endringer i journalpost med ID ${journalpost.journalpostId}.")
+            }
+
+            return if (erEndringerRelevante) ENDRET else IKKE_ENDRET
         }
 
         return IKKE_ENDRET
