@@ -25,8 +25,10 @@ class AvklarTemaLøser(
         if (tema != Tema.AAP && unleashGateway.isEnabled(PostmottakFeature.LukkPostmottakEndreTemaBehandlinger)) {
             // Vi setter behandling på vent inntil den løses i GOSYS
             avklaringsbehovOrkestrator.settBehandlingPåVentForTemaEndring(
-                kontekst.kontekst.behandlingId,
+                kontekst.kontekst.behandlingId
             )
+        } else {
+            avklaringsbehovOrkestrator.taAvVentPgaGosys(kontekst.kontekst.behandlingId)
         }
 
         return LøsningsResultat("Dokument er ${if (løsning.skalTilAap) "" else "ikke"} ment for AAP")

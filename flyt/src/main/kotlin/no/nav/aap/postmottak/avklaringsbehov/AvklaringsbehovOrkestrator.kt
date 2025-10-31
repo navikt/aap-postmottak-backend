@@ -112,13 +112,20 @@ class AvklaringsbehovOrkestrator(
     }
 
     private fun løsFaktiskAvklaringsbehov(
-        kontekst: FlytKontekst, avklaringsbehovene: Avklaringsbehovene, it: AvklaringsbehovLøsning, bruker: Bruker
+        kontekst: FlytKontekst,
+        avklaringsbehovene: Avklaringsbehovene,
+        avklaringsbehovLøsning: AvklaringsbehovLøsning,
+        bruker: Bruker
     ) {
-        avklaringsbehovene.leggTilFrivilligHvisMangler(it.definisjon(), bruker)
-        val løsningsResultat = it.løs(repositoryProvider, gatewayProvider, AvklaringsbehovKontekst(bruker, kontekst))
+        avklaringsbehovene.leggTilFrivilligHvisMangler(avklaringsbehovLøsning.definisjon(), bruker)
+        val løsningsResultat =
+            avklaringsbehovLøsning.løs(repositoryProvider, gatewayProvider, AvklaringsbehovKontekst(bruker, kontekst))
 
         avklaringsbehovene.løsAvklaringsbehov(
-            it.definisjon(), løsningsResultat.begrunnelse, bruker.ident, løsningsResultat.kreverToTrinn
+            avklaringsbehovLøsning.definisjon(),
+            løsningsResultat.begrunnelse,
+            bruker.ident,
+            løsningsResultat.kreverToTrinn
         )
     }
 
@@ -163,15 +170,18 @@ class AvklaringsbehovOrkestrator(
     }
 
     fun taAvVentPgaGosys(behandlingId: BehandlingId) {
+        log.info("Tar av vent for behandling $behandlingId")
         val behandling = behandlingRepository.hent(behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
-        avklaringsbehovene.løsAvklaringsbehov(
-            definisjon = Definisjon.VENT_PA_GOSYS,
-            begrunnelse = "Ny oppdatering på journalpost.",
-            endretAv = SYSTEMBRUKER.ident,
-        )
+        if (avklaringsbehovene.hentVentepunkter().map { it.definisjon }.contains(Definisjon.VENT_PA_GOSYS)) {
+            avklaringsbehovene.løsAvklaringsbehov(
+                definisjon = Definisjon.VENT_PA_GOSYS,
+                begrunnelse = "Ny oppdatering på journalpost.",
+                endretAv = SYSTEMBRUKER.ident,
+            )
+        }
 
         avklaringsbehovene.validateTilstand(behandling = behandling)
         avklaringsbehovene.validerPlassering(behandling = behandling)
