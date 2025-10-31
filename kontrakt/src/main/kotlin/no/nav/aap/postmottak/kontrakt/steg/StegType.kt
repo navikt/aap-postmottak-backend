@@ -37,7 +37,7 @@ enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg:
     ),
     VIDERESEND(
         gruppe = StegGruppe.VIDERESEND,
-        status = Status.AVSLUTTET,
+        status = Status.IVERKSETTES,
     ),
     IVERKSETTES(
         gruppe = StegGruppe.IVERKSETTES,
