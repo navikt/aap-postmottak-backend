@@ -79,6 +79,7 @@ class AvklarTemaSteg(
                     aktivIdent.identifikator
                 )
 
+                log.info("Venter fortsatt på behandling i Gosys.")
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) { // har endret tema, fjern denne blokka
                 log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
