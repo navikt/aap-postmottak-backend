@@ -68,6 +68,7 @@ class AvklarTemaSteg(
                 log.info("Journalpost har allerede blitt journalført på tema AAP. Setter temaavklaring maskinelt til AAP")
                 Fullført
             } else {
+                log.info("Kunne ikke avklare tema maskinelt. Brevkoder: ${journalpost.dokumenter.map { it.brevkode }}. Hoveddokumentbrevkode: ${journalpost.hoveddokumentbrevkode}.")
                 FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             }
         } else {
