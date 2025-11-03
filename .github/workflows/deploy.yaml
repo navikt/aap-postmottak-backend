@@ -96,7 +96,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: deploy-dev
+    needs: [ publiser-kontrakt, deploy-dev ]
     concurrency:
       group: deploy-prod
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
