@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
@@ -13,29 +13,27 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class SaksnummerRepositoryImplTest {
 
-    val dataSource = InitTestDatabase.freshDatabase()
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
 
     fun getPeriode() = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31))
     val saksinfo: List<Saksinfo> = listOf(
         BehandlingsflytSak("sak: 1", getPeriode(), null).tilSaksinfo(),
         BehandlingsflytSak("sak: 2", getPeriode(), null).tilSaksinfo()
     )
-
-    @AfterEach
-    fun tearDown() {
-        dataSource.transaction {
-            it.execute(
-                """
-            TRUNCATE BEHANDLING CASCADE
-        """.trimIndent()
-            )
-        }
-    }
 
     @Test
     fun hentSaksnummre() {

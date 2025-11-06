@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema
 
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -10,16 +10,20 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class AvklarTemaRepositoryImplTest {
 
-    private val dataSource = InitTestDatabase.freshDatabase()
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
 
     @AfterEach
-    fun afterEach() {
-        dataSource.transaction { it.execute("TRUNCATE behandling CASCADE ") }
-    }
+    fun tearDown() = dataSource.close()
 
     @Test
     fun `når teamavklaring blir lagret forventer jeg å finne den på behandlingen`() {

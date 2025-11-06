@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.repository.journalpost
 
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
@@ -20,19 +20,20 @@ import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 internal class JournalpostRepositoryImplTest {
+    private lateinit var dataSource: TestDataSource
 
-    private val dataSource = InitTestDatabase.freshDatabase()
+    @BeforeEach
+    fun beforeEach() {
+        dataSource = TestDataSource()
+    }
 
     @AfterEach
-    fun afterEach() {
-        dataSource.transaction {
-            it.execute("TRUNCATE BEHANDLING CASCADE")
-        }
-    }
+    fun tearDown() = dataSource.close()
 
     @Test
     fun `Kan lagre og hente journalpost`() {

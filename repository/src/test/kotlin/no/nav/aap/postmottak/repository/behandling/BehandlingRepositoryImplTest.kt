@@ -1,27 +1,31 @@
 package no.nav.aap.postmottak.repository.behandling
 
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class BehandlingRepositoryImplTest {
 
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
 
     @AfterEach
-    fun clean() {
-        InitTestDatabase.freshDatabase().transaction {
-            it.execute("""TRUNCATE BEHANDLING CASCADE""")
-        }
-    }
+    fun tearDown() = dataSource.close()
+
 
     @Test
     fun opprettBehandling() {
-        InitTestDatabase.freshDatabase().transaction {
+        dataSource.transaction {
             val repository = BehandlingRepositoryImpl(it)
 
             val journalpostId = JournalpostId(11111)
@@ -70,7 +74,7 @@ class BehandlingRepositoryImplTest {
     )
 
     private fun <T> inContext(block: Context.() -> T): T {
-        return InitTestDatabase.freshDatabase().transaction {
+        return dataSource.transaction {
             val context =
                 Context(BehandlingRepositoryImpl(it))
             context.let(block)
