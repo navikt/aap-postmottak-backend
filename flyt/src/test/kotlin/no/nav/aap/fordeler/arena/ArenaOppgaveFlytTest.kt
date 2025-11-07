@@ -8,7 +8,7 @@ import io.mockk.verify
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -45,31 +45,36 @@ class ArenaOppgaveFlytTest : WithDependencies {
             register<ArenaKlientSpy>()
         }
 
-        private val dataSource = InitTestDatabase.freshDatabase()
-        private val motor =
-            Motor(
+        private lateinit var dataSource: TestDataSource
+        private lateinit var motor: Motor
+        private lateinit var util: TestUtil
+
+        @JvmStatic
+        @BeforeAll
+        fun beforeAll() {
+            PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
+            dataSource = TestDataSource()
+            motor = Motor(
                 dataSource,
                 2,
                 repositoryRegistry = repositoryRegistry,
                 gatewayProvider = gatewayProvider,
                 jobber = ProsesseringsJobber.alle()
             )
-
-        @JvmStatic
-        @BeforeAll
-        fun beforeAll() {
-            PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
             motor.start()
+
+            util = TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
         }
 
         @JvmStatic
         @AfterAll
         fun afterAll() {
             motor.stop()
+            dataSource.close()
         }
 
-        private val util =
-            TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
+
     }
 
     @Test

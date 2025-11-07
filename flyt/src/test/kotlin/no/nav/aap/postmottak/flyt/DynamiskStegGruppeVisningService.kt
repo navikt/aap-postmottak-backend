@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.flyt
 
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
@@ -23,7 +23,9 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -34,9 +36,19 @@ class DynamiskStegGruppeVisningServiceTest {
         .register<DigitaliseringsvurderingRepositoryImpl>()
         .register<BehandlingRepositoryImpl>()
 
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
+
     @Test
     fun `Skal vise steg 'overlever til fagsystem' for søknad`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             // Arrange
             val repositoryProvider = repositoryRegistry.provider(connection)
             val journalpostRepository: JournalpostRepository = repositoryProvider.provide()

@@ -9,7 +9,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Bruker
@@ -84,6 +84,8 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.kafka.KafkaContainer
@@ -93,28 +95,21 @@ import java.util.*
 
 @Fakes
 @Testcontainers
+@Execution(ExecutionMode.SAME_THREAD)
 class Flyttest : WithDependencies {
 
     companion object {
-        private val dataSource = InitTestDatabase.freshDatabase()
+        private lateinit var dataSource: TestDataSource
 
         @Container
-        private val kafka = KafkaContainer("apache/kafka-native:3.8.0")
+        private val kafka = KafkaContainer("apache/kafka-native:4.1.0")
 
         private val gatewayProvider = defaultGatewayProvider {
             register(FakeUnleash::class)
         }
-        private val hendelsesMottak = TestHendelsesMottak(dataSource, repositoryRegistry, gatewayProvider)
-        private val motor =
-            Motor(
-                dataSource = dataSource,
-                antallKammer = 2,
-                jobber = ProsesseringsJobber.alle(),
-                repositoryRegistry = repositoryRegistry,
-                gatewayProvider = gatewayProvider
-            )
-        private val util =
-            TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
+        private lateinit var hendelsesMottak:TestHendelsesMottak
+        private lateinit var motor:Motor
+        private lateinit var util: TestUtil
 
         private lateinit var config: StreamsConfig
 
@@ -126,6 +121,17 @@ class Flyttest : WithDependencies {
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
+            dataSource = TestDataSource()
+            hendelsesMottak = TestHendelsesMottak(dataSource, repositoryRegistry, gatewayProvider)
+            util = TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
+            motor =
+                Motor(
+                    dataSource = dataSource,
+                    antallKammer = 2,
+                    jobber = ProsesseringsJobber.alle(),
+                    repositoryRegistry = repositoryRegistry,
+                    gatewayProvider = gatewayProvider
+                )
             motor.start()
             PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 

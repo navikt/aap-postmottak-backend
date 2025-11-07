@@ -5,24 +5,26 @@ import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class InnkommendeJournalpostRepositoryImplTest {
-    private val dataSource = InitTestDatabase.freshDatabase()
+    private lateinit var dataSource: TestDataSource
 
     @BeforeEach
     fun beforeEach() {
-        dataSource.transaction {
-            it.execute("""TRUNCATE regel_evaluering CASCADE""")
-            it.execute("TRUNCATE innkommende_journalpost CASCADE")
-        }
+        dataSource = TestDataSource()
     }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
+
 
     @Test
     fun `Kan lagre og hente innkommende journalpost uten regelresulat`() {

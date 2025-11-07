@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.avklaringsbehov
 import io.mockk.mockk
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepositoryImpl
@@ -24,15 +24,26 @@ import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class AvklaringsbehovOrkestratorTest {
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
+
+
     private val gatewayProvider = createGatewayProvider {
         register<BehandlingsflytGatewayMock>()
     }
-    
-    
+
     private val repositoryRegistry = RepositoryRegistry().register<PersonRepositoryImpl>()
         .register<JournalpostRepositoryImpl>()
         .register<PersonRepositoryImpl>()
@@ -40,15 +51,10 @@ class AvklaringsbehovOrkestratorTest {
         .register<AvklaringsbehovRepositoryImpl>()
         .register<FlytJobbRepositoryImpl>()
 
-    @AfterEach
-    fun afterEach() {
-        InitTestDatabase.freshDatabase().transaction { it.execute("TRUNCATE behandling CASCADE ") }
-    }
-
 
     @Test
     fun `behandlingHendelseService dot stoppet blir kalt når en behandling er satt på vent`() {
-        val uthentedeJobber = InitTestDatabase.freshDatabase().transaction { connection ->
+        val uthentedeJobber = dataSource.transaction { connection ->
             val repositoryProvider = repositoryRegistry.provider(connection)
             val behandlingHendelseService =
                 BehandlingHendelseServiceImpl(
