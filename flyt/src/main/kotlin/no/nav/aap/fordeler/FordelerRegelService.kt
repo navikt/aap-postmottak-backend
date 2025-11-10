@@ -25,6 +25,7 @@ data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val s
     fun skalTilKelvin(): Boolean {
         val manueltOverstyrtTilArena = regelMap[ManueltOverstyrtTilArenaRegel::class.simpleName] ?: false
         if (manueltOverstyrtTilArena) {
+            log.info("Sak med journalpostId=$forJournalpost går til Arena pga manuell overstyring")
             return false
         }
 
@@ -36,7 +37,7 @@ data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val s
             requireNotNull(regelMap[ErIkkeAnkeRegel::class.simpleName]) { "Mangler resultat fra ${ErIkkeAnkeRegel::class.simpleName}. JournalpostId: $forJournalpost" }
 
         if (sakFinnesIKelvin && erIkkeReisestønad && erIkkeAnke) {
-            log.info("Evaluering av KelvinSakRegel ga true: journalpost skal til Kelvin")
+            log.info("Evaluering av KelvinSakRegel ga true: journalpostId=$forJournalpost skal til Kelvin")
             return true
         }
         val reglerTilEvaluering =
@@ -44,7 +45,7 @@ data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val s
 
         return reglerTilEvaluering.values.all { it }.also {
             log.info(
-                "Skal til Kelvin: $it. ${
+                "journalpostId=$forJournalpost skal til Kelvin? $it ${
                     if (!it) "\n Følgende regler ga false: ${
                         reglerTilEvaluering.filter { !it.value }.map { it.key }
                     }" else ""

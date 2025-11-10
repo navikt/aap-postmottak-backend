@@ -67,12 +67,17 @@ class FordelingVideresendJobbUtfører(
             routeTilKelvin(journalpostId)
             prometheus.fordelingsCounter(Fagsystem.kelvin).increment()
         } else {
-            arenaVideresender.videresendJournalpostTilArena(
-                journalpostId,
-                innkommendeJournalpostId = innkommendeJournalpostId
-            )
+            routeTilArena(journalpostId, innkommendeJournalpostId)
             prometheus.fordelingsCounter(Fagsystem.arena).increment()
         }
+    }
+
+    private fun routeTilArena(journalpostId: JournalpostId, innkommendeJournalpostId: Long) {
+        log.info("Oppretter IKKE behandling for journalpost som skal til Arena: $journalpostId")
+        arenaVideresender.videresendJournalpostTilArena(
+            journalpostId,
+            innkommendeJournalpostId = innkommendeJournalpostId
+        )
     }
 
     private fun routeTilKelvin(journalpostId: JournalpostId) {
