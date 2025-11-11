@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.kontrakt.avklaringsbehov
 
 /**
- * Disse verdiene må igjen gjenspeile enumene under
+ * Disse verdiene må igjen gjenspeile enumene under.
  */
 const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
 
