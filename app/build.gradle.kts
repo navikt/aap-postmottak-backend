@@ -49,11 +49,11 @@ fun getCheckedOutGitCommitHash(): String {
 dependencies {
     implementation(libs.ktorSerializationJackson)
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.1")
     implementation(libs.ktorOpenApiGen)
 
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.5")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
     implementation("ch.qos.logback:logback-classic:1.5.20")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
 
@@ -73,7 +73,7 @@ dependencies {
     implementation(libs.motorApi)
     implementation(libs.server)
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:11.15.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.16.0")
     runtimeOnly("org.postgresql:postgresql:42.7.8")
     // Auditlogging
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -83,7 +83,7 @@ dependencies {
     implementation(libs.kafkaStreams)
     implementation("org.apache.avro:avro:1.12.1")
 
-    implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
+    implementation("io.confluent:kafka-streams-avro-serde:8.1.0")
     implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.6")
 
     testImplementation(libs.kafkaStreamsTestUtils)
