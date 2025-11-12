@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.put
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
@@ -25,7 +26,6 @@ private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 class JournalføringService(
     private val client: RestClient<InputStream>,
     private val safGraphqlKlient: JournalpostGateway,
-    private val persondataGateway: PersondataGateway,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) {
 
@@ -35,16 +35,14 @@ class JournalføringService(
         fun konstruer(
             restClient: RestClient<InputStream>,
             safGraphqlKlient: JournalpostGateway,
-            persondataGateway: PersondataGateway,
             prometheus: MeterRegistry = SimpleMeterRegistry()
         ): JournalføringService {
-            return JournalføringService(restClient, safGraphqlKlient, persondataGateway, prometheus)
+            return JournalføringService(restClient, safGraphqlKlient, prometheus)
         }
     }
 
     constructor(gatewayProvider: GatewayProvider) : this(
         safGraphqlKlient = gatewayProvider.provide(JournalpostGateway::class),
-        persondataGateway = gatewayProvider.provide(PersondataGateway::class),
         prometheus = PrometheusProvider.prometheus,
         client = RestClient.withDefaultResponseHandler(
             config = ClientConfig(
@@ -77,11 +75,13 @@ class JournalføringService(
                     id = ident.identifikator
                 ),
                 tittel = tittel,
-                avsenderMottaker = avsenderMottaker ?: hentAvsenderMottakerOmNødvendig(journalpostId),
+                avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
+                    journalpostId
+                ),
                 dokumenter = dokumenter
             )
         )
-        client.put(path, request) { _, _ -> }
+        client.put<OppdaterJournalpostRequest, Unit>(path, request)
     }
 
     fun førJournalpostPåGenerellSak(
@@ -103,7 +103,9 @@ class JournalføringService(
                     id = journalpost.person.aktivIdent().identifikator
                 ),
                 tittel = tittel,
-                avsenderMottaker = avsenderMottaker ?: hentAvsenderMottakerOmNødvendig(journalpost.journalpostId),
+                avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
+                    journalpost.journalpostId
+                ),
                 dokumenter = dokumenter
             )
         )
@@ -124,13 +126,11 @@ class JournalføringService(
     private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottakerDto? {
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
-        val bruker = safJournalpost.bruker
-        val navn = persondataGateway.hentNavn(bruker?.id!!)
+        val bruker = safJournalpost.bruker!!
         return if (avsenderMottaker?.id == null && bruker.type in listOf(BrukerIdType.FNR, BrukerIdType.ORGNR)) {
             AvsenderMottakerDto(
-                id = safJournalpost.bruker?.id!!,
+                id = safJournalpost.bruker.id,
                 idType = AvsenderMottakerDto.IdType.valueOf(bruker.type?.name!!),
-                navn = navn?.fulltNavn(),
             )
         } else {
             null
@@ -172,6 +172,14 @@ data class AvsenderMottakerDto(
      **/
     enum class IdType {
         FNR, ORGNR, HPRNR, UTL_ORG,
+    }
+
+    fun entenKunNavnEllerIdOgType(): AvsenderMottakerDto {
+        return if (id != null && idType != null) {
+            this.copy(navn = null)
+        } else {
+            this.copy(id = null, idType = null)
+        }
     }
 }
 

@@ -91,7 +91,7 @@ class JoarkClientTest {
 
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
         val joarkClient =
-            JournalføringService.konstruer(restClient, SafGraphqlClientCredentialsClient(), PdlGraphqlKlient())
+            JournalføringService.konstruer(restClient, SafGraphqlClientCredentialsClient())
 
         val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(TestJournalposter.UTEN_AVSENDER_MOTTAKER)
 
@@ -111,7 +111,7 @@ class JoarkClientTest {
                 val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
                 assertThat(avsenderMottaker?.id).isEqualTo(TestIdenter.DEFAULT_IDENT.identifikator)
                 assertThat(avsenderMottaker?.idType).isEqualTo(AvsenderMottakerDto.IdType.FNR)
-                assertThat(avsenderMottaker?.navn).isEqualTo("Ola Normann")
+                assertThat(avsenderMottaker?.navn).isEqualTo(null)
             }, any())
         }
     }
