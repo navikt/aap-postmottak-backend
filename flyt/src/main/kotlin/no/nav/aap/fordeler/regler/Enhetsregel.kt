@@ -5,13 +5,14 @@ import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.kontrakt.enhet.GodkjentEnhet
+import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(Enhetsregel::class.java)
 
 class Enhetsregel(
-    unleashGateway: UnleashGateway
+    private val unleashGateway: UnleashGateway
 ) : Regel<EnhetsregelInput> {
 
     companion object : RegelFactory<EnhetsregelInput> {
@@ -26,6 +27,9 @@ class Enhetsregel(
     override fun vurder(input: EnhetsregelInput): Boolean {
         if (input.enheter.norgEnhet == null && input.enheter.oppfølgingsenhet == null) {
             log.info("Fant ikke enheter for person")
+        }
+        if (unleashGateway.isEnabled(PostmottakFeature.DeaktiverEnhetsregel)) {
+            return true
         }
         return (input.enheter.oppfølgingsenhet ?: input.enheter.norgEnhet) in GodkjentEnhet.entries.map { it.enhetNr }
     }

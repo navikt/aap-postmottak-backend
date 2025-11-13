@@ -48,6 +48,6 @@ class EnhetsregelTest {
     }
 
     object FakeUnleash : UnleashGateway {
-        override fun isEnabled(featureToggle: FeatureToggle): Boolean = true
+        override fun isEnabled(featureToggle: FeatureToggle): Boolean = false
     }
 }
