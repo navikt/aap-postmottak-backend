@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation(project(":flyt"))
 
-    implementation("ch.qos.logback:logback-classic:1.5.20")
+    implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation(libs.dbconnect)
     implementation(libs.verdityper)
     implementation(libs.dbmigrering)
