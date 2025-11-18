@@ -54,7 +54,7 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
-    implementation("ch.qos.logback:logback-classic:1.5.20")
+    implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
     implementation(project(":klienter"))
@@ -73,7 +73,7 @@ dependencies {
     implementation(libs.motorApi)
     implementation(libs.server)
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:11.16.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.17.0")
     runtimeOnly("org.postgresql:postgresql:42.7.8")
     // Auditlogging
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
