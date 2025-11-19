@@ -5,13 +5,13 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class AvklaringsbehovHendelseDto(
+public data class AvklaringsbehovHendelseDto(
     val avklaringsbehovDefinisjon: Definisjon,
     val status: Status,
     val endringer: List<EndringDTO>
 )
 
-data class EndringDTO(
+public data class EndringDTO(
     val status: Status,
     val tidsstempel: LocalDateTime = LocalDateTime.now(),
     val frist: LocalDate? = null,
@@ -20,7 +20,7 @@ data class EndringDTO(
     val begrunnelse: String? = null
 )
 
-enum class ÅrsakTilSettPåVent {
+public enum class ÅrsakTilSettPåVent {
     VENTER_PÅ_OPPLYSNINGER,
     VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER,
     VENTER_PÅ_MEDISINSKE_OPPLYSNINGER,

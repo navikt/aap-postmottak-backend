@@ -2,7 +2,11 @@ package no.nav.aap.postmottak.kontrakt.steg
 
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 
-enum class StegType(val gruppe: StegGruppe, val status: Status, val tekniskSteg: Boolean = false) {
+public enum class StegType(
+    public val gruppe: StegGruppe,
+    public val status: Status,
+    public val tekniskSteg: Boolean = false
+) {
     DIGITALISER_DOKUMENT(
         gruppe = StegGruppe.DIGITALISER,
         status = Status.UTREDES

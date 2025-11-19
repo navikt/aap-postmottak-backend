@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
+
 plugins {
     id("postmottak.conventions")
     `maven-publish`
@@ -16,6 +18,10 @@ apply(plugin = "java-library")
 
 java {
     withSourcesJar()
+}
+
+kotlin {
+    explicitApi = ExplicitApiMode.Warning
 }
 
 apply(plugin = "maven-publish")
