@@ -5,14 +5,14 @@ plugins {
 dependencies {
     implementation(project(":flyt"))
 
-    implementation("ch.qos.logback:logback-classic:1.5.20")
+    implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation(libs.dbconnect)
     implementation(libs.verdityper)
     implementation(libs.dbmigrering)
     implementation(libs.httpklient)
     implementation(libs.infrastructure)
     implementation(libs.behandlingsflytKontrakt)
-    implementation("org.flywaydb:flyway-database-postgresql:11.16.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.17.0")
     runtimeOnly("org.postgresql:postgresql:42.7.8")
 
     testImplementation(project(":lib-test"))
