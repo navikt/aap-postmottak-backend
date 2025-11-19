@@ -6,7 +6,7 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class DokumentflytStoppetHendelse(
+public data class DokumentflytStoppetHendelse(
     val journalpostId: JournalpostId,
     val ident: String,
     val referanse: UUID,

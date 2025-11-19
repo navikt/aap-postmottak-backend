@@ -1,8 +1,8 @@
 package no.nav.aap.postmottak.kontrakt.enhet
 
 
-// OBS! Legger du til en enhet i denne lista, vil den begynne å motta saker i Kelvin!
-enum class GodkjentEnhet(val enhetNr: String) {
+@Deprecated("Denne listen brukes ikke noe sted lenger.")
+public enum class GodkjentEnhet(public val enhetNr: String) {
     // Vest-Viken
     NAV_BÆRUM("0219"),
     NAV_ASKER("0220"),

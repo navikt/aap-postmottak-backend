@@ -3,16 +3,16 @@ package no.nav.aap.postmottak.kontrakt.avklaringsbehov
 /**
  * Disse verdiene må igjen gjenspeile enumene under.
  */
-const val MANUELT_SATT_PÅ_VENT_KODE = "9001"
+public const val MANUELT_SATT_PÅ_VENT_KODE: String = "9001"
 
 @Deprecated("Bruk heller `DIGITALISER_DOKUMENT_KODE`.")
-const val KATEGORISER_DOKUMENT_KODE = "1337"
-const val DIGITALISER_DOKUMENT_KODE = "1338"
-const val AVKLAR_TEMA_KODE = "1339"
-const val AVKLAR_SAKSNUMMER_KODE = "1340"
-const val AVKLAR_OVERLEVERING_KODE = "1341"
+public const val KATEGORISER_DOKUMENT_KODE: String = "1337"
+public const val DIGITALISER_DOKUMENT_KODE: String = "1338"
+public const val AVKLAR_TEMA_KODE: String = "1339"
+public const val AVKLAR_SAKSNUMMER_KODE: String = "1340"
+public const val AVKLAR_OVERLEVERING_KODE: String = "1341"
 
-enum class AvklaringsbehovKode {
+public enum class AvklaringsbehovKode {
     `9001`,
     `1337`,
     `1338`,
