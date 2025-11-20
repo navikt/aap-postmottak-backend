@@ -18,7 +18,7 @@ COPY /app/build/libs/app-all.jar /app/app.jar
 
 WORKDIR /app
 
-ENV LANG='nb_NO.UTF-8' LC_ALL='nb_NO.UTF-8' LC_CTYPE='nb_NO.UTF-8' TZ="Europe/Oslo"
+ENV LANG='nb_NO.UTF-8' LC_ALL='nb_NO.UTF-8' TZ="Europe/Oslo"
 # Kommentar til bruk av XX:ActiveProcessorCount:
 # Dette påvirker kode som har logikk basert på JVM-metoden Runtime.getRuntime().availableProcessors()
 # Uten limit i Kubernetes returnerer den antall CPU i noden, som kan være mye høyere enn det som er tildelt pod'en.
