@@ -9,6 +9,10 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Sakstype
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -35,7 +39,16 @@ fun Application.safFake(
             when (journalpost) {
                 TestJournalposter.DIGITAL_SØKNAD_ID.referanse -> {
                     call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    call.respondText("""{"yrkesskade":"nei", "student":{"erStudent": "nei"}}""")
+                    call.respondText(
+                        DefaultJsonMapper.toJson(
+                            SøknadV0(
+                                student = SøknadStudentDto(erStudent = StudentStatus.Nei),
+                                yrkesskade = "nei",
+                                oppgitteBarn = null,
+                                medlemskap = null,
+                            )
+                        )
+                    )
                 }
 
                 else -> {
