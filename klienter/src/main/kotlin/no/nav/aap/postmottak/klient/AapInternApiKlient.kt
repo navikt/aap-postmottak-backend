@@ -36,11 +36,12 @@ class AapInternApiKlient : AapInternApiGateway {
      */
     override fun harAapSakIArena(person: Person): PersonEksistererIAAPArena {
         val path = url.resolve("/arena/person/aap/eksisterer")
-        val reqbody =
-            SakerRequest(personidentifikatorer = person.identer().map { it.identifikator })
-        return client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
-            DefaultJsonMapper.fromJson(body)
-        })!!
+        val reqbody = SakerRequest(personidentifikatorer = person.identer().map { it.identifikator })
+        val response: PersonEksistererIAAPArena? = client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
+            DefaultJsonMapper.fromJson<PersonEksistererIAAPArena>(body)
+        })
+        requireNotNull(response) { "Kunne ikke sjekke om personen har vedtak i Arena" }
+        return response
     }
 }
 
