@@ -11,7 +11,7 @@ import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import javax.sql.DataSource
 
-fun mottakStream(
+fun lagMottakStream(
     dataSource: DataSource,
     repositoryRegistry: RepositoryRegistry,
     gatewayProvider: GatewayProvider
@@ -28,6 +28,5 @@ fun mottakStream(
                 prometheus = PrometheusProvider.prometheus
             ).topology, config
         )
-    stream.start()
     return stream
 }
