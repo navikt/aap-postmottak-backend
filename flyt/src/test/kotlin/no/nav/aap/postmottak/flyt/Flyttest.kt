@@ -336,7 +336,7 @@ class Flyttest : WithDependencies {
         val journalpostId = TestJournalposter.DIGITAL_SØKNAD_ID
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
-
+        Thread.sleep(50L) // Vent på behandling er prosessert. TODO: kan denne fjernes?
         val behandlinger = alleBehandlingerForJournalpost(journalpostId)
 
         assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
