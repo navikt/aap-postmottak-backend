@@ -21,6 +21,7 @@ spec:
     requests:
       cpu: 500m
       memory: 528Mi
+  terminationGracePeriodSeconds: 30
   observability:
     autoInstrumentation:
       enabled: true

@@ -35,6 +35,8 @@ import no.nav.aap.komponenter.server.plugins.NavIdentInterceptor
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
+import no.nav.aap.postmottak.AppConfig.ANTALL_WORKERS_FOR_MOTOR
+import no.nav.aap.postmottak.AppConfig.stansArbeidTimeout
 import no.nav.aap.postmottak.api.auditlog.auditlogApi
 import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
 import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
@@ -50,17 +52,41 @@ import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.mottak.kafka.Stream
-import no.nav.aap.postmottak.mottak.mottakStream
+import no.nav.aap.postmottak.mottak.lagMottakStream
 import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.testApi
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
+import kotlin.time.Duration.Companion.seconds
 
 class App
 
-private const val ANTALL_WORKERS = 4
+internal object AppConfig {
+    // Matcher terminationGracePeriodSeconds for podden i Kubernetes-manifestet ("nais.yaml")
+    private val kubernetesTimeout = 30.seconds
+
+    // Tid før ktor avslutter uansett. Må være litt mindre enn `kubernetesTimeout`.
+    val shutdownTimeout = kubernetesTimeout - 2.seconds
+
+    // Tid appen får til å fullføre påbegynte requests, jobber etc. Må være mindre enn `endeligShutdownTimeout`.
+    val shutdownGracePeriod = shutdownTimeout - 3.seconds
+
+    // Tid appen får til å avslutte Motor, Kafka, etc
+    val stansArbeidTimeout = shutdownGracePeriod - 1.seconds
+
+    // Vi skrur opp ktor sin default-verdi, som er "antall CPUer", satt ved -XX:ActiveProcessorCount i Dockerfile,
+    // fordi appen vår er I/O-bound
+    private val ktorParallellitet = 8
+    // Vi følger ktor sin metodikk for å regne ut tuning parametre som funksjon av parallellitet
+    // https://github.com/ktorio/ktor/blob/3.3.1/ktor-server/ktor-server-core/common/src/io/ktor/server/engine/ApplicationEngine.kt#L30
+    val connectionGroupSize = ktorParallellitet / 2 + 1
+    val workerGroupSize = ktorParallellitet / 2 + 1
+    val callGroupSize = ktorParallellitet
+
+    const val ANTALL_WORKERS_FOR_MOTOR = 4
+}
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e ->
@@ -68,12 +94,14 @@ fun main() {
     }
     val serverPort = System.getenv("HTTP_PORT")?.toInt() ?: 8080
     embeddedServer(Netty, configure = {
+        shutdownGracePeriod = AppConfig.shutdownGracePeriod.inWholeMilliseconds
+        shutdownTimeout = AppConfig.shutdownTimeout.inWholeMilliseconds
         connector {
             port = serverPort
         }
-        connectionGroupSize = 8
-        workerGroupSize = 8
-        callGroupSize = 16
+        connectionGroupSize = AppConfig.connectionGroupSize
+        workerGroupSize = AppConfig.workerGroupSize
+        callGroupSize = AppConfig.callGroupSize
     }) {
         server(DbConfig(), postgresRepositoryRegistry, defaultGatewayProvider())
     }.start(wait = true)
@@ -134,14 +162,9 @@ internal fun Application.server(
 
     val dataSource = initDatasource(dbConfig, PrometheusProvider.prometheus)
     Migrering.migrate(dataSource)
-    val motor = startMotor(dataSource, repositoryRegistry, gatewayProvider)
 
-
-    val mottakStream = mottakStream(dataSource, repositoryRegistry, gatewayProvider)
-
-    monitor.subscribe(ApplicationStopped) {
-        mottakStream.close()
-    }
+    val motor = lagMotor(dataSource, repositoryRegistry, gatewayProvider)
+    val mottakStream = lagMottakStream(dataSource, repositoryRegistry, gatewayProvider)
 
     routing {
         authenticate(AZURE) {
@@ -165,6 +188,28 @@ internal fun Application.server(
         actuator(motor, mottakStream)
     }
 
+    monitor.subscribe(ApplicationStarted) {
+        motor.start()
+        mottakStream.start()
+    }
+
+    monitor.subscribe(ApplicationStopPreparing) { environment ->
+        environment.log.info("ktor forbereder seg på å stoppe.")
+    }
+    monitor.subscribe(ApplicationStopping) { environment ->
+        environment.log.info("ktor stopper nå å ta imot nye requester, og lar mottatte requester kjøre frem til timeout.")
+        mottakStream.close(stansArbeidTimeout)
+        motor.stop(stansArbeidTimeout)
+    }
+    monitor.subscribe(ApplicationStopped) { environment ->
+        environment.log.info("ktor har fullført nedstoppingen sin. Eventuelle requester og annet arbeid som ikke ble fullført innen timeout ble avbrutt.")
+        try {
+            // Helt til slutt, nå som vi har stanset Motor, etc. Lukk database-koblingen.
+            dataSource.close()
+        } catch (_: Exception) {
+            // Ignorert
+        }
+    }
 }
 
 private suspend fun ApplicationCall.respondWithError(exception: ApiException) {
@@ -174,14 +219,14 @@ private suspend fun ApplicationCall.respondWithError(exception: ApiException) {
     )
 }
 
-fun Application.startMotor(
+fun lagMotor(
     dataSource: DataSource,
     repositoryRegistry: RepositoryRegistry,
     gatewayProvider: GatewayProvider
 ): Motor {
     val motor = Motor(
         dataSource = dataSource,
-        antallKammer = ANTALL_WORKERS,
+        antallKammer = ANTALL_WORKERS_FOR_MOTOR,
         logInfoProvider = PostmottakLogInfoProvider,
         jobber = ProsesseringsJobber.alle(),
         prometheus = PrometheusProvider.prometheus,
@@ -191,17 +236,6 @@ fun Application.startMotor(
 
     dataSource.transaction { dbConnection ->
         RetryService(dbConnection).enable()
-    }
-
-    monitor.subscribe(ApplicationStarted) {
-        motor.start()
-    }
-    monitor.subscribe(ApplicationStopped) { application ->
-        application.environment.log.info("Server har stoppet")
-        motor.stop()
-        // Release resources and unsubscribe from events
-        application.monitor.unsubscribe(ApplicationStarted) {}
-        application.monitor.unsubscribe(ApplicationStopped) {}
     }
 
     return motor
@@ -253,7 +287,7 @@ fun initDatasource(dbConfig: DbConfig, meterRegistry: MeterRegistry): HikariData
         jdbcUrl = dbConfig.url
         username = dbConfig.username
         password = dbConfig.password
-        maximumPoolSize = 10 + (ANTALL_WORKERS * 2)
+        maximumPoolSize = 10 + (ANTALL_WORKERS_FOR_MOTOR * 2)
         minimumIdle = 1
         driverClassName = "org.postgresql.Driver"
         connectionTestQuery = "SELECT 1"
