@@ -72,7 +72,7 @@ spec:
   secureLogs:
     enabled: true
   envFrom:
-    - secret: kelvin-unleash-api-token
+    - secret: {{unleash_secret}}
   accessPolicy:
     {{#if inbound.rules}}
     inbound:
