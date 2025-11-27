@@ -9,7 +9,7 @@ RUN set -eux; \
 	locale -a | grep 'nb_NO.utf8'
 
 # Selve runtime imaget
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jdk:openjdk-21
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jdk:openjdk-25
 
 # For å støtte særnorske bokstaver i flyway-scriptenes filnavn
 COPY --from=locale /usr/lib/locale /usr/lib/locale
