@@ -17,7 +17,7 @@ dependencies {
     api(libs.tilgangPlugin)
     api(libs.tilgangKontrakt)
     compileOnly(libs.ktorHttpJvm)
-    implementation("org.flywaydb:flyway-database-postgresql:11.17.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.17.2")
 
     implementation(kotlin("reflect"))
     implementation("com.zaxxer:HikariCP:7.0.2")
@@ -27,7 +27,7 @@ dependencies {
     implementation(libs.kafkaStreams)
     implementation("org.apache.avro:avro:1.12.1")
     implementation("io.confluent:kafka-streams-avro-serde:8.1.0")
-    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.6")
+    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.7")
 
     // https://github.com/navikt/teamdokumenthandtering-avro-schemas
     testImplementation(libs.kafkaStreamsTestUtils)

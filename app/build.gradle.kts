@@ -73,7 +73,7 @@ dependencies {
     implementation(libs.motorApi)
     implementation(libs.server)
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:11.17.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.17.2")
     runtimeOnly("org.postgresql:postgresql:42.7.8")
     // Auditlogging
     runtimeOnly("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -84,7 +84,7 @@ dependencies {
     implementation("org.apache.avro:avro:1.12.1")
 
     implementation("io.confluent:kafka-streams-avro-serde:8.1.0")
-    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.6")
+    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.7")
 
     testImplementation(libs.kafkaStreamsTestUtils)
 
