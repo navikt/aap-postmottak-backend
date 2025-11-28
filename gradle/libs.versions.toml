@@ -1,9 +1,9 @@
 [versions]
 ktor = "3.3.2"
-komponenter = "1.0.449"
-tilgang = "1.0.164"
+komponenter = "1.0.450"
+tilgang = "1.0.166"
 apiIntern = "0.0.21"
-behandlingsflyt = "0.0.493"
+behandlingsflyt = "0.0.494"
 junit = "6.0.1"
 kafka = "4.1.0"
 ktorOpenApiGen = "1.0.131"
