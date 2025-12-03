@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
 
 class OverleverTilFagsystemSteg(
-    private val digitaliseringsviurdeirngrepository: DigitaliseringsvurderingRepository,
+    private val digitaliseringsvurderingRepository: DigitaliseringsvurderingRepository,
     private val behandlingsflytKlient: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
@@ -50,7 +50,7 @@ class OverleverTilFagsystemSteg(
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val digitaliseringsvurdering =
-            requireNotNull(digitaliseringsviurdeirngrepository.hentHvisEksisterer(kontekst.behandlingId)) { "Digitaliseringsvurdering mangler for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
+            requireNotNull(digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Digitaliseringsvurdering mangler for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
 
