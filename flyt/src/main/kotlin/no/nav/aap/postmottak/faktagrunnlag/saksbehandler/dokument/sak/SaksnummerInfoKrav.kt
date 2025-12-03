@@ -37,7 +37,11 @@ class SaksnummerInfoKrav(
         val saker = behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator))
             .map { it.tilSaksinfo() }
 
-        saksnummerRepository.lagreKelvinSak(kontekst.behandlingId, saker)
+        val eksisterendeSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId).toSet()
+
+        if (saker.toSet() != eksisterendeSaker) {
+            saksnummerRepository.lagreKelvinSak(kontekst.behandlingId, saker)
+        }
         return IKKE_ENDRET
     }
 
