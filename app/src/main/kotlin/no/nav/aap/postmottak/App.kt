@@ -38,6 +38,7 @@ import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.postmottak.AppConfig.ANTALL_WORKERS_FOR_MOTOR
 import no.nav.aap.postmottak.AppConfig.stansArbeidTimeout
 import no.nav.aap.postmottak.api.auditlog.auditlogApi
+import no.nav.aap.postmottak.api.drift.driftApi
 import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
 import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.sak.finnSakApi
@@ -183,6 +184,7 @@ internal fun Application.server(
                 motorApi(dataSource)
                 testApi(dataSource)
                 auditlogApi(dataSource, repositoryRegistry)
+                driftApi(dataSource, repositoryRegistry)
             }
         }
         actuator(motor, mottakStream)
