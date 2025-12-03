@@ -7,9 +7,7 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.post
-import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.postmottak.PrometheusProvider
@@ -33,13 +31,12 @@ class ArenaKlient : ArenaGateway {
         }
     }
 
-
     override fun harAktivSak(ident: Ident) = nyesteAktiveSak(ident) != null
 
     override fun nyesteAktiveSak(ident: Ident): String? {
-        val request = GetRequest()
-        val nyesteSakUrl = url.resolve("arena/nyesteaktivesak/${ident.identifikator}")
-        return client.get(nyesteSakUrl, request)
+        val request = PostRequest(HentNyesteAktivSakRequest(personident = ident.identifikator))
+        val nyesteSakUrl = url.resolve("arena/nyesteaktivesak")
+        return client.post(nyesteSakUrl, request)
     }
 
     override fun opprettArenaOppgave(arenaOpprettetForespørsel: ArenaOpprettOppgaveForespørsel): ArenaOpprettOppgaveRespons {
@@ -58,6 +55,8 @@ class ArenaKlient : ArenaGateway {
     }
 
 }
+
+data class HentNyesteAktivSakRequest(val personident: String)
 
 data class BehandleKjoerelisteOgOpprettOppgaveRequest(
     val journalpostId: String
