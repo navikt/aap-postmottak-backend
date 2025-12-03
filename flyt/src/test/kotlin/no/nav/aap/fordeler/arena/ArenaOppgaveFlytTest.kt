@@ -78,7 +78,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
     }
 
     @Test
-    fun `happycase for søknad, oppretter sak i arena og journalfører automatsik`() {
+    fun `happycase for søknad, oppretter sak i arena og journalfører automatisk`() {
         val journalpostId = TestJournalposter.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
 
         val persondataGateway = gatewayProvider.provide(PersondataGateway::class)
@@ -102,7 +102,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
     }
 
     @Test
-    fun `happycase for søknad oppretter sak i arena og journalfører automatsik`() {
+    fun `happycase for søknad oppretter sak i arena og journalfører automatisk`() {
         val journalpostId = TestJournalposter.SØKNAD_ETTERSENDELSE
 
         val persondataGateway = gatewayProvider.provide(PersondataGateway::class)
