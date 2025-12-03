@@ -53,6 +53,13 @@ class AvklarTemaSteg(
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Journalpost for behandling ${kontekst.behandlingId} mangler i AvklarTemaSteg" }
         if (journalpost.erUgyldig()) return Fullført
 
+        // Hvis journalposten journalføres på Tema AAP *utenfor* Kelvin, short circuit.
+        if (journalpost.status == Journalstatus.JOURNALFOERT) {
+            avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(true, Tema.fraString(journalpost.tema)))
+            log.info("Journalpost har allerede blitt journalført på tema AAP. Setter temaavklaring maskinelt til AAP")
+            return Fullført
+        }
+
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
         return if (temavurdering == null) {
@@ -62,10 +69,6 @@ class AvklarTemaSteg(
                 Fullført
             } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
                 avklarTemaMaskinelt(kontekst.behandlingId, journalpost)
-                Fullført
-            } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
-                avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(true, Tema.AAP))
-                log.info("Journalpost har allerede blitt journalført på tema AAP. Setter temaavklaring maskinelt til AAP")
                 Fullført
             } else {
                 log.info("Kunne ikke avklare tema maskinelt. Brevkoder: ${journalpost.dokumenter.map { it.brevkode }}. Hoveddokumentbrevkode: ${journalpost.hoveddokumentbrevkode}.")

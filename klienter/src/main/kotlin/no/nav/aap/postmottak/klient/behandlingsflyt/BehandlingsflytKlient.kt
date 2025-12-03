@@ -51,7 +51,7 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
 
     override fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak {
         log.info("Finn eller opprett sak på person i behandlingsflyt")
-        return runBlocking { finnEllerOpprett(ident.identifikator, mottattDato) }
+        return finnEllerOpprett(ident.identifikator, mottattDato)
     }
 
     private fun finnEllerOpprett(ident: String, mottattDato: LocalDate): BehandlingsflytSak {
