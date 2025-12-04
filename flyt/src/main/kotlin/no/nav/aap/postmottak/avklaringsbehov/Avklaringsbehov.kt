@@ -66,6 +66,12 @@ class Avklaringsbehov(
         )
     }
 
+    fun avbryt() {
+        historikk += Endring(
+            status = Status.AVBRUTT, begrunnelse = "", endretAv = SYSTEMBRUKER.ident
+        )
+    }
+
     fun erAvsluttet(): Boolean {
         return status().erAvsluttet()
     }
@@ -108,5 +114,21 @@ class Avklaringsbehov(
 
     override fun toString(): String {
         return "Avklaringsbehov(definisjon=$definisjon, status=${status()}, løsesISteg=${løsesISteg()})"
+    }
+
+    fun harAvsluttetStatusIHistorikken(): Boolean {
+        return historikk.any { it.status == Status.AVSLUTTET }
+    }
+
+    internal fun avslutt() {
+        check(historikk.any { it.status == Status.AVSLUTTET }) {
+            "Et steg burde vel ha vært løst minst en gang for å kunne regnes som avsluttet?"
+        }
+
+        historikk += Endring(
+            status = Status.AVSLUTTET,
+            begrunnelse = "",
+            endretAv = SYSTEMBRUKER.ident
+        )
     }
 }

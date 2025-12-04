@@ -61,6 +61,11 @@ class AvklarSakSteg(
 
         if (journalpost.erUgyldig()) return Fullført
 
+        if (journalpost.status == Journalstatus.JOURNALFOERT && journalpost.fagsystem != Fagsystem.KELVIN.name) {
+            log.info("Journalposten har blitt journalført utenfor Kelvin. Fagsystem: ${journalpost.fagsystem}.")
+            return Fullført
+        }
+
         val temavurdering =
             requireNotNull(avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)) { { "Tema skal være avklart før AvklarSakSteg" } }
 
