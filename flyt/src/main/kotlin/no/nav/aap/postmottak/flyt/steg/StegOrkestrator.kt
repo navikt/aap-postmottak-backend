@@ -171,7 +171,7 @@ class StegOrkestrator(
     ): Transisjon {
         val relevanteAvklaringsbehov =
             avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId).alle()
-                .filter { it.erÅpent() }
+                .filter { it.erÅpent() && !it.erVentepunkt() }
                 .filter { behov -> behov.skalLøsesISteg(aktivtSteg.type()) }
 
 
