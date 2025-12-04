@@ -6,7 +6,4 @@ interface BehandlingSteg {
 
     fun utfør(kontekst: FlytKontekst): StegResultat
 
-    fun vedTilbakeføring(kontekst: FlytKontekst) {
-
-    }
 }

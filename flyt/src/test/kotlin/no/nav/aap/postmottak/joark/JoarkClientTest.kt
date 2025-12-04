@@ -30,16 +30,20 @@ import java.util.*
 @Fakes
 class JoarkClientTest {
 
+    private val gatewayRegistry = GatewayRegistry()
+        .register<SafGraphqlClientCredentialsClient>()
+        .register<PdlGraphqlKlient>()
+
+    private val gatewayProvider = GatewayProvider(gatewayRegistry)
+
     @BeforeEach
     fun setup() {
         PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-        GatewayRegistry.register(SafGraphqlClientCredentialsClient::class)
-        GatewayRegistry.register(PdlGraphqlKlient::class)
     }
 
     @Test
     fun `før journalpost på fagsak`() {
-        val joarkClient = JournalføringService(GatewayProvider)
+        val joarkClient = JournalføringService(gatewayProvider)
 
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.person } returns Person(
@@ -60,7 +64,7 @@ class JoarkClientTest {
 
     @Test
     fun `før journalpost på generell sak`() {
-        val joarkClient = JournalføringService(GatewayProvider)
+        val joarkClient = JournalføringService(gatewayProvider)
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.person } returns Person(
             123,
@@ -74,7 +78,7 @@ class JoarkClientTest {
 
     @Test
     fun `ferdigstillJournalpost happy path`() {
-        val joarkClient = JournalføringService(GatewayProvider)
+        val joarkClient = JournalføringService(gatewayProvider)
         val journalpost: Journalpost = mockk(relaxed = true)
         every { journalpost.person } returns Person(
             123,

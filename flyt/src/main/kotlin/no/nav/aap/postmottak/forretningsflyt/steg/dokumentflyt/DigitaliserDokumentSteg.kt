@@ -49,7 +49,6 @@ class DigitaliserDokumentSteg(
         override fun type(): StegType {
             return StegType.DIGITALISER_DOKUMENT
         }
-
     }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {

@@ -110,7 +110,7 @@ class StegOrkestrator(
             StegStatus.OPPDATER_FAKTAGRUNNLAG -> oppdaterFaktagrunnlag(kontekst, faktagrunnlagForGjeldendeSteg)
             StegStatus.UTFØRER -> behandleSteg(aktivtSteg, behandlingSteg, kontekst)
             StegStatus.AVKLARINGSPUNKT -> harAvklaringspunkt(aktivtSteg, kontekst.behandlingId)
-            StegStatus.TILBAKEFØRT -> behandleStegBakover(kontekst, behandlingSteg)
+            StegStatus.TILBAKEFØRT -> Fortsett
             StegStatus.AVSLUTTER -> Fortsett
         }
 
@@ -140,34 +140,45 @@ class StegOrkestrator(
 
         val resultat = stegResultat.transisjon()
 
-        if (resultat is FunnetAvklaringsbehov) {
-            log.info(
-                "Fant avklaringsbehov: {}",
-                resultat.avklaringsbehov()
-            )
-            val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
-            avklaringsbehovene.leggTil(resultat.avklaringsbehov(), aktivtSteg.type())
-        } else if (resultat is FunnetVentebehov) {
-            log.info(
-                "Fant ventebehov: {}",
-                resultat.ventebehov()
-            )
-            val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
-            resultat.ventebehov().forEach {
-                avklaringsbehovene.leggTil(
-                    definisjoner = listOf(it.definisjon),
-                    stegType = aktivtSteg.type(),
-                    frist = it.frist,
-                    grunn = it.grunn
+        when (resultat) {
+            is FunnetAvklaringsbehov -> {
+                log.info(
+                    "Fant avklaringsbehov: {}",
+                    resultat.avklaringsbehov()
                 )
+                val avklaringsbehovene =
+                    avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+                avklaringsbehovene.leggTil(resultat.avklaringsbehov(), aktivtSteg.type())
             }
-        } else if (resultat is Fortsett) {
-            // Avbryt eksisterende ventebehov
-            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
-                .hentVentepunkter().forEach {
-                    log.info("Avbryter ventebehov: {}", it)
-                    it.løs("Har gått videre til nytt steg", SYSTEMBRUKER.ident)
+
+            is FunnetVentebehov -> {
+                log.info(
+                    "Fant ventebehov: {}",
+                    resultat.ventebehov()
+                )
+                val avklaringsbehovene =
+                    avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+                resultat.ventebehov().forEach {
+                    avklaringsbehovene.leggTil(
+                        definisjoner = listOf(it.definisjon),
+                        stegType = aktivtSteg.type(),
+                        frist = it.frist,
+                        grunn = it.grunn
+                    )
                 }
+            }
+
+            is Fortsett -> {
+                // Avbryt eksisterende ventebehov
+                avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).apply {
+                    hentVentepunkter().forEach {
+                        log.info("Avbryter ventebehov: {}", it)
+                        this.løsAvklaringsbehov(it.definisjon, "Har gått videre til nytt steg", SYSTEMBRUKER.ident)
+                    }
+                }
+            }
+
+            Stopp -> {}
         }
 
         return resultat
@@ -182,17 +193,12 @@ class StegOrkestrator(
                 .filter { it.erÅpent() }
                 .filter { behov -> behov.skalLøsesISteg(aktivtSteg.type()) }
 
+        log.info("Fant relevante avklaringsbehov: ${relevanteAvklaringsbehov.map { it.definisjon.name }}")
+
         if (relevanteAvklaringsbehov.any { behov -> behov.skalStoppeHer(aktivtSteg.type()) }) {
             return Stopp
         }
 
-        return Fortsett
-    }
-
-    private fun behandleStegBakover(
-        kontekst: FlytKontekst, behandlingSteg: BehandlingSteg,
-    ): Transisjon {
-        behandlingSteg.vedTilbakeføring(kontekst)
         return Fortsett
     }
 

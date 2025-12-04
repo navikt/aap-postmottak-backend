@@ -21,12 +21,15 @@ import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
 
-class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
-    override val restClient: RestClient<InputStream> = RestClient(
-        config = ClientConfig(scope),
-        OnBehalfOfTokenProvider,
-        responseHandler = SafResponseHandler(),
-        prometheus = PrometheusProvider.prometheus
+class SafGraphqlOboClient : JournalpostOboGateway {
+    private val scope = requiredConfigForKey("integrasjon.saf.scope")
+    val safGraphqlKlient = SafGraphqlKlient(
+        RestClient(
+            config = ClientConfig(scope),
+            OnBehalfOfTokenProvider,
+            responseHandler = SafResponseHandler(),
+            prometheus = PrometheusProvider.prometheus
+        )
     )
 
     companion object : Factory<SafGraphqlOboClient> {
@@ -36,18 +39,23 @@ class SafGraphqlOboClient : SafGraphqlKlient(), JournalpostOboGateway {
     }
 
     override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken): SafJournalpost =
-        hentJournalpostInternal(journalpostId, currentToken)
+        safGraphqlKlient.hentJournalpostInternal(journalpostId, currentToken)
 
-    override fun hentSaker(fnr: String, currentToken: OidcToken): List<SafSak> = hentSakerInternal(fnr, currentToken)
+    override fun hentSaker(fnr: String, currentToken: OidcToken): List<SafSak> =
+        safGraphqlKlient.hentSakerInternal(fnr, currentToken)
 
 }
 
-class SafGraphqlClientCredentialsClient : SafGraphqlKlient(), JournalpostGateway {
-    override val restClient: RestClient<InputStream> = RestClient(
-        config = ClientConfig(scope),
-        ClientCredentialsTokenProvider,
-        responseHandler = SafResponseHandler(),
-        prometheus = PrometheusProvider.prometheus
+class SafGraphqlClientCredentialsClient : JournalpostGateway {
+    private val scope = requiredConfigForKey("integrasjon.saf.scope")
+
+    val safGraphqlKlient = SafGraphqlKlient(
+        RestClient(
+            config = ClientConfig(scope),
+            ClientCredentialsTokenProvider,
+            responseHandler = SafResponseHandler(),
+            prometheus = PrometheusProvider.prometheus
+        )
     )
 
     companion object : Factory<SafGraphqlClientCredentialsClient> {
@@ -57,18 +65,18 @@ class SafGraphqlClientCredentialsClient : SafGraphqlKlient(), JournalpostGateway
 
     }
 
-    override fun hentJournalpost(journalpostId: JournalpostId) = hentJournalpostInternal(journalpostId, null)
-    override fun hentSaker(fnr: String) = hentSakerInternal(fnr, null)
+    override fun hentJournalpost(journalpostId: JournalpostId) =
+        safGraphqlKlient.hentJournalpostInternal(journalpostId, null)
+
+    override fun hentSaker(fnr: String) = safGraphqlKlient.hentSakerInternal(fnr, null)
 }
 
-abstract class SafGraphqlKlient {
+class SafGraphqlKlient(val restClient: RestClient<InputStream>) {
     private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
-    protected val scope = requiredConfigForKey("integrasjon.saf.scope")
 
-    abstract val restClient: RestClient<InputStream>
 
-    protected fun hentJournalpostInternal(journalpostId: JournalpostId, currentToken: OidcToken?): SafJournalpost {
+    fun hentJournalpostInternal(journalpostId: JournalpostId, currentToken: OidcToken?): SafJournalpost {
         log.info("Henter journalpost: $journalpostId")
         val request = SafRequest.hentJournalpost(journalpostId)
         val response = graphqlQuery(request, currentToken)
@@ -83,7 +91,7 @@ abstract class SafGraphqlKlient {
         return journalpost
     }
 
-    protected fun hentSakerInternal(fnr: String, currentToken: OidcToken? = null): List<SafSak> {
+    fun hentSakerInternal(fnr: String, currentToken: OidcToken? = null): List<SafSak> {
         val request = SafRequest.hentSaker(fnr)
         val response = graphqlQuery(request, currentToken)
         val saker: List<SafSak> = response.data?.saker ?: emptyList()
