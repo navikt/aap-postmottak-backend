@@ -20,7 +20,6 @@ import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.slf4j.LoggerFactory
 import java.io.BufferedWriter
 import java.io.FileWriter
 import java.io.InputStream
@@ -30,7 +29,6 @@ import kotlin.test.fail
 
 @Fakes
 class ApiTest {
-    private val logger = LoggerFactory.getLogger(ApiTest::class.java)
 
     companion object {
         private val postgres = postgreSQLContainer()
@@ -97,10 +95,10 @@ class ApiTest {
             )
 
         try {
-            val writer = BufferedWriter(FileWriter("../openapi.json"));
-            writer.write(openApiDoc);
+            val writer = BufferedWriter(FileWriter("../openapi.json"))
+            writer.write(openApiDoc)
 
-            writer.close();
+            writer.close()
         } catch (_: Exception) {
             fail()
         }
