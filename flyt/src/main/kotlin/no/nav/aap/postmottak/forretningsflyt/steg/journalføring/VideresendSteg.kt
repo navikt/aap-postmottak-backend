@@ -69,10 +69,11 @@ class VideresendSteg(
 
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val avklarTemaVurdering =
-            requireNotNull(avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)) { "Tema skal være avklart før VideresendSteg. BehandlingId ${kontekst.behandlingId}" }
+            avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
+        val skalFullføreTidlig = avklarTemaVurdering?.skalTilAap == false || saksnummervurdering?.generellSak == true
 
-        if (!avklarTemaVurdering.skalTilAap) {
+        if (skalFullføreTidlig) {
             return Fullført
         }
 

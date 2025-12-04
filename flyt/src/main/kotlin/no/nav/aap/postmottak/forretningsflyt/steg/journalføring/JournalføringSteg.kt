@@ -41,10 +41,9 @@ class JournalføringSteg(
 
         if (journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT) return Fullført
 
-        val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
-            ?: error("Tema skal være avklart før JournalføringSteg")
+        val tema = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId) ?: Tema.fraString(journalpost.tema)
 
-        if (temavurdering.tema == Tema.UKJENT) {
+        if (tema == Tema.UKJENT) {
             // Journalpost er blitt håndtert i Gosys
             return Fullført
         }
