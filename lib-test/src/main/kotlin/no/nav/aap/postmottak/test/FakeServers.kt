@@ -22,7 +22,6 @@ import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.gateway.UføreHistorikkRespons
 import no.nav.aap.postmottak.gateway.UførePeriode
 import no.nav.aap.postmottak.gateway.UføreRequest
-import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import no.nav.aap.postmottak.test.fakes.aapInternApiFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
@@ -375,7 +374,7 @@ class FakeServers : AutoCloseable {
             jackson()
         }
         routing {
-            get("/arena/nyesteaktivesak/{ident}") {
+            post("/arena/nyesteaktivesak") {
                 call.respondText(ContentType.Text.Plain) {
                     "12345678901"
                 }
