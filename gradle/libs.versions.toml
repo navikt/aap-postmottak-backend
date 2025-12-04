@@ -5,7 +5,7 @@ tilgang = "1.0.168"
 apiIntern = "0.0.21"
 behandlingsflyt = "0.0.497"
 junit = "6.0.1"
-kafka = "8.1.0-ce"
+kafka = "8.1.1-ce"
 ktorOpenApiGen = "1.0.131"
 testcontainers = "1.21.3"
 
