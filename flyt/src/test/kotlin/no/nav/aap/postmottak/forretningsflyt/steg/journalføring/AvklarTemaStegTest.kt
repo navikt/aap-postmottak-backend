@@ -18,6 +18,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.test.fakes.InMemoryAvklaringsbehovRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -37,7 +38,8 @@ class AvklarTemaStegTest {
             journalpostRepository = journalpostRepo,
             avklarTemaRepository = avklarTemaRepository,
             gosysOppgaveGateway = gosysOppgaveKlient,
-            saksnummerRepository = saksnummerRepository
+            saksnummerRepository = saksnummerRepository,
+            avklaringsbehovRepository = InMemoryAvklaringsbehovRepository
         )
 
 
@@ -53,6 +55,7 @@ class AvklarTemaStegTest {
     @BeforeEach
     fun before() {
         every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
+        InMemoryAvklaringsbehovRepository.clearMemory()
     }
 
     @AfterEach
@@ -70,11 +73,11 @@ class AvklarTemaStegTest {
         val actual = avklarTemaSteg.utfør(kontekst)
 
         assertEquals(Fullført::class.simpleName, actual::class.simpleName)
-
+        assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId)).isEmpty()
     }
 
     @Test
-    fun `naar vi ikke kan behandle automatisk og manuell avklaring er avklart med 'skal til AAP' forventer vi at steget ikke returnerer avklaringsbehov`() {
+    fun `Når vi ikke kan behandle automatisk og manuell avklaring er avklart med 'skal til AAP' forventer vi at steget ikke returnerer avklaringsbehov`() {
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.tema } returns "AAP"
         every { avklarTemaRepository.hentTemaAvklaring(any())?.skalTilAap } returns true
@@ -82,6 +85,7 @@ class AvklarTemaStegTest {
         val actual = avklarTemaSteg.utfør(kontekst)
 
         assertEquals(Fullført::class.simpleName, actual::class.simpleName)
+        assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId).filter { it.status().erÅpent() }).isEmpty()
     }
 
     @Test
@@ -93,6 +97,7 @@ class AvklarTemaStegTest {
         val actual = avklarTemaSteg.utfør(kontekst)
 
         assertEquals(actual::class.simpleName, FantAvklaringsbehov::class.simpleName)
+
         val funnetAvklaringsbehov = actual.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_TEMA)
     }
@@ -112,6 +117,8 @@ class AvklarTemaStegTest {
         verify(exactly = 1) { gosysOppgaveKlient.ferdigstillOppgave(2) }
         assertThat(actual).isEqualTo(Fullført)
         assertEquals(Fullført::class.simpleName, actual::class.simpleName)
+
+        assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId)).isEmpty()
     }
 
     @Test
@@ -128,6 +135,7 @@ class AvklarTemaStegTest {
         val actual = avklarTemaSteg.utfør(kontekst)
 
         assertEquals(Fullført::class.simpleName, actual::class.simpleName)
-    }
 
+        assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId)).isEmpty()
+    }
 }

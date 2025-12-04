@@ -38,10 +38,12 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurder
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -62,6 +64,7 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
+import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakePersoner
 import no.nav.aap.postmottak.test.Fakes
@@ -107,8 +110,8 @@ class Flyttest : WithDependencies {
         private val gatewayProvider = defaultGatewayProvider {
             register(FakeUnleash::class)
         }
-        private lateinit var hendelsesMottak:TestHendelsesMottak
-        private lateinit var motor:Motor
+        private lateinit var hendelsesMottak: TestHendelsesMottak
+        private lateinit var motor: Motor
         private lateinit var util: TestUtil
 
         private lateinit var config: StreamsConfig
@@ -539,7 +542,7 @@ class Flyttest : WithDependencies {
     }
 
     @Test
-    fun `hvis tema ikke skal være AAP, så lukkes behandlingen`(fakePersoner: FakePersoner) {
+    fun `hvis tema ikke skal være AAP, så lukkes behandlingen når journalposten endrer tema`(fakePersoner: FakePersoner) {
         val testPerson = TestPerson(identer = setOf(TestIdenter.DEFAULT_IDENT))
         fakePersoner.leggTil(testPerson)
 
@@ -578,6 +581,60 @@ class Flyttest : WithDependencies {
         behandling
             .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             .verifiserIkkePåVent()
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+            .løsAvklaringsBehov(
+                AvklarSaksnummerLøsning(saksnummer = "ABC")
+            )
+            .sjekkÅpentAvklaringsbehov(null)
+            .apply {
+                assertThat(this.status()).isEqualTo(Status.AVSLUTTET)
+            }
+    }
+
+    @Test
+    fun `hvis tema ikke skal være AAP, så lukkes behandlingen når journalposten fullføres`(fakePersoner: FakePersoner) {
+        val testPerson = TestPerson(identer = setOf(TestIdenter.DEFAULT_IDENT))
+        fakePersoner.leggTil(testPerson)
+
+        val journalpostId = JournalpostId(12213123L)
+
+        // Legg til journalpost på Kafka
+        leggJournalpostPåKafka {
+            this.journalpostId = journalpostId.referanse
+        }
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+        }!!
+
+        assertThat(behandlinger).hasSize(1)
+        var behandling = behandlinger.first()
+        val behandlingId = behandling.id
+
+        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+
+        // Verifiser at vi stopper på AVKLAR_TEMA
+        sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
+
+        behandling = behandling
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false))
+            .verifiserErPåVent {
+                assertThat(it).containsExactly(Definisjon.VENT_PA_GOSYS)
+            }
+
+        // Simuler at journalposten er journalført utenfor Kelvin
+        // (i dag får vi ikke disse fra Kafka)
+        dataSource.transaction {
+            val eksisterende = JournalpostRepositoryImpl(it).hentHvisEksisterer(journalpostId)
+            JournalpostRepositoryImpl(it).lagre(
+                eksisterende!!.copy(status = Journalstatus.JOURNALFOERT)
+            )
+        }
+
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        behandling
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
             .løsAvklaringsBehov(
                 AvklarSaksnummerLøsning(saksnummer = "ABC")

@@ -61,12 +61,18 @@ class AvklarSakSteg(
 
         if (journalpost.erUgyldig()) return Fullført
 
-        val temavurdering =
-            requireNotNull(avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)) { { "Tema skal være avklart før AvklarSakSteg" } }
-
-        if (temavurdering.tema == Tema.UKJENT) {
+        if (journalpost.status == Journalstatus.JOURNALFOERT && journalpost.fagsystem != Fagsystem.KELVIN.name) {
+            log.info("Journalposten har blitt journalført utenfor Kelvin. Fagsystem: ${journalpost.fagsystem}.")
             return Fullført
-        } else if (temavurdering.tema == Tema.OPP) {
+        }
+        val temavurdering =
+            avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+
+        val tema = temavurdering?.tema ?: Tema.fraString(journalpost.tema)
+
+        if (tema == Tema.UKJENT) {
+            return Fullført
+        } else if (tema == Tema.OPP) {
             avklarGenerellSakMaskinelt(kontekst.behandlingId)
             return Fullført
         } else if (journalpost.status == Journalstatus.JOURNALFOERT) {
@@ -77,7 +83,7 @@ class AvklarSakSteg(
             log.info("Journalpost har alt blitt journalført på Kelvin-sak. Setter saksavklaring tilsvarende journalpost")
             saksnummerRepository.lagreSakVurdering(
                 kontekst.behandlingId,
-                Saksvurdering(saksnummer = journalpost.saksnummer.toString())
+                Saksvurdering(saksnummer = journalpost.saksnummer)
             )
             return Fullført
         }

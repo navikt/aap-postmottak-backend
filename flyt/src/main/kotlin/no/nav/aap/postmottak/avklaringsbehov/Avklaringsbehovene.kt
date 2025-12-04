@@ -127,6 +127,21 @@ class Avklaringsbehovene(
         return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraBeslutterTidligere() }
     }
 
+    internal fun internalAvbryt(definisjon: Definisjon) {
+        val avklaringsbehov = alle().single { it.definisjon == definisjon }
+        avklaringsbehov.avbryt()
+        repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
+    }
+
+    fun avbrytForSteg(steg: StegType) {
+        for (avklaringsbehov in alleEkskludertVentebehov()) {
+            if (avklaringsbehov.skalLøsesISteg(steg)) {
+                avklaringsbehov.avbryt()
+                repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
+            }
+        }
+    }
+
     fun validateTilstand(
         behandling: Behandling,
         avklaringsbehov: Definisjon? = null
@@ -168,5 +183,11 @@ class Avklaringsbehovene(
 
     override fun toString(): String {
         return "Behov[${avklaringsbehovene.joinToString { it.toString() }}. For ID $behandlingId.]"
+    }
+
+    internal fun internalAvslutt(definisjon: Definisjon) {
+        val avklaringsbehov = alle().single { it.definisjon == definisjon }
+        avklaringsbehov.avslutt()
+        repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
     }
 }

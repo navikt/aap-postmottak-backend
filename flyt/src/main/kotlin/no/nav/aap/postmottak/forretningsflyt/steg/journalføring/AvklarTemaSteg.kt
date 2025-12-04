@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
@@ -12,6 +13,7 @@ import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
+import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -28,6 +30,7 @@ class AvklarTemaSteg(
     private val avklarTemaRepository: AvklarTemaRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val saksnummerRepository: SaksnummerRepository,
+    private val avklaringsbehovRepository: AvklaringsbehovRepository,
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -38,6 +41,7 @@ class AvklarTemaSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 gatewayProvider.provide(),
+                repositoryProvider.provide(),
                 repositoryProvider.provide()
             )
         }
@@ -49,18 +53,21 @@ class AvklarTemaSteg(
     }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
+        avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.AVKLAR_TEMA)
+
+        val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Journalpost for behandling ${kontekst.behandlingId} mangler i AvklarTemaSteg" }
         if (journalpost.erUgyldig()) return Fullført
 
         // Hvis journalposten journalføres på Tema AAP *utenfor* Kelvin, short circuit.
         if (journalpost.status == Journalstatus.JOURNALFOERT) {
-            avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(true, Tema.fraString(journalpost.tema)))
-            log.info("Journalpost har allerede blitt journalført på tema AAP. Setter temaavklaring maskinelt til AAP")
+            log.info("Journalpost har allerede blitt journalført på tema AAP. Fagsystem: ${journalpost.fagsystem}.")
+            if (journalpost.fagsystem == Fagsystem.KELVIN.name) {
+                log.info("Journalposten har blitt journalført i Kelvin utenfor Kelvin.")
+            }
             return Fullført
         }
-
-        val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
         return if (temavurdering == null) {
             if (journalpost.tema != "AAP") {
