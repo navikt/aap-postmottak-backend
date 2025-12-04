@@ -10,8 +10,8 @@ on:
 
 jobs:
   build:
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    ## push til main eller manuell trigger
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
       actions: read
@@ -24,6 +24,7 @@ jobs:
       app-navn: postmottak-backend
 
   publiser-kontrakt:
+    if: github.ref == 'refs/heads/main' # Kun publiser kontrakt fra main
     needs: build
     permissions:
       contents: write
@@ -67,20 +68,19 @@ jobs:
         if: ${{ steps.tag.outputs.changed == 'true' }}
         id: create_release
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-            tag_name: ${{ steps.tag.outputs.version }}
-            name: ${{ steps.tag.outputs.version }}
-            body: |
-                Endringer siden sist:
-                ${{ steps.notes.outputs.CHANGELOG }}
+          tag_name: ${{ steps.tag.outputs.version }}
+          name: ${{ steps.tag.outputs.version }}
+          body: |
+            Endringer siden sist:
+            ${{ steps.notes.outputs.CHANGELOG }}
 
   deploy-dev:
-    ## push til main eller etter branch (e.g. dependabot) er merget
+    needs: build
     permissions:
       contents: read
       id-token: write
-    needs: build
     concurrency:
       group: deploy-dev
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
@@ -91,8 +91,7 @@ jobs:
       vars: .nais/dev.yaml
 
   deploy-prod:
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' # Kun tillate deploy til prod fra main
     permissions:
       contents: read
       id-token: write
