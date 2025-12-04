@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.klient.behandlingsflyt
 
-import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
@@ -20,7 +19,6 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.verdityper.dokument.Kanal
 import org.slf4j.LoggerFactory
@@ -30,7 +28,7 @@ import java.time.LocalDateTime
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.TypeBehandling as BehandlingsflytTypeBehandling
 
 class BehandlingsflytKlient : BehandlingsflytGateway {
-    private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
+    private val log = LoggerFactory.getLogger(BehandlingsflytKlient::class.java)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))
     val config = ClientConfig(

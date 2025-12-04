@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.flyt.steg
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlagImpl
@@ -160,6 +161,13 @@ class StegOrkestrator(
                     grunn = it.grunn
                 )
             }
+        } else if (resultat is Fortsett) {
+            // Avbryt eksisterende ventebehov
+            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+                .hentVentepunkter().forEach {
+                    log.info("Avbryter ventebehov: {}", it)
+                    it.løs("Har gått videre til nytt steg", SYSTEMBRUKER.ident)
+                }
         }
 
         return resultat
@@ -171,9 +179,8 @@ class StegOrkestrator(
     ): Transisjon {
         val relevanteAvklaringsbehov =
             avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId).alle()
-                .filter { it.erÅpent() && !it.erVentepunkt() }
+                .filter { it.erÅpent() }
                 .filter { behov -> behov.skalLøsesISteg(aktivtSteg.type()) }
-
 
         if (relevanteAvklaringsbehov.any { behov -> behov.skalStoppeHer(aktivtSteg.type()) }) {
             return Stopp
