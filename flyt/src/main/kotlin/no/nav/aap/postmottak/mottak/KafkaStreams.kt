@@ -21,7 +21,6 @@ import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.medJournalpostId
-import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -110,7 +109,7 @@ class JoarkKafkaHandler(
             val åpenBehandling = transactionProvider.inTransaction(readOnly = true) {
                 behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)
             }
-            if (åpenBehandling != null && unleashGateway.isEnabled(PostmottakFeature.LukkPostmottakEndreTemaBehandlinger)) {
+            if (åpenBehandling != null) {
                 transactionProvider.inTransaction {
                     avklaringsbehovOrkestrator.taAvVentPgaGosys(åpenBehandling.id)
                     triggProsesserBehandling(
