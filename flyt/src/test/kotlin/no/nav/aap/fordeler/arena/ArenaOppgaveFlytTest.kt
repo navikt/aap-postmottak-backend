@@ -7,6 +7,7 @@ import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
+import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.gateway.Factory
@@ -15,15 +16,11 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.GeografiskTilknytning
-import no.nav.aap.postmottak.gateway.GeografiskTilknytningOgAdressebeskyttelse
-import no.nav.aap.postmottak.gateway.Navn
-import no.nav.aap.postmottak.gateway.NavnMedIdent
-import no.nav.aap.postmottak.gateway.PersondataGateway
+import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
-import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
@@ -34,14 +31,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 
 @Fakes
 class ArenaOppgaveFlytTest : WithDependencies {
     companion object {
         private val gatewayProvider = defaultGatewayProvider {
-            register<PdlKlientSpy>()
+            register<ApiInternSpy>()
             register<ArenaKlientSpy>()
         }
 
@@ -81,10 +77,10 @@ class ArenaOppgaveFlytTest : WithDependencies {
     fun `happycase for søknad, oppretter sak i arena og journalfører automatisk`() {
         val journalpostId = TestJournalposter.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
 
-        val persondataGateway = gatewayProvider.provide(PersondataGateway::class)
+        val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
         val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
 
-        every { persondataGateway.hentFødselsdato(any()) } returns LocalDate.now().minusYears(70)
+        every { apiInternGateway.harAapSakIArena(any()) } returns PersonEksistererIAAPArena(eksisterer = true)
         every { arenaGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
@@ -105,10 +101,10 @@ class ArenaOppgaveFlytTest : WithDependencies {
     fun `happycase for søknad oppretter sak i arena og journalfører automatisk`() {
         val journalpostId = TestJournalposter.SØKNAD_ETTERSENDELSE
 
-        val persondataGateway = gatewayProvider.provide(PersondataGateway::class)
+        val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
         val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
 
-        every { persondataGateway.hentFødselsdato(any()) } returns LocalDate.now().minusYears(70)
+        every { apiInternGateway.harAapSakIArena(any()) } returns PersonEksistererIAAPArena(eksisterer = true)
         every { arenaGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
@@ -126,34 +122,13 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
 }
 
-class PdlKlientSpy : PersondataGateway {
-
-    companion object : Factory<PdlGraphqlKlient> {
-        val klient = spyk(PdlGraphqlKlient.konstruer())
+class ApiInternSpy : AapInternApiGateway {
+    companion object : Factory<ApiInternSpy> {
+        val klient = spyk(ApiInternSpy())
         override fun konstruer() = klient
     }
 
-    override fun hentPersonBolk(personidenter: List<String>): Map<String, NavnMedIdent> {
-        TODO("Not yet implemented")
-    }
-
-    override fun hentFødselsdato(personident: String): LocalDate {
-        TODO("Not yet implemented")
-    }
-
-    override fun hentGeografiskTilknytning(personident: String): GeografiskTilknytning {
-        TODO("Not yet implemented")
-    }
-
-    override fun hentAlleIdenterForPerson(ident: String): List<Ident> {
-        TODO("Not yet implemented")
-    }
-
-    override fun hentAdressebeskyttelseOgGeolokasjon(ident: Ident): GeografiskTilknytningOgAdressebeskyttelse {
-        TODO("Not yet implemented")
-    }
-
-    override fun hentNavn(personident: String): Navn {
+    override fun harAapSakIArena(person: Person): PersonEksistererIAAPArena {
         TODO("Not yet implemented")
     }
 }
