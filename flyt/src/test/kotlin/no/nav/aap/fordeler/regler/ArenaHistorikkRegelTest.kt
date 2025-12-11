@@ -24,8 +24,11 @@ class ArenaHistorikkRegelTest {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident("12345678901")))
 
-        GatewayRegistry.register(JoarkMock::class).register(ApiInternMock::class)
-        val regelMedInputGenerator = ArenaHistorikkRegel.medDataInnhenting(mockk(), gatewayProvider = GatewayProvider)
+        val gatewayRegistry = GatewayRegistry()
+            .register<JoarkMock>()
+            .register<ApiInternMock>()
+        val regelMedInputGenerator =
+            ArenaHistorikkRegel.medDataInnhenting(mockk(), gatewayProvider = GatewayProvider(gatewayRegistry))
         val res = regelMedInputGenerator.vurder(
             RegelInput(
                 person = person,

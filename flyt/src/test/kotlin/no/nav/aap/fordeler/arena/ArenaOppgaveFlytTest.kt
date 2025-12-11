@@ -133,15 +133,15 @@ class PdlKlientSpy : PersondataGateway {
         override fun konstruer() = klient
     }
 
-    override fun hentPersonBolk(personidenter: List<String>): Map<String, NavnMedIdent>? {
+    override fun hentPersonBolk(personidenter: List<String>): Map<String, NavnMedIdent> {
         TODO("Not yet implemented")
     }
 
-    override fun hentFødselsdato(personident: String): LocalDate? {
+    override fun hentFødselsdato(personident: String): LocalDate {
         TODO("Not yet implemented")
     }
 
-    override fun hentGeografiskTilknytning(personident: String): GeografiskTilknytning? {
+    override fun hentGeografiskTilknytning(personident: String): GeografiskTilknytning {
         TODO("Not yet implemented")
     }
 
@@ -153,7 +153,7 @@ class PdlKlientSpy : PersondataGateway {
         TODO("Not yet implemented")
     }
 
-    override fun hentNavn(personident: String): Navn? {
+    override fun hentNavn(personident: String): Navn {
         TODO("Not yet implemented")
     }
 }
@@ -165,7 +165,7 @@ class ArenaKlientSpy : ArenaGateway {
         override fun konstruer() = klient
     }
 
-    override fun nyesteAktiveSak(ident: Ident): String? {
+    override fun nyesteAktiveSak(ident: Ident): String {
         TODO("Not yet implemented")
     }
 

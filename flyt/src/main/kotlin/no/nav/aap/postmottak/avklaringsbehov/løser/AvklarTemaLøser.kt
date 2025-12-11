@@ -8,13 +8,10 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.unleash.PostmottakFeature
-import no.nav.aap.unleash.UnleashGateway
 
 class AvklarTemaLøser(
     private val avklarTemaRepository: AvklarTemaRepository,
     private val avklaringsbehovOrkestrator: AvklaringsbehovOrkestrator,
-    private val unleashGateway: UnleashGateway,
 ) :
     AvklaringsbehovsLøser<AvklarTemaLøsning> {
 
@@ -22,7 +19,7 @@ class AvklarTemaLøser(
         val tema = utledTema(løsning)
         avklarTemaRepository.lagreTemaAvklaring(kontekst.kontekst.behandlingId, løsning.skalTilAap, tema)
 
-        if (tema != Tema.AAP && unleashGateway.isEnabled(PostmottakFeature.LukkPostmottakEndreTemaBehandlinger)) {
+        if (tema != Tema.AAP) {
             // Vi setter behandling på vent inntil den løses i GOSYS
             avklaringsbehovOrkestrator.settBehandlingPåVentForTemaEndring(
                 kontekst.kontekst.behandlingId
@@ -53,8 +50,7 @@ class AvklarTemaLøser(
         ): AvklaringsbehovsLøser<AvklarTemaLøsning> {
             return AvklarTemaLøser(
                 repositoryProvider.provide(),
-                AvklaringsbehovOrkestrator(repositoryProvider, gatewayProvider),
-                gatewayProvider.provide(UnleashGateway::class)
+                AvklaringsbehovOrkestrator(repositoryProvider, gatewayProvider)
             )
         }
     }
