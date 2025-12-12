@@ -5,6 +5,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.AnnetRelevantDoku
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.MeldekortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.NyÅrsakTilBehandlingV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
@@ -30,6 +31,7 @@ interface BehandlingsflytGateway : Gateway {
         saksnummer: String,
         melding: Melding?
     )
+
     fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling>
 }
 
@@ -53,6 +55,12 @@ object DokumentTilMeldingParser {
                 dokument!!,
                 AnnetRelevantDokumentV0::class.java
             )
+
+            InnsendingType.NY_ÅRSAK_TIL_BEHANDLING -> DefaultJsonMapper.fromJson(
+                dokument!!,
+                NyÅrsakTilBehandlingV0::class.java
+            )
+
             InnsendingType.KLAGE -> DefaultJsonMapper.fromJson(dokument!!, KlageV0::class.java)
             else -> null
         }
