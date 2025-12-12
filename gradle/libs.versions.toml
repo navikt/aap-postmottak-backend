@@ -1,7 +1,7 @@
 [versions]
 ktor = "3.3.3"
-komponenter = "1.0.459"
-tilgang = "1.0.169"
+komponenter = "1.0.460"
+tilgang = "1.0.170"
 apiIntern = "0.0.21"
 behandlingsflyt = "0.0.506"
 junit = "6.0.1"
