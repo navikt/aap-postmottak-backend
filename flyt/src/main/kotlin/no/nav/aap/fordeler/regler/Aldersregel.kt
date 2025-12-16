@@ -12,8 +12,7 @@ class Aldersregel : Regel<AldersregelInput> {
 
     companion object : RegelFactory<AldersregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
-        const val MIN_ALDER = 22
-        const val MAX_ALDER = 59
+        const val MIN_ALDER = 18
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator(gatewayProvider))
     }
@@ -24,7 +23,7 @@ class Aldersregel : Regel<AldersregelInput> {
             return false
         }
         val alder = Period.between(input.fødselsdato, input.nåDato).years
-        return alder in MIN_ALDER..MAX_ALDER
+        return alder >= MIN_ALDER
     }
 
     override fun regelNavn(): String {
