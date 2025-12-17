@@ -1,5 +1,5 @@
 ingres: "https://aap-postmottak-backend.intern.dev.nav.no"
-unleash_secret: kelvin-unleash-api-token-v2
+unleash_secret: kelvin-unleash-api-token
 
 sql:
   tier: db-f1-micro
