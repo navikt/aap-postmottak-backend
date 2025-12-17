@@ -17,17 +17,17 @@ dependencies {
     api(libs.tilgangPlugin)
     api(libs.tilgangKontrakt)
     compileOnly(libs.ktorHttpJvm)
-    implementation("org.flywaydb:flyway-database-postgresql:11.19.0")
+    implementation(libs.flywayDatabasePostgresql)
 
     implementation(kotlin("reflect"))
-    implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation(libs.hikariCp)
 
     // Kafka
     implementation(libs.kafkaClients)
     implementation(libs.kafkaStreams)
-    implementation("org.apache.avro:avro:1.12.1")
-    implementation("io.confluent:kafka-streams-avro-serde:8.1.1")
-    implementation("no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas:1.1.7")
+    implementation(libs.avro)
+    implementation(libs.kafkaStreamsAvroSerde)
+    implementation(libs.teamdokumenthandteringAvroSchemas)
 
     // https://github.com/navikt/teamdokumenthandtering-avro-schemas
     testImplementation(libs.kafkaStreamsTestUtils)
