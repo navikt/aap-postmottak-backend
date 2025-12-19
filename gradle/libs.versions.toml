@@ -7,7 +7,7 @@ behandlingsflyt = "0.0.510"
 junit = "6.0.1"
 kafka = "8.1.1-ce"
 ktorOpenApiGen = "1.0.133"
-testcontainers = "1.21.3"
+testcontainers = "1.21.4"
 
 [libraries]
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2" }
