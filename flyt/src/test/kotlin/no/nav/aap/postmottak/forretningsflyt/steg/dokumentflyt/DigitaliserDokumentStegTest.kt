@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
@@ -26,9 +27,10 @@ class DigitaliserDokumentStegTest {
     val journalpostRepo: JournalpostRepository = mockk()
     val dokumentGateway: DokumentGateway = mockk()
     val saksnummerRepository: SaksnummerRepository = mockk()
+    val avklaringsbehovRepository: AvklaringsbehovRepository = mockk(relaxed = true)
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        struktureringsvurderingRepository, journalpostRepo, dokumentGateway,saksnummerRepository
+        struktureringsvurderingRepository, journalpostRepo, dokumentGateway,saksnummerRepository, avklaringsbehovRepository
     )
 
     @Test
