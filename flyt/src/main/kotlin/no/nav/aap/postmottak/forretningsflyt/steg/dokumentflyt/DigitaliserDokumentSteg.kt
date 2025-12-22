@@ -59,6 +59,7 @@ class DigitaliserDokumentSteg(
             digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         if (struktureringsvurdering != null) {
+            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.DIGITALISER_DOKUMENT)
             return Fullført
         }
 
@@ -91,9 +92,6 @@ class DigitaliserDokumentSteg(
                 logFeil(e.message)
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
             }
-
-            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.DIGITALISER_DOKUMENT)
-
             digitaliseringsvurderingRepository.lagre(
                 kontekst.behandlingId, Digitaliseringsvurdering(innsendingType, validertDokument, null)
             )
