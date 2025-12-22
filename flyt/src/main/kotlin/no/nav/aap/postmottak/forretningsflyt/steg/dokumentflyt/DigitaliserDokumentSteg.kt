@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
@@ -28,7 +29,8 @@ class DigitaliserDokumentSteg(
     private val digitaliseringsvurderingRepository: DigitaliseringsvurderingRepository,
     private val journalpostRepository: JournalpostRepository,
     private val dokumentGateway: DokumentGateway,
-    private val saksnummerRepository: SaksnummerRepository
+    private val saksnummerRepository: SaksnummerRepository,
+    private val avklaringsbehovRepository: AvklaringsbehovRepository
 ) : BehandlingSteg {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -42,7 +44,8 @@ class DigitaliserDokumentSteg(
                 repositoryProvider.provide(DigitaliseringsvurderingRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 gatewayProvider.provide(DokumentGateway::class),
-                repositoryProvider.provide(SaksnummerRepository::class)
+                repositoryProvider.provide(SaksnummerRepository::class),
+                repositoryProvider.provide(AvklaringsbehovRepository::class)
             )
         }
 
@@ -88,6 +91,8 @@ class DigitaliserDokumentSteg(
                 logFeil(e.message)
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
             }
+
+            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.DIGITALISER_DOKUMENT)
 
             digitaliseringsvurderingRepository.lagre(
                 kontekst.behandlingId, Digitaliseringsvurdering(innsendingType, validertDokument, null)
