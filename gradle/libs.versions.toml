@@ -7,7 +7,7 @@ behandlingsflyt = "0.0.514"
 junit = "6.0.1"
 kafka = "8.1.1-ce"
 ktorOpenApiGen = "1.0.133"
-testcontainers = "1.21.3"
+testcontainers = "1.21.4"
 
 [libraries]
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2" }
@@ -52,10 +52,10 @@ logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.
 
 hikariCp = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
-flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "11.19.0" }
+flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "11.19.1" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.16.0" }
-unleashClient = { module = "io.getunleash:unleash-client-java", version = "11.2.0" }
+unleashClient = { module = "io.getunleash:unleash-client-java", version = "11.2.1" }
 joseJwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.6" }
 
 junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
