@@ -34,7 +34,8 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 Saksinfo(
                     row.getString("saksnummer"),
                     row.getPeriode("periode"),
-                    row.getBoolean("avslag")
+                    row.getBoolean("avslag"),
+                    row.getEnumOrNull("resultatkode")
                 )
             }
         }
@@ -56,8 +57,9 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 INNHENTEDE_SAKER_FOR_BEHANDLING_ID,
                 SAKSNUMMER, 
                 PERIODE,
-                AVSLAG) 
-                VALUES (?, ?, ?::daterange, ?) 
+                AVSLAG,
+                RESULTATKODE) 
+                VALUES (?, ?, ?::daterange, ?, ?) 
         """.trimIndent(), saksinfo
         ) {
             setParams {
@@ -65,6 +67,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 setString(2, it.saksnummer)
                 setPeriode(3, it.periode)
                 setBoolean(4, it.avslag)
+                setEnumName(5, it.resultat)
             }
         }
     }
