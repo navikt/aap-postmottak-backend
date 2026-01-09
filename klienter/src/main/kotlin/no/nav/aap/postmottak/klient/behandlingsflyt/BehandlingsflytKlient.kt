@@ -73,6 +73,7 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
         val request = PostRequest(
             FinnSaker(ident.identifikator)
         )
+        // TODO: resultatet i ResultatKode utledes kun basert på førstegangsbehandling, som ikke nødvendigvis er nåværende tilstand for saken.
         return client.post(url.resolve("/api/sak/ekstern/finn"), request)
             ?: throw UnknownError("Fikk uforventet respons fra behandlingsflyt")
     }

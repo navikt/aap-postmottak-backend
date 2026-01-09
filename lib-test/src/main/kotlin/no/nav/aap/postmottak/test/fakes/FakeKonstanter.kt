@@ -17,6 +17,7 @@ object TestJournalposter {
     val PERSON_UTEN_SAK_I_BEHANDLINGSFLYT = JournalpostId(127)
     val MED_GOSYS_OPPGAVER = JournalpostId(128)
     val PERSON_MED_SAK_I_ARENA = JournalpostId(129)
+    val LEGEERKLÆRING_TRUKKET_SAK = JournalpostId(130)
 }
 
 
@@ -25,5 +26,5 @@ object TestIdenter {
     val IDENT_UTEN_SAK_I_KELVIN = Ident("00000001111")
     val SKJERMET_IDENT = Ident("00000002222")
     val IDENT_MED_SAK_I_ARENA = Ident("0000000333")
-
+    val IDENT_MED_TRUKKET_SAK_I_KELVIN = Ident("0000000444")
 }

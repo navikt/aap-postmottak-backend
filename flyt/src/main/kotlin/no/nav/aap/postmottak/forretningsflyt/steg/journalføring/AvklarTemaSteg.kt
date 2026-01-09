@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
@@ -134,6 +135,7 @@ class AvklarTemaSteg(
 
     private fun skalLegeerklæringTilAap(behandlingId: BehandlingId): Boolean {
         val kelvinSaker = saksnummerRepository.hentKelvinSaker(behandlingId)
-        return kelvinSaker.isNotEmpty()
+        // Legeerklæring skal til AAP hvis det finnes en sak som ikke er trukket på bruker
+        return kelvinSaker.isNotEmpty() && kelvinSaker.any { it.resultat != ResultatKode.TRUKKET }
     }
 }

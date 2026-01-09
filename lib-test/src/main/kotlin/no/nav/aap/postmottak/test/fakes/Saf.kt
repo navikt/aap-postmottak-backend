@@ -113,8 +113,14 @@ fun Application.safFake(
 private fun getAvsenderMottaker(journalpostId: Long) =
     when (journalpostId) {
         TestJournalposter.UTEN_AVSENDER_MOTTAKER.referanse -> ""
-        else -> """"avsenderMottaker": {
+        TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> """"avsenderMottaker": {
             "id": "21345345210",
+            "type": "FNR",
+            "navn": "Test Testesen"
+        },"""
+
+        else -> """"avsenderMottaker": {
+            "id": "0000000444",
             "type": "FNR",
             "navn": "Test Testesen"
         },"""
@@ -177,8 +183,7 @@ private fun getDokumenter(journalpostId: Long): String {
         }
         """
 
-        TestJournalposter.LEGEERKLÆRING.referanse -> legeerklæring
-        TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> legeerklæring
+        TestJournalposter.LEGEERKLÆRING.referanse, TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse, TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> legeerklæring
 
         else -> """ {
             "tittel": "Dokumenttittel",
@@ -241,5 +246,6 @@ private fun finnBruker(journalpostId: Long) =
         TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> TestIdenter.IDENT_UTEN_SAK_I_KELVIN.identifikator
 
         TestJournalposter.PERSON_MED_SAK_I_ARENA.referanse -> TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator
+        TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> TestIdenter.IDENT_MED_TRUKKET_SAK_I_KELVIN.identifikator
         else -> TestIdenter.DEFAULT_IDENT.identifikator
     }

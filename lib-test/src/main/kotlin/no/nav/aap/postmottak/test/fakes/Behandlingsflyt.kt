@@ -8,6 +8,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
@@ -36,17 +37,32 @@ fun Application.behandlingsflytFake(
 
         post("/api/sak/ekstern/finn") {
             val body = DefaultJsonMapper.fromJson<FinnSaker>(call.receiveText())
-            if (body.ident == TestIdenter.IDENT_UTEN_SAK_I_KELVIN.identifikator) {
-                call.respond(emptyList<BehandlingsflytSak>())
-            } else {
-                call.respond(
-                    listOf(
-                        BehandlingsflytSak(
-                            "123321123",
-                            Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null
+            when (body.ident) {
+                TestIdenter.IDENT_UTEN_SAK_I_KELVIN.identifikator -> {
+                    call.respond(emptyList<BehandlingsflytSak>())
+                }
+
+                TestIdenter.IDENT_MED_TRUKKET_SAK_I_KELVIN.identifikator -> {
+                    call.respond(
+                        listOf(
+                            BehandlingsflytSak(
+                                "123321123",
+                                Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), ResultatKode.TRUKKET
+                            )
                         )
                     )
-                )
+                }
+
+                else -> {
+                    call.respond(
+                        listOf(
+                            BehandlingsflytSak(
+                                "123321123",
+                                Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null
+                            )
+                        )
+                    )
+                }
             }
         }
 

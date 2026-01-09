@@ -43,7 +43,6 @@ import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -275,6 +274,21 @@ class Flyttest : WithDependencies {
 
         val behandlinger = alleBehandlingerForJournalpost(journalpostId)
 
+        assertThat(behandlinger).hasSize(1)
+        assertThat(
+            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
+            1
+        )
+    }
+
+    @Test
+    fun `Helautomatisk flyt for legeerklæring på trukket søknad som ikke skal til  Kelvin`() {
+        val journalpostId = TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(behandlinger).hasSize(1)
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(

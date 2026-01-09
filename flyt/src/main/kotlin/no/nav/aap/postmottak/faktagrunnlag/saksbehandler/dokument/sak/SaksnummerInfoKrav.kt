@@ -49,6 +49,9 @@ class SaksnummerInfoKrav(
 
 fun BehandlingsflytSak.tilSaksinfo(): Saksinfo {
     return Saksinfo(
-        saksnummer, periode, resultat == ResultatKode.AVSLAG
+        saksnummer = saksnummer,
+        periode = periode,
+        avslag = resultat == ResultatKode.AVSLAG,
+        resultat = resultat
     )
 }
