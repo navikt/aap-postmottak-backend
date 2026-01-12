@@ -96,7 +96,7 @@ class AvklarTemaSteg(
                 log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
                 gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
                     .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
-                return Fullført
+                Fullført
             } else Fullført
         }
     }

@@ -64,7 +64,7 @@ fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
     val mottattTid = journalpost.relevanteDatoer
         ?.find { dato -> dato?.datotype == SafDatoType.DATO_REGISTRERT }
         ?.dato
-        ?: error("Fant ikke dato for journalpost ${journalpost.journalpostId}.")
+        ?: error("Fant ikke dato for journalpost ${journalpost.journalpostId}. Tilgjengelige datoer: ${journalpost.relevanteDatoer}")
     val mottattDato = mottattTid.toLocalDate()
 
     val dokumenter = journalpost.dokumenter?.filterNotNull()?.map { dokument ->
