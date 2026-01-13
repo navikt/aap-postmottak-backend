@@ -69,8 +69,6 @@ spec:
   prometheus:
     enabled: true
     path: /actuator/metrics
-  secureLogs:
-    enabled: true
   envFrom:
     - secret: {{unleash_secret}}
   accessPolicy:

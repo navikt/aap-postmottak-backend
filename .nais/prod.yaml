@@ -20,6 +20,8 @@ inbound:
     - application: paw-patrol
 outbound:
   rules:
+    - application: logging
+      namespace: nais-system
     - application: skjermede-personer-pip
       namespace: nom
     - application: tilgang

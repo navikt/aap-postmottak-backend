@@ -25,6 +25,8 @@ inbound:
 
 outbound:
   rules:
+    - application: logging
+      namespace: nais-system
     - application: tilgang
     - application: behandlingsflyt
     - application: oppgave
