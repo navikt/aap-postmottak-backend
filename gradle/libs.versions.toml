@@ -6,7 +6,7 @@ apiIntern = "0.0.22"
 behandlingsflyt = "0.0.517"
 junit = "6.0.2"
 kafka = "8.1.1-ce"
-ktorOpenApiGen = "1.0.134"
+ktorOpenApiGen = "1.0.136"
 testcontainers = "1.21.4"
 
 [libraries]
