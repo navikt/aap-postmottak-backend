@@ -11,7 +11,7 @@ import org.apache.kafka.streams.errors.DeserializationExceptionHandler.Deseriali
 import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExceptionHandlerResponse as ProducerHandler
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse as StreamHandler
 
-private val secureLog = LoggerFactory.getLogger("secureLog")
+private val secureLog = LoggerFactory.getLogger("team-logs")
 
 class ReplaceThread(message: Any) : RuntimeException(message.toString())
 
