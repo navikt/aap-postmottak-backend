@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("postmottak.conventions")
+    id("aap.conventions")
     alias(libs.plugins.ktor)
 }
 
