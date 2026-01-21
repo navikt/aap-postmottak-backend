@@ -1,17 +1,17 @@
 package no.nav.aap.postmottak.avklaringsbehov
 
+import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
-
 
 internal object ValiderBehandlingTilstand {
 
     fun validerTilstandBehandling(
         behandling: Behandling,
         avklaringsbehov: Definisjon?,
-        eksisterenedeAvklaringsbehov: List <Avklaringsbehov>
+        eksisterenedeAvklaringsbehov: List<Avklaringsbehov>
     ) {
         validerStatus(behandling.status())
         if (avklaringsbehov != null) {
@@ -42,7 +42,7 @@ internal object ValiderBehandlingTilstand {
 
     private fun validerStatus(behandlingStatus: Status) {
         if (Status.AVSLUTTET == behandlingStatus) {
-            throw IllegalArgumentException("Forsøker manipulere på behandling som er avsluttet")
+            throw UgyldigForespørselException("Behandlingen er allerede avsluttet og kan ikke endres.")
         }
     }
 }
