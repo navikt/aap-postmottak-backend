@@ -30,11 +30,7 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
@@ -61,7 +57,6 @@ import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
@@ -363,13 +358,15 @@ class Flyttest : WithDependencies {
     @Test
     fun `kjører en manuell søknad igjennom hele flyten`() {
         val journalpostId = JournalpostId(1)
-        val behandlingId = dataSource.transaction { connection ->
-            opprettManuellBehandlingMedAlleAvklaringer(connection, journalpostId)
-        }
+
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
         val behandling = hentBehandling(behandlingId)
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+            .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "23452345"))
+            .sjekkÅpentAvklaringsbehov(null)
 
         assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
     }
@@ -448,11 +445,11 @@ class Flyttest : WithDependencies {
         val journalpostId = JournalpostId(2L)
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
-        dataSource.transaction { connection ->
-            AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
-            SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-        }
         triggProsesserBehandling(journalpostId, behandlingId)
+
+        hentBehandling(behandlingId)
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+            .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "23452345"))
 
         val alleBehandlinger = alleBehandlingerForJournalpost(journalpostId)
         var behandling = alleBehandlinger
@@ -582,6 +579,7 @@ class Flyttest : WithDependencies {
 
         behandling = behandling
             .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false))
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             .verifiserErPåVent {
                 assertThat(it).containsExactly(Definisjon.VENT_PA_GOSYS)
             }
@@ -632,6 +630,7 @@ class Flyttest : WithDependencies {
 
         behandling = behandling
             .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false))
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             .verifiserErPåVent {
                 assertThat(it).containsExactly(Definisjon.VENT_PA_GOSYS)
             }
@@ -661,12 +660,10 @@ class Flyttest : WithDependencies {
 
     private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {
         val start = System.currentTimeMillis()
-        var lastError: Throwable? = null
         while (System.currentTimeMillis() - start < maksSekunder * 1000) {
             try {
                 return block()
-            } catch (e: Throwable) {
-                lastError = e
+            } catch (_: Throwable) {
                 Thread.sleep(100)
             }
         }
@@ -746,26 +743,6 @@ class Flyttest : WithDependencies {
             repositoryRegistry.provider(connection).provide(BehandlingRepository::class).hent(behandlingId)
         }
 
-
-    private fun opprettManuellBehandlingMedAlleAvklaringer(
-        connection: DBConnection, journalpostId: JournalpostId
-    ): BehandlingId {
-        val repositoryProvider = repositoryRegistry.provider(connection)
-        val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
-        val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-
-        repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
-        repositoryProvider.provide(SaksnummerRepository::class)
-            .lagreSakVurdering(behandlingId, Saksvurdering("23452345"))
-        repositoryProvider.provide(DigitaliseringsvurderingRepository::class).lagre(
-            behandlingId, Digitaliseringsvurdering(
-                InnsendingType.SØKNAD,
-                """{"søknadsDato":"2024-09-02T22:00:00.000Z", "yrkesskade":"nei", "student": {"erStudent":"Nei"}}""",
-                LocalDate.of(2024, 9, 2)
-            )
-        )
-        return behandlingId
-    }
 
     private fun hentAvklaringsbehov(behandlingId: BehandlingId, connection: DBConnection): Avklaringsbehovene {
         return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)

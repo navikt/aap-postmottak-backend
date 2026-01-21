@@ -19,27 +19,17 @@ class Avklaringsbehovene(
     private val avklaringsbehovene: List<Avklaringsbehov>
         get() = repository.hent(behandlingId)
 
-    fun ingenEndring(avklaringsbehov: Avklaringsbehov, bruker: String) {
-        løsAvklaringsbehov(
-            avklaringsbehov.definisjon,
-            "Ingen endring fra forrige vurdering",
-            bruker
-        )
-    }
-
     fun løsAvklaringsbehov(
         definisjon: Definisjon,
         begrunnelse: String,
-        endretAv: String,
-        kreverToTrinn: Boolean? = null
+        endretAv: String
     ) {
+        log.info("Løser avklaringsbehov[$definisjon] på behandling[$behandlingId] med begrunnelse[$begrunnelse] og endretAv[$endretAv]")
+
         val avklaringsbehov = alle().single { it.definisjon == definisjon }
-        if (kreverToTrinn == null) {
-            avklaringsbehov.løs(begrunnelse, endretAv = endretAv)
-        } else {
-            avklaringsbehov.løs(begrunnelse = begrunnelse, endretAv = endretAv, kreverToTrinn = kreverToTrinn)
-            repository.kreverToTrinn(avklaringsbehov.id, kreverToTrinn)
-        }
+
+        avklaringsbehov.løs(begrunnelse, endretAv = endretAv)
+
         repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
     }
 
@@ -121,10 +111,6 @@ class Avklaringsbehovene(
 
     override fun hentBehovForDefinisjon(definisjon: Definisjon): Avklaringsbehov? {
         return alle().singleOrNull { it.definisjon == definisjon }
-    }
-
-    fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
-        return alle().any { avklaringsbehov -> avklaringsbehov.harVærtSendtTilbakeFraBeslutterTidligere() }
     }
 
     internal fun internalAvbryt(definisjon: Definisjon) {

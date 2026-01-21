@@ -169,11 +169,14 @@ class StegOrkestrator(
             }
 
             is Fortsett -> {
+
                 // Avbryt eksisterende ventebehov
                 avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).apply {
-                    hentVentepunkter().forEach {
-                        log.info("Avbryter ventebehov: {}", it)
-                        this.løsAvklaringsbehov(it.definisjon, "Har gått videre til nytt steg", SYSTEMBRUKER.ident)
+                    if (alleEkskludertVentebehov().isEmpty()) {
+                        hentVentepunkter().forEach {
+                            log.info("Avbryter ventebehov: {}", it)
+                            this.løsAvklaringsbehov(it.definisjon, "Har gått videre til nytt steg", SYSTEMBRUKER.ident)
+                        }
                     }
                 }
             }

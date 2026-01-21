@@ -12,11 +12,11 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicLong
 
-object InMemoryAvklaringsbehovRepository : AvklaringsbehovRepository{
+object InMemoryAvklaringsbehovRepository : AvklaringsbehovRepository {
 
     private val idSeq = AtomicLong(10000)
     private val memory = HashMap<BehandlingId, AvklaringsbehovHolder>()
-    private val lock = Object()
+    private val lock = Any()
 
     override fun hentAvklaringsbehovene(behandlingId: BehandlingId): Avklaringsbehovene {
         return Avklaringsbehovene(this, behandlingId)
@@ -43,8 +43,16 @@ object InMemoryAvklaringsbehovRepository : AvklaringsbehovRepository{
             val avklaringsbehov = memory.getValue(behandlingId)
 
             val eksisterendeBehov = avklaringsbehov.hentBehov(definisjon)
-            if (eksisterendeBehov == null) {
-                avklaringsbehov.leggTilBehov(
+            eksisterendeBehov?.historikk?.add(
+                Endring(
+                    status = Status.OPPRETTET,
+                    begrunnelse = begrunnelse,
+                    grunn = grunn,
+                    endretAv = endretAv,
+                    frist = frist
+                )
+            )
+                ?: avklaringsbehov.leggTilBehov(
                     definisjon,
                     funnetISteg,
                     frist,
@@ -52,16 +60,6 @@ object InMemoryAvklaringsbehovRepository : AvklaringsbehovRepository{
                     grunn,
                     endretAv,
                 )
-            } else {
-                eksisterendeBehov.historikk.add(
-                    Endring(
-                        status = Status.OPPRETTET,
-                        begrunnelse = begrunnelse,
-                        grunn = grunn,
-                        endretAv = endretAv,
-                        frist = frist,)
-                )
-            }
         }
     }
 
@@ -69,10 +67,6 @@ object InMemoryAvklaringsbehovRepository : AvklaringsbehovRepository{
         if (memory[behandlingId] == null) {
             memory[behandlingId] = AvklaringsbehovHolder(mutableListOf())
         }
-    }
-
-    override fun kreverToTrinn(avklaringsbehovId: Long, kreverToTrinn: Boolean) {
-
     }
 
     override fun endre(
@@ -122,7 +116,6 @@ object InMemoryAvklaringsbehovRepository : AvklaringsbehovRepository{
                 avklaringsbehov.definisjon,
                 avklaringsbehov.historikk,
                 funnetISteg,
-                false
             )
         )
     }
@@ -158,9 +151,9 @@ object InMemoryAvklaringsbehovRepository : AvklaringsbehovRepository{
                     )
                 ),
                 funnetISteg = funnetISteg,
-                kreverToTrinn = false
             )
             avklaringsbehovene.add(avklaringsbehov)
         }
     }
 }
+

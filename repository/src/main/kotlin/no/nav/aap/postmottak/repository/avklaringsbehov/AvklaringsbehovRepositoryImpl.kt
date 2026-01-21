@@ -31,19 +31,6 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
         )
     }
 
-    override fun kreverToTrinn(avklaringsbehovId: Long, kreverToTrinn: Boolean) {
-        val query = """
-            UPDATE AVKLARINGSBEHOV SET krever_to_trinn = ? WHERE id = ?
-            """.trimIndent()
-
-        connection.execute(query) {
-            setParams {
-                setBoolean(1, kreverToTrinn)
-                setLong(2, avklaringsbehovId)
-            }
-        }
-    }
-
     override fun opprett(
         behandlingId: BehandlingId,
         definisjon: Definisjon,
@@ -197,7 +184,6 @@ class AvklaringsbehovRepositoryImpl(private val connection: DBConnection) : Avkl
             id = id,
             definisjon = definisjon,
             funnetISteg = row.getEnum("funnet_i_steg"),
-            kreverToTrinn = row.getBooleanOrNull("krever_to_trinn"),
             historikk = hentEndringer(id).toMutableList()
         )
     }

@@ -22,7 +22,6 @@ class AvklaringsbehovHendelseHåndterer(
         avklaringsbehovOrkestrator.løsAvklaringsbehovOgFortsettProsessering(
             kontekst = behandling.flytKontekst(),
             avklaringsbehov = hendelse.behov(),
-            ingenEndringIGruppe = hendelse.ingenEndringIGruppe,
             bruker = hendelse.bruker
         )
     }
