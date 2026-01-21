@@ -6,7 +6,9 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.klient.SakerRequest
+import no.nav.aap.postmottak.klient.SignifikanteSakerRequest
 
 fun Application.aapInternApiFake() {
     install(ContentNegotiation) {
@@ -41,5 +43,25 @@ fun Application.aapInternApiFake() {
             }
             call.respond("""{"eksisterer": false}""")
         }
+        post("/arena/person/aap/signifikant-historikk") {
+            val requestBody = call.receiveText()
+            val parsed = DefaultJsonMapper.fromJson<SignifikanteSakerRequest>(requestBody)
+            if (parsed.personidentifikatorer.contains(TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator)) {
+                call.respond("""
+                    {
+                      "harSignifikantHistorikk" : true,
+                      "signifikanteSaker" : [ "1234" ]
+                    }
+                    """.trimIndent())
+
+            }
+            call.respond("""
+                    {
+                      "harSignifikantHistorikk" : false,
+                      "signifikanteSaker" : [ ]
+                    }
+                    """.trimIndent())
+        }
+
     }
 }

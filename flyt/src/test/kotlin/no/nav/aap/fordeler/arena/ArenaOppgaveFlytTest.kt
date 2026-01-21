@@ -8,6 +8,7 @@ import io.mockk.verify
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
+import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.gateway.Factory
@@ -31,6 +32,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 
 @Fakes
@@ -70,7 +72,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
             dataSource.close()
         }
 
-
     }
 
     @Test
@@ -105,6 +106,8 @@ class ArenaOppgaveFlytTest : WithDependencies {
         val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
 
         every { apiInternGateway.harAapSakIArena(any()) } returns PersonEksistererIAAPArena(eksisterer = true)
+        every { apiInternGateway.harSignifikantHistorikkIAAPArena(any(), any()) } returns
+                SignifikanteSakerResponse(harSignifikantHistorikk = true, signifikanteSaker = listOf("1234"))
         every { arenaGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
@@ -129,8 +132,16 @@ class ApiInternSpy : AapInternApiGateway {
     }
 
     override fun harAapSakIArena(person: Person): PersonEksistererIAAPArena {
-        TODO("Not yet implemented")
+        TODO("kalles ikke på")
     }
+
+    override fun harSignifikantHistorikkIAAPArena(
+        person: Person,
+        mottattDato: LocalDate
+    ): SignifikanteSakerResponse {
+        TODO("kalles ikke på")
+    }
+
 }
 
 class ArenaKlientSpy : ArenaGateway {
