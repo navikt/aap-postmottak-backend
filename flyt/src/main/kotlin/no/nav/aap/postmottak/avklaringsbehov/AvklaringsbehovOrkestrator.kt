@@ -9,7 +9,6 @@ import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.flyt.FlytOrkestrator
-import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
@@ -46,16 +45,12 @@ class AvklaringsbehovOrkestrator(
     fun løsAvklaringsbehovOgFortsettProsessering(
         kontekst: FlytKontekst,
         avklaringsbehov: AvklaringsbehovLøsning,
-        ingenEndringIGruppe: Boolean,
         bruker: Bruker
     ) {
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
         løsAvklaringsbehov(
             kontekst, avklaringsbehovene, avklaringsbehov, bruker, behandling
-        )
-        markerAvklaringsbehovISammeGruppeForLøst(
-            kontekst, ingenEndringIGruppe, avklaringsbehovene, bruker
         )
 
         fortsettProsessering(kontekst)
@@ -68,26 +63,6 @@ class AvklaringsbehovOrkestrator(
                 kontekst.behandlingId.id
             ).medCallId()
         )
-    }
-
-    private fun markerAvklaringsbehovISammeGruppeForLøst(
-        kontekst: FlytKontekst, ingenEndringIGruppe: Boolean, avklaringsbehovene: Avklaringsbehovene, bruker: Bruker
-    ) {
-        val behandling = behandlingRepository.hent(kontekst.behandlingId)
-
-        if (ingenEndringIGruppe && avklaringsbehovene.harVærtSendtTilbakeFraBeslutterTidligere()) {
-            val typeBehandling = behandling.typeBehandling
-            val flyt = utledType(typeBehandling).flyt()
-
-            flyt.forberedFlyt(behandling.aktivtSteg())
-            val gjenståendeStegIGruppe = flyt.gjenståendeStegIAktivGruppe()
-
-            val behovSomSkalSettesTilAvsluttet = avklaringsbehovene.alle()
-                .filter { behov -> gjenståendeStegIGruppe.any { stegType -> behov.løsesISteg() == stegType } }
-            log.info("Markerer påfølgende avklaringsbehov[${behovSomSkalSettesTilAvsluttet}] på behandling[${behandling.referanse}] som avsluttet")
-
-            behovSomSkalSettesTilAvsluttet.forEach { avklaringsbehovene.ingenEndring(it, bruker.ident) }
-        }
     }
 
     private fun løsAvklaringsbehov(
@@ -124,8 +99,7 @@ class AvklaringsbehovOrkestrator(
         avklaringsbehovene.løsAvklaringsbehov(
             avklaringsbehovLøsning.definisjon(),
             løsningsResultat.begrunnelse,
-            bruker.ident,
-            løsningsResultat.kreverToTrinn
+            bruker.ident
         )
     }
 
@@ -136,7 +110,7 @@ class AvklaringsbehovOrkestrator(
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
         avklaringsbehovene.leggTil(
-            definisjoner = listOf(Definisjon.MANUELT_SATT_PÅ_VENT),
+            definisjon = Definisjon.MANUELT_SATT_PÅ_VENT,
             stegType = behandling.aktivtSteg(),
             frist = hendelse.frist,
             begrunnelse = hendelse.begrunnelse,
@@ -156,7 +130,7 @@ class AvklaringsbehovOrkestrator(
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
         avklaringsbehovene.leggTil(
-            definisjoner = listOf(Definisjon.VENT_PA_GOSYS),
+            definisjon = Definisjon.VENT_PA_GOSYS,
             stegType = behandling.aktivtSteg(),
             frist = LocalDate.now().plusWeeks(2),
             begrunnelse = "Venter på behandling i Gosys.",

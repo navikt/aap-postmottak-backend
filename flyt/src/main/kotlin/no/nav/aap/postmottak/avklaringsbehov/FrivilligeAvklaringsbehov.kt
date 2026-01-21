@@ -29,7 +29,6 @@ class FrivilligeAvklaringsbehov(
                         )
                     ),
                     funnetISteg = definisjon.løsesISteg,
-                    kreverToTrinn = null
                 )
             }.toMutableList()
         list.addAll(eksisterendeBehov)

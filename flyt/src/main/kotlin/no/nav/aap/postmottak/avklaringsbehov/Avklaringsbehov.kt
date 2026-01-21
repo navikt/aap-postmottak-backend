@@ -12,8 +12,7 @@ class Avklaringsbehov(
     val id: Long,
     val definisjon: Definisjon,
     val historikk: MutableList<Endring> = mutableListOf(),
-    val funnetISteg: StegType,
-    private var kreverToTrinn: Boolean?
+    val funnetISteg: StegType
 ) {
     init {
         if (historikk.isEmpty()) {
@@ -52,13 +51,6 @@ class Avklaringsbehov(
     }
 
     internal fun løs(begrunnelse: String, endretAv: String) {
-        løs(begrunnelse, endretAv, definisjon.kreverToTrinn)
-    }
-
-    internal fun løs(begrunnelse: String, endretAv: String, kreverToTrinn: Boolean) {
-        if (this.kreverToTrinn != true) {
-            this.kreverToTrinn = kreverToTrinn
-        }
         historikk.add(
             Endring(
                 status = Status.AVSLUTTET, begrunnelse = begrunnelse, endretAv = endretAv
@@ -86,10 +78,6 @@ class Avklaringsbehov(
 
     fun skalLøsesISteg(type: StegType): Boolean {
         return definisjon.skalLøsesISteg(type, funnetISteg)
-    }
-
-    fun harVærtSendtTilbakeFraBeslutterTidligere(): Boolean {
-        return historikk.any { it.status == Status.SENDT_TILBAKE_FRA_BESLUTTER }
     }
 
     fun løsesISteg(): StegType {

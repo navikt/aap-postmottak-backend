@@ -128,7 +128,6 @@ class BehandlingHendelseServiceImplTest {
             id = id,
             definisjon = definisjon,
             funnetISteg = stegType,
-            kreverToTrinn = null
         )
     }
 }

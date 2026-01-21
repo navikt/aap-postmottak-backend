@@ -148,7 +148,7 @@ class OverleverTilFagsystemStegTest {
         val stegresultat = overførTilFagsystemSteg.utfør(kontekst)
         assertEquals(stegresultat::class.simpleName, FantAvklaringsbehov::class.simpleName)
         val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
-        assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_OVERLEVERING)
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_OVERLEVERING)
     }
 
     @Test

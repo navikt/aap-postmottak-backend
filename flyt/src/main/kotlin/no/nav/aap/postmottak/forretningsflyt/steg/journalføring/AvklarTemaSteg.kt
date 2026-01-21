@@ -3,14 +3,13 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovService
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
-import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
@@ -31,7 +30,7 @@ class AvklarTemaSteg(
     private val avklarTemaRepository: AvklarTemaRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val saksnummerRepository: SaksnummerRepository,
-    private val avklaringsbehovRepository: AvklaringsbehovRepository,
+    private val avklaringsbehovService: AvklaringsbehovService,
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -43,22 +42,43 @@ class AvklarTemaSteg(
                 repositoryProvider.provide(),
                 gatewayProvider.provide(),
                 repositoryProvider.provide(),
-                repositoryProvider.provide()
+                AvklaringsbehovService(repositoryProvider)
             )
         }
 
         override fun type(): StegType {
             return StegType.AVKLAR_TEMA
         }
-
     }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
-        avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.AVKLAR_TEMA)
-
         val temavurdering = avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
+
         val journalpost =
-            requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Journalpost for behandling ${kontekst.behandlingId} mangler i AvklarTemaSteg" }
+            requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId))
+            { "Journalpost for behandling ${kontekst.behandlingId} mangler i AvklarTemaSteg" }
+
+        avklaringsbehovService.oppdaterAvklaringsbehov(
+            definisjon = Definisjon.AVKLAR_TEMA,
+            vedtakBehøverVurdering = {
+                when {
+                    journalpost.erUgyldig() -> false
+                    kanAvklareMaskinelt(journalpost) -> false
+                    journalpost.status == Journalstatus.JOURNALFOERT -> false
+                    else -> true
+                }
+            },
+            erTilstrekkeligVurdert = {
+                when {
+                    temavurdering != null && venterPåBehandlingIGosys(journalpost, temavurdering) -> false
+                    temavurdering != null && erFerdigBehandletIGosys(journalpost, temavurdering) -> true
+                    else -> true
+                }
+            },
+            tilbakestillGrunnlag = {},
+            kontekst = kontekst
+        )
+
         if (journalpost.erUgyldig()) return Fullført
 
         // Hvis journalposten journalføres på Tema AAP *utenfor* Kelvin, short circuit.
@@ -80,7 +100,7 @@ class AvklarTemaSteg(
                 Fullført
             } else {
                 log.info("Kunne ikke avklare tema maskinelt. Brevkoder: ${journalpost.dokumenter.map { it.brevkode }}. Hoveddokumentbrevkode: ${journalpost.hoveddokumentbrevkode}.")
-                FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
+                Fullført
             }
         } else {
             if (venterPåBehandlingIGosys(journalpost, temavurdering)) { // tema fortsatt AAP
@@ -91,14 +111,18 @@ class AvklarTemaSteg(
                 )
 
                 log.info("Venter fortsatt på behandling i Gosys.")
-                FantAvklaringsbehov(Definisjon.AVKLAR_TEMA)
-            } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) { // har endret tema, fjern denne blokka
+                Fullført
+            } else if (erFerdigBehandletIGosys(journalpost, temavurdering)) {
                 log.info("Journalpost med ID ${journalpost.journalpostId} har endret tema. Nytt tema er: ${journalpost.tema}")
                 gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
                     .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
                 Fullført
             } else Fullført
         }
+    }
+
+    private fun kanAvklareMaskinelt(journalpost: Journalpost): Boolean {
+        return (journalpost.tema != "AAP") || (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort())
     }
 
     private fun venterPåBehandlingIGosys(journalpost: Journalpost, temavurdering: TemaVurdering): Boolean {
