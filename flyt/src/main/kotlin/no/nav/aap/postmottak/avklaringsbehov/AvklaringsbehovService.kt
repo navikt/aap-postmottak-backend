@@ -38,7 +38,7 @@ class AvklaringsbehovService(
 
                     null, AVBRUTT ->
                         avklaringsbehovene.leggTil(
-                            listOf(definisjon),
+                            definisjon,
                             definisjon.løsesISteg,
                         )
 
@@ -70,7 +70,7 @@ class AvklaringsbehovService(
                     SENDT_TILBAKE_FRA_BESLUTTER,
                     AVBRUTT -> {
                         avklaringsbehovene.leggTil(
-                            listOf(definisjon),
+                            definisjon,
                             definisjon.løsesISteg,
                         )
                     }

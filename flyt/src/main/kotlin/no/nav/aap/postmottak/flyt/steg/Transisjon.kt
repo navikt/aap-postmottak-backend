@@ -13,8 +13,8 @@ object Stopp : Transisjon {
     }
 }
 
-class FunnetAvklaringsbehov(private val avklaringsbehov: List<Definisjon>) : Transisjon {
-    fun avklaringsbehov(): List<Definisjon> {
+class FunnetAvklaringsbehov(private val avklaringsbehov: Definisjon) : Transisjon {
+    fun avklaringsbehov(): Definisjon {
         return avklaringsbehov
     }
 }

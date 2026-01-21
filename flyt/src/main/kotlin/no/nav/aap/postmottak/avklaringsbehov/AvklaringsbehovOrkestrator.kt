@@ -110,7 +110,7 @@ class AvklaringsbehovOrkestrator(
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
         avklaringsbehovene.leggTil(
-            definisjoner = listOf(Definisjon.MANUELT_SATT_PÅ_VENT),
+            definisjon = Definisjon.MANUELT_SATT_PÅ_VENT,
             stegType = behandling.aktivtSteg(),
             frist = hendelse.frist,
             begrunnelse = hendelse.begrunnelse,
@@ -130,7 +130,7 @@ class AvklaringsbehovOrkestrator(
         avklaringsbehovene.validateTilstand(behandling = behandling)
 
         avklaringsbehovene.leggTil(
-            definisjoner = listOf(Definisjon.VENT_PA_GOSYS),
+            definisjon = Definisjon.VENT_PA_GOSYS,
             stegType = behandling.aktivtSteg(),
             frist = LocalDate.now().plusWeeks(2),
             begrunnelse = "Venter på behandling i Gosys.",

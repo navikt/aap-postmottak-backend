@@ -40,7 +40,7 @@ class Avklaringsbehovene(
         if (definisjon.erFrivillig()) {
             if (hentBehovForDefinisjon(definisjon) == null) {
                 // Legger til frivillig behov
-                leggTil(definisjoner = listOf(definisjon), stegType = definisjon.løsesISteg, bruker = bruker)
+                leggTil(definisjon = definisjon, stegType = definisjon.løsesISteg, bruker = bruker)
             }
         }
     }
@@ -51,40 +51,40 @@ class Avklaringsbehovene(
      * NB! Dersom avklaringsbehovet finnes fra før og er åpent så ignorerer vi det nye behovet, mens dersom det er avsluttet eller avbrutt så reåpner vi det.
      */
     fun leggTil(
-        definisjoner: List<Definisjon>,
+        definisjon: Definisjon,
         stegType: StegType,
         frist: LocalDate? = null,
         begrunnelse: String = "",
         grunn: ÅrsakTilSettPåVent? = null,
         bruker: Bruker = SYSTEMBRUKER
     ) {
-        log.info("Legger til avklaringsbehov :: {} - {}", definisjoner, stegType)
-        definisjoner.forEach { definisjon ->
-            val avklaringsbehov = hentBehovForDefinisjon(definisjon)
-            if (avklaringsbehov != null) {
-                if (avklaringsbehov.erAvsluttet()) {
-                    avklaringsbehov.reåpne(utledFrist(definisjon, frist), begrunnelse, grunn, bruker)
-                    if (avklaringsbehov.erVentepunkt()) {
-                        // TODO: Vurdere om funnet steg bør ligge på endringen...
-                        repository.endreVentepunkt(avklaringsbehov.id, avklaringsbehov.historikk.last(), stegType)
-                    } else {
-                        repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
-                    }
+        log.info("Legger til avklaringsbehov :: {} - {}", definisjon, stegType)
+
+        val avklaringsbehov = hentBehovForDefinisjon(definisjon)
+        if (avklaringsbehov != null) {
+            if (avklaringsbehov.erAvsluttet()) {
+                avklaringsbehov.reåpne(utledFrist(definisjon, frist), begrunnelse, grunn, bruker)
+                if (avklaringsbehov.erVentepunkt()) {
+                    // TODO: Vurdere om funnet steg bør ligge på endringen...
+                    repository.endreVentepunkt(avklaringsbehov.id, avklaringsbehov.historikk.last(), stegType)
                 } else {
-                    log.info("Forsøkte å legge til et avklaringsbehov som allerede eksisterte")
+                    repository.endre(avklaringsbehov.id, avklaringsbehov.historikk.last())
                 }
             } else {
-                repository.opprett(
-                    behandlingId = behandlingId,
-                    definisjon = definisjon,
-                    funnetISteg = stegType,
-                    frist = utledFrist(definisjon, frist),
-                    begrunnelse = begrunnelse,
-                    grunn = grunn,
-                    endretAv = bruker.ident
-                )
+                log.info("Forsøkte å legge til et avklaringsbehov som allerede eksisterte")
             }
+        } else {
+            repository.opprett(
+                behandlingId = behandlingId,
+                definisjon = definisjon,
+                funnetISteg = stegType,
+                frist = utledFrist(definisjon, frist),
+                begrunnelse = begrunnelse,
+                grunn = grunn,
+                endretAv = bruker.ident
+            )
         }
+
     }
 
     private fun utledFrist(

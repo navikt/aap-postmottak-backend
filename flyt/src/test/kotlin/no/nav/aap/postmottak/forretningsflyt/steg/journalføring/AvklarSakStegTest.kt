@@ -16,19 +16,15 @@ import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.*
 
 class AvklarSakStegTest {
 
@@ -91,7 +87,7 @@ class AvklarSakStegTest {
 
         assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
         val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
-        assertThat(funnetAvklaringsbehov.avklaringsbehov()).contains(Definisjon.AVKLAR_SAK)
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
     }
 
     @Test
@@ -169,7 +165,7 @@ class AvklarSakStegTest {
         verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         verify(exactly = 1) {
             saksnummerRepository.lagreSakVurdering(any(), withArg {
-                assertThat(it.saksnummer).isEqualTo(saksnummer.toString())
+                assertThat(it.saksnummer).isEqualTo(saksnummer)
             })
         }
 
