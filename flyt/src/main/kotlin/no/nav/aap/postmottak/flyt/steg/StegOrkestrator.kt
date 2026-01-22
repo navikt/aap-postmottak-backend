@@ -148,7 +148,7 @@ class StegOrkestrator(
                 )
                 val avklaringsbehovene =
                     avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
-                avklaringsbehovene.leggTil(resultat.avklaringsbehov(), aktivtSteg.type())
+                avklaringsbehovene.leggTil(resultat.avklaringsbehov(), aktivtSteg.type()) ////
             }
 
             is FunnetVentebehov -> {
@@ -160,7 +160,7 @@ class StegOrkestrator(
                     avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
                 resultat.ventebehov().forEach {
                     avklaringsbehovene.leggTil(
-                        definisjoner = listOf(it.definisjon),
+                        definisjon = it.definisjon,
                         stegType = aktivtSteg.type(),
                         frist = it.frist,
                         grunn = it.grunn
@@ -169,11 +169,14 @@ class StegOrkestrator(
             }
 
             is Fortsett -> {
+
                 // Avbryt eksisterende ventebehov
                 avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).apply {
-                    hentVentepunkter().forEach {
-                        log.info("Avbryter ventebehov: {}", it)
-                        this.løsAvklaringsbehov(it.definisjon, "Har gått videre til nytt steg", SYSTEMBRUKER.ident)
+                    if (alleEkskludertVentebehov().isEmpty()) {
+                        hentVentepunkter().forEach {
+                            log.info("Avbryter ventebehov: {}", it)
+                            this.løsAvklaringsbehov(it.definisjon, "Har gått videre til nytt steg", SYSTEMBRUKER.ident)
+                        }
                     }
                 }
             }

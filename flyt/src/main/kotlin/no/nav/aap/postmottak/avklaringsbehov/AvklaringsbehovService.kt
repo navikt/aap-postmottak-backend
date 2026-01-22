@@ -1,74 +1,59 @@
 package no.nav.aap.postmottak.avklaringsbehov
 
+import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVBRUTT
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVSLUTTET
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.OPPRETTET
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.SENDT_TILBAKE_FRA_BESLUTTER
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 
-class AvklaringsbehovService() {
-    /** Oppdater tilstanden på avklaringsbehovet [definisjon], slik at kvalitetssikring,
-     * to-trinnskontroll og tilbakeflyt blir riktig.
-     *
-     * For at kvalitetssikring og totrinnskontroll vises for riktig steg, så er det
-     * viktig at avklaringsbehovet har rett status. Ved å bruke denne funksjonen
-     * ivaretar man det.
-     *
-     * For at flyten skal bli riktig hvis man beveger seg fram og tilbake i flyten,
-     * så er det viktig at et steg rydder opp etter seg når det viser seg at steget
-     * ikke er relevant allikevel. Denne funksjonen hjelper også med det.
-     */
+
+class AvklaringsbehovService(
+    private val avklaringsbehovRepository: AvklaringsbehovRepository,
+) {
+    constructor(repositoryProvider: RepositoryProvider) : this(
+        avklaringsbehovRepository = repositoryProvider.provide(),
+    )
+
     fun oppdaterAvklaringsbehov(
-        avklaringsbehovene: Avklaringsbehovene,
         definisjon: Definisjon,
-
-        /** Skal vedtaket inneholde en menneskelig vurdering av [definisjon]?
-         *
-         * Det er viktig å svare på det mer generelle spørsmålet *om vedtaket*
-         * skal inneholde en menneskelig vurdering. Ikke om nå-tilstanden av behandlingen
-         * har behov for en menneskelig vurdering. Grunnen er at det vil være behov for totrinnskontroll hvis vedtaket inneholder
-         * en menneskelig vurdering, selv om siste gjennomkjøring av steget
-         * ikke løftet avklaringsbehovet.
-         *
-         * En egenskap denne funksjonen må ha:
-         * Hvis `vedtakBehøverVurdering() == true` og noen løser
-         * (avklaringsbehovet)[definisjon], så er fortsatt `vedtakBehøverVurdering() == true`.
-         *
-         * @return Skal returnere `true` hvis behandlingen kommer til å inneholde
-         * en menneskelig vurdering av [definisjon].
-         */
         vedtakBehøverVurdering: () -> Boolean,
-        erTilstrekkeligVurdert: () -> Boolean
-
+        erTilstrekkeligVurdert: () -> Boolean,
+        tilbakestillGrunnlag: () -> Unit,
+        kontekst: FlytKontekst
     ) {
         require(definisjon.løsesISteg != StegType.UDEFINERT)
+        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
         val avklaringsbehov = avklaringsbehovene.hentBehovForDefinisjon(definisjon)
 
         if (vedtakBehøverVurdering()) {
-            if (avklaringsbehov == null || !avklaringsbehov.harAvsluttetStatusIHistorikken() || avklaringsbehov.status() == Status.AVBRUTT) {
+            if (avklaringsbehov == null || !avklaringsbehov.harAvsluttetStatusIHistorikken() || avklaringsbehov.status() == AVBRUTT) {
                 /* ønsket tilstand: OPPRETTET */
                 when (avklaringsbehov?.status()) {
-                    Status.OPPRETTET -> {
+                    OPPRETTET -> {
                         /* ønsket tilstand er OPPRETTET */
                     }
 
-                    null, Status.AVBRUTT ->
+                    null, AVBRUTT ->
                         avklaringsbehovene.leggTil(
-                            listOf(definisjon),
+                            definisjon,
                             definisjon.løsesISteg,
                         )
 
-                    Status.AVSLUTTET ->
+                    SENDT_TILBAKE_FRA_BESLUTTER,
+                    AVSLUTTET ->
                         error("Ikke mulig: fikk ${avklaringsbehov.status()}")
-
-                    Status.SENDT_TILBAKE_FRA_BESLUTTER -> TODO()
                 }
             } else if (erTilstrekkeligVurdert()) {
                 /* ønsket tilstand: ... */
                 when (avklaringsbehov.status()) {
-                    Status.OPPRETTET, Status.AVBRUTT ->
+                    OPPRETTET, AVBRUTT ->
                         avklaringsbehovene.internalAvslutt(definisjon)
 
-                    Status.AVSLUTTET,
-                    Status.SENDT_TILBAKE_FRA_BESLUTTER,
+                    AVSLUTTET,
+                    SENDT_TILBAKE_FRA_BESLUTTER,
                         -> {
                         /* uendret status */
                     }
@@ -76,15 +61,16 @@ class AvklaringsbehovService() {
             } else {
                 /* ønsket tilstand: OPPRETTET */
                 when (avklaringsbehov.status()) {
-                    Status.OPPRETTET -> {
+                    OPPRETTET -> {
                         /* forbli OPPRETTET */
+
                     }
 
-                    Status.AVSLUTTET,
-                    Status.SENDT_TILBAKE_FRA_BESLUTTER,
-                    Status.AVBRUTT -> {
+                    AVSLUTTET,
+                    SENDT_TILBAKE_FRA_BESLUTTER,
+                    AVBRUTT -> {
                         avklaringsbehovene.leggTil(
-                            listOf(definisjon),
+                            definisjon,
                             definisjon.løsesISteg,
                         )
                     }
@@ -94,14 +80,15 @@ class AvklaringsbehovService() {
             /* ønsket tilstand: ikke eksistere (null) eller AVBRUTT. */
             when (avklaringsbehov?.status()) {
                 null,
-                Status.AVBRUTT -> {
+                AVBRUTT -> {
                     /* allerede ønsket tilstand */
                 }
 
-                Status.OPPRETTET,
-                Status.AVSLUTTET,
-                Status.SENDT_TILBAKE_FRA_BESLUTTER,
+                OPPRETTET,
+                AVSLUTTET,
+                SENDT_TILBAKE_FRA_BESLUTTER,
                     -> {
+                    tilbakestillGrunnlag()
                     avklaringsbehovene.internalAvbryt(definisjon)
                 }
             }

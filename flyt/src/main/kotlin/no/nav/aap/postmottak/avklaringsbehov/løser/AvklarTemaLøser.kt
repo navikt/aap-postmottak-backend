@@ -12,8 +12,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 class AvklarTemaLøser(
     private val avklarTemaRepository: AvklarTemaRepository,
     private val avklaringsbehovOrkestrator: AvklaringsbehovOrkestrator,
-) :
-    AvklaringsbehovsLøser<AvklarTemaLøsning> {
+) : AvklaringsbehovsLøser<AvklarTemaLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarTemaLøsning): LøsningsResultat {
         val tema = utledTema(løsning)
@@ -45,12 +44,10 @@ class AvklarTemaLøser(
 
     companion object : LøserKonstruktør<AvklarTemaLøsning> {
         override fun konstruer(
-            repositoryProvider: RepositoryProvider,
-            gatewayProvider: GatewayProvider
+            repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider
         ): AvklaringsbehovsLøser<AvklarTemaLøsning> {
             return AvklarTemaLøser(
-                repositoryProvider.provide(),
-                AvklaringsbehovOrkestrator(repositoryProvider, gatewayProvider)
+                repositoryProvider.provide(), AvklaringsbehovOrkestrator(repositoryProvider, gatewayProvider)
             )
         }
     }
