@@ -24,8 +24,8 @@ class DigitaliserDokumentLøser(
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
         val journalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId))
-        require((løsning.søknadsdato == null) xor (løsning.kategori == InnsendingType.SØKNAD)) {
-            "Søknadsdato skal kun settes for søknader"
+        require((løsning.søknadsdato == null) xor (løsning.kategori == InnsendingType.SØKNAD || løsning.kategori == InnsendingType.MELDEKORT)) {
+            "Søknadsdato skal kun settes for søknader eller meldekort"
         }
         require(løsning.søknadsdato == null || !løsning.søknadsdato.isAfter(journalpost.mottattDato)) {
             "Søknadsdato kan ikke være etter registrert dato"
