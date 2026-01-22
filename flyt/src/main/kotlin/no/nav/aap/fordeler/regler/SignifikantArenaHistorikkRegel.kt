@@ -37,7 +37,7 @@ class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput
     override fun vurder(input: SignifikantArenaHistorikkRegelInput): Boolean {
         val personenTasMed = RateBegrenser.personenTasMed(input.person)
         if (!personenTasMed) {
-            log.info("Personen tas ikke med av regelen pga ratebegrensning.")
+            log.info("Personen tas ikke med av regelen pga ratebegrensning, ident=${input.person.identifikator}")
         }
         return !input.harSignifikantHistorikkIAAPArena && personenTasMed
     }
@@ -54,10 +54,14 @@ class SignifikantArenaHistorikkRegelInputGenerator(private val gatewayProvider: 
     override fun generer(input: RegelInput): SignifikantArenaHistorikkRegelInput {
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
         val response = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
-        secureLog.info(
-            "Personen har signifikant historikk i AAP Arena: " +
-                    "saker=${response.signifikanteSaker}, ident=${input.person.identifikator}"
-        )
+        if (response.harSignifikantHistorikk) {
+            secureLog.info(
+                "Personen har signifikant historikk i AAP-Arena: " +
+                        "saker=${response.signifikanteSaker}, ident=${input.person.identifikator}"
+            )
+        } else {
+            secureLog.info("Personen har /IKKE/ signifikant historikk i AAP-Arena, ident=${input.person.identifikator}")
+        }
         return SignifikantArenaHistorikkRegelInput(response.harSignifikantHistorikk, input.person)
     }
 }
