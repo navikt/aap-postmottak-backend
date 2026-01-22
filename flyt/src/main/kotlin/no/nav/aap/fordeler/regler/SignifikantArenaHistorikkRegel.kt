@@ -4,8 +4,13 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
+import org.slf4j.LoggerFactory
 
 class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput> {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     private object RateBegrenser {
         @SuppressWarnings("MagicNumber")
         fun personenTasMed(person: Person): Boolean {
@@ -16,7 +21,10 @@ class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput
     }
 
     companion object : RegelFactory<SignifikantArenaHistorikkRegelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = true)
+        override fun erAktiv(gatewayProvider: GatewayProvider) = gatewayProvider.provide<UnleashGateway>().isEnabled(
+            PostmottakFeature.SignifikantHistorikkFraArena
+        )
+
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(
                 SignifikantArenaHistorikkRegel(),
@@ -27,7 +35,11 @@ class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput
     }
 
     override fun vurder(input: SignifikantArenaHistorikkRegelInput): Boolean {
-        return !input.harSignifikantHistorikkIAAPArena && RateBegrenser.personenTasMed(input.person)
+        val personenTasMed = RateBegrenser.personenTasMed(input.person)
+        if (!personenTasMed) {
+            log.info("Personen tas ikke med av regelen pga ratebegrensning.")
+        }
+        return !input.harSignifikantHistorikkIAAPArena && personenTasMed
     }
 
     override fun regelNavn(): String {
@@ -37,9 +49,15 @@ class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput
 
 class SignifikantArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProvider) :
     InputGenerator<SignifikantArenaHistorikkRegelInput> {
+    private val secureLog = LoggerFactory.getLogger("team-logs")
+
     override fun generer(input: RegelInput): SignifikantArenaHistorikkRegelInput {
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
         val response = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
+        secureLog.info(
+            "Personen har signifikant historikk i AAP Arena: " +
+                    "saker=${response.signifikanteSaker}, ident=${input.person.identifikator}"
+        )
         return SignifikantArenaHistorikkRegelInput(response.harSignifikantHistorikk, input.person)
     }
 }

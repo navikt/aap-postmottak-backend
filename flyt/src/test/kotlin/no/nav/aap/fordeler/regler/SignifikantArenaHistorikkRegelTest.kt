@@ -1,6 +1,7 @@
 package no.nav.aap.fordeler.regler
 
 import io.mockk.mockk
+import no.nav.aap.FakeUnleash
 import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identMedSignifikantSak
 import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identUtenSignifikantSak
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -25,12 +26,40 @@ class SignifikantArenaHistorikkRegelTest {
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
             .register<ApiInternMock>()
-        SignifikantArenaHistorikkRegel.innslippProsent = 100 // Sikre at personen tas med i testen
+            .register<FakeUnleash>()
         val regelMedInputGenerator =
             SignifikantArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
                 GatewayProvider(gatewayRegistry)
             )
+        SignifikantArenaHistorikkRegel.innslippProsent = 100 // Sikre at personen tas med i testen
+        val res = regelMedInputGenerator.vurder(
+            RegelInput(
+                journalpostId = journalpostId.referanse,
+                person = person,
+                brevkode = Brevkoder.SØKNAD.name,
+                mottattDato = LocalDate.of(2025, 1, 1)
+            )
+        )
+
+        assertFalse(res)
+    }
+
+    @Test
+    fun `Dersom bruker har signifikant sak i Arena, men blir ratebegrenset, skal regelen returnere true`() {
+        val journalpostId = JournalpostId(1)
+        val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSignifikantSak)))
+
+        val gatewayRegistry = GatewayRegistry()
+            .register<JoarkMock>()
+            .register<ApiInternMock>()
+            .register<FakeUnleash>()
+        val regelMedInputGenerator =
+            SignifikantArenaHistorikkRegel.medDataInnhenting(
+                mockk(),
+                GatewayProvider(gatewayRegistry)
+            )
+        SignifikantArenaHistorikkRegel.innslippProsent = 0 // Sikre at personen IKKE tas med i testen
         val res = regelMedInputGenerator.vurder(
             RegelInput(
                 journalpostId = journalpostId.referanse,
@@ -52,12 +81,13 @@ class SignifikantArenaHistorikkRegelTest {
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
             .register<ApiInternMock>()
-        SignifikantArenaHistorikkRegel.innslippProsent = 100 // Sikre at personen tas med i testen
+            .register<FakeUnleash>()
         val regelMedInputGenerator =
             SignifikantArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
                 GatewayProvider(gatewayRegistry)
             )
+        SignifikantArenaHistorikkRegel.innslippProsent = 100 // Sikre at personen tas med i testen
         val res = regelMedInputGenerator.vurder(
             RegelInput(
                 journalpostId = journalpostId.referanse,
