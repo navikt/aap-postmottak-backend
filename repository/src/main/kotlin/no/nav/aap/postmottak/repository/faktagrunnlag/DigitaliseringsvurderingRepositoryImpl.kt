@@ -18,8 +18,8 @@ class DigitaliseringsvurderingRepositoryImpl(private val connection: DBConnectio
     }
 
     override fun lagre(behandlingId: BehandlingId, strukturertDokument: Digitaliseringsvurdering) {
-        require(strukturertDokument.kategori == InnsendingType.SØKNAD || strukturertDokument.søknadsdato == null) {
-            "Søknadsdato skal ikke være satt for andre innsendingstyper enn SØKNAD"
+        require(strukturertDokument.kategori == InnsendingType.SØKNAD || strukturertDokument.kategori == InnsendingType.MELDEKORT || strukturertDokument.søknadsdato == null) {
+            "Søknadsdato skal ikke være satt for andre innsendingstyper enn SØKNAD eller MELDEKORT"
         }
 
         val vurderingsId = connection.executeReturnKey(
