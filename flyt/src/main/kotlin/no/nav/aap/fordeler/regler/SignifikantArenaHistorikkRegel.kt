@@ -9,7 +9,7 @@ import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput> {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val secureLog = LoggerFactory.getLogger("team-logs")
 
     private object RateBegrenser {
         @SuppressWarnings("MagicNumber")
@@ -37,7 +37,7 @@ class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput
     override fun vurder(input: SignifikantArenaHistorikkRegelInput): Boolean {
         val personenTasMed = RateBegrenser.personenTasMed(input.person)
         if (!personenTasMed) {
-            log.info("Personen tas ikke med av regelen pga ratebegrensning, ident=${input.person.identifikator}")
+            secureLog.info("Personen tas ikke med av regelen pga ratebegrensning, ident=${input.person.identifikator}")
         }
         return !input.harSignifikantHistorikkIAAPArena && personenTasMed
     }
