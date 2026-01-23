@@ -1,5 +1,5 @@
 plugins {
-    id("postmottak.conventions")
+    id("aap.conventions")
 }
 
 dependencies {
