@@ -8,7 +8,9 @@ import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
-class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput> {
+class SignifikantArenaHistorikkRegel(
+    val unleashGateway: UnleashGateway
+) : Regel<SignifikantArenaHistorikkRegelInput> {
     private val secureLog = LoggerFactory.getLogger("team-logs")
 
     private object RateBegrenser {
@@ -21,20 +23,26 @@ class SignifikantArenaHistorikkRegel : Regel<SignifikantArenaHistorikkRegelInput
     }
 
     companion object : RegelFactory<SignifikantArenaHistorikkRegelInput> {
-        override fun erAktiv(gatewayProvider: GatewayProvider) = gatewayProvider.provide<UnleashGateway>().isEnabled(
-            PostmottakFeature.SignifikantHistorikkFraArena
-        )
+        override val erAktiv = miljøConfig(prod = false, dev = true)
+        var innslippProsent: Int = 25
 
-        override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
-            RegelMedInputgenerator(
-                SignifikantArenaHistorikkRegel(),
+        override fun medDataInnhenting(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): RegelMedInputgenerator<SignifikantArenaHistorikkRegelInput> {
+            val unleashGateway = gatewayProvider.provide<UnleashGateway>()
+            return RegelMedInputgenerator(
+                SignifikantArenaHistorikkRegel(unleashGateway),
                 SignifikantArenaHistorikkRegelInputGenerator(gatewayProvider)
             )
-
-        var innslippProsent: Int = 25
+        }
     }
 
     override fun vurder(input: SignifikantArenaHistorikkRegelInput): Boolean {
+        val toggledOff = !unleashGateway.isEnabled(PostmottakFeature.SignifikantHistorikkFraArena)
+        if (toggledOff) {
+            return true // regelen er deaktivert, alle tas med
+        }
         val personenTasMed = RateBegrenser.personenTasMed(input.person)
         if (!personenTasMed) {
             secureLog.info("Personen tas ikke med av regelen pga ratebegrensning, ident=${input.person.identifikator}")
