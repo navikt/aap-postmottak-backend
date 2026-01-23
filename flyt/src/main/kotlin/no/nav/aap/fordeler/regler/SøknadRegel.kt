@@ -14,7 +14,7 @@ data class SøknadRegelInput(
  */
 class SøknadRegel : Regel<SøknadRegelInput> {
     companion object : RegelFactory<SøknadRegelInput> {
-        override fun erAktiv(gatewayProvider: GatewayProvider) = miljøConfig(prod = true, dev = false)
+        override val erAktiv = miljøConfig(prod = true, dev = false)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(SøknadRegel(), SøknadRegelInputGenerator())
     }

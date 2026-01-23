@@ -11,7 +11,7 @@ class Aldersregel : Regel<AldersregelInput> {
     private val log = LoggerFactory.getLogger(Aldersregel::class.java)
 
     companion object : RegelFactory<AldersregelInput> {
-        override fun erAktiv(gatewayProvider: GatewayProvider) = miljøConfig(prod = true, dev = false)
+        override val erAktiv = miljøConfig(prod = true, dev = false)
         const val MIN_ALDER = 18
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator(gatewayProvider))

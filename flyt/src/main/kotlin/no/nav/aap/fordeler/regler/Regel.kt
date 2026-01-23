@@ -23,7 +23,7 @@ class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGe
 }
 
 sealed interface RegelFactory<T> {
-    fun erAktiv(gatewayProvider: GatewayProvider): Boolean
+    val erAktiv: Boolean
     fun medDataInnhenting(
         repositoryProvider: RepositoryProvider,
         gatewayProvider: GatewayProvider

@@ -6,7 +6,7 @@ import no.nav.aap.postmottak.gateway.AapInternApiGateway
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
     companion object : RegelFactory<ArenaHistorikkRegelInput> {
-        override fun erAktiv(gatewayProvider: GatewayProvider) = miljøConfig(prod = true, dev = true)
+        override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(
                 ArenaHistorikkRegel(),

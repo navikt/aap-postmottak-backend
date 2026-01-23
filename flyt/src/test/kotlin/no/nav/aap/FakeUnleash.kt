@@ -10,7 +10,6 @@ object FakeUnleash : UnleashGateway {
 
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
-            PostmottakFeature.SignifikantHistorikkFraArena -> true
         }
     }
 }

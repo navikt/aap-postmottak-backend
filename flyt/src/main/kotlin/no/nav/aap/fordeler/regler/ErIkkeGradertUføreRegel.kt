@@ -15,7 +15,7 @@ class ErIkkeGradertUføreRegel : Regel<GradertUføreRegelInput> {
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : RegelFactory<GradertUføreRegelInput> {
-        override fun erAktiv(gatewayProvider: GatewayProvider) = miljøConfig(prod = false, dev = false)
+        override val erAktiv = miljøConfig(prod = false, dev = false)
 
         override fun medDataInnhenting(
             repositoryProvider: RepositoryProvider,
