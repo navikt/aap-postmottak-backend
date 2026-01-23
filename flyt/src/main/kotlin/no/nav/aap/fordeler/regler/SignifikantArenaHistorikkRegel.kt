@@ -46,18 +46,18 @@ class SignifikantArenaHistorikkRegel(
 
 class SignifikantArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProvider) :
     InputGenerator<SignifikantArenaHistorikkRegelInput> {
-    private val secureLog = LoggerFactory.getLogger("team-logs")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun generer(input: RegelInput): SignifikantArenaHistorikkRegelInput {
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
         val response = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
         if (response.harSignifikantHistorikk) {
-            secureLog.info(
+            logger.info(
                 "Personen har signifikant historikk i AAP-Arena: " +
-                        "saker=${response.signifikanteSaker}, ident=${input.person.identifikator}"
+                        "saker=${response.signifikanteSaker}, journalpostId=${input.journalpostId}"
             )
         } else {
-            secureLog.info("Personen har /IKKE/ signifikant historikk i AAP-Arena, ident=${input.person.identifikator}")
+            logger.info("Personen har /IKKE/ signifikant historikk i AAP-Arena, journalpostId=${input.journalpostId}")
         }
         return SignifikantArenaHistorikkRegelInput(response.harSignifikantHistorikk, input.person)
     }
