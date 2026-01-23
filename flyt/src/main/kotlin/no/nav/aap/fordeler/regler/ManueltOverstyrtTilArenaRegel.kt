@@ -7,13 +7,14 @@ import no.nav.aap.postmottak.Fagsystem
 
 class ManueltOverstyrtTilArenaRegel : Regel<List<Fagsystem>> {
     companion object : RegelFactory<List<Fagsystem>> {
-        override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(
                 ManueltOverstyrtTilArenaRegel(),
                 ManueltOverstyrtTilArenaRegelInputGenerator(repositoryProvider)
             )
     }
+
+    override fun erAktiv() =  miljøConfig(prod = true, dev = true)
 
     override fun vurder(input: List<Fagsystem>): Boolean {
         check(input.size <= 1) {

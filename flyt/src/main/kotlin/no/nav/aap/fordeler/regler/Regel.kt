@@ -8,6 +8,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 sealed interface Regel<T> {
     fun regelNavn(): String
     fun vurder(input: T): Boolean
+    fun erAktiv(): Boolean
 }
 
 sealed interface InputGenerator<T> {
@@ -20,10 +21,11 @@ class RegelMedInputgenerator<T>(val regel: Regel<T>, val inputGenerator: InputGe
         val regelInput = inputGenerator.generer(input)
         return regel.vurder(regelInput)
     }
+
+    override fun erAktiv() = regel.erAktiv()
 }
 
 sealed interface RegelFactory<T> {
-    val erAktiv: Boolean
     fun medDataInnhenting(
         repositoryProvider: RepositoryProvider,
         gatewayProvider: GatewayProvider

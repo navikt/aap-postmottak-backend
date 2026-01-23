@@ -15,8 +15,6 @@ class ErIkkeGradertUføreRegel : Regel<GradertUføreRegelInput> {
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : RegelFactory<GradertUføreRegelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = false)
-
         override fun medDataInnhenting(
             repositoryProvider: RepositoryProvider,
             gatewayProvider: GatewayProvider
@@ -27,6 +25,8 @@ class ErIkkeGradertUføreRegel : Regel<GradertUføreRegelInput> {
             )
         }
     }
+
+    override fun erAktiv() =  miljøConfig(prod = false, dev = false)
 
     override fun vurder(input: GradertUføreRegelInput): Boolean {
         val relevantePerioder = input.uførePerioder.filter { it.uføregrad != null && it.uføregrad > 0 }

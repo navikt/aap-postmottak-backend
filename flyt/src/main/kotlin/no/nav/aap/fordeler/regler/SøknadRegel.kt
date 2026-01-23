@@ -14,10 +14,11 @@ data class SøknadRegelInput(
  */
 class SøknadRegel : Regel<SøknadRegelInput> {
     companion object : RegelFactory<SøknadRegelInput> {
-        override val erAktiv = miljøConfig(prod = true, dev = false)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(SøknadRegel(), SøknadRegelInputGenerator())
     }
+
+    override fun erAktiv() =  miljøConfig(prod = true, dev = false)
 
     override fun vurder(input: SøknadRegelInput): Boolean {
         return listOf(

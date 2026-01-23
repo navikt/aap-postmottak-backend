@@ -81,7 +81,7 @@ class FordelerRegelService(
     ): List<Regel<RegelInput>> =
         RegelFactory::class.sealedSubclasses
             .mapNotNull { it.objectInstance }
-            .filter { it.erAktiv }
             .map { it.medDataInnhenting(repositoryProvider = repositoryProvider, gatewayProvider = gatewayProvider) }
+            .filter { it.erAktiv() }
 
 }
