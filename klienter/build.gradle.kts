@@ -1,7 +1,7 @@
 val jacksonVersion = "2.20.1"
 
 plugins {
-    id("postmottak.conventions")
+    id("aap.conventions")
 }
 
 dependencies {
