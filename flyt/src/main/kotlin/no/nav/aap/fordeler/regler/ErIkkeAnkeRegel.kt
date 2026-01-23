@@ -10,12 +10,11 @@ data class ErIkkeAnkeRegelInput(
 
 class ErIkkeAnkeRegel : Regel<ErIkkeAnkeRegelInput> {
     companion object : RegelFactory<ErIkkeAnkeRegelInput> {
+        // Oppdater RegelResultat dersom denne deaktiveres
+        override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(ErIkkeAnkeRegel(), ErIkkeAnkeRegelInputGenerator())
     }
-
-    // Oppdater RegelResultat dersom denne deaktiveres
-    override fun erAktiv() =  miljøConfig(prod = true, dev = true)
 
     override fun vurder(input: ErIkkeAnkeRegelInput): Boolean {
         return !listOf(

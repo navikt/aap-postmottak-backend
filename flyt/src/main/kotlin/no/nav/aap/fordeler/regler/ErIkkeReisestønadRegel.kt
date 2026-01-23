@@ -10,12 +10,11 @@ data class ErIkkeReisestønadRegelInput(
 
 class ErIkkeReisestønadRegel : Regel<ErIkkeReisestønadRegelInput> {
     companion object : RegelFactory<ErIkkeReisestønadRegelInput> {
+        // Oppdater RegelResultat dersom denne deaktiveres
+        override val erAktiv = miljøConfig(prod = true, dev = true)
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(ErIkkeReisestønadRegel(), ErIkkeReisestønadRegelInputGenerator())
     }
-
-    // Oppdater RegelResultat dersom denne deaktiveres
-    override fun erAktiv() =  miljøConfig(prod = true, dev = true)
 
     override fun vurder(input: ErIkkeReisestønadRegelInput): Boolean {
         return !listOf(

@@ -11,12 +11,12 @@ class Aldersregel : Regel<AldersregelInput> {
     private val log = LoggerFactory.getLogger(Aldersregel::class.java)
 
     companion object : RegelFactory<AldersregelInput> {
+        override val erAktiv = miljøConfig(prod = true, dev = false)
         const val MIN_ALDER = 18
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
             RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator(gatewayProvider))
     }
 
-    override fun erAktiv() = miljøConfig(prod = true, dev = false)
     override fun vurder(input: AldersregelInput): Boolean {
         if (input.fødselsdato == null) {
             log.info("Fant ikke fødselsdato for person i PDL - returnerer false")

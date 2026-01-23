@@ -23,6 +23,7 @@ class SignifikantArenaHistorikkRegel(
     }
 
     companion object : RegelFactory<SignifikantArenaHistorikkRegelInput> {
+        override val erAktiv = miljøConfig(prod = false, dev = true)
         var innslippProsent: Int = 25
 
         override fun medDataInnhenting(
@@ -37,9 +38,11 @@ class SignifikantArenaHistorikkRegel(
         }
     }
 
-    override fun erAktiv() = unleashGateway.isEnabled(PostmottakFeature.SignifikantHistorikkFraArena)
-
     override fun vurder(input: SignifikantArenaHistorikkRegelInput): Boolean {
+        val toggledOff = !unleashGateway.isEnabled(PostmottakFeature.SignifikantHistorikkFraArena)
+        if (toggledOff) {
+            return true // regelen er deaktivert, alle tas med
+        }
         val personenTasMed = RateBegrenser.personenTasMed(input.person)
         if (!personenTasMed) {
             secureLog.info("Personen tas ikke med av regelen pga ratebegrensning, ident=${input.person.identifikator}")
