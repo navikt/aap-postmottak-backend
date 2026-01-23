@@ -1,10 +1,12 @@
 package no.nav.aap.fordeler.regler
 
 import io.mockk.mockk
+import no.nav.aap.FakeUnleash
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SignifikanteSakerResponse
+import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identHeltUtenSak
+import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identMedSak
 import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identMedSignifikantSak
-import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identUtenSignifikantSak
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
@@ -19,19 +21,23 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.time.LocalDate
 import java.util.*
 
+@Execution(ExecutionMode.SAME_THREAD)
 class ArenaHistorikkRegelTest {
 
     @Test
-    fun `Dersom bruker har sak i Arena, skal regelen returnere false`() {
+    fun `Dersom bruker har signifikant sak i Arena, skal regelen returnere false`() {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSignifikantSak)))
 
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
             .register<ApiInternMock>()
+            .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
@@ -50,13 +56,14 @@ class ArenaHistorikkRegelTest {
     }
 
     @Test
-    fun `Dersom bruker IKKE har signifikant sak i Arena, skal regelen returnere true`() {
+    fun `Dersom bruker har sak i Arena men ikke har signifikant sak skal regelen returnere true`() {
         val journalpostId = JournalpostId(1)
-        val person = Person(1, UUID.randomUUID(), listOf(Ident(identUtenSignifikantSak)))
+        val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSak)))
 
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
             .register<ApiInternMock>()
+            .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
@@ -74,6 +81,64 @@ class ArenaHistorikkRegelTest {
         assertTrue(res)
     }
 
+
+    @Test
+    fun `Dersom bruker har ikke-signifikant sak i Arena, men nytt filter er disabled av gradual rollout, skal regelen returnere false`() {
+        val journalpostId = JournalpostId(1)
+        val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSak)))
+
+        val gatewayRegistry = GatewayRegistry()
+            .register<JoarkMock>()
+            .register<ApiInternMock>()
+            .register<FakeUnleash>()
+
+        FakeUnleash.rejectList.add(person.identifikator.toString())
+        val regelMedInputGenerator =
+            ArenaHistorikkRegel.medDataInnhenting(
+                mockk(),
+                GatewayProvider(gatewayRegistry)
+            )
+
+        val res = regelMedInputGenerator.vurder(
+            RegelInput(
+                journalpostId = journalpostId.referanse,
+                person = person,
+                brevkode = Brevkoder.SØKNAD.name,
+                mottattDato = LocalDate.of(2025, 1, 1)
+            )
+        )
+        FakeUnleash.rejectList.remove(person.identifikator.toString())
+
+        assertFalse(res)
+    }
+
+    @Test
+    fun `Dersom bruker har ingen sak i Arena skal regelen returnere true`() {
+        val journalpostId = JournalpostId(1)
+        val person = Person(1, UUID.randomUUID(), listOf(Ident(identHeltUtenSak)))
+
+        val gatewayRegistry = GatewayRegistry()
+            .register<JoarkMock>()
+            .register<ApiInternMock>()
+            .register<FakeUnleash>()
+        val regelMedInputGenerator =
+            ArenaHistorikkRegel.medDataInnhenting(
+                mockk(),
+                GatewayProvider(gatewayRegistry)
+            )
+        val res = regelMedInputGenerator.vurder(
+            RegelInput(
+                journalpostId = journalpostId.referanse,
+                person = person,
+                brevkode = Brevkoder.SØKNAD.name,
+                mottattDato = LocalDate.of(2025, 1, 1)
+            )
+        )
+
+        assertTrue(res)
+    }
+
+
 }
 
 class ApiInternMock : AapInternApiGateway {
@@ -82,16 +147,14 @@ class ApiInternMock : AapInternApiGateway {
             return ApiInternMock()
         }
 
-        const val identUtenSignifikantSak = "ikke_funnet"
-        const val identMedSignifikantSak = "12345678901"
+        const val identHeltUtenSak = "ikke_funnet"
+        const val identMedSak = "12345678901"
+        const val identMedSignifikantSak = "09876543210"
     }
 
     override fun harAapSakIArena(person: Person): PersonEksistererIAAPArena {
-        return if (person.identer().first().identifikator == identMedSignifikantSak) {
-            PersonEksistererIAAPArena(true)
-        } else {
-            PersonEksistererIAAPArena(false)
-        }
+        val eksisterer = listOf(identMedSak, identMedSignifikantSak).contains(person.identer().first().identifikator)
+        return PersonEksistererIAAPArena(eksisterer)
     }
 
     override fun harSignifikantHistorikkIAAPArena(

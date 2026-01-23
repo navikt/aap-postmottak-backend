@@ -5,5 +5,5 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 
 interface UnleashGateway : Gateway {
     fun isEnabled(featureToggle: FeatureToggle): Boolean
-    fun isEnabled(featureToggle: FeatureToggle, person: Person): Boolean
+    fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean
 }
