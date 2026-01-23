@@ -1,6 +1,8 @@
 package no.nav.aap.postmottak.klient
 
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
+import no.nav.aap.api.intern.SignifikanteSakerRequest
+import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -11,7 +13,9 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import java.io.InputStreamReader
 import java.net.URI
+import java.time.LocalDate
 
 class AapInternApiKlient : AapInternApiGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.aap.intern.api.url"))
@@ -43,8 +47,29 @@ class AapInternApiKlient : AapInternApiGateway {
         requireNotNull(response) { "Kunne ikke sjekke om personen har vedtak i Arena" }
         return response
     }
+
+    override fun harSignifikantHistorikkIAAPArena(
+        person: Person,
+        mottattDato: LocalDate
+    ): SignifikanteSakerResponse {
+        val path = url.resolve("/arena/person/aap/signifikant-historikk")
+        val reqbody = SignifikanteSakerRequest(
+            personidentifikatorer = person.identer().map { it.identifikator },
+            virkningstidspunkt = mottattDato
+        )
+        val response: SignifikanteSakerResponse? = client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
+            DefaultJsonMapper.fromJson<SignifikanteSakerResponse>(body)
+        })
+        requireNotNull(response) { "Kunne ikke sjekke om personen har signifikante saker i Arena" }
+        return response
+    }
 }
 
 data class SakerRequest(
     val personidentifikatorer: List<String>
+)
+
+data class SignifikanteSakerRequest(
+    val personidentifikatorer: List<String>,
+    val virkningstidspunkt: LocalDate
 )

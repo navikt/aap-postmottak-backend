@@ -116,7 +116,8 @@ class FordelingRegelJobbUtfører(
                     RegelInput(
                         safJournalpost.journalpostId,
                         journalpost.person,
-                        journalpost.hoveddokumentbrevkode
+                        journalpost.hoveddokumentbrevkode,
+                        journalpost.mottattDato
                     )
                 )
                 StatusMedÅrsakOgRegelresultat(

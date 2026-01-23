@@ -5,6 +5,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import java.time.LocalDate
 import java.util.*
 
 class ErIkkeReisestønadRegelTest {
@@ -20,10 +21,11 @@ class ErIkkeReisestønadRegelTest {
     fun vurder(brevkodeString: String, brevkode: Brevkoder, forventetResultat: Boolean) {
         val regel = ErIkkeReisestønadRegel()
 
-
         val regelInputGenerator = ErIkkeReisestønadRegelInputGenerator()
         val person = Person(1, UUID.randomUUID(), emptyList())
-        val regelInput = regelInputGenerator.generer(RegelInput(1, person, brevkodeString))
+        val mottattDato = LocalDate.of(2025, 1, 1)
+        val input = RegelInput(1, person, brevkodeString, mottattDato)
+        val regelInput = regelInputGenerator.generer(input)
 
         assertThat(regelInput.brevkode).isEqualTo(brevkode)
 
