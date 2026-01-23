@@ -39,10 +39,14 @@ class SignifikantArenaHistorikkRegel(
     }
 
     override fun vurder(input: SignifikantArenaHistorikkRegelInput): Boolean {
-        val toggledOff = !unleashGateway.isEnabled(PostmottakFeature.SignifikantHistorikkFraArena)
+        val toggledOff = !unleashGateway.isEnabled(
+            PostmottakFeature.AktiverSignifikantArenaHistorikkRegel,
+            input.person
+        )
         if (toggledOff) {
-            return true // regelen er deaktivert, alle tas med
+            return true // regelen er ikke aktiv for denne personen
         }
+
         val personenTasMed = RateBegrenser.personenTasMed(input.person)
         if (!personenTasMed) {
             secureLog.info("Personen tas ikke med av regelen pga ratebegrensning, ident=${input.person.identifikator}")
