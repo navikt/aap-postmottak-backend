@@ -2,6 +2,8 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
@@ -77,6 +79,10 @@ class OverleverTilFagsystemSteg(
                     digitaliseringsvurdering.strukturertDokument,
                     digitaliseringsvurdering.kategori
                 )
+                if (Miljø.erDev() && digitaliseringsvurdering.kategori == InnsendingType.MELDEKORT) {
+                    log.info("strukturertDokument: ${digitaliseringsvurdering.strukturertDokument}")
+                    log.info("Debug melding: $melding")
+                }
                 behandlingsflytKlient.sendHendelse(
                     journalpostId = journalpost.journalpostId,
                     kanal = journalpost.kanal,
