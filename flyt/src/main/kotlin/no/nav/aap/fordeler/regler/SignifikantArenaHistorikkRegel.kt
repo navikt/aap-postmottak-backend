@@ -11,20 +11,9 @@ import org.slf4j.LoggerFactory
 class SignifikantArenaHistorikkRegel(
     val unleashGateway: UnleashGateway
 ) : Regel<SignifikantArenaHistorikkRegelInput> {
-    private val secureLog = LoggerFactory.getLogger("team-logs")
-
-    private object RateBegrenser {
-        @SuppressWarnings("MagicNumber")
-        fun personenTasMed(person: Person): Boolean {
-            val personId = person.identer().first()
-            val fordelingsTall = personId.hashCode() % 100 + 1 // gir verdier 1..100
-            return innslippProsent >= fordelingsTall
-        }
-    }
 
     companion object : RegelFactory<SignifikantArenaHistorikkRegelInput> {
         override val erAktiv = miljøConfig(prod = false, dev = true)
-        var innslippProsent: Int = 25
 
         override fun medDataInnhenting(
             repositoryProvider: RepositoryProvider,
@@ -39,19 +28,15 @@ class SignifikantArenaHistorikkRegel(
     }
 
     override fun vurder(input: SignifikantArenaHistorikkRegelInput): Boolean {
-        val toggledOff = !unleashGateway.isEnabled(
+        val gradualRollOutToggleIsOff = !unleashGateway.isEnabled(
             PostmottakFeature.AktiverSignifikantArenaHistorikkRegel,
             input.person
         )
-        if (toggledOff) {
-            return true // regelen er ikke aktiv for denne personen
+        if (gradualRollOutToggleIsOff) {
+            return true // regelen er ikke aktiv
         }
 
-        val personenTasMed = RateBegrenser.personenTasMed(input.person)
-        if (!personenTasMed) {
-            secureLog.info("Personen tas ikke med av regelen pga ratebegrensning, ident=${input.person.identifikator}")
-        }
-        return !input.harSignifikantHistorikkIAAPArena && personenTasMed
+        return !input.harSignifikantHistorikkIAAPArena
     }
 
     override fun regelNavn(): String {

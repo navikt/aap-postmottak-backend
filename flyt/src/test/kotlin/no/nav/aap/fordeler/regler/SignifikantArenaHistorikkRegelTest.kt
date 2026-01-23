@@ -14,9 +14,12 @@ import no.nav.aap.unleash.UnleashGateway
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.time.LocalDate
 import java.util.*
 
+@Execution(ExecutionMode.SAME_THREAD)
 class SignifikantArenaHistorikkRegelTest {
 
     @Test
@@ -28,7 +31,6 @@ class SignifikantArenaHistorikkRegelTest {
             .register<JoarkMock>()
             .register<ApiInternMock>()
             .register<FakeUnleash>()
-        SignifikantArenaHistorikkRegel.innslippProsent = 100 // Sikre at personen tas med i testen
         val regelMedInputGenerator =
             SignifikantArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
@@ -60,7 +62,7 @@ class SignifikantArenaHistorikkRegelTest {
                 mockk(),
                 GatewayProvider(gatewayRegistry)
             )
-        SignifikantArenaHistorikkRegel.innslippProsent = 0 // Sikre at personen IKKE tas med i testen
+        FakeUnleash.rejectList.add(identMedSignifikantSak)
         val res = regelMedInputGenerator.vurder(
             RegelInput(
                 journalpostId = journalpostId.referanse,
@@ -69,6 +71,7 @@ class SignifikantArenaHistorikkRegelTest {
                 mottattDato = LocalDate.of(2025, 1, 1)
             )
         )
+        FakeUnleash.rejectList.remove(identMedSignifikantSak)
 
         assertFalse(res)
     }
@@ -83,7 +86,6 @@ class SignifikantArenaHistorikkRegelTest {
             .register<JoarkMock>()
             .register<ApiInternMock>()
             .register<FakeUnleash>()
-        SignifikantArenaHistorikkRegel.innslippProsent = 100 // Sikre at personen tas med i testen
         val regelMedInputGenerator =
             SignifikantArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
