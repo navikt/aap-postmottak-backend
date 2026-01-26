@@ -61,7 +61,7 @@ joseJwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.7" }
 junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junitJupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junitJupiterParams = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
-assertJ = { module = "org.assertj:assertj-core", version = "3.27.6" }
+assertJ = { module = "org.assertj:assertj-core", version = "3.27.7" }
 mockk = { module = "io.mockk:mockk", version = "1.14.7" }
 testcontainersPostgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainersKafka = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
