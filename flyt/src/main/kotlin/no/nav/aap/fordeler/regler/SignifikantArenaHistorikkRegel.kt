@@ -13,7 +13,7 @@ class SignifikantArenaHistorikkRegel(
 ) : Regel<SignifikantArenaHistorikkRegelInput> {
 
     companion object : RegelFactory<SignifikantArenaHistorikkRegelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = true)
+        override val erAktiv = miljøConfig(prod = true, dev = true)
 
         override fun medDataInnhenting(
             repositoryProvider: RepositoryProvider,
