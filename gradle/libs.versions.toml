@@ -1,12 +1,12 @@
 [versions]
-ktor = "3.3.3"
+ktor = "3.4.0"
 komponenter = "1.0.490"
 tilgang = "1.0.178"
 apiIntern = "0.0.25"
 behandlingsflyt = "0.0.538"
 junit = "6.0.2"
 kafka = "8.1.1-ce"
-ktorOpenApiGen = "1.0.136"
+ktorOpenApiGen = "1.0.137"
 testcontainers = "1.21.4"
 
 [libraries]
@@ -36,23 +36,23 @@ behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", vers
 
 avro = { module = "org.apache.avro:avro", version = "1.12.1" }
 kafkaStreamsAvroSerde = { module = "io.confluent:kafka-streams-avro-serde", version = "8.1.1" }
-teamdokumenthandteringAvroSchemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "1.1.7" }
+teamdokumenthandteringAvroSchemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "1.1.8" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
 kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
-jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.20" }
-jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.20.1" }
-jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.20.1" }
+jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.21" }
+jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.21.1" }
+jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.21.0" }
 
-logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.24" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.25" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
-micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.16.1" }
+micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.16.2" }
 logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
 
 hikariCp = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
-flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "11.20.1" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.9" }
+flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "11.20.2" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.16.0" }
 unleashClient = { module = "io.getunleash:unleash-client-java", version = "11.2.1" }
