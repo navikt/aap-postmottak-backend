@@ -16,11 +16,14 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import java.io.InputStreamReader
 import java.net.URI
 import java.time.LocalDate
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.toJavaDuration
 
 class AapInternApiKlient : AapInternApiGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.aap.intern.api.url"))
     val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.aap.intern.api.scope"),
+        connectionTimeout = 12.minutes.toJavaDuration()
     )
     private val client =
         RestClient.withDefaultResponseHandler(
