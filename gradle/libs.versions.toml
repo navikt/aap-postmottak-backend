@@ -6,7 +6,6 @@ apiIntern = "0.0.25"
 behandlingsflyt = "0.0.540"
 junit = "6.0.2"
 kafka = "8.1.1-ce"
-ktorOpenApiGen = "1.0.136"
 testcontainers = "1.21.4"
 
 [libraries]
@@ -17,7 +16,7 @@ ktorServerNetty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktorServerCors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktorSerializationJackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
-ktorOpenApiGen = { module = "no.nav:ktor-openapi-generator", version.ref = "ktorOpenApiGen" }
+ktorOpenApiGen = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
 dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "komponenter" }
 verdityper = { module = "no.nav.aap.kelvin:verdityper", version.ref = "komponenter" }
 dbmigrering = { module = "no.nav.aap.kelvin:dbmigrering", version.ref = "komponenter" }
