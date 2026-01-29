@@ -50,13 +50,13 @@ class SignifikantArenaHistorikkRegelInputGenerator(private val gatewayProvider: 
 
     override fun generer(input: RegelInput): SignifikantArenaHistorikkRegelInput {
         val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
-        val prodTestErEnabled = unleashGateway.isEnabled(
-            PostmottakFeature.AktiverSignifikantArenaHistorikkRegel, // TODO nytt navn
+        val testNyttArenaHistorikkFilter = unleashGateway.isEnabled(
+            PostmottakFeature.TestAvSignifikantHistorikkFilter,
             input.person
         )
 
         // Hvis toggle er av, hopper vi over kallet mot Arena og sier det er OK
-        if (!prodTestErEnabled) {
+        if (!testNyttArenaHistorikkFilter) {
             return SignifikantArenaHistorikkRegelInput(true, input.person)
         }
 
