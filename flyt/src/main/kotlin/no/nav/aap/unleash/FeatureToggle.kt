@@ -9,6 +9,7 @@ enum class PostmottakFeature : FeatureToggle {
     // Se: https://aap-unleash-web.iap.nav.cloud.nais.io/projects/default
     DummyFeature,
     AktiverSignifikantArenaHistorikkRegel,
+    TestAvSignifikantHistorikkFilter
     ;
 
     override fun key(): String = name
