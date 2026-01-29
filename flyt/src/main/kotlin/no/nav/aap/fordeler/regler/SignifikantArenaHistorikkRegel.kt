@@ -13,7 +13,7 @@ class SignifikantArenaHistorikkRegel(
 ) : Regel<SignifikantArenaHistorikkRegelInput> {
 
     companion object : RegelFactory<SignifikantArenaHistorikkRegelInput> {
-        override val erAktiv = miljøConfig(prod = false, dev = true)
+        override val erAktiv = miljøConfig(prod = true, dev = true)
 
         override fun medDataInnhenting(
             repositoryProvider: RepositoryProvider,
@@ -49,6 +49,19 @@ class SignifikantArenaHistorikkRegelInputGenerator(private val gatewayProvider: 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun generer(input: RegelInput): SignifikantArenaHistorikkRegelInput {
+        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
+        val prodTestErEnabled = unleashGateway.isEnabled(
+            PostmottakFeature.AktiverSignifikantArenaHistorikkRegel, // TODO nytt navn
+            input.person
+        )
+
+        // Hvis toggle er av, hopper vi over kallet mot Arena og sier det er OK
+        if (!prodTestErEnabled) {
+            return SignifikantArenaHistorikkRegelInput(true, input.person)
+        }
+
+        // Ellers gjør kallet mot Arena via AAP Intern API
+
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
         val response = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
         if (response.harSignifikantHistorikk) {
