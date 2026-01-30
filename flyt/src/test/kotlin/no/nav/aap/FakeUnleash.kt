@@ -1,6 +1,5 @@
 package no.nav.aap
 
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.unleash.FeatureToggle
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
@@ -17,11 +16,11 @@ object FakeUnleash : UnleashGateway {
         }
     }
 
-    override fun isEnabled(featureToggle: FeatureToggle, person: Person): Boolean {
+    override fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean {
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> isEnabled(featureToggle)
-            PostmottakFeature.AktiverSignifikantArenaHistorikkRegel -> isRolledOutFor(person)
-            PostmottakFeature.TestAvSignifikantHistorikkFilter -> isRolledOutFor(person)
+            PostmottakFeature.AktiverSignifikantArenaHistorikkRegel -> isRolledOutFor(userId)
+            PostmottakFeature.TestAvSignifikantHistorikkFilter -> isRolledOutFor(userId)
 
             else -> false
         }
@@ -29,6 +28,6 @@ object FakeUnleash : UnleashGateway {
     }
 
     val rejectList = mutableSetOf<String>() // for å teste gradual rollout basert på userId
-    private fun isRolledOutFor(person: Person): Boolean = !rejectList.contains(person.identifikator.toString())
+    private fun isRolledOutFor(userId: String): Boolean = !rejectList.contains(userId)
 }
 

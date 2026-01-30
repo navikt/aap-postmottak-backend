@@ -2,9 +2,11 @@ package no.nav.aap.fordeler.arena
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
+import no.nav.aap.FakeUnleash
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
@@ -22,25 +24,33 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
+import no.nav.aap.postmottak.klient.unleash.UnleashService
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.unleash.FeatureToggle
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.time.LocalDate
 
 
 @Fakes
+@Execution(ExecutionMode.SAME_THREAD)
 class ArenaOppgaveFlytTest : WithDependencies {
     companion object {
         private val gatewayProvider = defaultGatewayProvider {
             register<ApiInternSpy>()
             register<ArenaKlientSpy>()
+            register<UnleashSpy>()
         }
 
         private lateinit var dataSource: TestDataSource
@@ -80,9 +90,16 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
         val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
+        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
 
+        clearAllMocks()
         every { apiInternGateway.harAapSakIArena(any()) } returns PersonEksistererIAAPArena(eksisterer = true)
+        every { apiInternGateway.harSignifikantHistorikkIAAPArena(any(), any()) } returns SignifikanteSakerResponse(
+            true,
+            listOf("1234")
+        )
         every { arenaGateway.harAktivSak(any()) } returns false
+        every { unleashGateway.isEnabled(PostmottakFeature.AktiverSignifikantArenaHistorikkRegel, any()) } returns true
 
         dataSource.transaction {
             FlytJobbRepository(it).leggTil(
@@ -91,6 +108,15 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
 
         util.ventPåSvar()
+
+        verify {
+            unleashGateway.isEnabled(
+                withArg {
+                    assertThat(it).isEqualTo(PostmottakFeature.AktiverSignifikantArenaHistorikkRegel)
+                },
+                any())
+        }
+
         verify(exactly = 1) {
             arenaGateway.opprettArenaOppgave(withArg {
                 assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.STARTVEDTAK)
@@ -104,11 +130,14 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
         val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
+        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
 
+        clearAllMocks()
         every { apiInternGateway.harAapSakIArena(any()) } returns PersonEksistererIAAPArena(eksisterer = true)
         every { apiInternGateway.harSignifikantHistorikkIAAPArena(any(), any()) } returns
                 SignifikanteSakerResponse(harSignifikantHistorikk = true, signifikanteSaker = listOf("1234"))
         every { arenaGateway.harAktivSak(any()) } returns false
+        every { unleashGateway.isEnabled(PostmottakFeature.AktiverSignifikantArenaHistorikkRegel, any()) } returns true
 
         dataSource.transaction {
             FlytJobbRepository(it).leggTil(
@@ -116,6 +145,15 @@ class ArenaOppgaveFlytTest : WithDependencies {
             )
         }
         util.ventPåSvar()
+
+        verify {
+            unleashGateway.isEnabled(
+                withArg {
+                    assertThat(it).isEqualTo(PostmottakFeature.AktiverSignifikantArenaHistorikkRegel)
+                },
+                any())
+        }
+
         verify(exactly = 1) {
             arenaGateway.opprettArenaOppgave(withArg {
                 assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.BEHENVPERSON)
@@ -167,4 +205,18 @@ class ArenaKlientSpy : ArenaGateway {
         TODO("Not yet implemented")
     }
 
+}
+
+class UnleashSpy: UnleashGateway{
+    override fun isEnabled(featureToggle: FeatureToggle): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean {
+        TODO("Not yet implemented")
+    }
+    companion object : Factory<UnleashSpy> {
+        val klient = spyk(UnleashSpy())
+        override fun konstruer() = klient
+    }
 }

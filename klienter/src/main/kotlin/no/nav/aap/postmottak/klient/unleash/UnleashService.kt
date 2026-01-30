@@ -20,8 +20,7 @@ object UnleashService : UnleashGateway {
 
     override fun isEnabled(featureToggle: FeatureToggle): Boolean = unleash.isEnabled(featureToggle.key())
 
-    override fun isEnabled(featureToggle: FeatureToggle, person: Person): Boolean {
-        val userId = person.identifikator.toString()
+    override fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean {
         val context = UnleashContext.builder().userId(userId).build()
         return unleash.isEnabled(featureToggle.key(), context)
     }
