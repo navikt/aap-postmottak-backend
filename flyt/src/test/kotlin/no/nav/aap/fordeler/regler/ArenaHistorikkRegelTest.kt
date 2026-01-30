@@ -1,5 +1,7 @@
 package no.nav.aap.fordeler.regler
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.mockk
 import no.nav.aap.FakeUnleash
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
@@ -10,6 +12,7 @@ import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identMedSignifikantSak
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.SafJournalpost
@@ -20,6 +23,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -136,6 +140,14 @@ class ArenaHistorikkRegelTest {
         )
 
         assertTrue(res)
+    }
+
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun setUp() {
+            PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+        }
     }
 
 
