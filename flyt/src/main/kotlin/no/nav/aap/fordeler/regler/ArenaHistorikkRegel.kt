@@ -1,7 +1,10 @@
 package no.nav.aap.fordeler.regler
 
+import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.tellArenaHistorikk
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.personFinnesIArena
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.unleash.PostmottakFeature
@@ -21,6 +24,10 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
                 ArenaHistorikkRegel(),
                 ArenaHistorikkRegelInputGenerator(gatewayProvider)
             )
+        }
+
+        internal fun tellArenaHistorikk(harSignifikantHistorikk: Boolean) {
+            PrometheusProvider.prometheus.personFinnesIArena(harSignifikantHistorikk).increment()
         }
     }
 
@@ -63,13 +70,18 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
                             "journalpostId=${input.journalpostId}"
                 )
             }
+
             return ArenaHistorikkRegelInput(
                 nyttFilter.harSignifikantHistorikk,
                 input.person
-            )
+            ).also {
+                tellArenaHistorikk(nyttFilter.harSignifikantHistorikk)
+            }
         }
 
-        return ArenaHistorikkRegelInput(personenFinnesIAapArena, input.person)
+        return ArenaHistorikkRegelInput(personenFinnesIAapArena, input.person).also {
+            tellArenaHistorikk(personenFinnesIAapArena)
+        }
     }
 }
 
