@@ -86,6 +86,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.kafka.KafkaContainer
+import java.lang.Thread.sleep
 import java.time.LocalDate
 import java.util.*
 
@@ -210,7 +211,7 @@ class Flyttest : WithDependencies {
         val record = ProducerRecord(JOARK_TOPIC, "key", jRecord)
         producer.send(record)
         producer.flush()
-        Thread.sleep(200)
+        sleep(200)
         util.ventPåSvar()
         return jRecord
     }
@@ -306,6 +307,7 @@ class Flyttest : WithDependencies {
             )
         }
         triggProsesserBehandling(journalpostId, behandlingId)
+        sleep(100) // FIXME ustabil test uten denne
 
         val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(behandlinger).hasSize(2)
