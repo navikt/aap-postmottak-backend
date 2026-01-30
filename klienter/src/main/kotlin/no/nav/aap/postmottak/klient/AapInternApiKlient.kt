@@ -23,7 +23,7 @@ class AapInternApiKlient : AapInternApiGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.aap.intern.api.url"))
     val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.aap.intern.api.scope"),
-        connectionTimeout = 12.minutes.toJavaDuration()
+        connectionTimeout = 2.minutes.toJavaDuration()
     )
     private val client =
         RestClient.withDefaultResponseHandler(
