@@ -74,7 +74,7 @@ class RegelResultatTest {
                 "GeografiskTilknytningRegel" to true,
                 "MaksAntallPersonerIKelvinRegel" to true,
             ),
-            forJournalpost = 123L
+            forJournalpost = 123L,
         )
 
         assertThat(regelResultat.skalTilKelvin()).isFalse()
@@ -108,7 +108,7 @@ class RegelResultatTest {
                 "GeografiskTilknytningRegel" to false,
                 "MaksAntallPersonerIKelvinRegel" to true
             ),
-            forJournalpost = 123L
+            forJournalpost = 123L,
         )
 
         assertThat(regelResultat.skalTilKelvin()).isFalse()
@@ -149,7 +149,7 @@ class RegelResultatTest {
                 "ManueltOverstyrtTilArenaRegel" to false,
                 "SøknadRegel" to false,
             ),
-            forJournalpost = 123L
+            forJournalpost = 123L,
         )
         assertThat(annetDokumentMedKelvinSak.skalTilKelvin()).isTrue()
 

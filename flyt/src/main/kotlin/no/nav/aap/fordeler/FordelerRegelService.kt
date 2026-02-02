@@ -3,13 +3,14 @@ package no.nav.aap.fordeler
 import no.nav.aap.fordeler.regler.ErIkkeAnkeRegel
 import no.nav.aap.fordeler.regler.ErIkkeReisestønadRegel
 import no.nav.aap.fordeler.regler.KelvinSakRegel
+import no.nav.aap.fordeler.regler.ManueltOverstyrtTilArenaRegel
 import no.nav.aap.fordeler.regler.Regel
 import no.nav.aap.fordeler.regler.RegelFactory
 import no.nav.aap.fordeler.regler.RegelInput
-import no.nav.aap.fordeler.regler.ManueltOverstyrtTilArenaRegel
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.regelresultat
 import org.slf4j.LoggerFactory
 
@@ -17,12 +18,26 @@ private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
 
 typealias RegelMap = Map<String, Boolean>
 
+interface IRegelResultat {
+    val regelMap: RegelMap
+    val forJournalpost: Long
+    val systemNavn: String?
+    fun skalTilKelvin(): Boolean
+    fun gikkTilKelvin(): Boolean
+}
+
+data class BeriketRegelResultat(val verdi: Regelresultat, val medArenaHistorikk: Boolean) : IRegelResultat by verdi
+
 /**
  * @param systemNavn Systemet regelen ble evaluert til å tilhøre da regelen ble kjørt.
  */
-data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val systemNavn: String? = null) {
+data class Regelresultat(
+    override val regelMap: RegelMap,
+    override val forJournalpost: Long,
+    override val systemNavn: String? = null
+) : IRegelResultat {
 
-    fun skalTilKelvin(): Boolean {
+    override fun skalTilKelvin(): Boolean {
         val manueltOverstyrtTilArena = regelMap[ManueltOverstyrtTilArenaRegel::class.simpleName] ?: false
         if (manueltOverstyrtTilArena) {
             log.info("Sak med journalpostId=$forJournalpost går til Arena pga manuell overstyring")
@@ -54,7 +69,7 @@ data class Regelresultat(val regelMap: RegelMap, val forJournalpost: Long, val s
         }
     }
 
-    fun gikkTilKelvin(): Boolean {
+    override fun gikkTilKelvin(): Boolean {
         return systemNavn == "KELVIN"
     }
 }
@@ -63,8 +78,8 @@ class FordelerRegelService(
     private val repositoryProvider: RepositoryProvider,
     private val gatewayProvider: GatewayProvider
 ) {
-    fun evaluer(input: RegelInput): Regelresultat {
-        return hentAktiveRegler(repositoryProvider, gatewayProvider)
+    fun evaluer(input: RegelInput): BeriketRegelResultat {
+        val regelresultat = hentAktiveRegler(repositoryProvider, gatewayProvider)
             .associate { regel ->
                 val regelResultat = regel.vurder(input)
                 PrometheusProvider.prometheus.regelresultat(regelResultat, regel.regelNavn()).increment()
@@ -73,6 +88,12 @@ class FordelerRegelService(
             .let {
                 Regelresultat(it, input.journalpostId)
             }
+        return BeriketRegelResultat(regelresultat, harArenaHistorikk(input))
+    }
+
+    private fun harArenaHistorikk(input: RegelInput): Boolean {
+        val apiInternGateway = gatewayProvider.provide<AapInternApiGateway>()
+        return apiInternGateway.harAapSakIArena(input.person).eksisterer
     }
 
     private fun hentAktiveRegler(
