@@ -28,7 +28,7 @@ private val log = LoggerFactory.getLogger(AvklarSakSteg::class.java)
 class AvklarSakSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
-    private val behandlingsflytClient: BehandlingsflytGateway,
+    private val behandlingsflytGateway: BehandlingsflytGateway,
     private val avklarTemaRepository: AvklarTemaRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
@@ -101,7 +101,7 @@ class AvklarSakSteg(
     }
 
     private fun avklarFagSakMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {
-        val saksnummer = behandlingsflytClient.finnEllerOpprettSak(
+        val saksnummer = behandlingsflytGateway.finnEllerOpprettSak(
             Ident(journalpost.person.aktivIdent().identifikator),
             journalpost.mottattDato
         ).saksnummer

@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.createGatewayProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
@@ -90,6 +91,10 @@ class BehandlingsflytGatewayMock : BehandlingsflytGateway {
     }
 
     override fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling> {
+        TODO("Not yet implemented")
+    }
+
+    override fun personEksistererIKelvin(person: Person): Boolean {
         TODO("Not yet implemented")
     }
 }

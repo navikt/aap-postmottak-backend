@@ -14,6 +14,7 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -35,10 +36,14 @@ interface BehandlingsflytGateway : Gateway {
     fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling>
 }
 
+/**
+ * @see no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.SaksinfoDTO
+ */
 data class BehandlingsflytSak(
     val saksnummer: String,
     val periode: Periode,
-    val resultat: ResultatKode?
+    val resultat: ResultatKode? = null,
+    val opprettetNy: Boolean
 )
 
 data class Klagebehandling(

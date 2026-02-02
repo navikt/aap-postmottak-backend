@@ -8,9 +8,11 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
+import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.journalpostogbehandling.db.PersonRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.slf4j.LoggerFactory
 
@@ -20,6 +22,7 @@ class AvklarSakLøser(
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytGateway: BehandlingsflytGateway,
+    private val apiInternGateway: AapInternApiGateway,
 ) : AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
 
     companion object : LøserKonstruktør<AvklarSaksnummerLøsning> {
@@ -32,6 +35,7 @@ class AvklarSakLøser(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 gatewayProvider.provide(BehandlingsflytGateway::class),
+                gatewayProvider.provide(AapInternApiGateway::class),
             )
         }
     }
@@ -68,10 +72,20 @@ class AvklarSakLøser(
             "Det skal kun være mulig å opprette ny sak for søknad"
         }
 
-        val saksnummer = behandlingsflytGateway.finnEllerOpprettSak(
+        val finnesIArena = apiInternGateway.harAapSakIArena(journalpost.person).eksisterer
+
+        val sak = behandlingsflytGateway.finnEllerOpprettSak(
             Ident(journalpost.person.aktivIdent().identifikator),
             journalpost.mottattDato
-        ).saksnummer
+        )
+        val saksnummer = sak.saksnummer
+
+        if (finnesIArena && sak.opprettetNy) {
+            log.info(
+                "Søknad for person som har AAP-historikk i Arena opprettet med ny sak i Kelvin, " +
+                        "saksnummer=${saksnummer}, behandlingId=${behandlingId}"
+            )
+        }
 
         val saksvurdering = Saksvurdering(
             saksnummer = saksnummer,
