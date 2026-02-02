@@ -100,6 +100,8 @@ class OverleverTilFagsystemStegTest {
                 saksnummer,
                 DokumentTilMeldingParser
                     .parseTilMelding(struktureringsvurdering.strukturertDokument, InnsendingType.SØKNAD)
+                ,
+                false
             )
         }
     }
@@ -132,7 +134,8 @@ class OverleverTilFagsystemStegTest {
                 InnsendingType.SØKNAD,
                 saksnummer,
                 DokumentTilMeldingParser
-                    .parseTilMelding(journalpostJson, InnsendingType.SØKNAD)
+                    .parseTilMelding(journalpostJson, InnsendingType.SØKNAD),
+                false
             )
         }
     }
@@ -174,7 +177,8 @@ class OverleverTilFagsystemStegTest {
                 mottattDato.atStartOfDay(),
                 InnsendingType.DIALOGMELDING,
                 saksnummer,
-                null
+                null,
+                false
             )
         }
         assertThat(stegresultat::class.simpleName).isEqualTo(Fullført::class.simpleName)
