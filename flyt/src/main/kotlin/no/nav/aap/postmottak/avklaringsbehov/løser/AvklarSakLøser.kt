@@ -83,8 +83,8 @@ class AvklarSakLøser(
 
             if (finnesIArena) {
                 log.info(
-                    "Søknad for person som har AAP-historikk i Arena opprettet med ny sak i Kelvin, " +
-                            "saksnummer=${saksnummer}, behandlingId=${behandlingId}"
+                    "Opprettet ny søknad for person som har AAP-historikk i Arena, " +
+                            "saksnummer=${saksnummer}, journalpostId=${journalpost.journalpostId}"
                 )
             }
         }
