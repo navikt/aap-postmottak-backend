@@ -37,7 +37,7 @@ internal class DigitaliseringsvurderingRepositoryImplTest {
             val json = """{"Test: Dokument"}"""
             struktureringsvurderingRepository.lagre(
                 behandlingId,
-                Digitaliseringsvurdering(InnsendingType.SØKNAD, json, søknadsdato)
+                Digitaliseringsvurdering(InnsendingType.SØKNAD, json, søknadsdato, null)
             )
 
             val struktureringsvurdering = struktureringsvurderingRepository.hentHvisEksisterer(behandlingId)
@@ -57,14 +57,14 @@ internal class DigitaliseringsvurderingRepositoryImplTest {
         inContext {
             struktureringsvurderingRepository.lagre(
                 behandlingId,
-                Digitaliseringsvurdering(InnsendingType.SØKNAD, """{"Test: Plakat"}""", søknadsdato)
+                Digitaliseringsvurdering(InnsendingType.SØKNAD, """{"Test: Plakat"}""", søknadsdato, null)
             )
         }
 //        Thread.sleep(100)
         inContext {
             struktureringsvurderingRepository.lagre(
                 behandlingId,
-                Digitaliseringsvurdering(InnsendingType.SØKNAD, json, søknadsdato)
+                Digitaliseringsvurdering(InnsendingType.SØKNAD, json, søknadsdato, null)
             )
         }
         inContext {
@@ -81,7 +81,7 @@ internal class DigitaliseringsvurderingRepositoryImplTest {
         inContext {
             struktureringsvurderingRepository.lagre(
                 behandlingId,
-                Digitaliseringsvurdering(InnsendingType.DIALOGMELDING, null, null)
+                Digitaliseringsvurdering(InnsendingType.DIALOGMELDING, null, null, null)
             )
         }
 
@@ -104,13 +104,13 @@ internal class DigitaliseringsvurderingRepositoryImplTest {
         inContext {
             struktureringsvurderingRepository.lagre(
                 behandlingId,
-                Digitaliseringsvurdering(InnsendingType.SØKNAD, "YOLO", søknadsdato)
+                Digitaliseringsvurdering(InnsendingType.SØKNAD, "YOLO", søknadsdato, null)
             )
         }
         inContext {
             struktureringsvurderingRepository.lagre(
                 behandlingId,
-                Digitaliseringsvurdering(InnsendingType.SØKNAD, "SWAG", søknadsdato2)
+                Digitaliseringsvurdering(InnsendingType.SØKNAD, "SWAG", søknadsdato2, null)
             )
         }
 
@@ -126,7 +126,7 @@ internal class DigitaliseringsvurderingRepositoryImplTest {
         val journalpostId = JournalpostId(1)
         val søknadsdato = LocalDate.of(2025, 1, 15)
 
-        val vurdering = Digitaliseringsvurdering(InnsendingType.SØKNAD, "YOLO", søknadsdato)
+        val vurdering = Digitaliseringsvurdering(InnsendingType.SØKNAD, "YOLO", søknadsdato, null)
         inContext {
             val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)

@@ -84,7 +84,8 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
         mottattDato: LocalDateTime,
         innsendingstype: InnsendingType,
         saksnummer: String,
-        melding: Melding?
+        melding: Melding?,
+        digitalisertIPostmottak: Boolean
     ) {
         val url = url.resolve("/api/hendelse/send")
         val request = PostRequest(
@@ -97,7 +98,8 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
                 innsendingstype,
                 kanal.tilBehandlingsflytKanal(),
                 mottattDato,
-                melding
+                melding,
+                digitalisertIPostmottak
             ),
             additionalHeaders = listOf(
                 Header("Accept", "application/json")

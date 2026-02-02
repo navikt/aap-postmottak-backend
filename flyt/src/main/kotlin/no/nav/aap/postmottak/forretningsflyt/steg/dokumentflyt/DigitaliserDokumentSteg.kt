@@ -93,7 +93,7 @@ class DigitaliserDokumentSteg(
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
             }
             digitaliseringsvurderingRepository.lagre(
-                kontekst.behandlingId, Digitaliseringsvurdering(innsendingType, validertDokument, null)
+                kontekst.behandlingId, Digitaliseringsvurdering(innsendingType, validertDokument, null, null)
             )
 
             return Fullført
