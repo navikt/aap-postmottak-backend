@@ -79,6 +79,9 @@ class OverleverTilFagsystemSteg(
                     digitaliseringsvurdering.strukturertDokument,
                     digitaliseringsvurdering.kategori
                 )
+                if (Miljø.erDev() && digitaliseringsvurdering.kategori == InnsendingType.MELDEKORT) {
+                    log.info("Digitaliseringsvurdering: $digitaliseringsvurdering")
+                }
                 behandlingsflytKlient.sendHendelse(
                     journalpostId = journalpost.journalpostId,
                     kanal = journalpost.kanal,
