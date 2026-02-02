@@ -36,13 +36,10 @@ interface BehandlingsflytGateway : Gateway {
     fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling>
 }
 
-/**
- * @see no.nav.aap.behandlingsflyt.sakogbehandling.sak.flate.SaksinfoDTO
- */
 data class BehandlingsflytSak(
     val saksnummer: String,
     val periode: Periode,
-    val resultat: ResultatKode? = null,
+    val resultat: ResultatKode?,
     val opprettetNy: Boolean
 )
 
