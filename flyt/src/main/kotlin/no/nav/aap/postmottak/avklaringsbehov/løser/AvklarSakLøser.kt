@@ -72,19 +72,21 @@ class AvklarSakLøser(
             "Det skal kun være mulig å opprette ny sak for søknad"
         }
 
-        val finnesIArena = apiInternGateway.harAapSakIArena(journalpost.person).eksisterer
-
         val sak = behandlingsflytGateway.finnEllerOpprettSak(
             Ident(journalpost.person.aktivIdent().identifikator),
             journalpost.mottattDato
         )
         val saksnummer = sak.saksnummer
 
-        if (finnesIArena && sak.opprettetNy) {
-            log.info(
-                "Søknad for person som har AAP-historikk i Arena opprettet med ny sak i Kelvin, " +
-                        "saksnummer=${saksnummer}, behandlingId=${behandlingId}"
-            )
+        if (sak.opprettetNy) {
+            val finnesIArena = apiInternGateway.harAapSakIArena(journalpost.person).eksisterer
+
+            if (finnesIArena) {
+                log.info(
+                    "Søknad for person som har AAP-historikk i Arena opprettet med ny sak i Kelvin, " +
+                            "saksnummer=${saksnummer}, behandlingId=${behandlingId}"
+                )
+            }
         }
 
         val saksvurdering = Saksvurdering(
