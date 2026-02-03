@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.FordelerRegelService
-import no.nav.aap.fordeler.IRegelResultat
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.motor.FlytJobbRepository
@@ -79,11 +78,19 @@ internal class FordelingRegelJobbUtførerTest {
             relevanteDatoer = emptyList()
         )
 
-        val regelResultat = Regelresultat(mapOf("yolo" to true), forJournalpost = journalpostId.referanse)
+        val regelResultat = Regelresultat(
+            mapOf(
+                "ArenaSakRegel" to false,
+                "KelvinSakRegel" to false,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+                "yolo" to true
+            ), forJournalpost = journalpostId.referanse
+        )
 
         every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns journalpost
-        every { regelService.evaluer(any()).verdi } returns regelResultat
+        every { regelService.evaluer(any()) } returns regelResultat
 
         fordelingRegelJobbUtfører.utfør(
             JobbInput(FordelingRegelJobbUtfører)

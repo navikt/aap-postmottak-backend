@@ -9,6 +9,8 @@ import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
+import no.nav.aap.fordeler.regler.ArenaSakRegel
+import no.nav.aap.fordeler.regler.KelvinSakRegel
 import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -120,12 +122,14 @@ class FordelingRegelJobbUtfører(
                         journalpost.mottattDato
                     )
                 )
-                if (res.skalTilKelvin() && res.medArenaHistorikk) {
-                    log.info("Søknad med journalpostId=${journalpost.journalpostId} og historikk i AAP-Arena sendes Kelvin.")
+                val utenKelvinHistorikk = !res.regelMap[KelvinSakRegel::class.simpleName]!!
+                val medArenaHistorikk = res.regelMap[ArenaSakRegel::class.simpleName]!!
+                if (res.skalTilKelvin() && utenKelvinHistorikk && medArenaHistorikk) {
+                    log.info("Søknad for person som finnes i Arena og ikke i Kelvin sendes til Kelvin. journalpostId=${journalpost.journalpostId}")
                 }
                 StatusMedÅrsakOgRegelresultat(
                     InnkommendeJournalpostStatus.EVALUERT,
-                    regelresultat = res.verdi
+                    regelresultat = res
                 )
             }
         }
