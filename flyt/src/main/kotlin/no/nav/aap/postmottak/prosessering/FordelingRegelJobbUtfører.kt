@@ -120,9 +120,12 @@ class FordelingRegelJobbUtfører(
                         journalpost.mottattDato
                     )
                 )
+                if (res.skalTilKelvin() && res.medArenaHistorikk) {
+                    log.info("Søknad med journalpostId=${journalpost.journalpostId} og historikk i AAP-Arena sendes Kelvin.")
+                }
                 StatusMedÅrsakOgRegelresultat(
                     InnkommendeJournalpostStatus.EVALUERT,
-                    regelresultat = res
+                    regelresultat = res.verdi
                 )
             }
         }

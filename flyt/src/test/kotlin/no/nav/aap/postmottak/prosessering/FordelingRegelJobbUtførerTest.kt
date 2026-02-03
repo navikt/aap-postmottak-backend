@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.FordelerRegelService
+import no.nav.aap.fordeler.IRegelResultat
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.motor.FlytJobbRepository
@@ -82,7 +83,7 @@ internal class FordelingRegelJobbUtførerTest {
 
         every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns journalpost
-        every { regelService.evaluer(any()) } returns regelResultat
+        every { regelService.evaluer(any()).verdi } returns regelResultat
 
         fordelingRegelJobbUtfører.utfør(
             JobbInput(FordelingRegelJobbUtfører)
