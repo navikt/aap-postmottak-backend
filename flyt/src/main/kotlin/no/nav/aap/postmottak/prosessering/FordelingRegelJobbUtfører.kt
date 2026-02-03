@@ -122,10 +122,10 @@ class FordelingRegelJobbUtfører(
                         journalpost.mottattDato
                     )
                 )
-                val medArenaHistorikk = res.regelMap[ArenaSakRegel::class.simpleName]!!
                 val utenKelvinHistorikk = !res.regelMap[KelvinSakRegel::class.simpleName]!!
+                val medArenaHistorikk = res.regelMap[ArenaSakRegel::class.simpleName]!!
                 if (res.skalTilKelvin() && utenKelvinHistorikk && medArenaHistorikk) {
-                    log.info("Søknad med journalpostId=${journalpost.journalpostId} og historikk i AAP-Arena sendes Kelvin.")
+                    log.info("Søknad for person som finnes i Arena og ikke i Kelvin sendes til Kelvin. journalpostId=${journalpost.journalpostId}")
                 }
                 StatusMedÅrsakOgRegelresultat(
                     InnkommendeJournalpostStatus.EVALUERT,
