@@ -36,7 +36,8 @@ class FordelingVideresendJobbUtførerTest {
                 "Regel2" to true,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
-                "KelvinSakRegel" to false
+                "KelvinSakRegel" to false,
+                "ArenaSakRegel" to false
             ),
             forJournalpost = 1L
         )

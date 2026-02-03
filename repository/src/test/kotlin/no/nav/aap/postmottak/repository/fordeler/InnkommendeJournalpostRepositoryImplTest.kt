@@ -61,6 +61,7 @@ class InnkommendeJournalpostRepositoryImplTest {
             regelresultat = Regelresultat(
                 mapOf(
                     "KelvinSakRegel" to false,
+                    "ArenaSakRegel" to false,
                     "ErIkkeReisestønadRegel" to true,
                     "ErIkkeAnkeRegel" to true,
                     "yolo" to true
@@ -107,6 +108,7 @@ class InnkommendeJournalpostRepositoryImplTest {
             regelresultat = Regelresultat(
                 mapOf(
                     "KelvinSakRegel" to false,
+                    "ArenaSakRegel" to false,
                     "ErIkkeReisestønadRegel" to true,
                     "ErIkkeAnkeRegel" to true,
                     "yolo" to true

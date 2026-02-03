@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler
 
+import no.nav.aap.fordeler.regler.ArenaSakRegel
 import no.nav.aap.fordeler.regler.ErIkkeAnkeRegel
 import no.nav.aap.fordeler.regler.ErIkkeReisestønadRegel
 import no.nav.aap.fordeler.regler.KelvinSakRegel
@@ -18,26 +19,16 @@ private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
 
 typealias RegelMap = Map<String, Boolean>
 
-interface IRegelResultat {
-    val regelMap: RegelMap
-    val forJournalpost: Long
-    val systemNavn: String?
-    fun skalTilKelvin(): Boolean
-    fun gikkTilKelvin(): Boolean
-}
-
-data class BeriketRegelResultat(val verdi: Regelresultat, val medArenaHistorikk: Boolean) : IRegelResultat by verdi
-
 /**
  * @param systemNavn Systemet regelen ble evaluert til å tilhøre da regelen ble kjørt.
  */
 data class Regelresultat(
-    override val regelMap: RegelMap,
-    override val forJournalpost: Long,
-    override val systemNavn: String? = null
-) : IRegelResultat {
+    val regelMap: RegelMap,
+    val forJournalpost: Long,
+    val systemNavn: String? = null
+) {
 
-    override fun skalTilKelvin(): Boolean {
+    fun skalTilKelvin(): Boolean {
         val manueltOverstyrtTilArena = regelMap[ManueltOverstyrtTilArenaRegel::class.simpleName] ?: false
         if (manueltOverstyrtTilArena) {
             log.info("Sak med journalpostId=$forJournalpost går til Arena pga manuell overstyring")
@@ -46,6 +37,8 @@ data class Regelresultat(
 
         val sakFinnesIKelvin =
             requireNotNull(regelMap[KelvinSakRegel::class.simpleName]) { "Mangler resultat fra ${KelvinSakRegel::class.simpleName}. JournalpostId: $forJournalpost" }
+        val sakFinnesIArena =
+            requireNotNull(regelMap[ArenaSakRegel::class.simpleName]) { "Mangler resultat fra ${ArenaSakRegel::class.simpleName}. JournalpostId: $forJournalpost" }
         val erIkkeReisestønad =
             requireNotNull(regelMap[ErIkkeReisestønadRegel::class.simpleName]) { "Mangler resultat fra ${ErIkkeReisestønadRegel::class.simpleName}. JournalpostId: $forJournalpost" }
         val erIkkeAnke =
@@ -55,8 +48,16 @@ data class Regelresultat(
             log.info("Evaluering av KelvinSakRegel ga true: journalpostId=$forJournalpost skal til Kelvin")
             return true
         }
-        val reglerTilEvaluering =
-            regelMap.filter { it.key != KelvinSakRegel::class.simpleName && it.key != ManueltOverstyrtTilArenaRegel::class.simpleName }
+
+        if (!sakFinnesIKelvin && sakFinnesIArena) {
+            log.info("Personen har sak i Arena og ikke i Kelvin: journalpostId=$forJournalpost")
+        }
+
+        val reglerTilEvaluering = regelMap.filter {
+            it.key != KelvinSakRegel::class.simpleName &&
+            it.key != ArenaSakRegel::class.simpleName &&
+            it.key != ManueltOverstyrtTilArenaRegel::class.simpleName
+        }
 
         return reglerTilEvaluering.values.all { it }.also {
             log.info(
@@ -69,7 +70,7 @@ data class Regelresultat(
         }
     }
 
-    override fun gikkTilKelvin(): Boolean {
+    fun gikkTilKelvin(): Boolean {
         return systemNavn == "KELVIN"
     }
 }
@@ -78,7 +79,7 @@ class FordelerRegelService(
     private val repositoryProvider: RepositoryProvider,
     private val gatewayProvider: GatewayProvider
 ) {
-    fun evaluer(input: RegelInput): BeriketRegelResultat {
+    fun evaluer(input: RegelInput): Regelresultat {
         val regelresultat = hentAktiveRegler(repositoryProvider, gatewayProvider)
             .associate { regel ->
                 val regelResultat = regel.vurder(input)
@@ -88,13 +89,9 @@ class FordelerRegelService(
             .let {
                 Regelresultat(it, input.journalpostId)
             }
-        return BeriketRegelResultat(regelresultat, harArenaHistorikk(input))
+        return regelresultat
     }
 
-    private fun harArenaHistorikk(input: RegelInput): Boolean {
-        val apiInternGateway = gatewayProvider.provide<AapInternApiGateway>()
-        return apiInternGateway.harAapSakIArena(input.person).eksisterer
-    }
 
     private fun hentAktiveRegler(
         repositoryProvider: RepositoryProvider,

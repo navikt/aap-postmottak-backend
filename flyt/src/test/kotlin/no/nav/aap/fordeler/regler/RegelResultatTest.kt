@@ -18,6 +18,7 @@ class RegelResultatTest {
             mapOf(
                 "ManueltOverstyrtTilArenaRegel" to true,
                 "KelvinSakRegel" to true,
+                "ArenaSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to true,
@@ -34,6 +35,7 @@ class RegelResultatTest {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to true,
+                "ArenaSakRegel" to false,
                 "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
@@ -51,6 +53,7 @@ class RegelResultatTest {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to false,
+                "ArenaSakRegel" to false,
                 "ManueltOverstyrtTilArenaRegel" to false,
                 "GeografiskTilknytningRegel" to true,
                 "ErIkkeReisestønadRegel" to true,
@@ -68,6 +71,7 @@ class RegelResultatTest {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to true,
+                "ArenaSakRegel" to false,
                 "ErIkkeReisestønadRegel" to false,
                 "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeAnkeRegel" to true,
@@ -85,6 +89,7 @@ class RegelResultatTest {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to true,
+                "ArenaSakRegel" to false,
                 "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to false,
@@ -102,6 +107,7 @@ class RegelResultatTest {
         val regelResultat = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to false,
+                "ArenaSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeAnkeRegel" to true,
@@ -119,6 +125,7 @@ class RegelResultatTest {
         val annetDokumentUtenKelvinSak = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to false,
+                "ArenaSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "ManueltOverstyrtTilArenaRegel" to false,
@@ -132,6 +139,7 @@ class RegelResultatTest {
         val søknadUtenKelvinSak = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to false,
+                "ArenaSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "ManueltOverstyrtTilArenaRegel" to false,
@@ -144,6 +152,7 @@ class RegelResultatTest {
         val annetDokumentMedKelvinSak = Regelresultat(
             mapOf(
                 "KelvinSakRegel" to true,
+                "ArenaSakRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
                 "ErIkkeAnkeRegel" to true,
                 "ManueltOverstyrtTilArenaRegel" to false,
@@ -152,7 +161,6 @@ class RegelResultatTest {
             forJournalpost = 123L
         )
         assertThat(annetDokumentMedKelvinSak.skalTilKelvin()).isTrue()
-
 
     }
 }
