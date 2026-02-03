@@ -43,7 +43,8 @@ class DigitaliserDokumentLøser(
         val digitaliseringsvurdering = Digitaliseringsvurdering(
             kategori = løsning.kategori,
             strukturertDokument = dokument?.serialiser(),
-            søknadsdato = løsning.søknadsdato
+            søknadsdato = løsning.søknadsdato,
+            digitalisertManueltGjennomPostmottak = true
         )
         struktureringsvurderingRepository.lagre(
             behandlingId,

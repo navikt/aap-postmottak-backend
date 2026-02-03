@@ -7,5 +7,6 @@ import java.time.LocalDate
 data class Digitaliseringsvurdering(
     val kategori: InnsendingType,
     val strukturertDokument: String?,
-    val søknadsdato: LocalDate?
+    val søknadsdato: LocalDate?,
+    val digitalisertManueltGjennomPostmottak: Boolean?
 )

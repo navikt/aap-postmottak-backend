@@ -29,7 +29,8 @@ interface BehandlingsflytGateway : Gateway {
         mottattDato: LocalDateTime,
         innsendingstype: InnsendingType,
         saksnummer: String,
-        melding: Melding?
+        melding: Melding?,
+        digitalisertIPostmottak: Boolean
     )
 
     fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling>

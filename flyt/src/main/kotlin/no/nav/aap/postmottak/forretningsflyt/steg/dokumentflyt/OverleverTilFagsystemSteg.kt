@@ -79,9 +79,6 @@ class OverleverTilFagsystemSteg(
                     digitaliseringsvurdering.strukturertDokument,
                     digitaliseringsvurdering.kategori
                 )
-                if (Miljø.erDev() && digitaliseringsvurdering.kategori == InnsendingType.MELDEKORT) {
-                    log.info("Digitaliseringsvurdering: $digitaliseringsvurdering")
-                }
                 behandlingsflytKlient.sendHendelse(
                     journalpostId = journalpost.journalpostId,
                     kanal = journalpost.kanal,
@@ -90,7 +87,8 @@ class OverleverTilFagsystemSteg(
                         ?: journalpost.mottattDato.atStartOfDay(),
                     innsendingstype = digitaliseringsvurdering.kategori,
                     saksnummer = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)?.saksnummer!!,
-                    melding = melding
+                    melding = melding,
+                    digitalisertIPostmottak = digitaliseringsvurdering.digitalisertManueltGjennomPostmottak ?: false
                 )
             }
             return Fullført

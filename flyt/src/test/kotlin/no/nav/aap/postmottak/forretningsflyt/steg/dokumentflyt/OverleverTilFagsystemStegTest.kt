@@ -82,7 +82,7 @@ class OverleverTilFagsystemStegTest {
             InnsendingType.SØKNAD, """{
             |"yrkesskade": "Nei",
             |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"}
-            |}""".trimMargin(), mottattDato
+            |}""".trimMargin(), mottattDato, null
         )
         every { journalpost.erDigitalSøknad() } returns false
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
@@ -100,6 +100,8 @@ class OverleverTilFagsystemStegTest {
                 saksnummer,
                 DokumentTilMeldingParser
                     .parseTilMelding(struktureringsvurdering.strukturertDokument, InnsendingType.SØKNAD)
+                ,
+                false
             )
         }
     }
@@ -117,7 +119,7 @@ class OverleverTilFagsystemStegTest {
 
         every { dokument.dokumentInfoId } returns dokumentInfoId
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns Digitaliseringsvurdering(
-            InnsendingType.SØKNAD, journalpostJson, mottattDato
+            InnsendingType.SØKNAD, journalpostJson, mottattDato, null
         )
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
         every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
@@ -132,7 +134,8 @@ class OverleverTilFagsystemStegTest {
                 InnsendingType.SØKNAD,
                 saksnummer,
                 DokumentTilMeldingParser
-                    .parseTilMelding(journalpostJson, InnsendingType.SØKNAD)
+                    .parseTilMelding(journalpostJson, InnsendingType.SØKNAD),
+                false
             )
         }
     }
@@ -159,6 +162,7 @@ class OverleverTilFagsystemStegTest {
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns Digitaliseringsvurdering(
             InnsendingType.DIALOGMELDING,
             null,
+            null,
             null
         )
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(true)
@@ -173,7 +177,8 @@ class OverleverTilFagsystemStegTest {
                 mottattDato.atStartOfDay(),
                 InnsendingType.DIALOGMELDING,
                 saksnummer,
-                null
+                null,
+                false
             )
         }
         assertThat(stegresultat::class.simpleName).isEqualTo(Fullført::class.simpleName)

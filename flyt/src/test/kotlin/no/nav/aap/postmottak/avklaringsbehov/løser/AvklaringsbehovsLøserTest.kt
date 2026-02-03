@@ -84,7 +84,9 @@ class BehandlingsflytGatewayMock : BehandlingsflytGateway {
         mottattDato: LocalDateTime,
         innsendingstype: InnsendingType,
         saksnummer: String,
-        melding: Melding?
+        melding: Melding?,
+        digitalisertIPostmottak: Boolean
+
     ) {
         TODO("Not yet implemented")
     }

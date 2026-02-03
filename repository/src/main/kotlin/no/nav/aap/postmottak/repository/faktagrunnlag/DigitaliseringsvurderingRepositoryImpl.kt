@@ -24,13 +24,14 @@ class DigitaliseringsvurderingRepositoryImpl(private val connection: DBConnectio
 
         val vurderingsId = connection.executeReturnKey(
             """
-            INSERT INTO DIGITALISERINGSAVKLARING (KATEGORI, STRUKTURERT_DOKUMENT, SOKNADSDATO) VALUES (?, ?, ?)
+            INSERT INTO DIGITALISERINGSAVKLARING (KATEGORI, STRUKTURERT_DOKUMENT, SOKNADSDATO, DIGITALISERT_MANUELT_POSTMOTTAK) VALUES (?, ?, ?, ?)
         """.trimIndent()
         ) {
             setParams {
                 setEnumName(1, strukturertDokument.kategori)
                 setString(2, strukturertDokument.strukturertDokument)
                 setLocalDate(3, strukturertDokument.søknadsdato)
+                setBoolean(4, strukturertDokument.digitalisertManueltGjennomPostmottak)
             }
         }
 
@@ -61,7 +62,8 @@ class DigitaliseringsvurderingRepositoryImpl(private val connection: DBConnectio
                 Digitaliseringsvurdering(
                     row.getEnum("Kategori"),
                     row.getStringOrNull("strukturert_dokument"),
-                    row.getLocalDateOrNull("soknadsdato")
+                    row.getLocalDateOrNull("soknadsdato"),
+                    row.getBooleanOrNull("digitalisert_manuelt_postmottak")
                 )
             }
         }

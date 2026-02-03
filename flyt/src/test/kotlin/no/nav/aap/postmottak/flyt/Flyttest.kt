@@ -57,6 +57,7 @@ import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
@@ -424,6 +425,58 @@ class Flyttest : WithDependencies {
 
         sjekkÅpentAvklaringsbehov(behandling2Id, null)
         assertThat(behandling2.status()).isEqualTo(Status.AVSLUTTET)
+    }
+
+    @Test
+    fun `manuell digitalisering skal markere hendelsen før videresending`() {
+        val journalpostId = TestJournalposter.PAPIR_SØKNAD
+
+        leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+        }!!
+
+        val behandling = behandlinger.first()
+        val behandlingId = behandling.id
+
+        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+
+        sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
+        behandling
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+            .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "123"))
+
+        util.ventPåSvar(journalpostId.referanse)
+
+        val behandlinger2 = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+        }!!
+
+        var behandling2 = behandlinger2.first { it.id != behandlingId }
+        val behandling2Id = behandling2.id
+
+        sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
+
+        behandling2 = behandling2.løsAvklaringsBehov(
+            DigitaliserDokumentLøsning(
+                kategori = InnsendingType.SØKNAD,
+                strukturertDokument = DefaultJsonMapper.toJson(
+                    SøknadV0(
+                        student = null,
+                        yrkesskade = "NEI",
+                        oppgitteBarn = null,
+                        medlemskap = null,
+                    )
+                ),
+                søknadsdato = LocalDate.now().withYear(2019)
+            )
+        )
+
+        dataSource.transaction {
+            val vurdering = DigitaliseringsvurderingRepositoryImpl(it).hentHvisEksisterer(behandling2.id)
+            assertThat(vurdering?.digitalisertManueltGjennomPostmottak).isTrue()
+        }
     }
 
     @Test
