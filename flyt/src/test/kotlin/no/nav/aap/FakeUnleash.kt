@@ -12,7 +12,6 @@ object FakeUnleash : UnleashGateway {
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
             PostmottakFeature.AktiverSignifikantArenaHistorikkRegel -> TODO()
-            PostmottakFeature.TestAvSignifikantHistorikkFilter -> TODO()
         }
     }
 
@@ -20,7 +19,6 @@ object FakeUnleash : UnleashGateway {
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> isEnabled(featureToggle)
             PostmottakFeature.AktiverSignifikantArenaHistorikkRegel -> isRolledOutFor(userId)
-            PostmottakFeature.TestAvSignifikantHistorikkFilter -> isRolledOutFor(userId)
 
             else -> false
         }
