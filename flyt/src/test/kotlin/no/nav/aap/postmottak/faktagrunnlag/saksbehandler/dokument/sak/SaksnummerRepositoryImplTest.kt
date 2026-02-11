@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak
 
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -32,7 +33,8 @@ class SaksnummerRepositoryImplTest {
     fun getPeriode() = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31))
     val saksinfo: List<Saksinfo> = listOf(
         BehandlingsflytSak("sak: 1", getPeriode(), null).tilSaksinfo(),
-        BehandlingsflytSak("sak: 2", getPeriode(), null).tilSaksinfo()
+        BehandlingsflytSak("sak: 2", getPeriode(), null).tilSaksinfo(),
+        BehandlingsflytSak("sak: 3", getPeriode(), ResultatKode.TRUKKET).tilSaksinfo(),
     )
 
     @Test
@@ -56,13 +58,13 @@ class SaksnummerRepositoryImplTest {
         inContext {
             saksnummerRepository.lagreKelvinSak(
                 behandlingId,
-                saksinfo + Saksinfo("Sak: 3", getPeriode())
+                saksinfo + Saksinfo("Sak: 4", getPeriode(), false, resultat = ResultatKode.INNVILGET)
             )
         }
 
         inContext {
             val saker = saksnummerRepository.hentKelvinSaker(behandlingId)
-            assertThat(saker).size().isEqualTo(3)
+            assertThat(saker).size().isEqualTo(4)
         }
     }
 
@@ -80,7 +82,7 @@ class SaksnummerRepositoryImplTest {
                 setRowMapper { it.getInt("count") }
             }
 
-            assertThat(actual).isEqualTo(2)
+            assertThat(actual).isEqualTo(saksinfo.size)
         }
 
     }

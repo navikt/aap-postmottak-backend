@@ -4,7 +4,6 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
@@ -67,7 +66,9 @@ class DigitaliserDokumentSteg(
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId}" }
 
-        if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) throw AvslagException()
+        if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) {
+            log.warn("Nytt dokument på sak der førstegangsbehandling endte i avslag. Journalpost: ${kontekst.journalpostId.referanse}")
+        }
 
         // Prøv automatisk digitalisering av dokumenter som er digitale
         if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {

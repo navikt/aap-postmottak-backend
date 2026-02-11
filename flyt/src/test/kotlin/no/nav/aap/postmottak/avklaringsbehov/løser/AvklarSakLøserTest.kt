@@ -7,7 +7,6 @@ import io.mockk.verify
 import kotlin.random.Random
 import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
@@ -20,7 +19,6 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 internal class AvklarSakLøserTest {
 
@@ -30,19 +28,6 @@ internal class AvklarSakLøserTest {
 
     private val avklarSakLøser =
         AvklarSakLøser(saksnummerRepository, journalpostRepository, behandlingsflytGateway)
-
-
-    @Test
-    fun `Skal kaste feil AvslagException hvis opprettNySak=true og det eksisterer avslag på tidligere behandling`() {
-        val kontekst = opprettKontekst()
-        val løsning = AvklarSaksnummerLøsning(null, opprettNySak = true)
-
-        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any()) } returns true
-
-        assertThrows<AvslagException> {
-            avklarSakLøser.løs(kontekst, løsning)
-        }
-    }
 
     @Test
     fun `Opprett ny sak fungerer som forventet`() {
