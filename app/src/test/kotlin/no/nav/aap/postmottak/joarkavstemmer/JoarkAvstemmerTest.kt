@@ -9,6 +9,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import no.nav.aap.fordeler.RegelRepository
@@ -21,14 +22,19 @@ import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.Journalposttype
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafJournalpost
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
 @ExtendWith(MockKExtension::class)
@@ -38,6 +44,9 @@ class JoarkAvstemmerTest {
 
     @MockK
     private lateinit var regelRepository: RegelRepository
+
+    @MockK
+    private lateinit var behandlingRepository: BehandlingRepository
 
     @MockK
     private lateinit var gosysOppgaveGateway: GosysOppgaveGateway
@@ -243,9 +252,100 @@ class JoarkAvstemmerTest {
         }
     }
 
+    @Nested
+    @DisplayName("Test at hentUavstemte fungerer som forventet")
+    inner class TestHentUavstemte {
+
+        @Test
+        fun `hentUavstemte returnerer kun journalposter som gikk til Kelvin`() {
+            val behandlingRef = BehandlingsreferansePathParam(UUID.randomUUID())
+            val journalpostTilKelvin = journalpostFraDoksikkerhetsnett()
+            val journalpostTilArena = journalpostFraDoksikkerhetsnett()
+
+            every { doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5) } returns listOf(
+                journalpostTilKelvin,
+                journalpostTilArena
+            )
+            every { regelRepository.hentRegelresultat(JournalpostId(journalpostTilKelvin.journalpostId)) } returns
+                    Regelresultat(mapOf(), journalpostTilKelvin.journalpostId, "KELVIN")
+            every { regelRepository.hentRegelresultat(JournalpostId(journalpostTilArena.journalpostId)) } returns
+                    Regelresultat(mapOf(), journalpostTilArena.journalpostId, "ARENA")
+            every { behandlingRepository.hentÅpenJournalføringsbehandling(any()) } returns
+                    mockk { every { referanse } returns behandlingRef }
+
+            val result = joarkAvstemmer().hentUavstemte()
+
+            assertThat(result).hasSize(1)
+            assertThat(result[0].journalpostId).isEqualTo(journalpostTilKelvin.journalpostId)
+            assertThat(result[0].behandlingReferanse).isEqualTo(behandlingRef.referanse)
+        }
+
+        @Test
+        fun `hentUavstemte filtrerer ut EESSI-journalposter`() {
+            val eessiJournalpost = journalpostFraDoksikkerhetsnett("EESSI")
+            val navnoJournalpost = journalpostFraDoksikkerhetsnett()
+
+            every { doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5) } returns listOf(
+                eessiJournalpost,
+                navnoJournalpost
+            )
+            every { regelRepository.hentRegelresultat(JournalpostId(navnoJournalpost.journalpostId)) } returns
+                    Regelresultat(mapOf(), navnoJournalpost.journalpostId, "KELVIN")
+            every { behandlingRepository.hentÅpenJournalføringsbehandling(any()) } returns null
+
+            val result = joarkAvstemmer().hentUavstemte()
+
+            assertThat(result).hasSize(1)
+            assertThat(result[0].journalpostId).isEqualTo(navnoJournalpost.journalpostId)
+            verify(exactly = 0) { regelRepository.hentRegelresultat(JournalpostId(eessiJournalpost.journalpostId)) }
+        }
+
+        @Test
+        fun `hentUavstemte returnerer tom liste når det ikke finnes gamle journalposter`() {
+            every { doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5) } returns emptyList()
+
+            val result = joarkAvstemmer().hentUavstemte()
+
+            assertThat(result).isEmpty()
+        }
+
+        @Test
+        fun `hentUavstemte returnerer tom liste når ingen journalposter gikk til Kelvin`() {
+            val journalpost = journalpostFraDoksikkerhetsnett()
+            every { doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5) } returns listOf(journalpost)
+            every { regelRepository.hentRegelresultat(JournalpostId(journalpost.journalpostId)) } returns
+                    Regelresultat(mapOf(), journalpost.journalpostId, "ARENA")
+
+            val result = joarkAvstemmer().hentUavstemte()
+
+            assertThat(result).isEmpty()
+        }
+
+        @Test
+        fun `hentUavstemte ekskluderer journalposter uten regelresultat`() {
+            val journalpostUtenRegelresultat = journalpostFraDoksikkerhetsnett()
+            val journalpostMedRegelresultat = journalpostFraDoksikkerhetsnett()
+
+            every { doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5) } returns listOf(
+                journalpostUtenRegelresultat,
+                journalpostMedRegelresultat
+            )
+            every { regelRepository.hentRegelresultat(JournalpostId(journalpostUtenRegelresultat.journalpostId)) } returns null
+            every { regelRepository.hentRegelresultat(JournalpostId(journalpostMedRegelresultat.journalpostId)) } returns
+                    Regelresultat(mapOf(), journalpostMedRegelresultat.journalpostId, "KELVIN")
+            every { behandlingRepository.hentÅpenJournalføringsbehandling(any()) } returns null
+
+            val result = joarkAvstemmer().hentUavstemte()
+
+            assertThat(result).hasSize(1)
+            assertThat(result[0].journalpostId).isEqualTo(journalpostMedRegelresultat.journalpostId)
+        }
+    }
+
     private fun joarkAvstemmer(): JoarkAvstemmer = JoarkAvstemmer(
         doksikkerhetsnettGateway = doksikkerhetsnettGateway,
         regelRepository = regelRepository,
+        behandlingRepository = behandlingRepository,
         gosysOppgaveGateway = gosysOppgaveGateway,
         journalpostGateway = journalpostGateway,
         meterRegistry = SimpleMeterRegistry()
@@ -259,11 +359,13 @@ class JoarkAvstemmerTest {
     }
 
     private val counter = AtomicInteger(0)
-    private fun journalpostFraDoksikkerhetsnett(): JournalpostFraDoksikkerhetsnett {
+    private fun journalpostFraDoksikkerhetsnett(
+        kanal: String = "NAV_NO"
+    ): JournalpostFraDoksikkerhetsnett {
         return JournalpostFraDoksikkerhetsnett(
             journalpostId = counter.incrementAndGet().toLong(),
             journalStatus = "XXX",
-            mottaksKanal = "XXX",
+            mottaksKanal = kanal,
             tema = "AAP",
             behandlingstema = "AAP",
             journalforendeEnhet = "FFFF",
