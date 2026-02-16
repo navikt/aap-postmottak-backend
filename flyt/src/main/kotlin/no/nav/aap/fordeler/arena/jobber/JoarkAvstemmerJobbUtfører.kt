@@ -13,14 +13,14 @@ import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.joarkavstemmer.JoarkAvstemmer
-import no.nav.aap.unleash.UnleashGateway
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 
 class JoarkAvstemmerJobbUtfører(
     private val doksikkerhetsnettGateway: DoksikkerhetsnettGateway,
     private val regelRepository: RegelRepository,
+    private val behandlingRepository: BehandlingRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val journalpostGateway: JournalpostGateway,
-    private val unleashGateway: UnleashGateway,
     private val meterRegistry: MeterRegistry
 ) : JobbUtfører {
 
@@ -30,6 +30,7 @@ class JoarkAvstemmerJobbUtfører(
         JoarkAvstemmer(
             doksikkerhetsnettGateway = doksikkerhetsnettGateway,
             regelRepository = regelRepository,
+            behandlingRepository = behandlingRepository,
             gosysOppgaveGateway = gosysOppgaveGateway,
             journalpostGateway = journalpostGateway,
             meterRegistry = meterRegistry
@@ -44,9 +45,9 @@ class JoarkAvstemmerJobbUtfører(
             return JoarkAvstemmerJobbUtfører(
                 doksikkerhetsnettGateway = gatewayProvider.provide(),
                 regelRepository = repositoryProvider.provide(),
+                behandlingRepository = repositoryProvider.provide(),
                 gosysOppgaveGateway = gatewayProvider.provide(),
                 journalpostGateway = gatewayProvider.provide(),
-                unleashGateway = gatewayProvider.provide(),
                 meterRegistry = PrometheusProvider.prometheus
             )
         }
