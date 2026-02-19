@@ -47,8 +47,7 @@ class AapInternApiKlient : AapInternApiGateway {
         val response: PersonEksistererIAAPArena? = client.post(path, PostRequest(body = reqbody), mapper = { body, _ ->
             DefaultJsonMapper.fromJson<PersonEksistererIAAPArena>(body)
         })
-        requireNotNull(response) { "Kunne ikke sjekke om personen har vedtak i Arena" }
-        return response
+        return requireNotNull(response) { "Kunne ikke sjekke om personen har vedtak i Arena" }
     }
 
     override fun harSignifikantHistorikkIAAPArena(

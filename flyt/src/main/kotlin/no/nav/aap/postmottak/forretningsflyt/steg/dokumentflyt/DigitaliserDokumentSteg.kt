@@ -80,7 +80,7 @@ class DigitaliserDokumentSteg(
             log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsendingType.")
 
             val logFeil = { msg: String? ->
-                log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsendingType, error: ${msg}")
+                log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsendingType, error: $msg")
             }
             val validertDokument = try {
                 DokumentTilMeldingParser.parseTilMelding(

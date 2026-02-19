@@ -21,7 +21,6 @@ class AvklaringsbehovService(
         definisjon: Definisjon,
         vedtakBehøverVurdering: () -> Boolean,
         erTilstrekkeligVurdert: () -> Boolean,
-        tilbakestillGrunnlag: () -> Unit,
         kontekst: FlytKontekst
     ) {
         require(definisjon.løsesISteg != StegType.UDEFINERT)
@@ -88,7 +87,6 @@ class AvklaringsbehovService(
                 AVSLUTTET,
                 SENDT_TILBAKE_FRA_BESLUTTER,
                     -> {
-                    tilbakestillGrunnlag()
                     avklaringsbehovene.internalAvbryt(definisjon)
                 }
             }
