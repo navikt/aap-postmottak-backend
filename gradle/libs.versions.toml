@@ -1,10 +1,10 @@
 [versions]
-ktor = "3.3.3"
+ktor = "3.4.0"
 komponenter = "2.0.2"
 tilgang = "1.0.179"
 apiIntern = "0.0.25"
 behandlingsflyt = "0.0.551"
-junit = "6.0.2"
+junit = "6.0.3"
 kafka = "8.1.1-ce"
 testcontainers = "1.21.4"
 
@@ -35,22 +35,22 @@ behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", vers
 
 avro = { module = "org.apache.avro:avro", version = "1.12.1" }
 kafkaStreamsAvroSerde = { module = "io.confluent:kafka-streams-avro-serde", version = "8.1.1" }
-teamdokumenthandteringAvroSchemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "1.1.7" }
+teamdokumenthandteringAvroSchemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "1.1.8" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
 kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
-jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.20" }
-jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.20.1" }
-jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.20.1" }
+jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.21" }
+jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.21.0" }
+jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.21.0" }
 
-logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.24" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.31" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
-micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.16.1" }
+micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.16.3" }
 logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
 
 hikariCp = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.10" }
 flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "11.20.1" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.16.0" }
@@ -61,7 +61,7 @@ junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "juni
 junitJupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junitJupiterParams = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
 assertJ = { module = "org.assertj:assertj-core", version = "3.27.7" }
-mockk = { module = "io.mockk:mockk", version = "1.14.7" }
+mockk = { module = "io.mockk:mockk", version = "1.14.9" }
 testcontainersPostgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainersKafka = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
 testcontainersJunit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
