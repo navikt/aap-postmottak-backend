@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.repository.behandling
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Params
 import no.nav.aap.komponenter.dbconnect.Row
-import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -124,11 +123,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             WHERE b.id = ?
             """.trimIndent()
 
-        return try {
-            utførHentQuery(query) { setLong(1, behandlingId.toLong()) }
-        } catch (_: NoSuchElementException) {
-            throw VerdiIkkeFunnetException("Fant ikke behandling med id $behandlingId")
-        }
+        return utførHentQuery(query) { setLong(1, behandlingId.toLong()) }
     }
 
     override fun hent(referanse: Behandlingsreferanse): Behandling {
@@ -137,12 +132,7 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             WHERE referanse = ?
             """.trimIndent()
 
-        return try {
-            utførHentQuery(query) { setUUID(1, referanse.referanse) }
-        } catch (_: NoSuchElementException) {
-            throw VerdiIkkeFunnetException("Fant ikke behandling med referanse $referanse.")
-        }
-
+        return utførHentQuery(query) { setUUID(1, referanse.referanse) }
     }
 
     override fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling> {

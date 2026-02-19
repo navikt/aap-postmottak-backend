@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.repository.person
 
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.journalpostogbehandling.db.PersonRepository
+import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row

@@ -8,6 +8,7 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.komponenter.repository.RepositoryRegistry
@@ -135,7 +136,11 @@ fun NormalOpenAPIRoute.behandlingApi(
                     JobbInput(ProsesserBehandlingJobbUtfører)
                         .forBehandling(body.referanse, behandlingId.id).medCallId()
                 )
-                behandlingRepository.hent(behandlingId).referanse
+                try {
+                    behandlingRepository.hent(behandlingId).referanse
+                } catch (_: NoSuchElementException) {
+                    throw VerdiIkkeFunnetException("Behandling med referanse $behandlingId ikke funnet")
+                }
             }
             respond(referanse)
         }
