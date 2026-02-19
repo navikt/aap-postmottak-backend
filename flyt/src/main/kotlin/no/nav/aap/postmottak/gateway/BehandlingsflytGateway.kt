@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.gateway
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.AnnetRelevantDokumentV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.AnnetRelevantDokument
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.MeldekortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
@@ -54,7 +54,7 @@ object DokumentTilMeldingParser {
             InnsendingType.MELDEKORT -> DefaultJsonMapper.fromJson(dokument!!, MeldekortV0::class.java)
             InnsendingType.ANNET_RELEVANT_DOKUMENT -> DefaultJsonMapper.fromJson(
                 dokument!!,
-                AnnetRelevantDokumentV0::class.java
+                AnnetRelevantDokument::class.java
             )
 
             InnsendingType.NY_ÅRSAK_TIL_BEHANDLING -> DefaultJsonMapper.fromJson(
