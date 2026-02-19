@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
@@ -18,7 +17,6 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.io.ByteArrayInputStream
 
 class DigitaliserDokumentStegTest {
@@ -103,19 +101,6 @@ class DigitaliserDokumentStegTest {
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
         assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
-    }
-
-    @Test
-    fun `kaster exception når dokument kommer inn og vi finner en tidligere behandling med avslag`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
-
-        every { journalpost.erDigitalLegeerklæring() } returns true
-        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
-        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
-        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns true
-
-        assertThrows<AvslagException>{ digitaliserDokumentSteg.utfør(mockk(relaxed = true)) }
     }
 
     @Test

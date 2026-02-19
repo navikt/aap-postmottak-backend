@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.avklaringsbehov.løser
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
@@ -38,8 +37,9 @@ class AvklarSakLøser(
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarSaksnummerLøsning): LøsningsResultat {
         if (løsning.opprettNySak) {
-            if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.kontekst.behandlingId)) throw AvslagException()
-
+            if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.kontekst.behandlingId)) {
+                log.warn("Nytt dokument på sak ${løsning.saksnummer} der førstegangsbehandling endte i avslag. Journalpost: ${kontekst.kontekst.journalpostId.referanse}")
+            }
             log.info("Spør behandlingsflyt om å finne eller opprette ny sak")
             avklarFagSakMaskinelt(kontekst.kontekst.behandlingId, løsning)
         } else {
