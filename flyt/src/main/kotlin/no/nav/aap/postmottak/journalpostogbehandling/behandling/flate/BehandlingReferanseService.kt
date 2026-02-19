@@ -12,7 +12,7 @@ class BehandlingReferanseService(private val behandlingRepository: BehandlingRep
     fun behandling(referanse: Behandlingsreferanse): Behandling {
         try {
             return behandlingRepository.hent(referanse)
-        } catch (e: NoSuchElementException) {
+        } catch (_: NoSuchElementException) {
             logger.info("Fant ikke behandling med ref $referanse.")
             throw VerdiIkkeFunnetException("Fant ikke behandling med ref $referanse.")
         }

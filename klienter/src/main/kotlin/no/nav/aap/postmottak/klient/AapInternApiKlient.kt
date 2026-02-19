@@ -13,7 +13,6 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import java.io.InputStreamReader
 import java.net.URI
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.minutes

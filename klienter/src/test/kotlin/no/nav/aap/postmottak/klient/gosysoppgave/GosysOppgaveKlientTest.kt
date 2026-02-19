@@ -16,6 +16,7 @@ class GosysOppgaveKlientTest {
     init {
         PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     }
+
     val gosysOppgaveKlient = GosysOppgaveKlient()
 
     @Test
@@ -27,7 +28,12 @@ class GosysOppgaveKlientTest {
     @Test
     fun `når en journalpost alt har oppgaver skal det ikke opprettes en ny oppgave`() {
         gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(128), "YOLO")
-        gosysOppgaveKlient.opprettJournalføringsOppgaveHvisIkkeEksisterer(JournalpostId(128), Ident("YOLO"), "YOLO", "YOLO")
+        gosysOppgaveKlient.opprettJournalføringsOppgaveHvisIkkeEksisterer(
+            JournalpostId(128),
+            Ident("YOLO"),
+            "YOLO",
+            "YOLO"
+        )
         gosysOppgaveKlient.opprettFordelingsOppgaveHvisIkkeEksisterer(JournalpostId(128), "YOLO", null, "YOLO")
     }
 

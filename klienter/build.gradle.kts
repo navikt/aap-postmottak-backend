@@ -10,10 +10,9 @@ dependencies {
     
     // TODO: undersøk om vi kan bruke en enklere algoritme for arbeidsdager
     implementation(libs.bekkNoCommons)
-    
+
     implementation(libs.httpklient)
     implementation(libs.infrastructure)
-    implementation(libs.dbconnect)
     implementation(libs.behandlingsflytKontrakt)
     implementation(libs.apiInternKontrakt)
 
