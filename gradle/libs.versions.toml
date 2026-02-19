@@ -41,7 +41,7 @@ kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
 jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.21" }
-jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.21.1" }
+jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.21.0" }
 jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.21.0" }
 
 logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.31" }
