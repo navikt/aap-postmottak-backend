@@ -58,7 +58,7 @@ class JournalpostService(
 
 }
 
-fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
+private fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
     val journalpost = this
 
     val mottattTid = journalpost.relevanteDatoer

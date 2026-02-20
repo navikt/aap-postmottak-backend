@@ -15,11 +15,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsrefer
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
-import org.slf4j.LoggerFactory
 import java.net.URI
 import javax.sql.DataSource
-
-val log = LoggerFactory.getLogger("AvklarTemaApi")
 
 fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
     route("/api/behandling/{referanse}") {
