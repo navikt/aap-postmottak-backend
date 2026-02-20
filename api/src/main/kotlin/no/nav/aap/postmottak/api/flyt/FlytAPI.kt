@@ -16,7 +16,7 @@ import no.nav.aap.motor.api.JobbInfoDto
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.avklaringsbehov.FrivilligeAvklaringsbehov
-import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
+import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.postmottak.flyt.flate.visning.Visning
@@ -25,7 +25,7 @@ import no.nav.aap.postmottak.hendelse.mottak.BehandlingHendelseHåndterer
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.BehandlingReferanseService
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReferanseService
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status

@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.test
+package no.nav.aap.postmottak.api.test
 
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
@@ -7,15 +7,16 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.fordeler.EnhetMedOppfølgingsKontor
 import no.nav.aap.fordeler.Enhetsutreder
+import no.nav.aap.fordeler.NorgGateway
+import no.nav.aap.fordeler.VeilarbarenaGateway
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
+import no.nav.aap.postmottak.gateway.EgenAnsattGateway
+import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
-import no.nav.aap.postmottak.klient.nom.NomKlient
-import no.nav.aap.postmottak.klient.norg.NorgKlient
-import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
@@ -36,7 +37,10 @@ data class FinnEntitetRequest(
 
 private val log = LoggerFactory.getLogger("no.nav.aap.postmottak.backend.test")
 
-fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.testApi(
+    dataSource: DataSource,
+    gatewayProvider: GatewayProvider
+) {
     val miljø = Miljø.er()
     if (miljø == MiljøKode.DEV || miljø == MiljøKode.LOKALT) {
         route("/test/hentAlleBehandlinger") {
@@ -71,10 +75,10 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 log.info("Finner enhet for : $req")
 
                 val enhetsutreder = Enhetsutreder(
-                    NorgKlient(),
-                    PdlGraphqlKlient(),
-                    NomKlient(),
-                    VeilarbarenaKlient()
+                    gatewayProvider.provide<NorgGateway>(),
+                    gatewayProvider.provide<PersondataGateway>(),
+                    gatewayProvider.provide<EgenAnsattGateway>(),
+                    gatewayProvider.provide<VeilarbarenaGateway>(),
                 )
 
                 val response = enhetsutreder.finnEnhetMedOppfølgingskontor(Person(1, UUID.randomUUID(), listOf(ident)))

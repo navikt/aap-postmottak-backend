@@ -8,19 +8,12 @@ dependencies {
     api(libs.gateway)
     implementation(libs.behandlingsflytKontrakt)
     implementation(libs.apiInternKontrakt)
-    implementation(libs.dbconnect)
     implementation(libs.infrastructure)
     implementation(libs.httpklient)
-    implementation(libs.server)
     implementation(libs.motorApi)
     implementation(libs.verdityper)
-    api(libs.tilgangPlugin)
-    api(libs.tilgangKontrakt)
-    compileOnly(libs.ktorHttpJvm)
-    implementation(libs.flywayDatabasePostgresql)
 
     implementation(kotlin("reflect"))
-    implementation(libs.hikariCp)
 
     // Kafka
     implementation(libs.kafkaClients)

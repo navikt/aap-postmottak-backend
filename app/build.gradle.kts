@@ -49,8 +49,6 @@ fun getCheckedOutGitCommitHash(): String {
 dependencies {
     implementation(libs.ktorSerializationJackson)
 
-    implementation(libs.ktorOpenApiGen)
-
     implementation(libs.jacksonDatatypeJsr310)
     implementation(libs.jacksonDatabind)
     implementation(libs.micrometerRegistryPrometheus)
@@ -62,9 +60,6 @@ dependencies {
     implementation(project(":api"))
     implementation(project(":flyt"))
 
-    implementation(libs.tilgangPlugin)
-    implementation(libs.behandlingsflytKontrakt)
-    implementation(libs.tilgangKontrakt)
     implementation(libs.httpklient)
     implementation(libs.infrastructure)
     implementation(libs.dbconnect)
@@ -85,8 +80,6 @@ dependencies {
 
     implementation(libs.kafkaStreamsAvroSerde)
     implementation(libs.teamdokumenthandteringAvroSchemas)
-
-    testImplementation(libs.kafkaStreamsTestUtils)
 
     testImplementation(libs.dbtest)
     testImplementation(project(":lib-test"))
