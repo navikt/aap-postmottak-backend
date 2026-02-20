@@ -12,10 +12,12 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksnummer
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
-import no.nav.aap.tilgang.PersonIdentPathParam
+import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedGet
+import no.nav.aap.tilgang.authorizedPost
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
@@ -55,12 +57,12 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
         }
     }
 
-    route("/api/behandling/{ident}/behandlinger") {
-        authorizedGet<IdentPathParam, FinnBehandlingerResponse>(
-            AuthorizationParamPathConfig(
-                personIdentPathParam = PersonIdentPathParam("ident"),
+    route("/api/behandling/behandlinger") {
+        authorizedPost<Unit, FinnBehandlingerResponse, IdentRequest>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
             )
-        ) { req ->
+        ) { _, req ->
             val response = dataSource.transaction(readOnly = true) {
                 val behandlingRepository = repositoryRegistry.provider(it).provide<BehandlingRepository>()
                 val personRepository = repositoryRegistry.provider(it).provide<PersonRepository>()
