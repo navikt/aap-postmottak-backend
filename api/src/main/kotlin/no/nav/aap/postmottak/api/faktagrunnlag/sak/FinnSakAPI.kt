@@ -57,7 +57,7 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
         }
     }
 
-    route("/api/behandling/behandlinger") {
+    route("/api/alle-behandliger") {
         authorizedPost<Unit, FinnBehandlingerResponse, IdentRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SE,
