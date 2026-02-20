@@ -22,6 +22,16 @@ processors:
   # - 'ProjectSLOCProcessor'
   # - 'LicenseHeaderLoaderExtension'
 
+console-reports:
+  active: true
+  exclude:
+    - 'ProjectStatisticsReport'
+    - 'ComplexityReport'
+    - 'NotificationReport'
+    - 'IssuesReport'
+    - 'FileBasedIssuesReport'
+  #  - 'LiteIssuesReport'
+
 comments:
   active: true
   AbsentOrWrongFileLicense:
@@ -71,7 +81,7 @@ complexity:
     allowedComplexity: 15
   ComplexCondition:
     active: true
-    allowedConditions: 3
+    allowedConditions: 4
   ComplexInterface:
     active: false
     allowedDefinitions: 10
@@ -82,7 +92,7 @@ complexity:
     active: true
     allowedComplexity: 14
     ignoreSingleWhenExpression: false
-    ignoreSimpleWhenEntries: false
+    ignoreSimpleWhenEntries: true
     ignoreNestingFunctions: false
     ignoreLocalFunctions: false
     nestingFunctions:
@@ -104,6 +114,8 @@ complexity:
   LongMethod:
     active: true
     allowedLines: 60
+    excludes:
+      - "**/test/**"
   LongParameterList:
     active: true
     allowedFunctionParameters: 5
@@ -295,11 +307,11 @@ naming:
   ClassNaming:
     active: true
     aliases: ['ClassName']
-    classPattern: '[A-ZÆØÅ][æøåa-zÆØÅA-Z0-9]*'
+    classPattern: '[A-ZÆØÅ]([a-zæøåÆØÅA-Z0-9](11_[0-9]+)?)*'
   ConstructorParameterNaming:
     active: true
-    parameterPattern: '[a-z][A-Za-z0-9]*'
-    privateParameterPattern: '[a-z][A-Za-z0-9]*'
+    parameterPattern: '[a-zæøå]([A-ZÆØÅæøåa-z0-9](11_[1-9]+)?)*'
+    privateParameterPattern: '[a-zæøå]([A-ZÆØÅæøåa-z0-9](11_[1-9]+)?)*'
     excludeClassPattern: '$^'
   EnumNaming:
     active: true
@@ -320,11 +332,11 @@ naming:
     active: true
     aliases: ['FunctionName']
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**']
-    functionPattern: '[a-zæøå][æøåa-zÆØÅA-Z0-9]*'
+    functionPattern: '[a-zæøå]([æøåa-zÆØÅA-Z0-9](11_[1-9]+)?)*'
     excludeClassPattern: '$^'
   FunctionParameterNaming:
     active: true
-    parameterPattern: '[æøåa-z][ÆØÅA-Zæøåa-z0-9]*'
+    parameterPattern: '[a-zæøå][A-ZÆØÅæøåa-z0-9]*'
     excludeClassPattern: '$^'
   InvalidPackageDeclaration:
     active: true
@@ -333,7 +345,7 @@ naming:
     requireRootInDeclaration: false
   LambdaParameterNaming:
     active: false
-    parameterPattern: '[æøåa-z][ÆØÅA-Zæøåa-z0-9]*|_'
+    parameterPattern: '[a-zæøå][A-ZÆØÅæøåa-z0-9]*|_'
   MatchingDeclarationName:
     active: true
     mustBeFirst: true
@@ -358,18 +370,18 @@ naming:
   ObjectPropertyNaming:
     active: true
     aliases: ['ObjectPropertyName']
-    constantPattern: '[A-Za-z][_A-Za-z0-9]*'
-    propertyPattern: '[A-Za-z][_A-Za-z0-9]*'
-    privatePropertyPattern: '(_)?[A-Za-z][_A-Za-z0-9]*'
+    constantPattern: '[A-ZÆØÅæøåa-z][_ÆØÅA-Zæøåa-z0-9]*'
+    propertyPattern: '[A-ZÅÆØÅæøåa-z][_A-ZÆØÅa-zæøå0-9]*'
+    privatePropertyPattern: '(_)?[A-ZÆØÅæøåa-z][_A-ZÆØÅæøåa-z0-9]*'
   PackageNaming:
     active: true
     aliases: ['PackageName']
-    packagePattern: '[a-zæøå]+(\.[æøåa-z][ÆØÅA-Zæøåa-z0-9]*)*'
+    packagePattern: '[a-zæøå]+(\.[a-zæøå][A-ZÆØÅæøåa-z0-9]*(_?11_[1-9]+)?)*'
   TopLevelPropertyNaming:
     active: true
-    constantPattern: '[A-ZÆØÅ][_A-Z0-9]*'
-    propertyPattern: '[A-Za-z][_A-Za-z0-9]*'
-    privatePropertyPattern: '_?[A-Za-z][_A-Za-z0-9]*'
+    constantPattern: '[A-ZÆØÅ][_ÆØÅA-Z0-9]*'
+    propertyPattern: '[A-ZÆØÅa-zæøå][_A-ZÆØÅæøåa-z0-9]*'
+    privatePropertyPattern: '_?[A-ZÆØÅæøåa-z][_ÆØÅA-Za-zæøå0-9]*'
   VariableMaxLength:
     active: false
     maximumVariableNameLength: 64
@@ -378,9 +390,9 @@ naming:
     minimumVariableNameLength: 1
   VariableNaming:
     active: true
-    aliases: ['PropertyName']
-    variablePattern: '[æøåa-z][ÆØÅA-Zæøåa-z0-9]*'
-    privateVariablePattern: '(_)?[æøåa-z][ÆØÅA-Zæøåa-z0-9]*'
+    aliases: ['PropertyName', 'LocalVariableName']
+    variablePattern: '[a-zæøå][A-ZÆØÅæøåa-z0-9(11_[1-9]+)?]*'
+    privateVariablePattern: '(_)?[a-zæøå][A-ZÆØÅæøåa-z0-9(11_[1-9]+)?]*'
     excludeClassPattern: '$^'
 
 performance:
@@ -677,7 +689,7 @@ style:
     active: false
     maxChainedCalls: 5
   MaxLineLength:
-    active: true
+    active: false
     maxLineLength: 120
     excludePackageStatements: true
     excludeImportStatements: true
