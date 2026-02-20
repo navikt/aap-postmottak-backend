@@ -1,9 +1,10 @@
-package no.nav.aap.postmottak.avklaringsbehov.flate
+package no.nav.aap.postmottak.api.flyt
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
+import io.ktor.utils.io.core.use
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
@@ -14,9 +15,9 @@ import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
-import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
+import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.BehandlingReferanseService
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReferanseService
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
