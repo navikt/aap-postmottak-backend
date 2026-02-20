@@ -1,7 +1,6 @@
 package no.nav.aap.fordeler.arena.jobber
 
 import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.fordeler.arena.ArenaGateway
 import no.nav.aap.fordeler.arena.ArenaOppgaveType
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
@@ -36,7 +35,7 @@ class SendSøknadTilArenaJobbUtfører(
 
         override val type = "arena.søknad"
 
-        override val navn = "Søknad til Arean Håndterer"
+        override val navn = "Søknad til Arena -håndterer"
 
         override val beskrivelse = "Oppretter sak i Arena for ny søknad"
 
@@ -62,10 +61,10 @@ class SendSøknadTilArenaJobbUtfører(
                 titler = kontekst.vedleggstitler,
                 oppgaveType = ArenaOppgaveType.STARTVEDTAK
             )
-            val respons = arenaKlient.opprettArenaOppgave(request)
-            requireNotNull(respons.arenaSakId) { "Mangler saksnummer fra Arena" }
-            log.info("Opprettet oppgave med id ${respons.oppgaveId} på sak ${respons.arenaSakId}")
-            opprettAutomatiskJournalføringsjobb(kontekst, respons.arenaSakId)
+            val arenaOppgave = arenaKlient.opprettArenaOppgave(request)
+            requireNotNull(arenaOppgave.arenaSakId) { "Mangler saksnummer fra Arena" }
+            log.info("Opprettet oppgave med id ${arenaOppgave.oppgaveId} på sak ${arenaOppgave.arenaSakId}")
+            opprettAutomatiskJournalføringsjobb(kontekst, arenaOppgave.arenaSakId)
         } else {
             log.info("Det finnes alt en sak i Arena, sender journalpost til manuell journalføring")
             opprettManuellJournalføringsoppgavejobb(kontekst)
