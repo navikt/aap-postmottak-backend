@@ -61,7 +61,7 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
                 personIdentPathParam = PersonIdentPathParam("ident"),
             )
         ) { req ->
-            val response = dataSource.transaction(readOnly = true) { it ->
+            val response = dataSource.transaction(readOnly = true) {
                 val behandlingRepository = repositoryRegistry.provider(it).provide<BehandlingRepository>()
                 val personRepository = repositoryRegistry.provider(it).provide<PersonRepository>()
                 val person = personRepository.finn(Ident(req)) ?: return@transaction FinnBehandlingerResponse(
