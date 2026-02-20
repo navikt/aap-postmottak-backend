@@ -4,9 +4,9 @@ import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.tellArenaHistori
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.personFinnesIArena
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.personFinnesIArena
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -53,34 +53,28 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             input.person.identifikator.toString() // gradual rollout er sticky på userId
         )
 
-        val personenFinnesIAapArena = apiInternGateway.harAapSakIArena(input.person).eksisterer
+        val signifikantHistorikk = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
 
-        // Hvis det opprinnelige filteret finner en person, spør vi også det nye filteret dersom det er enabled.
-        // Dette gir en gradual rollout av det nye filteret, som en økning av saker oppå det gamle filteret.
-        if (personenFinnesIAapArena && nyttFilterAktivt) {
-            val nyttFilter = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
-            if (nyttFilter.harSignifikantHistorikk) {
-                logger.info(
-                    "Personen har signifikant historikk i AAP-Arena: " +
-                            "saker=${nyttFilter.signifikanteSaker}, journalpostId=${input.journalpostId}"
-                )
-            } else {
-                logger.info(
-                    "Personen har /IKKE/ signifikant historikk i AAP-Arena: " +
-                            "journalpostId=${input.journalpostId}"
-                )
-            }
-
-            return ArenaHistorikkRegelInput(
-                nyttFilter.harSignifikantHistorikk,
-                input.person
-            ).also {
-                tellArenaHistorikk(nyttFilter.harSignifikantHistorikk)
-            }
+        if (signifikantHistorikk.harSignifikantHistorikk) {
+            logger.info(
+                "Personen har signifikant historikk i AAP-Arena: " +
+                        "saker=${signifikantHistorikk.signifikanteSaker}, journalpostId=${input.journalpostId}"
+            )
+        } else {
+            logger.info(
+                "Personen har /IKKE/ signifikant historikk i AAP-Arena: " +
+                        "journalpostId=${input.journalpostId}"
+            )
         }
 
-        return ArenaHistorikkRegelInput(personenFinnesIAapArena, input.person).also {
-            tellArenaHistorikk(personenFinnesIAapArena)
+        val resultat = if (!nyttFilterAktivt) {
+            // bruker gradual rollout av nytt filter
+            apiInternGateway.harAapSakIArena(input.person).eksisterer
+        } else {
+            signifikantHistorikk.harSignifikantHistorikk
+        }
+        return ArenaHistorikkRegelInput(resultat, input.person).also {
+            tellArenaHistorikk(resultat)
         }
     }
 }
