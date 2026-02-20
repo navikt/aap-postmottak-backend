@@ -10,6 +10,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReposi
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -157,6 +158,17 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         """.trimIndent()
         ) {
             setParams { setLong(1, journalpostId.referanse) }
+            setRowMapper(::mapBehandling)
+        }
+    }
+
+    override fun hentBehandlingerForPerson(person: Person): List<Behandling> {
+        return connection.queryList(
+            """
+            SELECT * FROM behandling WHERE journalpost_id IN (SELECT journalpost_id FROM journalpost WHERE person_id = ?)
+        """.trimIndent()
+        ) {
+            setParams { setLong(1, person.id) }
             setRowMapper(::mapBehandling)
         }
     }

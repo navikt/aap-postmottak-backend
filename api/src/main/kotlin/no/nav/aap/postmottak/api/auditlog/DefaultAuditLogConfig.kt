@@ -8,12 +8,13 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsrefer
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.tilgang.auditlog.AuditLogPathParamConfig
 import no.nav.aap.tilgang.auditlog.PathBrukerIdentResolver
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
 
 object DefaultAuditLogConfig {
-    val auditLogger = LoggerFactory.getLogger("auditLogger")
+    val auditLogger: Logger = LoggerFactory.getLogger("auditLogger")
     val app = requiredConfigForKey("nais.app.name")
 
     fun fraBehandlingPathParam(pathParam: String, dataSource: DataSource, repositoryRegistry: RepositoryRegistry) =

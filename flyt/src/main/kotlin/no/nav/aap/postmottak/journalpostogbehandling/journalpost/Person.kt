@@ -31,6 +31,6 @@ class Person(val id: Long, val identifikator: UUID, private var identer: List<Id
     }
 
     override fun toString(): String {
-        return "Person(identifikator=$identifikator, identer=$identer)"
+        return "Person(id=$id, identifikator=$identifikator, identer=$identer)"
     }
 }

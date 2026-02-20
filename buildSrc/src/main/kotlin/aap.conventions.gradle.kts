@@ -2,6 +2,27 @@
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
+    id("dev.detekt")
+}
+
+detekt {
+    config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+    buildUponDefaultConfig = false
+}
+
+tasks.withType(dev.detekt.gradle.Detekt::class.java).configureEach {
+    reports {
+        html.required.set(true)
+        checkstyle.required.set(false)
+        sarif.required.set(true)
+        markdown.required.set(false)
+    }
+}
+
+tasks.named("check").configure {
+    setDependsOn(dependsOn.filterNot {
+        it.toString().contains("detekt", ignoreCase = true)
+    })
 }
 
 group = "no.nav.aap"

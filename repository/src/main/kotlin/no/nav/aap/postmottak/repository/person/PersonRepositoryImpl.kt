@@ -178,10 +178,7 @@ class PersonRepositoryImpl(private val connection: DBConnection): PersonReposito
 
     override fun finn(ident: Ident): Person? {
         return connection.queryFirstOrNull(
-            "SELECT DISTINCT p.id, p.referanse " +
-                    "FROM PERSON p " +
-                    "INNER JOIN PERSON_IDENT pi ON pi.person_id = p.id " +
-                    "WHERE pi.ident = ?"
+            """SELECT DISTINCT p.id, p.referanse FROM PERSON p INNER JOIN PERSON_IDENT pi ON pi.person_id = p.id WHERE pi.ident = ?"""
         ) {
             setParams {
                 setString(1, ident.identifikator)
