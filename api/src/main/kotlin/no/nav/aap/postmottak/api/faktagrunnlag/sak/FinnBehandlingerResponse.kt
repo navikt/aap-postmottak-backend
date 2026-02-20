@@ -1,12 +1,16 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.sak
 
-import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.tilgang.plugin.kontrakt.Personreferanse
 import java.time.LocalDateTime
 import java.util.*
 
-data class IdentPathParam(@param:PathParam("referanse") val ident: String)
+data class IdentRequest(val ident: String) : Personreferanse {
+    override fun hentPersonreferanse(): String {
+        return ident
+    }
+}
 
 data class FinnBehandlingerResponse(
     val behandlinger: List<BehandlinginfoDTO>
