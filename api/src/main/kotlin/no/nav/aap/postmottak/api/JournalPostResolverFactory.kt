@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.faktagrunnlag
+package no.nav.aap.postmottak.api
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.repository.RepositoryRegistry

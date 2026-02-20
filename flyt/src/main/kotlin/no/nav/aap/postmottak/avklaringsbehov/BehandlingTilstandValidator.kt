@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.avklaringsbehov
 
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.flate.BehandlingReferanseService
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReferanseService
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører

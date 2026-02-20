@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.avklaringsbehov.flate
+package no.nav.aap.postmottak.api.flyt
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -12,7 +12,7 @@ import no.nav.aap.tilgang.plugin.kontrakt.Journalpostreferanse
 data class LøsAvklaringsbehovPåBehandling(
     @param:JsonProperty(value = "referanse", required = true) val referanse: Behandlingsreferanse,
     @param:JsonProperty(value = "behandlingVersjon", required = true, defaultValue = "0") val behandlingVersjon: Long,
-    @param:JsonProperty(value = "behov", required = true) val behov: AvklaringsbehovLøsning,
+    @param:JsonProperty(value = "behov", required = true) val behov: `AvklaringsbehovLøsning`,
     @param:JsonProperty(value = "ingenEndringIGruppe") val ingenEndringIGruppe: Boolean?,
 ) : Journalpostreferanse {
     override fun hentAvklaringsbehovKode(): String {
@@ -24,4 +24,3 @@ data class LøsAvklaringsbehovPåBehandling(
     }
 
 }
-
