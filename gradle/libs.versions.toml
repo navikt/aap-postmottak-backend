@@ -44,7 +44,7 @@ jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations"
 jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.21.0" }
 jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.21.0" }
 
-logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.31" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.32" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
 micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.16.3" }
 logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
