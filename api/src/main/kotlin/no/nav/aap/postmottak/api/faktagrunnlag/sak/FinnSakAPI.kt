@@ -5,14 +5,19 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.repository.RepositoryRegistry
-import no.nav.aap.postmottak.faktagrunnlag.journalpostIdFraBehandlingResolver
+import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
+import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedGet
+import no.nav.aap.tilgang.authorizedPost
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
@@ -48,6 +53,36 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
                     avsenderMottaker = journalpost.avsenderMottaker,
                 )
             }
+            respond(response)
+        }
+    }
+
+    route("/api/alle-behandliger") {
+        authorizedPost<Unit, FinnBehandlingerResponse, IdentRequest>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
+            )
+        ) { _, req ->
+            val response = dataSource.transaction(readOnly = true) {
+                val behandlingRepository = repositoryRegistry.provider(it).provide<BehandlingRepository>()
+                val personRepository = repositoryRegistry.provider(it).provide<PersonRepository>()
+                val person = personRepository.finn(Ident(req.ident)) ?: return@transaction FinnBehandlingerResponse(
+                    behandlinger = emptyList()
+                )
+
+                FinnBehandlingerResponse(
+                    behandlingRepository.hentBehandlingerForPerson(person)
+                        .map { behandling ->
+                            BehandlinginfoDTO(
+                                referanse = behandling.referanse.referanse,
+                                journalPostId = behandling.journalpostId.referanse.toString(),
+                                typeBehandling = behandling.typeBehandling,
+                                status = behandling.status(),
+                                opprettet = behandling.opprettetTidspunkt
+                            )
+                        })
+            }
+
             respond(response)
         }
     }

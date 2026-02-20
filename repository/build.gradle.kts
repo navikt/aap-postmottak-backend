@@ -9,7 +9,6 @@ dependencies {
     implementation(libs.dbconnect)
     implementation(libs.verdityper)
     implementation(libs.dbmigrering)
-    implementation(libs.httpklient)
     implementation(libs.infrastructure)
     implementation(libs.behandlingsflytKontrakt)
     implementation(libs.flywayDatabasePostgresql)

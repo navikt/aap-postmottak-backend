@@ -101,6 +101,8 @@ private fun opprettBehandlingDigitaliser(connection: DBConnection) {
         behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
     AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
     SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
+
+    println("Gå til http://localhost:3000/postmottak/${behandlingRepository.hent(behandlingId).referanse.referanse}/")
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()

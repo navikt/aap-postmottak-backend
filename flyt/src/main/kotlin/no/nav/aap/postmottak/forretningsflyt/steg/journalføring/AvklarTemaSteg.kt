@@ -75,7 +75,6 @@ class AvklarTemaSteg(
                     else -> true
                 }
             },
-            tilbakestillGrunnlag = {},
             kontekst = kontekst
         )
 

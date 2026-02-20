@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.faktagrunnlag.register
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.PersondataGateway
-import no.nav.aap.postmottak.journalpostogbehandling.db.PersonRepository
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 
 class PersonService(private val personRepository: PersonRepository, private val persondataGateway: PersondataGateway) {

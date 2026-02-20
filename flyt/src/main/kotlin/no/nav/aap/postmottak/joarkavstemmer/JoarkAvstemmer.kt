@@ -10,6 +10,7 @@ import no.nav.aap.postmottak.gateway.JournalpostFraDoksikkerhetsnett
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.Oppgavetype
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.ubehandledeJournalposterCounter
@@ -18,6 +19,7 @@ import org.slf4j.event.Level
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * Prøver å replikere logikken her: [Confluence Doksikkerhetsnett](https://confluence.adeo.no/spaces/BOA/pages/366859456/doksikkerhetsnett)
@@ -25,12 +27,36 @@ import java.time.ZoneOffset
 class JoarkAvstemmer(
     private val doksikkerhetsnettGateway: DoksikkerhetsnettGateway,
     private val regelRepository: RegelRepository,
+    private val behandlingRepository: BehandlingRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val journalpostGateway: JournalpostGateway,
     private val meterRegistry: MeterRegistry
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    fun hentUavstemte(): List<UavstemtJournalpost> {
+        val eldreJournalpost = doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5)
+
+        log.info("Hentet ${eldreJournalpost.size} journalposter eldre enn 5 dager.")
+
+        return eldreJournalpost
+            .filter { it.mottaksKanal != KanalFraKodeverk.EESSI.name }
+            .filter {
+                regelRepository.hentRegelresultat(JournalpostId(it.journalpostId))
+                    ?.gikkTilKelvin() == true
+            }
+            .map {
+                val behandling = behandlingRepository.hentÅpenJournalføringsbehandling(JournalpostId(it.journalpostId))
+
+                UavstemtJournalpost(
+                    journalpostId = it.journalpostId,
+                    behandlingReferanse = behandling?.referanse?.referanse,
+                    datoOpprettet = it.datoOpprettet.toLocalDate(),
+                    mottaksKanal = it.mottaksKanal,
+                )
+            }
+    }
 
     fun avstem() {
         val eldreJournalpost = doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5)
@@ -150,3 +176,10 @@ class JoarkAvstemmer(
         return journalforendeEnhet
     }
 }
+
+data class UavstemtJournalpost(
+    val journalpostId: Long,
+    val behandlingReferanse: UUID?,
+    val datoOpprettet: LocalDate,
+    val mottaksKanal: String?,
+)

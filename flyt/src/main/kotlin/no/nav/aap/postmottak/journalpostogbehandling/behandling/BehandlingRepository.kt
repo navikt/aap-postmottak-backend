@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.journalpostogbehandling.behandling
 
 import no.nav.aap.lookup.repository.Repository
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -16,6 +17,8 @@ interface BehandlingRepository : Repository {
     fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling>
 
     fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling?
+
+    fun hentBehandlingerForPerson(person: Person): List<Behandling>
 
     fun markerSavepoint()
 

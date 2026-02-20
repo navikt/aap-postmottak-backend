@@ -44,6 +44,7 @@ import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.sak.finnSakApi
 import no.nav.aap.postmottak.api.faktagrunnlag.strukturering.digitaliseringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.tema.avklarTemaApi
+import no.nav.aap.postmottak.api.flyt.avklaringsbehovApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
 import no.nav.aap.postmottak.api.flyt.flytApi
 import no.nav.aap.postmottak.api.flyt.redigitaliseringAPI
@@ -58,7 +59,10 @@ import no.nav.aap.postmottak.mottak.lagMottakStream
 import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
-import no.nav.aap.postmottak.test.testApi
+import no.nav.aap.postmottak.api.test.testApi
+import no.nav.aap.postmottak.avklaringsbehov.AvslagException
+import no.nav.aap.postmottak.avklaringsbehov.BehandlingUnderProsesseringException
+import no.nav.aap.postmottak.avklaringsbehov.OutdatedBehandlingException
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 import kotlin.time.Duration.Companion.seconds
@@ -81,6 +85,7 @@ internal object AppConfig {
     // Vi skrur opp ktor sin default-verdi, som er "antall CPUer", satt ved -XX:ActiveProcessorCount i Dockerfile,
     // fordi appen vår er I/O-bound
     private val ktorParallellitet = 8
+
     // Vi følger ktor sin metodikk for å regne ut tuning parametre som funksjon av parallellitet
     // https://github.com/ktorio/ktor/blob/3.3.1/ktor-server/ktor-server-core/common/src/io/ktor/server/engine/ApplicationEngine.kt#L30
     val connectionGroupSize = ktorParallellitet / 2 + 1
@@ -143,7 +148,12 @@ internal fun Application.server(
                 is FlytOperasjonException -> {
                     call.respondWithError(
                         ApiException(
-                            status = cause.status(),
+                            status = when (cause) {
+                                is AvslagException -> HttpStatusCode.NotImplemented
+                                is BehandlingUnderProsesseringException -> HttpStatusCode.Conflict
+                                is OutdatedBehandlingException -> HttpStatusCode.Conflict
+                                else -> HttpStatusCode.InternalServerError
+                            },
                             message = cause.body().message ?: "Ukjent feil i behandlingsflyt"
                         )
                     )
@@ -183,7 +193,7 @@ internal fun Application.server(
                 digitaliseringApi(dataSource, repositoryRegistry, gatewayProvider)
                 overleveringApi(dataSource, repositoryRegistry)
                 motorApi(dataSource)
-                testApi(dataSource)
+                testApi(dataSource, gatewayProvider)
                 auditlogApi(dataSource, repositoryRegistry)
                 driftApi(dataSource, repositoryRegistry)
                 redigitaliseringAPI(dataSource, repositoryRegistry)

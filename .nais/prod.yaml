@@ -76,7 +76,7 @@ env:
   - name: INTEGRASJON_OPPGAVEAPI_SCOPE
     value: api://prod-fss.oppgavehandtering.oppgave/.default
   - name: GOSYS_URL
-    value: https://gosys.prod.intern.nav.no/gosys
+    value: https://gosys.intern.nav.no/gosys
   - name: INTEGRASJON_PDL_URL
     value: https://pdl-api.prod-fss-pub.nais.io
   - name: INTEGRASJON_PDL_SCOPE
