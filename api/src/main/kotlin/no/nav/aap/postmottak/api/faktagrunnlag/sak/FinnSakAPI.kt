@@ -56,7 +56,7 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
     }
 
     route("/api/behandling/{ident}/behandlinger") {
-        authorizedGet<String, FinnBehandlingerResponse>(
+        authorizedGet<IdentPathParam, FinnBehandlingerResponse>(
             AuthorizationParamPathConfig(
                 personIdentPathParam = PersonIdentPathParam("ident"),
             )
@@ -64,19 +64,19 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
             val response = dataSource.transaction(readOnly = true) {
                 val behandlingRepository = repositoryRegistry.provider(it).provide<BehandlingRepository>()
                 val personRepository = repositoryRegistry.provider(it).provide<PersonRepository>()
-                val person = personRepository.finn(Ident(req)) ?: return@transaction FinnBehandlingerResponse(
+                val person = personRepository.finn(Ident(req.ident)) ?: return@transaction FinnBehandlingerResponse(
                     behandlinger = emptyList()
                 )
 
                 FinnBehandlingerResponse(
                     behandlingRepository.hentBehandlingerForPerson(person)
-                        .map {
+                        .map { behandling ->
                             BehandlinginfoDTO(
-                                referanse = it.referanse.referanse,
-                                journalPostId = it.journalpostId.referanse.toString(),
-                                typeBehandling = it.typeBehandling,
-                                status = it.status(),
-                                opprettet = it.opprettetTidspunkt
+                                referanse = behandling.referanse.referanse,
+                                journalPostId = behandling.journalpostId.referanse.toString(),
+                                typeBehandling = behandling.typeBehandling,
+                                status = behandling.status(),
+                                opprettet = behandling.opprettetTidspunkt
                             )
                         })
             }
