@@ -8,7 +8,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning
@@ -48,7 +47,7 @@ class PdlGraphqlKlient : PersondataGateway {
         personidenter: List<String>
     ): Map<String, NavnMedIdent?>? {
         val request = PdlRequest.hentPersonBolk(personidenter)
-        val response = graphqlQuery(request, null)
+        val response = graphqlQuery(request)
         val data = response.data?.hentPersonBolk ?: return null
 
         return data.associateBy(
@@ -75,10 +74,10 @@ class PdlGraphqlKlient : PersondataGateway {
 
     private fun hentPerson(
         personident: String,
-        currentToken: OidcToken? = null
+
     ): HentPersonResult? {
         val request = PdlRequest.hentPerson(personident)
-        val response = graphqlQuery(request, currentToken)
+        val response = graphqlQuery(request)
         return response.data?.hentPerson
     }
 
@@ -86,14 +85,14 @@ class PdlGraphqlKlient : PersondataGateway {
         personident: String,
     ): GeografiskTilknytning? {
         val request = PdlRequest.hentGeografiskTilknytning(personident)
-        val response = graphqlQuery(request, null)
+        val response = graphqlQuery(request)
         return response.data?.hentGeografiskTilknytning
     }
 
     override fun hentAdressebeskyttelseOgGeolokasjon(ident: Ident): GeografiskTilknytningOgAdressebeskyttelse {
         log.info("Henter adressebeskyttelse og geografisk tilknytning")
         val request = PdlRequest.hentAdressebeskyttelseOgGeografiskTilknytning(ident)
-        val response = graphqlQuery(request, null)
+        val response = graphqlQuery(request)
 
         val data = response.data ?: error("Unexpected response from PDL: ${response.errors}")
         return GeografiskTilknytningOgAdressebeskyttelse(
@@ -104,7 +103,7 @@ class PdlGraphqlKlient : PersondataGateway {
 
     override fun hentAlleIdenterForPerson(ident: String): List<Ident> {
         val request = PdlRequest.hentAlleIdenterForPerson(ident)
-        val response = graphqlQuery(request, null)
+        val response = graphqlQuery(request)
 
         return response.data
             ?.hentIdenter
@@ -114,9 +113,9 @@ class PdlGraphqlKlient : PersondataGateway {
             .orEmpty()
     }
 
-    private fun graphqlQuery(query: PdlRequest, currentToken: OidcToken? = null): PdlResponse {
+    private fun graphqlQuery(query: PdlRequest): PdlResponse {
         val request = PostRequest(
-            query, currentToken = currentToken, additionalHeaders = listOf(
+            query, additionalHeaders = listOf(
                 Header("Accept", "application/json"),
                 Header("TEMA", "AAP"),
                 Header("Behandlingsnummer", BEHANDLINGSNUMMER_AAP_SAKSBEHANDLING)
