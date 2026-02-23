@@ -103,12 +103,8 @@ class PdlGraphqlKlient : PersondataGateway {
     }
 
     override fun hentAlleIdenterForPerson(ident: String): List<Ident> {
-        return hentAlleIdenterForPerson(ident, null)
-    }
-
-    fun hentAlleIdenterForPerson(ident: String, currentToken: OidcToken? = null): List<Ident> {
         val request = PdlRequest.hentAlleIdenterForPerson(ident)
-        val response = graphqlQuery(request, currentToken)
+        val response = graphqlQuery(request, null)
 
         return response.data
             ?.hentIdenter
