@@ -1,12 +1,10 @@
 package no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.register.PersonService
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalpostGateway
-import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafDatoType
 import no.nav.aap.postmottak.gateway.SafJournalpost
@@ -22,13 +20,11 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 class JournalpostService(
     private val journalpostGateway: JournalpostGateway,
-    private val journalpostOboGateway: JournalpostOboGateway,
     private val personService: PersonService
 ) {
     companion object {
         fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JournalpostService {
             return JournalpostService(
-                gatewayProvider.provide(),
                 gatewayProvider.provide(),
                 PersonService.konstruer(repositoryProvider, gatewayProvider)
             )
@@ -36,28 +32,22 @@ class JournalpostService(
     }
 
     fun hentJournalpost(
-        journalpostId: JournalpostId,
-        token: OidcToken? = null
+        journalpostId: JournalpostId
     ): Journalpost {
-        val journalpost = hentSafJournalpost(journalpostId, token)
+        val journalpost = hentSafJournalpost(journalpostId)
         return tilJournalpostMedDokumentTitler(journalpost)
     }
 
     fun tilJournalpostMedDokumentTitler(safJournalpost: SafJournalpost): Journalpost {
         requireNotNull(safJournalpost.bruker?.id) { "Journalpost ${safJournalpost.journalpostId} har ikke brukerid" }
-        require(safJournalpost.bruker.type != BrukerIdType.ORGNR) { "Kan ikke hente journalpost for organisasjonsnummer" }
+        require(safJournalpost.bruker.type != BrukerIdType.ORGNR) { "Kan ikke hente journalpost for organisasjonsnummer. Har status: ${safJournalpost.journalstatus}" }
         val person = personService.finnOgOppdaterPerson(safJournalpost.bruker.id)
         return safJournalpost.tilJournalpost(person)
     }
 
-    fun hentSafJournalpost(journalpostId: JournalpostId, token: OidcToken? = null): SafJournalpost {
-        return if (token != null) {
-            journalpostOboGateway.hentJournalpost(journalpostId, token)
-        } else {
-            journalpostGateway.hentJournalpost(journalpostId)
-        }
+    fun hentSafJournalpost(journalpostId: JournalpostId): SafJournalpost {
+        return journalpostGateway.hentJournalpost(journalpostId)
     }
-
 }
 
 private fun SafJournalpost.tilJournalpost(person: Person): Journalpost {
