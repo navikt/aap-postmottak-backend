@@ -8,6 +8,8 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.api.flyt.service.RedigitaliseringService
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
@@ -21,18 +23,18 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
 ) {
     route("/api/redigitalisering") {
         route("/{referanse}") {
-            authorizedPost<JournalpostId, Unit, Unit>(
+            authorizedPost<BehandlingsreferansePathParam, Unit, JournalpostId>(
                 AuthorizationParamPathConfig(
+                    operasjon = Operasjon.SAKSBEHANDLE,
                     journalpostPathParam = JournalpostPathParam(
-                        "referanse",
-                        journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
+                        "referanse", journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
                     ),
-                    operasjon = Operasjon.SAKSBEHANDLE
+                    avklaringsbehovKode = Definisjon.DIGITALISER_DOKUMENT.kode.name
                 )
-            ) { params, _ ->
+            ) { _, body ->
                 dataSource.transaction { connection ->
                     val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
-                    service.Redigitaliser(params.referanse)
+                    service.Redigitaliser(body.referanse)
                 }
                 respondWithStatus(HttpStatusCode.Accepted)
             }
