@@ -56,6 +56,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
 
         val signifikantHistorikk = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
         PrometheusProvider.prometheus.sperretAvArenaHistorikkFilterTeller(signifikantHistorikk.harSignifikantHistorikk)
+            .increment()
 
         if (signifikantHistorikk.harSignifikantHistorikk) {
             logger.info(

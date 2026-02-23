@@ -168,7 +168,7 @@ class FordelingRegelJobbUtfører(
         }
         val fagsystem = if (skalTilKelvin) Fagsystem.kelvin else Fagsystem.arena
         log.info("Søknad for person som finnes i Arena og ikke i Kelvin sendes til ${fagsystem}. journalpostId=${journalpost.journalpostId}")
-        prometheus.resultatMedArenaHistorikkTeller(fagsystem)
+        prometheus.resultatMedArenaHistorikkTeller(fagsystem).increment()
     }
 
     private fun hentEnhet(safJournalpost: SafJournalpost): NavEnhet? {
