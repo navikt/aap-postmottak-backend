@@ -5,11 +5,10 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 class RedigitaliseringService(
     private val flytJobbRepository: FlytJobbRepository,
@@ -28,15 +27,16 @@ class RedigitaliseringService(
         }
     }
 
-    fun Redigitaliser(journalpostReferanse: UUID) {
-        val behandling = behandlingRepository.hent(Behandlingsreferanse(journalpostReferanse))
+    fun Redigitaliser(journalpostId: Long) {
+        val journalpost = journalpostRepository.hentHvisEksisterer(JournalpostId(journalpostId))
+
         requireNotNull(
-            journalpostRepository.hentHvisEksisterer(behandling.id)
-        ) { "Journalpost ikke funnet. Req: ${journalpostReferanse}." }
+            journalpost
+        ) { "Journalpost ikke funnet. Req: ${journalpostId}." }
 
         val dokumentbehandlingId =
             behandlingRepository.opprettBehandling(
-                behandling.journalpostId,
+                journalpost.journalpostId,
                 TypeBehandling.DokumentHåndtering
             )
 
@@ -44,7 +44,7 @@ class RedigitaliseringService(
 
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
-                .forBehandling(behandling.journalpostId.referanse, dokumentbehandlingId.id).medCallId()
+                .forBehandling(journalpost.journalpostId.referanse, dokumentbehandlingId.id).medCallId()
         )
     }
 }

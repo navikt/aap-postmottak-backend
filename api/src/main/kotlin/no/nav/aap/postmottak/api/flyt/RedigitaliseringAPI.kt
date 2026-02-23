@@ -8,7 +8,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.api.flyt.service.RedigitaliseringService
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.Operasjon
@@ -21,7 +21,7 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
 ) {
     route("/api/redigitalisering") {
         route("/{referanse}") {
-            authorizedPost<BehandlingsreferansePathParam, Unit, Unit>(
+            authorizedPost<JournalpostId, Unit, Unit>(
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
