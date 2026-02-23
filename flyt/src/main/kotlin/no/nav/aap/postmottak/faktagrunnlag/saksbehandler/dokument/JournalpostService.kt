@@ -4,6 +4,7 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.register.PersonService
+import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
@@ -44,6 +45,7 @@ class JournalpostService(
 
     fun tilJournalpostMedDokumentTitler(safJournalpost: SafJournalpost): Journalpost {
         requireNotNull(safJournalpost.bruker?.id) { "Journalpost ${safJournalpost.journalpostId} har ikke brukerid" }
+        require(safJournalpost.bruker.type != BrukerIdType.ORGNR) { "Kan ikke hente journalpost for organisasjonsnummer" }
         val person = personService.finnOgOppdaterPerson(safJournalpost.bruker.id)
         return safJournalpost.tilJournalpost(person)
     }
