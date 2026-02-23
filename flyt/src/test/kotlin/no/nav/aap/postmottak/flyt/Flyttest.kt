@@ -724,7 +724,7 @@ class Flyttest : WithDependencies {
         dataSource.transaction { connection ->
             val behandling = hentBehandling(behandlingId)
             val redigitaliseringService = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
-            redigitaliseringService.Redigitaliser(behandling.journalpostId.referanse)
+            redigitaliseringService.redigitaliser(behandling.journalpostId.referanse)
         }
         util.ventPåSvar()
 

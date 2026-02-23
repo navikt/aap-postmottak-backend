@@ -27,12 +27,10 @@ class RedigitaliseringService(
         }
     }
 
-    fun Redigitaliser(journalpostId: Long) {
+    fun redigitaliser(journalpostId: Long) {
         val journalpost = journalpostRepository.hentHvisEksisterer(JournalpostId(journalpostId))
 
-        requireNotNull(
-            journalpost
-        ) { "Journalpost ikke funnet. Req: ${journalpostId}." }
+        requireNotNull(journalpost) { "Journalpost ikke funnet. Req: ${journalpostId}." }
 
         val dokumentbehandlingId =
             behandlingRepository.opprettBehandling(
@@ -44,7 +42,7 @@ class RedigitaliseringService(
 
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører)
-                .forBehandling(journalpost.journalpostId.referanse, dokumentbehandlingId.id).medCallId()
+                .forBehandling(dokumentbehandlingId.id, dokumentbehandlingId.id).medCallId()
         )
     }
 }

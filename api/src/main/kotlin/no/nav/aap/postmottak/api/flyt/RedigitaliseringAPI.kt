@@ -34,7 +34,7 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
             ) { _, body ->
                 dataSource.transaction { connection ->
                     val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
-                    service.Redigitaliser(body.referanse)
+                    service.redigitaliser(body.referanse)
                 }
                 respondWithStatus(HttpStatusCode.Accepted)
             }
