@@ -59,6 +59,15 @@ fun MeterRegistry.regelresultat(tilKelvin: Boolean, regel: String): Counter =
 fun MeterRegistry.retriesExceeded(jobbType: String): Counter =
     this.counter("postmottak_retries_exceeded", listOf(Tag.of("jobb_type", jobbType)))
 
+fun MeterRegistry.resultatMedArenaHistorikkTeller(fagsystem: Fagsystem) {
+    this.counter("postmottak_fordeling_ved_arenahistorikk", listOf(Tag.of("fagsystem", fagsystem.name)))
+}
+
+fun MeterRegistry.sperretAvArenaHistorikkFilterTeller(sperret: Boolean) {
+    this.counter("postmottak_sperret_av_arenahistorikk_filter", listOf(Tag.of("sperret", sperret.toString())))
+}
+
+
 enum class Fagsystem {
     arena,
     kelvin

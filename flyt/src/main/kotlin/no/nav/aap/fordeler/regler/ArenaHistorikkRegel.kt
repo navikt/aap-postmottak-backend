@@ -7,6 +7,7 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.personFinnesIArena
+import no.nav.aap.postmottak.sperretAvArenaHistorikkFilterTeller
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -54,6 +55,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         )
 
         val signifikantHistorikk = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
+        PrometheusProvider.prometheus.sperretAvArenaHistorikkFilterTeller(signifikantHistorikk.harSignifikantHistorikk)
 
         if (signifikantHistorikk.harSignifikantHistorikk) {
             logger.info(
@@ -68,7 +70,8 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         }
 
         val resultat = if (!nyttFilterAktivt) {
-            // bruker gradual rollout av nytt filter
+            // Vi gjør gradual rollout av nytt filter.
+            // Kall derfor gammelt filter når det nye ikke er aktivt for personen.
             apiInternGateway.harAapSakIArena(input.person).eksisterer
         } else {
             signifikantHistorikk.harSignifikantHistorikk
