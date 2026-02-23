@@ -20,6 +20,7 @@ import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
+import no.nav.aap.postmottak.api.flyt.service.RedigitaliseringService
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovHendelseHåndterer
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
@@ -30,6 +31,7 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
@@ -705,6 +707,36 @@ class Flyttest : WithDependencies {
             .apply {
                 assertThat(this.status()).isEqualTo(Status.AVSLUTTET)
             }
+    }
+
+    @Test
+    fun `kan redigitalisere dokument eksisterende i postmottak`() {
+        val journalpostId = TestJournalposter.STATUS_JOURNALFØRT
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+        assertThat(
+            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
+            1
+        )
+        util.ventPåSvar()
+
+        dataSource.transaction { connection ->
+            val behandling = hentBehandling(behandlingId)
+
+            val redigitaliseringService = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
+            redigitaliseringService.Redigitaliser(behandling.referanse.referanse)
+        }
+        util.ventPåSvar()
+
+        val redigitalisering = alleBehandlingerForJournalpost(journalpostId)
+        val avklaringsbehov = hentAvklaringsbehov(redigitalisering.last())
+
+        assertThat(avklaringsbehov.all { it.definisjon == Definisjon.DIGITALISER_DOKUMENT }).isTrue()
+        assertThat(redigitalisering).hasSize(2)
+        assertThat(redigitalisering.last().status()).isEqualTo(Status.UTREDES)
+        assertThat(redigitalisering.last().typeBehandling).isEqualTo(TypeBehandling.DokumentHåndtering)
     }
 
     private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {
