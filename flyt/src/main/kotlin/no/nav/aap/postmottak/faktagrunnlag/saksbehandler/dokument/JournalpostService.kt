@@ -40,7 +40,13 @@ class JournalpostService(
 
     fun tilJournalpostMedDokumentTitler(safJournalpost: SafJournalpost): Journalpost {
         requireNotNull(safJournalpost.bruker?.id) { "Journalpost ${safJournalpost.journalpostId} har ikke brukerid" }
-        require(safJournalpost.bruker.type != BrukerIdType.ORGNR) { "Kan ikke hente journalpost for organisasjonsnummer. Har status: ${safJournalpost.journalstatus}" }
+        if (safJournalpost.bruker.type == BrukerIdType.ORGNR) {
+            throw IllegalStateException(
+                "Kan ikke kjøre finnOgOppdaterPerson for brukertype ORGNR " +
+                        "(orgnr=${safJournalpost.bruker.id}, status=${safJournalpost.journalstatus})"
+            )
+        }
+
         val person = personService.finnOgOppdaterPerson(safJournalpost.bruker.id)
         return safJournalpost.tilJournalpost(person)
     }
