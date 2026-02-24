@@ -47,6 +47,7 @@ import no.nav.aap.postmottak.api.faktagrunnlag.tema.avklarTemaApi
 import no.nav.aap.postmottak.api.flyt.avklaringsbehovApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
 import no.nav.aap.postmottak.api.flyt.flytApi
+import no.nav.aap.postmottak.api.flyt.redigitaliseringAPI
 import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.postmottak.exception.FlytOperasjonException
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
@@ -194,6 +195,7 @@ internal fun Application.server(
                 testApi(dataSource, gatewayProvider)
                 auditlogApi(dataSource, repositoryRegistry)
                 driftApi(dataSource, repositoryRegistry)
+                redigitaliseringAPI(dataSource, repositoryRegistry)
             }
         }
         actuator(motor, mottakStream)
