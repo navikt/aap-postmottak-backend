@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.repository.behandling
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Params
 import no.nav.aap.komponenter.dbconnect.Row
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -10,10 +11,13 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReposi
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.kontrakt.steg.StegType
+import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.util.*
 
@@ -41,6 +45,13 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return BehandlingId(behandlingId)
     }
 
+    private data class StegTilstandIntenal(
+        val tidspunkt: LocalDateTime,
+        val steg: StegType,
+        val status: StegStatus,
+        val aktiv: Boolean
+    )
+
     private fun mapBehandling(row: Row): Behandling {
         val behandlingId = BehandlingId(row.getLong("id"))
         return Behandling(
@@ -48,7 +59,16 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
             journalpostId = JournalpostId(row.getLong("journalpost_id")),
             referanse = row.getUUID("referanse").let(::BehandlingsreferansePathParam),
             status = row.getEnum("status"),
-            stegHistorikk = hentStegHistorikk(behandlingId),
+            stegHistorikk = row.getStringOrNull("historikk")?.let { s ->
+                DefaultJsonMapper.fromJson<List<StegTilstandIntenal>>(s).map {
+                    StegTilstand(
+                        tidspunkt = it.tidspunkt,
+                        stegStatus = it.status,
+                        stegType = it.steg,
+                        aktiv = it.aktiv
+                    )
+                }
+            }.orEmpty(),
             opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
             versjon = row.getLong("versjon"),
             typeBehandling = row.getEnum("type")
@@ -99,28 +119,9 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
     }
 
-    private fun hentStegHistorikk(behandlingId: BehandlingId): List<StegTilstand> {
-        val query = """
-            SELECT * FROM STEG_HISTORIKK WHERE behandling_id = ? and aktiv = true
-        """.trimIndent()
-
-        return connection.queryList(query) {
-            setParams {
-                setLong(1, behandlingId.toLong())
-            }
-            setRowMapper { row ->
-                StegTilstand(
-                    tidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
-                    stegType = row.getEnum("steg"),
-                    stegStatus = row.getEnum("status")
-                )
-            }
-        }
-    }
-
     override fun hent(behandlingId: BehandlingId): Behandling {
         val query = """
-            SELECT * FROM BEHANDLING b
+            $behandlingerQuery
             WHERE b.id = ?
             """.trimIndent()
 
@@ -129,18 +130,35 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
 
     override fun hent(referanse: Behandlingsreferanse): Behandling {
         val query = """
-            SELECT * FROM BEHANDLING b
+            $behandlingerQuery
             WHERE referanse = ?
             """.trimIndent()
 
         return utførHentQuery(query) { setUUID(1, referanse.referanse) }
     }
 
+    @Language("PostgreSQL")
+    private val behandlingerQuery = """
+select b.*, sh.historikk
+from behandling b
+         left join lateral (
+    select jsonb_agg(
+                   jsonb_build_object(
+                           'steg', steg,
+                           'status', status,
+                           'tidspunkt', opprettet_tid,
+                           'aktiv', aktiv
+                   )
+                   order by opprettet_tid
+           ) as historikk
+    from steg_historikk
+    where behandling_id = b.id
+    ) sh on true
+    """.trimIndent()
+
     override fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling> {
-        val query = """
-            SELECT * FROM BEHANDLING
-            WHERE journalpost_id = ?
-        """.trimIndent()
+        val query = """$behandlingerQuery WHERE journalpost_id = ?
+        """.trimMargin()
 
         return connection.queryList(query) {
             setParams { setLong(1, saksnummer.referanse) }
@@ -151,10 +169,9 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling? {
         return connection.queryFirstOrNull(
             """
-            SELECT * FROM behandling
-            WHERE journalpost_id = ? AND
+            $behandlingerQuery WHERE journalpost_id = ? AND
             type = 'Journalføring' AND
-            (status = 'OPPRETTET' OR status = 'UTREDES') 
+            (status = 'OPPRETTET' OR status = 'UTREDES')
         """.trimIndent()
         ) {
             setParams { setLong(1, journalpostId.referanse) }
@@ -165,7 +182,10 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
     override fun hentBehandlingerForPerson(person: Person): List<Behandling> {
         return connection.queryList(
             """
-            SELECT * FROM behandling WHERE journalpost_id IN (SELECT journalpost_id FROM journalpost WHERE person_id = ?)
+                $behandlingerQuery WHERE journalpost_id IN (SELECT journalpost_id FROM journalpost WHERE person_id = ?)
+                 and exists(select 1
+             from jsonb_array_elements(sh.historikk) elem
+             where elem ->> 'status' = 'AVKLARINGSPUNKT')
         """.trimIndent()
         ) {
             setParams { setLong(1, person.id) }

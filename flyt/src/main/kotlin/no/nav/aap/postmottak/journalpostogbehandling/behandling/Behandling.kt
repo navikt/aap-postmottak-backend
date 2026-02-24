@@ -28,7 +28,7 @@ class Behandling(
         check(stegTilstand.aktiv) {"Utviklerfeil, prøver legge til steg med aktivtflagg false."}
 
         if (stegHistorikk.isEmpty() || aktivtStegTilstand() != stegTilstand) {
-            stegHistorikk.stream().filter { tilstand -> tilstand.aktiv }.forEach { tilstand -> tilstand.deaktiver() }
+            stegHistorikk.filter { tilstand -> tilstand.aktiv }.forEach { tilstand -> tilstand.deaktiver() }
             stegHistorikk += stegTilstand
             stegHistorikk = stegHistorikk.sorted()
         }
@@ -39,7 +39,7 @@ class Behandling(
 
     private fun validerStegTilstand() {
         if (stegHistorikk.isNotEmpty() && stegHistorikk.stream().noneMatch { tilstand -> tilstand.aktiv }) {
-            throw IllegalStateException("Utvikler feil, mangler aktivt steg når steghistorikk ikke er tom.")
+            throw IllegalStateException("Utviklerfeil, mangler aktivt steg når steghistorikk ikke er tom.")
         }
     }
 
