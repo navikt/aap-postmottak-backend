@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.api.flyt
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
@@ -10,7 +11,6 @@ import no.nav.aap.postmottak.api.flyt.service.RedigitaliseringService
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.Operasjon
@@ -23,7 +23,7 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
 ) {
     route("/api/redigitalisering") {
         route("/{referanse}") {
-            authorizedPost<BehandlingsreferansePathParam, Unit, JournalpostId>(
+            authorizedPost<BehandlingsreferansePathParam, Unit, RedigitaliserRequest>(
                 AuthorizationParamPathConfig(
                     operasjon = Operasjon.SAKSBEHANDLE,
                     journalpostPathParam = JournalpostPathParam(
@@ -34,10 +34,17 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
             ) { _, body ->
                 dataSource.transaction { connection ->
                     val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
-                    service.redigitaliser(body.referanse)
+                    service.redigitaliser(body.journalpostId)
                 }
                 respondWithStatus(HttpStatusCode.Accepted)
             }
         }
     }
 }
+
+class RedigitaliserRequest(
+    @param:JsonProperty(
+        value = "journalpostId",
+        required = true
+    ) val journalpostId: Long
+)
