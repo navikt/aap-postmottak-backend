@@ -20,6 +20,7 @@ import no.nav.aap.postmottak.gateway.SafDokumentvariant
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.SafVariantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.prosessering.TestObjekter.lagTestJournalpost
 import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -57,26 +58,7 @@ internal class FordelingRegelJobbUtførerTest {
     fun `når jobben er utført finnes det et regel resultat for journalposten`() {
         val journalpostId = JournalpostId(1L)
 
-        val journalpost = SafJournalpost(
-            journalpostId = journalpostId.referanse,
-            bruker = Bruker(
-                id = "fnr",
-                type = BrukerIdType.FNR,
-            ),
-            dokumenter = listOf(
-                SafDokumentInfo(
-                    dokumentInfoId = "1",
-                    brevkode = "NAV 11-13.05",
-                    tittel = "tittel",
-                    dokumentvarianter = listOf(
-                        SafDokumentvariant(variantformat = SafVariantformat.ORIGINAL, filtype = "json")
-                    )
-                )
-            ),
-            journalstatus = Journalstatus.MOTTATT,
-            tema = Tema.AAP.name,
-            relevanteDatoer = emptyList()
-        )
+        val journalpost = lagTestJournalpost(journalpostId)
 
         val regelResultat = Regelresultat(
             mapOf(

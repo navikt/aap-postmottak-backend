@@ -9,8 +9,6 @@ import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
-import no.nav.aap.fordeler.regler.ArenaSakRegel
-import no.nav.aap.fordeler.regler.KelvinSakRegel
 import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -19,7 +17,6 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.ProvidersJobbSpesifikasjon
-import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.BrukerIdType
@@ -29,9 +26,7 @@ import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.gateway.originalFiltype
 import no.nav.aap.postmottak.journalpostCounter
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.resultatMedArenaHistorikkTeller
 import org.slf4j.LoggerFactory
 
 class FordelingRegelJobbUtfører(
@@ -125,9 +120,6 @@ class FordelingRegelJobbUtfører(
                         journalpost.mottattDato
                     )
                 )
-                val utenKelvinHistorikk = !res.regelMap[KelvinSakRegel::class.simpleName]!!
-                val medArenaHistorikk = res.regelMap[ArenaSakRegel::class.simpleName]!!
-                tellFordelingsresultatMedArenaHistorikk(res.skalTilKelvin(), utenKelvinHistorikk, medArenaHistorikk, journalpost)
                 StatusMedÅrsakOgRegelresultat(
                     InnkommendeJournalpostStatus.EVALUERT,
                     regelresultat = res
@@ -154,21 +146,6 @@ class FordelingRegelJobbUtfører(
         if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
             opprettVideresendJobb(id, journalpostId)
         }
-    }
-
-    private fun tellFordelingsresultatMedArenaHistorikk(
-        skalTilKelvin: Boolean,
-        utenKelvinHistorikk: Boolean,
-        medArenaHistorikk: Boolean,
-        journalpost: Journalpost
-    ) {
-        val nyIKelvinFinnesIArena = utenKelvinHistorikk && medArenaHistorikk
-        if (!nyIKelvinFinnesIArena) {
-            return
-        }
-        val fagsystem = if (skalTilKelvin) Fagsystem.kelvin else Fagsystem.arena
-        log.info("Søknad for person som finnes i Arena og ikke i Kelvin sendes til ${fagsystem}. journalpostId=${journalpost.journalpostId}")
-        prometheus.resultatMedArenaHistorikkTeller(fagsystem).increment()
     }
 
     private fun hentEnhet(safJournalpost: SafJournalpost): NavEnhet? {
