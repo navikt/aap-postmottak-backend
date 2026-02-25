@@ -157,7 +157,7 @@ class JournalpostInformasjonskravTest {
     }
 
     @Test
-    fun `Skal kaste feil hvis bruker er orgnr og status ikke er journafoert`() {
+    fun `Skal kaste feil hvis bruker er orgnr og status ikke er journalfoert`() {
         val journalpostId = JournalpostId(123456)
 
         val hentet = genererSafJournalpost(

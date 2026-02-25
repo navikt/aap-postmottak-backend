@@ -60,7 +60,7 @@ class JournalpostInformasjonskrav(
             val oppdatertJournalpost = safJournalpost.tilJournalpost(persistertJournalpost?.person!!)
             journalpostRepository.lagre(oppdatertJournalpost)
 
-            return ENDRET
+            return IKKE_ENDRET // Endringen er ikke relevant når journalposten er ferdig journalført.
         }
 
         val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
