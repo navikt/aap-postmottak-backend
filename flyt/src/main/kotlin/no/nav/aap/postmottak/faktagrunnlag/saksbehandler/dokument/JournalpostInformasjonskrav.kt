@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
+import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -40,7 +41,29 @@ class JournalpostInformasjonskrav(
     override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
         val persistertJournalpost = journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)
 
-        val journalpost = journalpostService.hentJournalpost(kontekst.journalpostId)
+        val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
+
+        if (safJournalpost.bruker?.type == BrukerIdType.ORGNR) {
+            /*
+            * Kelvin har ikke støtte for å behandle journalposter tilknyttet organisasjonsnummer.
+            * Hvis journalposten er journalført er det ikke lenger relevant å behandle den i Kelvin
+            */
+            require(safJournalpost.journalstatus == Journalstatus.JOURNALFOERT) {
+                "Journalpost ${safJournalpost.journalpostId} med orgnr som bruker må være journalført. " +
+                        "Har status: ${safJournalpost.journalstatus}"
+            }
+
+            log.info("Journalpost ${safJournalpost.journalpostId} har orgnr som bruker og er journalført. " +
+                    "Lagrer journalposten uten å sjekke for relevante endringer.")
+
+            // Lagre oppdatert journalpost med forrige person for å unngå følgefeil i oppgave
+            val oppdatertJournalpost = safJournalpost.tilJournalpost(persistertJournalpost?.person!!)
+            journalpostRepository.lagre(oppdatertJournalpost)
+
+            return IKKE_ENDRET // Endringen er ikke relevant når journalposten er ferdig journalført.
+        }
+
+        val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
 
         if (persistertJournalpost != journalpost) {
             journalpostRepository.lagre(journalpost)
