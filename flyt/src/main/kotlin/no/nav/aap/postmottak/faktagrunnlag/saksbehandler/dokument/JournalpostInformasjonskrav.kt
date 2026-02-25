@@ -53,6 +53,9 @@ class JournalpostInformasjonskrav(
                         "Har status: ${safJournalpost.journalstatus}"
             }
 
+            log.info("Journalpost ${safJournalpost.journalpostId} har orgnr som bruker og er journalført. " +
+                    "Lagrer journalposten uten å sjekke for relevante endringer.")
+
             // Lagre oppdatert journalpost med forrige person for å unngå følgefeil i oppgave
             val oppdatertJournalpost = safJournalpost.tilJournalpost(persistertJournalpost?.person!!)
             journalpostRepository.lagre(oppdatertJournalpost)
