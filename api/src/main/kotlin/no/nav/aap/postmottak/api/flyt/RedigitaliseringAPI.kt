@@ -22,7 +22,7 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
     route("/api/redigitalisering") {
         authorizedPost<Unit, Unit, RedigitaliserRequest>(
             AuthorizationBodyPathConfig(
-                operasjon = Operasjon.SAKSBEHANDLE,
+                Operasjon.SE, // TODO: Skriveoperasjon krever behandlingsreferanse - bruker 'SE' enn så lenge
                 journalpostIdResolver = journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource),
             )
         ) { _, req ->
