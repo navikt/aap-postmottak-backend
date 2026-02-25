@@ -8,15 +8,27 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStopPreparing
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.auth.authenticate
+import io.ktor.server.engine.connector
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -25,7 +37,6 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.exception.ApiException
-import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.repository.RepositoryRegistry
@@ -48,8 +59,8 @@ import no.nav.aap.postmottak.api.flyt.avklaringsbehovApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
 import no.nav.aap.postmottak.api.flyt.flytApi
 import no.nav.aap.postmottak.api.flyt.redigitaliseringAPI
+import no.nav.aap.postmottak.api.test.testApi
 import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
-import no.nav.aap.postmottak.exception.FlytOperasjonException
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -58,10 +69,6 @@ import no.nav.aap.postmottak.mottak.lagMottakStream
 import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
-import no.nav.aap.postmottak.api.test.testApi
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
-import no.nav.aap.postmottak.avklaringsbehov.BehandlingUnderProsesseringException
-import no.nav.aap.postmottak.avklaringsbehov.OutdatedBehandlingException
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 import kotlin.time.Duration.Companion.seconds
@@ -129,42 +136,7 @@ internal fun Application.server(
         InfoModel(title = "AAP - Postmottak")
     )
 
-    install(StatusPages) {
-        exception<Throwable> { call, cause ->
-            val logger = LoggerFactory.getLogger(javaClass)
-
-            when (cause) {
-                is InternfeilException -> {
-                    logger.error(cause.cause?.message ?: cause.message)
-                    call.respondWithError(cause)
-                }
-
-                is ApiException -> {
-                    logger.warn(cause.message, cause)
-                    call.respondWithError(cause)
-                }
-
-                is FlytOperasjonException -> {
-                    call.respondWithError(
-                        ApiException(
-                            status = when (cause) {
-                                is AvslagException -> HttpStatusCode.NotImplemented
-                                is BehandlingUnderProsesseringException -> HttpStatusCode.Conflict
-                                is OutdatedBehandlingException -> HttpStatusCode.Conflict
-                                else -> HttpStatusCode.InternalServerError
-                            },
-                            message = cause.body().message ?: "Ukjent feil i behandlingsflyt"
-                        )
-                    )
-                }
-
-                else -> {
-                    logger.error("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                    call.respondWithError(InternfeilException("En ukjent feil oppsto"))
-                }
-            }
-        }
-    }
+    install(StatusPages, StatusPagesConfigHelper.setup())
 
     install(CORS) {
         anyHost()
