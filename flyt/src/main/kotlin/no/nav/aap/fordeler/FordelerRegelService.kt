@@ -11,7 +11,6 @@ import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.regelresultat
 import org.slf4j.LoggerFactory
 

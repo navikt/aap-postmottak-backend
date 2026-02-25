@@ -3,7 +3,10 @@ package no.nav.aap.postmottak.prosessering
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.fordeler.RegelRepository
+import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.ArenaVideresender
+import no.nav.aap.fordeler.regler.ArenaSakRegel
+import no.nav.aap.fordeler.regler.KelvinSakRegel
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
@@ -15,9 +18,12 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.fordelingsCounter
 import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.fordelingVedArenaHistorikkCounter
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FordelingVideresendJobbUtfører::class.java)
@@ -63,12 +69,31 @@ class FordelingVideresendJobbUtfører(
             return
         }
 
-        if (regelResultat.skalTilKelvin()) {
-            routeTilKelvin(journalpostId)
-            prometheus.fordelingsCounter(Fagsystem.kelvin).increment()
-        } else {
-            routeTilArena(journalpostId, innkommendeJournalpostId)
-            prometheus.fordelingsCounter(Fagsystem.arena).increment()
+        val fagsystem = if (regelResultat.skalTilKelvin()) Fagsystem.kelvin else Fagsystem.arena
+        when (fagsystem) {
+            Fagsystem.kelvin -> routeTilKelvin(journalpostId)
+            Fagsystem.arena -> routeTilArena(journalpostId, innkommendeJournalpostId)
+        }
+
+        oppdaterMetrikker(fagsystem, regelResultat, safJournalpost)
+    }
+
+    private fun oppdaterMetrikker(
+        fagsystem: Fagsystem,
+        res: Regelresultat,
+        journalpost: SafJournalpost
+    ) {
+        prometheus.fordelingsCounter(fagsystem).increment()
+
+        val utenKelvinHistorikk = !res.regelMap[KelvinSakRegel::class.simpleName]!!
+        val medArenaHistorikk = res.regelMap[ArenaSakRegel::class.simpleName]!!
+        val erSøknad = journalpost.dokumenter?.any { it?.brevkode == Brevkoder.SØKNAD.kode } == true
+        if (utenKelvinHistorikk && medArenaHistorikk && erSøknad) {
+            log.info(
+                "Søknad for person som finnes i Arena og ikke i Kelvin sendes til ${fagsystem}. " +
+                        "journalpostId=${journalpost.journalpostId}"
+            )
+            prometheus.fordelingVedArenaHistorikkCounter(fagsystem).increment()
         }
     }
 
