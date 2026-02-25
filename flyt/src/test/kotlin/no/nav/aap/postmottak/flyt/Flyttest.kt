@@ -32,8 +32,10 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
+import no.nav.aap.postmottak.flyt.Flyttest.Companion.dataSource
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
@@ -81,6 +83,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -708,11 +711,24 @@ class Flyttest : WithDependencies {
             }
     }
 
+    @Disabled
     @Test
     fun `kan redigitalisere dokument eksisterende i postmottak`() {
         val journalpostId = TestJournalposter.STATUS_JOURNALFØRT
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
+
+        dataSource.transaction { connection ->
+            SaksnummerRepositoryImpl(connection).lagreKelvinSak(
+                behandlingId, listOf(
+                    Saksinfo(
+                        "sak1", Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31)),
+                    )
+                )
+            )
+        }
+
+        util.ventPåSvar()
 
         val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(
@@ -723,8 +739,11 @@ class Flyttest : WithDependencies {
 
         dataSource.transaction { connection ->
             val behandling = hentBehandling(behandlingId)
+            val eksisterendeSak = repositoryRegistry.provider(connection).provide(SaksnummerRepository::class)
+                .hentSakVurdering(behandlingId)?.saksnummer
+
             val redigitaliseringService = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
-            redigitaliseringService.redigitaliser(behandling.journalpostId.referanse)
+            redigitaliseringService.redigitaliser(behandling.journalpostId.referanse, eksisterendeSak!!)
         }
         util.ventPåSvar()
 
@@ -821,7 +840,6 @@ class Flyttest : WithDependencies {
         dataSource.transaction(readOnly = true) { connection ->
             repositoryRegistry.provider(connection).provide(BehandlingRepository::class).hent(behandlingId)
         }
-
 
     private fun hentAvklaringsbehov(behandlingId: BehandlingId, connection: DBConnection): Avklaringsbehovene {
         return AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)

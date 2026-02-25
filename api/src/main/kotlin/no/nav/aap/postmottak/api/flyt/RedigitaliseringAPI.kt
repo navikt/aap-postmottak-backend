@@ -9,12 +9,10 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.api.flyt.service.RedigitaliseringService
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.tilgang.AuthorizationParamPathConfig
-import no.nav.aap.tilgang.JournalpostPathParam
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
+import no.nav.aap.tilgang.plugin.kontrakt.Saksreferanse
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.redigitaliseringAPI(
@@ -22,29 +20,25 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
     repositoryRegistry: RepositoryRegistry
 ) {
     route("/api/redigitalisering") {
-        route("/{referanse}") {
-            authorizedPost<BehandlingsreferansePathParam, Unit, RedigitaliserRequest>(
-                AuthorizationParamPathConfig(
-                    operasjon = Operasjon.SAKSBEHANDLE,
-                    journalpostPathParam = JournalpostPathParam(
-                        "referanse", journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource)
-                    ),
-                    avklaringsbehovKode = Definisjon.DIGITALISER_DOKUMENT.kode.name
-                )
-            ) { _, body ->
-                dataSource.transaction { connection ->
-                    val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
-                    service.redigitaliser(body.journalpostId)
-                }
-                respondWithStatus(HttpStatusCode.Accepted)
+        authorizedPost<Unit, Unit, RedigitaliserRequest>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                journalpostIdResolver = journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource),
+            )
+        ) { _, req ->
+            dataSource.transaction { connection ->
+                val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
+                service.redigitaliser(req.journalpostId, req.saksnummer)
             }
+            respondWithStatus(HttpStatusCode.Accepted)
         }
     }
 }
 
 class RedigitaliserRequest(
-    @param:JsonProperty(
-        value = "journalpostId",
-        required = true
-    ) val journalpostId: Long
-)
+    @param:JsonProperty(value = "journalpostId", required = true) val journalpostId: Long, val saksnummer: String
+) : Saksreferanse {
+    override fun hentSaksreferanse(): String {
+        return saksnummer
+    }
+}
