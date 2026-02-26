@@ -1,6 +1,9 @@
 package no.nav.aap.fordeler.regler
 
+import no.nav.aap.api.intern.PersonEksistererIAAPArena
+import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.tellArenaHistorikk
+import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.tellSignifikantArenaHistorikk
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider
@@ -27,9 +30,15 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
             )
         }
 
-        internal fun tellArenaHistorikk(harSignifikantHistorikk: Boolean) {
-            PrometheusProvider.prometheus.personFinnesIArena(harSignifikantHistorikk).increment()
+        internal fun tellArenaHistorikk(personFinnes: PersonEksistererIAAPArena) {
+            PrometheusProvider.prometheus.personFinnesIArena(personFinnes.eksisterer).increment()
         }
+
+        internal fun tellSignifikantArenaHistorikk(signifikantHistorikk: SignifikanteSakerResponse) {
+            PrometheusProvider.prometheus.sperretAvArenaHistorikkFilterTeller(signifikantHistorikk.harSignifikantHistorikk)
+                .increment()
+        }
+
     }
 
     override fun vurder(input: ArenaHistorikkRegelInput): Boolean {
@@ -54,9 +63,10 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             input.person.identifikator.toString() // gradual rollout er sticky på userId
         )
 
+        val arenaPerson = apiInternGateway.harAapSakIArena(input.person)
+        tellArenaHistorikk(arenaPerson)
         val signifikantHistorikk = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
-        PrometheusProvider.prometheus.sperretAvArenaHistorikkFilterTeller(signifikantHistorikk.harSignifikantHistorikk)
-            .increment()
+        tellSignifikantArenaHistorikk(signifikantHistorikk)
 
         if (signifikantHistorikk.harSignifikantHistorikk) {
             logger.info(
@@ -70,16 +80,14 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             )
         }
 
-        val resultat = if (!nyttFilterAktivt) {
-            // Vi gjør gradual rollout av nytt filter.
-            // Kall derfor gammelt filter når det nye ikke er aktivt for personen.
-            apiInternGateway.harAapSakIArena(input.person).eksisterer
-        } else {
+        // Vi gjør gradual rollout av nytt filter
+        val resultat = if (nyttFilterAktivt) {
             signifikantHistorikk.harSignifikantHistorikk
+        } else {
+            arenaPerson.eksisterer
         }
-        return ArenaHistorikkRegelInput(resultat, input.person).also {
-            tellArenaHistorikk(resultat)
-        }
+
+        return ArenaHistorikkRegelInput(resultat, input.person)
     }
 }
 

@@ -47,17 +47,17 @@ fun MeterRegistry.journalføringCounter(type: JournalføringsType, enhet: NavEnh
 fun MeterRegistry.ubehandledeJournalposterCounter(kildesystem: String): Counter =
     this.counter("postmottak_journalposter_ubehandlet", listOf(Tag.of("kildesystem", kildesystem)))
 
-fun MeterRegistry.personFinnesIArena(medSignifikantHistorikk: Boolean): Counter =
-    this.counter(
-        "postmottak_person_finnes_i_aap_arena",
-        listOf(Tag.of("signifikant_historikk", medSignifikantHistorikk.toString()))
-    )
-
 fun MeterRegistry.regelresultat(tilKelvin: Boolean, regel: String): Counter =
     this.counter("postmottak_regelresultat", listOf(Tag.of("regel", regel), Tag.of("til_kelvin", tilKelvin.toString())))
 
 fun MeterRegistry.retriesExceeded(jobbType: String): Counter =
     this.counter("postmottak_retries_exceeded", listOf(Tag.of("jobb_type", jobbType)))
+
+fun MeterRegistry.personFinnesIArena(finnes: Boolean): Counter =
+    this.counter(
+        "postmottak_person_finnes_i_aap_arena",
+        listOf(Tag.of("verdi", finnes.toString()))
+    )
 
 fun MeterRegistry.fordelingVedArenaHistorikkCounter(fagsystem: Fagsystem) =
     this.counter("postmottak_fordeling_ved_arenahistorikk", listOf(Tag.of("fagsystem", fagsystem.name)))
