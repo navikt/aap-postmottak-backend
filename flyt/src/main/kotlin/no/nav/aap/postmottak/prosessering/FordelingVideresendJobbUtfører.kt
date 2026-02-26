@@ -23,7 +23,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReposi
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.fordelingVedArenaHistorikkCounter
+import no.nav.aap.postmottak.fordelingAvSoknadVedArenaHistorikkCounter
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FordelingVideresendJobbUtfører::class.java)
@@ -93,7 +93,7 @@ class FordelingVideresendJobbUtfører(
                 "Søknad for person som finnes i Arena og ikke i Kelvin sendes til ${fagsystem}. " +
                         "journalpostId=${journalpost.journalpostId}"
             )
-            prometheus.fordelingVedArenaHistorikkCounter(fagsystem).increment()
+            prometheus.fordelingAvSoknadVedArenaHistorikkCounter(fagsystem).increment()
         }
     }
 
