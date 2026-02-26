@@ -1,16 +1,14 @@
 package no.nav.aap.fordeler.regler
 
-import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.SignifikanteSakerResponse
-import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.tellArenaHistorikk
-import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.tellSignifikantArenaHistorikk
+import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.metrikkerForArenaHistorikk
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import no.nav.aap.postmottak.personFinnesIArena
-import no.nav.aap.postmottak.sperretAvArenaHistorikkFilterTeller
+import no.nav.aap.postmottak.personFinnesIAapArenaTeller
+import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
+import no.nav.aap.postmottak.signifikantArenaHistorikkTeller
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -30,15 +28,21 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
             )
         }
 
-        internal fun tellArenaHistorikk(personFinnes: PersonEksistererIAAPArena) {
-            PrometheusProvider.prometheus.personFinnesIArena(personFinnes.eksisterer).increment()
-        }
-
-        internal fun tellSignifikantArenaHistorikk(signifikantHistorikk: SignifikanteSakerResponse) {
-            PrometheusProvider.prometheus.sperretAvArenaHistorikkFilterTeller(signifikantHistorikk.harSignifikantHistorikk)
+        internal fun metrikkerForArenaHistorikk(
+            harArenaHistorikk: Boolean,
+            arenaHistorikkenErSignifikant: Boolean
+        ) {
+            prometheus.personFinnesIAapArenaTeller(harArenaHistorikk)
                 .increment()
-        }
 
+            prometheus.signifikantArenaHistorikkTeller(arenaHistorikkenErSignifikant)
+                .increment()
+
+            if (harArenaHistorikk) {
+                prometheus.resultatAvSignifikantArenaHistorikkFilterTeller(arenaHistorikkenErSignifikant)
+                    .increment()
+            }
+        }
     }
 
     override fun vurder(input: ArenaHistorikkRegelInput): Boolean {
@@ -64,9 +68,8 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         )
 
         val arenaPerson = apiInternGateway.harAapSakIArena(input.person)
-        tellArenaHistorikk(arenaPerson)
         val signifikantHistorikk = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
-        tellSignifikantArenaHistorikk(signifikantHistorikk)
+        metrikkerForArenaHistorikk(arenaPerson.eksisterer, signifikantHistorikk.harSignifikantHistorikk)
 
         if (signifikantHistorikk.harSignifikantHistorikk) {
             logger.info(
