@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.gateway
 import no.nav.aap.komponenter.gateway.Gateway
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDateTime
 
@@ -340,6 +341,12 @@ data class SafSak(
 
 fun SafJournalpost.hoveddokument() =
     dokumenter?.filterNotNull()?.minBy { it.dokumentInfoId }
+
+fun SafJournalpost.erSøknad(): Boolean {
+    return dokumenter?.filterNotNull()?.any {
+        it.brevkode == Brevkoder.SØKNAD.kode
+    } == true
+}
 
 fun SafJournalpost.originalFiltype() =
     this.hoveddokument()?.dokumentvarianter?.find { it.variantformat == SafVariantformat.ORIGINAL }?.filtype
