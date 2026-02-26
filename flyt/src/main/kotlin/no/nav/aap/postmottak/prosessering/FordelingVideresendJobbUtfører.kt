@@ -16,14 +16,16 @@ import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
+import no.nav.aap.postmottak.fordelingAvSoknadVedArenaHistorikkCounter
 import no.nav.aap.postmottak.fordelingsCounter
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafJournalpost
+import no.nav.aap.postmottak.gateway.erSøknad
+import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.fordelingAvSoknadVedArenaHistorikkCounter
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(FordelingVideresendJobbUtfører::class.java)
@@ -87,12 +89,14 @@ class FordelingVideresendJobbUtfører(
 
         val utenKelvinHistorikk = !res.regelMap[KelvinSakRegel::class.simpleName]!!
         val medArenaHistorikk = res.regelMap[ArenaSakRegel::class.simpleName]!!
-        val erSøknad = journalpost.dokumenter?.any { it?.brevkode == Brevkoder.SØKNAD.kode } == true
-        if (utenKelvinHistorikk && medArenaHistorikk && erSøknad) {
-            log.info(
-                "Søknad for person som finnes i Arena og ikke i Kelvin sendes til ${fagsystem}. " +
-                        "journalpostId=${journalpost.journalpostId}"
-            )
+
+        if (medArenaHistorikk && journalpost.erSøknad()) {
+            if (utenKelvinHistorikk) {
+                log.info(
+                    "Søknad for person som finnes i Arena og ikke i Kelvin sendes til ${fagsystem}. " +
+                            "journalpostId=${journalpost.journalpostId}"
+                )
+            }
             prometheus.fordelingAvSoknadVedArenaHistorikkCounter(fagsystem).increment()
         }
     }
