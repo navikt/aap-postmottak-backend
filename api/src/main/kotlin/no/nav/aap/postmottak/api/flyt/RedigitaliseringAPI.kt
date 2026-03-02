@@ -26,10 +26,13 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
                 journalpostIdResolver = journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource),
             )
         ) { _, req ->
+            // TODO: Denne må kunne håndtere enten å kopiere eller lage ny journalpost før vi kan aktivere den
+            /*
             dataSource.transaction { connection ->
                 val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
                 service.redigitaliser(req.journalpostId, req.saksnummer)
             }
+            */
             respondWithStatus(HttpStatusCode.Accepted)
         }
     }
