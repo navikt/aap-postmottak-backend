@@ -53,7 +53,7 @@ class BehandlingHendelseServiceImplTest {
     @BeforeEach
     fun setUp() {
         behandlingHendelseService =
-            BehandlingHendelseServiceImpl(flytJobbRepository, journalpostRepository, behandlingsflytGateway)
+            BehandlingHendelseServiceImpl(flytJobbRepository, journalpostRepository)
     }
 
     @Test
