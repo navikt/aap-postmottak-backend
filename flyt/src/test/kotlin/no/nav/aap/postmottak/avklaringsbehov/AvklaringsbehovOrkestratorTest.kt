@@ -60,7 +60,6 @@ class AvklaringsbehovOrkestratorTest {
                 BehandlingHendelseServiceImpl(
                     repositoryProvider.provide(),
                     mockk(relaxed = true),
-                    mockk(relaxed = true),
                 )
 
             val avklaringsbehovOrkestrator = AvklaringsbehovOrkestrator(

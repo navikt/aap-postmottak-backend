@@ -48,7 +48,10 @@ class FlytOrkestrator(
         informasjonskravGrunnlag = InformasjonskravGrunnlagImpl(repositoryProvider, gatewayProvider),
         avklaringsbehovRepository = repositoryProvider.provide(),
         behandlingRepository = repositoryProvider.provide(),
-        behandlingHendelseService = BehandlingHendelseServiceImpl(repositoryProvider, gatewayProvider),
+        behandlingHendelseService = BehandlingHendelseServiceImpl(
+            repositoryProvider.provide(),
+            repositoryProvider.provide()
+        ),
         stegOrkestrator = StegOrkestrator(repositoryProvider, gatewayProvider)
     )
 

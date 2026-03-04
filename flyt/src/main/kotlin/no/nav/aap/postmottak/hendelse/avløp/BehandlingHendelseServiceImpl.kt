@@ -1,16 +1,12 @@
 package no.nav.aap.postmottak.hendelse.avløp
 
-import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.flyt.utledType
-import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.kontrakt.hendelse.AvklaringsbehovHendelseDto
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
@@ -24,25 +20,15 @@ private val log = LoggerFactory.getLogger(BehandlingHendelseServiceImpl::class.j
 class BehandlingHendelseServiceImpl(
     private val flytJobbRepository: FlytJobbRepository,
     private val journalpostRepository: JournalpostRepository,
-    private val behandlingFlytGateway: BehandlingsflytGateway
 ) : BehandlingHendelseService {
-
-    constructor(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : this(
-        flytJobbRepository = repositoryProvider.provide(),
-        journalpostRepository = repositoryProvider.provide(),
-        behandlingFlytGateway = gatewayProvider.provide(),
-    )
-
     override fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
 
         val ident = journalpostRepository.hentHvisEksisterer(behandling.id)!!.person.aktivIdent().identifikator
-        val nyesteSakForBruker = behandlingFlytGateway.finnSaker(Ident(ident)).maxByOrNull { it.periode.tom }
 
         val hendelse = DokumentflytStoppetHendelse(
             journalpostId = behandling.journalpostId,
-            saksnummer = nyesteSakForBruker?.saksnummer,
             ident = ident,
-            referanse = behandling.referanse.referanse, // TODO må håndtere referanseendring i oppgave
+            referanse = behandling.referanse.referanse,
             behandlingType = behandling.typeBehandling,
             status = behandling.status(),
             avklaringsbehov = avklaringsbehovene.alle()
