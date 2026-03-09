@@ -350,9 +350,10 @@ class Flyttest : WithDependencies {
         val journalpostId = TestJournalposter.DIGITAL_SØKNAD_ID
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
-
-        assertThat(behandlinger).allMatch { it.status() == Status.AVSLUTTET }
+        prøv {
+            alleBehandlingerForJournalpost(journalpostId)
+                .also { b -> require(b.isNotEmpty() && b.all { it.status() == Status.AVSLUTTET }) }
+        }!!
     }
 
 
