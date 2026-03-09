@@ -1,5 +1,5 @@
 [versions]
-ktor = "3.4.0"
+ktor = "3.4.1"
 komponenter = "2.0.17"
 tilgang = "1.0.182"
 apiIntern = "0.0.27"
@@ -54,7 +54,7 @@ postgresql = { module = "org.postgresql:postgresql", version = "42.7.10" }
 flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "11.20.1" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.16.0" }
-unleashClient = { module = "io.getunleash:unleash-client-java", version = "12.1.2" }
+unleashClient = { module = "io.getunleash:unleash-client-java", version = "12.2.0" }
 joseJwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.8" }
 
 junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
