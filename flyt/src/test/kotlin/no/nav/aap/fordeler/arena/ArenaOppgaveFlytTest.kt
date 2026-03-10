@@ -99,7 +99,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
             listOf("1234")
         )
         every { arenaGateway.harAktivSak(any()) } returns false
-        every { unleashGateway.isEnabled(PostmottakFeature.AktiverSignifikantArenaHistorikkRegel, any()) } returns true
 
         dataSource.transaction {
             FlytJobbRepository(it).leggTil(
@@ -108,14 +107,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
 
         util.ventPåSvar()
-
-        verify {
-            unleashGateway.isEnabled(
-                withArg {
-                    assertThat(it).isEqualTo(PostmottakFeature.AktiverSignifikantArenaHistorikkRegel)
-                },
-                any())
-        }
 
         verify(exactly = 1) {
             arenaGateway.opprettArenaOppgave(withArg {
@@ -137,7 +128,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
         every { apiInternGateway.harSignifikantHistorikkIAAPArena(any(), any()) } returns
                 SignifikanteSakerResponse(harSignifikantHistorikk = true, signifikanteSaker = listOf("1234"))
         every { arenaGateway.harAktivSak(any()) } returns false
-        every { unleashGateway.isEnabled(PostmottakFeature.AktiverSignifikantArenaHistorikkRegel, any()) } returns true
 
         dataSource.transaction {
             FlytJobbRepository(it).leggTil(
@@ -145,14 +135,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
             )
         }
         util.ventPåSvar()
-
-        verify {
-            unleashGateway.isEnabled(
-                withArg {
-                    assertThat(it).isEqualTo(PostmottakFeature.AktiverSignifikantArenaHistorikkRegel)
-                },
-                any())
-        }
 
         verify(exactly = 1) {
             arenaGateway.opprettArenaOppgave(withArg {
