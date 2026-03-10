@@ -9,8 +9,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.personFinnesIAapArenaTeller
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.signifikantArenaHistorikkTeller
-import no.nav.aap.unleash.PostmottakFeature
-import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
@@ -61,11 +59,6 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
 
     override fun generer(input: RegelInput): ArenaHistorikkRegelInput {
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
-        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
-        val nyttFilterAktivt = unleashGateway.isEnabled(
-            PostmottakFeature.AktiverSignifikantArenaHistorikkRegel,
-            input.person.identifikator.toString() // gradual rollout er sticky på userId
-        )
 
         val arenaPerson = apiInternGateway.harAapSakIArena(input.person)
         val signifikantHistorikk = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
@@ -83,12 +76,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             )
         }
 
-        // Vi gjør gradual rollout av nytt filter
-        val resultat = if (nyttFilterAktivt) {
-            signifikantHistorikk.harSignifikantHistorikk
-        } else {
-            arenaPerson.eksisterer
-        }
+        val resultat = signifikantHistorikk.harSignifikantHistorikk
 
         return ArenaHistorikkRegelInput(resultat, input.person)
     }
