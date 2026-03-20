@@ -16,8 +16,10 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.JoarkRegel.erIkkeKanalEESSI
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaAAP
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaEndretFraAAP
+import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusFeilregistrert
 import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusMottatt
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
+import no.nav.aap.postmottak.prosessering.FeilregistrertJournalpostJobbUtfører
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.medJournalpostId
@@ -85,13 +87,22 @@ class JoarkKafkaHandler(
         val journalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
         val streamBuilder = StreamsBuilder()
 
-        streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
-            .filter(harStatusMottatt)
+        val baseStream = streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
             .filter(erIkkeKanalEESSI)
+
+        // Håndter journalposter med status MOTTATT
+        baseStream
+            .filter(harStatusMottatt)
             .peek { _, record -> prometheus.hendelseType(record) }
             .split()
             .branch(erTemaEndretFraAAP, Branched.withConsumer(::temaendringTopology))
             .branch(erTemaAAP, Branched.withConsumer(::nyJournalpost))
+
+        // Håndter journalposter med status FEILREGISTRERT
+        baseStream
+            .filter(harStatusFeilregistrert)
+            .filter(erTemaAAP)
+            .foreach { _, record -> håndterFeilregistrertJournalpost(record) }
 
         topology = streamBuilder.build()
 
@@ -138,6 +149,43 @@ class JoarkKafkaHandler(
         }
     }
 
+    /**
+     * Håndterer journalposter med status FEILREGISTRERT.
+     *
+     * Hvis det finnes en åpen behandling, trigges prosessering slik at stegene
+     * kan oppdage at journalposten er feilregistrert og avslutte behandlingen.
+     *
+     * Hvis alle behandlinger er avsluttet, opprettes en jobb som sender
+     * feilregistrert-hendelse til behandlingsflyt (dersom journalposten ble overlevert til Kelvin).
+     */
+    private fun håndterFeilregistrertJournalpost(record: JournalfoeringHendelseRecord) {
+        val journalpostId = JournalpostId(record.journalpostId)
+        log.info("Mottatt feilregistrert journalpost: $journalpostId")
+
+        transactionProvider.inTransaction {
+            val behandlinger = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
+            val åpenBehandling = behandlinger.find { it.status().erÅpen() }
+
+            when {
+                åpenBehandling != null -> {
+                    log.info("Fant åpen behandling for feilregistrert journalpost $journalpostId - trigger prosessering")
+                    triggProsesserBehandling(journalpostId, åpenBehandling)
+                }
+                behandlinger.isNotEmpty() -> {
+                    log.info("Alle behandlinger avsluttet for feilregistrert journalpost $journalpostId - oppretter jobb")
+                    flytJobbRepository.leggTil(
+                        JobbInput(FeilregistrertJournalpostJobbUtfører)
+                            .forSak(journalpostId.referanse)
+                            .medJournalpostId(journalpostId)
+                    )
+                }
+                else -> {
+                    log.info("Ingen behandlinger funnet for feilregistrert journalpost $journalpostId - ignorerer")
+                }
+            }
+        }
+    }
+
     private fun TransactionContext.triggProsesserBehandling(
         journalpostId: JournalpostId,
         behandling: Behandling,
@@ -169,10 +217,14 @@ object JoarkRegel {
     // Mulige verdier for tema: https://confluence.adeo.no/spaces/BOA/pages/316396024/Tema
     private const val TEMA_AAP = "AAP"
     private const val MOTTATT = "MOTTATT"
+    private const val FEILREGISTRERT = "FEILREGISTRERT"
     private const val EESSI = "EESSI"
 
     val harStatusMottatt: (String, JournalfoeringHendelseRecord) -> Boolean =
         { _, record -> record.journalpostStatus == MOTTATT }
+
+    val harStatusFeilregistrert: (String, JournalfoeringHendelseRecord) -> Boolean =
+        { _, record -> record.journalpostStatus == FEILREGISTRERT }
 
     /**
      * Mottakskanal er dokumentert [her](https://confluence.adeo.no/spaces/BOA/pages/316396050/Mottakskanal).

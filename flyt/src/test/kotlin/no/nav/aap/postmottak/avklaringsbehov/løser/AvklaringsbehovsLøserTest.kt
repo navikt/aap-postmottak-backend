@@ -4,10 +4,7 @@ import no.nav.aap.FakeUnleash
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
-import no.nav.aap.postmottak.test.MockConnection
 import no.nav.aap.komponenter.gateway.Factory
-import no.nav.aap.komponenter.repository.RepositoryRegistry
-import no.nav.aap.motor.FlytJobbRepositoryImpl
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Klagebehandling
@@ -15,13 +12,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.klient.createGatewayProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
-import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
-import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.MockConnection
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -92,6 +84,10 @@ class BehandlingsflytGatewayMock : BehandlingsflytGateway {
     }
 
     override fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling> {
+        TODO("Not yet implemented")
+    }
+
+    override fun sendFeilregistrertHendelse(journalpostId: JournalpostId, saksnummer: String) {
         TODO("Not yet implemented")
     }
 }

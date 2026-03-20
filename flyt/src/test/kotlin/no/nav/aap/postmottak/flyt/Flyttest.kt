@@ -35,7 +35,6 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
-import no.nav.aap.postmottak.flyt.Flyttest.Companion.dataSource
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
@@ -755,6 +754,48 @@ class Flyttest : WithDependencies {
         assertThat(redigitalisering).hasSize(2)
         assertThat(redigitalisering.last().status()).isEqualTo(Status.UTREDES)
         assertThat(redigitalisering.last().typeBehandling).isEqualTo(TypeBehandling.DokumentHåndtering)
+    }
+
+    @Test
+    fun `feilregistrert journalpost med åpen behandling trigger prosessering`() {
+        val journalpostId = TestJournalposter.FEILREGISTRERT
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+
+        // Verifiser at behandlingen er åpen
+        var behandling = hentBehandling(behandlingId)
+        assertThat(behandling.status().erÅpen()).isTrue()
+
+        // Legg feilregistrert hendelse på Kafka
+        leggJournalpostPåKafka {
+            this.journalpostId = journalpostId.referanse
+            this.journalpostStatus = "FEILREGISTRERT"
+        }
+
+        // Vent på at behandlingen er prosessert
+        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+
+        // Behandlingen skal nå være avsluttet (stegene oppdager erUgyldig())
+        behandling = hentBehandling(behandlingId)
+        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+    }
+
+    @Test
+    fun `feilregistrert journalpost uten behandlinger ignoreres`() {
+        val journalpostId = JournalpostId(9999L)
+
+        // Legg feilregistrert hendelse på Kafka for en journalpost uten behandlinger
+        val record = journalfoeringHendelseRecord().apply {
+            this.journalpostId = journalpostId.referanse
+            this.journalpostStatus = "FEILREGISTRERT"
+        }
+        val producerRecord = ProducerRecord(JOARK_TOPIC, "key", record)
+        producer.send(producerRecord)
+        producer.flush()
+        sleep(500)
+
+        // Verifiser at ingen behandlinger ble opprettet
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+        assertThat(behandlinger).isEmpty()
     }
 
     private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {

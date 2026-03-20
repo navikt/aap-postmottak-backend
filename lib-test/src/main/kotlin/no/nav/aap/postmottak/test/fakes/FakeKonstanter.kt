@@ -18,6 +18,7 @@ object TestJournalposter {
     val MED_GOSYS_OPPGAVER = JournalpostId(128)
     val PERSON_MED_SAK_I_ARENA = JournalpostId(129)
     val LEGEERKLÆRING_TRUKKET_SAK = JournalpostId(130)
+    val FEILREGISTRERT = JournalpostId(131)
 }
 
 
