@@ -235,6 +235,7 @@ private fun ingenSakerRespons() =
 private fun finnStatus(journalpostId: Long) =
     when (journalpostId) {
         TestJournalposter.UGYLDIG_STATUS.referanse -> "UTGAAR"
+        TestJournalposter.FEILREGISTRERT.referanse -> "FEILREGISTRERT"
         TestJournalposter.STATUS_JOURNALFØRT.referanse, TestJournalposter.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> "JOURNALFOERT"
         else -> "MOTTATT"
     }

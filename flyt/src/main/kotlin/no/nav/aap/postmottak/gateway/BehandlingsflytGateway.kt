@@ -34,6 +34,11 @@ interface BehandlingsflytGateway : Gateway {
     )
 
     fun finnKlagebehandlinger(saksnummer: Saksnummer): List<Klagebehandling>
+
+    fun sendFeilregistrertHendelse(
+        journalpostId: JournalpostId,
+        saksnummer: String,
+    )
 }
 
 data class BehandlingsflytSak(

@@ -119,6 +119,33 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
         return client.post<BehandlingsflytTypeBehandling, List<Klagebehandling>>(url, request) ?: emptyList()
     }
 
+    override fun sendFeilregistrertHendelse(
+        journalpostId: JournalpostId,
+        saksnummer: String,
+    ) {
+        log.info("Sender feilregistrert-hendelse for journalpost $journalpostId til sak $saksnummer")
+        val url = url.resolve("/api/hendelse/send")
+        val request = PostRequest(
+            Innsending(
+                Saksnummer(saksnummer),
+                InnsendingReferanse(
+                    InnsendingReferanse.Type.JOURNALPOST,
+                    journalpostId.referanse.toString()
+                ),
+                // TODO: Bytt til InnsendingType.FEILREGISTRERT_JOURNALPOST når den er tilgjengelig i behandlingsflyt:kontrakt
+                InnsendingType.ANNET_RELEVANT_DOKUMENT,
+                Kanal.DIGITAL,
+                LocalDateTime.now(),
+                null,
+                false
+            ),
+            additionalHeaders = listOf(
+                Header("Accept", "application/json")
+            )
+        )
+        client.post<Innsending, Unit>(url, request)
+    }
+
 }
 
 fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {

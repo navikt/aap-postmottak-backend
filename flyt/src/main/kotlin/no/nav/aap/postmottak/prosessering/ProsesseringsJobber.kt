@@ -18,6 +18,7 @@ object ProsesseringsJobber {
             GjenopptaBehandlingJobbUtfører,
             FordelingRegelJobbUtfører,
             FordelingVideresendJobbUtfører,
+            FeilregistrertJournalpostJobbUtfører,
             SendSøknadTilArenaJobbUtfører,
             ManuellJournalføringJobbUtfører,
             AutomatiskJournalføringJobbUtfører,
