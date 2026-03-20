@@ -758,7 +758,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `feilregistrert journalpost med åpen behandling trigger prosessering`() {
-        val journalpostId = TestJournalposter.PAPIR_SØKNAD
+        val journalpostId = TestJournalposter.FEILREGISTRERT
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         // Verifiser at behandlingen er åpen
