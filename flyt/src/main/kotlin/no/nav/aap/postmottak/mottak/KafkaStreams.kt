@@ -86,23 +86,23 @@ class JoarkKafkaHandler(
     init {
         val journalfoeringHendelseAvro = JournalfoeringHendelseAvro(config)
         val streamBuilder = StreamsBuilder()
-
-        val baseStream = streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
+        
+        streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
             .filter(erIkkeKanalEESSI)
-
-        // Håndter journalposter med status MOTTATT
-        baseStream
-            .filter(harStatusMottatt)
-            .peek { _, record -> prometheus.hendelseType(record) }
             .split()
-            .branch(erTemaEndretFraAAP, Branched.withConsumer(::temaendringTopology))
-            .branch(erTemaAAP, Branched.withConsumer(::nyJournalpost))
-
-        // Håndter journalposter med status FEILREGISTRERT
-        baseStream
-            .filter(harStatusFeilregistrert)
-            .filter(erTemaAAP)
-            .foreach { _, record -> håndterFeilregistrertJournalpost(record) }
+            .branch(harStatusMottatt, Branched.withConsumer { stream ->
+                stream
+                    .peek { _, record -> prometheus.hendelseType(record) }
+                    .split()
+                    .branch(erTemaEndretFraAAP, Branched.withConsumer(::temaendringTopology))
+                    .branch(erTemaAAP, Branched.withConsumer(::nyJournalpost))
+            })
+            .branch(harStatusFeilregistrert, Branched.withConsumer { stream ->
+                stream
+                    .peek { _, record -> prometheus.hendelseType(record) }
+                    .filter(erTemaAAP)
+                    .foreach { _, record -> håndterFeilregistrertJournalpost(record) }
+            })
 
         topology = streamBuilder.build()
 
@@ -171,6 +171,7 @@ class JoarkKafkaHandler(
                     log.info("Fant åpen behandling for feilregistrert journalpost $journalpostId - trigger prosessering")
                     triggProsesserBehandling(journalpostId, åpenBehandling)
                 }
+
                 behandlinger.isNotEmpty() -> {
                     log.info("Alle behandlinger avsluttet for feilregistrert journalpost $journalpostId - oppretter jobb")
                     flytJobbRepository.leggTil(
@@ -179,6 +180,7 @@ class JoarkKafkaHandler(
                             .medJournalpostId(journalpostId)
                     )
                 }
+
                 else -> {
                     log.info("Ingen behandlinger funnet for feilregistrert journalpost $journalpostId - ignorerer")
                 }

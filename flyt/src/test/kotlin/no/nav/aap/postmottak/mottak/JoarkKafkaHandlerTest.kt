@@ -15,7 +15,9 @@ import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
+import no.nav.aap.postmottak.prosessering.FeilregistrertJournalpostJobbUtfører
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
+import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -67,6 +69,88 @@ class JoarkKafkaHandlerTest {
             verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
         }
 
+    }
+
+    @Test
+    fun `feilregistrert journalpost med åpen behandling trigger prosessering`() {
+        val config = config()
+        setUpStreamsMock(config) {
+            val hendelseRecord = lagHendelseRecord(jpStatus = "FEILREGISTRERT")
+
+            every { behandlingRepository.hentAlleBehandlingerForSak(any()) } returns listOf(mockk(relaxed = true) {
+                every { status() } returns mockk {
+                    every { erÅpen() } returns true
+                }
+                every { id } returns mockk {
+                    every { id } returns 1L
+                }
+            })
+
+            pipeInput("yolo", hendelseRecord)
+
+            Thread.sleep(100)
+
+            verify(exactly = 1) {
+                flytJobbRepository.leggTil(withArg {
+                    assertThat(it.type()).isEqualTo(ProsesserBehandlingJobbUtfører.type)
+                })
+            }
+        }
+    }
+
+    @Test
+    fun `feilregistrert journalpost med avsluttede behandlinger oppretter FeilregistrertJournalpostJobb`() {
+        val config = config()
+        setUpStreamsMock(config) {
+            val hendelseRecord = lagHendelseRecord(jpStatus = "FEILREGISTRERT")
+
+            every { behandlingRepository.hentAlleBehandlingerForSak(any()) } returns listOf(mockk(relaxed = true) {
+                every { status() } returns mockk {
+                    every { erÅpen() } returns false
+                }
+            })
+
+            pipeInput("yolo", hendelseRecord)
+
+            Thread.sleep(100)
+
+            verify(exactly = 1) {
+                flytJobbRepository.leggTil(withArg {
+                    assertThat(it.type()).isEqualTo(FeilregistrertJournalpostJobbUtfører.type)
+                })
+            }
+        }
+    }
+
+    @Test
+    fun `feilregistrert journalpost uten behandlinger oppretter ingen jobb`() {
+        val config = config()
+        setUpStreamsMock(config) {
+            val hendelseRecord = lagHendelseRecord(jpStatus = "FEILREGISTRERT")
+
+            every { behandlingRepository.hentAlleBehandlingerForSak(any()) } returns emptyList()
+
+            pipeInput("yolo", hendelseRecord)
+
+            Thread.sleep(100)
+
+            verify(exactly = 0) { flytJobbRepository.leggTil(any()) }
+        }
+    }
+
+    @Test
+    fun `feilregistrert journalpost med annet tema enn AAP ignoreres`() {
+        val config = config()
+        setUpStreamsMock(config) {
+            val hendelseRecord = lagHendelseRecord(jpStatus = "FEILREGISTRERT", nyttTema = "SYK")
+
+            pipeInput("yolo", hendelseRecord)
+
+            Thread.sleep(100)
+
+            verify(exactly = 0) { flytJobbRepository.leggTil(any()) }
+            verify(exactly = 0) { behandlingRepository.hentAlleBehandlingerForSak(any()) }
+        }
     }
 
     private fun setUpStreamsMock(
