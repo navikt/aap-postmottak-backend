@@ -58,8 +58,8 @@ class ArenaVideresender(
 
         when (journalpost.hoveddokumentbrevkode) {
             Brevkoder.LEGEERKLÆRING.kode -> {
-                joarkClient.førJournalpostPåGenerellSak(journalpost, ARENA_LEGEERKLÆRING_TEMA)
-                joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
+                joarkClient.førJournalpostPåGenerellSak(journalpost, ARENA_LEGEERKLÆRING_TEMA, endretAv = null)
+                joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId, journalførtAv = null)
             }
 
             Brevkoder.SØKNAD.kode -> sendSøknadTilArena(journalpost, innkommendeJournalpostId)

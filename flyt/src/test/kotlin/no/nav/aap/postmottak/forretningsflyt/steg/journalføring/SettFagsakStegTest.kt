@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
@@ -16,6 +17,7 @@ import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -25,14 +27,16 @@ class SettFagsakStegTest {
     val journalpostRepository: JournalpostRepository = mockk()
     val avklarTemaRepository: AvklarTemaRepository = mockk()
     val joark: JournalføringService = mockk(relaxed = true)
+    val avklaringsbehovRepository: AvklaringsbehovRepository = mockk(relaxed = true)
 
-    val settFagsakSteg = SettFagsakSteg(journalpostRepository, saksnummerRepository, avklarTemaRepository, joark)
+    val settFagsakSteg = SettFagsakSteg(journalpostRepository, saksnummerRepository, avklarTemaRepository, joark, avklaringsbehovRepository)
 
     @Test
     fun `verifiser at journalpost blir oppdatert med saksnummer`() {
         val journalpost: Journalpost = mockk(relaxed = true)
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(true, Tema.AAP)
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { avklaringsbehovRepository.hentAvklaringsbehovene(any()).hvemSomLøste(Definisjon.AVKLAR_SAK) } returns null
 
         val vurdering = Saksvurdering(
             "12345",
@@ -52,7 +56,8 @@ class SettFagsakStegTest {
                 vurdering.saksnummer!!,
                 tittel = vurdering.journalposttittel,
                 avsenderMottaker = vurdering.avsenderMottaker,
-                dokumenter = vurdering.dokumenter
+                dokumenter = vurdering.dokumenter,
+                endretAv = null,
             )
         }
     }
@@ -64,6 +69,7 @@ class SettFagsakStegTest {
         }
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(true, Tema.AAP)
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { avklaringsbehovRepository.hentAvklaringsbehovene(any()).hvemSomLøste(Definisjon.AVKLAR_SAK) } returns null
 
         val vurdering = Saksvurdering(
             "12345",
@@ -83,7 +89,8 @@ class SettFagsakStegTest {
                 vurdering.saksnummer!!,
                 tittel = vurdering.journalposttittel,
                 avsenderMottaker = null,
-                dokumenter = vurdering.dokumenter
+                dokumenter = vurdering.dokumenter,
+                endretAv = null,
             )
         }
     }

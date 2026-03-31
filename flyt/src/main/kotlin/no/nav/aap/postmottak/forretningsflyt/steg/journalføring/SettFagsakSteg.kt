@@ -1,7 +1,10 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
+import no.nav.aap.api.intern.Status
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
@@ -13,13 +16,15 @@ import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 class SettFagsakSteg(
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
-    private val journalføringService: JournalføringService
+    private val journalføringService: JournalføringService,
+    private val avklaringsbehovRepository: AvklaringsbehovRepository,
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -30,7 +35,8 @@ class SettFagsakSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                JournalføringService(gatewayProvider)
+                JournalføringService(gatewayProvider),
+                repositoryProvider.provide(),
             )
         }
 
@@ -56,13 +62,18 @@ class SettFagsakSteg(
 
         val avsenderMottaker = saksvurdering.avsenderMottaker?.takeUnless { journalpost.kanal.erDigitalKanal() }
 
+        val endretAv = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+            .hvemSomLøste(Definisjon.AVKLAR_SAK)
+
+
         if (saksvurdering.generellSak) {
             journalføringService.førJournalpostPåGenerellSak(
                 journalpost = journalpost,
                 tema = temaavklaring.tema.name,
                 tittel = saksvurdering.journalposttittel,
                 avsenderMottaker = avsenderMottaker,
-                dokumenter = saksvurdering.dokumenter
+                dokumenter = saksvurdering.dokumenter,
+                endretAv = endretAv,
             )
         } else {
             journalføringService.førJournalpostPåFagsak(
@@ -71,7 +82,8 @@ class SettFagsakSteg(
                 fagsakId = saksvurdering.saksnummer!!,
                 tittel = saksvurdering.journalposttittel,
                 avsenderMottaker = avsenderMottaker,
-                dokumenter = saksvurdering.dokumenter
+                dokumenter = saksvurdering.dokumenter,
+                endretAv = endretAv,
             )
         }
 

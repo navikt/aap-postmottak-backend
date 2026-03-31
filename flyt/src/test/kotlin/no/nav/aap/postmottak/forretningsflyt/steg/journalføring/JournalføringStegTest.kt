@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
@@ -12,6 +13,7 @@ import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -21,9 +23,10 @@ class JournalføringStegTest {
     val journalpostRepository: JournalpostRepository = mockk()
     val joark: JournalføringService = mockk(relaxed = true)
     val avklarTemaRepository: AvklarTemaRepository = mockk(relaxed = true)
+    val avklaringsbehovRepository: AvklaringsbehovRepository = mockk(relaxed = true)
 
     val journalføringSteg = JournalføringSteg(
-        journalpostRepository, joark, avklarTemaRepository
+        journalpostRepository, joark, avklarTemaRepository, avklaringsbehovRepository
     )
 
     @Test
@@ -34,10 +37,11 @@ class JournalføringStegTest {
 
         val saksnummer = "saksnummer"
         every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer
+        every { avklaringsbehovRepository.hentAvklaringsbehovene(any()).hvemSomLøste(Definisjon.AVKLAR_SAK) } returns null
 
         journalføringSteg.utfør(mockk(relaxed = true))
 
-        verify(exactly = 1) { joark.ferdigstillJournalpostMaskinelt(journalpost.journalpostId) }
+        verify(exactly = 1) { joark.ferdigstillJournalpostMaskinelt(journalpost.journalpostId, null) }
     }
 
     @Test

@@ -11,7 +11,7 @@ object FakeUnleash : UnleashGateway {
 
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
-            else -> TODO()
+            PostmottakFeature.SporingSaksbehandlerJournalforing -> true
         }
     }
 

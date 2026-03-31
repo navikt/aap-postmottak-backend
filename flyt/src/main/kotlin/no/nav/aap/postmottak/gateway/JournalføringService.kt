@@ -6,11 +6,13 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
+import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.put
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
@@ -18,6 +20,8 @@ import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import java.io.InputStream
 import java.net.URI
 
@@ -26,7 +30,8 @@ private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 class JournalføringService(
     private val client: RestClient<InputStream>,
     private val safGraphqlKlient: JournalpostGateway,
-    val prometheus: MeterRegistry = SimpleMeterRegistry()
+    val prometheus: MeterRegistry = SimpleMeterRegistry(),
+    private val unleashGateway: UnleashGateway,
 ) {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
@@ -35,9 +40,10 @@ class JournalføringService(
         fun konstruer(
             restClient: RestClient<InputStream>,
             safGraphqlKlient: JournalpostGateway,
-            prometheus: MeterRegistry = SimpleMeterRegistry()
+            prometheus: MeterRegistry = SimpleMeterRegistry(),
+            unleashGateway: UnleashGateway,
         ): JournalføringService {
-            return JournalføringService(restClient, safGraphqlKlient, prometheus)
+            return JournalføringService(restClient, safGraphqlKlient, prometheus, unleashGateway)
         }
     }
 
@@ -49,8 +55,9 @@ class JournalføringService(
                 scope = requiredConfigForKey("integrasjon.joark.scope"),
             ),
             tokenProvider = ClientCredentialsTokenProvider,
-            prometheus = PrometheusProvider.prometheus
-        )
+            prometheus = PrometheusProvider.prometheus,
+        ),
+        unleashGateway = gatewayProvider.provide<UnleashGateway>(),
     )
 
     fun førJournalpostPåFagsak(
@@ -62,10 +69,11 @@ class JournalføringService(
         tittel: String? = null,
         avsenderMottaker: AvsenderMottakerDto? = null,
         dokumenter: List<ForenkletDokument>? = null,
+        endretAv: Bruker?,
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
         val request = PutRequest(
-            OppdaterJournalpostRequest(
+            body = OppdaterJournalpostRequest(
                 sak = JournalpostSak(
                     fagsakId = fagsakId,
                     fagsaksystem = fagsystem,
@@ -79,7 +87,8 @@ class JournalføringService(
                     journalpostId
                 ),
                 dokumenter = dokumenter
-            )
+            ),
+            additionalHeaders = navUserIdHeader(endretAv),
         )
         client.put<OppdaterJournalpostRequest, Unit>(path, request)
     }
@@ -89,11 +98,12 @@ class JournalføringService(
         tema: String = "AAP",
         tittel: String? = null,
         avsenderMottaker: AvsenderMottakerDto? = null,
-        dokumenter: List<ForenkletDokument>? = null
+        dokumenter: List<ForenkletDokument>? = null,
+        endretAv: Bruker?,
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
         val request = PutRequest(
-            OppdaterJournalpostRequest(
+            body = OppdaterJournalpostRequest(
                 sak = JournalpostSak(
                     sakstype = Sakstype.GENERELL_SAK,
                     fagsaksystem = null
@@ -107,21 +117,42 @@ class JournalføringService(
                     journalpost.journalpostId
                 ),
                 dokumenter = dokumenter
-            )
+            ),
+            additionalHeaders = navUserIdHeader(endretAv),
         )
         client.put(path, request) { _, _ -> }
     }
 
-    fun ferdigstillJournalpostMaskinelt(journalpostId: JournalpostId) {
-        ferdigstillJournalpost(journalpostId, MASKINELL_JOURNALFØRING_ENHET)
+    fun ferdigstillJournalpostMaskinelt(
+        journalpostId: JournalpostId,
+        journalførtAv: Bruker?,
+    ) {
+        ferdigstillJournalpost(journalpostId, MASKINELL_JOURNALFØRING_ENHET, journalførtAv)
     }
 
-    fun ferdigstillJournalpost(journalpostId: JournalpostId, journalfoerendeEnhet: String) {
+    fun ferdigstillJournalpost(
+        journalpostId: JournalpostId,
+        journalfoerendeEnhet: String,
+        journalførtAv: Bruker?,
+    ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/$journalpostId/ferdigstill")
-        val request = PatchRequest(FerdigstillRequest(journalfoerendeEnhet))
+        val request = PatchRequest(
+            body = FerdigstillRequest(journalfoerendeEnhet),
+            additionalHeaders = navUserIdHeader(journalførtAv),
+        )
         client.patch(path, request) { _, _ -> }
         prometheus.journalføringCounter(type = JournalføringsType.automatisk).increment()
     }
+
+    private fun navUserIdHeader(endretAv: Bruker?): List<Header> =
+        if (unleashGateway.isEnabled(PostmottakFeature.SporingSaksbehandlerJournalforing))
+            listOfNotNull(
+                endretAv?.let {
+                    Header("Nav-User-Id", it.ident)
+                }
+            )
+        else
+            emptyList()
 
     private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottakerDto? {
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
