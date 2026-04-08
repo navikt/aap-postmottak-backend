@@ -113,6 +113,14 @@ class Avklaringsbehovene(
         return alle().singleOrNull { it.definisjon == definisjon }
     }
 
+    fun hvemSomLøste(definisjon: Definisjon): Bruker? {
+        return hentBehovForDefinisjon(definisjon)
+            ?.historikk
+            ?.lastOrNull { it.status == no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVSLUTTET }
+            ?.endretAv
+            ?.let(::Bruker)
+    }
+
     internal fun internalAvbryt(definisjon: Definisjon) {
         val avklaringsbehov = alle().single { it.definisjon == definisjon }
         avklaringsbehov.avbryt()

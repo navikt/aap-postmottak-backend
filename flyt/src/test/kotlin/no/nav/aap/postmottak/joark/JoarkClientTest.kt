@@ -5,6 +5,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.FakeUnleash
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -33,6 +34,7 @@ class JoarkClientTest {
     private val gatewayRegistry = GatewayRegistry()
         .register<SafGraphqlClientCredentialsClient>()
         .register<PdlGraphqlKlient>()
+        .register<FakeUnleash>()
 
     private val gatewayProvider = GatewayProvider(gatewayRegistry)
 
@@ -58,7 +60,8 @@ class JoarkClientTest {
             "213412",
             tittel = null,
             avsenderMottaker = null,
-            dokumenter = null
+            dokumenter = null,
+            endretAv = null,
         )
     }
 
@@ -73,7 +76,7 @@ class JoarkClientTest {
         )
         every { journalpost.journalpostId } returns JournalpostId(1)
 
-        joarkClient.førJournalpostPåGenerellSak(journalpost, tittel = null, avsenderMottaker = null, dokumenter = null)
+        joarkClient.førJournalpostPåGenerellSak(journalpost, tittel = null, avsenderMottaker = null, dokumenter = null, endretAv = null)
     }
 
     @Test
@@ -87,7 +90,7 @@ class JoarkClientTest {
         )
         every { journalpost.journalpostId } returns JournalpostId(1)
 
-        joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId)
+        joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId, null)
     }
 
     @Test
@@ -95,7 +98,7 @@ class JoarkClientTest {
 
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
         val joarkClient =
-            JournalføringService.konstruer(restClient, SafGraphqlClientCredentialsClient())
+            JournalføringService.konstruer(restClient, SafGraphqlClientCredentialsClient(), unleashGateway = FakeUnleash)
 
         val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(TestJournalposter.UTEN_AVSENDER_MOTTAKER)
 
@@ -107,7 +110,8 @@ class JoarkClientTest {
             "2344",
             tittel = null,
             avsenderMottaker = null,
-            dokumenter = null
+            dokumenter = null,
+            endretAv = null,
         )
 
         verify {

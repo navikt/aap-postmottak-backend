@@ -70,9 +70,10 @@ class AutomatiskJournalføringJobbUtfører(
             journalpost.journalpostId,
             kontekst.ident,
             kontekst.saksnummer,
-            fagsystem = Fagsystem.AO01
+            fagsystem = Fagsystem.AO01,
+            endretAv = null,
         )
-        joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId)
+        joarkClient.ferdigstillJournalpostMaskinelt(kontekst.journalpostId, journalførtAv = null)
 
         gosysOppgaveGateway.finnOppgaverForJournalpost(journalpost.journalpostId, tema = "AAP")
             .forEach { gosysOppgaveGateway.ferdigstillOppgave(it) }
