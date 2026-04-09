@@ -154,14 +154,11 @@ class JournalføringService(
     }
 
     private fun navUserIdHeader(endretAv: Bruker?): List<Header> =
-        if (unleashGateway.isEnabled(PostmottakFeature.SporingSaksbehandlerJournalforing))
-            listOfNotNull(
-                endretAv?.let {
-                    Header("Nav-User-Id", it.ident)
-                }
-            )
-        else
-            emptyList()
+        listOfNotNull(
+            endretAv?.let {
+                Header("Nav-User-Id", it.ident)
+            }
+        )
 
     private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottakerDto? {
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
