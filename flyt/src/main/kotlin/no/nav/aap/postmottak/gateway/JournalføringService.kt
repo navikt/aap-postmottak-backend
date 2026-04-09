@@ -170,7 +170,7 @@ class JournalføringService(
         if (unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
             log.info("Funker denne i det hele tatt i prod?")
         }
-        log.info("brukertype: ${bruker.type?.name}")
+        log.info("brukertype: ${bruker.type?.name} for journalpost ${journalpostId}")
 
         return if (bruker.type == BrukerIdType.ORGNR && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
             val orgnr = Organisasjonsnummer(bruker.id!!)
