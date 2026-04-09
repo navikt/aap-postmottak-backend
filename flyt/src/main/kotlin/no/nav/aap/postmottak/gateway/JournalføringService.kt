@@ -83,6 +83,9 @@ class JournalføringService(
         endretAv: Bruker?,
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
+        val avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
+            journalpostId
+        )
         val request = PutRequest(
             body = OppdaterJournalpostRequest(
                 sak = JournalpostSak(
@@ -94,9 +97,7 @@ class JournalføringService(
                     id = ident.identifikator
                 ),
                 tittel = tittel,
-                avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
-                    journalpostId
-                ),
+                avsenderMottaker = avsenderMottaker,
                 dokumenter = dokumenter
             ),
             additionalHeaders = navUserIdHeader(endretAv),
@@ -163,13 +164,11 @@ class JournalføringService(
         )
 
     private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottakerDto? {
+        log.info("henter avsender journalpost for ${journalpostId}")
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker!!
 
-        if (unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
-            log.info("Funker denne i det hele tatt i prod?")
-        }
         log.info("brukertype: ${bruker.type?.name} for journalpost ${journalpostId}")
 
         return if (bruker.type == BrukerIdType.ORGNR && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
