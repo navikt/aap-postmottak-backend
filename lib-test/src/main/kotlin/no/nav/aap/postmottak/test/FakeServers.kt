@@ -66,6 +66,7 @@ class FakeServers : AutoCloseable {
     val staistikkFake = embeddedServer(Netty, port = 0, module = { statistikkFake() })
     val veilarbarena = embeddedServer(Netty, port = 0, module = { veilarbarena() })
     val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() })
+    val eregFake = embeddedServer(Netty, port = 0, module = { eregFake() })
 
     private val started = AtomicBoolean(false)
 
@@ -148,6 +149,9 @@ class FakeServers : AutoCloseable {
 
         // Texas
         System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token")
+
+        System.setProperty("integrasjon.ereg.url", "http://localhost:${eregFake.port()}")
+        System.setProperty("integrasjon.ereg.scope", "scope")
     }
 
     fun start() {
@@ -173,6 +177,7 @@ class FakeServers : AutoCloseable {
         staistikkFake.start()
         veilarbarena.start()
         pesysFake.start()
+        eregFake.start()
 
         println("AZURE PORT ${azure.port()}")
 
@@ -202,6 +207,7 @@ class FakeServers : AutoCloseable {
         staistikkFake.stop()
         veilarbarena.stop()
         pesysFake.stop()
+        eregFake.stop()
     }
 
     private fun Application.oppgaveFake() {
@@ -385,6 +391,22 @@ class FakeServers : AutoCloseable {
             }
         }
     }
+
+    private fun Application.eregFake() {
+        install(ContentNegotiation) {
+            jackson {
+                registerModule(JavaTimeModule())
+            }
+        }
+        routing {
+            get("/api/v2/organisasjon") {
+                call.respondText(ContentType.Text.Plain) {
+                    ""
+                }
+            }
+        }
+    }
+
 
     private fun Application.pesysFake() {
         install(ContentNegotiation) {
