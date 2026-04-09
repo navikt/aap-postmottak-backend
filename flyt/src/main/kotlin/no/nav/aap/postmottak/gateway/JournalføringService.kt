@@ -83,6 +83,7 @@ class JournalføringService(
         endretAv: Bruker?,
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
+        log.info("førJournalpostPåFagsak ${journalpostId}, type: ${avsenderMottaker?.idType}")
         val avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
             journalpostId
         )
