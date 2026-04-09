@@ -39,6 +39,7 @@ outbound:
     - host: aap-fss-proxy.prod-fss-pub.nais.io
     - host: veilarbarena.prod-fss-pub.nais.io
     - host: pensjon-pen.prod-fss-pub.nais.io
+    - host: ereg-services.prod-fss-pub.nais.io
 
 env:
   - name: INTEGRASJON_SAF_URL_GRAPHQL
@@ -103,3 +104,7 @@ env:
     value: https://pensjon-pen.prod-fss-pub.nais.io
   - name: INTEGRASJON_PESYS_SCOPE
     value: api://prod-fss.pensjondeployer.pensjon-pen/.default
+  - name: INTEGRASJON_EREG_URL
+    value: https://ereg-services.prod-fss-pub.nais.io
+  - name: INTEGRASJON_EREG_SCOPE
+    value: api://prod-fss.arbeidsforhold.ereg-services/.default
