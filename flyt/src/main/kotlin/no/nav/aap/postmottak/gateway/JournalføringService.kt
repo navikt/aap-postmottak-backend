@@ -167,6 +167,10 @@ class JournalføringService(
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker!!
 
+        if (unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
+            log.info("Funker denne i det hele tatt i prod?")
+        }
+        log.info("brukertype: ${bruker.type?.name}")
 
         return if (bruker.type == BrukerIdType.ORGNR && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
             val orgnr = Organisasjonsnummer(bruker.id!!)
