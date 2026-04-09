@@ -22,7 +22,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
-import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
 
@@ -37,7 +36,6 @@ class JournalføringService(
 ) {
 
     private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
-    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
         fun konstruer(
@@ -83,10 +81,6 @@ class JournalføringService(
         endretAv: Bruker?,
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
-        log.info("førJournalpostPåFagsak ${journalpostId}, type: ${avsenderMottaker?.idType}")
-        val avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
-            journalpostId
-        )
         val request = PutRequest(
             body = OppdaterJournalpostRequest(
                 sak = JournalpostSak(
@@ -98,7 +92,9 @@ class JournalføringService(
                     id = ident.identifikator
                 ),
                 tittel = tittel,
-                avsenderMottaker = avsenderMottaker,
+                avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
+                    journalpostId
+                ),
                 dokumenter = dokumenter
             ),
             additionalHeaders = navUserIdHeader(endretAv),
@@ -165,26 +161,20 @@ class JournalføringService(
         )
 
     private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottakerDto? {
-        log.info("henter avsender journalpost for ${journalpostId}")
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker!!
 
-        log.info("brukertype: ${bruker.type?.name} for journalpost ${journalpostId}")
-
         return if (bruker.type == BrukerIdType.ORGNR && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
             val orgnr = Organisasjonsnummer(bruker.id!!)
 
-            log.info("Henter avsenderMottaker")
             val eregRespons = enhetsregisteretGateway.hentOrganisasjon(orgnr)
             if (eregRespons?.fantIkke == true) {
-                log.info("Fant ikke org")
                 AvsenderMottakerDto(
                     id = safJournalpost.bruker.id,
                     idType = AvsenderMottakerDto.IdType.UTL_ORG
                 )
             } else {
-                log.info("Fant org")
                 AvsenderMottakerDto(
                     id = orgnr.value,
                     idType = AvsenderMottakerDto.IdType.ORGNR,
@@ -192,13 +182,11 @@ class JournalføringService(
                 )
             }
         } else if (avsenderMottaker?.id == null && bruker.type in listOf(BrukerIdType.FNR, BrukerIdType.ORGNR)) {
-            log.info("Kjørte normal flyt")
             AvsenderMottakerDto(
                 id = safJournalpost.bruker.id,
                 idType = AvsenderMottakerDto.IdType.valueOf(bruker.type?.name!!),
             )
         } else {
-            log.info("nullet ut")
             null
         }
     }
