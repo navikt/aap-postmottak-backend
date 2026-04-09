@@ -169,8 +169,9 @@ class JournalføringService(
         val bruker = safJournalpost.bruker!!
 
 
-        return if (avsenderMottaker?.id == null && bruker.type == BrukerIdType.ORGNR) {
+        return if (avsenderMottaker?.id == null && bruker.type == BrukerIdType.ORGNR && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
             val orgnr = Organisasjonsnummer(bruker.id!!)
+
             val eregRespons = enhetsregisteretGateway.hentOrganisasjon(orgnr)
             if (eregRespons?.fantIkke == true) {
                 AvsenderMottakerDto(
