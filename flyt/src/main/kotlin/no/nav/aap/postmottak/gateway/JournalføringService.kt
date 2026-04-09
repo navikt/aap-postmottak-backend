@@ -45,7 +45,13 @@ class JournalføringService(
             prometheus: MeterRegistry = SimpleMeterRegistry(),
             unleashGateway: UnleashGateway,
         ): JournalføringService {
-            return JournalføringService(restClient, safGraphqlKlient, enhetsregisteretGateway, prometheus, unleashGateway)
+            return JournalføringService(
+                restClient,
+                safGraphqlKlient,
+                enhetsregisteretGateway,
+                prometheus,
+                unleashGateway
+            )
         }
     }
 
@@ -166,16 +172,16 @@ class JournalføringService(
         return if (avsenderMottaker?.id == null && bruker.type == BrukerIdType.ORGNR) {
             val orgnr = Organisasjonsnummer(bruker.id!!)
             val eregRespons = enhetsregisteretGateway.hentOrganisasjon(orgnr)
-            if (eregRespons != null) {
-                AvsenderMottakerDto(
-                    id = orgnr.value,
-                    idType = AvsenderMottakerDto.IdType.ORGNR,
-                    navn = eregRespons.navn.sammensattnavn,
-                )
-            } else {
+            if (eregRespons?.fantIkke == true) {
                 AvsenderMottakerDto(
                     id = safJournalpost.bruker.id,
                     idType = AvsenderMottakerDto.IdType.UTL_ORG
+                )
+            } else {
+                AvsenderMottakerDto(
+                    id = orgnr.value,
+                    idType = AvsenderMottakerDto.IdType.ORGNR,
+                    navn = eregRespons?.navn?.sammensattnavn,
                 )
             }
         } else if (avsenderMottaker?.id == null && bruker.type in listOf(BrukerIdType.FNR, BrukerIdType.ORGNR)) {

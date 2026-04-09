@@ -13,6 +13,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.error.IkkeFunnetException
 import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.postmottak.gateway.EnhetsregisterOrganisasjonsNavn
 import org.slf4j.LoggerFactory
 import java.net.URI
 
@@ -46,9 +47,16 @@ class EREGKlient : EnhetsregisteretGateway {
             )
         } catch (e: IkkeFunnetException) {
             log.warn("Fant ikke organisasjon i EREG for orgnr ${organisasjonsnummer.value}. Fortsetter uten verdi.", e)
-            null
+            EnhetsregisterOrganisasjonResponse(
+                organisasjonsnummer = organisasjonsnummer.value,
+                navn = null,
+                fantIkke = true
+            )
         } catch (e: Exception) {
-            log.warn("Feil ved henting av data fra EREG for orgnr ${organisasjonsnummer.value}. Fortsetter uten verdi.", e)
+            log.warn(
+                "Feil ved henting av data fra EREG for orgnr ${organisasjonsnummer.value}. Fortsetter uten verdi.",
+                e
+            )
             null
         }
     }

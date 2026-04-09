@@ -11,7 +11,8 @@ interface EnhetsregisteretGateway : Gateway {
 
 data class EnhetsregisterOrganisasjonResponse(
     val organisasjonsnummer: String,
-    val navn: EnhetsregisterOrganisasjonsNavn
+    val navn: EnhetsregisterOrganisasjonsNavn? = null,
+    val fantIkke: Boolean = false
 )
 
 data class EnhetsregisterOrganisasjonsNavn(
