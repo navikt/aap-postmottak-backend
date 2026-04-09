@@ -81,6 +81,8 @@ class JournalføringService(
         endretAv: Bruker?,
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
+
+
         val request = PutRequest(
             body = OppdaterJournalpostRequest(
                 sak = JournalpostSak(
@@ -93,7 +95,7 @@ class JournalføringService(
                 ),
                 tittel = tittel,
                 avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
-                    journalpostId
+                    journalpostId // TODO: Må sjekke for utenlandsk orgnummer før dette
                 ),
                 dokumenter = dokumenter
             ),
