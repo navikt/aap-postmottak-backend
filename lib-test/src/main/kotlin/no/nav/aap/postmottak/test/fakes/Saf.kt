@@ -80,7 +80,7 @@ fun Application.safFake(
                           "personident": "3",
                           "bruker": {
                             "id": "${finnBruker(journalpostId.toLong())}",
-                            "type": "FNR"
+                            "type": "${finnBrukerType(journalpostId.toLong())}"
                           },
                           ${getAvsenderMottaker(journalpostId.toLong())}
                           "tittel": "Søknad om AAP",
@@ -113,6 +113,7 @@ fun Application.safFake(
 private fun getAvsenderMottaker(journalpostId: Long) =
     when (journalpostId) {
         TestJournalposter.UTEN_AVSENDER_MOTTAKER.referanse -> ""
+        TestJournalposter.UTENLANDSK_ORGNR.referanse -> ""
         TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> """"avsenderMottaker": {
             "id": "21345345210",
             "type": "FNR",
@@ -247,5 +248,12 @@ private fun finnBruker(journalpostId: Long) =
 
         TestJournalposter.PERSON_MED_SAK_I_ARENA.referanse -> TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator
         TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> TestIdenter.IDENT_MED_TRUKKET_SAK_I_KELVIN.identifikator
+        TestJournalposter.UTENLANDSK_ORGNR.referanse -> "999999999"
         else -> TestIdenter.DEFAULT_IDENT.identifikator
+    }
+
+private fun finnBrukerType(journalpostId: Long) =
+    when (journalpostId) {
+        TestJournalposter.UTENLANDSK_ORGNR.referanse -> "ORGNR"
+        else -> "FNR"
     }

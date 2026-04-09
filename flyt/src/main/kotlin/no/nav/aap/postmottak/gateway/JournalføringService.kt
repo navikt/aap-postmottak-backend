@@ -30,6 +30,7 @@ private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 class JournalføringService(
     private val client: RestClient<InputStream>,
     private val safGraphqlKlient: JournalpostGateway,
+    private val enhetsregisteretGateway: EnhetsregisteretGateway,
     val prometheus: MeterRegistry = SimpleMeterRegistry(),
     private val unleashGateway: UnleashGateway,
 ) {
@@ -40,15 +41,23 @@ class JournalføringService(
         fun konstruer(
             restClient: RestClient<InputStream>,
             safGraphqlKlient: JournalpostGateway,
+            enhetsregisteretGateway: EnhetsregisteretGateway,
             prometheus: MeterRegistry = SimpleMeterRegistry(),
             unleashGateway: UnleashGateway,
         ): JournalføringService {
-            return JournalføringService(restClient, safGraphqlKlient, prometheus, unleashGateway)
+            return JournalføringService(
+                restClient,
+                safGraphqlKlient,
+                enhetsregisteretGateway,
+                prometheus,
+                unleashGateway
+            )
         }
     }
 
     constructor(gatewayProvider: GatewayProvider) : this(
         safGraphqlKlient = gatewayProvider.provide(JournalpostGateway::class),
+        enhetsregisteretGateway = gatewayProvider.provide(EnhetsregisteretGateway::class),
         prometheus = PrometheusProvider.prometheus,
         client = RestClient.withDefaultResponseHandler(
             config = ClientConfig(
@@ -158,7 +167,25 @@ class JournalføringService(
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker!!
-        return if (avsenderMottaker?.id == null && bruker.type in listOf(BrukerIdType.FNR, BrukerIdType.ORGNR)) {
+
+
+        return if (avsenderMottaker?.id == null && bruker.type == BrukerIdType.ORGNR && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
+            val orgnr = Organisasjonsnummer(bruker.id!!)
+
+            val eregRespons = enhetsregisteretGateway.hentOrganisasjon(orgnr)
+            if (eregRespons?.fantIkke == true) {
+                AvsenderMottakerDto(
+                    id = safJournalpost.bruker.id,
+                    idType = AvsenderMottakerDto.IdType.UTL_ORG
+                )
+            } else {
+                AvsenderMottakerDto(
+                    id = orgnr.value,
+                    idType = AvsenderMottakerDto.IdType.ORGNR,
+                    navn = eregRespons?.navn?.sammensattnavn,
+                )
+            }
+        } else if (avsenderMottaker?.id == null && bruker.type in listOf(BrukerIdType.FNR, BrukerIdType.ORGNR)) {
             AvsenderMottakerDto(
                 id = safJournalpost.bruker.id,
                 idType = AvsenderMottakerDto.IdType.valueOf(bruker.type?.name!!),
