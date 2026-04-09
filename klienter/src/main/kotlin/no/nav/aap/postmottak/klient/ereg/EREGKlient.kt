@@ -13,7 +13,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.error.IkkeFunnetException
 import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.postmottak.gateway.EnhetsregisterOrganisasjonsNavn
 import org.slf4j.LoggerFactory
 import java.net.URI
 
