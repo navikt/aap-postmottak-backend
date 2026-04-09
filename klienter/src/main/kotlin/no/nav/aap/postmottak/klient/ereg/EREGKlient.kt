@@ -34,6 +34,7 @@ class EREGKlient : EnhetsregisteretGateway {
     }
 
     override fun hentOrganisasjon(organisasjonsnummer: Organisasjonsnummer): EnhetsregisterOrganisasjonResponse? {
+        log.info("Henter organisasjon fra EREG for orgnr ${organisasjonsnummer.value}")
         val httpRequest = GetRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json")
