@@ -5,12 +5,14 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.FakeEnhetsregisteretKlient
 import no.nav.aap.FakeUnleash
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
+import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
@@ -35,6 +37,7 @@ class JoarkClientTest {
         .register<SafGraphqlClientCredentialsClient>()
         .register<PdlGraphqlKlient>()
         .register<FakeUnleash>()
+        .register<FakeEnhetsregisteretKlient>()
 
     private val gatewayProvider = GatewayProvider(gatewayRegistry)
 
@@ -76,7 +79,13 @@ class JoarkClientTest {
         )
         every { journalpost.journalpostId } returns JournalpostId(1)
 
-        joarkClient.førJournalpostPåGenerellSak(journalpost, tittel = null, avsenderMottaker = null, dokumenter = null, endretAv = null)
+        joarkClient.førJournalpostPåGenerellSak(
+            journalpost,
+            tittel = null,
+            avsenderMottaker = null,
+            dokumenter = null,
+            endretAv = null
+        )
     }
 
     @Test
@@ -98,9 +107,15 @@ class JoarkClientTest {
 
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
         val joarkClient =
-            JournalføringService.konstruer(restClient, SafGraphqlClientCredentialsClient(), unleashGateway = FakeUnleash)
+            JournalføringService.konstruer(
+                restClient,
+                SafGraphqlClientCredentialsClient(),
+                enhetsregisteretGateway = FakeEnhetsregisteretKlient,
+                unleashGateway = FakeUnleash
+            )
 
-        val safJournalpost = SafGraphqlClientCredentialsClient().hentJournalpost(TestJournalposter.UTEN_AVSENDER_MOTTAKER)
+        val safJournalpost =
+            SafGraphqlClientCredentialsClient().hentJournalpost(TestJournalposter.UTEN_AVSENDER_MOTTAKER)
 
         assertThat(safJournalpost.avsenderMottaker).isNull()
 
@@ -120,6 +135,42 @@ class JoarkClientTest {
                 assertThat(avsenderMottaker?.id).isEqualTo(TestIdenter.DEFAULT_IDENT.identifikator)
                 assertThat(avsenderMottaker?.idType).isEqualTo(AvsenderMottakerDto.IdType.FNR)
                 assertThat(avsenderMottaker?.navn).isEqualTo(null)
+            }, any())
+        }
+    }
+
+    @Test
+    fun `avsenderMottaker for utenlandsk organisasjon får type UTL_ORG`() {
+        val restClient = mockk<RestClient<InputStream>>(relaxed = true)
+        val joarkClient =
+            JournalføringService.konstruer(
+                restClient,
+                SafGraphqlClientCredentialsClient(),
+                enhetsregisteretGateway = FakeEnhetsregisteretKlient,
+                unleashGateway = FakeUnleash
+            )
+
+        val safJournalpost =
+            SafGraphqlClientCredentialsClient().hentJournalpost(TestJournalposter.UTENLANDSK_ORGNR)
+
+        assertThat(safJournalpost.avsenderMottaker).isNull()
+        assertThat(safJournalpost.bruker?.type).isEqualTo(BrukerIdType.ORGNR)
+
+        joarkClient.førJournalpostPåFagsak(
+            TestJournalposter.UTENLANDSK_ORGNR,
+            TestIdenter.DEFAULT_IDENT,
+            "2344",
+            tittel = null,
+            avsenderMottaker = null,
+            dokumenter = null,
+            endretAv = null,
+        )
+
+        verify {
+            restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->
+                val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
+                assertThat(avsenderMottaker?.id).isEqualTo("999999999")
+                assertThat(avsenderMottaker?.idType).isEqualTo(AvsenderMottakerDto.IdType.UTL_ORG)
             }, any())
         }
     }
