@@ -82,7 +82,6 @@ class JournalføringService(
     ) {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
 
-
         val request = PutRequest(
             body = OppdaterJournalpostRequest(
                 sak = JournalpostSak(
@@ -94,14 +93,32 @@ class JournalføringService(
                     id = ident.identifikator
                 ),
                 tittel = tittel,
-                avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
-                    journalpostId // TODO: Må sjekke for utenlandsk orgnummer før dette
-                ),
+                avsenderMottaker = hentMottaker(avsenderMottaker, journalpostId),
                 dokumenter = dokumenter
             ),
             additionalHeaders = navUserIdHeader(endretAv),
         )
         client.put<OppdaterJournalpostRequest, Unit>(path, request)
+    }
+
+    fun hentMottaker(avsenderMottaker: AvsenderMottakerDto?, journalpostId: JournalpostId): AvsenderMottakerDto? {
+        val avsender = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
+            journalpostId
+        )
+
+        return if (avsender?.idType == AvsenderMottakerDto.IdType.ORGNR && avsender.id != null && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
+            val orgnr = Organisasjonsnummer(avsender.id)
+            val eregRespons = enhetsregisteretGateway.hentOrganisasjon(orgnr)
+
+            if (eregRespons?.fantIkke == true) {
+                AvsenderMottakerDto(
+                    id = avsender.id,
+                    idType = AvsenderMottakerDto.IdType.UTL_ORG
+                )
+            } else {
+                avsender
+            }
+        } else avsender
     }
 
     fun førJournalpostPåGenerellSak(
@@ -162,28 +179,12 @@ class JournalføringService(
             }
         )
 
+
     private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottakerDto? {
         val safJournalpost = safGraphqlKlient.hentJournalpost(journalpostId)
         val avsenderMottaker = safJournalpost.avsenderMottaker
         val bruker = safJournalpost.bruker!!
-
-        return if (bruker.type == BrukerIdType.ORGNR && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
-            val orgnr = Organisasjonsnummer(bruker.id!!)
-
-            val eregRespons = enhetsregisteretGateway.hentOrganisasjon(orgnr)
-            if (eregRespons?.fantIkke == true) {
-                AvsenderMottakerDto(
-                    id = safJournalpost.bruker.id,
-                    idType = AvsenderMottakerDto.IdType.UTL_ORG
-                )
-            } else {
-                AvsenderMottakerDto(
-                    id = orgnr.value,
-                    idType = AvsenderMottakerDto.IdType.ORGNR,
-                    navn = eregRespons?.navn?.sammensattnavn,
-                )
-            }
-        } else if (avsenderMottaker?.id == null && bruker.type in listOf(BrukerIdType.FNR, BrukerIdType.ORGNR)) {
+        return if (avsenderMottaker?.id == null && bruker.type in listOf(BrukerIdType.FNR, BrukerIdType.ORGNR)) {
             AvsenderMottakerDto(
                 id = safJournalpost.bruker.id,
                 idType = AvsenderMottakerDto.IdType.valueOf(bruker.type?.name!!),
@@ -194,64 +195,64 @@ class JournalføringService(
     }
 }
 
-data class FerdigstillRequest(
-    val journalfoerendeEnhet: String
-)
+    data class FerdigstillRequest(
+        val journalfoerendeEnhet: String
+    )
 
-data class OppdaterJournalpostRequest(
-    val behandlingstema: String? = null,
-    val sak: JournalpostSak,
-    val tema: String,
-    val bruker: JournalpostBruker,
-    @param:JsonInclude(JsonInclude.Include.NON_NULL)
-    val tittel: String?,
-    @param:JsonInclude(JsonInclude.Include.NON_NULL)
-    val avsenderMottaker: AvsenderMottakerDto?,
-    @param:JsonInclude(JsonInclude.Include.NON_NULL)
-    val dokumenter: List<ForenkletDokument>?
-)
+    data class OppdaterJournalpostRequest(
+        val behandlingstema: String? = null,
+        val sak: JournalpostSak,
+        val tema: String,
+        val bruker: JournalpostBruker,
+        @param:JsonInclude(JsonInclude.Include.NON_NULL)
+        val tittel: String?,
+        @param:JsonInclude(JsonInclude.Include.NON_NULL)
+        val avsenderMottaker: AvsenderMottakerDto?,
+        @param:JsonInclude(JsonInclude.Include.NON_NULL)
+        val dokumenter: List<ForenkletDokument>?
+    )
 
-data class AvsenderMottakerDto(
-    val id: String?,
-    val idType: IdType?,
-    val navn: String? = null,
-) {
-    /**
-     * Navn må være satt ELLER både id og idType må være satt
-     * Helst bør alle tre være satt
-     * Se https://confluence.adeo.no/spaces/BOA/pages/313346834/oppdaterJournalpost
-     **/
-    fun erGyldig(): Boolean = navn != null || (id != null && idType != null)
+    data class AvsenderMottakerDto(
+        val id: String?,
+        val idType: IdType?,
+        val navn: String? = null,
+    ) {
+        /**
+         * Navn må være satt ELLER både id og idType må være satt
+         * Helst bør alle tre være satt
+         * Se https://confluence.adeo.no/spaces/BOA/pages/313346834/oppdaterJournalpost
+         **/
+        fun erGyldig(): Boolean = navn != null || (id != null && idType != null)
 
-    /**
-     * Dokarkiv aksepterer kun disse ved oppdatering/ferdigstilling av journalpost
-     **/
-    enum class IdType {
-        FNR, ORGNR, HPRNR, UTL_ORG,
-    }
+        /**
+         * Dokarkiv aksepterer kun disse ved oppdatering/ferdigstilling av journalpost
+         **/
+        enum class IdType {
+            FNR, ORGNR, HPRNR, UTL_ORG,
+        }
 
-    fun entenKunNavnEllerIdOgType(): AvsenderMottakerDto {
-        return if (id != null && idType != null) {
-            this.copy(navn = null)
-        } else {
-            this.copy(id = null, idType = null)
+        fun entenKunNavnEllerIdOgType(): AvsenderMottakerDto {
+            return if (id != null && idType != null) {
+                this.copy(navn = null)
+            } else {
+                this.copy(id = null, idType = null)
+            }
         }
     }
-}
 
-enum class Fagsystem {
-    KELVIN,
-    AO01, // Arena
-    FS22 // Generell sak
-}
+    enum class Fagsystem {
+        KELVIN,
+        AO01, // Arena
+        FS22 // Generell sak
+    }
 
-data class JournalpostSak(
-    val sakstype: Sakstype = Sakstype.FAGSAK,
-    val fagsakId: String? = null,
-    val fagsaksystem: Fagsystem? = Fagsystem.KELVIN
-)
+    data class JournalpostSak(
+        val sakstype: Sakstype = Sakstype.FAGSAK,
+        val fagsakId: String? = null,
+        val fagsaksystem: Fagsystem? = Fagsystem.KELVIN
+    )
 
-data class JournalpostBruker(
-    val id: String,
-    val idType: String = "FNR"
-)
+    data class JournalpostBruker(
+        val id: String,
+        val idType: String = "FNR"
+    )
