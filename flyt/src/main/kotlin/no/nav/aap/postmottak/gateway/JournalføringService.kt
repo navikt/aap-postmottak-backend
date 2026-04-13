@@ -113,7 +113,8 @@ class JournalføringService(
             if (eregRespons?.fantIkke == true) {
                 AvsenderMottakerDto(
                     id = avsender.id,
-                    idType = AvsenderMottakerDto.IdType.UTL_ORG
+                    idType = AvsenderMottakerDto.IdType.UTL_ORG,
+                    navn = avsender.navn
                 )
             } else {
                 avsender
