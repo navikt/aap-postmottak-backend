@@ -115,7 +115,7 @@ class JournalføringService(
                 AvsenderMottakerDto(
                     id = avsender.id,
                     idType = AvsenderMottakerDto.IdType.UTL_ORG,
-                    navn = avsenderMottaker?.navn
+                    navn = avsenderMottaker.navn
                 )
             } else {
                 avsender
