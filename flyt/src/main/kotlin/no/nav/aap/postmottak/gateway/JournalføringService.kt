@@ -106,7 +106,7 @@ class JournalføringService(
             journalpostId
         )
 
-        return if (avsender?.idType == AvsenderMottakerDto.IdType.ORGNR && avsender.id != null && unleashGateway.isEnabled(PostmottakFeature.EREGUtlandSjekk)) {
+        return if (avsender?.idType == AvsenderMottakerDto.IdType.ORGNR && avsender.id != null) {
             val orgnr = Organisasjonsnummer(avsender.id)
             val eregRespons = enhetsregisteretGateway.hentOrganisasjon(orgnr)
 
@@ -197,64 +197,64 @@ class JournalføringService(
     }
 }
 
-    data class FerdigstillRequest(
-        val journalfoerendeEnhet: String
-    )
+data class FerdigstillRequest(
+    val journalfoerendeEnhet: String
+)
 
-    data class OppdaterJournalpostRequest(
-        val behandlingstema: String? = null,
-        val sak: JournalpostSak,
-        val tema: String,
-        val bruker: JournalpostBruker,
-        @param:JsonInclude(JsonInclude.Include.NON_NULL)
-        val tittel: String?,
-        @param:JsonInclude(JsonInclude.Include.NON_NULL)
-        val avsenderMottaker: AvsenderMottakerDto?,
-        @param:JsonInclude(JsonInclude.Include.NON_NULL)
-        val dokumenter: List<ForenkletDokument>?
-    )
+data class OppdaterJournalpostRequest(
+    val behandlingstema: String? = null,
+    val sak: JournalpostSak,
+    val tema: String,
+    val bruker: JournalpostBruker,
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
+    val tittel: String?,
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
+    val avsenderMottaker: AvsenderMottakerDto?,
+    @param:JsonInclude(JsonInclude.Include.NON_NULL)
+    val dokumenter: List<ForenkletDokument>?
+)
 
-    data class AvsenderMottakerDto(
-        val id: String?,
-        val idType: IdType?,
-        val navn: String? = null,
-    ) {
-        /**
-         * Navn må være satt ELLER både id og idType må være satt
-         * Helst bør alle tre være satt
-         * Se https://confluence.adeo.no/spaces/BOA/pages/313346834/oppdaterJournalpost
-         **/
-        fun erGyldig(): Boolean = navn != null || (id != null && idType != null)
+data class AvsenderMottakerDto(
+    val id: String?,
+    val idType: IdType?,
+    val navn: String? = null,
+) {
+    /**
+     * Navn må være satt ELLER både id og idType må være satt
+     * Helst bør alle tre være satt
+     * Se https://confluence.adeo.no/spaces/BOA/pages/313346834/oppdaterJournalpost
+     **/
+    fun erGyldig(): Boolean = navn != null || (id != null && idType != null)
 
-        /**
-         * Dokarkiv aksepterer kun disse ved oppdatering/ferdigstilling av journalpost
-         **/
-        enum class IdType {
-            FNR, ORGNR, HPRNR, UTL_ORG,
-        }
-
-        fun entenKunNavnEllerIdOgType(): AvsenderMottakerDto {
-            return if (id != null && idType != null) {
-                this.copy(navn = null)
-            } else {
-                this.copy(id = null, idType = null)
-            }
-        }
+    /**
+     * Dokarkiv aksepterer kun disse ved oppdatering/ferdigstilling av journalpost
+     **/
+    enum class IdType {
+        FNR, ORGNR, HPRNR, UTL_ORG,
     }
 
-    enum class Fagsystem {
-        KELVIN,
-        AO01, // Arena
-        FS22 // Generell sak
+    fun entenKunNavnEllerIdOgType(): AvsenderMottakerDto {
+        return if (id != null && idType != null) {
+            this.copy(navn = null)
+        } else {
+            this.copy(id = null, idType = null)
+        }
     }
+}
 
-    data class JournalpostSak(
-        val sakstype: Sakstype = Sakstype.FAGSAK,
-        val fagsakId: String? = null,
-        val fagsaksystem: Fagsystem? = Fagsystem.KELVIN
-    )
+enum class Fagsystem {
+    KELVIN,
+    AO01, // Arena
+    FS22 // Generell sak
+}
 
-    data class JournalpostBruker(
-        val id: String,
-        val idType: String = "FNR"
-    )
+data class JournalpostSak(
+    val sakstype: Sakstype = Sakstype.FAGSAK,
+    val fagsakId: String? = null,
+    val fagsaksystem: Fagsystem? = Fagsystem.KELVIN
+)
+
+data class JournalpostBruker(
+    val id: String,
+    val idType: String = "FNR"
+)
