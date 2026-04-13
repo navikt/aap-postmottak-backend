@@ -162,7 +162,7 @@ class JoarkClientTest {
             TestIdenter.DEFAULT_IDENT,
             "2344",
             tittel = null,
-            avsenderMottaker = null,
+            avsenderMottaker = AvsenderMottakerDto("999999999", AvsenderMottakerDto.IdType.UTL_ORG, "Peppas farm"),
             dokumenter = null,
             endretAv = null,
         )
