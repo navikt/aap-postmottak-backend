@@ -111,7 +111,7 @@ class JournalføringService(
             val eregRespons = enhetsregisteretGateway.hentOrganisasjon(orgnr)
 
             if (eregRespons?.fantIkke == true) {
-                requireNotNull(avsenderMottaker?.navn) { "Navn på avsender må være satt for utenlands ORGNR" }
+                requireNotNull(avsenderMottaker?.navn) { "Navn på avsender må være satt for utenlandsk ORGNR" }
                 AvsenderMottakerDto(
                     id = avsender.id,
                     idType = AvsenderMottakerDto.IdType.UTL_ORG,
