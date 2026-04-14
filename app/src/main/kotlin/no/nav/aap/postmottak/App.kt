@@ -167,7 +167,7 @@ internal fun Application.server(
                 testApi(dataSource, gatewayProvider)
                 auditlogApi(dataSource, repositoryRegistry)
                 driftApi(dataSource, repositoryRegistry)
-                redigitaliseringAPI(dataSource, repositoryRegistry)
+                redigitaliseringAPI(dataSource, repositoryRegistry, gatewayProvider)
             }
         }
         actuator(motor, mottakStream)

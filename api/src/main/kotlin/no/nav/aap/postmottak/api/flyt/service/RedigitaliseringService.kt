@@ -5,18 +5,18 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.prosessering.medJournalpostId
+import no.nav.aap.postmottak.prosessering.medSaksnummer
+import no.nav.aap.postmottak.redigitalisering.RedigitaliseringKopierJobbUtfører
 import org.slf4j.LoggerFactory
 
 class RedigitaliseringService(
     private val flytJobbRepository: FlytJobbRepository,
     private val behandlingRepository: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
-    private val saksnummerRepository: SaksnummerRepository
+    private val saksnummerRepository: SaksnummerRepository,
 ) {
     val log = LoggerFactory.getLogger(RedigitaliseringService::class.java)
 
@@ -26,7 +26,7 @@ class RedigitaliseringService(
                 flytJobbRepository = repositoryProvider.provide(),
                 behandlingRepository = repositoryProvider.provide(),
                 journalpostRepository = repositoryProvider.provide(),
-                saksnummerRepository = repositoryProvider.provide()
+                saksnummerRepository = repositoryProvider.provide(),
             )
         }
     }
@@ -42,19 +42,13 @@ class RedigitaliseringService(
         requireNotNull(eksisterendeSak) { "Det må eksistere en sak fra før. Req: ${saksnummer}." }
         require(eksisterendeSak.saksnummer == saksnummer) { "Saksnummer innsendt avviker fra registrert saksnummer i postmottak. Req: ${saksnummer}." }
 
-        val nyBehandlingId =
-            behandlingRepository.opprettBehandling(
-                journalpost.journalpostId,
-                TypeBehandling.DokumentHåndtering
-            )
-
-        saksnummerRepository.lagreSakVurdering(nyBehandlingId, Saksvurdering(saksnummer, false))
-
-        log.info("Legger til jobb for redigitalisering")
-
+        log.info("Legger til kopieringsjobb for redigitalisering av journalpost $journalpostId")
         flytJobbRepository.leggTil(
-            JobbInput(ProsesserBehandlingJobbUtfører)
-                .forBehandling(nyBehandlingId.id, nyBehandlingId.id).medCallId()
+            JobbInput(RedigitaliseringKopierJobbUtfører)
+                .forSak(journalpostId)
+                .medJournalpostId(journalpost.journalpostId)
+                .medSaksnummer(saksnummer)
+                .medCallId()
         )
     }
 }
