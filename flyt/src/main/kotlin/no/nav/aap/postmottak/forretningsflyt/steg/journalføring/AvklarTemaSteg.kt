@@ -90,17 +90,12 @@ class AvklarTemaSteg(
         }
 
         return if (temavurdering == null) {
-            if (journalpost.tema != "AAP") {
-                log.info("Journalposten med ID ${journalpost.journalpostId} har blitt endret utenfra. Tema er ikke AAP.")
-                avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(false, Tema.UKJENT))
-                Fullført
-            } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
+            if (kanAvklareMaskinelt(journalpost)) {
                 avklarTemaMaskinelt(kontekst.behandlingId, journalpost)
-                Fullført
             } else {
                 log.info("Kunne ikke avklare tema maskinelt. Brevkoder: ${journalpost.dokumenter.map { it.brevkode }}. Hoveddokumentbrevkode: ${journalpost.hoveddokumentbrevkode}.")
-                Fullført
             }
+            Fullført
         } else {
             if (venterPåBehandlingIGosys(journalpost, temavurdering)) { // tema fortsatt AAP
                 val aktivIdent = journalpost.person.aktivIdent()
@@ -134,26 +129,32 @@ class AvklarTemaSteg(
     }
 
     private fun avklarTemaMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {
-        if (journalpost.erDigitalLegeerklæring()) {
-            if (skalLegeerklæringTilAap(behandlingId)) {
-                log.info("Avklarer tema for legeerklæring ${journalpost.journalpostId} maskinelt - Legeerklæring skal til AAP.")
-                avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
-            } else {
-                log.info("Avklarer tema for legeerklærling ${journalpost.journalpostId} maskinelt - Legeerklæring skal ikke til AAP")
-                avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = false, Tema.OPP))
+        val temavurdering = when {
+            journalpost.tema != "AAP" -> {
+                log.info("Journalposten med ID ${journalpost.journalpostId} har blitt endret utenfra. Tema er ikke AAP.")
+                TemaVurdering(false, Tema.UKJENT)
             }
-        } else if (journalpost.erDigitalSøknad()) {
-            log.info("Avklarer søknad maskinelt, skal til AAP. JournalpostId ${journalpost.journalpostId}.")
-            avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
-        } else if (journalpost.erDigitaltMeldekort()) {
-            log.info("Avklarer digital meldekort maskinelt. JournalpostId ${journalpost.journalpostId}.")
-            avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
-        } else {
-            error("Journalpost er ikke en digital søknad, legeerklæring eller meldekort. JournalpostId ${journalpost.journalpostId}.")
+            journalpost.erDigitalLegeerklæring() -> {
+                if (skalLegeerklæringTilAap(behandlingId)) {
+                    log.info("Avklarer tema for legeerklæring ${journalpost.journalpostId} maskinelt - Legeerklæring skal til AAP.")
+                    TemaVurdering(skalTilAap = true, Tema.AAP)
+                } else {
+                    log.info("Avklarer tema for legeerklærling ${journalpost.journalpostId} maskinelt - Legeerklæring skal ikke til AAP")
+                    TemaVurdering(skalTilAap = false, Tema.OPP)
+                }
+            }
+            journalpost.erDigitalSøknad() -> {
+                log.info("Avklarer søknad maskinelt, skal til AAP. JournalpostId ${journalpost.journalpostId}.")
+                TemaVurdering(skalTilAap = true, Tema.AAP)
+            }
+            journalpost.erDigitaltMeldekort() -> {
+                log.info("Avklarer digital meldekort maskinelt. JournalpostId ${journalpost.journalpostId}.")
+                TemaVurdering(skalTilAap = true, Tema.AAP)
+            }
+            else -> {
+                error("Journalpost er ikke en digital søknad, legeerklæring eller meldekort. JournalpostId ${journalpost.journalpostId}.")
+            }
         }
-    }
-
-    private fun avklarTemaMaskinelt(behandlingId: BehandlingId, temavurdering: TemaVurdering) {
         avklarTemaRepository.lagreTemaAvklaring(behandlingId, temavurdering.skalTilAap, temavurdering.tema)
     }
 
