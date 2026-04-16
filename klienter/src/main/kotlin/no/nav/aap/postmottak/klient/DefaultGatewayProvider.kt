@@ -2,7 +2,6 @@ package no.nav.aap.postmottak.klient
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
-import no.nav.aap.postmottak.gateway.UføreRegisterKlient
 import no.nav.aap.postmottak.klient.arena.ArenaKlient
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
 import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
@@ -40,7 +39,6 @@ fun defaultGatewayProvider(utvidelser: GatewayRegistry.() -> Unit = {}) = create
     register<VeilarbarenaKlient>()
     register<UnleashService>()
     register<DoksikkerhetsnettGatewayImpl>()
-    register<UføreRegisterKlient>()
     register<EREGKlient>()
     utvidelser()
 }
