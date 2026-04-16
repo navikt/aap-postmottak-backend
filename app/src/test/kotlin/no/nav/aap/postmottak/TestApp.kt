@@ -60,7 +60,7 @@ fun main() {
 
 private fun opprettBehandlingAvklarTeam(connection: DBConnection) {
     val behandling =
-        BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
+        BehandlingRepositoryImpl(connection).opprettBehandling(JournalpostId(TestJournalposter.KLAGE_ETTERSENDING.referanse), TypeBehandling.Journalføring)
 
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
