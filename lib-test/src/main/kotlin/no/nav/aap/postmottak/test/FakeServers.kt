@@ -19,9 +19,6 @@ import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
-import no.nav.aap.postmottak.gateway.UføreHistorikkRespons
-import no.nav.aap.postmottak.gateway.UførePeriode
-import no.nav.aap.postmottak.gateway.UføreRequest
 import no.nav.aap.postmottak.test.fakes.aapInternApiFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
@@ -66,7 +63,6 @@ class FakeServers : AutoCloseable {
     val norgFake = embeddedServer(Netty, port = 0, module = { norgFake() })
     val staistikkFake = embeddedServer(Netty, port = 0, module = { statistikkFake() })
     val veilarbarena = embeddedServer(Netty, port = 0, module = { veilarbarena() })
-    val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() })
     val eregFake = embeddedServer(Netty, port = 0, module = { eregFake() })
     val unleash = embeddedServer(Netty, port = 0, module = { unleashFake() })
 
@@ -145,10 +141,6 @@ class FakeServers : AutoCloseable {
         System.setProperty("integrasjon.veilarbarena.url", "http://localhost:${veilarbarena.port()}")
         System.setProperty("integrasjon.veilarbarena.scope", "scope")
 
-        // PESYS
-        System.setProperty("integrasjon.pesys.url", "http://localhost:${pesysFake.port()}")
-        System.setProperty("integrasjon.pesys.scope", "scope")
-
         // Texas
         System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token")
 
@@ -179,7 +171,6 @@ class FakeServers : AutoCloseable {
         norgFake.start()
         staistikkFake.start()
         veilarbarena.start()
-        pesysFake.start()
         eregFake.start()
 
         println("AZURE PORT ${azure.port()}")
@@ -210,7 +201,6 @@ class FakeServers : AutoCloseable {
         norgFake.stop()
         staistikkFake.stop()
         veilarbarena.stop()
-        pesysFake.stop()
         eregFake.stop()
     }
 
@@ -411,51 +401,6 @@ class FakeServers : AutoCloseable {
         }
     }
 
-
-    private fun Application.pesysFake() {
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-            }
-        }
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@pesysFake.log.info("PESYS :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(
-                    status = HttpStatusCode.InternalServerError,
-                    message = ErrorRespons(cause.message)
-                )
-            }
-        }
-        routing() {
-            post("/pen/api/uforetrygd/uforehistorikk/perioder") {
-                val body = call.receive<UføreRequest>()
-                val hentPerson = fakePersoner.fakePersoner[body.fnr]
-                if (hentPerson == null) {
-                    call.respond(HttpStatusCode.NotFound, "Fant ikke person med fnr ${body.fnr}")
-                    return@post
-                }
-                val uføregrad = hentPerson.uføre
-                if (uføregrad == null) {
-                    call.respond(HttpStatusCode.NotFound)
-                } else {
-                    call.respond(
-                        HttpStatusCode.OK, UføreHistorikkRespons(
-                            uforeperioder = listOf(
-                                UførePeriode(
-                                    uforegrad = uføregrad,
-                                    uforegradTom = null,
-                                    uforegradFom = null,
-                                    uforetidspunkt = null,
-                                    virkningstidspunkt = LocalDate.parse(body.dato)
-                                )
-                            )
-                        )
-                    )
-                }
-            }
-        }
-    }
 
     @Suppress("PropertyName")
     data class TestToken(
