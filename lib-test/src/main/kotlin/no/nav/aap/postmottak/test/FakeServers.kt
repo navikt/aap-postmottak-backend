@@ -28,6 +28,7 @@ import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
 import no.nav.aap.postmottak.test.fakes.nomFake
 import no.nav.aap.postmottak.test.fakes.norgFake
 import no.nav.aap.postmottak.test.fakes.safFake
+import no.nav.aap.postmottak.test.fakes.unleashFake
 import no.nav.aap.postmottak.test.fakes.veilarbarena
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.tilgang.JournalpostTilgangRequest
@@ -67,6 +68,7 @@ class FakeServers : AutoCloseable {
     val veilarbarena = embeddedServer(Netty, port = 0, module = { veilarbarena() })
     val pesysFake = embeddedServer(Netty, port = 0, module = { pesysFake() })
     val eregFake = embeddedServer(Netty, port = 0, module = { eregFake() })
+    val unleash = embeddedServer(Netty, port = 0, module = { unleashFake() })
 
     private val started = AtomicBoolean(false)
 
@@ -88,7 +90,7 @@ class FakeServers : AutoCloseable {
 
         System.setProperty("gosys.url", "http://localhost:3000/")
 
-        System.setProperty("unleash.server.api.url", "http://dummy")
+        System.setProperty("unleash.server.api.url", "http://localhost:${unleash.port()}")
         System.setProperty("unleash.server.api.token", "dummy")
 
         // Oppgave
@@ -163,6 +165,7 @@ class FakeServers : AutoCloseable {
         azure.start()
         texas.start()
         setAzureProperties()
+        unleash.start()
         oppgave.start()
         saf.start()
         joark.start()
@@ -193,6 +196,7 @@ class FakeServers : AutoCloseable {
         }
         azure.stop()
         texas.stop()
+        unleash.stop()
         oppgave.stop()
         saf.stop()
         joark.stop()
