@@ -21,13 +21,13 @@ class GosysOppgaveKlientTest {
 
     @Test
     fun opprettEndreTemaOppgave() {
-        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO")
+        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO", null)
     }
 
     //TODO: Forbedre denne testen
     @Test
     fun `når en journalpost alt har oppgaver skal det ikke opprettes en ny oppgave`() {
-        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(128), "YOLO")
+        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(128), "YOLO", null)
         gosysOppgaveKlient.opprettJournalføringsOppgaveHvisIkkeEksisterer(
             JournalpostId(128),
             Ident("YOLO"),
