@@ -106,7 +106,8 @@ class AvklarTemaSteg(
                 val aktivIdent = journalpost.person.aktivIdent()
                 gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
                     journalpost.journalpostId,
-                    aktivIdent.identifikator
+                    aktivIdent.identifikator,
+                    journalpost.journalførendeEnhet
                 )
 
                 log.info("Venter fortsatt på behandling i Gosys.")

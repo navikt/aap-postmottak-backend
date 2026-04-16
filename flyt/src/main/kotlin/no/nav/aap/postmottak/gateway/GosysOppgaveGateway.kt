@@ -5,7 +5,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 interface GosysOppgaveGateway : Gateway {
-    fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String)
+    fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String, journalførendeEnhet: String?)
     fun finnOppgaverForJournalpost(
         journalpostId: JournalpostId,
         oppgavetyper: List<Oppgavetype> = listOf(Oppgavetype.JOURNALFØRING),

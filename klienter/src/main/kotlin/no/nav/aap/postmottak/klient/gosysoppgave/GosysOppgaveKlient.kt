@@ -43,12 +43,13 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
         }
     }
 
-    override fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String) {
+    override fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String, journalførendeEnhet: String?) {
         opprettOppgaveHvisIkkeEksisterer(
             OpprettOppgaveRequest(
                 oppgavetype = Oppgavetype.JOURNALFØRING.verdi,
                 journalpostId = journalpostId.toString(),
                 personident = personident,
+                tildeltEnhetsnr = journalførendeEnhet,
                 fristFerdigstillelse = finnStandardOppgavefrist(),
                 beskrivelse = "Et dokument med feil tema har dukket opp hos AAP. Hjelp dokumentet på veien til sin rette mottaker"
             )
