@@ -85,7 +85,7 @@ fun Application.safFake(
                           ${getAvsenderMottaker(journalpostId.toLong())}
                           "tittel": "Søknad om AAP",
                           "journalstatus": "${finnStatus(journalpostId.toLong())}",
-                          "journalførendeEnhet": {"nr": 3001},
+                          "journalfoerendeEnhet": ${finnJournalførendeEnhet(journalpostId.toLong())},
                           "mottattDato": "2021-12-01",
                           "tema": "${finnTema(journalpostId.toLong())}",
                           "kanal": "${finnKanal(journalpostId.toLong())}",
@@ -186,6 +186,20 @@ private fun getDokumenter(journalpostId: Long): String {
 
         TestJournalposter.LEGEERKLÆRING.referanse, TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse, TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> legeerklæring
 
+        TestJournalposter.KLAGE_ETTERSENDING.referanse -> """       
+        {
+            "tittel": "Ettersendelse til klage",
+            "dokumentInfoId": "4542685451",
+            "brevkode": "NAVe 90-00.08 K",
+            "dokumentvarianter": [
+                {
+                    "variantformat": "ARKIV",
+                    "filtype": "PDF"
+                }
+            ]
+        }
+        """
+
         else -> """ {
             "tittel": "Dokumenttittel",
             "dokumentInfoId": "45426854351",
@@ -257,3 +271,10 @@ private fun finnBrukerType(journalpostId: Long) =
         TestJournalposter.UTENLANDSK_ORGNR.referanse -> "ORGNR"
         else -> "FNR"
     }
+
+private fun finnJournalførendeEnhet(journalpostId: Long) =
+    when (journalpostId) {
+        TestJournalposter.KLAGE_ETTERSENDING.referanse -> "4260"
+        else -> "null"
+    }
+

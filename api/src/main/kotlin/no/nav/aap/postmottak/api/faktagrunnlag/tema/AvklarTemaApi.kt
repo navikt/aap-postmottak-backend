@@ -28,17 +28,23 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource, repositoryRegistry:
                     )
                 )
             ) { req ->
-                val grunnlag = dataSource.transaction(readOnly = true) {
-                    val repositoryProvider = repositoryRegistry.provider(it)
+                val grunnlag = dataSource.transaction(readOnly = true) { connection ->
+                    val repositoryProvider = repositoryRegistry.provider(connection)
                     val behandling = repositoryProvider.provide(BehandlingRepository::class).hent(req)
                     val journalpost =
                         repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(behandling.id)
                     require(journalpost != null) { "Fant ikke journalpost" }
                     val arkivDokumenter = journalpost.finnArkivVarianter()
                     AvklarTemaGrunnlagDto(
-                        repositoryProvider.provide(AvklarTemaRepository::class)
+                        vurdering = repositoryProvider.provide(AvklarTemaRepository::class)
                             .hentTemaAvklaring(behandling.id)?.skalTilAap?.let(::AvklarTemaVurderingDto),
-                        arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId })
+                        dokumenter = arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId },
+                        journalpostMetadata = JournalpostMetadata(
+                            brevkode = journalpost.hoveddokumentbrevkode,
+                            journalfoerendeEnhet = journalpost.journalførendeEnhet
+                        )
+                    )
+
                 }
                 respond(grunnlag)
             }

@@ -6,5 +6,11 @@ data class AvklarTemaVurderingDto(
 
 data class AvklarTemaGrunnlagDto(
     val vurdering: AvklarTemaVurderingDto?,
-    val dokumenter: List<String>
+    val dokumenter: List<String>,
+    val journalpostMetadata: JournalpostMetadata
+)
+
+data class JournalpostMetadata(
+    val brevkode: String?,
+    val journalfoerendeEnhet: String?,
 )
