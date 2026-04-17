@@ -356,6 +356,28 @@ class Flyttest : WithDependencies {
         }!!
     }
 
+    @Test
+    fun `digital klage blir automatisk behandlet`() {
+        val journalpostId = TestJournalposter.DIGITAL_KLAGE
+
+        leggJournalpostPåKafka {
+            this.journalpostId = journalpostId.referanse
+        }
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
+        }
+
+        assertThat(behandlinger).hasSize(2)
+            .extracting<TypeBehandling> { it.typeBehandling }
+            .containsExactlyInAnyOrder(TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
+
+        val behandling = behandlinger!!.first()
+
+        val åpneAvklaringsbehov = hentAvklaringsbehov(behandling)
+        assertThat(åpneAvklaringsbehov).isEmpty()
+    }
+
 
     @Test
     fun `kjører en manuell søknad igjennom hele flyten`() {

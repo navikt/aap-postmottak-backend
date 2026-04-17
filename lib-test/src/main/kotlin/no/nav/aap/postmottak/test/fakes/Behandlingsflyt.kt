@@ -18,6 +18,7 @@ import java.time.LocalDate
 import java.util.*
 
 fun Application.behandlingsflytFake(
+    klagebehandlingerRespons: List<Klagebehandling> = emptyList()
 ) {
     install(ContentNegotiation) {
         jackson {
@@ -71,18 +72,7 @@ fun Application.behandlingsflytFake(
         }
 
         post("/api/sak/{saksnummer}/finnBehandlingerAvType") {
-            call.respond(
-                listOf(
-                    Klagebehandling(
-                        behandlingsReferanse = UUID.randomUUID(),
-                        opprettetDato = LocalDate.of(2025, 5, 1)
-                    ),
-                    Klagebehandling(
-                        behandlingsReferanse = UUID.randomUUID(),
-                        opprettetDato = LocalDate.of(2025, 6, 20)
-                    )
-                )
-            )
+            call.respond(klagebehandlingerRespons)
         }
     }
 

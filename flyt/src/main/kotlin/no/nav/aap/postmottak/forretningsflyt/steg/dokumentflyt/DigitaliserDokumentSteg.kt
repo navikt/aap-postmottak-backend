@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -70,12 +71,13 @@ class DigitaliserDokumentSteg(
         if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) throw AvslagException()
 
         // Prøv automatisk digitalisering av dokumenter som er digitale
-        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
+        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort() || journalpost.erDigitalKlage()) {
             val dokument =
                 if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
                     hentOriginalDokumentFraSaf(journalpost)
                 } else null
             val innsendingType = BrevkoderHelper.mapTilInnsendingType(journalpost.hoveddokumentbrevkode)
+            requireNotNull(innsendingType) { "Innsendingtype kan ikke være null." }
 
             log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsendingType.")
 
@@ -83,9 +85,19 @@ class DigitaliserDokumentSteg(
                 log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsendingType, error: $msg")
             }
             val validertDokument = try {
-                DokumentTilMeldingParser.parseTilMelding(
-                    dokument,
-                    requireNotNull(innsendingType) { "Innsendingtype kan ikke være null." })?.serialiser()
+                when {
+                    journalpost.erDigitalKlage() -> {
+                        // For klager lager vi en KlageV0 med kravMottatt satt til mottattdato
+                        val klage = KlageV0(
+                            kravMottatt = journalpost.mottattDato,
+                            beskrivelse = "Automatisk journalført klage"
+                        )
+                        klage.serialiser()
+                    }
+                    else -> {
+                        DokumentTilMeldingParser.parseTilMelding(dokument, innsendingType)?.serialiser()
+                    }
+                }
             } catch (e: DeserializationException) {
                 logFeil(e.message)
                 return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
