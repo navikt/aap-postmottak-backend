@@ -59,6 +59,10 @@ data class Journalpost(
         return dokumenter.any { it.brevkode in meldekortkoder } && erDigital()
     }
 
+    fun erDigitalKlage(): Boolean {
+        return dokumenter.any { it.brevkode == Brevkoder.KLAGE.kode } && kanal == KanalFraKodeverk.NAV_NO
+    }
+
     fun erDigital(): Boolean = finnOriginal()?.varianter?.any { it.filtype == Filtype.JSON } ?: false
 
     fun erPapir(): Boolean =

@@ -117,7 +117,7 @@ class AvklarTemaSteg(
     }
 
     private fun kanAvklareMaskinelt(journalpost: Journalpost): Boolean {
-        return (journalpost.tema != "AAP") || (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort())
+        return (journalpost.tema != "AAP") || (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort() || journalpost.erDigitalKlage())
     }
 
     private fun venterPåBehandlingIGosys(journalpost: Journalpost, temavurdering: TemaVurdering): Boolean {
@@ -149,6 +149,10 @@ class AvklarTemaSteg(
             }
             journalpost.erDigitaltMeldekort() -> {
                 log.info("Avklarer digital meldekort maskinelt. JournalpostId ${journalpost.journalpostId}.")
+                TemaVurdering(skalTilAap = true, Tema.AAP)
+            }
+            journalpost.erDigitalKlage() -> {
+                log.info("Avklarer digital klage maskinelt. JournalpostId ${journalpost.journalpostId}.")
                 TemaVurdering(skalTilAap = true, Tema.AAP)
             }
             else -> {

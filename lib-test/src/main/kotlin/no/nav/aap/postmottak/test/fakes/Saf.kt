@@ -130,6 +130,7 @@ private fun getAvsenderMottaker(journalpostId: Long) =
 private fun finnKanal(journalpostId: Long) =
     when (journalpostId) {
         TestJournalposter.DIGITAL_SØKNAD_ID.referanse -> KanalFraKodeverk.NAV_NO.name
+        TestJournalposter.DIGITAL_KLAGE.referanse -> KanalFraKodeverk.NAV_NO.name
         TestJournalposter.PAPIR_SØKNAD.referanse -> KanalFraKodeverk.SKAN_NETS.name
         else -> KanalFraKodeverk.UKJENT.name
     }
@@ -191,6 +192,20 @@ private fun getDokumenter(journalpostId: Long): String {
             "tittel": "Ettersendelse til klage",
             "dokumentInfoId": "4542685451",
             "brevkode": "NAVe 90-00.08 K",
+            "dokumentvarianter": [
+                {
+                    "variantformat": "ARKIV",
+                    "filtype": "PDF"
+                }
+            ]
+        }
+        """
+
+        TestJournalposter.DIGITAL_KLAGE.referanse -> """       
+        {
+            "tittel": "Klage på vedtak",
+            "dokumentInfoId": "4542685451",
+            "brevkode": "NAV 90-00.08 K",
             "dokumentvarianter": [
                 {
                     "variantformat": "ARKIV",

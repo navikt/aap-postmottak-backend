@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -93,6 +95,8 @@ class AvklarSakSteg(
         return if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
             avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
             Fullført
+        } else if (journalpost.erDigitalKlage()) {
+            avklarKlageSakMaskinelt(kontekst.behandlingId, journalpost)
         } else if (saksnummerVurdering != null) {
             Fullført
         } else {
@@ -106,6 +110,31 @@ class AvklarSakSteg(
             journalpost.mottattDato
         ).saksnummer
         saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer, false))
+    }
+
+    private fun avklarKlageSakMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost): StegResultat {
+        val ident = Ident(journalpost.person.aktivIdent().identifikator)
+        val alleSaker = behandlingsflytClient.finnSaker(ident)
+        
+        // Filtrer bort trukne saker
+        val aktiveSaker = alleSaker.filter { it.resultat != ResultatKode.TRUKKET }
+        
+        if (aktiveSaker.size != 1) {
+            log.info("Klage kan ikke avklares maskinelt - bruker har ${aktiveSaker.size} aktive saker. JournalpostId: ${journalpost.journalpostId}")
+            return FantAvklaringsbehov(Definisjon.AVKLAR_SAK)
+        }
+        
+        val sak = aktiveSaker.first()
+        val klagebehandlinger = behandlingsflytClient.finnKlagebehandlinger(Saksnummer(sak.saksnummer))
+        
+        if (klagebehandlinger.isNotEmpty()) {
+            log.info("Klage kan ikke avklares maskinelt - saken har ${klagebehandlinger.size} eksisterende klagebehandlinger. JournalpostId: ${journalpost.journalpostId}")
+            return FantAvklaringsbehov(Definisjon.AVKLAR_SAK)
+        }
+        
+        log.info("Avklarer klage maskinelt på sak ${sak.saksnummer}. JournalpostId: ${journalpost.journalpostId}")
+        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(sak.saksnummer, false))
+        return Fullført
     }
 
     private fun avklarGenerellSakMaskinelt(behandlingId: BehandlingId) {

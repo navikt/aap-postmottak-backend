@@ -2,6 +2,9 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.io.ByteArrayInputStream
+import java.time.LocalDate
 
 class DigitaliserDokumentStegTest {
 
@@ -30,7 +34,11 @@ class DigitaliserDokumentStegTest {
     val avklaringsbehovRepository: AvklaringsbehovRepository = mockk(relaxed = true)
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        struktureringsvurderingRepository, journalpostRepo, dokumentGateway,saksnummerRepository, avklaringsbehovRepository
+        struktureringsvurderingRepository,
+        journalpostRepo,
+        dokumentGateway,
+        saksnummerRepository,
+        avklaringsbehovRepository
     )
 
     @Test
@@ -115,7 +123,7 @@ class DigitaliserDokumentStegTest {
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns true
 
-        assertThrows<AvslagException>{ digitaliserDokumentSteg.utfør(mockk(relaxed = true)) }
+        assertThrows<AvslagException> { digitaliserDokumentSteg.utfør(mockk(relaxed = true)) }
     }
 
     @Test
@@ -152,4 +160,44 @@ class DigitaliserDokumentStegTest {
         assertEquals(Fullført::class.simpleName, stegresultatIgjen::class.simpleName)
     }
 
+    @Test
+    fun `digital klage digitaliseres automatisk med KlageV0`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        val mottattDato = LocalDate.of(2025, 1, 15)
+
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erDigitalKlage() } returns true
+        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.KLAGE.kode
+        every { journalpost.mottattDato } returns mottattDato
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
+
+        val forventetDigitaliering = DefaultJsonMapper.toJson(
+            KlageV0(
+                kravMottatt = mottattDato,
+                beskrivelse = "Automatisk journalført klage",
+                behandlingReferanse = null
+            )
+        )
+
+        // Verifiser at digitaliseringsvurdering ble lagret
+        verify(exactly = 1) {
+            struktureringsvurderingRepository.lagre(any(), withArg {
+                assertThat(it.kategori).isEqualTo(no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType.KLAGE)
+                assertThat(it.strukturertDokument).isEqualTo(
+                    forventetDigitaliering
+                )
+            })
+        }
+    }
+
 }
+
+

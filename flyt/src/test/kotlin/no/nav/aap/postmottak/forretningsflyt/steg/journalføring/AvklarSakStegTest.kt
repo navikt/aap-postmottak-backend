@@ -4,6 +4,8 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
@@ -16,6 +18,7 @@ import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
@@ -71,6 +74,7 @@ class AvklarSakStegTest {
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erDigitalKlage() } returns false
         every { journalpost.erUgyldig() } returns false
         every { journalpost.tema } returns "AAP"
         every { journalpost.status } returns Journalstatus.MOTTATT
@@ -96,6 +100,7 @@ class AvklarSakStegTest {
         every { journalpost.erDigitalSøknad() } returns false
         every { journalpost.erDigitalLegeerklæring() } returns false
         every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erDigitalKlage() } returns false
         every { journalpost.tema } returns "AAP"
         every { journalpost.erUgyldig() } returns false
         every { journalpost.status } returns Journalstatus.MOTTATT
@@ -103,6 +108,7 @@ class AvklarSakStegTest {
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk())
+        every { saksnummerRepository.hentSakVurdering(any()) } returns mockk()
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
@@ -170,6 +176,128 @@ class AvklarSakStegTest {
         }
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `digital klage med én aktiv sak og ingen klagebehandlinger avklares maskinelt`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        val saksnummer = "123456789"
+        
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erDigitalKlage() } returns true
+        every { journalpost.tema } returns "AAP"
+        every { journalpost.status } returns Journalstatus.MOTTATT
+        every { journalpost.erUgyldig() } returns false
+        
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { behandlingsflytClient.finnSaker(any()) } returns listOf(
+            BehandlingsflytSak(saksnummer, Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null)
+        )
+        every { behandlingsflytClient.finnKlagebehandlinger(any()) } returns emptyList()
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 1) { behandlingsflytClient.finnSaker(any()) }
+        verify(exactly = 1) { behandlingsflytClient.finnKlagebehandlinger(Saksnummer(saksnummer)) }
+        verify(exactly = 1) { 
+            saksnummerRepository.lagreSakVurdering(any(), withArg {
+                assertThat(it.saksnummer).isEqualTo(saksnummer)
+            })
+        }
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `digital klage med flere aktive saker krever manuell avklaring`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erDigitalKlage() } returns true
+        every { journalpost.tema } returns "AAP"
+        every { journalpost.status } returns Journalstatus.MOTTATT
+        every { journalpost.erUgyldig() } returns false
+        
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { behandlingsflytClient.finnSaker(any()) } returns listOf(
+            BehandlingsflytSak("123", Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31)), null),
+            BehandlingsflytSak("456", Periode(LocalDate.of(2023, 1, 1), LocalDate.of(2024, 1, 31)), null)
+        )
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 1) { behandlingsflytClient.finnSaker(any()) }
+        verify(exactly = 0) { behandlingsflytClient.finnKlagebehandlinger(any()) }
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+        
+        assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
+        val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
+    }
+
+    @Test
+    fun `digital klage filtrerer bort trukne saker`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        val saksnummer = "123456789"
+        
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erDigitalKlage() } returns true
+        every { journalpost.tema } returns "AAP"
+        every { journalpost.status } returns Journalstatus.MOTTATT
+        every { journalpost.erUgyldig() } returns false
+        
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { behandlingsflytClient.finnSaker(any()) } returns listOf(
+            BehandlingsflytSak("trukket", Periode(LocalDate.of(2020, 1, 1), LocalDate.of(2021, 1, 31)), ResultatKode.TRUKKET),
+            BehandlingsflytSak(saksnummer, Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null)
+        )
+        every { behandlingsflytClient.finnKlagebehandlinger(any()) } returns emptyList()
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 1) { behandlingsflytClient.finnKlagebehandlinger(Saksnummer(saksnummer)) }
+        verify(exactly = 1) { 
+            saksnummerRepository.lagreSakVurdering(any(), withArg {
+                assertThat(it.saksnummer).isEqualTo(saksnummer)
+            })
+        }
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `digital klage med eksisterende klagebehandlinger krever manuell avklaring`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        val saksnummer = "123456789"
+        
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns false
+        every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erDigitalKlage() } returns true
+        every { journalpost.tema } returns "AAP"
+        every { journalpost.status } returns Journalstatus.MOTTATT
+        every { journalpost.erUgyldig() } returns false
+        
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { behandlingsflytClient.finnSaker(any()) } returns listOf(
+            BehandlingsflytSak(saksnummer, Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null)
+        )
+        every { behandlingsflytClient.finnKlagebehandlinger(any()) } returns listOf(
+            mockk<Klagebehandling>()
+        )
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 1) { behandlingsflytClient.finnKlagebehandlinger(Saksnummer(saksnummer)) }
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+        
+        assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
+        val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
     }
 
 }

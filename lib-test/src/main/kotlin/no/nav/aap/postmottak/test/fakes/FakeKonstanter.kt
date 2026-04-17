@@ -20,6 +20,7 @@ object TestJournalposter {
     val LEGEERKLÆRING_TRUKKET_SAK = JournalpostId(130)
     val UTENLANDSK_ORGNR = JournalpostId(131)
     val KLAGE_ETTERSENDING = JournalpostId(132)
+    val DIGITAL_KLAGE = JournalpostId(133)
 }
 
 
