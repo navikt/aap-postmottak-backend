@@ -3,20 +3,21 @@ package no.nav.aap.postmottak.repository.fordeler
 import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 class InnkommendeJournalpostRepositoryImpl(
     private val connection: DBConnection,
     private val regelRepository: RegelRepositoryImpl = RegelRepositoryImpl(connection)
-): InnkommendeJournalpostRepository {
-    
-    companion object: Factory<InnkommendeJournalpostRepositoryImpl> {
+) : InnkommendeJournalpostRepository {
+
+    companion object : Factory<InnkommendeJournalpostRepositoryImpl> {
         override fun konstruer(connection: DBConnection): InnkommendeJournalpostRepositoryImpl {
             return InnkommendeJournalpostRepositoryImpl(connection)
         }
     }
-    
+
     override fun eksisterer(journalpostId: JournalpostId): Boolean {
         return connection.queryFirstOrNull(
             """
@@ -27,24 +28,41 @@ class InnkommendeJournalpostRepositoryImpl(
             setRowMapper { row -> row.getInt("ID") }
         } != null
     }
-    
+
     override fun hent(journalpostId: JournalpostId): InnkommendeJournalpost {
-        return connection.queryFirst("""
+        return connection.queryFirst(
+            """
             SELECT * FROM innkommende_journalpost WHERE journalpost_id = ?
-        """.trimIndent()){
+        """.trimIndent()
+        ) {
             setParams { setLong(1, journalpostId.referanse) }
-            setRowMapper { row -> InnkommendeJournalpost(
-                journalpostId = journalpostId,
-                status = row.getEnum("status"),
-                behandlingstema = row.getStringOrNull("behandlingstema"),
-                brevkode = row.getStringOrNull("brevkode"),
-                årsakTilStatus = row.getEnumOrNull("aarsak_til_status"),
-                enhet = row.getStringOrNull("enhet"),
-                regelresultat = regelRepository.hentRegelresultat(row.getLong("ID"), journalpostId)
-            ) }
+            setRowMapper{row -> innkommendeJournalpostRowMapper(row, journalpostId)}
         }
     }
-    
+
+    override fun hentHvisEksisterer(journalpostId: JournalpostId): InnkommendeJournalpost? {
+        return connection.queryFirstOrNull(
+            """
+            SELECT * FROM innkommende_journalpost WHERE journalpost_id = ?
+        """.trimIndent()
+        ) {
+            setParams { setLong(1, journalpostId.referanse) }
+            setRowMapper { row -> innkommendeJournalpostRowMapper(row, journalpostId) }
+        }
+    }
+
+    private fun innkommendeJournalpostRowMapper(row: Row, journalpostId: JournalpostId): InnkommendeJournalpost {
+        return InnkommendeJournalpost(
+            journalpostId = JournalpostId(row.getLong("journalpost_id")),
+            status = row.getEnum("status"),
+            behandlingstema = row.getStringOrNull("behandlingstema"),
+            brevkode = row.getStringOrNull("brevkode"),
+            årsakTilStatus = row.getEnumOrNull("aarsak_til_status"),
+            enhet = row.getStringOrNull("enhet"),
+            regelresultat = regelRepository.hentRegelresultat(row.getLong("ID"), journalpostId)
+        )
+    }
+
     override fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long {
         val query = """
             INSERT INTO innkommende_journalpost (journalpost_id, status, aarsak_til_status, behandlingstema, brevkode, enhet) 
