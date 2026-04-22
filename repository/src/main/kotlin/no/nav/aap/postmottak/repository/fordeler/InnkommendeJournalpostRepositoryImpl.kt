@@ -40,7 +40,7 @@ class InnkommendeJournalpostRepositoryImpl(
                 brevkode = row.getStringOrNull("brevkode"),
                 årsakTilStatus = row.getEnumOrNull("aarsak_til_status"),
                 enhet = row.getStringOrNull("enhet"),
-                regelresultat = regelRepository.hentRegelresultat(row.getLong("ID"))
+                regelresultat = regelRepository.hentRegelresultat(row.getLong("ID"), journalpostId)
             ) }
         }
     }
