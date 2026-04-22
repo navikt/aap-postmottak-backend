@@ -45,7 +45,7 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
         }
     }
 
-    override fun hentRegelresultat(innkommendeJournalpostId: Long): Regelresultat? {
+    override fun hentRegelresultat(innkommendeJournalpostId: Long, journalpostId: JournalpostId): Regelresultat? {
         return connection.queryList(
             """
                 SELECT * FROM REGELSETT_RESULTAT rr
@@ -64,7 +64,7 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
         }.let {
             if (it.isEmpty()) null else Regelresultat(
                 regelMap = it.associate { Pair(it.regelNavn, it.resultat) },
-                forJournalpost = innkommendeJournalpostId,
+                forJournalpost = journalpostId.referanse,
                 systemNavn = it.firstOrNull()?.systemNavn,
             )
         }
