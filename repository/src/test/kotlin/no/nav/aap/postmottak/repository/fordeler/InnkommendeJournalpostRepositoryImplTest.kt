@@ -52,7 +52,7 @@ class InnkommendeJournalpostRepositoryImplTest {
 
     @Test
     fun `Kan lagre og hente innkommende journalpost med regelresulat`() {
-        val journalpostId = JournalpostId(1)
+        val journalpostId = JournalpostId(100)
         val innkommendeJournalpost = InnkommendeJournalpost(
             journalpostId = journalpostId,
             status = InnkommendeJournalpostStatus.EVALUERT,
@@ -83,7 +83,7 @@ class InnkommendeJournalpostRepositoryImplTest {
         assertThat(hentetRegel).isEqualTo(innkommendeJournalpost.regelresultat)
 
         val hentetRegelPåId = dataSource.transaction { connection ->
-            RegelRepositoryImpl(connection).hentRegelresultat(id)
+            RegelRepositoryImpl(connection).hentRegelresultat(id, journalpostId)
         }
         assertThat(hentetRegelPåId).isEqualTo(innkommendeJournalpost.regelresultat)
 
