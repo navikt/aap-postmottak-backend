@@ -263,6 +263,7 @@ private fun finnBruker(journalpostId: Long) =
         TestJournalposter.PERSON_MED_SAK_I_ARENA.referanse -> TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator
         TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> TestIdenter.IDENT_MED_TRUKKET_SAK_I_KELVIN.identifikator
         TestJournalposter.UTENLANDSK_ORGNR.referanse -> "999999999"
+        TestJournalposter.KLAGE_ETTERSENDING.referanse -> TestIdenter.DEFAULT_IDENT_2.identifikator
         else -> TestIdenter.DEFAULT_IDENT.identifikator
     }
 

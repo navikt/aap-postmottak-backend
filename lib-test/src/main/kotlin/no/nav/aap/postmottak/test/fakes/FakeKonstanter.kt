@@ -25,6 +25,7 @@ object TestJournalposter {
 
 object TestIdenter {
     val DEFAULT_IDENT = Ident("21345345210")
+    val DEFAULT_IDENT_2 = Ident("21345345212")
     val IDENT_UTEN_SAK_I_KELVIN = Ident("00000001111")
     val SKJERMET_IDENT = Ident("00000002222")
     val IDENT_MED_SAK_I_ARENA = Ident("0000000333")
