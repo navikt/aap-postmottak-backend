@@ -35,7 +35,7 @@ behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", vers
 
 avro = { module = "org.apache.avro:avro", version = "1.12.1" }
 kafkaStreamsAvroSerde = { module = "io.confluent:kafka-streams-avro-serde", version = "8.1.1" }
-teamdokumenthandteringAvroSchemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "1.1.8" }
+teamdokumenthandteringAvroSchemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "1.1.10" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
 kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
