@@ -7,8 +7,8 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureOBOTokenProvider
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalpostGateway
@@ -26,7 +26,7 @@ class SafGraphqlOboClient : JournalpostOboGateway {
     val safGraphqlKlient = SafGraphqlKlient(
         RestClient(
             config = ClientConfig(scope),
-            OnBehalfOfTokenProvider,
+            AzureOBOTokenProvider,
             responseHandler = SafResponseHandler(),
             prometheus = PrometheusProvider.prometheus
         )
@@ -52,7 +52,7 @@ class SafGraphqlClientCredentialsClient : JournalpostGateway {
     val safGraphqlKlient = SafGraphqlKlient(
         RestClient(
             config = ClientConfig(scope),
-            ClientCredentialsTokenProvider,
+            AzureM2MTokenProvider,
             responseHandler = SafResponseHandler(),
             prometheus = PrometheusProvider.prometheus
         )

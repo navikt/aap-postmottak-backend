@@ -6,7 +6,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
 import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
 import no.nav.aap.postmottak.gateway.JournalpostFraDoksikkerhetsnett
@@ -32,7 +32,7 @@ class DoksikkerhetsnettGatewayImpl : DoksikkerhetsnettGateway {
 
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
+        tokenProvider = AzureM2MTokenProvider,
         prometheus = prometheus
     )
 
