@@ -12,26 +12,27 @@ historikk i Arena?) then (Ja)
   for AAP for brukeren?
   (en "kant-i-kant" søknad)) then (Ja)
 
-    if (Nyeste vedtak i saken
-     er i Stans?) then (Ja)
+    if (Bruker sitt AAP-vedtak er i Stans?) then (Ja)
       :Arena;
       stop
     else (Nei)
 
       if (Bruker skal motta AAP etter §11-18
-      under behandling av krav om uføretrygd?) then (Ja)
+      under behandling av krav om uføretrygd?) then (Ja, pga. aktivitetsfasen)
         :Arena;
         stop
       else (Nei/Ukjent)
 
         if (Bruker skal motta AAP etter §11-17
-        i perioden som arbeidssøker?) then (Ja)
+        i perioden som arbeidssøker?) then (
+        Ja, pga. aktivitetsfasen
+          og status som arbeidssøker)
           :Arena;
           stop
         else (Nei/Ukjent)
 
           if (Bruker skal motta AAP etter §11-12
-          i ett år til?) then (Ja)
+          i ett år til?) then (Ja, pga. vedtak i Arena)
             :Arena;
             stop
           else (Nei/Ukjent)

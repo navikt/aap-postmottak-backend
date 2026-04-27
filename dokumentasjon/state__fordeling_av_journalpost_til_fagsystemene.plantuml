@@ -1,0 +1,45 @@
+@startuml
+title AAP-flyt for fordeling av søknader (state diagram)
+
+[*] --> SøknadMottatt
+
+state "Søknad mottatt" as SøknadMottatt
+
+state "Signifikant historikk i Arena?" as Historikk
+state "Kant-i-kant søknad?" as KantIKant
+state "Nyeste vedtak er i Stans?" as Stans
+state "AAP §11-18\nVurdering for uføre" as P1118
+state "AAP §11-17\nArbeidssøkerperiode" as P1117
+state "AAP §11-12\nForlengelse" as P1112
+state "Manuell vurdering\nom fordeling" as Manuell
+
+state Arena <<sink>>
+state Kelvin <<sink>>
+
+SøknadMottatt --> Historikk
+
+Historikk --> KantIKant : Ja
+Historikk --> Kelvin    : Nei
+
+KantIKant --> Stans     : Ja
+KantIKant --> Arena    : Nei\n(for nå)
+
+Stans --> Arena  : Ja
+Stans --> P1118  : Nei
+
+P1118 --> Arena  : Ja
+P1118 --> P1117  : Nei / Ukjent
+
+P1117 --> Arena  : Ja
+P1117 --> P1112  : Nei / Ukjent
+
+P1112 --> Arena  : Ja
+P1112 --> Manuell: Nei / Ukjent
+
+Manuell --> Arena
+Manuell --> Kelvin
+
+Arena    --> [*]
+Kelvin   --> [*]
+
+@enduml
