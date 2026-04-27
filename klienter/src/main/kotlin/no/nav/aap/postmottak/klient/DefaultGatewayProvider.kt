@@ -14,7 +14,7 @@ import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.SafOboRestClient
 import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboGateway
 import no.nav.aap.postmottak.klient.statistikk.StatistikkKlient
 import no.nav.aap.postmottak.klient.unleash.UnleashService
 
@@ -26,7 +26,7 @@ fun defaultGatewayProvider(utvidelser: GatewayRegistry.() -> Unit = {}) = create
     register<OppgaveKlient>()
     register<GosysOppgaveKlient>()
     register<SafGraphqlClientCredentialsClient>()
-    register<SafGraphqlOboClient>()
+    register<SafGraphqlOboGateway>()
     register<SafOboRestClient>()
     register<SafRestClient>()
     register<BehandlingsflytKlient>()

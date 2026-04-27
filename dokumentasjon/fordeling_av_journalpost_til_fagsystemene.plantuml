@@ -1,0 +1,56 @@
+@startuml
+title Fordeling av søknader mellom fagsystemene
+
+start
+
+:Søknad mottatt;
+
+if (Bruker har signifikant
+historikk i Arena?) then (Ja)
+
+  if (Søknaden kommer nær maxdato
+  for AAP for brukeren?
+  (en "kant-i-kant" søknad)) then (Ja)
+
+    if (Nyeste vedtak i saken
+     er i Stans?) then (Ja)
+      :Arena;
+      stop
+    else (Nei)
+
+      if (Bruker skal motta AAP etter §11-18
+      under behandling av krav om uføretrygd?) then (Ja)
+        :Arena;
+        stop
+      else (Nei/Ukjent)
+
+        if (Bruker skal motta AAP etter §11-17
+        i perioden som arbeidssøker?) then (Ja)
+          :Arena;
+          stop
+        else (Nei/Ukjent)
+
+          if (Bruker skal motta AAP etter §11-12
+          i ett år til?) then (Ja)
+            :Arena;
+            stop
+          else (Nei/Ukjent)
+            :Manuell fordeling;<<#red>>
+            stop
+          endif
+
+        endif
+      endif
+    endif
+
+  else (Nei)
+    :Arena (for nå);
+    stop
+  endif
+
+else (Nei)
+  :Kelvin;
+  stop
+endif
+
+@enduml

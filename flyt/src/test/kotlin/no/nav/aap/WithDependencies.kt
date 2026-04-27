@@ -14,7 +14,7 @@ import no.nav.aap.postmottak.klient.oppgave.OppgaveKlient
 import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.SafRestClient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboClient
+import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlOboGateway
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import org.junit.jupiter.api.BeforeAll
 
@@ -29,7 +29,7 @@ interface WithDependencies {
                 .register<OppgaveKlient>()
                 .register<GosysOppgaveKlient>()
                 .register<SafGraphqlClientCredentialsClient>()
-                .register<SafGraphqlOboClient>()
+                .register<SafGraphqlOboGateway>()
                 .register<SafRestClient>()
                 .register<BehandlingsflytKlient>()
                 .register<PdlGraphqlKlient>()

@@ -24,7 +24,7 @@ mqjms.log*
 maven-eclipse.xml
 .externalToolBuilders
 dep.txt
-/docs/asciidoc/index.html
+/dokumentasjon/asciidoc/index.html
 .eslint-loader-cache
 .mvn/maven.config
 .mvn/jvm.config

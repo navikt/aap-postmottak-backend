@@ -65,7 +65,6 @@ class OppprettOppgaveIArenaJobbUtfører(
         val oppgave = arenaKlient.opprettArenaOppgave(request)
         log.info("Opprettet oppgave i Arena: $oppgave")
         opprettAutomatiskJournalføringsjobb(kontekst, saksId)
-
     }
 
     private fun opprettAutomatiskJournalføringsjobb(kontekst: ArenaVideresenderKontekst, arenaSakId: String) {

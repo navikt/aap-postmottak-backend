@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
 
-class SafGraphqlOboClient : JournalpostOboGateway {
+class SafGraphqlOboGateway : JournalpostOboGateway {
     private val scope = requiredConfigForKey("integrasjon.saf.scope")
     val safGraphqlKlient = SafGraphqlKlient(
         RestClient(
@@ -32,9 +32,9 @@ class SafGraphqlOboClient : JournalpostOboGateway {
         )
     )
 
-    companion object : Factory<SafGraphqlOboClient> {
-        override fun konstruer(): SafGraphqlOboClient {
-            return SafGraphqlOboClient()
+    companion object : Factory<SafGraphqlOboGateway> {
+        override fun konstruer(): SafGraphqlOboGateway {
+            return SafGraphqlOboGateway()
         }
     }
 
