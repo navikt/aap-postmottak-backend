@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
+import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
@@ -56,6 +57,10 @@ fun NormalOpenAPIRoute.digitaliseringApi(
                 Triple(journalpost, klagebehandlinger, digitaliseringsvurdering)
             }
 
+            val fnr = journalpost.person.aktivIdent().identifikator
+            val navn = gatewayProvider.provide<PersondataGateway>().hentNavn(fnr)
+                ?.fulltNavn()
+            
             respond(
                 DigitaliseringGrunnlagDto(
                     klagebehandlinger = klagebehandlinger,
@@ -66,7 +71,11 @@ fun NormalOpenAPIRoute.digitaliseringApi(
                             digitaliseringsvurdering.strukturertDokument,
                             digitaliseringsvurdering.søknadsdato
                         )
-                    }
+                    },
+                    bruker = BrukerDto(
+                        fnr = fnr,
+                        navn = navn
+                    )
                 )
             )
         }

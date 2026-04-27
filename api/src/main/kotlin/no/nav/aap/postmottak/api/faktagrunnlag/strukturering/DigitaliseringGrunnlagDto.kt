@@ -10,8 +10,14 @@ data class DigitaliseringvurderingDto(
     val søknadsdato: LocalDate?
 )
 
+data class BrukerDto(
+    val fnr: String,
+    val navn: String?
+)
+
 data class DigitaliseringGrunnlagDto(
     val klagebehandlinger: List<Klagebehandling>,
     val erPapir: Boolean,
-    val vurdering: DigitaliseringvurderingDto?
+    val vurdering: DigitaliseringvurderingDto?,
+    val bruker: BrukerDto
 )
