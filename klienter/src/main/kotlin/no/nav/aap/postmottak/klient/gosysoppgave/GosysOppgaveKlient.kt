@@ -8,7 +8,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
@@ -33,7 +33,7 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
     )
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
+        tokenProvider = AzureM2MTokenProvider,
         prometheus = PrometheusProvider.prometheus
     )
 

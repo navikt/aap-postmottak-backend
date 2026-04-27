@@ -4,16 +4,26 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.nimbusds.jwt.JWTParser
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.engine.ConnectorType
+import io.ktor.server.engine.EmbeddedServer
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
+import io.ktor.server.routing.put
+import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
@@ -29,12 +39,11 @@ import no.nav.aap.postmottak.test.fakes.unleashFake
 import no.nav.aap.postmottak.test.fakes.veilarbarena
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.tilgang.JournalpostTilgangRequest
+import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 private const val POSTMOTTAK_BACKEND = "postmottak-backend"
 private val logger = LoggerFactory.getLogger(FakesExtension::class.java)
@@ -47,9 +56,10 @@ class FakePersoner(val fakePersoner: MutableMap<String, TestPerson> = mutableMap
 
 class FakeServers : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(FakeServers::class.java)
-    val azure = embeddedServer(Netty, port = AzurePortHolder.getPort()) { azureFake() }
-    val texas = embeddedServer(Netty, port = 0) { texasFakes() }
+
+    private val texas = embeddedServer(Netty, port = 0) { texasFakes() }
     private val oppgave = embeddedServer(Netty, port = 0, module = { oppgaveFake() })
+
     val fakePersoner: FakePersoner = FakePersoner()
     val saf = embeddedServer(Netty, port = 0, module = { safFake() })
     val joark = embeddedServer(Netty, port = 0, module = { joarkFake() })
@@ -68,30 +78,29 @@ class FakeServers : AutoCloseable {
 
     private val started = AtomicBoolean(false)
 
-    private fun setAzureProperties() {
-        // Azure
-        System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
-        System.setProperty("azure.app.client.id", POSTMOTTAK_BACKEND)
-        System.setProperty("azure.app.client.secret", "")
-        System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.port()}/jwks")
-        System.setProperty("azure.openid.config.issuer", POSTMOTTAK_BACKEND)
-
-    }
-
     private fun setProperties() {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
         System.setProperty("NAIS_APP_NAME", "postmottak-backend")
 
-        System.setProperty("gosys.url", "http://localhost:3000/")
+        // Texas
+        System.setProperty("nais.token.endpoint", "http://localhost:${texas.port()}/token")
+        System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token/exchange")
+        System.setProperty("nais.token.introspection.endpoint", "http://localhost:${texas.port()}/introspect")
 
+        // Gosys
+        System.setProperty("gosys.url", "http://localhost:1234/")
+
+        // Unleash
         System.setProperty("unleash.server.api.url", "http://localhost:${unleash.port()}")
         System.setProperty("unleash.server.api.token", "dummy")
 
         // Oppgave
         System.setProperty("integrasjon.oppgave.scope", "oppgave")
-        System.setProperty("integrasjon.oppgave.url", "http://localhost:${oppgave.port()}")
+        if (System.getenv("INTEGRASJON_OPPGAVE_URL").isNullOrEmpty()) {
+            System.setProperty("integrasjon.oppgave.url", "http://localhost:${oppgave.port()}")
+        }
 
         // Gosys-oppgave
         System.setProperty("integrasjon.oppgaveapi.scope", "gosysOppgave")
@@ -99,7 +108,9 @@ class FakeServers : AutoCloseable {
 
         // Behandlingsflyt
         System.setProperty("integrasjon.behandlingsflyt.scope", "behandlingsflyt")
-        System.setProperty("integrasjon.behandlingsflyt.url", "http://localhost:${behandlingsflyt.port()}")
+        if (System.getenv("INTEGRASJON_BEHANDLINGSFLYT_URL").isNullOrEmpty()) {
+            System.setProperty("integrasjon.behandlingsflyt.url", "http://localhost:${behandlingsflyt.port()}")
+        }
 
         // Saf
         System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}/graphql")
@@ -141,9 +152,7 @@ class FakeServers : AutoCloseable {
         System.setProperty("integrasjon.veilarbarena.url", "http://localhost:${veilarbarena.port()}")
         System.setProperty("integrasjon.veilarbarena.scope", "scope")
 
-        // Texas
-        System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token")
-
+        // Ereg
         System.setProperty("integrasjon.ereg.url", "http://localhost:${eregFake.port()}")
         System.setProperty("integrasjon.ereg.scope", "scope")
     }
@@ -154,9 +163,7 @@ class FakeServers : AutoCloseable {
             return
         }
 
-        azure.start()
         texas.start()
-        setAzureProperties()
         unleash.start()
         oppgave.start()
         saf.start()
@@ -173,8 +180,6 @@ class FakeServers : AutoCloseable {
         veilarbarena.start()
         eregFake.start()
 
-        println("AZURE PORT ${azure.port()}")
-
         setProperties()
 
         started.set(true)
@@ -185,7 +190,6 @@ class FakeServers : AutoCloseable {
         if (!started.get()) {
             return
         }
-        azure.stop()
         texas.stop()
         unleash.stop()
         oppgave.stop()
@@ -227,7 +231,7 @@ class FakeServers : AutoCloseable {
         }
         routing {
             post("/oppdater-postmottak-oppgaver") {
-                call.respond(HttpStatusCode.Companion.NoContent)
+                call.respond(HttpStatusCode.NoContent)
             }
         }
     }
@@ -292,30 +296,6 @@ class FakeServers : AutoCloseable {
         }
     }
 
-    private fun Application.azureFake() {
-        install(ContentNegotiation) {
-            jackson()
-        }
-        install(StatusPages) {
-            exception<Throwable> { call, cause ->
-                this@azureFake.log.info("AZURE :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
-            }
-        }
-        routing {
-            post("/token") {
-                val body = call.receiveText()
-                val token = AzureTokenGen(
-                    POSTMOTTAK_BACKEND, POSTMOTTAK_BACKEND
-                ).generate(body.contains("grant_type=client_credentials"))
-                call.respond(TestToken(access_token = token))
-            }
-            get("/jwks") {
-                call.respond(AZURE_JWKS)
-            }
-        }
-    }
-
     private fun Application.texasFakes() {
         install(ContentNegotiation) {
             jackson()
@@ -331,15 +311,27 @@ class FakeServers : AutoCloseable {
         }
         routing {
             post("/token") {
+                val token = AzureTokenGen("postmottak", "postmottak")
+                    .generate(isApp = true, azp = "postmottak")
+                call.respond(TestToken(access_token = token))
+            }
+
+            post("/token/exchange") {
                 val body = call.receive<JsonNode>()
                 val NAVident = JWTParser.parse(body["user_token"].asText())
                     .jwtClaimsSet
                     .getClaimAsString("NAVident")
+
                 val token = AzureTokenGen(
                     issuer = body["identity_provider"].asText(),
                     audience = body["target"].asText(),
-                ).generate(false, azp = "postmottak", NAVident)
+                ).generate(isApp = false, azp = "postmottak", navIdent = NAVident)
+
                 call.respond(TestToken(access_token = token))
+            }
+
+            post("/introspect") {
+                call.respond(mapOf("active" to true))
             }
         }
     }
@@ -356,7 +348,7 @@ class FakeServers : AutoCloseable {
                     cause
                 )
                 call.respond(
-                    status = HttpStatusCode.Companion.InternalServerError,
+                    status = HttpStatusCode.InternalServerError,
                     message = ErrorRespons(cause.message)
                 )
             }
@@ -364,6 +356,10 @@ class FakeServers : AutoCloseable {
         routing {
             post("/tilgang/journalpost") {
                 call.receive<JournalpostTilgangRequest>()
+                call.respond(TilgangResponse(true))
+            }
+            post("/tilgang/person") {
+                call.receive<PersonTilgangRequest>()
                 call.respond(TilgangResponse(true))
             }
         }
@@ -564,17 +560,4 @@ private fun EmbeddedServer<*, *>.port(): Int {
         this@port.engine.resolvedConnectors()
     }.first { it.type == ConnectorType.HTTP }
         .port
-}
-
-
-object AzurePortHolder {
-    private val azurePort = AtomicInteger(0)
-
-    fun setPort(port: Int) {
-        azurePort.set(port)
-    }
-
-    fun getPort(): Int {
-        return azurePort.get()
-    }
 }

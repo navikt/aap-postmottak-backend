@@ -1,7 +1,8 @@
 package no.nav.aap.postmottak
 
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
+import io.ktor.server.engine.ConnectorType
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -12,7 +13,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureOBOTokenProvider
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeServers
@@ -42,7 +43,7 @@ class ApiTest {
 
         private val client: RestClient<InputStream> = RestClient(
             config = ClientConfig(scope = "postmottak-backend"),
-            tokenProvider = OnBehalfOfTokenProvider,
+            tokenProvider = AzureOBOTokenProvider,
             responseHandler = DefaultResponseHandler()
         )
 
@@ -55,7 +56,7 @@ class ApiTest {
             )
             return token ?: OidcToken(
                 client.post<Unit, FakeServers.TestToken>(
-                    URI.create(requiredConfigForKey("azure.openid.config.token.endpoint")),
+                    URI.create(requiredConfigForKey("nais.token.endpoint")),
                     PostRequest(Unit)
                 )!!.access_token
             )

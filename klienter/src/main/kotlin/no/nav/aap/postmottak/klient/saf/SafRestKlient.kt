@@ -6,8 +6,8 @@ import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureOBOTokenProvider
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.gateway.DokumentOboGateway
@@ -25,7 +25,7 @@ class SafOboRestClient(client: RestClient<InputStream>) : SafRestKlient(client),
                 config = ClientConfig(
                     scope = requiredConfigForKey("integrasjon.saf.scope"),
                 ),
-                OnBehalfOfTokenProvider,
+                AzureOBOTokenProvider,
                 prometheus = PrometheusProvider.prometheus
             )
             return SafOboRestClient(client)
@@ -48,7 +48,7 @@ class SafRestClient(client: RestClient<InputStream>) : SafRestKlient(client), Do
                 config = ClientConfig(
                     scope = requiredConfigForKey("integrasjon.saf.scope"),
                 ),
-                tokenProvider = ClientCredentialsTokenProvider,
+                tokenProvider = AzureM2MTokenProvider,
                 prometheus = PrometheusProvider.prometheus
             )
             return SafRestClient(client)

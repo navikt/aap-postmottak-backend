@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak
 
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -19,7 +19,6 @@ import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
-import no.nav.aap.postmottak.test.AzurePortHolder
 import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.fakes.TestJournalposter.KLAGE_ETTERSENDING
@@ -30,20 +29,14 @@ import java.time.temporal.ChronoUnit
 
 // Kjøres opp for å få logback i console uten json
 fun main() {
-    val postgres = postgreSQLContainer()
-    AzurePortHolder.setPort(8071)
+    val dbConfig = initDbConfig()
     FakeServers().start()
 
     // Starter server
     embeddedServer(Netty, port = 8070) {
-        val dbConfig = DbConfig(
-            url = postgres.jdbcUrl,
-            username = postgres.username,
-            password = postgres.password
-        )
         // Useful for connecting to the test database locally
         // jdbc URL contains the host and port and database name.
-        println("jdbcUrl: ${postgres.jdbcUrl}. Password: ${postgres.password}. Username: ${postgres.username}.")
+        println("jdbcUrl: ${dbConfig.url}. Password: ${dbConfig.password}. Username: ${dbConfig.username}.")
         server(
             dbConfig, postgresRepositoryRegistry, defaultGatewayProvider()
         )
@@ -123,6 +116,22 @@ private fun opprettBehandlingPapirSøknadKategoriser(connection: DBConnection) {
             .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
     )
 
+}
+
+private fun initDbConfig(): DbConfig {
+    return if (System.getenv("DB_POSTMOTTAK_JDBC_URL").isNullOrBlank()) {
+        val postgres = postgreSQLContainer()
+
+        DbConfig(
+            url = postgres.jdbcUrl,
+            username = postgres.username,
+            password = postgres.password
+        )
+    } else {
+        DbConfig()
+    }.also {
+        println("----\nDATABASE URL: \n${it.url}?user=${it.username}&password=${it.password}\n----")
+    }
 }
 
 internal fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {

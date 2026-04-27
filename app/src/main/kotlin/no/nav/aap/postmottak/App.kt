@@ -11,7 +11,6 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.application.ApplicationStopped
@@ -36,11 +35,9 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.httpklient.exception.ApiException
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.repository.RepositoryRegistry
-import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.komponenter.server.plugins.NavIdentInterceptor
 import no.nav.aap.motor.Motor
@@ -132,8 +129,8 @@ internal fun Application.server(
 
     commonKtorModule(
         prometheus = PrometheusProvider.prometheus,
-        azureConfig = AzureConfig(),
-        InfoModel(title = "AAP - Postmottak")
+        infoModel = InfoModel(title = "AAP - Postmottak"),
+        identityProvider = IdentityProvider.ENTRA_ID,
     )
 
     install(StatusPages, StatusPagesConfigHelper.setup())
@@ -150,7 +147,7 @@ internal fun Application.server(
     val mottakStream = lagMottakStream(dataSource, repositoryRegistry, gatewayProvider)
 
     routing {
-        authenticate(AZURE) {
+        authenticate(IdentityProvider.ENTRA_ID.value) {
             install(NavIdentInterceptor)
 
             apiRouting {
@@ -195,13 +192,6 @@ internal fun Application.server(
             // Ignorert
         }
     }
-}
-
-private suspend fun ApplicationCall.respondWithError(exception: ApiException) {
-    respond(
-        exception.status,
-        exception.tilApiErrorResponse()
-    )
 }
 
 fun lagMotor(

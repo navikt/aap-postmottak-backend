@@ -14,7 +14,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.put
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
@@ -66,7 +66,7 @@ class JournalføringService(
             config = ClientConfig(
                 scope = requiredConfigForKey("integrasjon.joark.scope"),
             ),
-            tokenProvider = ClientCredentialsTokenProvider,
+            tokenProvider = AzureM2MTokenProvider,
             prometheus = PrometheusProvider.prometheus,
         ),
         unleashGateway = gatewayProvider.provide<UnleashGateway>(),
