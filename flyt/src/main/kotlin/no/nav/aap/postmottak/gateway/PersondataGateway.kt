@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.gateway
 
 import no.nav.aap.fordeler.Diskresjonskode
 import no.nav.aap.komponenter.gateway.Gateway
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import java.time.LocalDate
 
@@ -25,6 +26,13 @@ interface PersondataGateway: Gateway {
     fun hentAlleIdenterForPerson(ident: String): List<Ident>
 
     fun hentAdressebeskyttelseOgGeolokasjon(ident: Ident): GeografiskTilknytningOgAdressebeskyttelse
+}
+
+interface PersondataOboGateway : Gateway {
+    fun hentNavn(
+        personident: String,
+        currentToken: OidcToken
+    ): Navn?
 }
 
 data class GeografiskTilknytning(

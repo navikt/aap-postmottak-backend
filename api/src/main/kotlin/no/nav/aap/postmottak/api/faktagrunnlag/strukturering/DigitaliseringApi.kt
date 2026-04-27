@@ -7,12 +7,13 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
+import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
-import no.nav.aap.postmottak.gateway.PersondataGateway
+import no.nav.aap.postmottak.gateway.PersondataOboGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
@@ -57,8 +58,9 @@ fun NormalOpenAPIRoute.digitaliseringApi(
                 Triple(journalpost, klagebehandlinger, digitaliseringsvurdering)
             }
 
+            val token = token()
             val fnr = journalpost.person.aktivIdent().identifikator
-            val navn = gatewayProvider.provide<PersondataGateway>().hentNavn(fnr)
+            val navn = gatewayProvider.provide<PersondataOboGateway>().hentNavn(fnr, token)
                 ?.fulltNavn()
             
             respond(
