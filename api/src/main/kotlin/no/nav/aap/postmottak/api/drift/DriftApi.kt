@@ -4,9 +4,10 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -83,7 +84,7 @@ fun NormalOpenAPIRoute.driftApi(
                     val journalpost = journalpostRepository.hentHvisEksisterer(journalpostId)
 
                     if (innkommendeJournalpost == null && journalpost == null) {
-                        return@transaction null
+                        throw VerdiIkkeFunnetException("Fant ingen journalpost med ID ${params.referanse}")
                     }
 
                     val behandlinger = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
@@ -120,12 +121,8 @@ fun NormalOpenAPIRoute.driftApi(
                     )
                 }
 
-                if (dto == null) {
-                    respondWithStatus(HttpStatusCode.NotFound)
-                } else {
-                    krevDtoErUtenFødselsnummer(dto)
-                    respond(dto)
-                }
+                krevDtoErUtenFødselsnummer(dto)
+                respond(dto)
             }
         }
     }
