@@ -29,6 +29,5 @@ data class AvklarSakGrunnlagDto(
     val journalposttittel: String? = null,
     val dokumenter: List<Dokument>,
     val kanEndreAvsenderMottaker: Boolean,
-    val avsenderMottaker: AvsenderMottaker?,
-    val person: Person
+    val avsenderMottaker: AvsenderMottaker?
 )
