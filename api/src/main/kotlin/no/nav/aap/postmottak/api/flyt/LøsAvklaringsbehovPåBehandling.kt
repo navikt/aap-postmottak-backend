@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.papsign.ktor.openapigen.annotations.Response
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
+import no.nav.aap.tilgang.Rolle
 import no.nav.aap.tilgang.plugin.kontrakt.Journalpostreferanse
 
 @Response(statusCode = 202)
@@ -15,8 +16,8 @@ data class LøsAvklaringsbehovPåBehandling(
     @param:JsonProperty(value = "behov", required = true) val behov: `AvklaringsbehovLøsning`,
     @param:JsonProperty(value = "ingenEndringIGruppe") val ingenEndringIGruppe: Boolean?,
 ) : Journalpostreferanse {
-    override fun hentAvklaringsbehovKode(): String {
-        return behov.definisjon().kode.name
+    override fun hentPåkrevdRolle(): List<Rolle> {
+        return behov.definisjon().løsesAv
     }
 
     override fun journalpostIdResolverInput(): String {
