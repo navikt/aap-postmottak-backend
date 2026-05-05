@@ -4,6 +4,7 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.AvsenderMottaker
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 
 data class SaksInfoDto(
     val saksnummer: String,
@@ -29,4 +30,5 @@ data class AvklarSakGrunnlagDto(
     val dokumenter: List<Dokument>,
     val kanEndreAvsenderMottaker: Boolean,
     val avsenderMottaker: AvsenderMottaker?,
+    val person: Person
 )

@@ -51,6 +51,7 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
                     dokumenter = journalpost.dokumenter,
                     kanEndreAvsenderMottaker = !journalpost.kanal.erDigitalKanal(),
                     avsenderMottaker = journalpost.avsenderMottaker,
+                    person = journalpost.person
                 )
             }
             respond(response)
