@@ -13,19 +13,19 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbStatus
 import no.nav.aap.motor.api.JobbInfoDto
+import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.BehandlingTilstandValidator
 import no.nav.aap.postmottak.avklaringsbehov.FrivilligeAvklaringsbehov
-import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.flyt.flate.visning.DynamiskStegGruppeVisningService
 import no.nav.aap.postmottak.flyt.flate.visning.ProsesseringStatus
 import no.nav.aap.postmottak.flyt.flate.visning.Visning
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingHendelseHåndterer
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReferanseService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReferanseService
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -178,7 +178,7 @@ fun NormalOpenAPIRoute.flytApi(
                         "referanse",
                         resolver = journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource),
                     ),
-                    avklaringsbehovKode = Definisjon.MANUELT_SATT_PÅ_VENT.kode.name
+                    påkrevdRolle = Definisjon.MANUELT_SATT_PÅ_VENT.løsesAv
                 )
             ) { request, body ->
                 dataSource.transaction { connection ->
