@@ -88,7 +88,6 @@ class JoarkKafkaHandler(
         streamBuilder.stream(JOARK_TOPIC, Consumed.with(Serdes.String(), journalfoeringHendelseAvro.avroserdes))
             .filter(harStatusMottatt)
             .filter(erIkkeKanalEESSI)
-            .peek { _, record -> prometheus.hendelseType(record) }
             .split()
             .branch(erTemaEndretFraAAP, Branched.withConsumer(::temaendringTopology))
             .branch(erTemaAAP, Branched.withConsumer(::nyJournalpost))
@@ -99,12 +98,14 @@ class JoarkKafkaHandler(
     }
 
     private fun temaendringTopology(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream.mapValues { record -> JournalpostId(record.journalpostId) }
+        stream.peek { _, record -> prometheus.hendelseType(record) }
+            .mapValues { record -> JournalpostId(record.journalpostId) }
             .foreach { _, record -> håndterTemaendring(record) }
     }
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream.foreach { _, record ->
+        stream.peek { _, record -> prometheus.hendelseType(record) }
+            .foreach { _, record ->
             val journalpostId = record.journalpostId.let(::JournalpostId)
             val åpenBehandling = transactionProvider.inTransaction(readOnly = true) {
                 behandlingRepository.hentÅpenJournalføringsbehandling(journalpostId)

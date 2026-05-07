@@ -20,8 +20,6 @@ fun MeterRegistry.hendelseType(record: JournalfoeringHendelseRecord): Counter =
     this.counter(
         "joark_hendelse", listOf(
             Tag.of("hendelseType", record.hendelsesType),
-            Tag.of("status", record.journalpostStatus),
-            Tag.of("temaNytt", record.temaNytt),
         )
     )
 
