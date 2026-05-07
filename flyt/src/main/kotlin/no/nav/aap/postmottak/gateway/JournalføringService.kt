@@ -23,7 +23,6 @@ import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import java.io.InputStream
 import java.net.URI
@@ -41,6 +40,14 @@ class JournalføringService(
     private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
 
     companion object {
+        private val restClient = RestClient.withDefaultResponseHandler(
+            config = ClientConfig(
+                scope = requiredConfigForKey("integrasjon.joark.scope"),
+            ),
+            tokenProvider = AzureM2MTokenProvider,
+            prometheus = PrometheusProvider.prometheus,
+        )
+
         fun konstruer(
             restClient: RestClient<InputStream>,
             safGraphqlKlient: JournalpostGateway,
@@ -62,13 +69,7 @@ class JournalføringService(
         safGraphqlKlient = gatewayProvider.provide(JournalpostGateway::class),
         enhetsregisteretGateway = gatewayProvider.provide(EnhetsregisteretGateway::class),
         prometheus = PrometheusProvider.prometheus,
-        client = RestClient.withDefaultResponseHandler(
-            config = ClientConfig(
-                scope = requiredConfigForKey("integrasjon.joark.scope"),
-            ),
-            tokenProvider = AzureM2MTokenProvider,
-            prometheus = PrometheusProvider.prometheus,
-        ),
+        client = restClient,
         unleashGateway = gatewayProvider.provide<UnleashGateway>(),
     )
 
@@ -178,7 +179,8 @@ class JournalføringService(
     }
 
     fun kopierJournalpost(kildeJournalpostId: JournalpostId, eksternReferanseId: String): JournalpostId {
-        val path = url.resolve("/rest/journalpostapi/v1/journalpost/kopierJournalpost?kildeJournalpostId=$kildeJournalpostId")
+        val path =
+            url.resolve("/rest/journalpostapi/v1/journalpost/kopierJournalpost?kildeJournalpostId=$kildeJournalpostId")
         val response: KopierJournalpostResponse? = client.post(
             uri = path,
             request = PostRequest(body = KopierJournalpostRequest(eksternReferanseId)),
