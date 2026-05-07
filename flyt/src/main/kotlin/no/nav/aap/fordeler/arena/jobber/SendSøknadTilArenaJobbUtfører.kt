@@ -1,7 +1,7 @@
 package no.nav.aap.fordeler.arena.jobber
 
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.aap.fordeler.arena.ArenaGateway
+import no.nav.aap.fordeler.arena.ArenaWebservicesGateway
 import no.nav.aap.fordeler.arena.ArenaOppgaveType
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
 
 class SendSøknadTilArenaJobbUtfører(
     private val flytJobbRepository: FlytJobbRepository,
-    private val arenaKlient: ArenaGateway,
+    private val arenaKlient: ArenaWebservicesGateway,
     journalpostService: JournalpostService,
     val prometheus: MeterRegistry
 ) : ArenaJobbutførerBase(journalpostService) {

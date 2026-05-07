@@ -6,7 +6,6 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
-import no.nav.aap.FakeUnleash
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
@@ -22,9 +21,8 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
-import no.nav.aap.postmottak.klient.unleash.UnleashService
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
@@ -32,7 +30,6 @@ import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.unleash.FeatureToggle
-import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -48,8 +45,8 @@ import java.time.LocalDate
 class ArenaOppgaveFlytTest : WithDependencies {
     companion object {
         private val gatewayProvider = defaultGatewayProvider {
-            register<ApiInternSpy>()
-            register<ArenaKlientSpy>()
+            register<AapInternApiGatewaySpy>()
+            register<ArenaWebservicesGatewaySpy>()
             register<UnleashSpy>()
         }
 
@@ -89,7 +86,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
         val journalpostId = TestJournalposter.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
 
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
-        val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
+        val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
         val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
 
         clearAllMocks()
@@ -98,7 +95,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
             true,
             listOf("1234")
         )
-        every { arenaGateway.harAktivSak(any()) } returns false
+        every { arenaWebservicesGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
             FlytJobbRepository(it).leggTil(
@@ -109,7 +106,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
         util.ventPåSvar()
 
         verify(exactly = 1) {
-            arenaGateway.opprettArenaOppgave(withArg {
+            arenaWebservicesGateway.opprettArenaOppgave(withArg {
                 assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.STARTVEDTAK)
             })
         }
@@ -120,14 +117,14 @@ class ArenaOppgaveFlytTest : WithDependencies {
         val journalpostId = TestJournalposter.SØKNAD_ETTERSENDELSE
 
         val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
-        val arenaGateway = gatewayProvider.provide(ArenaGateway::class)
+        val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
         val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
 
         clearAllMocks()
         every { apiInternGateway.harAapSakIArena(any()) } returns PersonEksistererIAAPArena(eksisterer = true)
         every { apiInternGateway.harSignifikantHistorikkIAAPArena(any(), any()) } returns
                 SignifikanteSakerResponse(harSignifikantHistorikk = true, signifikanteSaker = listOf("1234"))
-        every { arenaGateway.harAktivSak(any()) } returns false
+        every { arenaWebservicesGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
             FlytJobbRepository(it).leggTil(
@@ -137,7 +134,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
         util.ventPåSvar()
 
         verify(exactly = 1) {
-            arenaGateway.opprettArenaOppgave(withArg {
+            arenaWebservicesGateway.opprettArenaOppgave(withArg {
                 assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.BEHENVPERSON)
             })
         }
@@ -145,9 +142,9 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
 }
 
-class ApiInternSpy : AapInternApiGateway {
-    companion object : Factory<ApiInternSpy> {
-        val klient = spyk(ApiInternSpy())
+class AapInternApiGatewaySpy : AapInternApiGateway {
+    companion object : Factory<AapInternApiGatewaySpy> {
+        val klient = spyk(AapInternApiGatewaySpy())
         override fun konstruer() = klient
     }
 
@@ -164,10 +161,10 @@ class ApiInternSpy : AapInternApiGateway {
 
 }
 
-class ArenaKlientSpy : ArenaGateway {
+class ArenaWebservicesGatewaySpy : ArenaWebservicesGateway {
 
-    companion object : Factory<ArenaKlient> {
-        val klient = spyk(ArenaKlient.konstruer())
+    companion object : Factory<ArenaWebservicesGatewayImpl> {
+        val klient = spyk(ArenaWebservicesGatewayImpl.konstruer())
         override fun konstruer() = klient
     }
 

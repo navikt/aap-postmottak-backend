@@ -6,9 +6,9 @@ import io.mockk.mockk
 import no.nav.aap.FakeUnleash
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SignifikanteSakerResponse
-import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identHeltUtenSak
-import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identMedSak
-import no.nav.aap.fordeler.regler.ApiInternMock.Companion.identMedSignifikantSak
+import no.nav.aap.fordeler.regler.AapInternApiGatewayMock.Companion.identHeltUtenSak
+import no.nav.aap.fordeler.regler.AapInternApiGatewayMock.Companion.identMedSak
+import no.nav.aap.fordeler.regler.AapInternApiGatewayMock.Companion.identMedSignifikantSak
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
@@ -40,7 +40,7 @@ class ArenaHistorikkRegelTest {
 
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
-            .register<ApiInternMock>()
+            .register<AapInternApiGatewayMock>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -66,7 +66,7 @@ class ArenaHistorikkRegelTest {
 
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
-            .register<ApiInternMock>()
+            .register<AapInternApiGatewayMock>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -92,7 +92,7 @@ class ArenaHistorikkRegelTest {
 
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
-            .register<ApiInternMock>()
+            .register<AapInternApiGatewayMock>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -122,10 +122,10 @@ class ArenaHistorikkRegelTest {
 
 }
 
-class ApiInternMock : AapInternApiGateway {
-    companion object : Factory<ApiInternMock> {
-        override fun konstruer(): ApiInternMock {
-            return ApiInternMock()
+class AapInternApiGatewayMock : AapInternApiGateway {
+    companion object : Factory<AapInternApiGatewayMock> {
+        override fun konstruer(): AapInternApiGatewayMock {
+            return AapInternApiGatewayMock()
         }
 
         const val identHeltUtenSak = "ikke_funnet"

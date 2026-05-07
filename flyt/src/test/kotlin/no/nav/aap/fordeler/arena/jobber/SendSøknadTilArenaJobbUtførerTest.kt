@@ -1,7 +1,6 @@
 package no.nav.aap.fordeler.arena.jobber
 
 import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
@@ -12,7 +11,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.retriesExceeded
 import org.assertj.core.api.Assertions.assertThat
@@ -20,7 +19,7 @@ import org.junit.jupiter.api.Test
 
 class SendSøknadTilArenaJobbUtførerTest {
     val flytJobbRepositoryMock = mockk<FlytJobbRepository>(relaxed = true)
-    val arenaKlientMock = mockk<ArenaKlient>(relaxed = true)
+    val arenaKlientMock = mockk<ArenaWebservicesGatewayImpl>(relaxed = true)
     val journalpostService = mockk<JournalpostService>(relaxed = true) {
         every { hentJournalpost(any()) } returns mockk(relaxed = true) {
             every { status } returns Journalstatus.MOTTATT
