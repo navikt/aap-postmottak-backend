@@ -48,6 +48,7 @@ outbound:
     - host: aap-fss-proxy.dev-fss-pub.nais.io
     - host: veilarbarena.dev-fss-pub.nais.io
     - host: ereg-services-q2.dev-fss-pub.nais.io
+    - host: arenaoppslag.dev-fss-pub.nais.io
 
 env:
   - name: INTEGRASJON_AAP_ARENAOPPSLAG_PROXY_URL
