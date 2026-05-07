@@ -98,13 +98,13 @@ class JoarkKafkaHandler(
     }
 
     private fun temaendringTopology(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream.peek { _, record -> prometheus.hendelseType(record, temaNytt = "ikke_aap") }
+        stream.peek { _, record -> prometheus.hendelseType(record) }
             .mapValues { record -> JournalpostId(record.journalpostId) }
             .foreach { _, record -> håndterTemaendring(record) }
     }
 
     private fun nyJournalpost(stream: KStream<String, JournalfoeringHendelseRecord>) {
-        stream.peek { _, record -> prometheus.hendelseType(record, temaNytt = "AAP") }
+        stream.peek { _, record -> prometheus.hendelseType(record) }
             .foreach { _, record ->
             val journalpostId = record.journalpostId.let(::JournalpostId)
             val åpenBehandling = transactionProvider.inTransaction(readOnly = true) {
