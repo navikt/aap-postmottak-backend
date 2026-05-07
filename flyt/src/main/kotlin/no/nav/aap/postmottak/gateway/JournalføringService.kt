@@ -40,13 +40,15 @@ class JournalføringService(
     private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
 
     companion object {
-        private val restClient = RestClient.withDefaultResponseHandler(
-            config = ClientConfig(
-                scope = requiredConfigForKey("integrasjon.joark.scope"),
-            ),
-            tokenProvider = AzureM2MTokenProvider,
-            prometheus = PrometheusProvider.prometheus,
-        )
+        private val restClient: RestClient<InputStream> by lazy {
+            RestClient.withDefaultResponseHandler(
+                config = ClientConfig(
+                    scope = requiredConfigForKey("integrasjon.joark.scope"),
+                ),
+                tokenProvider = AzureM2MTokenProvider,
+                prometheus = PrometheusProvider.prometheus,
+            )
+        }
 
         fun konstruer(
             restClient: RestClient<InputStream>,
