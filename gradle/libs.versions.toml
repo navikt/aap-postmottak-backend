@@ -17,6 +17,14 @@ ktorServerCors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktorSerializationJackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
 ktorOpenApiGen = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
+
+ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
+ktorClientCio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktorClientJackson = { module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
+ktorClientJacksonSerialization = { module = "io.ktor:ktor-serialization-jackson-jvm", version.ref = "ktor" }
+ktorClientLogging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+
 dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "komponenter" }
 verdityper = { module = "no.nav.aap.kelvin:verdityper", version.ref = "komponenter" }
 dbmigrering = { module = "no.nav.aap.kelvin:dbmigrering", version.ref = "komponenter" }

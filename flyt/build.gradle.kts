@@ -8,6 +8,7 @@ dependencies {
     api(libs.gateway)
     implementation(libs.behandlingsflytKontrakt)
     implementation(libs.apiInternKontrakt)
+    implementation(libs.arenaoppslagKontrakt)
     implementation(libs.infrastructure)
     implementation(libs.httpklient)
     implementation(libs.motorApi)

@@ -45,6 +45,10 @@ outbound:
     - host: ereg-services.prod-fss-pub.nais.io
 
 env:
+  - name: ARENAOPPSLAG_PROXY_BASE_URL
+    value: https://arenaoppslag.prod-fss-pub.nais.io
+  - name: ARENAOPPSLAG_SCOPE
+    value: api://prod-fss.aap.arenaoppslag/.default
   - name: INTEGRASJON_SAF_URL_GRAPHQL
     value: https://saf.prod-fss-pub.nais.io/graphql
   - name: INTEGRASJON_SAF_URL_REST
