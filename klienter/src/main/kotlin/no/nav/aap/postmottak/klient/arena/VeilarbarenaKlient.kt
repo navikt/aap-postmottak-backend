@@ -1,7 +1,7 @@
 package no.nav.aap.postmottak.klient.arena
 
 import no.nav.aap.fordeler.NavEnhet
-import no.nav.aap.fordeler.VeilarbarenaGateway
+import no.nav.aap.fordeler.arena.VeilarbarenaGateway
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
