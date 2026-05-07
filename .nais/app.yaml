@@ -7,6 +7,12 @@ metadata:
     team: aap
     sub: postmottak
 spec:
+  resources:
+    limits:
+      memory: {{resources.limits.memory}}
+    requests:
+      memory: {{resources.requests.memory}}
+      cpu: {{resources.requests.cpu}}
   image: {{image}}
   ingresses:
     - {{ingres}}
