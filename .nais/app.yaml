@@ -15,12 +15,6 @@ spec:
     disableAutoScaling: {{replicas.disableAutoScaling}}
     max: {{replicas.max}}
     min: {{replicas.min}}
-  resources:
-    limits:
-      memory: 1024Mi
-    requests:
-      cpu: 500m
-      memory: 528Mi
   terminationGracePeriodSeconds: 30
   observability:
     autoInstrumentation:

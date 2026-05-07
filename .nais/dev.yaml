@@ -14,6 +14,13 @@ replicas:
 kafka:
   pool: nav-dev
 
+resources:
+  limits:
+    memory: 1024Mi
+  requests:
+    cpu: 261m
+    memory: 528Mi
+
 inbound:
   rules:
     - application: saksbehandling
