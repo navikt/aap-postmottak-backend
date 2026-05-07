@@ -16,12 +16,11 @@ class PrometheusProvider {
 fun MeterRegistry.fordelingsCounter(system: Fagsystem): Counter =
     this.counter("fordeling_videresend", listOf(Tag.of("system", system.name)))
 
-fun MeterRegistry.hendelseType(record: JournalfoeringHendelseRecord): Counter =
+fun MeterRegistry.hendelseType(record: JournalfoeringHendelseRecord, type: String): Counter =
     this.counter(
         "joark_hendelse", listOf(
             Tag.of("hendelseType", record.hendelsesType),
-            Tag.of("status", record.journalpostStatus),
-            Tag.of("temaNytt", record.temaNytt),
+            Tag.of("type", type),
         )
     )
 
