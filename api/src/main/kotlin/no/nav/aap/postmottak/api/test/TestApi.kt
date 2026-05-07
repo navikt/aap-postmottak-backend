@@ -8,7 +8,7 @@ import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.fordeler.EnhetMedOppfølgingsKontor
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.NorgGateway
-import no.nav.aap.fordeler.VeilarbarenaGateway
+import no.nav.aap.fordeler.arena.VeilarbarenaGateway
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.miljo.Miljø
