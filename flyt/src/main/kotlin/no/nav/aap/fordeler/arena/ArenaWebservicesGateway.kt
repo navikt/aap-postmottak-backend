@@ -4,7 +4,7 @@ import no.nav.aap.komponenter.gateway.Gateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
-interface ArenaGateway : Gateway {
+interface ArenaWebservicesGateway : Gateway {
     fun nyesteAktiveSak(ident: Ident): String?
     fun harAktivSak(ident: Ident): Boolean
     fun opprettArenaOppgave(arenaOpprettetForespørsel: ArenaOpprettOppgaveForespørsel): ArenaOpprettOppgaveRespons

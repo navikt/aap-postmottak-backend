@@ -5,6 +5,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.klient.arena.AapInternApiGatewayImpl
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestIdenter
 import org.assertj.core.api.Assertions.assertThat
@@ -23,7 +24,7 @@ class AapApiInternKlientTest {
         }
     }
 
-    val apiIntern = AapInternApiKlient()
+    val apiIntern = AapInternApiGatewayImpl()
 
     @Test
     fun `Kan parse PersonEksistererIAAPArena`() {

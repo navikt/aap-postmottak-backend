@@ -10,4 +10,5 @@ interface AapInternApiGateway : Gateway {
     fun harAapSakIArena(person: Person): PersonEksistererIAAPArena
 
     fun harSignifikantHistorikkIAAPArena(person: Person, mottattDato: LocalDate): SignifikanteSakerResponse
+    
 }

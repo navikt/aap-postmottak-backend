@@ -7,8 +7,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.postmottak.klient.SakerRequest
-import no.nav.aap.postmottak.klient.SignifikanteSakerRequest
+import no.nav.aap.postmottak.klient.arena.SakerRequest
+import no.nav.aap.postmottak.klient.arena.SignifikanteSakerRequest
 
 fun Application.aapInternApiFake() {
     install(ContentNegotiation) {
