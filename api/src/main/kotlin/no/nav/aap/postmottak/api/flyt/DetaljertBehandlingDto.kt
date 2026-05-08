@@ -5,7 +5,7 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import java.time.LocalDateTime
 
-data class DetaljertBehandlingDTO(
+data class DetaljertBehandlingDto(
     val referanse: BehandlingsreferansePathParam,
     val type: String,
     val status: Status,

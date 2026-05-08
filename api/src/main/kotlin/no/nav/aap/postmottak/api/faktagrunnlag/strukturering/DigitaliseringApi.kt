@@ -33,7 +33,7 @@ fun NormalOpenAPIRoute.digitaliseringApi(
                 )
             )
         ) { req ->
-            val (journalpost, klagebehandlinger, digitaliseringsvurdering) = dataSource.transaction(readOnly = true) {
+            val (journalpost, saksnummer, digitaliseringsvurdering) = dataSource.transaction(readOnly = true) {
                 val repositoryProvider = repositoryRegistry.provider(it)
                 val behandling = repositoryProvider.provide<BehandlingRepository>().hent(req)
 
@@ -50,11 +50,11 @@ fun NormalOpenAPIRoute.digitaliseringApi(
                         .hentSakVurdering(behandling.id)?.saksnummer
                 ) { "Kun journalposter som er journalført på Kelvin-sak skal digitaliseres. BehandlingID: ${req.referanse}." }
 
-                val klagebehandlinger = gatewayProvider.provide<BehandlingsflytGateway>()
-                    .finnKlagebehandlinger(saksnummer = Saksnummer(saksnummer))
-
-                Triple(journalpost, klagebehandlinger, digitaliseringsvurdering)
+                Triple(journalpost, saksnummer, digitaliseringsvurdering)
             }
+
+            val klagebehandlinger = gatewayProvider.provide<BehandlingsflytGateway>()
+                .finnKlagebehandlinger(saksnummer = Saksnummer(saksnummer))
 
             respond(
                 DigitaliseringGrunnlagDto(

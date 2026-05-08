@@ -35,7 +35,7 @@ fun NormalOpenAPIRoute.behandlingApi(
 ) {
     route("/api/behandling") {
         route("/{referanse}") {
-            authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(
+            authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDto>(
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
@@ -52,7 +52,7 @@ fun NormalOpenAPIRoute.behandlingApi(
                     val flyt = utledType(behandling.typeBehandling).flyt()
                     val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id)
 
-                    DetaljertBehandlingDTO(
+                    DetaljertBehandlingDto(
                         referanse = req,
                         type = behandling.typeBehandling.name,
                         status = behandling.status(),
@@ -86,7 +86,7 @@ fun NormalOpenAPIRoute.behandlingApi(
         }
 
         route("/{referanse}/forbered") {
-            authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDTO>(
+            authorizedGet<BehandlingsreferansePathParam, DetaljertBehandlingDto>(
                 AuthorizationParamPathConfig(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
