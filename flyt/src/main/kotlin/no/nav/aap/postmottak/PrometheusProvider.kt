@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.fordeler.NavEnhet
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 
 class PrometheusProvider {
@@ -27,8 +28,7 @@ fun MeterRegistry.journalpostCounter(brevkode: String?, filtype: String?) =
     this.counter(
         "journalpost",
         listOf(
-            Tag.of("brevkode", brevkode ?: "Ukjent"),
-            Tag.of("filtype", filtype ?: "UKJENT")
+            Tag.of("brevkode", brevkode?.let { Brevkoder.fraKode(it).name } ?: Brevkoder.ANNEN.name)
         )
     )
 
