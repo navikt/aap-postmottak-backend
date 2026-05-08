@@ -29,9 +29,8 @@ class NomKlient : EgenAnsattGateway {
     )
 
     companion object : Factory<NomKlient> {
-        override fun konstruer(): NomKlient {
-            return NomKlient()
-        }
+        private val nomKlient by lazy { NomKlient() }
+        override fun konstruer(): NomKlient = nomKlient
     }
 
     override fun erEgenAnsatt(ident: Ident): Boolean {

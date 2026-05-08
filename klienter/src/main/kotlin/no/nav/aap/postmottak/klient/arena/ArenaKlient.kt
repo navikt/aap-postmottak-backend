@@ -26,9 +26,8 @@ class ArenaKlient : ArenaGateway {
     )
 
     companion object : Factory<ArenaKlient> {
-        override fun konstruer(): ArenaKlient {
-            return ArenaKlient()
-        }
+        private val arenaKlient by lazy { ArenaKlient() }
+        override fun konstruer(): ArenaKlient = arenaKlient
     }
 
     override fun harAktivSak(ident: Ident) = nyesteAktiveSak(ident) != null

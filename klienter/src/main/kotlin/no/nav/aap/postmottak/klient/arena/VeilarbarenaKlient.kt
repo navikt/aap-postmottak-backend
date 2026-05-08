@@ -26,9 +26,8 @@ private data class HentOppfølgingsenhetResponse(
 class VeilarbarenaKlient : VeilarbarenaGateway {
     private val log = LoggerFactory.getLogger(VeilarbarenaKlient::class.java)
     companion object : Factory<VeilarbarenaKlient> {
-        override fun konstruer(): VeilarbarenaKlient {
-            return VeilarbarenaKlient()
-        }
+        private val veilarbarenaKlient by lazy { VeilarbarenaKlient() }
+        override fun konstruer(): VeilarbarenaKlient = veilarbarenaKlient
     }
 
 

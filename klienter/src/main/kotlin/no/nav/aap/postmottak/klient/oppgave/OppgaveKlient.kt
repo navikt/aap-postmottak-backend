@@ -17,9 +17,8 @@ class OppgaveKlient : OppgaveGateway {
     private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.oppgave.scope"))
 
     companion object : Factory<OppgaveKlient> {
-        override fun konstruer(): OppgaveKlient {
-            return OppgaveKlient()
-        }
+        private val oppgaveKlient by lazy { OppgaveKlient() }
+        override fun konstruer(): OppgaveKlient = oppgaveKlient
     }
 
     private val client = RestClient.withDefaultResponseHandler(

@@ -28,9 +28,8 @@ class EREGKlient : EnhetsregisteretGateway {
     )
 
     companion object : Factory<EREGKlient> {
-        override fun konstruer(): EREGKlient {
-            return EREGKlient()
-        }
+        private val eregKlient by lazy { EREGKlient() }
+        override fun konstruer(): EREGKlient = eregKlient
     }
 
     override fun hentOrganisasjon(organisasjonsnummer: Organisasjonsnummer): EnhetsregisterOrganisasjonResponse? {

@@ -38,9 +38,8 @@ class PdlGraphqlKlient : PersondataGateway {
     )
 
     companion object : Factory<PdlGraphqlKlient> {
-        override fun konstruer(): PdlGraphqlKlient {
-            return PdlGraphqlKlient()
-        }
+        private val pdlGraphqlKlient by lazy { PdlGraphqlKlient() }
+        override fun konstruer(): PdlGraphqlKlient = pdlGraphqlKlient
     }
 
     override fun hentPersonBolk(

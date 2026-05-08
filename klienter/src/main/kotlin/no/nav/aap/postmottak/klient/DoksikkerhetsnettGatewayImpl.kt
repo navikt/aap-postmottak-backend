@@ -25,9 +25,8 @@ class DoksikkerhetsnettGatewayImpl : DoksikkerhetsnettGateway {
     )
 
     companion object : Factory<DoksikkerhetsnettGateway> {
-        override fun konstruer(): DoksikkerhetsnettGateway {
-            return DoksikkerhetsnettGatewayImpl()
-        }
+        private val doksikkerhetsnettGateway by lazy { DoksikkerhetsnettGatewayImpl() }
+        override fun konstruer(): DoksikkerhetsnettGateway = doksikkerhetsnettGateway
     }
 
     private val client = RestClient.withDefaultResponseHandler(

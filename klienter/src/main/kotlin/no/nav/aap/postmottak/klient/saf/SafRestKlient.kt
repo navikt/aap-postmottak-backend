@@ -20,16 +20,16 @@ import java.net.http.HttpHeaders
 
 class SafOboRestClient(client: RestClient<InputStream>) : SafRestKlient(client), DokumentOboGateway {
     companion object : Factory<SafOboRestClient> {
-        override fun konstruer(): SafOboRestClient {
-            val client = RestClient.withDefaultResponseHandler(
-                config = ClientConfig(
-                    scope = requiredConfigForKey("integrasjon.saf.scope"),
-                ),
-                AzureOBOTokenProvider,
-                prometheus = PrometheusProvider.prometheus
+        private val safOboRestClient by lazy {
+            SafOboRestClient(
+                RestClient.withDefaultResponseHandler(
+                    config = ClientConfig(scope = requiredConfigForKey("integrasjon.saf.scope")),
+                    AzureOBOTokenProvider,
+                    prometheus = PrometheusProvider.prometheus
+                )
             )
-            return SafOboRestClient(client)
         }
+        override fun konstruer(): SafOboRestClient = safOboRestClient
     }
 
     override fun hentDokument(
@@ -43,16 +43,16 @@ class SafOboRestClient(client: RestClient<InputStream>) : SafRestKlient(client),
 
 class SafRestClient(client: RestClient<InputStream>) : SafRestKlient(client), DokumentGateway {
     companion object : Factory<SafRestClient> {
-        override fun konstruer(): SafRestClient {
-            val client = RestClient.withDefaultResponseHandler(
-                config = ClientConfig(
-                    scope = requiredConfigForKey("integrasjon.saf.scope"),
-                ),
-                tokenProvider = AzureM2MTokenProvider,
-                prometheus = PrometheusProvider.prometheus
+        private val safRestClient by lazy {
+            SafRestClient(
+                RestClient.withDefaultResponseHandler(
+                    config = ClientConfig(scope = requiredConfigForKey("integrasjon.saf.scope")),
+                    tokenProvider = AzureM2MTokenProvider,
+                    prometheus = PrometheusProvider.prometheus
+                )
             )
-            return SafRestClient(client)
         }
+        override fun konstruer(): SafRestClient = safRestClient
 
         fun konstruer(client: RestClient<InputStream>): SafRestClient {
             return SafRestClient(client)
