@@ -33,9 +33,8 @@ class SafGraphqlOboClient : JournalpostOboGateway {
     )
 
     companion object : Factory<SafGraphqlOboClient> {
-        override fun konstruer(): SafGraphqlOboClient {
-            return SafGraphqlOboClient()
-        }
+        private val safGraphqlOboClient by lazy { SafGraphqlOboClient() }
+        override fun konstruer(): SafGraphqlOboClient = safGraphqlOboClient
     }
 
     override fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken): SafJournalpost =
@@ -59,10 +58,8 @@ class SafGraphqlClientCredentialsClient : JournalpostGateway {
     )
 
     companion object : Factory<SafGraphqlClientCredentialsClient> {
-        override fun konstruer(): SafGraphqlClientCredentialsClient {
-            return SafGraphqlClientCredentialsClient()
-        }
-
+        private val safGraphqlClientCredentialsClient by lazy { SafGraphqlClientCredentialsClient() }
+        override fun konstruer(): SafGraphqlClientCredentialsClient = safGraphqlClientCredentialsClient
     }
 
     override fun hentJournalpost(journalpostId: JournalpostId) =

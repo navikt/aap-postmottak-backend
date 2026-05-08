@@ -33,9 +33,8 @@ data class FinnNavenhetRequest(
 class NorgKlient : NorgGateway {
 
     companion object : Factory<NorgKlient> {
-        override fun konstruer(): NorgKlient {
-            return NorgKlient()
-        }
+        private val norgKlient by lazy { NorgKlient() }
+        override fun konstruer(): NorgKlient = norgKlient
     }
 
     private val log = LoggerFactory.getLogger(NorgKlient::class.java)

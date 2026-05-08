@@ -42,9 +42,8 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
 
 
     companion object : Factory<BehandlingsflytKlient> {
-        override fun konstruer(): BehandlingsflytKlient {
-            return BehandlingsflytKlient()
-        }
+        private val behandlingsflytKlient by lazy { BehandlingsflytKlient() }
+        override fun konstruer(): BehandlingsflytKlient = behandlingsflytKlient
     }
 
     override fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak {

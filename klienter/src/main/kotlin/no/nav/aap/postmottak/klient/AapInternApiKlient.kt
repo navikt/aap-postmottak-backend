@@ -32,9 +32,8 @@ class AapInternApiKlient : AapInternApiGateway {
         )
 
     companion object : Factory<AapInternApiKlient> {
-        override fun konstruer(): AapInternApiKlient {
-            return AapInternApiKlient()
-        }
+        private val aapInternApiKlient by lazy { AapInternApiKlient() }
+        override fun konstruer(): AapInternApiKlient = aapInternApiKlient
     }
 
     /**

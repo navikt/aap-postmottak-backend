@@ -38,9 +38,8 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
     )
 
     companion object : Factory<GosysOppgaveKlient> {
-        override fun konstruer(): GosysOppgaveKlient {
-            return GosysOppgaveKlient()
-        }
+        private val gosysOppgaveKlient by lazy { GosysOppgaveKlient() }
+        override fun konstruer(): GosysOppgaveKlient = gosysOppgaveKlient
     }
 
     override fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String, journalførendeEnhet: String?) {

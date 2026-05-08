@@ -18,9 +18,8 @@ class StatistikkKlient : StatistikkGateway {
 
 
     companion object : Factory<StatistikkKlient> {
-        override fun konstruer(): StatistikkKlient {
-            return StatistikkKlient()
-        }
+        private val statistikkKlient by lazy { StatistikkKlient() }
+        override fun konstruer(): StatistikkKlient = statistikkKlient
     }
 
     private val client = RestClient.withDefaultResponseHandler(
