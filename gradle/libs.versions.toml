@@ -41,8 +41,8 @@ kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
 jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.21" }
-jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.21.2" }
-jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.21.2" }
+jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.21.3" }
+jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.21.3" }
 
 logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.32" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
@@ -50,8 +50,8 @@ micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-pro
 logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
 
 hikariCp = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.10" }
-flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "12.5.0" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.11" }
+flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "12.6.0" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
 unleashClient = { module = "io.getunleash:unleash-client-java", version = "12.2.1" }
