@@ -15,7 +15,6 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerResponse
@@ -25,6 +24,7 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -158,10 +158,10 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         return response.sakliste
     }
 
-    override suspend fun sisteUtbetalingsdatoForSaker(saker: List<Int>): List<SakMedSisteUtbetaling> {
-        val request = SisteUtbetalingerRequest(saker)
+    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
+        val request = SisteUtbetalingerRequest(ident.identifikator)
         val response = hentSisteUtbetalingsDatoISaker(request)
-        return response.sakliste
+        return response.utbetalingsdato
     }
 
 }

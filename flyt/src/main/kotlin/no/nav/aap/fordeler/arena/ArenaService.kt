@@ -30,21 +30,18 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     suspend fun harUtbetalingSiste52Uker(journalpost: Journalpost): Boolean {
         val søker = journalpost.person
         val søknadsdato = journalpost.mottattDato
-        val sakerMedSignifikantHistorikk = arena.hentSakerMedSignifikantHistorikk(
-            søker,
-            journalpost.mottattDato
-        )
 
-        // TODO oppdater API til å heller ta fodselsnummer
-        val sisteUtbetalingsDato = arena.sisteUtbetalingsdatoForSaker(sakerMedSignifikantHistorikk)
-            .mapNotNull { it.sisteAAPUtbetalingsdato }
-            .maxOrNull()
+        val sisteUtbetalingsDato = arena.sisteUtbetalingsdatoForPerson(søker.aktivIdent())
+        if (sisteUtbetalingsDato == null) {
+            return false
+        } else {
+            val tentativtVirkningstidspunkt = søknadsdato
 
-        val tentativtVirkningstidspunkt = søknadsdato
-        val søknadKommerInnenfor52UkerAvForrigeUtbetaling =
-            sisteUtbetalingsDato != null && sisteUtbetalingsDato.plusWeeks(52) >= tentativtVirkningstidspunkt
+            @SuppressWarnings("MagicNumber")
+            val ettÅrEtterSisteUtbetaling = sisteUtbetalingsDato.plusWeeks(52)
 
-        return søknadKommerInnenfor52UkerAvForrigeUtbetaling
+            return ettÅrEtterSisteUtbetaling >= tentativtVirkningstidspunkt
+        }
     }
 
 }
