@@ -1,8 +1,8 @@
 [versions]
 ktor = "3.4.3"
-komponenter = "2.0.54"
-tilgang = "1.0.209"
-apiIntern = "0.0.73"
+komponenter = "2.0.55"
+tilgang = "1.0.220"
+apiIntern = "0.0.75"
 behandlingsflyt = "0.0.600"
 junit = "6.0.3"
 kafka = "8.1.1-ce"
