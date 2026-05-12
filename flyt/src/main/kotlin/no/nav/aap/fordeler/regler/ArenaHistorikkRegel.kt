@@ -5,10 +5,12 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
 import no.nav.aap.postmottak.gateway.AapInternApiGateway
+import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.personFinnesIAapArenaTeller
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.signifikantArenaHistorikkTeller
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
@@ -58,16 +60,20 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun generer(input: RegelInput): ArenaHistorikkRegelInput {
-        val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
+        val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
 
-        val arenaPerson = apiInternGateway.harAapSakIArena(input.person)
-        val signifikantHistorikk = apiInternGateway.harSignifikantHistorikkIAAPArena(input.person, input.mottattDato)
-        metrikkerForArenaHistorikk(arenaPerson.eksisterer, signifikantHistorikk.harSignifikantHistorikk)
+        val (historikk, signifikantHistorikk) = runBlocking {
+            val historikk = arena.harAapSakIArena(input.person)
+            val signifikantHistorikk = arena.hentSakerMedSignifikantHistorikk(input.person, input.mottattDato)
+            historikk to signifikantHistorikk
+        }
 
-        if (signifikantHistorikk.harSignifikantHistorikk) {
+        metrikkerForArenaHistorikk(historikk, signifikantHistorikk.isNotEmpty())
+
+        if (signifikantHistorikk.isNotEmpty()) {
             logger.info(
                 "Personen har signifikant historikk i AAP-Arena: " +
-                        "saker=${signifikantHistorikk.signifikanteSaker}, journalpostId=${input.journalpostId}"
+                        "saker=${signifikantHistorikk}, journalpostId=${input.journalpostId}"
             )
         } else {
             logger.info(
@@ -76,7 +82,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             )
         }
 
-        val resultat = signifikantHistorikk.harSignifikantHistorikk
+        val resultat = signifikantHistorikk.isNotEmpty()
 
         return ArenaHistorikkRegelInput(resultat, input.person)
     }

@@ -14,7 +14,6 @@ dependencies {
     implementation(libs.httpklient)
     implementation(libs.infrastructure)
     implementation(libs.behandlingsflytKontrakt)
-    implementation(libs.apiInternKontrakt)
     implementation(libs.arenaoppslagKontrakt)
 
     implementation(libs.ktorClientAuth)

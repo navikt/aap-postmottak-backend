@@ -29,7 +29,7 @@ import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
-import no.nav.aap.postmottak.test.fakes.aapInternApiFake
+import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
 import no.nav.aap.postmottak.test.fakes.nomFake
@@ -66,7 +66,7 @@ class FakeServers : AutoCloseable {
     val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
     val tilgang = embeddedServer(Netty, port = 0, module = { tilgangFake() })
     val gosysOppgave = embeddedServer(Netty, port = 0, module = { gosysOppgaveFake() })
-    val aapInternApi = embeddedServer(Netty, port = 0, module = { aapInternApiFake() })
+    val arenaoppslag = embeddedServer(Netty, port = 0, module = { arenaoppslagFake() })
     val pdl = embeddedServer(Netty, port = 0, module = { pdlFake() })
     val fssProxy = embeddedServer(Netty, port = 0, module = { fssProxy() })
     val nomFake = embeddedServer(Netty, port = 0, module = { nomFake() })
@@ -125,9 +125,9 @@ class FakeServers : AutoCloseable {
         System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.port()}")
         System.setProperty("integrasjon.tilgang.scope", "scope")
 
-        // AAP Intern API
-        System.setProperty("integrasjon.aap.intern.api.url", "http://localhost:${aapInternApi.port()}")
-        System.setProperty("integrasjon.aap.intern.api.scope", "scope")
+        // Arenaoppslag
+        System.setProperty("integrasjon.aap.arenaoppslag.proxy.url", "http://localhost:${arenaoppslag.port()}")
+        System.setProperty("integrasjon.aap.arenaoppslag.scope", "scope")
 
         // PDL
         System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
@@ -171,7 +171,7 @@ class FakeServers : AutoCloseable {
         behandlingsflyt.start()
         tilgang.start()
         gosysOppgave.start()
-        aapInternApi.start()
+        arenaoppslag.start()
         pdl.start()
         fssProxy.start()
         nomFake.start()
@@ -199,7 +199,7 @@ class FakeServers : AutoCloseable {
         behandlingsflyt.stop()
         tilgang.stop()
         gosysOppgave.stop()
-        aapInternApi.stop()
+        arenaoppslag.stop()
         pdl.stop()
         fssProxy.stop()
         norgFake.stop()

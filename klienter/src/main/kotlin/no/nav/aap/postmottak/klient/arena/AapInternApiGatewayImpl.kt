@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.klient
+package no.nav.aap.postmottak.klient.arena
 
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SignifikanteSakerRequest
@@ -18,7 +18,7 @@ import java.time.LocalDate
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
-class AapInternApiKlient : AapInternApiGateway {
+class AapInternApiGatewayImpl : AapInternApiGateway {
     private val url = URI.create(requiredConfigForKey("integrasjon.aap.intern.api.url"))
     val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.aap.intern.api.scope"),
@@ -31,9 +31,10 @@ class AapInternApiKlient : AapInternApiGateway {
             prometheus = PrometheusProvider.prometheus
         )
 
-    companion object : Factory<AapInternApiKlient> {
-        private val aapInternApiKlient by lazy { AapInternApiKlient() }
-        override fun konstruer(): AapInternApiKlient = aapInternApiKlient
+    companion object : Factory<AapInternApiGatewayImpl> {
+        override fun konstruer(): AapInternApiGatewayImpl {
+            return AapInternApiGatewayImpl()
+        }
     }
 
     /**
