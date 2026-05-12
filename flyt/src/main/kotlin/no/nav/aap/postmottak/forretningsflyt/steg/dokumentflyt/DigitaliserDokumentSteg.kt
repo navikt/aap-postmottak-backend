@@ -23,6 +23,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
+import java.io.InputStream
 
 
 class DigitaliserDokumentSteg(
@@ -71,7 +72,7 @@ class DigitaliserDokumentSteg(
 
         // Prøv automatisk digitalisering av dokumenter som er digitale
         if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
-            val dokument =
+            val safResponse =
                 if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
                     hentOriginalDokumentFraSaf(journalpost)
                 } else null
@@ -84,7 +85,7 @@ class DigitaliserDokumentSteg(
             }
             val validertDokument = try {
                 DokumentTilMeldingParser.parseTilMelding(
-                    dokument,
+                    safResponse,
                     requireNotNull(innsendingType) { "Innsendingtype kan ikke være null." })?.serialiser()
             } catch (e: DeserializationException) {
                 logFeil(e.message)
@@ -108,12 +109,12 @@ class DigitaliserDokumentSteg(
         return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
     }
 
-    private fun hentOriginalDokumentFraSaf(journalpost: Journalpost): ByteArray {
+    private fun hentOriginalDokumentFraSaf(journalpost: Journalpost): InputStream {
         val strukturertDokument = journalpost.finnOriginal()
         requireNotNull(strukturertDokument) { "Finner ikke strukturert dokument for journalpostId ${journalpost.journalpostId}" }
         return dokumentGateway.hentDokument(
             journalpost.journalpostId,
             strukturertDokument.dokumentInfoId
-        ).dokument.readBytes()
+        ).dokument
     }
 }

@@ -15,10 +15,10 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import java.io.InputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
-import kotlin.text.Charsets.UTF_8
+import java.util.UUID
 
 interface BehandlingsflytGateway : Gateway {
     fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak
@@ -67,9 +67,18 @@ object DokumentTilMeldingParser {
         }
     }
 
-    fun parseTilMelding(dokument: ByteArray?, innsendingType: InnsendingType): Melding? {
-        val str = if (dokument != null) String(dokument, UTF_8) else null
-        return parseTilMelding(str, innsendingType)
+    fun parseTilMelding(dokument: InputStream?, innsendingType: InnsendingType): Melding? {
+        return if (dokument == null) parseTilMelding(null as String?, innsendingType)
+        else dokument.use { stream ->
+            when (innsendingType) {
+                InnsendingType.SØKNAD -> DefaultJsonMapper.fromJson<SøknadV0>(stream)
+                InnsendingType.MELDEKORT -> DefaultJsonMapper.fromJson<MeldekortV0>(stream)
+                InnsendingType.ANNET_RELEVANT_DOKUMENT -> DefaultJsonMapper.fromJson<AnnetRelevantDokument>(stream)
+                InnsendingType.NY_ÅRSAK_TIL_BEHANDLING -> DefaultJsonMapper.fromJson<NyÅrsakTilBehandlingV0>(stream)
+                InnsendingType.KLAGE -> DefaultJsonMapper.fromJson<KlageV0>(stream)
+                else -> null
+            }
+        }
     }
 }
 
