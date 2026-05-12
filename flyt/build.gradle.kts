@@ -13,6 +13,7 @@ dependencies {
     implementation(libs.httpklient)
     implementation(libs.motorApi)
     implementation(libs.verdityper)
+    implementation(libs.kotlinxCoroutinesCore)
 
     implementation(kotlin("reflect"))
 

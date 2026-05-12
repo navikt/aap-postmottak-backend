@@ -3,13 +3,13 @@ package no.nav.aap.fordeler.arena
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
-import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.SignifikanteSakerResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.gateway.Factory
@@ -18,7 +18,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.AapInternApiGateway
+import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
@@ -45,7 +45,7 @@ import java.time.LocalDate
 class ArenaOppgaveFlytTest : WithDependencies {
     companion object {
         private val gatewayProvider = defaultGatewayProvider {
-            register<AapInternApiGatewaySpy>()
+            register<ArenaoppslagGatewaySpy>()
             register<ArenaWebservicesGatewaySpy>()
             register<UnleashSpy>()
         }
@@ -85,16 +85,14 @@ class ArenaOppgaveFlytTest : WithDependencies {
     fun `happycase for søknad, oppretter sak i arena og journalfører automatisk`() {
         val journalpostId = TestJournalposter.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
 
-        val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
+        val arenaoppslagGateway = gatewayProvider.provide(ArenaoppslagGateway::class)
         val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
         val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
 
         clearAllMocks()
-        every { apiInternGateway.harAapSakIArena(any()) } returns PersonEksistererIAAPArena(eksisterer = true)
-        every { apiInternGateway.harSignifikantHistorikkIAAPArena(any(), any()) } returns SignifikanteSakerResponse(
-            true,
-            listOf("1234")
-        )
+        coEvery { arenaoppslagGateway.harAapSakIArena(any()) } returns true
+        coEvery { arenaoppslagGateway.hentSakerMedSignifikantHistorikk(any(), any()) } returns listOf(1)
+
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
@@ -116,14 +114,13 @@ class ArenaOppgaveFlytTest : WithDependencies {
     fun `happycase for søknad oppretter sak i arena og journalfører automatisk`() {
         val journalpostId = TestJournalposter.SØKNAD_ETTERSENDELSE
 
-        val apiInternGateway = gatewayProvider.provide(AapInternApiGateway::class)
+        val apiInternGateway = gatewayProvider.provide(ArenaoppslagGateway::class)
         val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
         val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
 
         clearAllMocks()
-        every { apiInternGateway.harAapSakIArena(any()) } returns PersonEksistererIAAPArena(eksisterer = true)
-        every { apiInternGateway.harSignifikantHistorikkIAAPArena(any(), any()) } returns
-                SignifikanteSakerResponse(harSignifikantHistorikk = true, signifikanteSaker = listOf("1234"))
+        coEvery { apiInternGateway.harAapSakIArena(any()) } returns true
+        coEvery { apiInternGateway.hentSakerMedSignifikantHistorikk(any(), any()) } returns listOf(1)
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
 
         dataSource.transaction {
@@ -142,20 +139,33 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
 }
 
-class AapInternApiGatewaySpy : AapInternApiGateway {
-    companion object : Factory<AapInternApiGatewaySpy> {
-        val klient = spyk(AapInternApiGatewaySpy())
+class ArenaoppslagGatewaySpy : ArenaoppslagGateway {
+    companion object : Factory<ArenaoppslagGatewaySpy> {
+        val klient = spyk(ArenaoppslagGatewaySpy())
         override fun konstruer() = klient
     }
 
-    override fun harAapSakIArena(person: Person): PersonEksistererIAAPArena {
+    override suspend fun harAapSakIArena(person: Person): Boolean {
         TODO("kalles ikke på")
     }
 
-    override fun harSignifikantHistorikkIAAPArena(
-        person: Person,
-        mottattDato: LocalDate
-    ): SignifikanteSakerResponse {
+    override suspend fun hentSakerMedSignifikantHistorikk(
+        person: Person, mottattDato: LocalDate
+    ): List<Int> {
+        TODO("kalles ikke på")
+    }
+
+    override suspend fun harSignifikantHistorikkIAAPArena(
+        person: Person, mottattDato: LocalDate
+    ): Boolean {
+        TODO("kalles ikke på")
+    }
+
+    override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
+        TODO("kalles ikke på")
+    }
+
+    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
         TODO("kalles ikke på")
     }
 
@@ -186,7 +196,7 @@ class ArenaWebservicesGatewaySpy : ArenaWebservicesGateway {
 
 }
 
-class UnleashSpy: UnleashGateway{
+class UnleashSpy : UnleashGateway {
     override fun isEnabled(featureToggle: FeatureToggle): Boolean {
         TODO("Not yet implemented")
     }
@@ -194,6 +204,7 @@ class UnleashSpy: UnleashGateway{
     override fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean {
         TODO("Not yet implemented")
     }
+
     companion object : Factory<UnleashSpy> {
         val klient = spyk(UnleashSpy())
         override fun konstruer() = klient

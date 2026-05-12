@@ -4,16 +4,15 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.mockk
 import no.nav.aap.FakeUnleash
-import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.SignifikanteSakerResponse
-import no.nav.aap.fordeler.regler.AapInternApiGatewayMock.Companion.identHeltUtenSak
-import no.nav.aap.fordeler.regler.AapInternApiGatewayMock.Companion.identMedSak
-import no.nav.aap.fordeler.regler.AapInternApiGatewayMock.Companion.identMedSignifikantSak
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identHeltUtenSak
+import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identMedSak
+import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identMedSignifikantSak
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.AapInternApiGateway
+import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.SafSak
@@ -40,7 +39,7 @@ class ArenaHistorikkRegelTest {
 
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
-            .register<AapInternApiGatewayMock>()
+            .register<ArenaoppslagGatewayMock>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -66,7 +65,7 @@ class ArenaHistorikkRegelTest {
 
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
-            .register<AapInternApiGatewayMock>()
+            .register<ArenaoppslagGatewayMock>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -92,7 +91,7 @@ class ArenaHistorikkRegelTest {
 
         val gatewayRegistry = GatewayRegistry()
             .register<JoarkMock>()
-            .register<AapInternApiGatewayMock>()
+            .register<ArenaoppslagGatewayMock>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -122,10 +121,10 @@ class ArenaHistorikkRegelTest {
 
 }
 
-class AapInternApiGatewayMock : AapInternApiGateway {
-    companion object : Factory<AapInternApiGatewayMock> {
-        override fun konstruer(): AapInternApiGatewayMock {
-            return AapInternApiGatewayMock()
+class ArenaoppslagGatewayMock : ArenaoppslagGateway {
+    companion object : Factory<ArenaoppslagGatewayMock> {
+        override fun konstruer(): ArenaoppslagGatewayMock {
+            return ArenaoppslagGatewayMock()
         }
 
         const val identHeltUtenSak = "ikke_funnet"
@@ -133,20 +132,35 @@ class AapInternApiGatewayMock : AapInternApiGateway {
         const val identMedSignifikantSak = "09876543210"
     }
 
-    override fun harAapSakIArena(person: Person): PersonEksistererIAAPArena {
+    override suspend fun harAapSakIArena(person: Person): Boolean {
         val eksisterer = listOf(identMedSak, identMedSignifikantSak).contains(person.identer().first().identifikator)
-        return PersonEksistererIAAPArena(eksisterer)
+        return eksisterer
     }
 
-    override fun harSignifikantHistorikkIAAPArena(
+    override suspend fun hentSakerMedSignifikantHistorikk(
         person: Person,
         mottattDato: LocalDate
-    ): SignifikanteSakerResponse {
+    ): List<Int> {
         return if (person.identer().first().identifikator == identMedSignifikantSak) {
-            SignifikanteSakerResponse(true, listOf("1234"))
+            listOf(1234)
         } else {
-            SignifikanteSakerResponse(false, emptyList())
+            emptyList()
         }
+    }
+
+    override suspend fun harSignifikantHistorikkIAAPArena(
+        person: Person,
+        mottattDato: LocalDate
+    ): Boolean {
+        return person.identer().first().identifikator == identMedSignifikantSak
+    }
+
+    override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
+        TODO("Not yet implemented")
     }
 }
 

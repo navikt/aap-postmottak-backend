@@ -6,36 +6,17 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.api.intern.SakerRequest
+import no.nav.aap.api.intern.SignifikanteSakerRequest
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.postmottak.klient.arena.SakerRequest
-import no.nav.aap.postmottak.klient.arena.SignifikanteSakerRequest
 
-fun Application.aapInternApiFake() {
+fun Application.arenaoppslagFake() {
     install(ContentNegotiation) {
         jackson()
     }
-    routing {
-        post("/sakerByFnr") {
-            val reqBody = call.receive<SakerRequest>()
-            if (reqBody.personidentifikatorer.contains(TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator)) {
-                call.respond(
-                    """[
-                    {
-                        "sakId": "1234",
-                        "statusKode": "AVSLU",
-                        "periode": {
-                        "fraOgMedDato": "2020-01-01",
-                        "tilOgMedDato": "2020-12-31"
-                    },
-                        "kilde": "ARENA"
-                    }
-                ]""".trimIndent()
-                )
 
-            }
-            call.respond("[]")
-        }
-        post("/arena/person/aap/eksisterer") {
+    routing {
+        post("/api/v1/person/eksisterer") {
             val reqBody = call.receive<SakerRequest>()
             if (reqBody.personidentifikatorer.contains(TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator)) {
                 call.respond("""{"eksisterer": true}""")
@@ -43,24 +24,29 @@ fun Application.aapInternApiFake() {
             }
             call.respond("""{"eksisterer": false}""")
         }
-        post("/arena/person/aap/signifikant-historikk") {
+
+        post("/api/v1/person/signifikant-historikk") {
             val requestBody = call.receiveText()
             val parsed = DefaultJsonMapper.fromJson<SignifikanteSakerRequest>(requestBody)
             if (parsed.personidentifikatorer.contains(TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator)) {
-                call.respond("""
+                call.respond(
+                    """
                     {
                       "harSignifikantHistorikk" : true,
                       "signifikanteSaker" : [ "1234" ]
                     }
-                    """.trimIndent())
-
-            }
-            call.respond("""
+                    """.trimIndent()
+                )
+            } else {
+                call.respond(
+                    """
                     {
                       "harSignifikantHistorikk" : false,
                       "signifikanteSaker" : [ ]
                     }
-                    """.trimIndent())
+                    """.trimIndent()
+                )
+            }
         }
 
     }
