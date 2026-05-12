@@ -3,26 +3,22 @@ package no.nav.aap.fordeler.arena
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import java.time.LocalDate
 
 private const val TERSKEL_VERDI_UKER = 13L
 
+@Suppress("MagicNumber")
 class ArenaService(gatewayProvider: GatewayProvider) {
     private val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
 
     suspend fun erKantIKantSøknad(journalpost: Journalpost): Boolean {
         val søker = journalpost.person
-        val sakerMedSignifikantHistorikk = arena.hentSakerMedSignifikantHistorikk(
-            søker,
-            journalpost.mottattDato
-        )
-        // TODO endre API til å se på alle AAP-saker for personen som er AKTIVE?
-        val sisteMaxDato = arena.maksdatoForSaker(sakerMedSignifikantHistorikk)
+        val mottattDato = journalpost.mottattDato
+        val sisteMaxDato = arena.maksdatoForSaker(søker.aktivIdent())
             .filter { it.lopende }
             .mapNotNull { it.sisteVedtak.maxUnntakTil }
             .maxOrNull()
 
-        val nærmerSegUtløp = sisteMaxDato != null && (sisteMaxDato <= LocalDate.now().plusWeeks(TERSKEL_VERDI_UKER))
+        val nærmerSegUtløp = sisteMaxDato != null && (sisteMaxDato <= mottattDato.plusWeeks(TERSKEL_VERDI_UKER))
 
         return nærmerSegUtløp
     }
@@ -37,7 +33,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         } else {
             val tentativtVirkningstidspunkt = søknadsdato
 
-            @SuppressWarnings("MagicNumber")
             val ettÅrEtterSisteUtbetaling = sisteUtbetalingsDato.plusWeeks(52)
 
             return ettÅrEtterSisteUtbetaling >= tentativtVirkningstidspunkt
