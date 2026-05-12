@@ -33,8 +33,9 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = LoggerFactory.getLogger(ArenaoppslagGatewayImpl::class.java)
 
-private val objectMapper =
-    jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(JavaTimeModule())
+private val objectMapper = jacksonObjectMapper()
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .registerModule(JavaTimeModule())
 
 private val defaultHttpClient = HttpClient(CIO) {
     expectSuccess = true // Kaster exception for 4xx og 5xx svar

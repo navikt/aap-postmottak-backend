@@ -23,12 +23,13 @@ class ArenaoppslagGatewayTest {
         }
     }
 
-    val apiIntern = ArenaoppslagGatewayImpl()
+    val arenaOppslagGatewayFake = ArenaoppslagGatewayImpl()
 
     @Test
     fun `Kan parse PersonEksistererIAAPArena`() {
         val res = runBlocking {
-            apiIntern.harAapSakIArena(Person(1, UUID.randomUUID(), listOf(TestIdenter.IDENT_MED_SAK_I_ARENA)))
+            val testPerson = Person(1, UUID.randomUUID(), listOf(TestIdenter.IDENT_MED_SAK_I_ARENA))
+            arenaOppslagGatewayFake.harAapSakIArena(testPerson)
         }
 
         assertThat(res).isEqualTo(true)
