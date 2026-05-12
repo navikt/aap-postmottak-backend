@@ -152,8 +152,8 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         return response.signifikanteSaker.map { it.toInt() }
     }
 
-    override suspend fun maksdatoForSaker(saker: List<Int>): List<SakMedSisteVedtakOgMaksdato> {
-        val request = MaksdatoRequest(saker)
+    override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
+        val request = MaksdatoRequest(ident.identifikator)
         val response = hentMaksdatoISaker(request)
         return response.sakliste
     }

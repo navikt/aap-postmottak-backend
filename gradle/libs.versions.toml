@@ -3,6 +3,7 @@ ktor = "3.4.3"
 komponenter = "2.0.54"
 tilgang = "1.0.220"
 apiIntern = "0.0.73"
+arenaoppslag = "0.5.11"
 behandlingsflyt = "0.0.600"
 junit = "6.0.3"
 kafka = "8.1.1-ce"
@@ -39,6 +40,7 @@ motorTestUtils = { module = "no.nav.aap.kelvin:motor-test-utils", version.ref = 
 tilgangKontrakt = { module = "no.nav.aap.tilgang:api-kontrakt", version.ref = "tilgang" }
 tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
 apiInternKontrakt = { module = "no.nav.aap.api.intern:kontrakt", version.ref = "apiIntern" }
+arenaoppslagKontrakt = { module = "no.nav.aap.arenaoppslag:kontrakt", version.ref = "arenaoppslag" }
 behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }
 
 avro = { module = "org.apache.avro:avro", version = "1.12.1" }
