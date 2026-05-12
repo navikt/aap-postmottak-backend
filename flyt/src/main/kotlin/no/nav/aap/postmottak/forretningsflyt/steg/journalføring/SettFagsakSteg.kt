@@ -1,8 +1,6 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
-import no.nav.aap.api.intern.Status
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository

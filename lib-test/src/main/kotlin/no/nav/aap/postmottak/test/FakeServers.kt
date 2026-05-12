@@ -125,7 +125,7 @@ class FakeServers : AutoCloseable {
         System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.port()}")
         System.setProperty("integrasjon.tilgang.scope", "scope")
 
-        // Arenaoppslag
+        // Aap Arenaoppslag
         System.setProperty("integrasjon.aap.arenaoppslag.proxy.url", "http://localhost:${arenaoppslag.port()}")
         System.setProperty("integrasjon.aap.arenaoppslag.scope", "scope")
 

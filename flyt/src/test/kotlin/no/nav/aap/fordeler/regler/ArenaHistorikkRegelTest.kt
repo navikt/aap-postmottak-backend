@@ -5,6 +5,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.mockk
 import no.nav.aap.FakeUnleash
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identHeltUtenSak
 import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identMedSak
 import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identMedSignifikantSak
@@ -128,7 +129,7 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
         }
 
         const val identHeltUtenSak = "ikke_funnet"
-        const val identMedSak = "12345678901"
+        const val identMedSak = "0000000333"
         const val identMedSignifikantSak = "09876543210"
     }
 
@@ -156,11 +157,28 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
     }
 
     override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
-        TODO("Not yet implemented")
+        return listOf(
+            SakMedSisteVedtakOgMaksdato(
+                sakId = 1234,
+                sakStatus = "AKTIV",
+                sakRegistrert = LocalDate.of(2025, 1, 1),
+                sakAvsluttet = LocalDate.of(2026, 12, 12),
+                har_11_12_forlengelse = false,
+                utredesForUfor = false,
+                lopende = true,
+                sisteVedtak = VedtakMedMaksdato(
+                    vedtakId = 1,
+                    aktfaseKode = "INNV",
+                    vedtaktypeKode = "O",
+                    fra = LocalDate.of(2025, 1, 1),
+                    maxUnntakTil = LocalDate.of(2026, 12, 12),
+                )
+            )
+        )
     }
 
     override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
-        TODO("Not yet implemented")
+        return LocalDate.of(2026,12,12)
     }
 }
 

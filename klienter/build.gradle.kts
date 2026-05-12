@@ -16,12 +16,9 @@ dependencies {
     implementation(libs.behandlingsflytKontrakt)
     implementation(libs.arenaoppslagKontrakt)
 
-    implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientCio)
     implementation(libs.ktorClientContentNegotiation)
-    implementation(libs.ktorClientJackson)
     implementation(libs.ktorClientJacksonSerialization)
-    implementation(libs.ktorClientLogging)
 
     implementation(libs.jacksonDatabind)
     implementation(libs.jacksonDatatypeJsr310)
