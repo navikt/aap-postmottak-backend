@@ -68,10 +68,6 @@ env:
     value: http://behandlingsflyt
   - name: INTEGRASJON_BEHANDLINGSFLYT_SCOPE
     value: api://prod-gcp.aap.behandlingsflyt/.default
-  - name: INTEGRASJON_AAP_INTERN_API_URL
-    value: http://api-intern
-  - name: INTEGRASJON_AAP_INTERN_API_SCOPE
-    value: api://prod-gcp.aap.api-intern/.default
   - name: INTEGRASJON_OPPGAVE_URL
     value: http://oppgave
   - name: INTEGRASJON_OPPGAVE_SCOPE
