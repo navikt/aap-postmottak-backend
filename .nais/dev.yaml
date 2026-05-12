@@ -6,6 +6,13 @@ sql:
   highAvailability: false
   pointInTimeRecovery: false
 
+resources:
+  limits:
+    memory: 1024Mi
+  requests:
+    cpu: 261m
+    memory: 528Mi
+
 replicas:
   min: 1
   max: 1
@@ -13,13 +20,6 @@ replicas:
 
 kafka:
   pool: nav-dev
-
-resources:
-  limits:
-    memory: 1024Mi
-  requests:
-    cpu: 261m
-    memory: 528Mi
 
 inbound:
   rules:
@@ -34,12 +34,12 @@ outbound:
   rules:
     - application: logging
       namespace: nais-system
-    - application: tilgang
-    - application: behandlingsflyt
-    - application: oppgave
-    - application: statistikk
     - application: skjermede-personer-pip
       namespace: nom
+    - application: tilgang
+    - application: statistikk
+    - application: oppgave
+    - application: behandlingsflyt
   external:
     - host: saf.dev-fss-pub.nais.io
     - host: dokarkiv.dev-fss-pub.nais.io
@@ -73,18 +73,10 @@ env:
     value: http://behandlingsflyt
   - name: INTEGRASJON_BEHANDLINGSFLYT_SCOPE
     value: api://dev-gcp.aap.behandlingsflyt/.default
-  - name: INTEGRASJON_AAP_INTERN_API_URL
-    value: http://api-intern
-  - name: INTEGRASJON_AAP_INTERN_API_SCOPE
-    value: api://dev-gcp.aap.api-intern/.default
   - name: INTEGRASJON_OPPGAVE_URL
     value: http://oppgave
   - name: INTEGRASJON_OPPGAVE_SCOPE
     value: api://dev-gcp.aap.oppgave/.default
-  - name: INTEGRASJON_STATISTIKK_URL
-    value: http://statistikk
-  - name: INTEGRASJON_STATISTIKK_SCOPE
-    value: api://dev-gcp.aap.statistikk/.default
   - name: INTEGRASJON_TILGANG_URL
     value: http://tilgang
   - name: INTEGRASJON_TILGANG_SCOPE
@@ -113,6 +105,10 @@ env:
     value: https://veilarbarena.dev-fss-pub.nais.io
   - name: INTEGRASJON_VEILARBARENA_SCOPE
     value: api://dev-fss.pto.veilarbarena/.default
+  - name: INTEGRASJON_STATISTIKK_URL
+    value: http://statistikk
+  - name: INTEGRASJON_STATISTIKK_SCOPE
+    value: api://dev-gcp.aap.statistikk/.default
   - name: INTEGRASJON_EREG_URL
     value: https://ereg-services-q2.dev-fss-pub.nais.io
   - name: INTEGRASJON_EREG_SCOPE
