@@ -100,15 +100,13 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
         endepunkt: String, req: V
     ): Result<T> {
-        // Vi starter en kjede av kall og prosessering, hvor hvert steg kan feile.
-        var fikkToken = false
-        var fikkArenaData = false
+        val token = try {
+            tokenProvider.getClientCredentialToken(config.scope)
+        } catch (e: Exception) {
+            return Result.failure(RuntimeException("Fetch av token for Arena-oppslag feilet", e))
+        }
 
-        val parsedResult = runCatching {
-            val token = tokenProvider.getClientCredentialToken(config.scope).also {
-                fikkToken = true
-            }
-
+        return try {
             val arenaOppslagEndepunkt = URLBuilder(config.proxyBaseUrl)
                 .appendPathSegments(endepunkt)
                 .buildString()
@@ -117,23 +115,14 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
                 bearerAuth(token)
                 contentType(ContentType.Application.Json)
                 setBody(req)
-            }.also {
-                if (it.status.isSuccess()) {
-                    fikkArenaData = true
-                }
             }
 
-            objectMapper.readValue<T>(arenaResponse.bodyAsText())
-        }.onFailure { e ->
-            when {
-                !fikkToken -> log.error("Fetch av token for Arena-oppslag feilet", e)
-                !fikkArenaData -> log.error("Fetch av Arena-data feilet for '$endepunkt'", e)
-                else -> {
-                    log.error("Parsefeil for '$endepunkt'", e)
-                }
-            }
+            Result.success(objectMapper.readValue<T>(arenaResponse.bodyAsText()))
+        } catch (e: ResponseException) {
+            Result.failure(RuntimeException("Fetch av Arena-data feilet for '$endepunkt'", e))
+        } catch (e: Exception) {
+            Result.failure(RuntimeException("Parsefeil for '$endepunkt'", e))
         }
-        return parsedResult
     }
 
     override suspend fun harAapSakIArena(person: Person): Boolean {
