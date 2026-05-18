@@ -9,9 +9,14 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.serialization.jackson.*
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoResponse
@@ -31,6 +36,7 @@ import java.time.LocalDate
 import kotlin.time.Duration.Companion.seconds
 
 
+private val secureLog = LoggerFactory.getLogger("team-logs")
 private val log = LoggerFactory.getLogger(ArenaoppslagGatewayImpl::class.java)
 
 private val objectMapper = jacksonObjectMapper()
@@ -41,7 +47,7 @@ private val defaultHttpClient = HttpClient(CIO) {
     expectSuccess = true // Kaster exception for 4xx og 5xx svar
 
     install(HttpTimeout) {
-        requestTimeoutMillis = 20.seconds.inWholeMilliseconds
+        requestTimeoutMillis = 60.seconds.inWholeMilliseconds
         connectTimeoutMillis = 20.seconds.inWholeMilliseconds
         socketTimeoutMillis = 20.seconds.inWholeMilliseconds
     }
@@ -88,52 +94,64 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         req: MaksdatoRequest
     ): MaksdatoResponse = gjørArenaOppslag<MaksdatoResponse, MaksdatoRequest>(
         "/api/v1/maksdato", req
-    ).getOrThrow()
+    ).recover { throwable ->
+        if (responseStatus(throwable) == HttpStatusCode.NotFound) {
+            secureLog.error("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
+            // Personen ble ikke funnet i Arena – returner tom liste med saker
+            MaksdatoResponse(emptyList())
+        } else {
+            throw throwable
+        }
+    }.getOrThrow()
 
     suspend fun hentSisteUtbetalingsDatoISaker(
         req: SisteUtbetalingerRequest
     ): SisteUtbetalingerResponse = gjørArenaOppslag<SisteUtbetalingerResponse, SisteUtbetalingerRequest>(
         "/api/v1/utbetalinger/siste", req
-    ).getOrThrow()
+    ).recover { throwable ->
+        if (responseStatus(throwable) == HttpStatusCode.NotFound) {
+            secureLog.error("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
+            // Personen ble ikke funnet i Arena – returner tom dato
+            SisteUtbetalingerResponse(null)
+        } else {
+            throw throwable
+        }
+    }.getOrThrow()
 
+    private fun responseStatus(throwable: Throwable): HttpStatusCode? =
+        generateSequence(throwable) { it.cause }
+            .filterIsInstance<ResponseException>()
+            .firstOrNull()?.response?.status
 
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
         endepunkt: String, req: V
-    ): Result<T> {
-        // Vi starter en kjede av kall og prosessering, hvor hvert steg kan feile.
-        var fikkToken = false
-        var fikkArenaData = false
+    ): Result<T> = runCatching {
+        val url = URLBuilder(config.proxyBaseUrl)
+            .appendPathSegments(endepunkt)
+            .buildString()
 
-        val parsedResult = runCatching {
-            val token = tokenProvider.getClientCredentialToken(config.scope).also {
-                fikkToken = true
-            }
+        val token = try {
+            tokenProvider.getClientCredentialToken(config.scope)
+        } catch (e: Exception) {
+            throw RuntimeException("Fetch av token for Arena-oppslag feilet", e)
+        }
 
-            val arenaOppslagEndepunkt = URLBuilder(config.proxyBaseUrl)
-                .appendPathSegments(endepunkt)
-                .buildString()
-            val arenaResponse = arenaHttpClient.post(arenaOppslagEndepunkt) {
+        val response = try {
+            arenaHttpClient.post(url) {
                 accept(ContentType.Application.Json)
                 bearerAuth(token)
                 contentType(ContentType.Application.Json)
                 setBody(req)
-            }.also {
-                if (it.status.isSuccess()) {
-                    fikkArenaData = true
-                }
             }
-
-            objectMapper.readValue<T>(arenaResponse.bodyAsText())
-        }.onFailure { e ->
-            when {
-                !fikkToken -> log.error("Fetch av token for Arena-oppslag feilet", e)
-                !fikkArenaData -> log.error("Fetch av Arena-data feilet for '$endepunkt'", e)
-                else -> {
-                    log.error("Parsefeil for '$endepunkt'", e)
-                }
-            }
+        } catch (e: Exception) {
+            throw RuntimeException("Fetch av Arena-data feilet for '$endepunkt'", e)
         }
-        return parsedResult
+
+        try {
+            objectMapper.readValue<T>(response.bodyAsText())
+        } catch (e: Exception) {
+            throw RuntimeException("Parsefeil for '$endepunkt'", e)
+        }
     }
 
     override suspend fun harAapSakIArena(person: Person): Boolean {
