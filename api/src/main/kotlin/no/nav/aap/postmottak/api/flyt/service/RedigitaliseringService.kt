@@ -31,9 +31,13 @@ class RedigitaliseringService(
         }
     }
 
-    fun redigitaliser(journalpostId: Long, saksnummer: String) {
+    fun redigitaliser(journalpostId: Long, saksnummer: String): String? {
         val journalpost = journalpostRepository.hentHvisEksisterer(JournalpostId(journalpostId))
         requireNotNull(journalpost) { "Journalpost ikke funnet. Req: ${journalpostId}." }
+
+        if (journalpost.redigitalisert == true) {
+            return "Journalpost har allerede blitt redigitalisert."
+        }
 
         val behandling = behandlingRepository.hent(journalpost.journalpostId)
         requireNotNull(behandling) { "Behandling ikke funnet. Req: ${journalpost.journalpostId.referanse}." }
@@ -50,5 +54,6 @@ class RedigitaliseringService(
                 .medSaksnummer(saksnummer)
                 .medCallId()
         )
+        return null
     }
 }
