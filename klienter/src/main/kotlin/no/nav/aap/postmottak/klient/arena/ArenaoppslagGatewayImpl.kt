@@ -7,6 +7,8 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.accept
@@ -43,6 +45,11 @@ private val objectMapper = jacksonObjectMapper()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .registerModule(JavaTimeModule())
 
+private fun responseStatus(throwable: Throwable): HttpStatusCode? =
+    generateSequence(throwable) { it.cause }
+        .filterIsInstance<ResponseException>()
+        .firstOrNull()?.response?.status
+
 private val defaultHttpClient = HttpClient(CIO) {
     expectSuccess = true // Kaster exception for 4xx og 5xx svar
 
@@ -53,7 +60,15 @@ private val defaultHttpClient = HttpClient(CIO) {
     }
 
     install(HttpRequestRetry) {
-        retryOnException(maxRetries = 3) // retry on exception during network send, other than timeout exceptions
+        // Retry på transiente nettverksfeil og 5xx – ikke på 4xx-klientfeil og ikke på timeouts.
+        // Timeouts retries ikke fordi vi heller vil feile raskt enn å akkumulere ventetid.
+        retryOnExceptionIf(maxRetries = 3) { _, cause ->
+            responseStatus(cause) != HttpStatusCode.NotFound &&
+                    cause !is HttpRequestTimeoutException &&
+                    cause !is ConnectTimeoutException &&
+                    cause !is SocketTimeoutException
+        }
+        retryOnServerErrors(maxRetries = 3) // 5xx
         exponentialDelay()
     }
 
@@ -117,11 +132,6 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
             throw throwable
         }
     }.getOrThrow()
-
-    private fun responseStatus(throwable: Throwable): HttpStatusCode? =
-        generateSequence(throwable) { it.cause }
-            .filterIsInstance<ResponseException>()
-            .firstOrNull()?.response?.status
 
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
         endepunkt: String, req: V
