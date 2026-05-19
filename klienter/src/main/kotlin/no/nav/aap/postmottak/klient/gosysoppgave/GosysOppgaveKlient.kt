@@ -27,9 +27,9 @@ private val log = LoggerFactory.getLogger(GosysOppgaveKlient::class.java)
  * https://oppgave.intern.dev.nav.no/ for Swagger
  */
 class GosysOppgaveKlient : GosysOppgaveGateway {
-    private val url = URI.create(requiredConfigForKey("integrasjon.oppgaveapi.url"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_OPPGAVEAPI_URL"))
     val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.oppgaveapi.scope"),
+        scope = requiredConfigForKey("INTEGRASJON_OPPGAVEAPI_SCOPE"),
     )
     private val client = RestClient.withDefaultResponseHandler(
         config = config,

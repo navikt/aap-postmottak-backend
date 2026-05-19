@@ -19,6 +19,8 @@ import java.net.URI
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
+    val gosysUrl = URI.create(requiredConfigForKey("GOSYS_URL"))
+
     route("/api/behandling/{referanse}") {
         route("/grunnlag/avklarTemaVurdering") {
             authorizedGet<BehandlingsreferansePathParam, AvklarTemaGrunnlagDto>(
@@ -53,8 +55,7 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource, repositoryRegistry:
         route("/endre-tema") {
             @Suppress("UnauthorizedPost")
             post<BehandlingsreferansePathParam, EndreTemaResponse, Unit> { req, _ ->
-                val url = URI.create(requiredConfigForKey("gosys.url"))
-                respond(EndreTemaResponse(url.toString()))
+                respond(EndreTemaResponse(gosysUrl.toString()))
             }
         }
     }

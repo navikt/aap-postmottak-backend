@@ -13,8 +13,8 @@ import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import java.net.URI
 
 class OppgaveKlient : OppgaveGateway {
-    private val url = URI.create(requiredConfigForKey("integrasjon.oppgave.url"))
-    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.oppgave.scope"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_OPPGAVE_URL"))
+    private val config = ClientConfig(scope = requiredConfigForKey("INTEGRASJON_OPPGAVE_SCOPE"))
 
     companion object : Factory<OppgaveKlient> {
         private val oppgaveKlient by lazy { OppgaveKlient() }

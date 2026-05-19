@@ -56,7 +56,7 @@ class ApiTest {
             )
             return token ?: OidcToken(
                 client.post<Unit, FakeServers.TestToken>(
-                    URI.create(requiredConfigForKey("nais.token.endpoint")),
+                    URI.create(requiredConfigForKey("NAIS_TOKEN_ENDPOINT")),
                     PostRequest(Unit)
                 )!!.access_token
             )

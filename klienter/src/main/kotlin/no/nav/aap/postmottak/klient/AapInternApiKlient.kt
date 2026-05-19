@@ -19,9 +19,9 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
 class AapInternApiKlient : AapInternApiGateway {
-    private val url = URI.create(requiredConfigForKey("integrasjon.aap.intern.api.url"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_AAP_INTERN_API_URL"))
     val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.aap.intern.api.scope"),
+        scope = requiredConfigForKey("INTEGRASJON_AAP_INTERN_API_SCOPE"),
         connectionTimeout = 2.minutes.toJavaDuration()
     )
     private val client =

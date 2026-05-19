@@ -22,7 +22,7 @@ import java.io.InputStream
 import java.net.URI
 
 class SafGraphqlOboClient : JournalpostOboGateway {
-    private val scope = requiredConfigForKey("integrasjon.saf.scope")
+    private val scope = requiredConfigForKey("INTEGRASJON_SAF_SCOPE")
     val safGraphqlKlient = SafGraphqlKlient(
         RestClient(
             config = ClientConfig(scope),
@@ -46,7 +46,7 @@ class SafGraphqlOboClient : JournalpostOboGateway {
 }
 
 class SafGraphqlClientCredentialsClient : JournalpostGateway {
-    private val scope = requiredConfigForKey("integrasjon.saf.scope")
+    private val scope = requiredConfigForKey("INTEGRASJON_SAF_SCOPE")
 
     val safGraphqlKlient = SafGraphqlKlient(
         RestClient(
@@ -70,7 +70,7 @@ class SafGraphqlClientCredentialsClient : JournalpostGateway {
 
 class SafGraphqlKlient(val restClient: RestClient<InputStream>) {
     private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
-    private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
+    private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_SAF_URL_GRAPHQL"))
 
 
     fun hentJournalpostInternal(journalpostId: JournalpostId, currentToken: OidcToken?): SafJournalpost {
