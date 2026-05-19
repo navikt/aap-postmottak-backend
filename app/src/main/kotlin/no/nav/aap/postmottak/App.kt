@@ -66,6 +66,7 @@ import no.nav.aap.postmottak.mottak.lagMottakStream
 import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
+import no.nav.aap.tilgang.TilgangGateway
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 import kotlin.time.Duration.Companion.seconds
@@ -162,6 +163,8 @@ internal fun Application.server(
         }
         actuator(motor, mottakStream)
     }
+
+    TilgangGateway.initialiserPrometheus(PrometheusProvider.prometheus)
 
     monitor.subscribe(ApplicationStarted) {
         motor.start()
