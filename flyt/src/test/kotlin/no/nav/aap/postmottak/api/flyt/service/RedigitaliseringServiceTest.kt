@@ -21,8 +21,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.Fakes
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -74,12 +74,13 @@ class RedigitaliseringServiceTest {
     )
 
     @Test
-    fun `kaster exception hvis journalpost allerede er redigitalisert`() {
+    fun `returnerer melding hvis journalpost allerede er redigitalisert`() {
         every { journalpostRepository.hentHvisEksisterer(journalpostId) } returns journalpostAlreadyRedigitalisert
 
-        assertThrows<IllegalArgumentException> {
-            service.redigitaliser(journalpostId.referanse, saksnummer)
-        }
+        val melding = service.redigitaliser(journalpostId.referanse, saksnummer)
+
+        assertThat(melding).isEqualTo("Journalpost har allerede blitt redigitalisert.")
+        verify(exactly = 0) { flytJobbRepository.leggTil(any()) }
     }
 
     @Test
@@ -90,8 +91,9 @@ class RedigitaliseringServiceTest {
         }
         every { saksnummerRepository.hentSakVurdering(behandlingId) } returns Saksvurdering(saksnummer = saksnummer)
 
-        service.redigitaliser(journalpostId.referanse, saksnummer)
+        val melding = service.redigitaliser(journalpostId.referanse, saksnummer)
 
+        assertThat(melding).isNull()
         verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
     }
 }
