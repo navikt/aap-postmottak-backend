@@ -85,15 +85,10 @@ internal object AppConfig {
     // Tid appen får til å avslutte Motor, Kafka, etc
     val stansArbeidTimeout = shutdownGracePeriod - 1.seconds
 
-    // Vi skrur opp ktor sin default-verdi, som er "antall CPUer", satt ved -XX:ActiveProcessorCount i Dockerfile,
-    // fordi appen vår er I/O-bound
-    private val ktorParallellitet = 8
-
-    // Vi følger ktor sin metodikk for å regne ut tuning parametre som funksjon av parallellitet
+    // Vi følger IKKE ktor sin metodikk for å regne ut tuning parametre som funksjon av parallellitet,
+    // for vi bruker blocking IO, ikke async IO.
     // https://github.com/ktorio/ktor/blob/3.3.1/ktor-server/ktor-server-core/common/src/io/ktor/server/engine/ApplicationEngine.kt#L30
-    val connectionGroupSize = ktorParallellitet / 2 + 1
-    val workerGroupSize = ktorParallellitet / 2 + 1
-    val callGroupSize = ktorParallellitet
+    const val callGroupSize = 64
 
     const val ANTALL_WORKERS_FOR_MOTOR = 4
 }
@@ -109,8 +104,6 @@ fun main() {
         connector {
             port = serverPort
         }
-        connectionGroupSize = AppConfig.connectionGroupSize
-        workerGroupSize = AppConfig.workerGroupSize
         callGroupSize = AppConfig.callGroupSize
     }) {
         server(DbConfig(), postgresRepositoryRegistry, defaultGatewayProvider())
