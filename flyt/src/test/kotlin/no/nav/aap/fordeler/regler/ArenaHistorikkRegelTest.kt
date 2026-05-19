@@ -165,13 +165,14 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
                 sakAvsluttet = LocalDate.of(2026, 12, 12),
                 har_11_12_forlengelse = false,
                 utredesForUfor = false,
-                lopende = true,
+                ferdigAvklart = false,
+                lopendeVedtak = true,
                 sisteVedtak = VedtakMedMaksdato(
                     vedtakId = 1,
                     aktfaseKode = "INNV",
                     vedtaktypeKode = "O",
                     fra = LocalDate.of(2025, 1, 1),
-                    maxUnntakTil = LocalDate.of(2026, 12, 12),
+                    maxdatoAap = LocalDate.of(2026, 12, 12),
                 )
             )
         )
