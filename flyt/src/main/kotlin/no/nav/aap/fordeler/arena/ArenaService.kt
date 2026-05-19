@@ -20,6 +20,11 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         val terskeldato = mottattDato.plusWeeks(13L)
 
+        // Dersom kriteriene ovenfor er oppfylt og søknaden kommer innenfor en gitt tid før maksdato,
+        // går den til manuell fordeling.
+        // Dersom 11-12 allerede er innvilget for et nytt år skal den ikke til manuell fordeling.
+        // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
+
         return sisteMaxdato != null && (sisteMaxdato <= terskeldato)
     }
 
