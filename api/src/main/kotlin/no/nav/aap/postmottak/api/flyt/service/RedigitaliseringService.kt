@@ -35,6 +35,8 @@ class RedigitaliseringService(
         val journalpost = journalpostRepository.hentHvisEksisterer(JournalpostId(journalpostId))
         requireNotNull(journalpost) { "Journalpost ikke funnet. Req: ${journalpostId}." }
 
+        require(journalpost.redigitalisert != true) { "Journalpost har allerede blitt redigitalisert og kan ikke redigitaliseres på nytt." }
+
         val behandling = behandlingRepository.hent(journalpost.journalpostId)
         requireNotNull(behandling) { "Behandling ikke funnet. Req: ${journalpost.journalpostId.referanse}." }
 
