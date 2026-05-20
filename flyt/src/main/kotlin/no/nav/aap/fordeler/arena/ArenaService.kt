@@ -18,6 +18,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             .mapNotNull { it.sisteVedtak.maxdatoAap } // en maxdato finnes i Arena
             .maxOrNull()
 
+        val maksDatoErDefinert = sisteMaxdato != null
         val terskeldato = mottattDato.plusWeeks(13L)
 
         // Dersom kriteriene ovenfor er oppfylt og søknaden kommer innenfor en gitt tid før maksdato,
@@ -25,7 +26,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         // Dersom 11-12 allerede er innvilget for et nytt år skal den ikke til manuell fordeling.
         // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
 
-        return sisteMaxdato != null && (sisteMaxdato <= terskeldato)
+        return maksDatoErDefinert && (sisteMaxdato <= terskeldato)
     }
 
 }
