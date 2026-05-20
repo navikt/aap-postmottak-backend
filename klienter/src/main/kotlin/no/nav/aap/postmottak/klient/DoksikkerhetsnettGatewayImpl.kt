@@ -19,9 +19,9 @@ import java.net.URI
  * Og Swagger her: https://dokarkiv.dev.intern.nav.no/swagger-ui/index.html
  */
 class DoksikkerhetsnettGatewayImpl : DoksikkerhetsnettGateway {
-    private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_JOARK_URL"))
     private val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.joark.scope"),
+        scope = requiredConfigForKey("INTEGRASJON_JOARK_SCOPE"),
     )
 
     companion object : Factory<DoksikkerhetsnettGateway> {

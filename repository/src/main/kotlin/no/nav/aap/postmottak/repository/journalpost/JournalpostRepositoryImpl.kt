@@ -48,8 +48,8 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
 
     override fun lagre(journalpost: Journalpost) {
         val query = """
-            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, MOTTATT_TID, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM, BEHANDLINGSTEMA, TITTEL)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO JOURNALPOST (JOURNALPOST_ID, JOURNALFORENDE_ENHET, PERSON_ID, STATUS, MOTTATT_DATO, MOTTATT_TID, TEMA, KANAL, SAKSNUMMER, FAGSYSTEM, BEHANDLINGSTEMA, TITTEL, REDIGITALISERT)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val journalpostId = connection.executeReturnKey(query) {
             setParams {
@@ -65,6 +65,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setString(10, journalpost.fagsystem)
                 setString(11, journalpost.behandlingstema)
                 setString(12, journalpost.tittel)
+                setBoolean(13, journalpost.redigitalisert)
             }
         }
 
@@ -156,7 +157,8 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             avsenderMottaker = hentAvsenderMottaker(row.getLong("ID")),
             dokumenter = hentDokumenter(row.getLong("ID")),
             fagsystem = row.getStringOrNull("FAGSYSTEM"),
-            behandlingstema = row.getStringOrNull("BEHANDLINGSTEMA")
+            behandlingstema = row.getStringOrNull("BEHANDLINGSTEMA"),
+            redigitalisert = row.getBooleanOrNull("REDIGITALISERT")
         )
     }
 
@@ -201,5 +203,14 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 )
             }
         }.singleOrNull()
+    }
+
+    override fun markerSomRedigitalisert(journalpostId: JournalpostId) {
+        val query = "UPDATE JOURNALPOST SET REDIGITALISERT = TRUE WHERE JOURNALPOST_ID = ?"
+        connection.execute(query) {
+            setParams {
+                setLong(1, journalpostId.referanse)
+            }
+        }
     }
 }

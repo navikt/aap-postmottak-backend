@@ -31,10 +31,10 @@ class VeilarbarenaKlient : VeilarbarenaGateway {
     }
 
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.veilarbarena.url"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_VEILARBARENA_URL"))
 
     private val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.veilarbarena.scope"),
+        scope = requiredConfigForKey("INTEGRASJON_VEILARBARENA_SCOPE"),
     )
 
     private val client = RestClient.withDefaultResponseHandler(

@@ -29,9 +29,9 @@ import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
-import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
+import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.nomFake
 import no.nav.aap.postmottak.test.fakes.norgFake
 import no.nav.aap.postmottak.test.fakes.safFake
@@ -85,76 +85,76 @@ class FakeServers : AutoCloseable {
         System.setProperty("NAIS_APP_NAME", "postmottak-backend")
 
         // Texas
-        System.setProperty("nais.token.endpoint", "http://localhost:${texas.port()}/token")
-        System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token/exchange")
-        System.setProperty("nais.token.introspection.endpoint", "http://localhost:${texas.port()}/introspect")
+        System.setProperty("NAIS_TOKEN_ENDPOINT", "http://localhost:${texas.port()}/token")
+        System.setProperty("NAIS_TOKEN_EXCHANGE_ENDPOINT", "http://localhost:${texas.port()}/token/exchange")
+        System.setProperty("NAIS_TOKEN_INTROSPECTION_ENDPOINT", "http://localhost:${texas.port()}/introspect")
 
         // Gosys
-        System.setProperty("gosys.url", "http://localhost:1234/")
+        System.setProperty("GOSYS_URL", "http://localhost:1234/")
 
         // Unleash
-        System.setProperty("unleash.server.api.url", "http://localhost:${unleash.port()}")
-        System.setProperty("unleash.server.api.token", "dummy")
+        System.setProperty("UNLEASH_SERVER_API_URL", "http://localhost:${unleash.port()}")
+        System.setProperty("UNLEASH_SERVER_API_TOKEN", "dummy")
 
         // Oppgave
-        System.setProperty("integrasjon.oppgave.scope", "oppgave")
+        System.setProperty("INTEGRASJON_OPPGAVE_SCOPE", "oppgave")
         if (System.getenv("INTEGRASJON_OPPGAVE_URL").isNullOrEmpty()) {
-            System.setProperty("integrasjon.oppgave.url", "http://localhost:${oppgave.port()}")
+            System.setProperty("INTEGRASJON_OPPGAVE_URL", "http://localhost:${oppgave.port()}")
         }
 
         // Gosys-oppgave
-        System.setProperty("integrasjon.oppgaveapi.scope", "gosysOppgave")
-        System.setProperty("integrasjon.oppgaveapi.url", "http://localhost:${gosysOppgave.port()}")
+        System.setProperty("INTEGRASJON_OPPGAVEAPI_SCOPE", "gosysOppgave")
+        System.setProperty("INTEGRASJON_OPPGAVEAPI_URL", "http://localhost:${gosysOppgave.port()}")
 
         // Behandlingsflyt
-        System.setProperty("integrasjon.behandlingsflyt.scope", "behandlingsflyt")
+        System.setProperty("INTEGRASJON_BEHANDLINGSFLYT_SCOPE", "behandlingsflyt")
         if (System.getenv("INTEGRASJON_BEHANDLINGSFLYT_URL").isNullOrEmpty()) {
-            System.setProperty("integrasjon.behandlingsflyt.url", "http://localhost:${behandlingsflyt.port()}")
+            System.setProperty("INTEGRASJON_BEHANDLINGSFLYT_URL", "http://localhost:${behandlingsflyt.port()}")
         }
 
         // Saf
-        System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.port()}/graphql")
-        System.setProperty("integrasjon.saf.scope", "saf")
-        System.setProperty("integrasjon.saf.url.rest", "http://localhost:${saf.port()}/rest")
+        System.setProperty("INTEGRASJON_SAF_URL_GRAPHQL", "http://localhost:${saf.port()}/graphql")
+        System.setProperty("INTEGRASJON_SAF_SCOPE", "saf")
+        System.setProperty("INTEGRASJON_SAF_URL_REST", "http://localhost:${saf.port()}/rest")
 
         // Joark
-        System.setProperty("integrasjon.joark.url", "http://localhost:${joark.port()}")
-        System.setProperty("integrasjon.joark.scope", "scope")
+        System.setProperty("INTEGRASJON_JOARK_URL", "http://localhost:${joark.port()}")
+        System.setProperty("INTEGRASJON_JOARK_SCOPE", "scope")
 
         // Tilgang
-        System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.port()}")
-        System.setProperty("integrasjon.tilgang.scope", "scope")
+        System.setProperty("INTEGRASJON_TILGANG_URL", "http://localhost:${tilgang.port()}")
+        System.setProperty("INTEGRASJON_TILGANG_SCOPE", "scope")
 
         // Aap Arenaoppslag
-        System.setProperty("integrasjon.aap.arenaoppslag.proxy.url", "http://localhost:${arenaoppslag.port()}")
-        System.setProperty("integrasjon.aap.arenaoppslag.scope", "scope")
+        System.setProperty("INTEGRASJON_AAP_ARENAOPPSLAG_PROXY_URL", "http://localhost:${arenaoppslag.port()}")
+        System.setProperty("INTEGRASJON_AAP_ARENAOPPSLAG_SCOPE", "scope")
 
         // PDL
-        System.setProperty("integrasjon.pdl.url", "http://localhost:${pdl.port()}")
-        System.setProperty("integrasjon.pdl.scope", "scope")
+        System.setProperty("INTEGRASJON_PDL_URL", "http://localhost:${pdl.port()}")
+        System.setProperty("INTEGRASJON_PDL_SCOPE", "scope")
 
         // Aap FSS proxy
-        System.setProperty("integrasjon.aap.fss.proxy.url", "http://localhost:${fssProxy.port()}")
-        System.setProperty("integrasjon.aap.fss.proxy.scope", "scope")
+        System.setProperty("INTEGRASJON_AAP_FSS_PROXY_URL", "http://localhost:${fssProxy.port()}")
+        System.setProperty("INTEGRASJON_AAP_FSS_PROXY_SCOPE", "scope")
 
         // NOM
-        System.setProperty("integrasjon.nom.url", "http://localhost:${nomFake.port()}")
-        System.setProperty("integrasjon.nom.scope", "scope")
+        System.setProperty("INTEGRASJON_NOM_URL", "http://localhost:${nomFake.port()}")
+        System.setProperty("INTEGRASJON_NOM_SCOPE", "scope")
 
         // NORG
-        System.setProperty("integrasjon.norg.url", "http://localhost:${norgFake.port()}")
+        System.setProperty("INTEGRASJON_NORG_URL", "http://localhost:${norgFake.port()}")
 
         // Statistikk
-        System.setProperty("integrasjon.statistikk.url", "http://localhost:${staistikkFake.port()}")
-        System.setProperty("integrasjon.statistikk.scope", "scope")
+        System.setProperty("INTEGRASJON_STATISTIKK_URL", "http://localhost:${staistikkFake.port()}")
+        System.setProperty("INTEGRASJON_STATISTIKK_SCOPE", "scope")
 
         // Veilarbarena
-        System.setProperty("integrasjon.veilarbarena.url", "http://localhost:${veilarbarena.port()}")
-        System.setProperty("integrasjon.veilarbarena.scope", "scope")
+        System.setProperty("INTEGRASJON_VEILARBARENA_URL", "http://localhost:${veilarbarena.port()}")
+        System.setProperty("INTEGRASJON_VEILARBARENA_SCOPE", "scope")
 
         // Ereg
-        System.setProperty("integrasjon.ereg.url", "http://localhost:${eregFake.port()}")
-        System.setProperty("integrasjon.ereg.scope", "scope")
+        System.setProperty("INTEGRASJON_EREG_URL", "http://localhost:${eregFake.port()}")
+        System.setProperty("INTEGRASJON_EREG_SCOPE", "scope")
     }
 
     fun start() {

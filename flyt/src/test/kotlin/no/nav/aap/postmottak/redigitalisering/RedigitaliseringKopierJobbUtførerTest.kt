@@ -79,6 +79,16 @@ class RedigitaliseringKopierJobbUtførerTest {
     }
 
     @Test
+    fun `markerer original journalpost som redigitalisert`() {
+        every { journalpostRepository.hentHvisEksisterer(kildeJournalpostId) } returns eksisterendeJournalpost
+        every { journalføringService.kopierJournalpost(kildeJournalpostId, any()) } returns nyJournalpostId
+
+        jobb.utfør(lagJobbInput())
+
+        verify(exactly = 1) { journalpostRepository.markerSomRedigitalisert(kildeJournalpostId) }
+    }
+
+    @Test
     fun `legger til RedigitaliseringBehandlingJobb med ny journalpostId og saksnummer`() {
         every { journalpostRepository.hentHvisEksisterer(kildeJournalpostId) } returns eksisterendeJournalpost
         every { journalføringService.kopierJournalpost(kildeJournalpostId, any()) } returns nyJournalpostId

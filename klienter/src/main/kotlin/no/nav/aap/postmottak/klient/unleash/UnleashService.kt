@@ -4,7 +4,6 @@ import io.getunleash.DefaultUnleash
 import io.getunleash.UnleashContext
 import io.getunleash.util.UnleashConfig
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.unleash.FeatureToggle
 import no.nav.aap.unleash.UnleashGateway
 
@@ -12,9 +11,9 @@ object UnleashService : UnleashGateway {
     private val unleash = DefaultUnleash(
         UnleashConfig
             .builder()
-            .appName(requiredConfigForKey("nais.app.name"))
-            .unleashAPI("${requiredConfigForKey("unleash.server.api.url")}/api")
-            .apiKey(requiredConfigForKey("unleash.server.api.token"))
+            .appName(requiredConfigForKey("NAIS_APP_NAME"))
+            .unleashAPI("${requiredConfigForKey("UNLEASH_SERVER_API_URL")}/api")
+            .apiKey(requiredConfigForKey("UNLEASH_SERVER_API_TOKEN"))
             .build()
     )
 

@@ -13,8 +13,8 @@ import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import java.net.URI
 
 class StatistikkKlient : StatistikkGateway {
-    private val baseUrl = URI.create(requiredConfigForKey("integrasjon.statistikk.url"))
-    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.statistikk.scope"))
+    private val baseUrl = URI.create(requiredConfigForKey("INTEGRASJON_STATISTIKK_URL"))
+    private val config = ClientConfig(scope = requiredConfigForKey("INTEGRASJON_STATISTIKK_SCOPE"))
 
 
     companion object : Factory<StatistikkKlient> {

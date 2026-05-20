@@ -23,7 +23,7 @@ class SafOboRestClient(client: RestClient<InputStream>) : SafRestKlient(client),
         private val safOboRestClient by lazy {
             SafOboRestClient(
                 RestClient.withDefaultResponseHandler(
-                    config = ClientConfig(scope = requiredConfigForKey("integrasjon.saf.scope")),
+                    config = ClientConfig(scope = requiredConfigForKey("INTEGRASJON_SAF_SCOPE")),
                     AzureOBOTokenProvider,
                     prometheus = PrometheusProvider.prometheus
                 )
@@ -46,7 +46,7 @@ class SafRestClient(client: RestClient<InputStream>) : SafRestKlient(client), Do
         private val safRestClient by lazy {
             SafRestClient(
                 RestClient.withDefaultResponseHandler(
-                    config = ClientConfig(scope = requiredConfigForKey("integrasjon.saf.scope")),
+                    config = ClientConfig(scope = requiredConfigForKey("INTEGRASJON_SAF_SCOPE")),
                     tokenProvider = AzureM2MTokenProvider,
                     prometheus = PrometheusProvider.prometheus
                 )
@@ -67,8 +67,8 @@ class SafRestClient(client: RestClient<InputStream>) : SafRestKlient(client), Do
 }
 
 abstract class SafRestKlient(val client: RestClient<InputStream>) {
-    private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
-    val scope = requiredConfigForKey("integrasjon.saf.scope")
+    private val restUrl = URI.create(requiredConfigForKey("INTEGRASJON_SAF_URL_REST"))
+    val scope = requiredConfigForKey("INTEGRASJON_SAF_SCOPE")
 
 
     protected fun hentDokumentInternal(

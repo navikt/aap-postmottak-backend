@@ -17,10 +17,10 @@ import java.net.URI
 
 class ArenaWebservicesGatewayImpl : ArenaWebservicesGateway {
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.aap.fss.proxy.url"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_AAP_FSS_PROXY_URL"))
 
     private var client = RestClient.withDefaultResponseHandler(
-        config = ClientConfig(requiredConfigForKey("integrasjon.aap.fss.proxy.scope")),
+        config = ClientConfig(requiredConfigForKey("INTEGRASJON_AAP_FSS_PROXY_SCOPE")),
         tokenProvider = AzureM2MTokenProvider,
         prometheus = PrometheusProvider.prometheus
     )

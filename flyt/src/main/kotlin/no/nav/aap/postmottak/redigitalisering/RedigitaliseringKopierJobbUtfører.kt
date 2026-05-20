@@ -52,6 +52,7 @@ class RedigitaliseringKopierJobbUtfører(
         )
 
         journalpostRepository.lagre(eksisterendeJournalpost.copy(journalpostId = nyJournalpostId))
+        journalpostRepository.markerSomRedigitalisert(kildeJournalpostId)
 
         log.info("Journalpost kopiert. Ny journalpostId=$nyJournalpostId. Legger til behandlingsjobb.")
         flytJobbRepository.leggTil(

@@ -37,13 +37,13 @@ class JournalføringService(
     private val unleashGateway: UnleashGateway,
 ) {
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.joark.url"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_JOARK_URL"))
 
     companion object {
         private val restClient: RestClient<InputStream> by lazy {
             RestClient.withDefaultResponseHandler(
                 config = ClientConfig(
-                    scope = requiredConfigForKey("integrasjon.joark.scope"),
+                    scope = requiredConfigForKey("INTEGRASJON_JOARK_SCOPE"),
                 ),
                 tokenProvider = AzureM2MTokenProvider,
                 prometheus = PrometheusProvider.prometheus,

@@ -1,9 +1,5 @@
 package no.nav.aap.postmottak.klient.ereg
 
-import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.EnhetsregisterOrganisasjonResponse
-import no.nav.aap.postmottak.gateway.EnhetsregisteretGateway
-import no.nav.aap.postmottak.gateway.Organisasjonsnummer
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -13,13 +9,17 @@ import no.nav.aap.komponenter.httpklient.httpclient.error.IkkeFunnetException
 import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
+import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.gateway.EnhetsregisterOrganisasjonResponse
+import no.nav.aap.postmottak.gateway.EnhetsregisteretGateway
+import no.nav.aap.postmottak.gateway.Organisasjonsnummer
 import org.slf4j.LoggerFactory
 import java.net.URI
 
 class EREGKlient : EnhetsregisteretGateway {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val url = URI.create(requiredConfigForKey("integrasjon.ereg.url") + "/api/v2/organisasjon")
-    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.ereg.scope"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_EREG_URL") + "/api/v2/organisasjon")
+    private val config = ClientConfig(scope = requiredConfigForKey("INTEGRASJON_EREG_SCOPE"))
 
     private val client = RestClient.withDefaultResponseHandler(
         config = config,

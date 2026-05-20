@@ -20,7 +20,8 @@ data class Journalpost(
     val dokumenter: List<Dokument> = emptyList(),
     val kanal: KanalFraKodeverk,
     val saksnummer: String?,
-    val fagsystem: String?
+    val fagsystem: String?,
+    val redigitalisert: Boolean? = null
 ) {
 
     val hoveddokumentbrevkode: String

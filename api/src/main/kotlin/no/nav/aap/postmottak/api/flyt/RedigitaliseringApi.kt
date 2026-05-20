@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.api.flyt
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.HttpStatusCode
@@ -26,7 +27,7 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
     val unleashGateway = gatewayProvider.provide<UnleashGateway>()
 
     route("/api/redigitalisering") {
-        authorizedPost<Unit, Unit, RedigitaliserRequest>(
+        authorizedPost<Unit, RedigitaliserResponse, RedigitaliserRequest>(
             AuthorizationBodyPathConfig(
                 Operasjon.SE, // TODO: Skriveoperasjon krever behandlingsreferanse - bruker 'SE' enn så lenge
                 journalpostIdResolver = journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource),
@@ -35,9 +36,12 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
             if (!unleashGateway.isEnabled(PostmottakFeature.Redigitalisering)) {
                 return@authorizedPost respondWithStatus(HttpStatusCode.NotImplemented)
             }
-            dataSource.transaction { connection ->
+            val alleredeRedigitalisertMelding = dataSource.transaction { connection ->
                 val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
                 service.redigitaliser(req.journalpostId, req.saksnummer)
+            }
+            if (alleredeRedigitalisertMelding != null) {
+                return@authorizedPost respond(RedigitaliserResponse(alleredeRedigitalisertMelding))
             }
             respondWithStatus(HttpStatusCode.Accepted)
         }
@@ -51,3 +55,7 @@ class RedigitaliserRequest(
         return saksnummer
     }
 }
+
+data class RedigitaliserResponse(
+    val message: String,
+)

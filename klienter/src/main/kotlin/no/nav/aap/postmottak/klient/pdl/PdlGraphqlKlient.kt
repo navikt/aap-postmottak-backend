@@ -26,9 +26,9 @@ private const val BEHANDLINGSNUMMER_AAP_SAKSBEHANDLING = "B287"
 class PdlGraphqlKlient : PersondataGateway {
     private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
 
-    private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.pdl.url")).resolve("/graphql")
+    private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_PDL_URL")).resolve("/graphql")
     private val clientConfig = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.pdl.scope"),
+        scope = requiredConfigForKey("INTEGRASJON_PDL_SCOPE"),
     )
     private val restClient = RestClient(
         config = clientConfig,

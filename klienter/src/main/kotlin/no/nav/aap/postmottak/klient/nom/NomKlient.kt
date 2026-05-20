@@ -16,10 +16,10 @@ data class EgenansattRequest(val personident: String)
 
 class NomKlient : EgenAnsattGateway {
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.nom.url"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_NOM_URL"))
 
     private val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.nom.scope"),
+        scope = requiredConfigForKey("INTEGRASJON_NOM_SCOPE"),
     )
 
     private val client = RestClient.withDefaultResponseHandler(

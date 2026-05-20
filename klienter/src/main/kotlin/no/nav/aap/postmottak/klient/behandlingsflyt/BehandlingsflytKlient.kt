@@ -30,9 +30,9 @@ import no.nav.aap.behandlingsflyt.kontrakt.behandling.TypeBehandling as Behandli
 class BehandlingsflytKlient : BehandlingsflytGateway {
     private val log = LoggerFactory.getLogger(BehandlingsflytKlient::class.java)
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.behandlingsflyt.url"))
+    private val url = URI.create(requiredConfigForKey("INTEGRASJON_BEHANDLINGSFLYT_URL"))
     val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.behandlingsflyt.scope"),
+        scope = requiredConfigForKey("INTEGRASJON_BEHANDLINGSFLYT_SCOPE"),
     )
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
