@@ -9,14 +9,16 @@ object FakeUnleash : UnleashGateway {
     override fun isEnabled(featureToggle: FeatureToggle): Boolean {
         check(featureToggle is PostmottakFeature)
 
-        return when (featureToggle) {
+        when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
+            PostmottakFeature.BegrensetFordelingTilKelvin -> TODO()
         }
     }
 
     override fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean {
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> isRolledOutFor(userId)
+            PostmottakFeature.BegrensetFordelingTilKelvin -> isRolledOutFor(userId)
 
             else -> false
         }

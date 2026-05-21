@@ -30,6 +30,7 @@ import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.unleash.FeatureToggle
+import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -94,6 +95,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
         coEvery { arenaoppslagGateway.hentSakerMedSignifikantHistorikk(any(), any()) } returns listOf(1)
 
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
+        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
 
         dataSource.transaction {
             FlytJobbRepository(it).leggTil(
@@ -102,7 +104,13 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
 
         util.ventPåSvar()
-
+        verify {
+            unleashGateway.isEnabled(
+                withArg {
+                    assertThat(it).isEqualTo(PostmottakFeature.BegrensetFordelingTilKelvin)
+                },
+                any())
+        }
         verify(exactly = 1) {
             arenaWebservicesGateway.opprettArenaOppgave(withArg {
                 assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.STARTVEDTAK)
@@ -122,6 +130,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
         coEvery { apiInternGateway.harAapSakIArena(any()) } returns true
         coEvery { apiInternGateway.hentSakerMedSignifikantHistorikk(any(), any()) } returns listOf(1)
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
+        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
 
         dataSource.transaction {
             FlytJobbRepository(it).leggTil(
@@ -130,6 +139,13 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
         util.ventPåSvar()
 
+        verify {
+            unleashGateway.isEnabled(
+                withArg {
+                    assertThat(it).isEqualTo(PostmottakFeature.BegrensetFordelingTilKelvin)
+                },
+                any())
+        }
         verify(exactly = 1) {
             arenaWebservicesGateway.opprettArenaOppgave(withArg {
                 assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.BEHENVPERSON)
