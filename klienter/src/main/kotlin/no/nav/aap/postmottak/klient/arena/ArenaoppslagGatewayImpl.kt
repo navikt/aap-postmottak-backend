@@ -54,7 +54,7 @@ private val defaultHttpClient = HttpClient(CIO) {
     expectSuccess = true // Kaster exception for 4xx og 5xx svar
 
     install(HttpTimeout) {
-        requestTimeoutMillis = 60.seconds.inWholeMilliseconds
+        requestTimeoutMillis = 20.seconds.inWholeMilliseconds // normalt under 1s
         connectTimeoutMillis = 20.seconds.inWholeMilliseconds
         socketTimeoutMillis = 20.seconds.inWholeMilliseconds
     }
