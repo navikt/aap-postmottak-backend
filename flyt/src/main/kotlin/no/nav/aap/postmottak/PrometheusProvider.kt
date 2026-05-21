@@ -63,6 +63,10 @@ fun MeterRegistry.signifikantArenaHistorikkTeller(sperretAvFilter: Boolean): Cou
     "postmottak_sperret_av_arenahistorikk_filter", listOf(Tag.of("sperret", sperretAvFilter.toString()))
 )
 
+fun MeterRegistry.begrensetInntakTilKelvin(sperretAvFilter: Boolean): Counter = this.counter(
+    "postmottak_begrensetInntakTilKelvin", listOf(Tag.of("sperret", sperretAvFilter.toString()))
+)
+
 fun MeterRegistry.resultatAvSignifikantArenaHistorikkFilterTeller(harSignifikantHistorikk: Boolean): Counter =
     this.counter(
         "postmottak_arenaperson_har_signifikant_historikk",

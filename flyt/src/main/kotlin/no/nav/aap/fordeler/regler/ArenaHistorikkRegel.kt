@@ -5,6 +5,7 @@ import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.metrikkerForAren
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
+import no.nav.aap.postmottak.begrensetInntakTilKelvin
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.personFinnesIAapArenaTeller
@@ -31,16 +32,23 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
 
         internal fun metrikkerForArenaHistorikk(
             harArenaHistorikk: Boolean,
-            arenaHistorikkenErSignifikant: Boolean
+            harSignifikantArenaHistorikk: Boolean,
+            begrensetInntakTilKelvin: Boolean
         ) {
             prometheus.personFinnesIAapArenaTeller(harArenaHistorikk)
                 .increment()
 
-            prometheus.signifikantArenaHistorikkTeller(arenaHistorikkenErSignifikant)
+            prometheus.signifikantArenaHistorikkTeller(harSignifikantArenaHistorikk)
                 .increment()
 
+            if (!harSignifikantArenaHistorikk) {
+                // Ville blitt fordelt til Kelvin hvis ikke begrensning på inntaket
+                prometheus.begrensetInntakTilKelvin(begrensetInntakTilKelvin)
+                    .increment()
+            }
+
             if (harArenaHistorikk) {
-                prometheus.resultatAvSignifikantArenaHistorikkFilterTeller(arenaHistorikkenErSignifikant)
+                prometheus.resultatAvSignifikantArenaHistorikkFilterTeller(harSignifikantArenaHistorikk)
                     .increment()
             }
         }
@@ -74,7 +82,11 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             historikk to signifikantHistorikk
         }
 
-        metrikkerForArenaHistorikk(historikk, signifikantHistorikk.isNotEmpty())
+        metrikkerForArenaHistorikk(
+            historikk,
+            signifikantHistorikk.isNotEmpty(),
+            innenforProsentenSomVurderesForKelvin
+        )
 
         if (signifikantHistorikk.isNotEmpty()) {
             logger.info(
@@ -88,6 +100,11 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             )
         }
 
+        // Guide til å sette prosent-verdien i Unleash:
+        // 62.5% er taket for hvor mye som er lov å ta inn til Kelvin per nå (tall fra metabase 21. mai).
+        // Vi vil ta inn regler som øker inntaket med 2%. Si for sikkerhets skyld med 2.5%.
+        // Da må vi i tillegg redusere med samme tall, altså ned til 60%.
+        // Vi ønsker da å redusere prosenten fra 100 til 60/62.5 % = 96%.
         val resultat = if (innenforProsentenSomVurderesForKelvin) signifikantHistorikk.isNotEmpty() else true
 
         return ArenaHistorikkRegelInput(resultat, input.person)
