@@ -11,7 +11,8 @@ import com.nimbusds.jwt.SignedJWT
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 internal class AzureTokenGen(private val issuer: String, private val audience: String) {
     private val rsaKey: RSAKey = JWKSet.parse(AZURE_JWKS).getKeyByKeyId("localhost-signer") as RSAKey
@@ -25,7 +26,7 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
     }
 
     private fun claims(isApp: Boolean, azp: String, navIdent: String?): JWTClaimsSet {
-        val builder =  JWTClaimsSet
+        val builder = JWTClaimsSet
             .Builder()
             .subject(UUID.randomUUID().toString())
             .issuer(issuer)
@@ -38,6 +39,12 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
             builder
                 .claim("idtyp", "app")
                 .claim("azp", azp)
+                .claim(
+                    "roles", listOf(
+                        "finn-sak",
+                        "opprett-sak",
+                    )
+                )
         }
 
         return builder.build()
