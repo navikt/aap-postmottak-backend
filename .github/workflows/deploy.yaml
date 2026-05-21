@@ -87,8 +87,7 @@ jobs:
     secrets: inherit
     with:
       cluster: dev-gcp
-      manifest: .nais/app.yaml
-      vars: .nais/dev.yaml
+      manifest: .nais/dev-gcp.yaml
 
   deploy-prod:
     if: github.ref == 'refs/heads/main' # Kun tillate deploy til prod fra main
@@ -102,5 +101,4 @@ jobs:
     secrets: inherit
     with:
       cluster: prod-gcp
-      manifest: .nais/app.yaml
-      vars: .nais/prod.yaml
+      manifest: .nais/prod-gcp.yaml
