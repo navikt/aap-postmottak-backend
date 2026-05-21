@@ -110,6 +110,35 @@ class ArenaHistorikkRegelTest {
 
         assertTrue(res)
     }
+    @Test
+    fun `Dersom bruker har ikke-signifikant sak i Arena, men fordeling til Kelvin er begrenset av gradual rollout, skal regelen returnere false`() {
+        val journalpostId = JournalpostId(1)
+        val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSak)))
+
+        val gatewayRegistry = GatewayRegistry()
+            .register<JoarkMock>()
+            .register<ArenaoppslagGatewayMock>()
+            .register<FakeUnleash>()
+
+        FakeUnleash.rejectList.add(person.identifikator.toString())
+        val regelMedInputGenerator =
+            ArenaHistorikkRegel.medDataInnhenting(
+                mockk(),
+                GatewayProvider(gatewayRegistry)
+            )
+
+        val res = regelMedInputGenerator.vurder(
+            RegelInput(
+                journalpostId = journalpostId.referanse,
+                person = person,
+                brevkode = Brevkoder.SØKNAD.name,
+                mottattDato = LocalDate.of(2025, 1, 1)
+            )
+        )
+        FakeUnleash.rejectList.remove(person.identifikator.toString())
+
+        assertFalse(res)
+    }
 
     companion object {
         @JvmStatic

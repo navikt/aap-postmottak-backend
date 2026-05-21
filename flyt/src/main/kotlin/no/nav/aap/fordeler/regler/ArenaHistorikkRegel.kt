@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler.regler
 
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.metrikkerForArenaHistorikk
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -9,7 +10,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.personFinnesIAapArenaTeller
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.signifikantArenaHistorikkTeller
-import kotlinx.coroutines.runBlocking
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
@@ -60,6 +62,11 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
 
     override fun generer(input: RegelInput): ArenaHistorikkRegelInput {
         val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
+        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
+        val innenforProsentenSomVurderesForKelvin = unleashGateway.isEnabled(
+            PostmottakFeature.BegrensetFordelingTilKelvin,
+            input.person.identifikator.toString() // gradual rollout er sticky på userId
+        )
 
         val (historikk, signifikantHistorikk) = runBlocking {
             val historikk = arena.harAapSakIArena(input.person)
@@ -81,7 +88,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             )
         }
 
-        val resultat = signifikantHistorikk.isNotEmpty()
+        val resultat = if (innenforProsentenSomVurderesForKelvin) signifikantHistorikk.isNotEmpty() else true
 
         return ArenaHistorikkRegelInput(resultat, input.person)
     }

@@ -7,7 +7,8 @@ interface FeatureToggle {
 enum class PostmottakFeature : FeatureToggle {
     // Eksempel på feature toggle. Kan fjernes når det legges til nye.
     // Se: https://aap-unleash-web.iap.nav.cloud.nais.io/projects/default
-    DummyFeature
+    DummyFeature,
+    BegrensetFordelingTilKelvin
     ;
 
     override fun key(): String = name
