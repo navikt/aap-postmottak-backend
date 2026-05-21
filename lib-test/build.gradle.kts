@@ -9,6 +9,7 @@ dependencies {
 
     implementation(libs.tilgangKontrakt)
     implementation(libs.behandlingsflytKontrakt)
+    implementation(libs.arenaoppslagKontrakt)
     implementation(libs.httpklient)
     implementation(libs.dbconnect)
     implementation(libs.dbtest)

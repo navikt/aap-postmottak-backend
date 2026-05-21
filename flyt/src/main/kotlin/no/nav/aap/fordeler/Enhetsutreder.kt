@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler
 
+import no.nav.aap.fordeler.arena.VeilarbarenaGateway
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.EgenAnsattGateway
 import no.nav.aap.postmottak.gateway.GeografiskTilknytning

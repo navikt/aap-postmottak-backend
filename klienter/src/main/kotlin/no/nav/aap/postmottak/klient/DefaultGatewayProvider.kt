@@ -2,7 +2,8 @@ package no.nav.aap.postmottak.klient
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
-import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.arena.ArenaoppslagGatewayImpl
+import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
 import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
@@ -31,10 +32,10 @@ fun defaultGatewayProvider(utvidelser: GatewayRegistry.() -> Unit = {}) = create
     register<SafRestClient>()
     register<BehandlingsflytKlient>()
     register<NomKlient>()
-    register<ArenaKlient>()
+    register<ArenaWebservicesGatewayImpl>()
     register<PdlGraphqlKlient>()
     register<NorgKlient>()
-    register<AapInternApiKlient>()
+    register<ArenaoppslagGatewayImpl>()
     register<StatistikkKlient>()
     register<VeilarbarenaKlient>()
     register<UnleashService>()

@@ -1,8 +1,8 @@
 package no.nav.aap.postmottak.klient.arena
 
-import no.nav.aap.fordeler.arena.ArenaGateway
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
+import no.nav.aap.fordeler.arena.ArenaWebservicesGateway
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -15,7 +15,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.net.URI
 
-class ArenaKlient : ArenaGateway {
+class ArenaWebservicesGatewayImpl : ArenaWebservicesGateway {
 
     private val url = URI.create(requiredConfigForKey("INTEGRASJON_AAP_FSS_PROXY_URL"))
 
@@ -25,9 +25,9 @@ class ArenaKlient : ArenaGateway {
         prometheus = PrometheusProvider.prometheus
     )
 
-    companion object : Factory<ArenaKlient> {
-        private val arenaKlient by lazy { ArenaKlient() }
-        override fun konstruer(): ArenaKlient = arenaKlient
+    companion object : Factory<ArenaWebservicesGatewayImpl> {
+        private val arenaKlient by lazy { ArenaWebservicesGatewayImpl() }
+        override fun konstruer(): ArenaWebservicesGatewayImpl = arenaKlient
     }
 
     override fun harAktivSak(ident: Ident) = nyesteAktiveSak(ident) != null

@@ -1,8 +1,9 @@
 package no.nav.aap.fordeler.regler
 
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.gateway.AapInternApiGateway
+import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 
 class ArenaSakRegel : Regel<ArenaSakRegelInput> {
     companion object : RegelFactory<ArenaSakRegelInput> {
@@ -23,7 +24,9 @@ class ArenaSakRegel : Regel<ArenaSakRegelInput> {
 
 class ArenaSakRegelInputGenerator(private val gatewayProvider: GatewayProvider) : InputGenerator<ArenaSakRegelInput> {
     override fun generer(input: RegelInput): ArenaSakRegelInput {
-        val eksistererIArena = gatewayProvider.provide<AapInternApiGateway>().harAapSakIArena(input.person).eksisterer
+        val eksistererIArena = runBlocking {
+            gatewayProvider.provide<ArenaoppslagGateway>().harAapSakIArena(input.person)
+        }
         return ArenaSakRegelInput(eksistererIArena)
     }
 }

@@ -3,8 +3,8 @@ package no.nav.aap
 import io.mockk.mockk
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.klient.AapInternApiKlient
-import no.nav.aap.postmottak.klient.arena.ArenaKlient
+import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
+import no.nav.aap.postmottak.klient.arena.ArenaoppslagGatewayImpl
 import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
@@ -35,8 +35,8 @@ interface WithDependencies {
                 .register<PdlGraphqlKlient>()
                 .register<NorgKlient>()
                 .register<NomKlient>()
-                .register<ArenaKlient>()
-                .register<AapInternApiKlient>()
+                .register<ArenaWebservicesGatewayImpl>()
+                .register<ArenaoppslagGatewayImpl>()
                 .register<FakeStatistikkKlient>()
                 .register<VeilarbarenaKlient>()
 
