@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.api.faktagrunnlag.sak
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
@@ -43,9 +44,19 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
                         repositoryProvider.provide(JournalpostRepository::class).hentHvisEksisterer(req)
                     ) { "Journalpost ikke funnet. Behandling: ${req.referanse}" }
 
+                val kanOppretteNySak =
+                    relaterteSaker.isEmpty() || relaterteSaker.all { it.resultat == ResultatKode.TRUKKET }
+
                 AvklarSakGrunnlagDto(
                     vurdering = saksvurdering?.let { AvklarSakVurderingDto.toDto(saksvurdering) },
-                    saksinfo = relaterteSaker.map { SaksInfoDto(it.saksnummer, it.periode) },
+                    saksinfo = relaterteSaker.map {
+                        SaksInfoDto(
+                            saksnummer = it.saksnummer,
+                            periode = it.periode,
+                            resultat = it.resultat
+                        )
+                    },
+                    kanOppretteNySak = kanOppretteNySak,
                     brevkode = journalpost.hoveddokumentbrevkode,
                     journalposttittel = journalpost.tittel,
                     dokumenter = journalpost.dokumenter,

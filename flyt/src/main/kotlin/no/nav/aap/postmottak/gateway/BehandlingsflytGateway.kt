@@ -17,7 +17,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.Kanal
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import kotlin.text.Charsets.UTF_8
 
 interface BehandlingsflytGateway : Gateway {
