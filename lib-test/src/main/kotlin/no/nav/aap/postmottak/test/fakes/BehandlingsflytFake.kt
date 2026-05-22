@@ -1,13 +1,16 @@
 package no.nav.aap.postmottak.test.fakes
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.receiveText
+import io.ktor.server.response.respond
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
@@ -15,10 +18,10 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.klient.behandlingsflyt.FinnSaker
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
+import kotlin.random.Random
 
-fun Application.behandlingsflytFake(
-) {
+fun Application.behandlingsflytFake() {
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
@@ -29,9 +32,10 @@ fun Application.behandlingsflytFake(
         post("/api/sak/finnEllerOpprett") {
             call.respond(
                 BehandlingsflytSak(
-                    "123321123",
-                    Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null
-                )
+                    saksnummer = Saksnummer.valueOf(Random.nextLong(123456)).toString(),
+                    periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
+                    resultat = null
+                ),
             )
         }
 
@@ -46,8 +50,9 @@ fun Application.behandlingsflytFake(
                     call.respond(
                         listOf(
                             BehandlingsflytSak(
-                                "123321123",
-                                Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), ResultatKode.TRUKKET
+                                saksnummer = Saksnummer.valueOf(Random.nextLong(123456)).toString(),
+                                periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
+                                resultat = ResultatKode.TRUKKET
                             )
                         )
                     )
@@ -57,8 +62,9 @@ fun Application.behandlingsflytFake(
                     call.respond(
                         listOf(
                             BehandlingsflytSak(
-                                "123321123",
-                                Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)), null
+                                saksnummer = Saksnummer.valueOf(Random.nextLong(123456)).toString(),
+                                periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
+                                resultat = null
                             )
                         )
                     )

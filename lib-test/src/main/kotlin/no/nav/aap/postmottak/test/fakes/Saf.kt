@@ -2,13 +2,21 @@ package no.nav.aap.postmottak.test.fakes
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.ContentDisposition
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.receive
+import io.ktor.server.response.header
+import io.ktor.server.response.respondOutputStream
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
@@ -114,6 +122,7 @@ private fun getAvsenderMottaker(journalpostId: Long) =
     when (journalpostId) {
         TestJournalposter.UTEN_AVSENDER_MOTTAKER.referanse -> ""
         TestJournalposter.UTENLANDSK_ORGNR.referanse -> ""
+        TestJournalposter.NY_SØKNAD_MED_TRUKKET_SAK.referanse,
         TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> """"avsenderMottaker": {
             "id": "21345345210",
             "type": "FNR",
@@ -261,7 +270,9 @@ private fun finnBruker(journalpostId: Long) =
         TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> TestIdenter.IDENT_UTEN_SAK_I_KELVIN.identifikator
 
         TestJournalposter.PERSON_MED_SAK_I_ARENA.referanse -> TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator
+        TestJournalposter.NY_SØKNAD_MED_TRUKKET_SAK.referanse,
         TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> TestIdenter.IDENT_MED_TRUKKET_SAK_I_KELVIN.identifikator
+
         TestJournalposter.UTENLANDSK_ORGNR.referanse -> "999999999"
         TestJournalposter.KLAGE_ETTERSENDING.referanse -> TestIdenter.DEFAULT_IDENT_2.identifikator
         else -> TestIdenter.DEFAULT_IDENT.identifikator

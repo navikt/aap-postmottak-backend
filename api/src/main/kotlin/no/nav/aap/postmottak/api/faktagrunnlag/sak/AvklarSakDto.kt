@@ -1,14 +1,15 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.sak
 
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.AvsenderMottaker
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 
 data class SaksInfoDto(
     val saksnummer: String,
-    val periode: Periode
+    val periode: Periode,
+    val resultat: ResultatKode?,
 )
 
 data class AvklarSakVurderingDto(
@@ -25,6 +26,7 @@ data class AvklarSakVurderingDto(
 data class AvklarSakGrunnlagDto(
     val vurdering: AvklarSakVurderingDto?,
     val saksinfo: List<SaksInfoDto>,
+    val kanOppretteNySak: Boolean,
     val brevkode: String,
     val journalposttittel: String? = null,
     val dokumenter: List<Dokument>,
