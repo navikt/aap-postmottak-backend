@@ -15,6 +15,8 @@ import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.tilgang.plugin.kontrakt.Saksreferanse
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.redigitaliseringAPI(
@@ -22,6 +24,7 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
     repositoryRegistry: RepositoryRegistry,
     gatewayProvider: GatewayProvider,
 ) {
+    val unleashGateway = gatewayProvider.provide<UnleashGateway>()
 
     route("/api/redigitalisering") {
         authorizedPost<Unit, RedigitaliserResponse, RedigitaliserRequest>(
@@ -30,14 +33,19 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
                 journalpostIdResolver = journalpostIdFraBehandlingResolver(repositoryRegistry, dataSource),
             )
         ) { _, req ->
+            if (!unleashGateway.isEnabled(PostmottakFeature.RedigitaliseringV2)) {
+                return@authorizedPost respondWithStatus(HttpStatusCode.NotImplemented)
+            }
+
             val alleredeRedigitalisertMelding = dataSource.transaction { connection ->
-                val service =
-                    RedigitaliseringService.konstruer(repositoryRegistry.provider(connection), gatewayProvider)
+                val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
                 service.redigitaliser(req.journalpostId, req.saksnummer)
             }
+
             if (alleredeRedigitalisertMelding != null) {
                 return@authorizedPost respond(RedigitaliserResponse(alleredeRedigitalisertMelding))
             }
+
             respondWithStatus(HttpStatusCode.Accepted)
         }
     }

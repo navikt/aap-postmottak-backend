@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.api.flyt.service
 
-import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -11,27 +10,25 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.prosessering.medSaksnummer
 import no.nav.aap.postmottak.redigitalisering.RedigitaliseringKopierJobbUtfører
-import no.nav.aap.unleash.PostmottakFeature
-import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class RedigitaliseringService(
     private val flytJobbRepository: FlytJobbRepository,
     private val behandlingRepository: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
-    private val saksnummerRepository: SaksnummerRepository,
-    private val unleashGateway: UnleashGateway
+    private val saksnummerRepository: SaksnummerRepository
 ) {
     val log = LoggerFactory.getLogger(RedigitaliseringService::class.java)
 
     companion object {
-        fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): RedigitaliseringService {
+        fun konstruer(
+            repositoryProvider: RepositoryProvider
+        ): RedigitaliseringService {
             return RedigitaliseringService(
                 flytJobbRepository = repositoryProvider.provide(),
                 behandlingRepository = repositoryProvider.provide(),
                 journalpostRepository = repositoryProvider.provide(),
-                saksnummerRepository = repositoryProvider.provide(),
-                unleashGateway = gatewayProvider.provide<UnleashGateway>()
+                saksnummerRepository = repositoryProvider.provide()
             )
         }
     }
@@ -40,11 +37,6 @@ class RedigitaliseringService(
         val journalpost = journalpostRepository.hentHvisEksisterer(JournalpostId(journalpostId))
         if (journalpost?.redigitalisert == true) {
             return "Journalpost har allerede blitt redigitalisert."
-        }
-
-        if (journalpost?.journalpostId == null && !unleashGateway.isEnabled(PostmottakFeature.RedigitaliseringV2)) {
-            // bevisst tryn som før
-            requireNotNull(journalpost)
         }
 
         if (journalpost != null) {
