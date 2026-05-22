@@ -96,4 +96,16 @@ class RedigitaliseringServiceTest {
         assertThat(melding).isNull()
         verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
     }
+
+    @Test
+    fun `legger til kopierings-jobb når journalpost ikke finnes lokalt`() {
+        every { journalpostRepository.hentHvisEksisterer(journalpostId) } returns null
+
+        val melding = service.redigitaliser(journalpostId.referanse, saksnummer)
+
+        assertThat(melding).isNull()
+        verify(exactly = 1) { flytJobbRepository.leggTil(any()) }
+        verify(exactly = 0) { behandlingRepository.hent(any<JournalpostId>()) }
+        verify(exactly = 0) { saksnummerRepository.hentSakVurdering(any()) }
+    }
 }

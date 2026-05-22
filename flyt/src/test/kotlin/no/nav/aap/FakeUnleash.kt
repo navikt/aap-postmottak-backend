@@ -9,9 +9,10 @@ object FakeUnleash : UnleashGateway {
     override fun isEnabled(featureToggle: FeatureToggle): Boolean {
         check(featureToggle is PostmottakFeature)
 
-        when (featureToggle) {
+        return when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
             PostmottakFeature.BegrensetFordelingTilKelvin -> TODO()
+            PostmottakFeature.RedigitaliseringV2 -> true
         }
     }
 
