@@ -6,6 +6,7 @@ import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
@@ -59,11 +60,13 @@ class RedigitaliseringKopierJobbUtførerTest {
     )
 
     private val journalpostRepository = mockk<JournalpostRepository>(relaxed = true)
+    private val journalpostService = mockk<JournalpostService>(relaxed = true)
     private val journalføringService = mockk<JournalføringService>(relaxed = true)
     private val flytJobbRepository = mockk<FlytJobbRepository>(relaxed = true)
 
     private val jobb = RedigitaliseringKopierJobbUtfører(
         journalpostRepository = journalpostRepository,
+        journalpostService = journalpostService,
         journalføringService = journalføringService,
         flytJobbRepository = flytJobbRepository,
     )
@@ -101,6 +104,19 @@ class RedigitaliseringKopierJobbUtførerTest {
                 assertThat(input.sakId()).isEqualTo(nyJournalpostId.referanse)
             })
         }
+    }
+
+    @Test
+    fun `henter ny journalpost fra SAF når kildejournalpost ikke finnes lokalt`() {
+        every { journalpostRepository.hentHvisEksisterer(kildeJournalpostId) } returns null
+        every { journalføringService.kopierJournalpost(kildeJournalpostId, any()) } returns nyJournalpostId
+        every { journalpostService.hentJournalpost(nyJournalpostId) } returns eksisterendeJournalpost.copy(journalpostId = nyJournalpostId)
+
+        jobb.utfør(lagJobbInput())
+
+        verify(exactly = 1) { journalpostService.hentJournalpost(nyJournalpostId) }
+        verify(exactly = 1) { journalpostRepository.lagre(withArg { assertThat(it.journalpostId).isEqualTo(nyJournalpostId) }) }
+        verify(exactly = 0) { journalpostRepository.markerSomRedigitalisert(any()) }
     }
 
     private fun lagJobbInput() = JobbInput(RedigitaliseringKopierJobbUtfører)

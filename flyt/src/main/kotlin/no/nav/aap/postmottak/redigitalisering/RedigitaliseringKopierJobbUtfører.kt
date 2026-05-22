@@ -7,6 +7,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.prosessering.getJournalpostId
 import no.nav.aap.postmottak.prosessering.getSaksnummer
@@ -17,6 +18,7 @@ import java.util.UUID
 
 class RedigitaliseringKopierJobbUtfører(
     private val journalpostRepository: JournalpostRepository,
+    private val journalpostService: JournalpostService,
     private val journalføringService: JournalføringService,
     private val flytJobbRepository: FlytJobbRepository,
 ) : JobbUtfører {
@@ -27,6 +29,7 @@ class RedigitaliseringKopierJobbUtfører(
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
             return RedigitaliseringKopierJobbUtfører(
                 journalpostRepository = repositoryProvider.provide(),
+                journalpostService = JournalpostService.konstruer(repositoryProvider, gatewayProvider),
                 journalføringService = JournalføringService(gatewayProvider),
                 flytJobbRepository = repositoryProvider.provide(),
             )
@@ -41,9 +44,7 @@ class RedigitaliseringKopierJobbUtfører(
         val kildeJournalpostId = input.getJournalpostId()
         val saksnummer = input.getSaksnummer()
 
-        val eksisterendeJournalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kildeJournalpostId)) {
-            "Journalpost ikke funnet for kildeJournalpostId=$kildeJournalpostId"
-        }
+        val eksisterendeJournalpost = journalpostRepository.hentHvisEksisterer(kildeJournalpostId)
 
         log.info("Kopierer journalpost $kildeJournalpostId i joark for redigitalisering")
         val nyJournalpostId = journalføringService.kopierJournalpost(
@@ -51,8 +52,12 @@ class RedigitaliseringKopierJobbUtfører(
             eksternReferanseId = UUID.randomUUID().toString(),
         )
 
-        journalpostRepository.lagre(eksisterendeJournalpost.copy(journalpostId = nyJournalpostId))
-        journalpostRepository.markerSomRedigitalisert(kildeJournalpostId)
+        if (eksisterendeJournalpost != null) {
+            journalpostRepository.lagre(eksisterendeJournalpost.copy(journalpostId = nyJournalpostId))
+            journalpostRepository.markerSomRedigitalisert(kildeJournalpostId)
+        } else {
+            journalpostRepository.lagre(journalpostService.hentJournalpost(nyJournalpostId))
+        }
 
         log.info("Journalpost kopiert. Ny journalpostId=$nyJournalpostId. Legger til behandlingsjobb.")
         flytJobbRepository.leggTil(

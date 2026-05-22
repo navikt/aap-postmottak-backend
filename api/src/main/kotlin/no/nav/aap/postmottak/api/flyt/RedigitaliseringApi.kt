@@ -7,6 +7,7 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.HttpStatusCode
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.api.flyt.service.RedigitaliseringService
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
@@ -18,7 +19,8 @@ import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.redigitaliseringAPI(
     dataSource: DataSource,
-    repositoryRegistry: RepositoryRegistry
+    repositoryRegistry: RepositoryRegistry,
+    gatewayProvider: GatewayProvider,
 ) {
 
     route("/api/redigitalisering") {
@@ -29,7 +31,8 @@ fun NormalOpenAPIRoute.redigitaliseringAPI(
             )
         ) { _, req ->
             val alleredeRedigitalisertMelding = dataSource.transaction { connection ->
-                val service = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
+                val service =
+                    RedigitaliseringService.konstruer(repositoryRegistry.provider(connection), gatewayProvider)
                 service.redigitaliser(req.journalpostId, req.saksnummer)
             }
             if (alleredeRedigitalisertMelding != null) {
