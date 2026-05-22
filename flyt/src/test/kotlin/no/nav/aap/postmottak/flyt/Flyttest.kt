@@ -743,7 +743,10 @@ class Flyttest : WithDependencies {
             val eksisterendeSak = repositoryRegistry.provider(connection).provide(SaksnummerRepository::class)
                 .hentSakVurdering(behandlingId)?.saksnummer
 
-            val redigitaliseringService = RedigitaliseringService.konstruer(repositoryRegistry.provider(connection))
+            val redigitaliseringService = RedigitaliseringService.konstruer(
+                repositoryRegistry.provider(connection),
+                gatewayProvider,
+            )
             redigitaliseringService.redigitaliser(behandling.journalpostId.referanse, eksisterendeSak!!)
         }
         util.ventPåSvar()

@@ -20,6 +20,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import no.nav.aap.postmottak.test.Fakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -65,13 +67,19 @@ class RedigitaliseringServiceTest {
     private val behandlingRepository = mockk<BehandlingRepository>(relaxed = true)
     private val journalpostRepository = mockk<JournalpostRepository>(relaxed = true)
     private val saksnummerRepository = mockk<SaksnummerRepository>(relaxed = true)
+    private val unleashGateway = mockk<UnleashGateway>(relaxed = true)
 
     private val service = RedigitaliseringService(
         flytJobbRepository = flytJobbRepository,
         behandlingRepository = behandlingRepository,
         journalpostRepository = journalpostRepository,
         saksnummerRepository = saksnummerRepository,
+        unleashGateway = unleashGateway,
     )
+
+    init {
+        every { unleashGateway.isEnabled(PostmottakFeature.RedigitaliseringV2) } returns true
+    }
 
     @Test
     fun `returnerer melding hvis journalpost allerede er redigitalisert`() {
