@@ -1,6 +1,7 @@
 package no.nav.aap.fordeler.regler
 
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.metrikkerForArenaHistorikk
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -11,6 +12,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.personFinnesIAapArenaTeller
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.signifikantArenaHistorikkTeller
+import no.nav.aap.postmottak.tellAntallKantIKantDetektert
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -51,6 +53,7 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
                 prometheus.resultatAvSignifikantArenaHistorikkFilterTeller(harSignifikantArenaHistorikk)
                     .increment()
             }
+
         }
     }
 
@@ -100,6 +103,17 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             )
         }
 
+        runCatching {
+            // Måles kun, påvirker ikke funksjonaliteten
+            runBlocking {
+                val erKantIKant = ArenaService(gatewayProvider).skalManueltFordeles(input.person, input.mottattDato)
+
+                if (erKantIKant) {
+                    prometheus.tellAntallKantIKantDetektert(erKantIKant).increment()
+                }
+            }
+        }
+
         // Guide til å sette prosent-verdien i Unleash:
         // 62.5% er taket for hvor mye som er lov å ta inn til Kelvin per nå (tall fra metabase 21. mai).
         // Vi vil ta inn regler som øker inntaket med 2%. Si for sikkerhets skyld med 2.5%.
@@ -109,6 +123,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
 
         return ArenaHistorikkRegelInput(resultat, input.person)
     }
+
 }
 
 data class ArenaHistorikkRegelInput(
