@@ -73,6 +73,10 @@ fun MeterRegistry.resultatAvSignifikantArenaHistorikkFilterTeller(harSignifikant
         listOf(Tag.of("signifikant", harSignifikantHistorikk.toString()))
     )
 
+fun MeterRegistry.tellAntallKantIKantDetektert(erKantIKant: Boolean) = this.counter(
+    "postmottak_soknad_er_kant_i_kant",
+    listOf(Tag.of("erKantIKant", erKantIKant.toString()))
+)
 
 enum class Fagsystem {
     arena,

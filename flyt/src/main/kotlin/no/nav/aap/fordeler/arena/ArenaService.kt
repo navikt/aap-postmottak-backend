@@ -2,31 +2,42 @@ package no.nav.aap.fordeler.arena
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 @Suppress("MagicNumber")
 class ArenaService(gatewayProvider: GatewayProvider) {
     private val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun skalManueltFordeles(journalpost: Journalpost): Boolean {
-        val søker = journalpost.person
-        val mottattDato = journalpost.mottattDato
-        val sisteMaxdato = arena.maksdatoForSaker(søker.aktivIdent())
-            .filter { it.lopendeVedtak } // ikke Stans etc
-            .filter { !it.utredesForUfor } // ikke 11-18 innvilget så langt
-            .filter { !it.ferdigAvklart } // ikke 11-17 innvilget så langt
-            .mapNotNull { it.sisteVedtak.maxdatoAap } // en maxdato finnes i Arena
-            .maxOrNull()
+    suspend fun skalManueltFordeles(søker: Person, mottattDato: LocalDate): Boolean {
+        val maksdatoene = arena.maksdatoForSaker(søker.aktivIdent())
+        val sisteSak = maksdatoene
+            .filter { it.sisteVedtak.maxdatoAap != null }
+            .maxByOrNull { it.sisteVedtak.maxdatoAap!! } // vet at de er ikke-null nå
 
-        val maksDatoErDefinert = sisteMaxdato != null
-        val terskeldato = mottattDato.plusWeeks(13L)
+        val tilManuellFordeling = when (sisteSak) {
+            null -> false
+            else if (sisteSak.ferdigAvklart
+                    || sisteSak.utredesForUfor
+                    || !sisteSak.lopendeVedtak
+                    // Dersom 11-12 allerede er innvilget for et nytt år skal den ikke til manuell fordeling.
+                    // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
+                    // Derfor er 11-12 situasjonen også håndtert, selv om det ikke er en eksplisitt sjekk for den.
+                    ) -> false
 
-        // Dersom kriteriene ovenfor er oppfylt og søknaden kommer innenfor en gitt tid før maksdato,
-        // går den til manuell fordeling.
-        // Dersom 11-12 allerede er innvilget for et nytt år skal den ikke til manuell fordeling.
-        // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
+            else -> {
+                val maxdato = sisteSak.sisteVedtak.maxdatoAap!! // vet at det er ikke-null nå
+                val terskeldato = mottattDato.plusWeeks(13L)
 
-        return maksDatoErDefinert && (sisteMaxdato <= terskeldato)
+                // Sjekk for om søknaden er "kant-i-kant" med forrige søknad
+                maxdato <= terskeldato
+            }
+        }
+        logger.info("Brukerens søknad er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak")
+
+        return tilManuellFordeling
     }
 
 }
