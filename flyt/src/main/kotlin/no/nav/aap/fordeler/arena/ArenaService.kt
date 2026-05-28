@@ -24,6 +24,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
                     || sisteSak.ferdigAvklart
                     || sisteSak.utredesForUfor
                     || !sisteSak.lopendeVedtak
+                    // fra_dato satt til dagen før til_dato brukes i Arena for å markere vedtak som ugyldiggjorte
+                    || sisteSak.sisteVedtak.fra?.isAfter(sisteSak.sisteVedtak.maxdatoAap) == true
                     // Dersom 11-12 allerede er innvilget for et nytt år skal den ikke til manuell fordeling.
                     // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
                     // Derfor er 11-12 situasjonen også håndtert, selv om det ikke er en eksplisitt sjekk for den.
