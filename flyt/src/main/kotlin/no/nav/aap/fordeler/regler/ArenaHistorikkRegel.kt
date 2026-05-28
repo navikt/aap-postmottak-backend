@@ -108,9 +108,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             runBlocking {
                 val erKantIKant = ArenaService(gatewayProvider).skalManueltFordeles(input.person, input.mottattDato)
 
-                if (erKantIKant) {
-                    prometheus.tellAntallKantIKantDetektert(erKantIKant).increment()
-                }
+                prometheus.tellAntallKantIKantDetektert(erKantIKant).increment()
             }
         }
 
