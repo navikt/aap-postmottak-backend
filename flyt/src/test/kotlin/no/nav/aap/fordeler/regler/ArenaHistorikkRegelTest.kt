@@ -189,6 +189,7 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
         return listOf(
             SakMedSisteVedtakOgMaksdato(
                 sakId = 1234,
+                saknummer = "2025-11",
                 sakStatus = "AKTIV",
                 sakRegistrert = LocalDate.of(2025, 1, 1),
                 sakAvsluttet = LocalDate.of(2026, 12, 12),
@@ -201,8 +202,10 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
                     aktfaseKode = "INNV",
                     vedtaktypeKode = "O",
                     fra = LocalDate.of(2025, 1, 1),
+                    maxdatoOrdinaer = LocalDate.of(2026, 12, 12),
+                    maxdatoUnntak = null,
                     maxdatoAap = LocalDate.of(2026, 12, 12),
-                )
+                ),
             )
         )
     }
