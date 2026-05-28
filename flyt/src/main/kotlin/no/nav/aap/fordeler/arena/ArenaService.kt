@@ -19,7 +19,9 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         val tilManuellFordeling = when (sisteSak) {
             null -> false
-            else if (sisteSak.ferdigAvklart
+            else if (
+                    sisteSak.sakAvsluttet != null
+                    || sisteSak.ferdigAvklart
                     || sisteSak.utredesForUfor
                     || !sisteSak.lopendeVedtak
                     // Dersom 11-12 allerede er innvilget for et nytt år skal den ikke til manuell fordeling.
@@ -29,13 +31,14 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
             else -> {
                 val maxdato = sisteSak.sisteVedtak.maxdatoAap!! // vet at det er ikke-null nå
-                val terskeldato = mottattDato.plusWeeks(13L)
+                val maxdatoErIkkePassert = maxdato.isAfter(mottattDato)
+                val terskeldato = mottattDato.plusWeeks(17L) // TODO revurdere etter vi har samlet statistikk
 
-                // Sjekk for om søknaden er "kant-i-kant" med forrige søknad
-                maxdato <= terskeldato
+                // Sjekk om søknaden er "kant-i-kant" med forrige søknad:
+                maxdatoErIkkePassert && maxdato <= terskeldato
             }
         }
-        logger.info("Brukerens søknad er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak")
+        logger.info("Brukerens søknad fra $mottattDato er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak")
 
         return tilManuellFordeling
     }
