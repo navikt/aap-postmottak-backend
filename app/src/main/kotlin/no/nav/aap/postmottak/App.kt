@@ -2,10 +2,6 @@ package no.nav.aap.postmottak
 
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
-import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.get
-import com.papsign.ktor.openapigen.route.response.respond
-import com.papsign.ktor.openapigen.route.route
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.HttpHeaders
@@ -59,8 +55,6 @@ import no.nav.aap.postmottak.api.flyt.redigitaliseringAPI
 import no.nav.aap.postmottak.api.test.testApi
 import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AvklaringsbehovKode
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.mottak.kafka.Stream
 import no.nav.aap.postmottak.mottak.lagMottakStream
 import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
@@ -145,7 +139,6 @@ internal fun Application.server(
             install(NavIdentInterceptor)
 
             apiRouting {
-                configApi()
                 behandlingApi(dataSource, repositoryRegistry)
                 flytApi(dataSource, repositoryRegistry, gatewayProvider)
                 avklaringsbehovApi(dataSource, repositoryRegistry, gatewayProvider)
@@ -210,19 +203,6 @@ fun lagMotor(
     }
 
     return motor
-}
-
-fun NormalOpenAPIRoute.configApi() {
-    route("/config/definisjoner") {
-        @Suppress("UnauthorizedGet")
-        get<Unit, Map<AvklaringsbehovKode, Definisjon>> {
-            val response = HashMap<AvklaringsbehovKode, Definisjon>()
-            Definisjon.entries.forEach {
-                response[it.kode] = it
-            }
-            respond(response)
-        }
-    }
 }
 
 private fun Routing.actuator(motor: Motor, stream: Stream) {
