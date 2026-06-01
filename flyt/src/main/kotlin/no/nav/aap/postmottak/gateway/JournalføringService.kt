@@ -9,10 +9,8 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.put
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.komponenter.verdityper.Bruker
@@ -180,17 +178,6 @@ class JournalføringService(
         prometheus.journalføringCounter(type = JournalføringsType.automatisk).increment()
     }
 
-    fun kopierJournalpost(kildeJournalpostId: JournalpostId, eksternReferanseId: String): JournalpostId {
-        val path =
-            url.resolve("/rest/journalpostapi/v1/journalpost/kopierJournalpost?kildeJournalpostId=$kildeJournalpostId")
-        val response: KopierJournalpostResponse? = client.post(
-            uri = path,
-            request = PostRequest(body = KopierJournalpostRequest(eksternReferanseId)),
-        )
-        requireNotNull(response) { "Tom respons fra joark ved kopiering av journalpost $kildeJournalpostId" }
-        return JournalpostId(response.kopierJournalpostId.toLong())
-    }
-
     private fun navUserIdHeader(endretAv: Bruker?): List<Header> =
         listOfNotNull(
             endretAv?.let {
@@ -274,13 +261,4 @@ data class JournalpostSak(
 data class JournalpostBruker(
     val id: String,
     val idType: String = "FNR"
-)
-
-data class KopierJournalpostRequest(
-    val eksternReferanseId: String,
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class KopierJournalpostResponse(
-    val kopierJournalpostId: String,
 )

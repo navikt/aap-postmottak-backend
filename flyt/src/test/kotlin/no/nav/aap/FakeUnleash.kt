@@ -12,7 +12,6 @@ object FakeUnleash : UnleashGateway {
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
             PostmottakFeature.BegrensetFordelingTilKelvin -> TODO()
-            PostmottakFeature.RedigitaliseringV2 -> true
         }
     }
 

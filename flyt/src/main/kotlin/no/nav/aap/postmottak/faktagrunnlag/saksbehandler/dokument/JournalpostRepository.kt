@@ -11,5 +11,4 @@ interface JournalpostRepository: Repository {
     fun hentHvisEksisterer(behandlingsreferanse: Behandlingsreferanse): Journalpost?
     fun hentHvisEksisterer(journalpostId: JournalpostId): Journalpost?
     fun lagre(journalpost: Journalpost)
-    fun markerSomRedigitalisert(journalpostId: JournalpostId)
 }

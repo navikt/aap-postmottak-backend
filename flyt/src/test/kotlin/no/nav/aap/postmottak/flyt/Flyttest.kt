@@ -20,7 +20,6 @@ import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
-import no.nav.aap.postmottak.api.flyt.service.RedigitaliseringService
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovHendelseHåndterer
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
@@ -32,10 +31,8 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
-import no.nav.aap.postmottak.flyt.Flyttest.Companion.dataSource
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
@@ -83,7 +80,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -710,53 +706,6 @@ class Flyttest : WithDependencies {
             .apply {
                 assertThat(this.status()).isEqualTo(Status.AVSLUTTET)
             }
-    }
-
-    @Disabled
-    @Test
-    fun `kan redigitalisere dokument eksisterende i postmottak`() {
-        val journalpostId = TestJournalposter.STATUS_JOURNALFØRT
-        val behandlingId = opprettJournalføringsBehandling(journalpostId)
-        triggProsesserBehandling(journalpostId, behandlingId)
-
-        dataSource.transaction { connection ->
-            SaksnummerRepositoryImpl(connection).lagreKelvinSak(
-                behandlingId, listOf(
-                    Saksinfo(
-                        "sak1", Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31)),
-                    )
-                )
-            )
-        }
-
-        util.ventPåSvar()
-
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
-        assertThat(
-            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
-            1
-        )
-        util.ventPåSvar()
-
-        dataSource.transaction { connection ->
-            val behandling = hentBehandling(behandlingId)
-            val eksisterendeSak = repositoryRegistry.provider(connection).provide(SaksnummerRepository::class)
-                .hentSakVurdering(behandlingId)?.saksnummer
-
-            val redigitaliseringService = RedigitaliseringService.konstruer(
-                repositoryRegistry.provider(connection)
-            )
-            redigitaliseringService.redigitaliser(behandling.journalpostId.referanse, eksisterendeSak!!)
-        }
-        util.ventPåSvar()
-
-        val redigitalisering = alleBehandlingerForJournalpost(journalpostId)
-        val avklaringsbehov = hentAvklaringsbehov(redigitalisering.last())
-
-        assertThat(avklaringsbehov.all { it.definisjon == Definisjon.DIGITALISER_DOKUMENT }).isTrue()
-        assertThat(redigitalisering).hasSize(2)
-        assertThat(redigitalisering.last().status()).isEqualTo(Status.UTREDES)
-        assertThat(redigitalisering.last().typeBehandling).isEqualTo(TypeBehandling.DokumentHåndtering)
     }
 
     private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {
