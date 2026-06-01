@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.kontrakt.behandling
 
 public enum class TypeBehandling(private var identifikator: String) {
 
+    Fordeling("ae1998"),
     DokumentHåndtering("ae1999"),
     Journalføring("ae2000");
 

@@ -12,15 +12,14 @@ import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
 import no.nav.aap.postmottak.hendelseType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.JoarkRegel.erIkkeKanalEESSI
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaAAP
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaEndretFraAAP
 import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusMottatt
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
-import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.unleash.UnleashGateway
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -156,10 +155,11 @@ class JoarkKafkaHandler(
     ) {
         log.info("Mottatt ny journalpost: $journalpostId, hendelse: $hendelse")
         transactionProvider.inTransaction {
+            val behandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
             flytJobbRepository.leggTil(
-                JobbInput(FordelingRegelJobbUtfører)
-                    .forSak(journalpostId.referanse)
-                    .medJournalpostId(journalpostId)
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id)
+                    .medCallId()
             )
         }
     }
