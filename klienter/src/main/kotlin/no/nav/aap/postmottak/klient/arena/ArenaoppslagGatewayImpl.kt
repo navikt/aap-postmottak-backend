@@ -13,6 +13,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.*
@@ -133,6 +134,24 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         }
     }.getOrThrow()
 
+    /**
+     * Henter detaljert sak (med vedtak, telleverk og kvotehistorikk) fra
+     * aap-arenaoppslag sitt endepunkt `GET /sak/{sakid}/detaljert`.
+     *
+     * @param sakId saksnummer (`opprettetAar-lopenr`) eller intern SakId.
+     * @return detaljert sak, eller `null` dersom saken ikke finnes i Arena (404).
+     */
+    suspend fun hentDetaljertSak(sakId: String): ArenaSakDetaljertRespons? =
+        gjørArenaGetOppslag<ArenaSakDetaljertRespons>("/sak", sakId, "detaljert")
+            .recover { throwable ->
+                if (responseStatus(throwable) == HttpStatusCode.NotFound) {
+                    secureLog.error("Fant ikke detaljert sak i Arena [sakId=$sakId]")
+                    null
+                } else {
+                    throw throwable
+                }
+            }.getOrThrow()
+
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
         endepunkt: String, req: V
     ): Result<T> = runCatching {
@@ -161,6 +180,35 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
             objectMapper.readValue<T>(response.bodyAsText())
         } catch (e: Exception) {
             throw RuntimeException("Parsefeil for '$endepunkt'", e)
+        }
+    }
+
+    private suspend inline fun <reified T> gjørArenaGetOppslag(
+        vararg pathSegments: String
+    ): Result<T> = runCatching {
+        val url = URLBuilder(config.proxyBaseUrl)
+            .appendPathSegments(*pathSegments)
+            .buildString()
+
+        val token = try {
+            tokenProvider.getClientCredentialToken(config.scope)
+        } catch (e: Exception) {
+            throw RuntimeException("Fetch av token for Arena-oppslag feilet", e)
+        }
+
+        val response = try {
+            arenaHttpClient.get(url) {
+                accept(ContentType.Application.Json)
+                bearerAuth(token)
+            }
+        } catch (e: Exception) {
+            throw RuntimeException("Fetch av Arena-data feilet for '${pathSegments.joinToString("/")}'", e)
+        }
+
+        try {
+            objectMapper.readValue<T>(response.bodyAsText())
+        } catch (e: Exception) {
+            throw RuntimeException("Parsefeil for '${pathSegments.joinToString("/")}'", e)
         }
     }
 
