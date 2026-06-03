@@ -2,6 +2,15 @@ name: Deploy postmottak-backend
 
 on:
   workflow_dispatch:
+    inputs:
+      cluster:
+        description: Cluster
+        required: true
+        default: dev-gcp
+        type: choice
+        options:
+          - dev-gcp
+          - prod-gcp
   push:
     branches: [ main ]
     paths-ignore:
@@ -10,8 +19,6 @@ on:
 
 jobs:
   build:
-    ## push til main eller manuell trigger
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
       actions: read
