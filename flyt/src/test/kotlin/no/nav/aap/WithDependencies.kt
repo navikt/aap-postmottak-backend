@@ -37,7 +37,7 @@ interface WithDependencies {
                 .register<NomKlient>()
                 .register<ArenaWebservicesGatewayImpl>()
                 .register<ArenaoppslagGatewayImpl>()
-                .register<FakeStatistikkKlient>()
+                .register<FakeStatistikkGateway>()
                 .register<VeilarbarenaKlient>()
 
             PrometheusProvider.prometheus = mockk(relaxed = true)
