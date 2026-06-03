@@ -202,6 +202,7 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
                     aktfaseKode = "INNV",
                     vedtaktypeKode = "O",
                     fra = LocalDate.of(2025, 1, 1),
+                    til = LocalDate.of(2026, 1, 1),
                     maxdatoOrdinaer = LocalDate.of(2026, 12, 12),
                     maxdatoUnntak = null,
                     maxdatoAap = LocalDate.of(2026, 12, 12),
