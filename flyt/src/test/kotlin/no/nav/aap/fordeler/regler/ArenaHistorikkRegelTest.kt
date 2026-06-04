@@ -205,6 +205,7 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
                     maxdatoOrdinaer = LocalDate.of(2026, 12, 12),
                     maxdatoUnntak = null,
                     maxdatoAap = LocalDate.of(2026, 12, 12),
+                    til = null,
                 ),
             )
         )
