@@ -133,6 +133,7 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         }
     }.getOrThrow()
 
+    @Suppress("TooGenericExceptionThrown", "TooGenericExceptionCaught")
     private suspend inline fun <reified T> gjørArenaOppslag(
         endepunkt: String,
         body: Any? = null,
@@ -145,7 +146,6 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         val token = try {
             tokenProvider.getClientCredentialToken(config.scope)
         } catch (e: Exception) {
-            @Suppress("TooGenericExceptionThrown")
             throw RuntimeException("Fetch av token for Arena-oppslag feilet", e)
         }
 
@@ -160,7 +160,6 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
                 }
             }
         } catch (e: Exception) {
-            @Suppress("TooGenericExceptionThrown")
             throw RuntimeException("Fetch av Arena-data feilet for '$endepunkt'", e)
         }
 
@@ -170,7 +169,6 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
             throw RuntimeException("Parsefeil for '$endepunkt'", e)
         }
     }
-
 
     override suspend fun harAapSakIArena(person: Person): Boolean {
         val request = SakerRequest(person.identer().map { it.identifikator })

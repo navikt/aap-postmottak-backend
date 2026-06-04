@@ -23,6 +23,7 @@ class ArenaoppslagGatewayTest {
             PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
         }
     }
+
     val arenaOppslagGatewayFake = ArenaoppslagGatewayImpl()
 
     @Test
