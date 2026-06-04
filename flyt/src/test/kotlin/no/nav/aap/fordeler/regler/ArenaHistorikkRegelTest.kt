@@ -3,20 +3,15 @@ package no.nav.aap.fordeler.regler
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.mockk
+import no.nav.aap.FakeArenaoppslagGateway
+import no.nav.aap.FakeArenaoppslagGateway.Companion.identHeltUtenSak
+import no.nav.aap.FakeArenaoppslagGateway.Companion.identMedSak
+import no.nav.aap.FakeArenaoppslagGateway.Companion.identMedSignifikantSak
+import no.nav.aap.FakeJournalpostGateway
 import no.nav.aap.FakeUnleash
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
-import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identHeltUtenSak
-import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identMedSak
-import no.nav.aap.fordeler.regler.ArenaoppslagGatewayMock.Companion.identMedSignifikantSak
-import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.gateway.JournalpostGateway
-import no.nav.aap.postmottak.gateway.SafJournalpost
-import no.nav.aap.postmottak.gateway.SafSak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -39,8 +34,8 @@ class ArenaHistorikkRegelTest {
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSignifikantSak)))
 
         val gatewayRegistry = GatewayRegistry()
-            .register<JoarkMock>()
-            .register<ArenaoppslagGatewayMock>()
+            .register<FakeJournalpostGateway>()
+            .register<FakeArenaoppslagGateway>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -65,8 +60,8 @@ class ArenaHistorikkRegelTest {
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSak)))
 
         val gatewayRegistry = GatewayRegistry()
-            .register<JoarkMock>()
-            .register<ArenaoppslagGatewayMock>()
+            .register<FakeJournalpostGateway>()
+            .register<FakeArenaoppslagGateway>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -91,8 +86,8 @@ class ArenaHistorikkRegelTest {
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identHeltUtenSak)))
 
         val gatewayRegistry = GatewayRegistry()
-            .register<JoarkMock>()
-            .register<ArenaoppslagGatewayMock>()
+            .register<FakeJournalpostGateway>()
+            .register<FakeArenaoppslagGateway>()
             .register<FakeUnleash>()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
@@ -110,14 +105,15 @@ class ArenaHistorikkRegelTest {
 
         assertTrue(res)
     }
+
     @Test
     fun `Dersom bruker har ikke-signifikant sak i Arena, men fordeling til Kelvin er begrenset av gradual rollout, skal regelen returnere false`() {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSak)))
 
         val gatewayRegistry = GatewayRegistry()
-            .register<JoarkMock>()
-            .register<ArenaoppslagGatewayMock>()
+            .register<FakeJournalpostGateway>()
+            .register<FakeArenaoppslagGateway>()
             .register<FakeUnleash>()
 
         FakeUnleash.rejectList.add(person.identifikator.toString())
@@ -148,87 +144,5 @@ class ArenaHistorikkRegelTest {
         }
     }
 
-
-}
-
-class ArenaoppslagGatewayMock : ArenaoppslagGateway {
-    companion object : Factory<ArenaoppslagGatewayMock> {
-        override fun konstruer(): ArenaoppslagGatewayMock {
-            return ArenaoppslagGatewayMock()
-        }
-
-        const val identHeltUtenSak = "ikke_funnet"
-        const val identMedSak = "0000000333"
-        const val identMedSignifikantSak = "09876543210"
-    }
-
-    override suspend fun harAapSakIArena(person: Person): Boolean {
-        val eksisterer = listOf(identMedSak, identMedSignifikantSak).contains(person.identer().first().identifikator)
-        return eksisterer
-    }
-
-    override suspend fun hentSakerMedSignifikantHistorikk(
-        person: Person,
-        mottattDato: LocalDate
-    ): List<Int> {
-        return if (person.identer().first().identifikator == identMedSignifikantSak) {
-            listOf(1234)
-        } else {
-            emptyList()
-        }
-    }
-
-    override suspend fun harSignifikantHistorikkIAAPArena(
-        person: Person,
-        mottattDato: LocalDate
-    ): Boolean {
-        return person.identer().first().identifikator == identMedSignifikantSak
-    }
-
-    override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
-        return listOf(
-            SakMedSisteVedtakOgMaksdato(
-                sakId = 1234,
-                saknummer = "2025-11",
-                sakStatus = "AKTIV",
-                sakRegistrert = LocalDate.of(2025, 1, 1),
-                sakAvsluttet = LocalDate.of(2026, 12, 12),
-                har_11_12_forlengelse = false,
-                utredesForUfor = false,
-                ferdigAvklart = false,
-                lopendeVedtak = true,
-                sisteVedtak = VedtakMedMaksdato(
-                    vedtakId = 1,
-                    aktfaseKode = "INNV",
-                    vedtaktypeKode = "O",
-                    fra = LocalDate.of(2025, 1, 1),
-                    maxdatoOrdinaer = LocalDate.of(2026, 12, 12),
-                    maxdatoUnntak = null,
-                    maxdatoAap = LocalDate.of(2026, 12, 12),
-                    til = null,
-                ),
-            )
-        )
-    }
-
-    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
-        return LocalDate.of(2026,12,12)
-    }
-}
-
-class JoarkMock : JournalpostGateway {
-    companion object : Factory<JoarkMock> {
-        override fun konstruer(): JoarkMock {
-            return JoarkMock()
-        }
-    }
-
-    override fun hentJournalpost(journalpostId: JournalpostId): SafJournalpost {
-        TODO("Not yet implemented")
-    }
-
-    override fun hentSaker(fnr: String): List<SafSak> {
-        return emptyList()
-    }
 
 }

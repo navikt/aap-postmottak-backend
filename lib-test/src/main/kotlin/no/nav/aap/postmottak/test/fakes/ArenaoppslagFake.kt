@@ -8,6 +8,9 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 
@@ -49,6 +52,52 @@ fun Application.arenaoppslagFake() {
                     }
                     """.trimIndent()
                 )
+            }
+        }
+
+        post("/api/v1/maksdato") {
+            val parsedRequest = call.receive<MaksdatoRequest>()
+            if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
+                call.respond(
+                    """
+                    {
+                      "sakliste": [
+                        {
+                          "sakId": 1234,
+                          "saknummer": "ABC-123",
+                          "sakStatus": "AKTIV",
+                          "sakRegistrert": "2024-01-01",
+                          "sakAvsluttet": null,
+                          "har_11_12_forlengelse": false,
+                          "utredesForUfor": false,
+                          "ferdigAvklart": false,
+                          "lopendeVedtak": true,
+                          "sisteVedtak": {
+                            "vedtakId": 99,
+                            "aktfaseKode": "AKT",
+                            "vedtaktypeKode": "TYPE",
+                            "fra": "2024-01-01",
+                            "til": "2024-12-31",
+                            "maxdatoOrdinaer": "2025-01-01",
+                            "maxdatoUnntak": null,
+                            "maxdatoAap": null
+                          }
+                        }
+                      ]
+                    }
+                    """.trimIndent()
+                )
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+
+        post("/api/v1/utbetalinger/siste") {
+            val parsedRequest = call.receive<SisteUtbetalingerRequest>()
+            if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
+                call.respond("""{"utbetalingsdato": "2024-05-10"}""")
+            } else {
+                call.respond(HttpStatusCode.NotFound)
             }
         }
 

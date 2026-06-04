@@ -13,7 +13,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.post
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -95,19 +95,19 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
 
     suspend fun hentPersonEksistererIAapContext(
         req: SakerRequest,
-    ): PersonEksistererIAAPArena = gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
+    ): PersonEksistererIAAPArena = gjørArenaOppslag<PersonEksistererIAAPArena>(
         "/api/v1/person/eksisterer", req
     ).getOrThrow()
 
     suspend fun personHarSignifikantAAPArenaHistorikk(
         req: SignifikanteSakerRequest
-    ): SignifikanteSakerResponse = gjørArenaOppslag<SignifikanteSakerResponse, SignifikanteSakerRequest>(
+    ): SignifikanteSakerResponse = gjørArenaOppslag<SignifikanteSakerResponse>(
         "/api/v1/person/signifikant-historikk", req
     ).getOrThrow()
 
     suspend fun hentMaksdatoISaker(
         req: MaksdatoRequest
-    ): MaksdatoResponse = gjørArenaOppslag<MaksdatoResponse, MaksdatoRequest>(
+    ): MaksdatoResponse = gjørArenaOppslag<MaksdatoResponse>(
         "/api/v1/maksdato", req
     ).recover { throwable ->
         if (responseStatus(throwable) == HttpStatusCode.NotFound) {
@@ -121,7 +121,7 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
 
     suspend fun hentSisteUtbetalingsDatoISaker(
         req: SisteUtbetalingerRequest
-    ): SisteUtbetalingerResponse = gjørArenaOppslag<SisteUtbetalingerResponse, SisteUtbetalingerRequest>(
+    ): SisteUtbetalingerResponse = gjørArenaOppslag<SisteUtbetalingerResponse>(
         "/api/v1/utbetalinger/siste", req
     ).recover { throwable ->
         if (responseStatus(throwable) == HttpStatusCode.NotFound) {
@@ -133,8 +133,11 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         }
     }.getOrThrow()
 
-    private suspend inline fun <reified T, reified V> gjørArenaOppslag(
-        endepunkt: String, req: V
+    @Suppress("TooGenericExceptionThrown", "TooGenericExceptionCaught")
+    private suspend inline fun <reified T> gjørArenaOppslag(
+        endepunkt: String,
+        body: Any? = null,
+        method: HttpMethod = HttpMethod.Post,
     ): Result<T> = runCatching {
         val url = URLBuilder(config.proxyBaseUrl)
             .appendPathSegments(endepunkt)
@@ -147,11 +150,14 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         }
 
         val response = try {
-            arenaHttpClient.post(url) {
+            arenaHttpClient.request(url) {
+                this.method = method
                 accept(ContentType.Application.Json)
                 bearerAuth(token)
-                contentType(ContentType.Application.Json)
-                setBody(req)
+                if (body != null) {
+                    contentType(ContentType.Application.Json)
+                    setBody(body)
+                }
             }
         } catch (e: Exception) {
             throw RuntimeException("Fetch av Arena-data feilet for '$endepunkt'", e)

@@ -78,6 +78,11 @@ fun MeterRegistry.tellAntallKantIKantDetektert(erKantIKant: Boolean) = this.coun
     listOf(Tag.of("erKantIKant", erKantIKant.toString()))
 )
 
+fun MeterRegistry.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt: Boolean) = this.counter(
+    "postmottak_soknad_med_maks_utvidet_kvote",
+    listOf(Tag.of("maksKvoteSnartOppbrukt", maksKvoteSnartOppbrukt.toString()))
+)
+
 enum class Fagsystem {
     arena,
     kelvin

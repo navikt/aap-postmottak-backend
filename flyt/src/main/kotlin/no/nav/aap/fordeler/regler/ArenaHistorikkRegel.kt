@@ -13,6 +13,7 @@ import no.nav.aap.postmottak.personFinnesIAapArenaTeller
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.signifikantArenaHistorikkTeller
 import no.nav.aap.postmottak.tellAntallKantIKantDetektert
+import no.nav.aap.postmottak.tellAntallMaksUtvidetKvoteSnartOppbrukt
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -106,9 +107,12 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         runCatching {
             // Måles kun, påvirker ikke funksjonaliteten
             runBlocking {
-                val erKantIKant = ArenaService(gatewayProvider).skalManueltFordeles(input.person, input.mottattDato)
+                val arenaService = ArenaService(gatewayProvider)
+                val skalManueltFordeles = arenaService.skalManueltFordeles(input.person, input.mottattDato)
+                val maksKvoteSnartOppbrukt = arenaService.maksimaltUtvidetKvoteSnartOppbrukt(input.person, input.mottattDato)
 
-                prometheus.tellAntallKantIKantDetektert(erKantIKant).increment()
+                prometheus.tellAntallKantIKantDetektert(skalManueltFordeles).increment()
+                prometheus.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt).increment()
             }
         }
 
