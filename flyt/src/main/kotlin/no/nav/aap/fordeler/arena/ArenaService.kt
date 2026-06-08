@@ -33,7 +33,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     ): Boolean {
         return sisteSak?.sisteVedtak?.maxdatoAap?.let { maxdato ->
             val maxdatoErIkkePassert = maxdato.isAfter(mottattDato)
-            val terskeldato = mottattDato.plusWeeks(17L) // TODO revurdere etter vi har samlet statistikk
+            // TODO revurdere tidsperioden etter vi har samlet statistikk, kanskje bytt til 6mnd
+            val terskeldato = mottattDato.plusWeeks(17L)
 
             // Sjekk om søknaden som har en definert maksdato er "kant-i-kant" med forrige søknad:
             (maxdatoErIkkePassert && maxdato <= terskeldato)
@@ -70,8 +71,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             else -> {
 
                 sisteSak.har_11_12_forlengelse // er tidligere forlenget
-                        && sakenHarBegyntPåFemteÅret(mottattDato, sisteSak)
-                        && maksdatoNærmerSeg(sisteSak, mottattDato)
+                        && sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak) // på andre året
+                        && maksdatoNærmerSeg(sisteSak, mottattDato) // og utløpet av ytelsen nærmer seg
             }
         }
 
@@ -80,13 +81,17 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         return behandlesSomNySøknad
     }
 
-    private fun sakenHarBegyntPåFemteÅret(
+    private fun sakenHarBegyntPåAndreÅretMedUnntak(
         mottattDato: LocalDate,
         sisteSak: SakMedSisteVedtakOgMaksdato
     ): Boolean {
-        val fireOgEtHalvtÅrSiden = mottattDato.minusMonths(4 * 12 + 6) // 4.5 år
+        return if (sisteSak.unntaksvilkaarGjelderFra == null) {
+            false
+        } else {
+            val ettOgEtHalvtÅrSiden = mottattDato.minusMonths(18)
 
-        return fireOgEtHalvtÅrSiden.isAfter(sisteSak.sakRegistrert)
+            ettOgEtHalvtÅrSiden.isAfter(sisteSak.unntaksvilkaarGjelderFra)
+        }
     }
 
 }
