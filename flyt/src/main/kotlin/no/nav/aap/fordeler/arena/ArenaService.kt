@@ -85,13 +85,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         mottattDato: LocalDate,
         sisteSak: SakMedSisteVedtakOgMaksdato
     ): Boolean {
-        return if (sisteSak.unntaksvilkaarGjelderFra == null) {
-            false
-        } else {
-            val ettOgEtHalvtÅrSiden = mottattDato.minusMonths(18)
-
-            ettOgEtHalvtÅrSiden.isAfter(sisteSak.unntaksvilkaarGjelderFra)
-        }
+        val ettOgEtHalvtÅrSiden = mottattDato.minusMonths(18)
+        return sisteSak.unntaksvilkaarGjelderFra?.isBefore(ettOgEtHalvtÅrSiden) ?: false
     }
 
 }
