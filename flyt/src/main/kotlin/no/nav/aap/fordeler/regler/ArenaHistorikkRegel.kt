@@ -102,18 +102,20 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
                 // Måles kun, påvirker ikke funksjonaliteten
                 runBlocking {
                     val arenaService = ArenaService(gatewayProvider)
-                    val skalManueltFordeles = arenaService.skalManueltFordeles(
-                        input.person, input.mottattDato,
-                        signifikantHistorikk
-                    )
                     val maksKvoteSnartOppbrukt =
                         arenaService.kanFordelesAutomatiskPga11_12_erMakset(
                             input.person, input.mottattDato,
                             signifikantHistorikk
                         )
-
-                    prometheus.tellAntallKantIKantDetektert(skalManueltFordeles).increment()
                     prometheus.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt).increment()
+
+                    if (!maksKvoteSnartOppbrukt) {
+                        val skalManueltFordeles = arenaService.skalManueltFordeles(
+                            input.person, input.mottattDato,
+                            signifikantHistorikk
+                        )
+                        prometheus.tellAntallKantIKantDetektert(skalManueltFordeles).increment()
+                    }
                 }
             }
 
