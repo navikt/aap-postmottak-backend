@@ -1,6 +1,8 @@
 package no.nav.aap
 
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
@@ -19,27 +21,25 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
         const val identMedSignifikantSak = "09876543210"
     }
 
-    override suspend fun harAapSakIArena(person: Person): Boolean {
-        val eksisterer = listOf(identMedSak, identMedSignifikantSak).contains(person.identer().first().identifikator)
-        return eksisterer
-    }
-
-    override suspend fun hentSakerMedSignifikantHistorikk(
-        person: Person,
-        mottattDato: LocalDate
-    ): List<Int> {
-        return if (person.identer().first().identifikator == identMedSignifikantSak) {
-            listOf(1234)
-        } else {
-            emptyList()
-        }
-    }
-
-    override suspend fun harSignifikantHistorikkIAAPArena(
-        person: Person,
-        mottattDato: LocalDate
-    ): Boolean {
+    override suspend fun harHistorikk(person: Person): Boolean {
         return person.identer().first().identifikator == identMedSignifikantSak
+    }
+
+    override suspend fun harSignifikantHistorikk(
+        person: Person,
+        mottattDato: LocalDate
+    ): SignifikantHistorikkResponse {
+        return if (person.identer().first().identifikator == identMedSignifikantSak) {
+            SignifikantHistorikkResponse(
+                true, listOf(
+                    ArenaVedtak(
+                        1234, "AKTIV", null, null, null, "AAP", null
+                    )
+                )
+            )
+        } else {
+            SignifikantHistorikkResponse.ingen
+        }
     }
 
     override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
@@ -70,6 +70,6 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
     }
 
     override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
-        return LocalDate.of(2026,12,12)
+        return LocalDate.of(2026, 12, 12)
     }
 }

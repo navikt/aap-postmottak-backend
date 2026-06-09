@@ -9,7 +9,9 @@ import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.gateway.Factory
@@ -91,8 +93,11 @@ class ArenaOppgaveFlytTest : WithDependencies {
         val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
 
         clearAllMocks()
-        coEvery { arenaoppslagGateway.harAapSakIArena(any()) } returns true
-        coEvery { arenaoppslagGateway.hentSakerMedSignifikantHistorikk(any(), any()) } returns listOf(1)
+        coEvery { arenaoppslagGateway.harHistorikk(any()) } returns true
+        coEvery { arenaoppslagGateway.harSignifikantHistorikk(any(), any()) } returns SignifikantHistorikkResponse(true,
+            listOf(ArenaVedtak(
+                1, "AKTIV", null, null, null, "AAP", null
+            )))
 
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
         every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
@@ -109,7 +114,8 @@ class ArenaOppgaveFlytTest : WithDependencies {
                 withArg {
                     assertThat(it).isEqualTo(PostmottakFeature.BegrensetFordelingTilKelvin)
                 },
-                any())
+                any()
+            )
         }
         verify(exactly = 1) {
             arenaWebservicesGateway.opprettArenaOppgave(withArg {
@@ -122,13 +128,16 @@ class ArenaOppgaveFlytTest : WithDependencies {
     fun `happycase for søknad oppretter sak i arena og journalfører automatisk`() {
         val journalpostId = TestJournalposter.SØKNAD_ETTERSENDELSE
 
-        val apiInternGateway = gatewayProvider.provide(ArenaoppslagGateway::class)
+        val arenaoppslagGateway = gatewayProvider.provide(ArenaoppslagGateway::class)
         val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
         val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
 
         clearAllMocks()
-        coEvery { apiInternGateway.harAapSakIArena(any()) } returns true
-        coEvery { apiInternGateway.hentSakerMedSignifikantHistorikk(any(), any()) } returns listOf(1)
+        coEvery { arenaoppslagGateway.harHistorikk(any()) } returns true
+        coEvery { arenaoppslagGateway.harSignifikantHistorikk(any(), any()) } returns SignifikantHistorikkResponse(true,
+            listOf(ArenaVedtak(
+                1, "AKTIV", null, null, null, "AAP", null
+            )))
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
         every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
 
@@ -144,7 +153,8 @@ class ArenaOppgaveFlytTest : WithDependencies {
                 withArg {
                     assertThat(it).isEqualTo(PostmottakFeature.BegrensetFordelingTilKelvin)
                 },
-                any())
+                any()
+            )
         }
         verify(exactly = 1) {
             arenaWebservicesGateway.opprettArenaOppgave(withArg {
@@ -161,19 +171,14 @@ class ArenaoppslagGatewaySpy : ArenaoppslagGateway {
         override fun konstruer() = klient
     }
 
-    override suspend fun harAapSakIArena(person: Person): Boolean {
+    override suspend fun harHistorikk(person: Person): Boolean {
         TODO("kalles ikke på")
     }
 
-    override suspend fun hentSakerMedSignifikantHistorikk(
-        person: Person, mottattDato: LocalDate
-    ): List<Int> {
-        TODO("kalles ikke på")
-    }
-
-    override suspend fun harSignifikantHistorikkIAAPArena(
-        person: Person, mottattDato: LocalDate
-    ): Boolean {
+    override suspend fun harSignifikantHistorikk(
+        person: Person,
+        mottattDato: LocalDate
+    ): SignifikantHistorikkResponse {
         TODO("kalles ikke på")
     }
 

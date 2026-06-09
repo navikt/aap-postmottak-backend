@@ -27,23 +27,23 @@ class ArenaoppslagGatewayTest {
     val arenaOppslagGatewayFake = ArenaoppslagGatewayImpl()
 
     @Test
-    fun `Kan parse PersonEksistererIAAPArena`() {
+    fun `Kan parse harHistorikk`() {
         val res = runBlocking {
             val testPerson = Person(1, UUID.randomUUID(), listOf(TestIdenter.IDENT_MED_SAK_I_ARENA))
-            arenaOppslagGatewayFake.harAapSakIArena(testPerson)
+            arenaOppslagGatewayFake.harHistorikk(testPerson)
         }
 
         assertThat(res).isEqualTo(true)
     }
 
     @Test
-    fun `Kan parse SignifikanteSakerResponse`() {
-        val res = runBlocking {
+    fun `Kan parse harSignifikantHistorikk`() {
+        val vedtak = runBlocking {
             val testPerson = Person(1, UUID.randomUUID(), listOf(TestIdenter.IDENT_MED_SAK_I_ARENA))
-            arenaOppslagGatewayFake.hentSakerMedSignifikantHistorikk(testPerson, LocalDate.now())
+            arenaOppslagGatewayFake.harSignifikantHistorikk(testPerson, LocalDate.now())
         }
 
-        assertThat(res).containsExactly(1234)
+        assertThat(vedtak.saker()).containsExactly(1234)
     }
 
     @Test

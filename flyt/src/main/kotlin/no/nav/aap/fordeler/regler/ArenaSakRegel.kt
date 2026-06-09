@@ -25,7 +25,7 @@ class ArenaSakRegel : Regel<ArenaSakRegelInput> {
 class ArenaSakRegelInputGenerator(private val gatewayProvider: GatewayProvider) : InputGenerator<ArenaSakRegelInput> {
     override fun generer(input: RegelInput): ArenaSakRegelInput {
         val eksistererIArena = runBlocking {
-            gatewayProvider.provide<ArenaoppslagGateway>().harAapSakIArena(input.person)
+            gatewayProvider.provide<ArenaoppslagGateway>().harHistorikk(input.person)
         }
         return ArenaSakRegelInput(eksistererIArena)
     }

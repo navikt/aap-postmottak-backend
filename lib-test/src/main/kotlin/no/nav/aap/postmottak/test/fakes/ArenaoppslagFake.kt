@@ -9,10 +9,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.http.HttpStatusCode
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 
 fun Application.arenaoppslagFake() {
     install(ContentNegotiation) {
@@ -23,23 +23,33 @@ fun Application.arenaoppslagFake() {
     }
 
     routing {
-        post("/api/v1/person/eksisterer") {
-            val parsedRequest = call.receive<SakerRequest>()
-            if (parsedRequest.personidentifikatorer.contains(TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator)) {
-                call.respond("""{"eksisterer": true}""")
+        post("/api/v1/person/historikk") {
+            val parsedRequest = call.receive<HarHistorikkRequest>()
+            if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
+                call.respond("""{"harHistorikk": true}""")
                 return@post
             }
-            call.respond("""{"eksisterer": false}""")
+            call.respond("""{"harHistorikk": false}""")
         }
 
-        post("/api/v1/person/signifikant-historikk") {
-            val parsedRequest = call.receive<SignifikanteSakerRequest>()
-            if (parsedRequest.personidentifikatorer.contains(TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator)) {
+        post("/api/v1/person/historikk/signifikant") {
+            val parsedRequest = call.receive<SignifikantHistorikkRequest>()
+            if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
                 call.respond(
                     """
                     {
                       "harSignifikantHistorikk" : true,
-                      "signifikanteSaker" : [ "1234" ]
+                      "signifikanteVedtak" : [
+                        {
+                          "sakId": 1234,
+                          "statusKode": "AKTIV",
+                          "vedtaktypeKode": null,
+                          "fraOgMed": null,
+                          "tilDato": null,
+                          "rettighetkode": "AAP",
+                          "utfallkode": null
+                        }
+                      ]
                     }
                     """.trimIndent()
                 )
@@ -48,7 +58,7 @@ fun Application.arenaoppslagFake() {
                     """
                     {
                       "harSignifikantHistorikk" : false,
-                      "signifikanteSaker" : [ ]
+                      "signifikanteVedtak" : [ ]
                     }
                     """.trimIndent()
                 )
