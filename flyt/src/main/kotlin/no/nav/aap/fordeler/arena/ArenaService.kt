@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler.arena
 
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -18,7 +19,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         return sisteSak?.let {
             val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
             val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikantHistorikk, sisteSak)
-            val signifikanteVedtakerUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk)
+            val signifikanteVedtakerUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk.signifikanteVedtak)
 
             // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
             // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
@@ -35,13 +36,15 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         } ?: false
     }
 
-    private fun harSignifikanteVedtakUtoverTypeAap(historikk: SignifikantHistorikkResponse): Boolean {
-        val rettighetskoder = historikk.signifikanteVedtak.map { it.rettighetkode }.distinct()
+    internal fun harSignifikanteVedtakUtoverTypeAap(signifikanteVedtak: List<ArenaVedtak>): Boolean {
+        if (signifikanteVedtak.isEmpty()) return false
+
+        val rettighetskoder = signifikanteVedtak.map { it.rettighetkode }.distinct()
         // hvis annet enn AAP
         return !rettighetskoder.contains("AAP") || rettighetskoder.size > 1
     }
 
-    private fun harFlereSignifikanteSaker(
+    internal fun harFlereSignifikanteSaker(
         historikk: SignifikantHistorikkResponse,
         sisteSak: SakMedSisteVedtakOgMaksdato
     ): Boolean {
@@ -97,7 +100,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             sisteSak.ferdigAvklart -> false
             else -> {
                 val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker, sisteSak)
-                val signifikanteVedtakerUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikanteSaker)
+                val signifikanteVedtakerUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikanteSaker.signifikanteVedtak)
 
                 sisteSak.har_11_12_forlengelse // er tidligere forlenget
                         && sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak) // på andre året
