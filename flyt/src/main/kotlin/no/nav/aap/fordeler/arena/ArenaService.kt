@@ -1,6 +1,7 @@
 package no.nav.aap.fordeler.arena
 
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -12,20 +13,42 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     private val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun skalManueltFordeles(søker: Person, mottattDato: LocalDate): Boolean {
+    suspend fun skalManueltFordeles(søker: Person, mottattDato: LocalDate, signifikantHistorikk: SignifikantHistorikkResponse): Boolean {
         val sisteSak = hentSisteSakMedEffektivMaksdato(søker)
-        val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
+        return sisteSak?.let {
+            val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
+            val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikantHistorikk, sisteSak)
+            val signifikanteVedtakerUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk)
 
-        // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
-        // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
-        // Derfor er 11-12 situasjonen også håndtert, selv om det ikke er en eksplisitt sjekk for den.
-        // TODO: når de blir tilgjengelige i Arena: sjekk vilkår for 11-12 (tre stk) direkte
-        val tilManuellFordeling =
-            sisteSak != null && maksdatoNærmerSeg && !sisteSak.ferdigAvklart && !sisteSak.utredesForUfor
+            // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
+            // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
+            // Derfor er 11-12 situasjonen også håndtert, selv om det ikke er en eksplisitt sjekk for den.
+            // TODO: når de blir tilgjengelige i Arena: sjekk vilkår for 11-12 (tre stk) direkte
 
-        logger.info("Brukerens søknad fra $mottattDato er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak")
+            val tilManuellFordeling = !signifikanteVedtakerUtoverTypeAap && !flereSignifikanteSaker
+                    && maksdatoNærmerSeg && !sisteSak.ferdigAvklart && !sisteSak.utredesForUfor
 
-        return tilManuellFordeling
+            logger.info("Brukerens søknad fra $mottattDato er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak")
+
+            return tilManuellFordeling
+
+        } ?: false
+    }
+
+    private fun harSignifikanteVedtakUtoverTypeAap(historikk: SignifikantHistorikkResponse): Boolean {
+        val rettighetskoder = historikk.signifikanteVedtak.map { it.rettighetkode }.distinct()
+        // hvis annet enn AAP
+        return !rettighetskoder.contains("AAP") || rettighetskoder.size > 1
+    }
+
+    private fun harFlereSignifikanteSaker(
+        historikk: SignifikantHistorikkResponse,
+        sisteSak: SakMedSisteVedtakOgMaksdato
+    ): Boolean {
+        val flereSignifikanteSaker = historikk.saker().toMutableSet().apply {
+            remove(sisteSak.sakId)
+        }.isNotEmpty()
+        return flereSignifikanteSaker
     }
 
     private fun maksdatoNærmerSeg(
@@ -60,7 +83,11 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         }
     }
 
-    suspend fun maksimaltUtvidetKvoteSnartOppbrukt(søker: Person, mottattDato: LocalDate): Boolean {
+    suspend fun kanFordelesAutomatiskPga11_12_erMakset(
+        søker: Person,
+        mottattDato: LocalDate,
+        signifikanteSaker: SignifikantHistorikkResponse
+    ): Boolean {
         val sisteSak = hentSisteSakMedEffektivMaksdato(søker)
 
         // Gitt at det både er sendt søknad, og det er tidligere innvilget to år med utvidet kvote
@@ -69,10 +96,13 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             sisteSak.utredesForUfor -> false
             sisteSak.ferdigAvklart -> false
             else -> {
+                val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker, sisteSak)
+                val signifikanteVedtakerUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikanteSaker)
 
                 sisteSak.har_11_12_forlengelse // er tidligere forlenget
                         && sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak) // på andre året
                         && maksdatoNærmerSeg(sisteSak, mottattDato) // og utløpet av ytelsen nærmer seg
+                        && !signifikanteVedtakerUtoverTypeAap && !flereSignifikanteSaker
             }
         }
 

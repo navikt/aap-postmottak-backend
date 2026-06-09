@@ -81,22 +81,44 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         )
 
         val (historikk, signifikantHistorikk) = runBlocking {
-            val historikk = arena.harAapSakIArena(input.person)
-            val signifikantHistorikk = arena.hentSakerMedSignifikantHistorikk(input.person, input.mottattDato)
+            val historikk = arena.harHistorikk(input.person)
+            val signifikantHistorikk = arena.harSignifikantHistorikk(input.person, input.mottattDato)
             historikk to signifikantHistorikk
         }
 
+        val harSignifikantArenaHistorikk = signifikantHistorikk.harSignifikantHistorikk
         metrikkerForArenaHistorikk(
             historikk,
-            signifikantHistorikk.isNotEmpty(),
+            harSignifikantArenaHistorikk,
             innenforProsentenSomVurderesForKelvin
         )
 
-        if (signifikantHistorikk.isNotEmpty()) {
+        if (harSignifikantArenaHistorikk) {
             logger.info(
                 "Personen har signifikant historikk i AAP-Arena: " +
                         "saker=${signifikantHistorikk}, journalpostId=${input.journalpostId}"
             )
+            runCatching {
+                // Måles kun, påvirker ikke funksjonaliteten
+                runBlocking {
+                    val arenaService = ArenaService(gatewayProvider)
+                    val maksKvoteSnartOppbrukt =
+                        arenaService.kanFordelesAutomatiskPga11_12_erMakset(
+                            input.person, input.mottattDato,
+                            signifikantHistorikk
+                        )
+                    prometheus.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt).increment()
+
+                    if (!maksKvoteSnartOppbrukt) {
+                        val skalManueltFordeles = arenaService.skalManueltFordeles(
+                            input.person, input.mottattDato,
+                            signifikantHistorikk
+                        )
+                        prometheus.tellAntallKantIKantDetektert(skalManueltFordeles).increment()
+                    }
+                }
+            }
+
         } else {
             logger.info(
                 "Personen har /IKKE/ signifikant historikk i AAP-Arena: " +
@@ -104,24 +126,13 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
             )
         }
 
-        runCatching {
-            // Måles kun, påvirker ikke funksjonaliteten
-            runBlocking {
-                val arenaService = ArenaService(gatewayProvider)
-                val skalManueltFordeles = arenaService.skalManueltFordeles(input.person, input.mottattDato)
-                val maksKvoteSnartOppbrukt = arenaService.maksimaltUtvidetKvoteSnartOppbrukt(input.person, input.mottattDato)
-
-                prometheus.tellAntallKantIKantDetektert(skalManueltFordeles).increment()
-                prometheus.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt).increment()
-            }
-        }
 
         // Guide til å sette prosent-verdien i Unleash:
         // 62.5% er taket for hvor mye som er lov å ta inn til Kelvin per nå (tall fra metabase 21. mai).
         // Vi vil ta inn regler som øker inntaket med 2%. Si for sikkerhets skyld med 2.5%.
         // Da må vi i tillegg redusere med samme tall, altså ned til 60%.
         // Vi ønsker da å redusere prosenten fra 100 til 60/62.5 % = 96%.
-        val resultat = if (innenforProsentenSomVurderesForKelvin) signifikantHistorikk.isNotEmpty() else true
+        val resultat = if (innenforProsentenSomVurderesForKelvin) harSignifikantArenaHistorikk else true
 
         return ArenaHistorikkRegelInput(resultat, input.person)
     }
