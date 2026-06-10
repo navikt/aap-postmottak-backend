@@ -36,8 +36,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
                     && maksdatoNærmerSeg && !sisteSak.ferdigAvklart && !sisteSak.utredesForUfor
             val tilstand = tilstandSomString(signifikanteVedtakUtoverTypeAap, flereSignifikanteSaker, maksdatoNærmerSeg, sisteSak)
 
-            logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak", "tilstand: $tilstand")
-
+            logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak, tilstand: $tilstand")
 
             return tilManuellFordeling
 
