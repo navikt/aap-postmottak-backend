@@ -131,7 +131,7 @@ fun NormalOpenAPIRoute.behandlingApi(
                 val behandlingRepository = repositoryProvider.provide(BehandlingRepository::class)
 
                 val behandlingId =
-                    behandlingRepository.opprettBehandling(JournalpostId(body.referanse), TypeBehandling.Journalføring)
+                    behandlingRepository.opprettBehandling(JournalpostId(body.referanse), TypeBehandling.Fordeling)
                 FlytJobbRepository(connection).leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)
                         .forBehandling(body.referanse, behandlingId.id).medCallId()
