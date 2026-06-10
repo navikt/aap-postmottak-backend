@@ -4,6 +4,7 @@ public enum class StegGruppe(public val skalVises: Boolean, public val obligator
     KATEGORISER(true, true),
     DIGITALISER(true, false),
     AVKLAR_TEMA(true, true),
+    AVKLAR_FORDELING(true, false),
     START_BEHANDLING(false, false),
     UDEFINERT(false, true),
     SETT_FAGSAK(false, false),

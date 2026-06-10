@@ -20,6 +20,14 @@ public enum class StegType(
         gruppe = StegGruppe.AVKLAR_TEMA,
         status = Status.UTREDES
     ),
+    AVKLAR_FORDELING(
+        gruppe = StegGruppe.AVKLAR_TEMA,
+        status = Status.UTREDES
+    ),
+    AVKLAR_FORDELING_VIDERESEND(
+        gruppe = StegGruppe.AVKLAR_TEMA,
+        status = Status.IVERKSETTES
+    ),
     SETT_FAGSAK(
         gruppe = StegGruppe.SETT_FAGSAK,
         status = Status.UTREDES
