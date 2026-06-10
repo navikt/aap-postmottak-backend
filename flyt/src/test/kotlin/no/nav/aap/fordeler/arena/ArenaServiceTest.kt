@@ -65,7 +65,7 @@ class ArenaServiceTest {
         )
         val sisteSak = sakMedId(sisteSakId)
 
-        assertFalse(arenaService.harFlereSignifikanteSaker(historikk, sisteSak))
+        assertFalse(arenaService.harFlereSignifikanteSaker(historikk.saker(), sisteSak))
     }
 
     @Test
@@ -79,7 +79,7 @@ class ArenaServiceTest {
         )
         val sisteSak = sakMedId(1234)
 
-        assertTrue(arenaService.harFlereSignifikanteSaker(historikk, sisteSak))
+        assertTrue(arenaService.harFlereSignifikanteSaker(historikk.saker(), sisteSak))
     }
 
     @Test
@@ -87,7 +87,7 @@ class ArenaServiceTest {
         val historikk = SignifikantHistorikkResponse.ingen
         val sisteSak = sakMedId(1234)
 
-        assertFalse(arenaService.harFlereSignifikanteSaker(historikk, sisteSak))
+        assertFalse(arenaService.harFlereSignifikanteSaker(historikk.saker(), sisteSak))
     }
 
     @Test
@@ -102,7 +102,68 @@ class ArenaServiceTest {
         )
         val sisteSak = sakMedId(1111)
 
-        assertTrue(arenaService.harFlereSignifikanteSaker(historikk, sisteSak))
+        assertTrue(arenaService.harFlereSignifikanteSaker(historikk.saker(), sisteSak))
+    }
+
+    @Test
+    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er null`() {
+        val mottattDato = LocalDate.of(2026, 6, 10)
+        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = null)
+
+        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
+    }
+
+    @Test
+    fun `sakenHarBegyntPåAndreÅretMedUnntak true naar unntak er mer enn 18 mnd siden`() {
+        val mottattDato = LocalDate.of(2026, 6, 10)
+        val unntaksDato = mottattDato.minusMonths(18).minusDays(1) // 19 months + 1 day ago
+        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
+
+        assertTrue(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
+    }
+
+    @Test
+    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er eksakt 18 mnd siden`() {
+        val mottattDato = LocalDate.of(2026, 6, 10)
+        val unntaksDato = mottattDato.minusMonths(18) // exactly 18 months ago
+        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
+
+        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
+    }
+
+    @Test
+    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er mindre enn 18 mnd siden`() {
+        val mottattDato = LocalDate.of(2026, 6, 10)
+        val unntaksDato = mottattDato.minusMonths(18).plusDays(1) // 17 months + 29 days ago
+        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
+
+        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
+    }
+
+    @Test
+    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er i dag`() {
+        val mottattDato = LocalDate.of(2026, 6, 10)
+        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = mottattDato)
+
+        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
+    }
+
+    @Test
+    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er i fremtiden`() {
+        val mottattDato = LocalDate.of(2026, 6, 10)
+        val unntaksDato = mottattDato.plusMonths(1)
+        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
+
+        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
+    }
+
+    @Test
+    fun `sakenHarBegyntPåAndreÅretMedUnntak true naar unntak er langt tilbake`() {
+        val mottattDato = LocalDate.of(2026, 6, 10)
+        val unntaksDato = LocalDate.of(2020, 1, 1)
+        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
+
+        assertTrue(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
     }
 
     private fun arenaVedtak(sakId: Int = 1, rettighetskode: String) = ArenaVedtak(

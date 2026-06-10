@@ -14,27 +14,51 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     private val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun skalManueltFordeles(søker: Person, mottattDato: LocalDate, signifikantHistorikk: SignifikantHistorikkResponse): Boolean {
+    suspend fun skalManueltFordeles(
+        søker: Person,
+        mottattDato: LocalDate,
+        journalpostId: Long,
+        signifikantHistorikk: SignifikantHistorikkResponse
+    ): Boolean {
         val sisteSak = hentSisteSakMedEffektivMaksdato(søker)
         return sisteSak?.let {
             val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
-            val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikantHistorikk, sisteSak)
-            val signifikanteVedtakerUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk.signifikanteVedtak)
+            val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikantHistorikk.saker(), sisteSak)
+            val signifikanteVedtakUtoverTypeAap =
+                harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk.signifikanteVedtak)
 
             // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
             // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
             // Derfor er 11-12 situasjonen også håndtert, selv om det ikke er en eksplisitt sjekk for den.
             // TODO: når de blir tilgjengelige i Arena: sjekk vilkår for 11-12 (tre stk) direkte
 
-            val tilManuellFordeling = !signifikanteVedtakerUtoverTypeAap && !flereSignifikanteSaker
+            val tilManuellFordeling = !signifikanteVedtakUtoverTypeAap && !flereSignifikanteSaker
                     && maksdatoNærmerSeg && !sisteSak.ferdigAvklart && !sisteSak.utredesForUfor
+            val tilstand = tilstandSomString(signifikanteVedtakUtoverTypeAap, flereSignifikanteSaker, maksdatoNærmerSeg, sisteSak)
 
-            logger.info("Brukerens søknad fra $mottattDato er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak")
+            logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak", "tilstand: $tilstand")
+
 
             return tilManuellFordeling
 
         } ?: false
     }
+
+    private fun tilstandSomString(
+        signifikanteVedtakUtoverTypeAap: Boolean,
+        flereSignifikanteSaker: Boolean,
+        maksdatoNærmerSeg: Boolean,
+        sisteSak: SakMedSisteVedtakOgMaksdato
+    ): String {
+        val logmsg: StringBuilder = StringBuilder()
+        logmsg.append("signifikanteVedtakerUtoverTypeAap=$signifikanteVedtakUtoverTypeAap,")
+        logmsg.append("flereSignifikanteSaker=$flereSignifikanteSaker,")
+        logmsg.append("maksdatoNærmerSeg=$maksdatoNærmerSeg,")
+        logmsg.append("ferdigAvklart=${sisteSak.ferdigAvklart},")
+        logmsg.append("utredesForUfor=${sisteSak.utredesForUfor}")
+        return logmsg.toString()
+    }
+
 
     internal fun harSignifikanteVedtakUtoverTypeAap(signifikanteVedtak: List<ArenaVedtak>): Boolean {
         if (signifikanteVedtak.isEmpty()) return false
@@ -45,10 +69,10 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     }
 
     internal fun harFlereSignifikanteSaker(
-        historikk: SignifikantHistorikkResponse,
+        saker: List<Int>,
         sisteSak: SakMedSisteVedtakOgMaksdato
     ): Boolean {
-        val flereSignifikanteSaker = historikk.saker().toMutableSet().apply {
+        val flereSignifikanteSaker = saker.toMutableSet().apply {
             remove(sisteSak.sakId)
         }.isNotEmpty()
         return flereSignifikanteSaker
@@ -89,6 +113,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     suspend fun kanFordelesAutomatiskPga11_12_erMakset(
         søker: Person,
         mottattDato: LocalDate,
+        journalpostId: Long,
         signifikanteSaker: SignifikantHistorikkResponse
     ): Boolean {
         val sisteSak = hentSisteSakMedEffektivMaksdato(søker)
@@ -99,8 +124,9 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             sisteSak.utredesForUfor -> false
             sisteSak.ferdigAvklart -> false
             else -> {
-                val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker, sisteSak)
-                val signifikanteVedtakerUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikanteSaker.signifikanteVedtak)
+                val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker.saker(), sisteSak)
+                val signifikanteVedtakerUtoverTypeAap =
+                    harSignifikanteVedtakUtoverTypeAap(signifikanteSaker.signifikanteVedtak)
 
                 sisteSak.har_11_12_forlengelse // er tidligere forlenget
                         && sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak) // på andre året
@@ -109,12 +135,12 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             }
         }
 
-        logger.info("Brukerens søknad fra $mottattDato kan behandles som en ny søknad: $behandlesSomNySøknad, sak: $sisteSak")
+        logger.info("JournalpostId $journalpostId kan behandles som ny søknad: $behandlesSomNySøknad, sak: $sisteSak")
 
         return behandlesSomNySøknad
     }
 
-    private fun sakenHarBegyntPåAndreÅretMedUnntak(
+    internal fun sakenHarBegyntPåAndreÅretMedUnntak(
         mottattDato: LocalDate,
         sisteSak: SakMedSisteVedtakOgMaksdato
     ): Boolean {
