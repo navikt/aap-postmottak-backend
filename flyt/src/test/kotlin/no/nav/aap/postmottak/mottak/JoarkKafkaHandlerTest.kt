@@ -15,7 +15,7 @@ import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
-import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
+import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -44,7 +44,7 @@ class JoarkKafkaHandlerTest {
 
             verify(exactly = 1) {
                 flytJobbRepository.leggTil(withArg {
-                    assertThat(it.type()).isEqualTo(FordelingRegelJobbUtfører.type)
+                    assertThat(it.type()).isEqualTo(ProsesserBehandlingJobbUtfører.type)
                 })
             }
         }
