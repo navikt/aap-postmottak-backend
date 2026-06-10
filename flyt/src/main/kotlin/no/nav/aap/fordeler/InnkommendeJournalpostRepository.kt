@@ -6,6 +6,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 interface InnkommendeJournalpostRepository: Repository {
     fun eksisterer(journalpostId: JournalpostId): Boolean
     fun hent(journalpostId: JournalpostId): InnkommendeJournalpost
+    fun hentId(journalpostId: JournalpostId): Long
     fun hentHvisEksisterer(journalpostId: JournalpostId): InnkommendeJournalpost?
     fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long
 }

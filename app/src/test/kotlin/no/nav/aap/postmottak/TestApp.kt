@@ -12,9 +12,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
@@ -55,11 +53,14 @@ fun main() {
 }
 
 private fun opprettBehandlingAvklarTeam(connection: DBConnection) {
+    val journalpostId = JournalpostId(KLAGE_ETTERSENDING.referanse)
+    val behandlingId = BehandlingRepositoryImpl(connection)
+        .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
     FlytJobbRepository(connection).leggTil(
-            JobbInput(FordelingRegelJobbUtfører)
-                .forSak(KLAGE_ETTERSENDING.referanse)
-                .medJournalpostId(JournalpostId(KLAGE_ETTERSENDING.referanse))
-            )
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(KLAGE_ETTERSENDING.referanse, behandlingId.id)
+            .medCallId()
+    )
 }
 
 private fun opprettBehandlingFinnSak(connection: DBConnection) {

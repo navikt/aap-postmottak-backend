@@ -51,10 +51,8 @@ import no.nav.aap.postmottak.mottak.kafka.MottakStream
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
-import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
-import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
@@ -235,12 +233,12 @@ class Flyttest : WithDependencies {
         }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostID).also { require(it.size > 1) }
+            alleBehandlingerForJournalpost(journalpostID).also { require(it.size > 2) }
         }
 
-        assertThat(behandlinger).hasSize(2)
+        assertThat(behandlinger).hasSize(3)
             .extracting<TypeBehandling> { it.typeBehandling }
-            .containsExactlyInAnyOrder(TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
+            .containsExactlyInAnyOrder(TypeBehandling.Fordeling, TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
 
         val behandling = behandlinger!!.first()
 
@@ -376,11 +374,11 @@ class Flyttest : WithDependencies {
         leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
         }!!
 
-        assertThat(behandlinger).hasSize(1)
-        var behandling = behandlinger.first()
+        assertThat(behandlinger).hasSize(2)
+        var behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
 
         util.ventPåSvar(journalpostId.referanse, behandlingId.id)
@@ -394,12 +392,12 @@ class Flyttest : WithDependencies {
         util.ventPåSvar(journalpostId.referanse)
 
         val behandlinger2 = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 2) }
         }!!
 
-        assertThat(behandlinger2).hasSize(2)
+        assertThat(behandlinger2).hasSize(3)
 
-        var behandling2 = behandlinger2.first { it.id != behandlingId }
+        var behandling2 = behandlinger2.first { it.typeBehandling == TypeBehandling.DokumentHåndtering }
         val behandling2Id = behandling2.id
 
         sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
@@ -430,10 +428,10 @@ class Flyttest : WithDependencies {
         leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
         }!!
 
-        val behandling = behandlinger.first()
+        val behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
 
         util.ventPåSvar(journalpostId.referanse, behandlingId.id)
@@ -446,10 +444,10 @@ class Flyttest : WithDependencies {
         util.ventPåSvar(journalpostId.referanse)
 
         val behandlinger2 = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 2) }
         }!!
 
-        var behandling2 = behandlinger2.first { it.id != behandlingId }
+        var behandling2 = behandlinger2.first { it.typeBehandling == TypeBehandling.DokumentHåndtering }
         val behandling2Id = behandling2.id
 
         sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
@@ -615,11 +613,11 @@ class Flyttest : WithDependencies {
         }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
         }!!
 
-        assertThat(behandlinger).hasSize(1)
-        var behandling = behandlinger.first()
+        assertThat(behandlinger).hasSize(2)
+        var behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
 
         util.ventPåSvar(journalpostId.referanse, behandlingId.id)
@@ -666,11 +664,11 @@ class Flyttest : WithDependencies {
         }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.isNotEmpty()) }
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
         }!!
 
-        assertThat(behandlinger).hasSize(1)
-        var behandling = behandlinger.first()
+        assertThat(behandlinger).hasSize(2)
+        var behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
 
         util.ventPåSvar(journalpostId.referanse, behandlingId.id)
@@ -780,8 +778,11 @@ class Flyttest : WithDependencies {
 
     private fun triggFordelingJobb(journalpostId: JournalpostId) {
         dataSource.transaction { connection ->
+            val behandlingId = BehandlingRepositoryImpl(connection)
+                .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
             FlytJobbRepository(connection).leggTil(
-                JobbInput(FordelingRegelJobbUtfører).forSak(journalpostId.referanse).medJournalpostId(journalpostId)
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(sakID = journalpostId.referanse, behandlingId = behandlingId.id)
                     .medCallId()
             )
         }

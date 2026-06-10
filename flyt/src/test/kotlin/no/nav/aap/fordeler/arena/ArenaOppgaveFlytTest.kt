@@ -26,9 +26,10 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
-import no.nav.aap.postmottak.prosessering.medJournalpostId
+import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.unleash.FeatureToggle
@@ -102,9 +103,13 @@ class ArenaOppgaveFlytTest : WithDependencies {
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
         every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
 
-        dataSource.transaction {
-            FlytJobbRepository(it).leggTil(
-                JobbInput(FordelingRegelJobbUtfører).forSak(1).medJournalpostId(journalpostId)
+        dataSource.transaction { connection ->
+            val behandlingId = BehandlingRepositoryImpl(connection)
+                .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, behandlingId.id)
+                    .medCallId()
             )
         }
 
@@ -141,9 +146,13 @@ class ArenaOppgaveFlytTest : WithDependencies {
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
         every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
 
-        dataSource.transaction {
-            FlytJobbRepository(it).leggTil(
-                JobbInput(FordelingRegelJobbUtfører).forSak(1).medJournalpostId(journalpostId)
+        dataSource.transaction { connection ->
+            val behandlingId = BehandlingRepositoryImpl(connection)
+                .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, behandlingId.id)
+                    .medCallId()
             )
         }
         util.ventPåSvar()
