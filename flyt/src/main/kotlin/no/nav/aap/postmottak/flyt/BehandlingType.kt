@@ -10,6 +10,7 @@ interface BehandlingType {
 
 fun utledType(identifikator: TypeBehandling): BehandlingType {
     return when (identifikator) {
+        TypeBehandling.Fordeling -> throw RuntimeException("Fordelingsflyt er ikke implementert enda, ingen behandlinger være av typen Fordeling!")
         TypeBehandling.DokumentHåndtering -> Dokumentflyt
         TypeBehandling.Journalføring -> Journalføringsflyt
     }
