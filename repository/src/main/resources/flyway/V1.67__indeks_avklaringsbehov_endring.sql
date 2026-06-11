@@ -1,0 +1,1 @@
+CREATE INDEX idx_avklaringsbehov_endring_avklaringsbehov_id on avklaringsbehov_endring (avklaringsbehov_id);
