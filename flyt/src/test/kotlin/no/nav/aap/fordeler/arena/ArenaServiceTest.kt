@@ -30,27 +30,28 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `returnerer true naar det er flere rettighetskoder`() {
+    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar det er klage`() {
         val vedtak = listOf(
             arenaVedtak(rettighetskode = "AAP"),
-            arenaVedtak(rettighetskode = "AA115")
+            arenaVedtak(rettighetskode = "AA115"),
+            arenaVedtak(rettighetskode = "KLAG1")
         )
 
         assertTrue(arenaService.harSignifikanteVedtakUtoverTypeAap(vedtak))
     }
 
     @Test
-    fun `returnerer true naar rettighetskoder ikke inneholder AAP`() {
-        val vedtak = listOf(arenaVedtak(rettighetskode = "KLAGE"))
+    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar rettighetskoder ikke inneholder AAP`() {
+        val vedtak = listOf(arenaVedtak(rettighetskode = "KLAG1"))
 
         assertTrue(arenaService.harSignifikanteVedtakUtoverTypeAap(vedtak))
     }
 
     @Test
-    fun `returnerer true naar det finnes flere rettighetskoder inkludert AAP`() {
+    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar det finnes flere rettighetskoder inkludert AAP`() {
         val vedtak = listOf(
             arenaVedtak(rettighetskode = "AAP"),
-            arenaVedtak(rettighetskode = "KLAGE")
+            arenaVedtak(rettighetskode = "KLAG1")
         )
 
         assertTrue(arenaService.harSignifikanteVedtakUtoverTypeAap(vedtak))

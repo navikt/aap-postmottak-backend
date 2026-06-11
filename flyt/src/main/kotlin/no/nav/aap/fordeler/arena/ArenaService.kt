@@ -34,7 +34,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
             val tilManuellFordeling = !signifikanteVedtakUtoverTypeAap && !flereSignifikanteSaker
                     && maksdatoNærmerSeg && !sisteSak.ferdigAvklart && !sisteSak.utredesForUfor
-            val tilstand = tilstandSomString(signifikanteVedtakUtoverTypeAap, flereSignifikanteSaker, maksdatoNærmerSeg, sisteSak)
+            val tilstand =
+                tilstandSomString(signifikanteVedtakUtoverTypeAap, flereSignifikanteSaker, maksdatoNærmerSeg, sisteSak)
 
             logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak, tilstand: $tilstand")
 
@@ -50,7 +51,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         sisteSak: SakMedSisteVedtakOgMaksdato
     ): String {
         val logmsg: StringBuilder = StringBuilder()
-        logmsg.append("signifikanteVedtakerUtoverTypeAap=$signifikanteVedtakUtoverTypeAap,")
+        logmsg.append("signifikanteVedtakUtoverTypeAap=$signifikanteVedtakUtoverTypeAap,")
         logmsg.append("flereSignifikanteSaker=$flereSignifikanteSaker,")
         logmsg.append("maksdatoNærmerSeg=$maksdatoNærmerSeg,")
         logmsg.append("ferdigAvklart=${sisteSak.ferdigAvklart},")
@@ -60,11 +61,10 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
 
     internal fun harSignifikanteVedtakUtoverTypeAap(signifikanteVedtak: List<ArenaVedtak>): Boolean {
-        if (signifikanteVedtak.isEmpty()) return false
+        val rettighetskoder = signifikanteVedtak.map { it.rettighetkode }.toMutableSet()
+        rettighetskoder.removeAll(listOf("AAP", "AA115")) // klager, anker og annet gjenstår
 
-        val rettighetskoder = signifikanteVedtak.map { it.rettighetkode }.distinct()
-        // hvis annet enn AAP
-        return !rettighetskoder.contains("AAP") || rettighetskoder.size > 1
+        return rettighetskoder.isNotEmpty()
     }
 
     internal fun harFlereSignifikanteSaker(
@@ -124,13 +124,13 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             sisteSak.ferdigAvklart -> false
             else -> {
                 val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker.saker(), sisteSak)
-                val signifikanteVedtakerUtoverTypeAap =
+                val signifikanteVedtakUtoverTypeAap =
                     harSignifikanteVedtakUtoverTypeAap(signifikanteSaker.signifikanteVedtak)
 
                 sisteSak.har_11_12_forlengelse // er tidligere forlenget
                         && sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak) // på andre året
                         && maksdatoNærmerSeg(sisteSak, mottattDato) // og utløpet av ytelsen nærmer seg
-                        && !signifikanteVedtakerUtoverTypeAap && !flereSignifikanteSaker
+                        && !signifikanteVedtakUtoverTypeAap && !flereSignifikanteSaker
             }
         }
 
