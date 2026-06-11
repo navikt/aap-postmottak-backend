@@ -1,0 +1,1 @@
+CREATE INDEX idx_behandling_referanse on behandling (referanse);
