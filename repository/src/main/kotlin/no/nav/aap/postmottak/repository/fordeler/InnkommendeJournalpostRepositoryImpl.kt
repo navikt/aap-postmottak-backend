@@ -29,6 +29,17 @@ class InnkommendeJournalpostRepositoryImpl(
         } != null
     }
 
+    override fun hentId(journalpostId: JournalpostId): Long {
+        return connection.queryFirst(
+            """
+            SELECT id FROM innkommende_journalpost WHERE journalpost_id = ?
+        """.trimIndent()
+        ) {
+            setParams { setLong(1, journalpostId.referanse) }
+            setRowMapper { row -> row.getInt("ID").toLong() }
+        }
+    }
+
     override fun hent(journalpostId: JournalpostId): InnkommendeJournalpost {
         return connection.queryFirst(
             """

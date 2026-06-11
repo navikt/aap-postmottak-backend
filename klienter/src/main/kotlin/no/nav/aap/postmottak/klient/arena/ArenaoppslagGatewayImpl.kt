@@ -20,15 +20,15 @@ import io.ktor.http.*
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson.*
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerResponse
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
-import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
@@ -93,17 +93,19 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         }
     }
 
-    suspend fun hentPersonEksistererIAapContext(
-        req: SakerRequest,
-    ): PersonEksistererIAAPArena = gjørArenaOppslag<PersonEksistererIAAPArena>(
-        "/api/v1/person/eksisterer", req
-    ).getOrThrow()
+    suspend fun harHistorikk(
+        req: HarHistorikkRequest
+    ): HarHistorikkResponse =
+        gjørArenaOppslag<HarHistorikkResponse>(
+            "/api/v1/person/historikk", req
+        ).getOrThrow()
 
-    suspend fun personHarSignifikantAAPArenaHistorikk(
-        req: SignifikanteSakerRequest
-    ): SignifikanteSakerResponse = gjørArenaOppslag<SignifikanteSakerResponse>(
-        "/api/v1/person/signifikant-historikk", req
-    ).getOrThrow()
+    suspend fun harSignifikantHistorikk(
+        req: SignifikantHistorikkRequest
+    ): SignifikantHistorikkResponse =
+        gjørArenaOppslag<SignifikantHistorikkResponse>(
+            "/api/v1/person/historikk/signifikant", req
+        ).getOrThrow()
 
     suspend fun hentMaksdatoISaker(
         req: MaksdatoRequest
@@ -170,21 +172,18 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         }
     }
 
-    override suspend fun harAapSakIArena(person: Person): Boolean {
-        val request = SakerRequest(person.identer().map { it.identifikator })
-        val response = hentPersonEksistererIAapContext(request)
-        return response.eksisterer
+    override suspend fun harHistorikk(person: Person): Boolean {
+        val request = HarHistorikkRequest(person.aktivIdent().identifikator)
+        val response = harHistorikk(request)
+        return response.harHistorikk
     }
 
-    override suspend fun harSignifikantHistorikkIAAPArena(person: Person, mottattDato: LocalDate) =
-        hentSakerMedSignifikantHistorikk(person, mottattDato).isNotEmpty()
-
-    override suspend fun hentSakerMedSignifikantHistorikk(
+    override suspend fun harSignifikantHistorikk(
         person: Person, mottattDato: LocalDate
-    ): List<Int> {
-        val request = SignifikanteSakerRequest(person.identer().map { it.identifikator }, mottattDato)
-        val response = personHarSignifikantAAPArenaHistorikk(request)
-        return response.signifikanteSaker.map { it.toInt() }
+    ): SignifikantHistorikkResponse {
+        val request = SignifikantHistorikkRequest(person.aktivIdent().identifikator, mottattDato)
+        val response = harSignifikantHistorikk(request)
+        return response
     }
 
     override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {

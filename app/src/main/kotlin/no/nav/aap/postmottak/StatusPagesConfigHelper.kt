@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak
 
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -8,6 +9,7 @@ import io.ktor.server.response.respond
 import no.nav.aap.komponenter.httpklient.exception.ApiErrorCode
 import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
+import no.nav.aap.komponenter.httpklient.exception.TimeoutException
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.avklaringsbehov.BehandlingUnderProsesseringException
 import no.nav.aap.postmottak.avklaringsbehov.OutdatedBehandlingException
@@ -56,6 +58,23 @@ object StatusPagesConfigHelper {
                             message = cause.body().message ?: "Ukjent feil i behandlingsflyt"
                         )
                     )
+                }
+
+                is ClientRequestException -> {
+                    val uri = call.request.local.uri
+
+                    if (cause.response.status == HttpStatusCode.RequestTimeout) {
+                        logger.warn("Timeout ved kall til '$uri'", cause)
+                        call.respondWithError(TimeoutException("Forespørselen tok for lang tid. Prøv igjen om litt."))
+                    } else {
+                        logger.error("Feil ved kall til '$uri'.", cause)
+                        call.respondWithError(
+                            ApiException(
+                                status = cause.response.status,
+                                message = "Feil ved kall til '$uri'."
+                            )
+                        )
+                    }
                 }
 
                 else -> {
