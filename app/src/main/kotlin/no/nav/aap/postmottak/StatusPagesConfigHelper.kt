@@ -8,8 +8,10 @@ import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
 import no.nav.aap.komponenter.httpklient.exception.ApiErrorCode
 import no.nav.aap.komponenter.httpklient.exception.ApiException
+import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.exception.TimeoutException
+import no.nav.aap.komponenter.httpklient.httpclient.error.ManglerTilgangException
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.avklaringsbehov.BehandlingUnderProsesseringException
 import no.nav.aap.postmottak.avklaringsbehov.OutdatedBehandlingException
@@ -42,6 +44,16 @@ object StatusPagesConfigHelper {
                         ApiException(
                             status = HttpStatusCode.RequestTimeout,
                             message = "Forespørselen tok for lang tid. Prøv igjen om litt."
+                        )
+                    )
+                }
+
+                is ManglerTilgangException -> {
+                    val uri = call.request.local.uri
+                    logger.info("Ikke tilgang til endepunkt $uri.", cause)
+                    call.respondWithError(
+                        IkkeTillattException(
+                            message = "Ikke tilgang til ekstern integrasjon."
                         )
                     )
                 }
