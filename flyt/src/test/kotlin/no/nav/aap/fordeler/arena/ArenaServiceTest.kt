@@ -62,7 +62,8 @@ class ArenaServiceTest {
         val sisteSakId = 1234
         val historikk = SignifikantHistorikkResponse(
             true,
-            listOf(arenaVedtak(sakId = sisteSakId, rettighetskode = "AAP"))
+            listOf(arenaVedtak(sakId = sisteSakId, rettighetskode = "AAP"),
+                arenaVedtak(sakId = sisteSakId, rettighetskode = "AA115"))
         )
         val sisteSak = sakMedId(sisteSakId)
 
