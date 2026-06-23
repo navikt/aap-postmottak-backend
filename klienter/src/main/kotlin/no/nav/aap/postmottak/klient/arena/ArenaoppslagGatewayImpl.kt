@@ -22,8 +22,8 @@ import io.ktor.http.contentType
 import io.ktor.serialization.jackson.*
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoMedVedtakResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
@@ -107,15 +107,15 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
             "/api/v1/person/historikk/signifikant", req
         ).getOrThrow()
 
-    suspend fun hentMaksdatoISaker(
+    suspend fun hentMaksdatoISisteVedtak(
         req: MaksdatoRequest
-    ): MaksdatoResponse = gjørArenaOppslag<MaksdatoResponse>(
-        "/api/v1/maksdato", req
+    ): MaksdatoMedVedtakResponse = gjørArenaOppslag<MaksdatoMedVedtakResponse>(
+        "/api/v1/person/maksdato", req
     ).recover { throwable ->
         if (responseStatus(throwable) == HttpStatusCode.NotFound) {
             secureLog.error("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
-            // Personen ble ikke funnet i Arena – returner tom liste med saker
-            MaksdatoResponse(emptyList())
+            // Vedtak for personen ble ikke funnet i Arena – returner ingen sak
+            MaksdatoMedVedtakResponse(null)
         } else {
             throw throwable
         }
@@ -186,10 +186,10 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         return response
     }
 
-    override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
+    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? {
         val request = MaksdatoRequest(ident.identifikator)
-        val response = hentMaksdatoISaker(request)
-        return response.sakliste
+        val response = hentMaksdatoISisteVedtak(request)
+        return response.sak
     }
 
     override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {

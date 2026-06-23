@@ -65,13 +65,13 @@ fun Application.arenaoppslagFake() {
             }
         }
 
-        post("/api/v1/maksdato") {
+        post("/api/v1/person/maksdato") {
             val parsedRequest = call.receive<MaksdatoRequest>()
             if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
                 call.respond(
                     """
                     {
-                      "sakliste": [
+                      "sak": 
                         {
                           "sakId": 1234,
                           "saknummer": "ABC-123",
@@ -93,7 +93,6 @@ fun Application.arenaoppslagFake() {
                             "maxdatoAap": null
                           }
                         }
-                      ]
                     }
                     """.trimIndent()
                 )

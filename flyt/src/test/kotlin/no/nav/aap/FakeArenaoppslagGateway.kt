@@ -42,30 +42,29 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
         }
     }
 
-    override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
-        return listOf(
-            SakMedSisteVedtakOgMaksdato(
-                sakId = 1234,
-                saknummer = "2025-11",
-                sakStatus = "AKTIV",
-                sakRegistrert = LocalDate.of(2025, 1, 1),
-                sakAvsluttet = LocalDate.of(2026, 12, 12),
-                unntaksvilkaarGjelderFra = null,
-                har_11_12_forlengelse = false,
-                utredesForUfor = false,
-                ferdigAvklart = false,
-                lopendeVedtak = true,
-                sisteVedtak = VedtakMedMaksdato(
-                    vedtakId = 1,
-                    aktfaseKode = "INNV",
-                    vedtaktypeKode = "O",
-                    fra = LocalDate.of(2025, 1, 1),
-                    til = LocalDate.of(2026, 1, 1),
-                    maxdatoOrdinaer = LocalDate.of(2026, 12, 12),
-                    maxdatoUnntak = null,
-                    maxdatoAap = LocalDate.of(2026, 12, 12),
-                ),
-            )
+    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato {
+        return SakMedSisteVedtakOgMaksdato(
+            sakId = 1234,
+            saknummer = "2025-11",
+            sakStatus = "AKTIV",
+            sakRegistrert = LocalDate.of(2025, 1, 1),
+            sakAvsluttet = LocalDate.of(2026, 12, 12),
+            unntaksvilkaarGjelderFra = null,
+            har_11_12_forlengelse = false,
+            utredesForUfor = false,
+            ferdigAvklart = false,
+            lopendeVedtak = true,
+            sisteVedtak = VedtakMedMaksdato(
+                vedtakId = 1,
+                aktfaseKode = "INNV",
+                vedtaktypeKode = "O",
+                fra = LocalDate.of(2025, 1, 1),
+                til = LocalDate.of(2026, 1, 1),
+                maxdatoOrdinaer = LocalDate.of(2026, 12, 12),
+                maxdatoUnntak = null,
+                maxdatoAap = LocalDate.of(2026, 12, 12),
+
+                )
         )
     }
 

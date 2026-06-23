@@ -216,7 +216,7 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
         return SignifikantHistorikkResponse.ingen
     }
 
-    override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> = emptyList()
+    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? = null
 
     override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? = null
 }

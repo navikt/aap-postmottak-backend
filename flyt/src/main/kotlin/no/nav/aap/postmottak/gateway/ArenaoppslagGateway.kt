@@ -12,7 +12,7 @@ interface ArenaoppslagGateway : Gateway {
 
     suspend fun harSignifikantHistorikk(person: Person, mottattDato: LocalDate): SignifikantHistorikkResponse
 
-    suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato>
+    suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato?
 
     suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate?
 }
