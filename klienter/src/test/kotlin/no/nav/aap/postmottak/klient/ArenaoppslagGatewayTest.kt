@@ -49,20 +49,20 @@ class ArenaoppslagGatewayTest {
     @Test
     fun `Kan parse MaksdatoResponse`() {
         val res = runBlocking {
-            arenaOppslagGatewayFake.maksdatoForSaker(TestIdenter.IDENT_MED_SAK_I_ARENA)
+            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(TestIdenter.IDENT_MED_SAK_I_ARENA)
         }
 
-        assertThat(res).hasSize(1)
-        assertThat(res.first().sakId).isEqualTo(1234)
+        assertThat(res).isNotNull
+        assertThat(res?.sakId).isEqualTo(1234)
     }
 
     @Test
     fun `MaksdatoResponse returnerer tom liste ved ikke funnet`() {
         val res = runBlocking {
-            arenaOppslagGatewayFake.maksdatoForSaker(TestIdenter.DEFAULT_IDENT)
+            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(TestIdenter.DEFAULT_IDENT)
         }
 
-        assertThat(res).isEmpty()
+        assertThat(res).isNull()
     }
 
     @Test

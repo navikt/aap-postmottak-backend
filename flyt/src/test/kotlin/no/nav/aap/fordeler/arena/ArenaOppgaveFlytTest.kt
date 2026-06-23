@@ -191,7 +191,7 @@ class ArenaoppslagGatewaySpy : ArenaoppslagGateway {
         TODO("kalles ikke på")
     }
 
-    override suspend fun maksdatoForSaker(ident: Ident): List<SakMedSisteVedtakOgMaksdato> {
+    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? {
         TODO("kalles ikke på")
     }
 

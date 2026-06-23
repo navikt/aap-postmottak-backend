@@ -81,20 +81,17 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     }
 
     private suspend fun hentSisteSakMedEffektivMaksdato(søker: Person): SakMedSisteVedtakOgMaksdato? {
-        val maksdatoene = arena.maksdatoForSaker(søker.aktivIdent())
+        val sisteVedtak = arena.sisteVedtakMedMaksdato(søker.aktivIdent())
 
-        val sisteSak = maksdatoene.filter { it.sisteVedtak.maxdatoAap != null }
-            .maxByOrNull { it.sisteVedtak.maxdatoAap!! } // vet at de er ikke-null nå
-
-        return when (sisteSak) {
+        return when (sisteVedtak) {
             null -> null
-            else if (sisteSak.sakAvsluttet != null
+            else if (sisteVedtak.sakAvsluttet != null
                     // fra_dato verdier før til_dato brukes i Arena for å markere vedtak som ugyldiggjorte
-                    || sisteSak.sisteVedtak.fra?.isAfter(sisteSak.sisteVedtak.maxdatoAap) == true
-                    || !sisteSak.lopendeVedtak) -> sisteSak.medUdefinertMaxsdato()
+                    || sisteVedtak.sisteVedtak.fra?.isAfter(sisteVedtak.sisteVedtak.maxdatoAap) == true
+                    || !sisteVedtak.lopendeVedtak) -> sisteVedtak.medUdefinertMaxsdato()
 
             else -> {
-                sisteSak // har en gyldig maxdato
+                sisteVedtak // har en gyldig maxdato
             }
         }
     }
