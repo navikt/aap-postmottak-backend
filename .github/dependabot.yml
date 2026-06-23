@@ -27,12 +27,21 @@ updates:
           exclude-patterns:
             - "no.nav.aap*"
             - "io.ktor:ktor-*"
+            - "io.ktor.plugin"
+            - "gradle-wrapper"
+          update-types:
+            - "minor"
+            - "patch"
+        gradle:
+          patterns:
+            - "gradle-wrapper"
           update-types:
             - "minor"
             - "patch"
         ktor:
           patterns:
             - "io.ktor:ktor-*"
+            - "io.ktor.plugin"
           update-types:
             - "minor"
             - "patch"
