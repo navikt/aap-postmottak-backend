@@ -21,6 +21,9 @@ updates:
         default-days: 3
         exclude:
           - "no.nav.aap*"
+      ignore:
+        - dependency-name: "io.ktor:ktor-*"
+          versions: [ "3.5.0" ]
       groups:
         minor:
           applies-to: version-updates
