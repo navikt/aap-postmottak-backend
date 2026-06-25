@@ -1,0 +1,95 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: postmottak-backend-alerts
+  labels:
+    team: aap
+spec:
+  groups:
+    - name: risk-score-alerts
+      rules:
+        - alert: HighRiskScore
+          expr: nais_workload_risk_score{workload_namespace="aap"} > 200
+          for: 10m
+          annotations:
+            summary: "High risk score for {{ $labels.workload_name }}"
+            description: |
+              Workload `{{ $labels.workload_name }}` has accumulated a vulnerability risk score of {{ $value }}.
+              https://salsa.nav.cloud.nais.io/projects?searchText={{ $labels.workload_name }}
+            consequence: "The workload has accumulated a high vulnerability score."
+            action: |
+              1. Visit Salsa and open the affected workload from this alert
+              2. Review the highest-scoring vulnerabilities, prioritizing ACT_NOW and HIGH priority findings
+              3. Check for available patches and update affected images
+              4. Redeploy affected workloads
+          labels:
+            namespace: aap
+            severity: warning
+            receiver_reference: team-aap-vulnerabilities
+            alert_type: custom
+    - name: vulnerability-alerts
+      rules:
+        - alert: CriticalVulnerability
+          expr: nais_workload_vulnerabilities{severity="CRITICAL", workload_namespace="aap"} > 0
+          for: 10m
+          annotations:
+            summary: "Critical vulnerability detected in {{ $labels.workload_name }}"
+            description: |
+              Workload `{{ $labels.workload_name }}` has {{ $value }} vulnerabilities with CVSS severity CRITICAL.
+              https://salsa.nav.cloud.nais.io/projects?searchText={{ $labels.workload_name }}
+            consequence: "The workload is running with one or more critical vulnerabilities."
+            action: |
+              1. Visit Salsa and open the affected workload from this alert
+              2. Use CVSS severity as supporting context, but prioritize any ACT_NOW or HIGH priority findings first
+              3. Verify affected package(s) and running image tag
+              4. Check for available patches and update affected images
+              5. Redeploy affected workloads
+          labels:
+            namespace: aap
+            severity: critical
+            receiver_reference: team-aap-vulnerabilities
+            alert_type: custom
+    - name: priority-vulnerability-alerts
+      rules:
+        - alert: ActNowVulnerability
+          expr: nais_workload_vulnerabilities_priority{priority="ACT_NOW", workload_namespace="aap"} > 0
+          for: 10m
+          annotations:
+            summary: "ACT_NOW vulnerability detected in {{ $labels.workload_name }}"
+            description: |
+              Workload `{{ $labels.workload_name }}` has {{ $value }} ACT_NOW priority vulnerabilities.
+              https://salsa.nav.cloud.nais.io/projects?searchText={{ $labels.workload_name }}
+            consequence: "The workload has one or more ACT_NOW vulnerabilities."
+            action: |
+              1. ACT_NOW is set by v13s priority logic when a CVE has `has_kev_entry=true` from the CISA KEV (Known Exploited Vulnerabilities) feed
+              2. In practice this means known exploitation in the wild and should be treated as highest remediation priority
+              3. Visit Salsa and open the affected workload from this alert
+              4. Verify affected package(s) and running image tag
+              5. Check for available patches and update affected images
+              6. Redeploy affected workloads
+          labels:
+            namespace: aap
+            severity: critical
+            receiver_reference: team-aap-vulnerabilities
+            alert_type: custom
+        - alert: HighPriorityVulnerability
+          expr: nais_workload_vulnerabilities_priority{priority="HIGH", workload_namespace="aap"} > 0
+          for: 10m
+          annotations:
+            summary: "High-priority vulnerability detected in {{ $labels.workload_name }}"
+            description: |
+              Workload `{{ $labels.workload_name }}` has {{ $value }} HIGH priority vulnerabilities.
+              https://salsa.nav.cloud.nais.io/projects?searchText={{ $labels.workload_name }}
+            consequence: "The workload has one or more HIGH priority vulnerabilities."
+            action: |
+              1. HIGH is set by v13s priority logic when a CVE has `known_ransomware_use=true` or EPSS percentile >= 0.90
+              2. In practice this means elevated likelihood of exploitation and should be handled quickly
+              3. Visit Salsa and open the affected workload from this alert
+              4. Verify affected package(s) and exposure surface
+              5. Check for available patches and update affected images
+              6. Redeploy affected workloads
+          labels:
+            namespace: aap
+            severity: warning
+            receiver_reference: team-aap-vulnerabilities
+            alert_type: custom
