@@ -18,30 +18,40 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         søker: Person, mottattDato: LocalDate, journalpostId: Long, signifikantHistorikk: SignifikantHistorikkResponse
     ): Boolean {
         val sisteSak = hentSisteVedtakMedEffektivMaksdato(søker)
-        return sisteSak?.let {
-            val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
-            val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikantHistorikk.saker(), sisteSak)
-            val signifikanteVedtakUtoverTypeAap =
-                harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk.signifikanteVedtak)
 
-            // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
-            // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
-            // Derfor er 11-12 situasjonen også håndtert, selv om det ikke er en eksplisitt sjekk for den.
+        val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
+        val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikantHistorikk.saker(), sisteSak)
+        val signifikanteVedtakUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk.signifikanteVedtak)
 
-            val tilManuellFordeling = !signifikanteVedtakUtoverTypeAap && !flereSignifikanteSaker && maksdatoNærmerSeg
-                    && !sisteSak.erFerdigAvklart() && !sisteSak.utredesForUfor() && !sisteSak.erSykepengeErstatning()
-            val tilstand = tilstandSomString(
-                signifikanteVedtakUtoverTypeAap,
-                flereSignifikanteSaker,
-                maksdatoNærmerSeg,
-                sisteSak.unntaksvilkaarIkkeOppfylt()
-            )
+        // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
+        // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
+        // Derfor er 11-12 situasjonen også håndtert, selv om det ikke er en eksplisitt sjekk for den.
 
-            logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak, tilstand: $tilstand")
+        val tilManuellFordeling = when {
+            sisteSak == null -> false // maxdato er ikke definert
+            !maksdatoNærmerSeg -> false
+            flereSignifikanteSaker -> false
+            signifikanteVedtakUtoverTypeAap -> false
+            sisteSak.utredesForUfor() -> false
+            sisteSak.erFerdigAvklart() -> false
+            sisteSak.erSykepengeErstatning() -> false
 
-            return tilManuellFordeling
+            else -> {
+                // maksdato nærmer seg og spesial-situasjonene over treffer ikke
+                true
+            }
+        }
+        val tilstand = tilstandSomString(
+            signifikanteVedtakUtoverTypeAap,
+            flereSignifikanteSaker,
+            maksdatoNærmerSeg,
+            sisteSak?.unntaksvilkaarIkkeOppfylt()
+        )
 
-        } ?: false
+        logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak, tilstand: $tilstand")
+
+        return tilManuellFordeling
+
     }
 
     private fun tilstandSomString(
@@ -96,6 +106,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             null -> null
             else if (sisteVedtak.sakAvsluttet != null // helt avsluttet, kan ikke ha maxdato i nær fremtid
                     || !sisteVedtak.erLopende()) -> sisteVedtak.medUdefinertMaxsdato()
+
             else -> {
                 sisteVedtak // har en gyldig maxdato
             }
