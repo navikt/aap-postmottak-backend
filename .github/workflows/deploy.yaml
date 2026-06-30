@@ -108,4 +108,4 @@ jobs:
     secrets: inherit
     with:
       cluster: prod-gcp
-      manifest: .nais/prod-gcp.yaml,.nais/prod-alerts.yaml
+      manifest: .nais/prod-gcp.yaml,.nais/prod-security-alerts.yaml
