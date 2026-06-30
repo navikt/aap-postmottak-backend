@@ -185,7 +185,6 @@ class ArenaServiceTest {
             sakStatus = "AKTIV",
             sakRegistrert = LocalDate.of(2025, 1, 1),
             sakAvsluttet = null,
-            unntaksvilkaarGjelderFra = null,
             har_11_12_forlengelse = false,
             utredesForUfor = false,
             ferdigAvklart = false,
@@ -199,7 +198,9 @@ class ArenaServiceTest {
                 maxdatoOrdinaer = null,
                 maxdatoUnntak = null,
                 maxdatoAap = LocalDate.of(2026, 12, 12),
-            )
+            ),
+            unntaksvilkaarGjelderFra = null,
+            unntaksvilkaarInnvilget = null
         )
     }
 }

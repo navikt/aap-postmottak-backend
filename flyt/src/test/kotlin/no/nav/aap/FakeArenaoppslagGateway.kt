@@ -50,6 +50,7 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
             sakRegistrert = LocalDate.of(2025, 1, 1),
             sakAvsluttet = LocalDate.of(2026, 12, 12),
             unntaksvilkaarGjelderFra = null,
+            unntaksvilkaarInnvilget = null,
             har_11_12_forlengelse = false,
             utredesForUfor = false,
             ferdigAvklart = false,
