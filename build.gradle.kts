@@ -7,8 +7,8 @@ plugins {
     id("aap.conventions")
 }
 
-// Merge Detekt reports from all subprojects
-val detektReportMergeSarif by tasks.registering(dev.detekt.gradle.report.ReportMergeTask::class) {
+val detektReportMergeSarif = tasks.register<dev.detekt.gradle.report.ReportMergeTask>("detektReportMergeSarif") {
+    description = "Merge Detekt reports from all subprojects"
     output.set(rootProject.layout.buildDirectory.file("reports/detekt/merge.sarif"))
 }
 
