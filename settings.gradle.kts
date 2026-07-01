@@ -10,8 +10,6 @@ include(
     "klienter"
 )
 
-val githubPassword: String? by settings
-
 dependencyResolutionManagement {
     // Felles for alle gradle prosjekter i repoet
     @Suppress("UnstableApiUsage")

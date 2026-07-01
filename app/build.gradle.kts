@@ -12,7 +12,8 @@ application {
 kotlin.sourceSets["test"].kotlin.srcDirs("src/systemtest/kotlin")
 
 tasks {
-    val projectProps by registering(WriteProperties::class) {
+    val projectProps = register<WriteProperties>("projectProps") {
+        description = "Project props."
         destinationFile = layout.buildDirectory.file("version.properties")
         // Define property.
         property("project.version", getCheckedOutGitCommitHash())

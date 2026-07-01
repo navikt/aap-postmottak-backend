@@ -14,8 +14,6 @@ dependencies {
     testImplementation(libs.bundles.junit)
 }
 
-apply(plugin = "java-library")
-
 java {
     withSourcesJar()
 }
@@ -23,8 +21,6 @@ java {
 kotlin {
     explicitApi = ExplicitApiMode.Warning
 }
-
-apply(plugin = "maven-publish")
 
 group = "no.nav.aap.postmottak"
 version = findProperty("version")?.toString() ?: "0.0.0"
