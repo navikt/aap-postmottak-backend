@@ -4,7 +4,7 @@ komponenter = "2.0.90"
 tilgang = "1.0.231"
 arenaoppslag = "0.5.29"
 behandlingsflyt = "0.0.630"
-junit = "6.1.0"
+junit = "6.1.1"
 kafka = "8.1.1-ce"
 testcontainers = "1.21.4"
 
@@ -55,7 +55,7 @@ micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-pro
 logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
 
 hikariCp = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.11" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.12" }
 flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "12.9.0" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
