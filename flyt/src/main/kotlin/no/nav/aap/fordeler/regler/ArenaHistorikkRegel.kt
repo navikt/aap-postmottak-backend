@@ -117,6 +117,8 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
                         prometheus.tellAntallKantIKantDetektert(skalManueltFordeles).increment()
                     }
                 }
+            }.onFailure { error ->
+                logger.warn("Feil under telling av undergrupper til Arena", error)
             }
 
         } else {
