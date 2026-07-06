@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.httpklient.httpclient.error.BadRequestHttpResponsException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovService
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -103,12 +104,7 @@ class AvklarTemaSteg(
             }
         } else {
             if (venterPåBehandlingIGosys(journalpost, temavurdering)) { // tema fortsatt AAP
-                val aktivIdent = journalpost.person.aktivIdent()
-                gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
-                    journalpost.journalpostId,
-                    aktivIdent.identifikator,
-                    journalpost.journalførendeEnhet
-                )
+                opprettGosysoppgave(journalpost)
 
                 log.info("Venter fortsatt på behandling i Gosys.")
                 Fullført
@@ -161,5 +157,32 @@ class AvklarTemaSteg(
         val kelvinSaker = saksnummerRepository.hentKelvinSaker(behandlingId)
         // Legeerklæring skal til AAP hvis det finnes en sak som ikke er trukket på bruker
         return kelvinSaker.isNotEmpty() && kelvinSaker.any { it.resultat != ResultatKode.TRUKKET }
+    }
+
+    /**
+     * Midlertidig hack for å få gjennom feilende jobber. Må gjøres inntil fag avklarer om vi skal få Norg2 til å gjøre
+     * endringer på sin side for å sikre korrekt ruting til enhet i Gosys.
+     **/
+    private fun opprettGosysoppgave(journalpost: Journalpost) {
+        val aktivIdent = journalpost.person.aktivIdent()
+        try {
+            gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
+                journalpost.journalpostId,
+                aktivIdent.identifikator,
+                journalpost.journalførendeEnhet
+            )
+        } catch (e: BadRequestHttpResponsException) {
+            if (e.message?.contains("Fant ingen gyldig arbeidsfordeling") == true ) {
+                gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
+                    journalpostId = journalpost.journalpostId,
+                    personident = aktivIdent.identifikator,
+                    // Fallback til 0393 (NUFO) hvis journalførende enhet ikke finnes, for å unngå feil i Gosys.
+                    journalførendeEnhet = "0393"
+                )
+            } else {
+                log.warn("Feil ved opprettelse av oppgave i Gosys. ", e)
+                throw e
+            }
+        }
     }
 }
