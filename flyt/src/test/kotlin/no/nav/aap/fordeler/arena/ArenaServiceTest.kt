@@ -185,10 +185,6 @@ class ArenaServiceTest {
             sakStatus = "AKTIV",
             sakRegistrert = LocalDate.of(2025, 1, 1),
             sakAvsluttet = null,
-            har_11_12_forlengelse = false,
-            utredesForUfor = false,
-            ferdigAvklart = false,
-            lopendeVedtak = true,
             sisteVedtak = VedtakMedMaksdato(
                 vedtakId = sakId,
                 aktfaseKode = "INNV",

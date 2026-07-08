@@ -2,7 +2,7 @@
 ktor = "3.5.1"
 komponenter = "2.0.90"
 tilgang = "1.0.231"
-arenaoppslag = "0.5.29"
+arenaoppslag = "0.5.30"
 behandlingsflyt = "0.0.630"
 junit = "6.1.1"
 kafka = "8.1.1-ce"
