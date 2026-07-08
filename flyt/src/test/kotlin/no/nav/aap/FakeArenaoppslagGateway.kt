@@ -51,10 +51,6 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
             sakAvsluttet = LocalDate.of(2026, 12, 12),
             unntaksvilkaarGjelderFra = null,
             unntaksvilkaarInnvilget = null,
-            har_11_12_forlengelse = false,
-            utredesForUfor = false,
-            ferdigAvklart = false,
-            lopendeVedtak = true,
             sisteVedtak = VedtakMedMaksdato(
                 vedtakId = 1,
                 aktfaseKode = "INNV",
