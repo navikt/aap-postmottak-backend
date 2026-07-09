@@ -4,6 +4,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.fordeler.RegelRepository
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
@@ -37,11 +38,12 @@ class AvklarSakStegTest {
     val journalpostRepository = mockk<JournalpostRepository>()
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
     val avklarTemaRepository: AvklarTemaRepository = mockk(relaxed = true)
+    val regelRepository: RegelRepository = mockk(relaxed = true)
 
     val avklarSakSteg = AvklarSakSteg(
         saksnummerRepository,
         journalpostRepository,
-        behandlingsflytClient, avklarTemaRepository
+        behandlingsflytClient, avklarTemaRepository, regelRepository
     )
 
 

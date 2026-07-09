@@ -9,7 +9,10 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTem
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.VurderOpprettelseAvSakRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.VurderOpprettelseAvSakVurdering
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.VurderOpprettelseAvSakValg
 import org.junit.jupiter.api.Test
 
 class VideresendStegTest {
@@ -17,9 +20,10 @@ class VideresendStegTest {
     val saksnummerRepository: SaksnummerRepository = mockk()
     val avklarTemaRepository: AvklarTemaRepository = mockk()
     val journalpostRepository: JournalpostRepository = mockk(relaxed = true)
+    val vurderOpprettelseAvSakRepository: VurderOpprettelseAvSakRepository = mockk(relaxed = true)
 
     val videresendSteg =
-        VideresendSteg(saksnummerRepository, avklarTemaRepository, mockk(), journalpostRepository, flytJobbRepository, mockk())
+        VideresendSteg(saksnummerRepository, avklarTemaRepository, mockk(), journalpostRepository, flytJobbRepository, mockk(), vurderOpprettelseAvSakRepository)
 
     @Test
     fun `Journalposter som er journalført på generell sak skal ikke videresendes`() {
@@ -34,5 +38,15 @@ class VideresendStegTest {
 
         verify(exactly = 0) { flytJobbRepository.leggTil(any()) }
 
+    }
+
+    @Test
+    fun `Journalpost som skal til Arena videresendes ikke som Kelvin-behandling`() {
+        every { vurderOpprettelseAvSakRepository.hentHvisEksisterer(any()) } returns
+            VurderOpprettelseAvSakVurdering(valg = VurderOpprettelseAvSakValg.ARENA)
+
+        videresendSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { flytJobbRepository.leggTil(any()) }
     }
 }

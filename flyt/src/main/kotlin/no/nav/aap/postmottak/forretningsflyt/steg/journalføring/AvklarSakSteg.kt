@@ -1,6 +1,8 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.fordeler.Fordelingsutfall
+import no.nav.aap.fordeler.RegelRepository
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
@@ -29,7 +31,8 @@ class AvklarSakSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytClient: BehandlingsflytGateway,
-    private val avklarTemaRepository: AvklarTemaRepository
+    private val avklarTemaRepository: AvklarTemaRepository,
+    private val regelRepository: RegelRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -40,7 +43,8 @@ class AvklarSakSteg(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 gatewayProvider.provide(BehandlingsflytGateway::class),
-                repositoryProvider.provide(AvklarTemaRepository::class)
+                repositoryProvider.provide(AvklarTemaRepository::class),
+                repositoryProvider.provide(RegelRepository::class)
             )
         }
 
@@ -90,6 +94,12 @@ class AvklarSakSteg(
 
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
 
+        if (saksnummerVurdering == null && skalVurderesManuelt(kontekst)) {
+            // Ikke opprett Kelvin-sak maskinelt; saksbehandler avgjør fagsystem i VurderOpprettelseAvSakSteg.
+            log.info("Fordeling tilsier manuell vurdering - utsetter maskinell opprettelse av Kelvin-sak.")
+            return Fullført
+        }
+
         return if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
             avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
             Fullført
@@ -99,6 +109,9 @@ class AvklarSakSteg(
             FantAvklaringsbehov(Definisjon.AVKLAR_SAK)
         }
     }
+
+    private fun skalVurderesManuelt(kontekst: FlytKontekst): Boolean =
+        regelRepository.hentRegelresultat(kontekst.journalpostId)?.fordelingsutfall() == Fordelingsutfall.MANUELL
 
     private fun avklarFagSakMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {
         val saksnummer = behandlingsflytClient.finnEllerOpprettSak(

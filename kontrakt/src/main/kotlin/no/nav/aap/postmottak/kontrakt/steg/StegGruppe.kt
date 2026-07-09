@@ -10,6 +10,7 @@ public enum class StegGruppe(public val skalVises: Boolean, public val obligator
     ENDELIG_JOURNALFØRING(false, false),
     OVERLEVER_TIL_FAGSYSTEM(true, true),
     AVKLAR_SAK(true, true),
+    VURDER_OPPRETTELSE_AV_SAK(true, true),
     VIDERESEND(false, false),
     IVERKSETTES(false, false)
 }

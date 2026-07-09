@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.VurderOpprettelseAvSakRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.ManuellFordelingRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
@@ -28,6 +29,7 @@ val postgresRepositoryRegistry = RepositoryRegistry()
         .register<InnkommendeJournalpostRepositoryImpl>()
         .register<RegelRepositoryImpl>()
         .register<OverleveringVurderingRepositoryImpl>()
+        .register<VurderOpprettelseAvSakRepositoryImpl>()
         .register<FlytJobbRepositoryImpl>()
         .register<GjenopptakRepositoryImpl>()
         .register<ManuellFordelingRepositoryImpl>()

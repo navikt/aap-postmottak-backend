@@ -39,6 +39,10 @@ public enum class StegType(
         gruppe = StegGruppe.AVKLAR_SAK,
         status = Status.UTREDES,
     ),
+    VURDER_OPPRETTELSE_AV_SAK(
+        gruppe = StegGruppe.VURDER_OPPRETTELSE_AV_SAK,
+        status = Status.UTREDES,
+    ),
     VIDERESEND(
         gruppe = StegGruppe.VIDERESEND,
         status = Status.IVERKSETTES,

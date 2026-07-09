@@ -7,6 +7,9 @@ import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.fordeler.InnkommendeJournalpost
+import no.nav.aap.fordeler.InnkommendeJournalpostStatus
+import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -30,7 +33,9 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
+import no.nav.aap.postmottak.avklaringsbehov.løsning.VurderOpprettelseAvSakLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
@@ -41,9 +46,11 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.VurderOpprettelseAvSakValg
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.mottak.JOARK_TOPIC
 import no.nav.aap.postmottak.mottak.JoarkKafkaHandler
 import no.nav.aap.postmottak.mottak.JournalfoeringHendelseAvro
@@ -59,6 +66,7 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
+import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakePersoner
@@ -344,6 +352,49 @@ class Flyttest : WithDependencies {
         }
 
         assertThat(jobber).hasSize(0)
+    }
+
+    @Test
+    fun `behandling som skal opprette ny sak i Kelvin stopper på manuell vurdering`() {
+        val journalpostId = JournalpostId(5)
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+
+        // Seeder tema avklart + AVKLAR_TEMA løst, og et regelresultat som gir manuell fordeling.
+        dataSource.transaction { connection ->
+            val repositoryProvider = repositoryRegistry.provider(connection)
+            repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
+            val avklaringsbehovene = AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
+            avklaringsbehovene.leggTil(Definisjon.AVKLAR_TEMA, StegType.AVKLAR_TEMA)
+            avklaringsbehovene.løsAvklaringsbehov(Definisjon.AVKLAR_TEMA, "Seedet i test", "TESTAPP")
+            seedManuellFordeling(connection, journalpostId)
+        }
+
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.VURDER_OPPRETTELSE_AV_SAK)
+    }
+
+    @Test
+    fun `saksbehandler velger Kelvin på manuell vurdering og flyten fullføres`() {
+        val journalpostId = JournalpostId(5)
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+
+        dataSource.transaction { connection ->
+            val repositoryProvider = repositoryRegistry.provider(connection)
+            repositoryProvider.provide(AvklarTemaRepository::class).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
+            val avklaringsbehovene = AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandlingId)
+            avklaringsbehovene.leggTil(Definisjon.AVKLAR_TEMA, StegType.AVKLAR_TEMA)
+            avklaringsbehovene.løsAvklaringsbehov(Definisjon.AVKLAR_TEMA, "Seedet i test", "TESTAPP")
+            seedManuellFordeling(connection, journalpostId)
+        }
+
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        val behandling = hentBehandling(behandlingId)
+            .sjekkÅpentAvklaringsbehov(Definisjon.VURDER_OPPRETTELSE_AV_SAK)
+            .løsAvklaringsBehov(VurderOpprettelseAvSakLøsning(valg = VurderOpprettelseAvSakValg.KELVIN))
+
+        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
     }
 
     @Test
@@ -781,6 +832,31 @@ class Flyttest : WithDependencies {
             repositoryRegistry.provider(connection).provide(BehandlingRepository::class)
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
         }
+
+    /**
+     * Seeder et regelresultat som gir [no.nav.aap.fordeler.Fordelingsutfall.MANUELL] for journalposten,
+     * slik at flyten stopper på VURDER_OPPRETTELSE_AV_SAK.
+     */
+    private fun seedManuellFordeling(connection: DBConnection, journalpostId: JournalpostId) {
+        InnkommendeJournalpostRepositoryImpl(connection).lagre(
+            InnkommendeJournalpost(
+                journalpostId = journalpostId,
+                brevkode = null,
+                behandlingstema = null,
+                status = InnkommendeJournalpostStatus.EVALUERT,
+                regelresultat = Regelresultat(
+                    regelMap = mapOf(
+                        "KelvinSakRegel" to true,
+                        "ErIkkeReisestønadRegel" to true,
+                        "ErIkkeAnkeRegel" to true,
+                        "ArenaSakRegel" to false,
+                        "TrengerManuellVurderingRegel" to true,
+                    ),
+                    forJournalpost = journalpostId.referanse,
+                ),
+            )
+        )
+    }
 
     private fun triggFordelingJobb(journalpostId: JournalpostId) {
         dataSource.transaction { connection ->

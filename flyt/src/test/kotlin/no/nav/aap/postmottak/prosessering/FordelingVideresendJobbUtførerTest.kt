@@ -64,4 +64,32 @@ class FordelingVideresendJobbUtførerTest {
         }
 
     }
+
+    @Test
+    fun `Når journalposten krever manuell vurdering oppretter vi en Kelvin-behandling`() {
+        val regelResultat = Regelresultat(
+            regelMap = mapOf(
+                "KelvinSakRegel" to true,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+                "ArenaSakRegel" to false,
+                "TrengerManuellVurderingRegel" to true
+            ),
+            forJournalpost = 1L
+        )
+        val journalpostId = JournalpostId(1)
+        every { regelRepositoryMock.hentRegelresultat(journalpostId) } returns regelResultat
+
+        val jobbInput = JobbInput(FordelingVideresendJobbUtfører)
+            .forSak(journalpostId.referanse)
+            .medJournalpostId(journalpostId)
+            .medInnkommendeJournalpostId(1L)
+        fordelingVideresendJobbUtfører.utfør(jobbInput)
+
+        assertThat(
+            fordelingVideresendJobbUtfører.prometheus.counter("fordeling_videresend", "system", "kelvin").count()
+        ).isEqualTo(1.0)
+        verify(exactly = 1) { behandlingRepositoryMock.opprettBehandling(journalpostId, TypeBehandling.Journalføring) }
+        verify(exactly = 1) { flytJobbRepositoryMock.leggTil(any()) }
+    }
 }

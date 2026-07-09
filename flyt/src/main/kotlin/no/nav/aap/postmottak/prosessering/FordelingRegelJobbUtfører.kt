@@ -112,7 +112,10 @@ class FordelingRegelJobbUtfører(
             }
 
             else -> {
+
+
                 val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
+
                 log.info("Evaluerer journalpost med ID ${journalpost.journalpostId}. Brevkode: ${journalpost.hoveddokumentbrevkode}.")
                 val res = regelService.evaluer(
                     RegelInput(
@@ -122,6 +125,8 @@ class FordelingRegelJobbUtfører(
                         journalpost.mottattDato
                     )
                 )
+
+                journalpost.erSøknad()
                 val utenKelvinHistorikk = !res.regelMap[KelvinSakRegel::class.simpleName]!!
                 val medArenaHistorikk = res.regelMap[ArenaSakRegel::class.simpleName]!!
                 if (res.skalTilKelvin() && utenKelvinHistorikk && medArenaHistorikk) {

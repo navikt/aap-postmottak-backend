@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.prosessering
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import no.nav.aap.fordeler.Fordelingsutfall
 import no.nav.aap.fordeler.RegelRepository
 import no.nav.aap.fordeler.arena.ArenaVideresender
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -63,12 +64,23 @@ class FordelingVideresendJobbUtfører(
             return
         }
 
-        if (regelResultat.skalTilKelvin()) {
-            routeTilKelvin(journalpostId)
-            prometheus.fordelingsCounter(Fagsystem.kelvin).increment()
-        } else {
-            routeTilArena(journalpostId, innkommendeJournalpostId)
-            prometheus.fordelingsCounter(Fagsystem.arena).increment()
+        when (regelResultat.fordelingsutfall()) {
+            Fordelingsutfall.KELVIN -> {
+                routeTilKelvin(journalpostId)
+                prometheus.fordelingsCounter(Fagsystem.kelvin).increment()
+            }
+
+            Fordelingsutfall.MANUELL -> {
+                // Går til Kelvin-behandling, men stopper for manuell vurdering i VurderOpprettelseAvSakSteg.
+                log.info("Journalpost $journalpostId krever manuell vurdering av fagsystem.")
+                routeTilKelvin(journalpostId)
+                prometheus.fordelingsCounter(Fagsystem.kelvin).increment()
+            }
+
+            Fordelingsutfall.ARENA -> {
+                routeTilArena(journalpostId, innkommendeJournalpostId)
+                prometheus.fordelingsCounter(Fagsystem.arena).increment()
+            }
         }
     }
 

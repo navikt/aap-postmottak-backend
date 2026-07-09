@@ -42,6 +42,7 @@ import no.nav.aap.postmottak.api.drift.driftApi
 import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
 import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.sak.finnSakApi
+import no.nav.aap.postmottak.api.faktagrunnlag.sak.vurderOpprettelseAvSakApi
 import no.nav.aap.postmottak.api.faktagrunnlag.strukturering.digitaliseringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.tema.avklarTemaApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
@@ -179,6 +180,7 @@ internal fun Application.server(
                 dokumentApi(dataSource, repositoryRegistry, gatewayProvider)
                 avklarTemaApi(dataSource, repositoryRegistry)
                 finnSakApi(dataSource, repositoryRegistry)
+                vurderOpprettelseAvSakApi(dataSource, repositoryRegistry, gatewayProvider)
                 digitaliseringApi(dataSource, repositoryRegistry, gatewayProvider)
                 overleveringApi(dataSource, repositoryRegistry)
                 motorApi(dataSource)

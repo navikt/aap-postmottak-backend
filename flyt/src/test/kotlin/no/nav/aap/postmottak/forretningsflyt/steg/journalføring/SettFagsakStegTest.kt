@@ -7,6 +7,8 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.VurderOpprettelseAvSakRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.VurderOpprettelseAvSakVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
@@ -16,6 +18,7 @@ import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.VurderOpprettelseAvSakValg
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -25,8 +28,9 @@ class SettFagsakStegTest {
     val journalpostRepository: JournalpostRepository = mockk()
     val avklarTemaRepository: AvklarTemaRepository = mockk()
     val joark: JournalføringService = mockk(relaxed = true)
+    val vurderOpprettelseAvSakRepository: VurderOpprettelseAvSakRepository = mockk(relaxed = true)
 
-    val settFagsakSteg = SettFagsakSteg(journalpostRepository, saksnummerRepository, avklarTemaRepository, joark)
+    val settFagsakSteg = SettFagsakSteg(journalpostRepository, saksnummerRepository, avklarTemaRepository, joark, vurderOpprettelseAvSakRepository)
 
     @Test
     fun `verifiser at journalpost blir oppdatert med saksnummer`() {
@@ -101,5 +105,19 @@ class SettFagsakStegTest {
         val resultat = settFagsakSteg.utfør(mockk(relaxed = true))
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `journalpost som skal til Arena føres ikke på fagsak i Kelvin`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        every { journalpost.erUgyldig() } returns false
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { vurderOpprettelseAvSakRepository.hentHvisEksisterer(any()) } returns
+            VurderOpprettelseAvSakVurdering(valg = VurderOpprettelseAvSakValg.ARENA)
+
+        val resultat = settFagsakSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+        verify(exactly = 0) { avklarTemaRepository.hentTemaAvklaring(any()) }
     }
 }

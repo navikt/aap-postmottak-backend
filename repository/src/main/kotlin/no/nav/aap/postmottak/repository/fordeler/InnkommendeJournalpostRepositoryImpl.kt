@@ -28,8 +28,7 @@ class InnkommendeJournalpostRepositoryImpl(
         } != null
     }
     
-    override fun hent(journalpostId: JournalpostId): InnkommendeJournalpost {
-        return connection.queryFirst("""
+    override fun hent(journalpostId: JournalpostId): InnkommendeJournalpost {        return connection.queryFirst("""
             SELECT * FROM innkommende_journalpost WHERE journalpost_id = ?
         """.trimIndent()){
             setParams { setLong(1, journalpostId.referanse) }
@@ -42,6 +41,17 @@ class InnkommendeJournalpostRepositoryImpl(
                 enhet = row.getStringOrNull("enhet"),
                 regelresultat = regelRepository.hentRegelresultat(row.getLong("ID"))
             ) }
+        }
+    }
+
+    override fun hentId(journalpostId: JournalpostId): Long? {
+        return connection.queryFirstOrNull(
+            """
+            SELECT id FROM innkommende_journalpost WHERE journalpost_id = ?
+        """.trimIndent()
+        ) {
+            setParams { setLong(1, journalpostId.referanse) }
+            setRowMapper { row -> row.getLong("id") }
         }
     }
     

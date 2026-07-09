@@ -8,6 +8,7 @@ import no.nav.aap.fordeler.regler.ManueltOverstyrtTilArenaRegel
 import no.nav.aap.fordeler.regler.Regel
 import no.nav.aap.fordeler.regler.RegelFactory
 import no.nav.aap.fordeler.regler.RegelInput
+import no.nav.aap.fordeler.regler.TrengerManuellVurderingRegel
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider
@@ -72,6 +73,19 @@ data class Regelresultat(
 
     fun gikkTilKelvin(): Boolean {
         return systemNavn == "KELVIN"
+    }
+
+    /**
+     * Tredelt fordelingsutfall: Arena, Kelvin eller manuell vurdering.
+     *
+     * Journalposter som ikke skal til Kelvin går til [Fordelingsutfall.ARENA]. Av de som skal til
+     * Kelvin skilles det ut de som først må vurderes manuelt ([Fordelingsutfall.MANUELL]) via
+     * [TrengerManuellVurderingRegel]; resten går automatisk ([Fordelingsutfall.KELVIN]).
+     */
+    fun fordelingsutfall(): Fordelingsutfall {
+        if (!skalTilKelvin()) return Fordelingsutfall.ARENA
+        val trengerManuell = regelMap[TrengerManuellVurderingRegel::class.simpleName] ?: false
+        return if (trengerManuell) Fordelingsutfall.MANUELL else Fordelingsutfall.KELVIN
     }
 }
 

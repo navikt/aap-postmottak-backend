@@ -12,12 +12,14 @@ import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarTemaSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.JournalføringSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.SettFagsakSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.VideresendSteg
+import no.nav.aap.postmottak.forretningsflyt.steg.journalføring.VurderOpprettelseAvSakSteg
 
 object Journalføringsflyt : BehandlingType {
     override fun flyt(): BehandlingFlyt = BehandlingFlytBuilder()
         .medSteg(steg = StartBehandlingSteg)
         .medSteg(steg = AvklarTemaSteg, informasjonskrav = listOf(JournalpostInformasjonskrav, SaksnummerInfoKrav))
         .medSteg(steg = AvklarSakSteg)
+        .medSteg(steg = VurderOpprettelseAvSakSteg)
         .medSteg(steg = SettFagsakSteg)
         .medSteg(steg = JournalføringSteg)
         .medSteg(steg = VideresendSteg)

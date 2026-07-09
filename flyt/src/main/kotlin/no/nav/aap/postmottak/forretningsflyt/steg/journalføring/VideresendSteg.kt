@@ -7,6 +7,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.VurderOpprettelseAvSakRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -17,6 +18,7 @@ import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.VurderOpprettelseAvSakValg
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
@@ -30,7 +32,8 @@ class VideresendSteg(
     private val behandlingRepository: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
     private val flytJobbRepository: FlytJobbRepository,
-    private val kopierer: GrunnlagKopierer
+    private val kopierer: GrunnlagKopierer,
+    private val vurderOpprettelseAvSakRepository: VurderOpprettelseAvSakRepository
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -43,7 +46,8 @@ class VideresendSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                GrunnlagKopierer(repositoryProvider)
+                GrunnlagKopierer(repositoryProvider),
+                repositoryProvider.provide()
             )
         }
 
@@ -64,6 +68,11 @@ class VideresendSteg(
 
         if (erJournalførtPåAnnetFagsystem(journalpost)) {
             log.info("Journalpost er journalført på annet fagsystem - videresender ikke")
+            return Fullført
+        }
+
+        if (skalTilArena(kontekst)) {
+            log.info("Saksbehandler har valgt Arena - journalposten er videresendt dit, oppretter ikke Kelvin-behandling")
             return Fullført
         }
 
@@ -100,5 +109,14 @@ class VideresendSteg(
 
     private fun erJournalførtPåAnnetFagsystem(journalpost: Journalpost): Boolean {
         return journalpost.status == Journalstatus.JOURNALFOERT && journalpost.fagsystem != Fagsystem.KELVIN.name
+    }
+
+    /**
+     * Når saksbehandler har valgt Arena er journalposten videresendt dit fra løseren, og vi skal
+     * ikke opprette en Kelvin-dokumentbehandling.
+     */
+    private fun skalTilArena(kontekst: FlytKontekst): Boolean {
+        return vurderOpprettelseAvSakRepository.hentHvisEksisterer(kontekst.behandlingId)?.valg ==
+            VurderOpprettelseAvSakValg.ARENA
     }
 }

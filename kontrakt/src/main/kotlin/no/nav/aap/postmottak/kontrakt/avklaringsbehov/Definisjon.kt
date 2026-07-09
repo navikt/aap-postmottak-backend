@@ -36,6 +36,7 @@ public enum class Definisjon(
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.AVKLAR_TEMA
     ),
+
     DIGITALISER_DOKUMENT(
         kode = AvklaringsbehovKode.`1338`,
         type = BehovType.MANUELT_PÅKREVD,
@@ -50,6 +51,11 @@ public enum class Definisjon(
         kode = AvklaringsbehovKode.`1341`,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.OVERLEVER_TIL_FAGSYSTEM
+    ),
+    VURDER_OPPRETTELSE_AV_SAK(
+        kode = AvklaringsbehovKode.`1343`,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.VURDER_OPPRETTELSE_AV_SAK
     );
 
 

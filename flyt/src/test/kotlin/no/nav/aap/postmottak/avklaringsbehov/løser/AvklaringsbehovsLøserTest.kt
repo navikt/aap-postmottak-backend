@@ -55,6 +55,7 @@ class AvklaringsbehovsLøserTest {
             AvklarTemaLøser::class,
             DigitaliserDokumentLøser::class,
             SattPåVentLøser::class,
+            VurderOpprettelseAvSakLøser::class,
         )
 
         val utledSubtypes = AvklaringsbehovsLøser::class.sealedSubclasses.toSet()
