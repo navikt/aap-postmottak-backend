@@ -55,7 +55,7 @@ micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-pro
 logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
 
 hikariCp = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.12" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.13" }
 flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "12.10.0" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
