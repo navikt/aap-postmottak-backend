@@ -57,7 +57,10 @@ class JournalpostInformasjonskrav(
                     "Lagrer journalposten uten å sjekke for relevante endringer.")
 
             // Lagre oppdatert journalpost med forrige person for å unngå følgefeil i oppgave
-            val oppdatertJournalpost = safJournalpost.tilJournalpost(persistertJournalpost?.person!!)
+            val person = persistertJournalpost?.person
+                ?: throw IllegalStateException("Journalpost ${safJournalpost.journalpostId} med orgnr som bruker har ikke persistert person. ")
+
+            val oppdatertJournalpost = safJournalpost.tilJournalpost(person)
             journalpostRepository.lagre(oppdatertJournalpost)
 
             return IKKE_ENDRET // Endringen er ikke relevant når journalposten er ferdig journalført.
