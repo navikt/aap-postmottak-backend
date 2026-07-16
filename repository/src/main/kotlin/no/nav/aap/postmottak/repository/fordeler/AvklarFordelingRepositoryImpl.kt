@@ -17,7 +17,7 @@ class AvklarFordelingRepositoryImpl(private val connection: DBConnection): Avkla
     override fun hentVurderingHvisEksisterer(behandlingId: BehandlingId): AvklarFordelingVurdering? {
         return connection.queryFirstOrNull(
             """
-            SELECT v.VURDERT_AV, v.FAGSYSTEM, v.OPPRETTET_TID
+            SELECT v.VURDERT_AV, v.FAGSYSTEM, v.OPPRETTET_TID, v.KOMMENTAR
             FROM AVKLAR_FORDELING_GRUNNLAG g
             JOIN AVKLAR_FORDELING_VURDERING v ON v.ID = g.AVKLAR_FORDELING_VURDERING_ID
             WHERE g.BEHANDLING_ID = ? AND g.AKTIV = TRUE
@@ -29,6 +29,7 @@ class AvklarFordelingRepositoryImpl(private val connection: DBConnection): Avkla
                     system = AapSystem.fraString(row.getString("FAGSYSTEM")),
                     vurdertAv = row.getString("VURDERT_AV"),
                     vurdertTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
+                    kommentar = row.getStringOrNull("KOMMENTAR"),
                 )
             }
         }
@@ -37,14 +38,15 @@ class AvklarFordelingRepositoryImpl(private val connection: DBConnection): Avkla
     override fun lagreVurdering(behandlingId: BehandlingId, vurdering: AvklarFordelingVurdering) {
         val vurderingId = connection.executeReturnKey(
             """
-            INSERT INTO AVKLAR_FORDELING_VURDERING (VURDERT_AV, FAGSYSTEM, OPPRETTET_TID)
-            VALUES (?, ?, ?)
+            INSERT INTO AVKLAR_FORDELING_VURDERING (VURDERT_AV, FAGSYSTEM, OPPRETTET_TID, KOMMENTAR)
+            VALUES (?, ?, ?, ?)
             """.trimIndent()
         ) {
             setParams {
                 setString(1, vurdering.vurdertAv)
                 setString(2, vurdering.system.name)
                 setLocalDateTime(3, vurdering.vurdertTidspunkt)
+                setString(4, vurdering.kommentar)
             }
         }
 

@@ -56,6 +56,32 @@ class AvklarFordelingRepositoryImplTest {
     }
 
     @Test
+    fun `kan lagre og hente vurdering med kommentar`() {
+        val vurdering = AvklarFordelingVurdering(
+            system = AapSystem.ARENA,
+            vurdertAv = "Z123456",
+            vurdertTidspunkt = LocalDateTime.now(),
+            kommentar = "Bruker har gjenværende rettigheter på eksisterende sak",
+        )
+
+        val behandlingId = dataSource.transaction { connection ->
+            BehandlingRepositoryImpl(connection)
+                .opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring)
+        }
+
+        dataSource.transaction { connection ->
+            AvklarFordelingRepositoryImpl(connection).lagreVurdering(behandlingId, vurdering)
+        }
+
+        val result = dataSource.transaction { connection ->
+            AvklarFordelingRepositoryImpl(connection).hentVurderingHvisEksisterer(behandlingId)
+        }
+
+        assertThat(result?.system).isEqualTo(AapSystem.ARENA)
+        assertThat(result?.kommentar).isEqualTo("Bruker har gjenværende rettigheter på eksisterende sak")
+    }
+
+    @Test
     fun `lagring av ny vurdering deaktiverer gammel og returnerer den siste`() {
         val forsteVurdering = AvklarFordelingVurdering(
             system = AapSystem.KELVIN,

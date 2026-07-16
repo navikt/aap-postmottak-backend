@@ -12,6 +12,7 @@ import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.gateway.Factory
@@ -27,9 +28,13 @@ import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.unleash.FeatureToggle
@@ -172,6 +177,73 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
     }
 
+    @Test
+    fun `søknad som er kant-i-kant med Arena-sak klassifiseres til manuell vurdering og stopper på avklar fordeling`() {
+        val journalpostId = TestJournalposter.DIGITAL_SØKNAD_ID
+
+        val arenaoppslagGateway = gatewayProvider.provide(ArenaoppslagGateway::class)
+        val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
+        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
+
+        clearAllMocks()
+        coEvery { arenaoppslagGateway.harHistorikk(any()) } returns true
+        coEvery { arenaoppslagGateway.harSignifikantHistorikk(any(), any()) } returns SignifikantHistorikkResponse(
+            true, listOf(ArenaVedtak(1234, "AKTIV", null, null, null, "AAP", null))
+        )
+        // Kant-i-kant: løpende vedtak (vedtaktypeKode "O") med maxdatoAap innen 20 uker etter
+        // journalpostens mottattDato (DATO_REGISTRERT = 2020-12-01) -> ArenaService.skalManueltFordeles gir true.
+        coEvery { arenaoppslagGateway.sisteVedtakMedMaksdato(any()) } returns SakMedSisteVedtakOgMaksdato(
+            sakId = 1234,
+            saknummer = "2024-23456",
+            sakStatus = "AKTIV",
+            sakRegistrert = LocalDate.of(2024, 1, 1),
+            sakAvsluttet = null,
+            unntaksvilkaarInnvilget = null,
+            unntaksvilkaarGjelderFra = null,
+            sisteVedtak = VedtakMedMaksdato(
+                vedtakId = 99,
+                aktfaseKode = "AKT",
+                vedtaktypeKode = "O",
+                fra = LocalDate.of(2024, 1, 1),
+                til = LocalDate.of(2024, 12, 31),
+                maxdatoOrdinaer = LocalDate.of(2025, 1, 1),
+                maxdatoUnntak = null,
+                maxdatoAap = LocalDate.of(2021, 3, 1),
+            ),
+        )
+        every { arenaWebservicesGateway.harAktivSak(any()) } returns false
+        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
+
+        val behandlingId = dataSource.transaction { connection ->
+            val id = BehandlingRepositoryImpl(connection)
+                .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(journalpostId.referanse, id.id)
+                    .medCallId()
+            )
+            id
+        }
+
+        util.ventPåSvar()
+
+        dataSource.transaction { connection ->
+            val behandling = BehandlingRepositoryImpl(connection).hent(behandlingId)
+            // Behandlingen står parkert på avklar fordeling-steget
+            assertThat(behandling.aktivtSteg()).isEqualTo(StegType.AVKLAR_FORDELING)
+
+            // ...med et åpent AVKLAR_FORDELING-avklaringsbehov til saksbehandler
+            val behov = AvklaringsbehovRepositoryImpl(connection)
+                .hentAvklaringsbehovene(behandling.id)
+                .hentBehovForDefinisjon(Definisjon.AVKLAR_FORDELING)
+            assertThat(behov).isNotNull
+            assertThat(behov!!.status()).isEqualTo(Status.OPPRETTET)
+        }
+
+        // Behandlingen er verken rutet til Arena eller Kelvin – den venter på manuell vurdering
+        verify(exactly = 0) { arenaWebservicesGateway.opprettArenaOppgave(any()) }
+    }
+
 }
 
 class ArenaoppslagGatewaySpy : ArenaoppslagGateway {
@@ -192,10 +264,16 @@ class ArenaoppslagGatewaySpy : ArenaoppslagGateway {
     }
 
     override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? {
-        TODO("kalles ikke på")
+        // Kalles nå i fordelingsflyten (ArenaService.skalManueltFordeles). Default = ingen sak;
+        // enkelttester stubber denne for å simulere kant-i-kant.
+        return null
     }
 
     override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
+        TODO("kalles ikke på")
+    }
+
+    override suspend fun hentArenasakForManuellVurdering(ident: Ident): no.nav.aap.postmottak.gateway.ArenasakForManuellVurdering? {
         TODO("kalles ikke på")
     }
 
