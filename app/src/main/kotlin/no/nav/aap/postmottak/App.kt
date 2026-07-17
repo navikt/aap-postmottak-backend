@@ -21,6 +21,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
@@ -122,7 +123,8 @@ internal fun Application.server(
 
     val motor = lagMotor(dataSource, repositoryRegistry, gatewayProvider)
     val mottakStream = lagMottakStream(dataSource, repositoryRegistry, gatewayProvider)
-
+    val påkrevdeRollerMotor = if (Miljø.erProd()) listOf(TeamAap.id) else emptyList()
+    
     routing {
         authenticate(IdentityProvider.ENTRA_ID.value) {
             install(NavIdentInterceptor)
@@ -136,7 +138,7 @@ internal fun Application.server(
                 finnSakApi(dataSource, repositoryRegistry)
                 digitaliseringApi(dataSource, repositoryRegistry, gatewayProvider)
                 overleveringApi(dataSource, repositoryRegistry)
-                motorApi(dataSource, listOf(TeamAap.id))
+                motorApi(dataSource, påkrevdeRollerMotor)
                 testApi(dataSource, gatewayProvider)
                 auditlogApi(dataSource, repositoryRegistry)
                 driftApi(dataSource, repositoryRegistry)
