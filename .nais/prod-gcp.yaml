@@ -156,3 +156,5 @@ spec:
       value: https://ereg-services.prod-fss-pub.nais.io
     - name: INTEGRASJON_EREG_SCOPE
       value: api://prod-fss.arbeidsforhold.ereg-services/.default
+    - name: NAIS_TEAM_AAP
+      value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
