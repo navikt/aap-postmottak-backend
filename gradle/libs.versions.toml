@@ -59,7 +59,7 @@ postgresql = { module = "org.postgresql:postgresql", version = "42.7.13" }
 flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "12.11.0" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
-unleashClient = { module = "io.getunleash:unleash-client-java", version = "12.2.2" }
+unleashClient = { module = "io.getunleash:unleash-client-java", version = "12.2.3" }
 joseJwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.9.1" }
 
 junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
