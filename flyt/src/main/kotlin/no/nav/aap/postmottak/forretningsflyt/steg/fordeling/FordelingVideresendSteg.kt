@@ -63,6 +63,9 @@ class FordelingVideresendSteg(
         when(vurdering?.system) {
             AapSystem.ARENA -> routeTilArena(kontekst.journalpostId)
             AapSystem.KELVIN -> routeTilKelvin(kontekst.journalpostId)
+            AapSystem.BEGGE -> error(
+                "Fordeling til både Arena og Kelvin er ikke støttet enda (behandling ${kontekst.behandlingId})"
+            )
             else -> {
                 logger.info("Journalpost med id ${kontekst.journalpostId} har status IGNORERT og blir ikke videresendt. Behandles av annet system.")
             }

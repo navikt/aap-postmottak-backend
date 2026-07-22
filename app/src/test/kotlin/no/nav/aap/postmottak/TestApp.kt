@@ -47,9 +47,25 @@ fun main() {
             opprettBehandlingKategoriser(it)
             opprettBehandlingDigitaliser(it)
             opprettBehandlingPapirSøknadKategoriser(it)
+            opprettBehandlingManuellFordeling(it)
         }
 
     }.start(wait = true)
+}
+
+private fun opprettBehandlingManuellFordeling(connection: DBConnection) {
+    // Person med sak i Arena der maksdato er "kant-i-kant" -> ArenaService.skalManueltFordeles gir true,
+    // og behandlingen stopper på manuell vurdering (AVKLAR_FORDELING).
+    val journalpostId = TestJournalposter.PERSON_MED_SAK_I_ARENA
+    val behandlingRepository = BehandlingRepositoryImpl(connection)
+    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+
+    println("Manuell fordeling: http://localhost:3000/postmottak/${behandlingRepository.hent(behandlingId).referanse.referanse}/")
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(journalpostId.referanse, behandlingId.id)
+            .medCallId()
+    )
 }
 
 private fun opprettBehandlingAvklarTeam(connection: DBConnection) {

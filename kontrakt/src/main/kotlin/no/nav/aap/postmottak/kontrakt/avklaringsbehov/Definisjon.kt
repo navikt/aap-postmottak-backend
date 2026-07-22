@@ -50,6 +50,11 @@ public enum class Definisjon(
         kode = AvklaringsbehovKode.`1341`,
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.OVERLEVER_TIL_FAGSYSTEM
+    ),
+    AVKLAR_FORDELING(
+        kode = AvklaringsbehovKode.`1343`,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.AVKLAR_FORDELING
     );
 
 

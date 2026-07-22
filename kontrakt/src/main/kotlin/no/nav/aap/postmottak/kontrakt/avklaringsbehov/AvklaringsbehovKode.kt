@@ -11,6 +11,7 @@ public const val DIGITALISER_DOKUMENT_KODE: String = "1338"
 public const val AVKLAR_TEMA_KODE: String = "1339"
 public const val AVKLAR_SAKSNUMMER_KODE: String = "1340"
 public const val AVKLAR_OVERLEVERING_KODE: String = "1341"
+public const val AVKLAR_FORDELING_KODE: String = "1343"
 
 public enum class AvklaringsbehovKode {
     `9001`,
@@ -19,5 +20,6 @@ public enum class AvklaringsbehovKode {
     `1339`,
     `1340`,
     `1341`,
-    `1342`
+    `1342`,
+    `1343`
 }

@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.fordeling
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -9,10 +10,13 @@ import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
+import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
+import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
+import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.gateway.Bruker
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
@@ -38,6 +42,8 @@ internal class AvklarFordelingStegTest {
     private val avklarFordelingRepository = mockk<AvklarFordelingRepository>(relaxed = true)
     private val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepository>(relaxed = true)
     private val gosysOppgaveGateway = mockk<GosysOppgaveGateway>(relaxed = true)
+    private val arenaService = mockk<ArenaService>(relaxed = true)
+    private val arenaoppslagGateway = mockk<ArenaoppslagGateway>(relaxed = true)
 
     private val steg = AvklarFordelingSteg(
         regelService,
@@ -46,6 +52,8 @@ internal class AvklarFordelingStegTest {
         avklarFordelingRepository,
         innkommendeJournalpostRepository,
         gosysOppgaveGateway,
+        arenaService,
+        arenaoppslagGateway,
     )
 
     private val journalpostId = JournalpostId(1L)
@@ -90,6 +98,31 @@ internal class AvklarFordelingStegTest {
             })
         }
         verify { avklarFordelingRepository.lagreVurdering(eq(behandlingId), any()) }
+    }
+
+    @Test
+    fun `Returnerer FantAvklaringsbehov og lagrer ikke vurdering når søknaden skal til manuell vurdering`() {
+        val regelResultat = Regelresultat(
+            mapOf(
+                "ArenaSakRegel" to true,
+                "KelvinSakRegel" to false,
+                "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+            ),
+            forJournalpost = journalpostId.referanse,
+        )
+
+        every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
+        every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
+        every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
+        every { regelService.evaluer(any()) } returns regelResultat
+        coEvery { arenaService.skalManueltFordeles(any(), any(), any(), any()) } returns true
+
+        val resultat = steg.utfør(kontekst)
+
+        assertThat(resultat).isInstanceOf(FantAvklaringsbehov::class.java)
+        verify { innkommendeJournalpostRepository.lagre(any()) }
+        verify(exactly = 0) { avklarFordelingRepository.lagreVurdering(any(), any()) }
     }
 
     @Test

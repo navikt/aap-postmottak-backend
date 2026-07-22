@@ -31,6 +31,8 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerResponse
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
+import no.nav.aap.postmottak.gateway.ArenasakForManuellVurdering
+import no.nav.aap.postmottak.gateway.SisteAapVedtak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
@@ -196,6 +198,26 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         val request = SisteUtbetalingerRequest(ident.identifikator)
         val response = hentSisteUtbetalingsDatoISaker(request)
         return response.utbetalingsdato
+    }
+
+    override suspend fun hentArenasakForManuellVurdering(ident: Ident): ArenasakForManuellVurdering {
+        // TODO: Arena-API-et er ikke implementert enda – returnerer dummy-data inntil videre.
+        log.info("hentArenasakForManuellVurdering er ikke implementert mot Arena enda – returnerer dummy-data")
+        return ArenasakForManuellVurdering(
+            saksnummer = "2024-23456",
+            aktiv = false,
+            under52 = true,
+            gjenstaendeOrdinaerPeriodeDager = 67,
+            gjenstaendeUnntaksperiodeDager = null,
+            sisteAapVedtak = SisteAapVedtak(
+                paragraf = "§ 11-18",
+                beskrivelse = "Under vurdering for uføretrygd",
+                fom = null,
+                tom = null,
+            ),
+            sisteUtbetaling = null,
+            navKontoretsInnstillingUrl = null,
+        )
     }
 
 }

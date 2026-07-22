@@ -67,6 +67,8 @@ fun Application.arenaoppslagFake() {
 
         post("/api/v1/person/maksdato") {
             val parsedRequest = call.receive<MaksdatoRequest>()
+            // maxdatoAap er satt "kant-i-kant" (innen 20 uker etter journalpostens mottattDato 2020-12-01)
+            // slik at ArenaService.skalManueltFordeles gir true, og fordelingen havner til manuell vurdering.
             if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
                 call.respond(
                     """
@@ -85,12 +87,12 @@ fun Application.arenaoppslagFake() {
                           "sisteVedtak": {
                             "vedtakId": 99,
                             "aktfaseKode": "AKT",
-                            "vedtaktypeKode": "TYPE",
+                            "vedtaktypeKode": "O",
                             "fra": "2024-01-01",
                             "til": "2024-12-31",
                             "maxdatoOrdinaer": "2025-01-01",
                             "maxdatoUnntak": null,
-                            "maxdatoAap": null
+                            "maxdatoAap": "2021-03-01"
                           }
                         }
                     }
