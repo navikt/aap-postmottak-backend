@@ -70,14 +70,15 @@ class InnkommendeJournalpostRepositoryImpl(
             brevkode = row.getStringOrNull("brevkode"),
             årsakTilStatus = row.getEnumOrNull("aarsak_til_status"),
             enhet = row.getStringOrNull("enhet"),
-            regelresultat = regelRepository.hentRegelresultat(row.getLong("ID"), journalpostId)
+            regelresultat = regelRepository.hentRegelresultat(row.getLong("ID"), journalpostId),
+            brukerId = row.getStringOrNull("bruker_id"),
         )
     }
 
     override fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long {
         val query = """
-            INSERT INTO innkommende_journalpost (journalpost_id, status, aarsak_til_status, behandlingstema, brevkode, enhet) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO innkommende_journalpost (journalpost_id, status, aarsak_til_status, behandlingstema, brevkode, enhet, bruker_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val id = connection.executeReturnKey(query) {
             setParams {
@@ -87,6 +88,7 @@ class InnkommendeJournalpostRepositoryImpl(
                 setString(4, innkommendeJournalpost.behandlingstema)
                 setString(5, innkommendeJournalpost.brevkode)
                 setString(6, innkommendeJournalpost.enhet)
+                setString(7, innkommendeJournalpost.brukerId)
             }
         }
         if (innkommendeJournalpost.regelresultat != null) {
