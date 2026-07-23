@@ -53,12 +53,17 @@ class JournalpostInformasjonskrav(
                         "Har status: ${safJournalpost.journalstatus}"
             }
 
-            log.info("Journalpost ${safJournalpost.journalpostId} har orgnr som bruker og er journalført. " +
-                    "Lagrer journalposten uten å sjekke for relevante endringer.")
+            log.info(
+                "Journalpost ${safJournalpost.journalpostId} har orgnr som bruker og er journalført. " +
+                        "Lagrer journalposten uten å sjekke for relevante endringer."
+            )
 
             // Lagre oppdatert journalpost med forrige person for å unngå følgefeil i oppgave
             val person = persistertJournalpost?.person
-                ?: throw IllegalStateException("Journalpost ${safJournalpost.journalpostId} med orgnr som bruker har ikke persistert person. ")
+                ?: throw IllegalStateException(
+                    "Journalpost (journalpostId=${safJournalpost.journalpostId}, " +
+                            "status=${safJournalpost.journalstatus}) med orgnr som bruker har ikke persistert person. "
+                )
 
             val oppdatertJournalpost = safJournalpost.tilJournalpost(person)
             journalpostRepository.lagre(oppdatertJournalpost)
