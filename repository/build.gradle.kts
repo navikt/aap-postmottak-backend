@@ -11,8 +11,6 @@ dependencies {
     implementation(libs.dbmigrering)
     implementation(libs.infrastructure)
     implementation(libs.behandlingsflytKontrakt)
-    implementation(libs.flywayDatabasePostgresql)
-    runtimeOnly(libs.postgresql)
 
     testImplementation(project(":lib-test"))
     testImplementation(libs.dbtest)
