@@ -14,6 +14,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
@@ -79,6 +80,7 @@ fun NormalOpenAPIRoute.driftApi(
                     val journalpostRepository = repositoryProvider.provide<JournalpostRepository>()
                     val behandlingRepository = repositoryProvider.provide<BehandlingRepository>()
                     val avklaringsbehovRepository = repositoryProvider.provide<AvklaringsbehovRepository>()
+                    val saksnummerRepository = repositoryProvider.provide<SaksnummerRepository>()
 
                     val innkommendeJournalpost = innkommendeJournalpostRepository.hentHvisEksisterer(journalpostId)
                     val journalpost = journalpostRepository.hentHvisEksisterer(journalpostId)
@@ -116,7 +118,8 @@ fun NormalOpenAPIRoute.driftApi(
                         journalstatus = journalpost?.status,
                         mottattDato = journalpost?.mottattDato,
                         kanal = journalpost?.kanal,
-                        saksnummer = journalpost?.saksnummer,
+                        saksnummer = journalpost?.saksnummer
+                            ?: saksnummerRepository.hentSaksnummerForJournalpost(journalpostId),
                         behandlinger = behandlinger,
                     )
                 }
