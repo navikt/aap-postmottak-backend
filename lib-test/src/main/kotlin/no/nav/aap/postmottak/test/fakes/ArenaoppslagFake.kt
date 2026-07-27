@@ -22,10 +22,17 @@ fun Application.arenaoppslagFake() {
         }
     }
 
+    // Identer som skal se ut som om de har en (kant-i-kant) sak i Arena, slik at
+    // fordelingen havner på manuell vurdering (AVKLAR_FORDELING).
+    val identerMedSakIArena = setOf(
+        TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator,
+        TestIdenter.DEFAULT_IDENT.identifikator, // 21345345210
+    )
+
     routing {
         post("/api/v1/person/historikk") {
             val parsedRequest = call.receive<HarHistorikkRequest>()
-            if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
+            if (parsedRequest.personidentifikator in identerMedSakIArena) {
                 call.respond("""{"harHistorikk": true}""")
                 return@post
             }
@@ -34,7 +41,7 @@ fun Application.arenaoppslagFake() {
 
         post("/api/v1/person/historikk/signifikant") {
             val parsedRequest = call.receive<SignifikantHistorikkRequest>()
-            if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
+            if (parsedRequest.personidentifikator in identerMedSakIArena) {
                 call.respond(
                     """
                     {
@@ -112,5 +119,41 @@ fun Application.arenaoppslagFake() {
             }
         }
 
+        post("/api/v1/person/vurderingsgrunnlag") {
+            val parsedRequest = call.receive<VurderingsgrunnlagRequest>()
+            if (parsedRequest.personidentifikator in identerMedSakIArena) {
+                call.respond(
+                    """
+                    {
+                      "saksnummer": "ABC-123",
+                      "erAktiv": true,
+                      "under52Uker": true,
+                      "gjenståendeOrdinæreDager": 67,
+                      "gjenståendeUnntaksDager": null,
+                      "sisteVedtak": {
+                        "vedtakId": 99,
+                        "aktfaseKode": "AKT",
+                        "vedtaktypeKode": "O",
+                        "fra": "2024-01-01",
+                        "til": "2024-12-31",
+                        "maxdatoOrdinaer": null,
+                        "maxdatoUnntak": null,
+                        "maxdatoAap": null
+                      },
+                      "sisteUtbetaling": "2024-05-10"
+                    }
+                    """.trimIndent()
+                )
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Fant ikke personen i Arena")
+            }
+        }
+
     }
 }
+
+/**
+ * Request mot Arenas `/api/v1/person/vurderingsgrunnlag`.
+ * Defineres lokalt inntil kontrakten publiseres i `arenaoppslag`.
+ */
+data class VurderingsgrunnlagRequest(val personidentifikator: String)

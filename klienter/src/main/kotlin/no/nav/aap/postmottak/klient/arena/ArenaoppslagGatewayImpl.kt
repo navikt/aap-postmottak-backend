@@ -32,7 +32,8 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerResponse
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.gateway.ArenasakForManuellVurdering
-import no.nav.aap.postmottak.gateway.SisteAapVedtak
+import no.nav.aap.postmottak.gateway.IngenAapSakIArenaException
+import no.nav.aap.postmottak.gateway.PersonIkkeFunnetIArenaException
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
@@ -51,6 +52,11 @@ private fun responseStatus(throwable: Throwable): HttpStatusCode? =
     generateSequence(throwable) { it.cause }
         .filterIsInstance<ResponseException>()
         .firstOrNull()?.response?.status
+
+private fun responseException(throwable: Throwable): ResponseException? =
+    generateSequence(throwable) { it.cause }
+        .filterIsInstance<ResponseException>()
+        .firstOrNull()
 
 private val defaultHttpClient = HttpClient(CIO) {
     expectSuccess = true // Kaster exception for 4xx og 5xx svar
@@ -201,23 +207,34 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
     }
 
     override suspend fun hentArenasakForManuellVurdering(ident: Ident): ArenasakForManuellVurdering {
-        // TODO: Arena-API-et er ikke implementert enda – returnerer dummy-data inntil videre.
-        log.info("hentArenasakForManuellVurdering er ikke implementert mot Arena enda – returnerer dummy-data")
-        return ArenasakForManuellVurdering(
-            saksnummer = "2024-23456",
-            aktiv = false,
-            under52 = true,
-            gjenstaendeOrdinaerPeriodeDager = 67,
-            gjenstaendeUnntaksperiodeDager = null,
-            sisteAapVedtak = SisteAapVedtak(
-                paragraf = "§ 11-18",
-                beskrivelse = "Under vurdering for uføretrygd",
-                fom = null,
-                tom = null,
-            ),
-            sisteUtbetaling = null,
-            navKontoretsInnstillingUrl = null,
-        )
+        val request = VurderingsgrunnlagRequest(ident.identifikator)
+        return try {
+            gjørArenaOppslag<ArenasakForManuellVurdering>(
+                "/api/v1/person/vurderingsgrunnlag", request
+            ).getOrThrow()
+        } catch (e: Exception) {
+            val responseException = responseException(e)
+            if (responseException?.response?.status == HttpStatusCode.NotFound) {
+                val body = responseException.response.bodyAsText()
+                secureLog.error(
+                    "Fant ikke vurderingsgrunnlag i Arena [personidentifikator=${request.personidentifikator}]: $body"
+                )
+                // Arena returnerer 404 både når personen ikke finnes og når personen ikke har AAP-sak.
+                if (body.contains("AAP-sak", ignoreCase = true)) {
+                    throw IngenAapSakIArenaException(body)
+                } else {
+                    throw PersonIkkeFunnetIArenaException(body)
+                }
+            }
+            throw e
+        }
     }
 
 }
+
+/**
+ * Request mot Arenas `/api/v1/person/vurderingsgrunnlag`.
+ * Defineres lokalt inntil kontrakten publiseres i `arenaoppslag`.
+ */
+data class VurderingsgrunnlagRequest(val personidentifikator: String)
+

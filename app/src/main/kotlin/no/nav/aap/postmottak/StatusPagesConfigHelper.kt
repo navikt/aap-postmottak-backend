@@ -16,6 +16,8 @@ import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.avklaringsbehov.BehandlingUnderProsesseringException
 import no.nav.aap.postmottak.avklaringsbehov.OutdatedBehandlingException
 import no.nav.aap.postmottak.exception.FlytOperasjonException
+import no.nav.aap.postmottak.gateway.IngenAapSakIArenaException
+import no.nav.aap.postmottak.gateway.PersonIkkeFunnetIArenaException
 import org.slf4j.LoggerFactory
 import java.net.http.HttpTimeoutException
 
@@ -48,8 +50,18 @@ object StatusPagesConfigHelper {
                     )
                 }
 
-                is ManglerTilgangException -> {
-                    val uri = call.request.local.uri
+                is PersonIkkeFunnetIArenaException,
+                is IngenAapSakIArenaException -> {
+                    logger.info("Fant ikke arenasak for manuell vurdering: ${cause.message}")
+                    call.respondWithError(
+                        ApiException(
+                            status = HttpStatusCode.NotFound,
+                            message = cause.message ?: "Fant ingen arenasak i Arena"
+                        )
+                    )
+                }
+
+                is ManglerTilgangException -> {                    val uri = call.request.local.uri
                     logger.info("Ikke tilgang til endepunkt $uri.", cause)
                     call.respondWithError(
                         IkkeTillattException(

@@ -40,7 +40,7 @@ fun NormalOpenAPIRoute.avklarFordelingApi(
                 journalpost.person.aktivIdent()
             }
 
-            // NB: Arena-API-et er ikke implementert enda – gatewayen returnerer foreløpig dummy-data.
+            // Kaster PersonIkkeFunnetIArenaException / IngenAapSakIArenaException (=> HTTP 404) hvis Arena ikke har sak.
             val arenasak = runBlocking {
                 gatewayProvider.provide(ArenaoppslagGateway::class).hentArenasakForManuellVurdering(ident)
             }

@@ -105,7 +105,7 @@ class AvklarFordelingSteg(
 
             // Dersom saken er "kant-i-kant" med en eksisterende Arena-sak må en saksbehandler
             // vurdere om søknaden skal til Arena eller Kelvin.
-            if (skalTilManuellVurdering(safJournalpost, kontekst)) {
+            if (skalTilManuellVurdering(safJournalpost, kontekst)|| true ) {
                 log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
                 return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
             }

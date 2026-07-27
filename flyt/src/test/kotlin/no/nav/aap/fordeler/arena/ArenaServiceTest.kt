@@ -258,5 +258,6 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
 
     override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? = null
 
-    override suspend fun hentArenasakForManuellVurdering(ident: Ident): no.nav.aap.postmottak.gateway.ArenasakForManuellVurdering? = null
+    override suspend fun hentArenasakForManuellVurdering(ident: Ident): no.nav.aap.postmottak.gateway.ArenasakForManuellVurdering =
+        TODO("kalles ikke på")
 }

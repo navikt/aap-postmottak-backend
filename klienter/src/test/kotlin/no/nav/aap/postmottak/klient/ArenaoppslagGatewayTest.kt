@@ -4,11 +4,13 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.gateway.PersonIkkeFunnetIArenaException
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.ArenaoppslagGatewayImpl
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestIdenter
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -81,5 +83,29 @@ class ArenaoppslagGatewayTest {
         }
 
         assertThat(res).isNull()
+    }
+
+    @Test
+    fun `Kan parse VurderingsgrunnlagResponse`() {
+        val res = runBlocking {
+            arenaOppslagGatewayFake.hentArenasakForManuellVurdering(TestIdenter.IDENT_MED_SAK_I_ARENA)
+        }
+
+        assertThat(res.saksnummer).isEqualTo("ABC-123")
+        assertThat(res.erAktiv).isTrue()
+        assertThat(res.under52Uker).isTrue()
+        assertThat(res.gjenståendeOrdinæreDager).isEqualTo(67)
+        assertThat(res.gjenståendeUnntaksDager).isNull()
+        assertThat(res.sisteVedtak?.vedtakId).isEqualTo(99)
+        assertThat(res.sisteUtbetaling).isEqualTo(LocalDate.parse("2024-05-10"))
+    }
+
+    @Test
+    fun `Vurderingsgrunnlag kaster PersonIkkeFunnetIArenaException ved 404`() {
+        assertThatThrownBy {
+            runBlocking {
+                arenaOppslagGatewayFake.hentArenasakForManuellVurdering(TestIdenter.DEFAULT_IDENT)
+            }
+        }.isInstanceOf(PersonIkkeFunnetIArenaException::class.java)
     }
 }
