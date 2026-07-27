@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.mottak
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.FakeUnleash
+import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.komponenter.repository.RepositoryProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository

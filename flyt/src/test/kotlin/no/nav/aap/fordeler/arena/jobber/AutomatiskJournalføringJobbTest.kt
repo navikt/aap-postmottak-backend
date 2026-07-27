@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
-import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
@@ -21,11 +20,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
-import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -37,7 +33,6 @@ class AutomatiskJournalføringJobbTest {
     val journalpostServiceMock = mockk<JournalpostService>(relaxed = true)
     val gosysOppgaveKlientMock = mockk<GosysOppgaveKlient>(relaxed = true)
 
-    //    val enhetsutrederMock = mockk<Enhetsutreder>(relaxed = true)
     val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepository>(relaxed = true)
     val automatiskJournalføringJobb = AutomatiskJournalføringJobbUtfører(
         joarkClientMock,
@@ -46,12 +41,6 @@ class AutomatiskJournalføringJobbTest {
         innkommendeJournalpostRepository,
         journalpostServiceMock,
     )
-
-    @BeforeEach
-    fun setup() {
-        GatewayRegistry.register(SafGraphqlClientCredentialsClient::class)
-        GatewayRegistry.register(PdlGraphqlKlient::class)
-    }
 
     @Test
     fun `Skal opprette manuell journalføirngsjobb dersom automatisk journalføring har feilet 2 ganger`() {
