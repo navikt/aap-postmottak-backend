@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.random.Random
 
 class InnkommendeJournalpostRepositoryImplTest {
     private lateinit var dataSource: TestDataSource
@@ -33,7 +34,8 @@ class InnkommendeJournalpostRepositoryImplTest {
             status = InnkommendeJournalpostStatus.IGNORERT,
             årsakTilStatus = ÅrsakTilStatus.ALLEREDE_JOURNALFØRT,
             behandlingstema = "behandlingstema",
-            brevkode = "brevkode"
+            brevkode = "brevkode",
+            brukerId = null,
         )
 
         dataSource.transaction { connection ->
@@ -68,7 +70,8 @@ class InnkommendeJournalpostRepositoryImplTest {
                 ),
                 forJournalpost = journalpostId.referanse,
                 systemNavn = "KELVIN"
-            )
+            ),
+            brukerId = Random.nextInt().toString(),
         )
 
         val id = dataSource.transaction { connection ->
@@ -94,7 +97,6 @@ class InnkommendeJournalpostRepositoryImplTest {
             }
 
         assertThat(hentetInnkommendeJournalpost).isEqualTo(innkommendeJournalpost)
-
     }
 
     @Test
@@ -113,8 +115,10 @@ class InnkommendeJournalpostRepositoryImplTest {
                     "ErIkkeAnkeRegel" to true,
                     "yolo" to true
                 ),
-                forJournalpost = journalpostId.referanse
-            )
+                forJournalpost = journalpostId.referanse,
+                systemNavn = "KELVIN"
+            ),
+            brukerId = Random.nextInt().toString(),
         )
         assertFalse(dataSource.transaction { connection ->
             val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)

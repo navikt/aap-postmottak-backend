@@ -10,6 +10,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksnummer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 class SaksnummerRepositoryImpl(private val connection: DBConnection) : SaksnummerRepository {
 
@@ -140,6 +141,22 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
             }
         }
     }
+
+    override fun hentSaksnummerForJournalpost(journalpostId: JournalpostId): String? =
+        connection.queryFirstOrNull(
+            """
+            SELECT sa.SAKSNUMMER
+            FROM SAKSVURDERING_GRUNNLAG sg
+            JOIN SAKSNUMMER_AVKLARING sa ON sa.ID = sg.SAKSNUMMER_AVKLARING_ID
+            JOIN BEHANDLING b ON b.ID = sg.BEHANDLING_ID
+            WHERE b.JOURNALPOST_ID = ? AND sg.AKTIV
+            ORDER BY sg.OPPRETTET_TID DESC
+            LIMIT 1
+            """.trimIndent()
+        ) {
+            setParams { setLong(1, journalpostId.referanse) }
+            setRowMapper { row -> row.getStringOrNull("SAKSNUMMER") }
+        }
 
     override fun eksistererAvslagPåTidligereBehandling(behandlingId: BehandlingId): Boolean {
         val kelvinSaker = hentKelvinSaker(behandlingId)

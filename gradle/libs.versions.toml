@@ -1,21 +1,17 @@
 [versions]
 ktor = "3.5.1"
-komponenter = "2.0.106"
+komponenter = "2.0.115"
 tilgang = "1.0.234"
 arenaoppslag = "0.5.33"
-behandlingsflyt = "0.0.634"
+behandlingsflyt = "0.0.640"
 junit = "6.1.2"
 kafka = "8.1.1-ce"
 testcontainers = "1.21.4"
 
 [libraries]
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.11.0" }
-ktorServerContentNegotation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktorHttpJvm = { module = "io.ktor:ktor-http-jvm", version.ref = "ktor" }
 ktorServerNetty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
-ktorServerCors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
-ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
-ktorSerializationJackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
 ktorOpenApiGen = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
 
 ktorClientCio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
@@ -49,14 +45,12 @@ jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations"
 jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.1" }
 jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.22.1" }
 
-logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.38" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.6.0" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
 micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
 logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
 
 hikariCp = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.13" }
-flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "12.11.0" }
 
 bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
 unleashClient = { module = "io.getunleash:unleash-client-java", version = "12.2.3" }

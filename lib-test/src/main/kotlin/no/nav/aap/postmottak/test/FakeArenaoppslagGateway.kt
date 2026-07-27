@@ -1,4 +1,4 @@
-package no.nav.aap
+package no.nav.aap.postmottak.test
 
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato

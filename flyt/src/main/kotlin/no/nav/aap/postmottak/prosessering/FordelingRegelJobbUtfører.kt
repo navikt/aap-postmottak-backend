@@ -135,7 +135,8 @@ class FordelingRegelJobbUtfører(
                 status = statusMedÅrsakOgRegelresultat.status,
                 årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
                 enhet = hentEnhet(safJournalpost),
-                regelresultat = statusMedÅrsakOgRegelresultat.regelresultat
+                regelresultat = statusMedÅrsakOgRegelresultat.regelresultat,
+                brukerId = safJournalpost.bruker?.id
             )
         )
         prometheus.journalpostCounter(
