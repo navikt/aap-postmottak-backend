@@ -83,6 +83,8 @@ spec:
         - application: oppgave
         - application: behandlingsflyt
         - application: api-intern
+        - application: spokelse
+          namespace: tbd
       external:
         - host: aap-unleash-api.nav.cloud.nais.io
         - host: saf.prod-fss-pub.nais.io
@@ -93,6 +95,8 @@ spec:
         - host: veilarbarena.prod-fss-pub.nais.io
         - host: ereg-services.prod-fss-pub.nais.io
         - host: arenaoppslag.prod-fss-pub.nais.io
+        - host: fpabakus.prod-fss-pub.nais.io
+
   env:
     - name: INTEGRASJON_AAP_ARENAOPPSLAG_PROXY_URL
       value: https://arenaoppslag.prod-fss-pub.nais.io
