@@ -34,10 +34,10 @@ fun Application.sykepengerFake(fakePersoner: FakePersoner) {
                     SykepengerResponse(
                         utbetaltePerioder = sykepenger.map {
                             UtbetaltePerioder(
-                                fom = it.fom,
-                                tom = it.tom,
+                                fom = it.periode.fom,
+                                tom = it.periode.tom,
                                 grad = it.grad,
-                                organisasjonsnummer = it.organisasjonsnummer
+                                organisasjonsnummer = null
                             )
                         }
                     )

@@ -9,9 +9,13 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.postmottak.gateway.Anvist
 import no.nav.aap.postmottak.gateway.ForeldrepengerRequest
+import no.nav.aap.postmottak.gateway.Utbetalingsgrad
 import no.nav.aap.postmottak.gateway.Ytelse
+import no.nav.aap.postmottak.gateway.Ytelser
 import no.nav.aap.postmottak.test.FakePersoner
+import java.time.LocalDate
 
 fun Application.foreldrepengerFake(fakePersoner: FakePersoner) {
     install(ContentNegotiation) {
@@ -25,7 +29,23 @@ fun Application.foreldrepengerFake(fakePersoner: FakePersoner) {
         post("/hent-ytelse-vedtak") {
             val request = call.receive<ForeldrepengerRequest>()
             val fakePerson = fakePersoner.fakePersoner[request.ident.verdi]
-            call.respond(fakePerson?.foreldrepenger ?: emptyList<Ytelse>())
+            val ytelser = fakePerson?.foreldrepenger.orEmpty().map {
+                Ytelse(
+                    ytelse = Ytelser.FORELDREPENGER,
+                    saksnummer = "FP-SAK",
+                    kildesystem = "FPSAK",
+                    ytelseStatus = "AVSLUTTET",
+                    vedtattTidspunkt = LocalDate.now(),
+                    anvist = listOf(
+                        Anvist(
+                            periode = it.periode,
+                            utbetalingsgrad = Utbetalingsgrad(it.grad),
+                            beløp = null
+                        )
+                    )
+                )
+            }
+            call.respond(ytelser)
         }
     }
 }
