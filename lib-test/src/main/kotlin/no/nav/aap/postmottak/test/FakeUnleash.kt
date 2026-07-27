@@ -1,4 +1,4 @@
-package no.nav.aap
+package no.nav.aap.postmottak.test
 
 import no.nav.aap.unleash.FeatureToggle
 import no.nav.aap.unleash.PostmottakFeature
