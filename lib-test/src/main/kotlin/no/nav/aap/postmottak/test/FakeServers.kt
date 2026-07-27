@@ -21,10 +21,12 @@ import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
+import no.nav.aap.postmottak.test.fakes.foreldrepengerFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
 import no.nav.aap.postmottak.test.fakes.nomFake
 import no.nav.aap.postmottak.test.fakes.norgFake
 import no.nav.aap.postmottak.test.fakes.safFake
+import no.nav.aap.postmottak.test.fakes.sykepengerFake
 import no.nav.aap.postmottak.test.fakes.unleashFake
 import no.nav.aap.postmottak.test.fakes.veilarbarena
 import no.nav.aap.postmottak.test.modell.TestPerson
@@ -65,6 +67,9 @@ class FakeServers : AutoCloseable {
     val veilarbarena = embeddedServer(Netty, port = 0, module = { veilarbarena() })
     val eregFake = embeddedServer(Netty, port = 0, module = { eregFake() })
     val unleash = embeddedServer(Netty, port = 0, module = { unleashFake() })
+    val sykepenger = embeddedServer(Netty, port = 0, module = { sykepengerFake(fakePersoner) })
+    val foreldrepenger = embeddedServer(Netty, port = 0, module = { foreldrepengerFake(fakePersoner) })
+
 
     private val started = AtomicBoolean(false)
 
@@ -146,6 +151,14 @@ class FakeServers : AutoCloseable {
         // Ereg
         System.setProperty("INTEGRASJON_EREG_URL", "http://localhost:${eregFake.port()}")
         System.setProperty("INTEGRASJON_EREG_SCOPE", "scope")
+
+        // Sykepenger
+        System.setProperty("INTEGRASJON_SYKEPENGER_URL", "http://localhost:${sykepenger.port()}")
+        System.setProperty("INTEGRASJON_SYKEPENGER_SCOPE", "scope")
+
+        // Foreldrepenger
+        System.setProperty("INTEGRASJON_FORELDREPENGER_URL", "http://localhost:${foreldrepenger.port()}")
+        System.setProperty("INTEGRASJON_FORELDREPENGER_SCOPE", "scope")
     }
 
     fun start() {
@@ -170,6 +183,8 @@ class FakeServers : AutoCloseable {
         staistikkFake.start()
         veilarbarena.start()
         eregFake.start()
+        sykepenger.start()
+        foreldrepenger.start()
 
         setProperties()
 
@@ -197,6 +212,8 @@ class FakeServers : AutoCloseable {
         staistikkFake.stop()
         veilarbarena.stop()
         eregFake.stop()
+        sykepenger.stop()
+        foreldrepenger.stop()
     }
 
     private fun Application.oppgaveFake() {
