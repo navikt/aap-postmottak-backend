@@ -63,8 +63,14 @@ class OverleverTilFagsystemSteg(
                 InnsendingType.KLAGE
             )
         ) {
-            val vurdering = OverleveringVurdering(true)
-            overleveringVurderingRepository.lagre(kontekst.behandlingId, OverleveringVurdering(true))
+            val skalOverleveresTilKelvin = when {
+                // Meldekort uten strukturert dokument skal ikke oversendes fagsystem da dette allerede er registrert manuelt i Kelvin
+                digitaliseringsvurdering.kategori == InnsendingType.MELDEKORT && digitaliseringsvurdering.strukturertDokument == null -> false
+                else -> true
+            }
+
+            val vurdering = OverleveringVurdering(skalOverleveresTilKelvin)
+            overleveringVurderingRepository.lagre(kontekst.behandlingId, vurdering)
             overleveringVurdering = vurdering
         }
 
