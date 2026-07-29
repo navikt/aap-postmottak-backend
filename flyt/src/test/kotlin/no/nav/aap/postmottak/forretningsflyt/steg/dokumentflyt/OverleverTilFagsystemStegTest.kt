@@ -181,6 +181,27 @@ class OverleverTilFagsystemStegTest {
                 false
             )
         }
-        assertThat(stegresultat::class.simpleName).isEqualTo(Fullført::class.simpleName)
+        assertThat(stegresultat).isEqualTo(Fullført)
+    }
+
+    @Test
+    fun `hvis meldekort ikke inneholder strukturert dokument blir det ikke overført til fagsystem`() {
+        val kontekst: FlytKontekst = mockk(relaxed = true)
+        val digitaliseringsvurdering = Digitaliseringsvurdering(
+            InnsendingType.MELDEKORT, null, mottattDato, true
+        )
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns digitaliseringsvurdering
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
+
+        val stegresultat = overførTilFagsystemSteg.utfør(kontekst)
+
+        verify(exactly = 1) {
+            overleveringVurderingRepository.lagre(any(), OverleveringVurdering(false))
+        }
+        verify(exactly = 0) {
+            behandlingsflytKlient.sendHendelse(any(), any(), any(), any(), any(), any(), any())
+        }
+        assertThat(stegresultat).isEqualTo(Fullført)
     }
 }
