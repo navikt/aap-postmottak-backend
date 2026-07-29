@@ -119,41 +119,6 @@ fun Application.arenaoppslagFake() {
             }
         }
 
-        post("/api/v1/person/vurderingsgrunnlag") {
-            val parsedRequest = call.receive<VurderingsgrunnlagRequest>()
-            if (parsedRequest.personidentifikator in identerMedSakIArena) {
-                call.respond(
-                    """
-                    {
-                      "saksnummer": "ABC-123",
-                      "erAktiv": true,
-                      "under52Uker": true,
-                      "gjenståendeOrdinæreDager": 67,
-                      "gjenståendeUnntaksDager": null,
-                      "sisteVedtak": {
-                        "vedtakId": 99,
-                        "aktfaseKode": "AKT",
-                        "vedtaktypeKode": "O",
-                        "fra": "2024-01-01",
-                        "til": "2024-12-31",
-                        "maxdatoOrdinaer": null,
-                        "maxdatoUnntak": null,
-                        "maxdatoAap": null
-                      },
-                      "sisteUtbetaling": "2024-05-10"
-                    }
-                    """.trimIndent()
-                )
-            } else {
-                call.respond(HttpStatusCode.NotFound, "Fant ikke personen i Arena")
-            }
-        }
-
     }
 }
 
-/**
- * Request mot Arenas `/api/v1/person/vurderingsgrunnlag`.
- * Defineres lokalt inntil kontrakten publiseres i `arenaoppslag`.
- */
-data class VurderingsgrunnlagRequest(val personidentifikator: String)

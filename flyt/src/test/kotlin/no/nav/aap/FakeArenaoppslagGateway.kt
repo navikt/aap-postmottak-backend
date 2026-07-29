@@ -6,8 +6,6 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.gateway.ArenasakForManuellVurdering
-import no.nav.aap.postmottak.gateway.SisteVedtak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import java.time.LocalDate
@@ -69,26 +67,5 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
 
     override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
         return LocalDate.of(2026, 12, 12)
-    }
-
-    override suspend fun hentArenasakForManuellVurdering(ident: Ident): ArenasakForManuellVurdering {
-        return ArenasakForManuellVurdering(
-            saksnummer = "2024-23456",
-            erAktiv = false,
-            under52Uker = true,
-            gjenståendeOrdinæreDager = 67,
-            gjenståendeUnntaksDager = null,
-            sisteVedtak = SisteVedtak(
-                vedtakId = 1,
-                aktfaseKode = "INNV",
-                vedtaktypeKode = "O",
-                fra = LocalDate.of(2025, 1, 1),
-                til = LocalDate.of(2026, 1, 1),
-                maxdatoOrdinaer = null,
-                maxdatoUnntak = null,
-                maxdatoAap = null,
-            ),
-            sisteUtbetaling = null,
-        )
     }
 }

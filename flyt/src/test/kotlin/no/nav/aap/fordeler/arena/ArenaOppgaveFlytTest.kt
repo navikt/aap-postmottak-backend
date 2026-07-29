@@ -273,9 +273,6 @@ class ArenaoppslagGatewaySpy : ArenaoppslagGateway {
         TODO("kalles ikke på")
     }
 
-    override suspend fun hentArenasakForManuellVurdering(ident: Ident): no.nav.aap.postmottak.gateway.ArenasakForManuellVurdering {
-        TODO("kalles ikke på")
-    }
 
 }
 
