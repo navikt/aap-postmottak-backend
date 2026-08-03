@@ -83,6 +83,8 @@ spec:
         - application: oppgave
         - application: behandlingsflyt
         - application: api-intern
+        - application: spokelse
+          namespace: tbd
       external:
         - host: aap-unleash-api.nav.cloud.nais.io
         - host: saf.prod-fss-pub.nais.io
@@ -93,6 +95,8 @@ spec:
         - host: veilarbarena.prod-fss-pub.nais.io
         - host: ereg-services.prod-fss-pub.nais.io
         - host: arenaoppslag.prod-fss-pub.nais.io
+        - host: fpabakus.prod-fss-pub.nais.io
+
   env:
     - name: INTEGRASJON_AAP_ARENAOPPSLAG_PROXY_URL
       value: https://arenaoppslag.prod-fss-pub.nais.io
@@ -158,3 +162,11 @@ spec:
       value: api://prod-fss.arbeidsforhold.ereg-services/.default
     - name: NAIS_TEAM_AAP
       value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
+    - name: INTEGRASJON_SYKEPENGER_URL
+      value: http://spokelse.tbd
+    - name: INTEGRASJON_SYKEPENGER_SCOPE
+      value: api://prod-gcp.tbd.spokelse/.default
+    - name: INTEGRASJON_FORELDREPENGER_URL
+      value: https://fpabakus.prod-fss-pub.nais.io/fpabakus/ekstern/api/ytelse/v1
+    - name: INTEGRASJON_FORELDREPENGER_SCOPE
+      value: api://prod-fss.teamforeldrepenger.fpabakus/.default

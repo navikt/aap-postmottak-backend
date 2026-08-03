@@ -24,7 +24,7 @@ internal class FakesExtension : BeforeAllCallback,
     private val fakeServers = FakeServers()
 
     override fun beforeAll(context: ExtensionContext) {
-        FakeServers().start()
+        fakeServers.start()
     }
 
     override fun beforeEach(context: ExtensionContext) {
