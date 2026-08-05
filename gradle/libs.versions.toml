@@ -1,6 +1,6 @@
 [versions]
 ktor = "3.5.2"
-komponenter = "2.0.129"
+komponenter = "2.0.130"
 tilgang = "1.0.234"
 arenaoppslag = "0.5.35"
 behandlingsflyt = "0.0.644"
