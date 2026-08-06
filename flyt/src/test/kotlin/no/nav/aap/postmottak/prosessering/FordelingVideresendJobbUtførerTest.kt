@@ -56,7 +56,9 @@ class FordelingVideresendJobbUtførerTest {
         fordelingVideresendJobbUtfører.utfør(jobbInput)
 
         assertThat(
-            fordelingVideresendJobbUtfører.prometheus.counter("fordeling_videresend", "system", "kelvin").count()
+            fordelingVideresendJobbUtfører.prometheus
+                .counter("fordeling_videresend", "system", "kelvin", "erSoknad", "true")
+                .count()
         ).isEqualTo(1.0)
         verify(exactly = 1) { behandlingRepositoryMock.opprettBehandling(journalpostId, TypeBehandling.Journalføring) }
         verify(exactly = 1) {

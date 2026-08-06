@@ -85,7 +85,7 @@ class FordelingVideresendJobbUtfører(
         res: Regelresultat,
         journalpost: SafJournalpost
     ) {
-        prometheus.fordelingsCounter(fagsystem).increment()
+        prometheus.fordelingsCounter(fagsystem, journalpost.erSøknad()).increment()
 
         val utenKelvinHistorikk = !res.regelMap[KelvinSakRegel::class.simpleName]!!
         val medArenaHistorikk = res.regelMap[ArenaSakRegel::class.simpleName]!!
