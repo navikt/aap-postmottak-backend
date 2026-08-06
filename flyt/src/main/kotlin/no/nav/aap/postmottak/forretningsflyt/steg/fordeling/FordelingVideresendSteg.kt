@@ -10,7 +10,9 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -31,8 +33,9 @@ class FordelingVideresendSteg(
     val flytJobbRepository: FlytJobbRepository,
     val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
     val arenaVideresender: ArenaVideresender,
-    val prometheus: MeterRegistry = SimpleMeterRegistry()
-): BehandlingSteg {
+    val journalpostService: JournalpostService,
+    val prometheus: MeterRegistry = SimpleMeterRegistry(),
+) : BehandlingSteg {
     val logger = LoggerFactory.getLogger(FordelingVideresendSteg::class.java)
 
     companion object : FlytSteg {
@@ -46,6 +49,7 @@ class FordelingVideresendSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 ArenaVideresender.konstruer(repositoryProvider, gatewayProvider),
+                JournalpostService.konstruer(repositoryProvider, gatewayProvider),
                 PrometheusProvider.prometheus,
             )
         }
@@ -57,8 +61,11 @@ class FordelingVideresendSteg(
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val vurdering = avklarFordelingRepository.hentVurderingHvisEksisterer(kontekst.behandlingId)
+        val journalpost = journalpostService.hentJournalpost(kontekst.journalpostId)
 
-        vurdering?.system?.toFagsystem()?.let { prometheus.fordelingsCounter(it).increment() }
+        vurdering?.system?.toFagsystem()?.let {
+            prometheus.fordelingsCounter(it, journalpost.erSøknad()).increment()
+        }
 
         when(vurdering?.system) {
             AapSystem.ARENA -> routeTilArena(kontekst.journalpostId)
