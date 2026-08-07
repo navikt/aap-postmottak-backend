@@ -7,16 +7,18 @@ data class AvklarFordelingVurdering(
     val system: AapSystem,
     val vurdertAv: String,
     val vurdertTidspunkt: LocalDateTime,
+    val kommentar: String? = null,
 )
 
 enum class AapSystem {
-    KELVIN, ARENA, IGNORERT;
+    KELVIN, ARENA, IGNORERT, BEGGE;
 
     companion object {
         fun fraString(tema: String): AapSystem {
             return when (tema) {
                 "KELVIN" -> KELVIN
                 "ARENA" -> ARENA
+                "BEGGE" -> BEGGE
                 "IGNORERT" -> IGNORERT
                 else -> IGNORERT
             }
@@ -27,6 +29,7 @@ enum class AapSystem {
         return when (this) {
             KELVIN -> Fagsystem.kelvin
             ARENA -> Fagsystem.arena
+            // BEGGE støttes ikke enda – ruting implementeres senere
             else -> null
         }
     }

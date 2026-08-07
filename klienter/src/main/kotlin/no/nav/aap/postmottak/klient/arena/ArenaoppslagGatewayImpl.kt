@@ -199,3 +199,4 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
     }
 
 }
+

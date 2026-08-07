@@ -47,9 +47,64 @@ fun main() {
             opprettBehandlingKategoriser(it)
             opprettBehandlingDigitaliser(it)
             opprettBehandlingPapirSøknadKategoriser(it)
+            opprettBehandlingManuellFordeling(it)
+            opprettBehandlingManuellFordelingDigitalSøknad(it)
+            opprettBehandlingManuellFordelingPapirSøknad(it)
         }
 
     }.start(wait = true)
+}
+
+private fun opprettBehandlingManuellFordelingDigitalSøknad(connection: DBConnection) {
+    // Digital søknad for person med kant-i-kant sak i Arena -> stopper på AVKLAR_FORDELING.
+    // Velges KELVIN går journalføringsbehandlingen rett gjennom AvklarSakSteg (digital søknad),
+    // og det opprettes sak i behandlingsflyt uten manuell saksavklaring.
+    opprettFordelingsbehandling(
+        connection = connection,
+        journalpostId = TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT,
+        beskrivelse = "Manuell fordeling (digital søknad)"
+    )
+}
+
+private fun opprettBehandlingManuellFordelingPapirSøknad(connection: DBConnection) {
+    // Papirsøknad for samme type person -> stopper på AVKLAR_FORDELING.
+    // Velges KELVIN må saksbehandler i tillegg løse AVKLAR_SAK i journalføringsbehandlingen.
+    opprettFordelingsbehandling(
+        connection = connection,
+        journalpostId = TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT,
+        beskrivelse = "Manuell fordeling (papirsøknad)"
+    )
+}
+
+private fun opprettFordelingsbehandling(
+    connection: DBConnection,
+    journalpostId: JournalpostId,
+    beskrivelse: String
+) {
+    val behandlingRepository = BehandlingRepositoryImpl(connection)
+    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+
+    println("$beskrivelse: http://localhost:3000/postmottak/${behandlingRepository.hent(behandlingId).referanse.referanse}/")
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(journalpostId.referanse, behandlingId.id)
+            .medCallId()
+    )
+}
+
+private fun opprettBehandlingManuellFordeling(connection: DBConnection) {
+    // Person med sak i Arena der maksdato er "kant-i-kant" -> ArenaService.skalManueltFordeles gir true,
+    // og behandlingen stopper på manuell vurdering (AVKLAR_FORDELING).
+    val journalpostId = TestJournalposter.PERSON_MED_SAK_I_ARENA
+    val behandlingRepository = BehandlingRepositoryImpl(connection)
+    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+
+    println("Manuell fordeling: http://localhost:3000/postmottak/${behandlingRepository.hent(behandlingId).referanse.referanse}/")
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(journalpostId.referanse, behandlingId.id)
+            .medCallId()
+    )
 }
 
 private fun opprettBehandlingAvklarTeam(connection: DBConnection) {
