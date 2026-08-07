@@ -21,6 +21,12 @@ object TestJournalposter {
     val UTENLANDSK_ORGNR = JournalpostId(131)
     val KLAGE_ETTERSENDING = JournalpostId(132)
     val NY_SØKNAD_MED_TRUKKET_SAK = JournalpostId(133)
+
+    /** Digital søknad for person med kant-i-kant sak i Arena -> manuell fordeling (AVKLAR_FORDELING). */
+    val DIGITAL_SØKNAD_KANT_I_KANT = JournalpostId(134)
+
+    /** Papirsøknad for person med kant-i-kant sak i Arena -> manuell fordeling (AVKLAR_FORDELING). */
+    val PAPIR_SØKNAD_KANT_I_KANT = JournalpostId(135)
 }
 
 
@@ -31,4 +37,5 @@ object TestIdenter {
     val SKJERMET_IDENT = Ident("00000002222")
     val IDENT_MED_SAK_I_ARENA = Ident("0000000333")
     val IDENT_MED_TRUKKET_SAK_I_KELVIN = Ident("0000000444")
+    val IDENT_MED_KANT_I_KANT_SAK = Ident("0000000555")
 }

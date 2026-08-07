@@ -34,6 +34,7 @@ import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.gateway.originalFiltype
 import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
@@ -105,7 +106,7 @@ class AvklarFordelingSteg(
 
             // Dersom saken er "kant-i-kant" med en eksisterende Arena-sak må en saksbehandler
             // vurdere om søknaden skal til Arena eller Kelvin.
-            if (skalTilManuellVurdering(safJournalpost, kontekst)|| true ) {
+            if (skalTilManuellVurdering(safJournalpost, kontekst)) {
                 log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
                 return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
             }
@@ -116,7 +117,19 @@ class AvklarFordelingSteg(
     }
 
     private fun skalTilManuellVurdering(safJournalpost: SafJournalpost, kontekst: FlytKontekst): Boolean {
+        // Kun søknader (papir og digitale) skal kunne fordeles manuelt. Ettersendelser, legeerklæringer,
+        // meldekort osv. rutes maskinelt som før - og vi unngår unødvendige oppslag mot Arena.
+        val brevkode = safJournalpost.hoveddokument()?.brevkode
+        if (brevkode != Brevkoder.SØKNAD.kode) {
+            log.info(
+                "Journalpost ${kontekst.journalpostId} har brevkode $brevkode og er ikke en søknad" +
+                        " - vurderes ikke manuelt"
+            )
+            return false
+        }
+
         val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
+
         return runBlocking {
             val signifikantHistorikk =
                 arenaoppslagGateway.harSignifikantHistorikk(journalpost.person, journalpost.mottattDato)

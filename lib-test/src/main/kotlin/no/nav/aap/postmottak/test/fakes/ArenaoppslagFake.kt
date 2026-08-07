@@ -27,6 +27,7 @@ fun Application.arenaoppslagFake() {
     val identerMedSakIArena = setOf(
         TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator,
         TestIdenter.DEFAULT_IDENT.identifikator, // 21345345210
+        TestIdenter.IDENT_MED_KANT_I_KANT_SAK.identifikator,
     )
 
     routing {
@@ -105,6 +106,38 @@ fun Application.arenaoppslagFake() {
                     }
                     """.trimIndent()
                 )
+            } else if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_KANT_I_KANT_SAK.identifikator) {
+                // Journalpostens mottattDato utledes fra relevanteDatoer/DATO_REGISTRERT = 2020-12-01,
+                // så maxdatoAap må ligge etter denne og innenfor terskelen på 20 uker (2021-04-20)
+                // for at ArenaService.skalManueltFordeles skal gi true for søknadene 134 og 135.
+                call.respond(
+                    """
+                    {
+                      "sak": 
+                        {
+                          "sakId": 1234,
+                          "saknummer": "ABC-555",
+                          "sakStatus": "AKTIV",
+                          "sakRegistrert": "2020-01-01",
+                          "sakAvsluttet": null,
+                          "har_11_12_forlengelse": false,
+                          "utredesForUfor": false,
+                          "ferdigAvklart": false,
+                          "lopendeVedtak": true,
+                          "sisteVedtak": {
+                            "vedtakId": 100,
+                            "aktfaseKode": "AKT",
+                            "vedtaktypeKode": "O",
+                            "fra": "2020-01-01",
+                            "til": "2021-03-01",
+                            "maxdatoOrdinaer": "2021-03-01",
+                            "maxdatoUnntak": null,
+                            "maxdatoAap": "2021-03-01"
+                          }
+                        }
+                    }
+                    """.trimIndent()
+                )
             } else {
                 call.respond(HttpStatusCode.NotFound)
             }
@@ -112,7 +145,9 @@ fun Application.arenaoppslagFake() {
 
         post("/api/v1/utbetalinger/siste") {
             val parsedRequest = call.receive<SisteUtbetalingerRequest>()
-            if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
+            if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator ||
+                parsedRequest.personidentifikator == TestIdenter.IDENT_MED_KANT_I_KANT_SAK.identifikator
+            ) {
                 call.respond("""{"utbetalingsdato": "2024-05-10"}""")
             } else {
                 call.respond(HttpStatusCode.NotFound)
