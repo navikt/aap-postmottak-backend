@@ -16,6 +16,7 @@ class Avklaringsbehovene(
     private val behandlingId: BehandlingId
 ) : AvklaringsbehoveneDecorator {
     private val log = LoggerFactory.getLogger(javaClass)
+
     private val avklaringsbehovene: List<Avklaringsbehov>
         get() = repository.hent(behandlingId)
 

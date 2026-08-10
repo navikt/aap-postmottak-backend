@@ -76,8 +76,7 @@ class JoarkKafkaHandler(
     ),
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) {
-
-    private val log = LoggerFactory.getLogger(JoarkKafkaHandler::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     val topology: Topology
 

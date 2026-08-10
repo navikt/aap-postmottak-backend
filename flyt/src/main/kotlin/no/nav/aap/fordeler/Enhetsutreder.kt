@@ -19,8 +19,7 @@ class Enhetsutreder(
     private val nomKlient: EgenAnsattGateway,
     private val veilarbarenaKlient: VeilarbarenaGateway,
 ) {
-
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
         fun konstruer(gatewayProvider: GatewayProvider): Enhetsutreder {

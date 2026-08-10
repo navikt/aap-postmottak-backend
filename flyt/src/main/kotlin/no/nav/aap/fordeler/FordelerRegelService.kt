@@ -14,8 +14,6 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.regelresultat
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(FordelerRegelService::class.java)
-
 typealias RegelMap = Map<String, Boolean>
 
 /**
@@ -26,6 +24,7 @@ data class Regelresultat(
     val forJournalpost: Long,
     val systemNavn: String? = null
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     fun skalTilKelvin(): Boolean {
         val manueltOverstyrtTilArena = regelMap[ManueltOverstyrtTilArenaRegel::class.simpleName] ?: false
@@ -54,8 +53,8 @@ data class Regelresultat(
 
         val reglerTilEvaluering = regelMap.filter {
             it.key != KelvinSakRegel::class.simpleName &&
-            it.key != ArenaSakRegel::class.simpleName &&
-            it.key != ManueltOverstyrtTilArenaRegel::class.simpleName
+                    it.key != ArenaSakRegel::class.simpleName &&
+                    it.key != ManueltOverstyrtTilArenaRegel::class.simpleName
         }
 
         return reglerTilEvaluering.values.all { it }.also {

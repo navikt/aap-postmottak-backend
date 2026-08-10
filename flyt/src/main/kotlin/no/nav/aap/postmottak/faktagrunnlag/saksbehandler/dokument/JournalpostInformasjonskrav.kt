@@ -21,8 +21,7 @@ class JournalpostInformasjonskrav(
     private val saksnummerRepository: SaksnummerRepository,
     private val avklarTemaRepository: AvklarTemaRepository
 ) : Informasjonskrav {
-    private val log = LoggerFactory.getLogger(JournalpostInformasjonskrav::class.java)
-
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : Informasjonskravkonstruktør {
         override fun konstruer(

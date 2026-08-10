@@ -4,16 +4,26 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.nimbusds.jwt.JWTParser
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.engine.ConnectorType
+import io.ktor.server.engine.EmbeddedServer
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
+import io.ktor.server.routing.put
+import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
@@ -35,9 +45,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
-private const val POSTMOTTAK_BACKEND = "postmottak-backend"
-private val logger = LoggerFactory.getLogger(FakesExtension::class.java)
-
 class FakePersoner(val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()) {
     fun leggTil(testPerson: TestPerson) {
         fakePersoner[testPerson.aktivIdent().identifikator] = testPerson
@@ -45,7 +52,7 @@ class FakePersoner(val fakePersoner: MutableMap<String, TestPerson> = mutableMap
 }
 
 class FakeServers : AutoCloseable {
-    private val log: Logger = LoggerFactory.getLogger(FakeServers::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     private val texas = embeddedServer(Netty, port = 0) { texasFakes() }
     private val oppgave = embeddedServer(Netty, port = 0, module = { oppgaveFake() })
@@ -177,7 +184,7 @@ class FakeServers : AutoCloseable {
     }
 
     override fun close() {
-        logger.info("Closing Servers.")
+        log.info("Closing Servers.")
         if (!started.get()) {
             return
         }

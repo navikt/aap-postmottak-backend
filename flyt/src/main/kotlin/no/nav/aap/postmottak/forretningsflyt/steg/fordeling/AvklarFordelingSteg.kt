@@ -45,7 +45,7 @@ class AvklarFordelingSteg(
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ): BehandlingSteg {
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : FlytSteg {
         override fun konstruer(

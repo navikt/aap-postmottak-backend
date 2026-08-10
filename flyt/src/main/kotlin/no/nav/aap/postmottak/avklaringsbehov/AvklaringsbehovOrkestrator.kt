@@ -30,7 +30,7 @@ class AvklaringsbehovOrkestrator(
     private val gatewayProvider: GatewayProvider
 ) {
 
-    private val log = LoggerFactory.getLogger(AvklaringsbehovOrkestrator::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     constructor(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) : this(
         repositoryProvider,

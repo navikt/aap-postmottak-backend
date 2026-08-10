@@ -1,8 +1,8 @@
 package no.nav.aap.fordeler.arena.jobber
 
-import no.nav.aap.fordeler.arena.ArenaWebservicesGateway
 import no.nav.aap.fordeler.arena.ArenaOppgaveType
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
+import no.nav.aap.fordeler.arena.ArenaWebservicesGateway
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.motor.FlytJobbRepository
@@ -40,7 +40,7 @@ class OppprettOppgaveIArenaJobbUtfører(
 
     }
 
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun utførArena(input: JobbInput, journalpost: Journalpost) {
         val kontekst = input.getArenaVideresenderKontekst()

@@ -8,7 +8,7 @@ import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 
 internal object SharedKafkaTestContainer {
-    private val logger = LoggerFactory.getLogger(SharedKafkaTestContainer::class.java)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     val kafka: KafkaContainer by lazy {
         KafkaContainer(DockerImageName.parse("apache/kafka-native:4.1.0"))

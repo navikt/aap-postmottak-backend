@@ -19,8 +19,6 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(FlytOrkestrator::class.java)
-
 /**
  * Har ansvar for å drive flyten til en gitt behandling. Typen behandling styrer hvilke steg som skal utføres.
  *
@@ -40,6 +38,7 @@ class FlytOrkestrator(
     private val behandlingHendelseService: BehandlingHendelseServiceImpl,
     private val stegOrkestrator: StegOrkestrator
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     constructor(
         repositoryProvider: RepositoryProvider,

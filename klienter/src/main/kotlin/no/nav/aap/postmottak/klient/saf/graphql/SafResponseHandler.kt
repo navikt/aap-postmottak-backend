@@ -17,8 +17,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 class SafResponseHandler : RestResponseHandler<InputStream> {
-
-    private val logger = LoggerFactory.getLogger(SafResponseHandler::class.java)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val defaultResponseHandler = DefaultResponseHandler()
 

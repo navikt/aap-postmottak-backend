@@ -28,7 +28,7 @@ import java.time.LocalDateTime
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.TypeBehandling as BehandlingsflytTypeBehandling
 
 class BehandlingsflytKlient : BehandlingsflytGateway {
-    private val log = LoggerFactory.getLogger(BehandlingsflytKlient::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     private val url = URI.create(requiredConfigForKey("INTEGRASJON_BEHANDLINGSFLYT_URL"))
     val config = ClientConfig(

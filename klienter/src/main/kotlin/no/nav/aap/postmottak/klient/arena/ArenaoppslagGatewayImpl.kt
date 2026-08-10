@@ -5,21 +5,27 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
+import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
-import io.ktor.serialization.jackson.*
+import io.ktor.serialization.jackson.jackson
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoMedVedtakResponse
@@ -37,9 +43,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.seconds
 
-
 private val secureLog = LoggerFactory.getLogger("team-logs")
-private val log = LoggerFactory.getLogger(ArenaoppslagGatewayImpl::class.java)
 
 private val objectMapper = jacksonObjectMapper()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)

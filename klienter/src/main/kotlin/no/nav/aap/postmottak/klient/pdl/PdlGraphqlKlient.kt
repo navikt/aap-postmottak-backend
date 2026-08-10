@@ -16,7 +16,6 @@ import no.nav.aap.postmottak.gateway.Navn
 import no.nav.aap.postmottak.gateway.NavnMedIdent
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlKlient
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDate
@@ -24,7 +23,7 @@ import java.time.LocalDate
 private const val BEHANDLINGSNUMMER_AAP_SAKSBEHANDLING = "B287"
 
 class PdlGraphqlKlient : PersondataGateway {
-    private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_PDL_URL")).resolve("/graphql")
     private val clientConfig = ClientConfig(
@@ -74,7 +73,7 @@ class PdlGraphqlKlient : PersondataGateway {
     private fun hentPerson(
         personident: String,
 
-    ): HentPersonResult? {
+        ): HentPersonResult? {
         val request = PdlRequest.hentPerson(personident)
         val response = graphqlQuery(request)
         return response.data?.hentPerson

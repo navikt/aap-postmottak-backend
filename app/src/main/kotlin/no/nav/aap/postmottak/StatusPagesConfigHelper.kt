@@ -24,8 +24,6 @@ object StatusPagesConfigHelper {
 
     fun setup(): StatusPagesConfig.() -> Unit = {
         exception<Throwable> { call, cause ->
-            val logger = LoggerFactory.getLogger(javaClass)
-
             when (cause) {
                 is InternfeilException -> {
                     logger.error(cause.cause?.message ?: cause.message)

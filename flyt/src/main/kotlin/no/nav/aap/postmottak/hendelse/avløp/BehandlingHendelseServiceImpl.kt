@@ -15,12 +15,12 @@ import no.nav.aap.postmottak.prosessering.StoppetHendelseJobbUtfører
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
-private val log = LoggerFactory.getLogger(BehandlingHendelseServiceImpl::class.java)
-
 class BehandlingHendelseServiceImpl(
     private val flytJobbRepository: FlytJobbRepository,
     private val journalpostRepository: JournalpostRepository,
 ) : BehandlingHendelseService {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun stoppet(behandling: Behandling, avklaringsbehovene: Avklaringsbehovene) {
 
         val ident = journalpostRepository.hentHvisEksisterer(behandling.id)!!.person.aktivIdent().identifikator

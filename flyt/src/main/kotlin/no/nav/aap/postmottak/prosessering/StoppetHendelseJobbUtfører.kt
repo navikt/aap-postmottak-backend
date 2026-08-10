@@ -11,9 +11,8 @@ import no.nav.aap.postmottak.gateway.StatistikkGateway
 import no.nav.aap.postmottak.kontrakt.hendelse.DokumentflytStoppetHendelse
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(StoppetHendelseJobbUtfører::class.java)
-
 class StoppetHendelseJobbUtfører private constructor(private val gatewayProvider: GatewayProvider) : JobbUtfører {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun utfør(input: JobbInput) {
         val payload = input.payload()

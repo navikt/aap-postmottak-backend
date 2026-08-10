@@ -8,7 +8,7 @@ import java.time.LocalDate
 import java.time.Period
 
 class Aldersregel : Regel<AldersregelInput> {
-    private val log = LoggerFactory.getLogger(Aldersregel::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : RegelFactory<AldersregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)

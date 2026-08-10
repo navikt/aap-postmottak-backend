@@ -25,18 +25,13 @@ import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
-import org.slf4j.LoggerFactory
 import javax.sql.DataSource
-
-private val log = LoggerFactory.getLogger("api.drift")
 
 fun NormalOpenAPIRoute.driftApi(
     dataSource: DataSource,
     repositoryRegistry: RepositoryRegistry,
 ) {
-
     route("/api/drift") {
-
         route("/behandling/{referanse}/prosesser") {
             authorizedPost<BehandlingsreferansePathParam, Unit, Unit>(
                 AuthorizationParamPathConfig(

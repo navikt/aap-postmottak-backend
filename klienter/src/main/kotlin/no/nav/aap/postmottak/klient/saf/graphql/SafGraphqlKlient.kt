@@ -69,9 +69,9 @@ class SafGraphqlClientCredentialsClient : JournalpostGateway {
 }
 
 class SafGraphqlKlient(val restClient: RestClient<InputStream>) {
-    private val log = LoggerFactory.getLogger(SafGraphqlKlient::class.java)
-    private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_SAF_URL_GRAPHQL"))
+    private val log = LoggerFactory.getLogger(javaClass)
 
+    private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_SAF_URL_GRAPHQL"))
 
     fun hentJournalpostInternal(journalpostId: JournalpostId, currentToken: OidcToken?): SafJournalpost {
         log.info("Henter journalpost: $journalpostId")

@@ -24,8 +24,6 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(AvklarTemaSteg::class.java)
-
 class AvklarTemaSteg(
     private val journalpostRepository: JournalpostRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
@@ -33,6 +31,8 @@ class AvklarTemaSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val avklaringsbehovService: AvklaringsbehovService,
 ) : BehandlingSteg {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : FlytSteg {
         override fun konstruer(
             repositoryProvider: RepositoryProvider,
@@ -172,7 +172,7 @@ class AvklarTemaSteg(
                 journalpost.journalførendeEnhet
             )
         } catch (e: BadRequestHttpResponsException) {
-            if (e.message?.contains("Fant ingen gyldig arbeidsfordeling") == true ) {
+            if (e.message?.contains("Fant ingen gyldig arbeidsfordeling") == true) {
                 gosysOppgaveGateway.opprettEndreTemaOppgaveHvisIkkeEksisterer(
                     journalpostId = journalpost.journalpostId,
                     personident = aktivIdent.identifikator,

@@ -20,8 +20,6 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
-
 class OverleverTilFagsystemSteg(
     private val digitaliseringsvurderingRepository: DigitaliseringsvurderingRepository,
     private val behandlingsflytKlient: BehandlingsflytGateway,
@@ -29,6 +27,8 @@ class OverleverTilFagsystemSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val overleveringVurderingRepository: OverleveringVurderingRepository,
 ) : BehandlingSteg {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : FlytSteg {
         override fun konstruer(
             repositoryProvider: RepositoryProvider,

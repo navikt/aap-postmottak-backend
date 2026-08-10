@@ -3,7 +3,7 @@ package no.nav.aap.postmottak.test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import java.util.*
+import java.util.Random
 
 class FødselsnummerGenerator private constructor(
     private val kjonn: Kjønn,
@@ -71,7 +71,8 @@ class FødselsnummerGenerator private constructor(
     }
 
     companion object {
-        private val LOG: Logger = LoggerFactory.getLogger(FødselsnummerGenerator::class.java)
+        private val LOG: Logger = LoggerFactory.getLogger(javaClass)
+
         private const val NAV_SYNTETISK_IDENT_OFFSET_MND = 40
         private const val DNR_OFFSETT_DAYS = 40
         private val random: Random = Random()

@@ -38,7 +38,7 @@ class FordelingRegelJobbUtfører(
     private val enhetsutreder: Enhetsutreder,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) : JobbUtfører {
-    private val log = LoggerFactory.getLogger(FordelingRegelJobbUtfører::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : ProvidersJobbSpesifikasjon {
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {

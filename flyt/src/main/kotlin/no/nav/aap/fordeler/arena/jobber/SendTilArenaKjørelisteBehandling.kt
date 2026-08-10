@@ -40,7 +40,7 @@ class SendTilArenaKjørelisteBehandling(
         override val retries = 4
     }
 
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun utførArena(input: JobbInput, journalpost: Journalpost) {
         val kontekst = input.getArenaVideresenderKontekst()
