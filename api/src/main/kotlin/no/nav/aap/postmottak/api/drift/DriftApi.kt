@@ -7,7 +7,6 @@ import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.HttpStatusCode
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -74,17 +73,13 @@ fun NormalOpenAPIRoute.driftApi(
                         repositoryProvider.provide<InnkommendeJournalpostRepository>()
                     val journalpostRepository = repositoryProvider.provide<JournalpostRepository>()
                     val behandlingRepository = repositoryProvider.provide<BehandlingRepository>()
-                    val avklaringsbehovRepository = repositoryProvider.provide<AvklaringsbehovRepository>()
-                    val saksnummerRepository = repositoryProvider.provide<SaksnummerRepository>()
+                    val avklaringsbehovRepository by lazy { repositoryProvider.provide<AvklaringsbehovRepository>() }
+                    val saksnummerRepository by lazy { repositoryProvider.provide<SaksnummerRepository>() }
 
                     val innkommendeJournalpost = innkommendeJournalpostRepository.hentHvisEksisterer(journalpostId)
                     val journalpost = journalpostRepository.hentHvisEksisterer(journalpostId)
 
-                    if (innkommendeJournalpost == null && journalpost == null) {
-                        throw VerdiIkkeFunnetException("Fant ingen journalpost med ID ${params.referanse}")
-                    }
-
-                    val behandlinger = behandlingRepository.hentAlleBehandlingerForSak(journalpostId)
+                    val behandlinger = behandlingRepository.hentAlleBehandlingerForJournalpost(journalpostId)
                         .map { behandling ->
                             val avklaringsbehovene = avklaringsbehovRepository
                                 .hentAvklaringsbehovene(behandling.id)

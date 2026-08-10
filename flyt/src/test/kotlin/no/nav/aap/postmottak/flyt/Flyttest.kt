@@ -749,7 +749,7 @@ class Flyttest : WithDependencies {
 
     private fun alleBehandlingerForJournalpost(journalpostId: JournalpostId): List<Behandling> =
         dataSource.transaction(readOnly = true) {
-            BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
+            BehandlingRepositoryImpl(it).hentAlleBehandlingerForJournalpost(journalpostId)
         }
 
     private fun triggProsesserBehandling(
