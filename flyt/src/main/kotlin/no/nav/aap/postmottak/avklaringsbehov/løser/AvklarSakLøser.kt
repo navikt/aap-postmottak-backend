@@ -14,13 +14,12 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(AvklarSakLøser::class.java)
-
 class AvklarSakLøser(
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytGateway: BehandlingsflytGateway,
 ) : AvklaringsbehovsLøser<AvklarSaksnummerLøsning> {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : LøserKonstruktør<AvklarSaksnummerLøsning> {
         override fun konstruer(

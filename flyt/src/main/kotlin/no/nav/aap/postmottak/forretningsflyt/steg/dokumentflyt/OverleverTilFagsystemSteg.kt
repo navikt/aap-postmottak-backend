@@ -20,8 +20,6 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(OverleverTilFagsystemSteg::class.java)
-
 class OverleverTilFagsystemSteg(
     private val digitaliseringsvurderingRepository: DigitaliseringsvurderingRepository,
     private val behandlingsflytKlient: BehandlingsflytGateway,
@@ -29,6 +27,8 @@ class OverleverTilFagsystemSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val overleveringVurderingRepository: OverleveringVurderingRepository,
 ) : BehandlingSteg {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : FlytSteg {
         override fun konstruer(
             repositoryProvider: RepositoryProvider,
@@ -63,8 +63,14 @@ class OverleverTilFagsystemSteg(
                 InnsendingType.KLAGE
             )
         ) {
-            val vurdering = OverleveringVurdering(true)
-            overleveringVurderingRepository.lagre(kontekst.behandlingId, OverleveringVurdering(true))
+            val skalOverleveresTilKelvin = when {
+                // Meldekort uten strukturert dokument skal ikke oversendes fagsystem da dette allerede er registrert manuelt i Kelvin
+                digitaliseringsvurdering.kategori == InnsendingType.MELDEKORT && digitaliseringsvurdering.strukturertDokument == null -> false
+                else -> true
+            }
+
+            val vurdering = OverleveringVurdering(skalOverleveresTilKelvin)
+            overleveringVurderingRepository.lagre(kontekst.behandlingId, vurdering)
             overleveringVurdering = vurdering
         }
 

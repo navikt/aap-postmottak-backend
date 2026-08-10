@@ -19,16 +19,17 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.slf4j.LoggerFactory
 
-private const val ARENA_LEGEERKLÆRING_TEMA = "OPP"
-private val log = LoggerFactory.getLogger(ArenaVideresender::class.java)
-
 class ArenaVideresender(
     val journalpostService: JournalpostService,
     val joarkClient: JournalføringService,
     val flytJobbRepository: FlytJobbRepository,
     val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object {
+        private const val ARENA_LEGEERKLÆRING_TEMA = "OPP"
+
         fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): ArenaVideresender {
             return ArenaVideresender(
                 JournalpostService.konstruer(repositoryProvider, gatewayProvider),

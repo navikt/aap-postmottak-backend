@@ -12,7 +12,7 @@ object PostmottakLogInfoProvider : JobbLogInfoProvider {
         val behandlingId = jobbInput.behandlingIdOrNull() ?: return null
 
         val query = """
-            SELECT referanse
+            SELECT referanse, journalpost_id
             FROM BEHANDLING 
             WHERE id = ?
         """.trimIndent()
@@ -23,9 +23,10 @@ object PostmottakLogInfoProvider : JobbLogInfoProvider {
             }
             setRowMapper { row ->
                 LogInformasjon(
-                    mapOf(
-                        "behandlingReferanse" to row.getString("referanse")
-                    )
+                    buildMap {
+                        put("behandlingReferanse", row.getString("referanse"))
+                        row.getStringOrNull("journalpost_id")?.let { put("journalpostId", it) }
+                    }
                 )
             }
         }

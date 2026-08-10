@@ -21,14 +21,10 @@ import no.nav.aap.postmottak.fordelingsCounter
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.erSøknad
-import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(FordelingVideresendJobbUtfører::class.java)
 
 class FordelingVideresendJobbUtfører(
     val behandlingRepository: BehandlingRepository,
@@ -38,6 +34,8 @@ class FordelingVideresendJobbUtfører(
     val journalpostService: JournalpostService,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ) : JobbUtfører {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : ProvidersJobbSpesifikasjon {
 
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {

@@ -22,8 +22,6 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(VideresendSteg::class.java)
-
 class VideresendSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val avklarTemaRepository: AvklarTemaRepository,
@@ -32,6 +30,8 @@ class VideresendSteg(
     private val flytJobbRepository: FlytJobbRepository,
     private val kopierer: GrunnlagKopierer
 ) : BehandlingSteg {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : FlytSteg {
         override fun konstruer(
             repositoryProvider: RepositoryProvider,

@@ -2,7 +2,7 @@ package no.nav.aap.postmottak.flyt
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.FakeUnleash
+import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
@@ -81,24 +81,17 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.kafka.KafkaContainer
 import java.lang.Thread.sleep
 import java.time.LocalDate
 import java.util.*
 
 
 @Fakes
-@Testcontainers
 @Execution(ExecutionMode.SAME_THREAD)
 class Flyttest : WithDependencies {
 
     companion object {
         private lateinit var dataSource: TestDataSource
-
-        @Container
-        private val kafka = KafkaContainer("apache/kafka-native:4.1.0")
 
         private val gatewayProvider = defaultGatewayProvider {
             register(FakeUnleash::class)
@@ -131,14 +124,16 @@ class Flyttest : WithDependencies {
             motor.start()
             PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-            val admin = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to kafka.bootstrapServers))
+            val admin = AdminClient.create(
+                mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to SharedKafkaTestContainer.kafka.bootstrapServers)
+            )
 
             admin.createTopics(listOf(NewTopic(JOARK_TOPIC, 1, 1))).all().get()
             admin.close()
 
             config = StreamsConfig(
                 applicationId = "postmottak",
-                brokers = kafka.bootstrapServers,
+                brokers = SharedKafkaTestContainer.kafka.bootstrapServers,
                 ssl = SslConfig(
                     truststorePath = "",
                     keystorePath = "",
@@ -150,7 +145,7 @@ class Flyttest : WithDependencies {
 
 
             producer = KafkaProducer<String, JournalfoeringHendelseRecord>(Properties().apply {
-                put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.bootstrapServers)
+                put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKafkaTestContainer.kafka.bootstrapServers)
                 put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().javaClass)
                 put(
                     ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
@@ -754,7 +749,7 @@ class Flyttest : WithDependencies {
 
     private fun alleBehandlingerForJournalpost(journalpostId: JournalpostId): List<Behandling> =
         dataSource.transaction(readOnly = true) {
-            BehandlingRepositoryImpl(it).hentAlleBehandlingerForSak(journalpostId)
+            BehandlingRepositoryImpl(it).hentAlleBehandlingerForJournalpost(journalpostId)
         }
 
     private fun triggProsesserBehandling(

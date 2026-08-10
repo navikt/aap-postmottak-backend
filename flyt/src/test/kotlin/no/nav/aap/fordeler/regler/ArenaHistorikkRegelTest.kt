@@ -3,19 +3,16 @@ package no.nav.aap.fordeler.regler
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.mockk
-import no.nav.aap.FakeArenaoppslagGateway
-import no.nav.aap.FakeArenaoppslagGateway.Companion.identHeltUtenSak
-import no.nav.aap.FakeArenaoppslagGateway.Companion.identMedSak
-import no.nav.aap.FakeArenaoppslagGateway.Companion.identMedSignifikantSak
-import no.nav.aap.FakeJournalpostGateway
-import no.nav.aap.FakeUnleash
-import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.FakeArenaoppslagGateway.Companion.identHeltUtenSak
+import no.nav.aap.postmottak.test.FakeArenaoppslagGateway.Companion.identMedSak
+import no.nav.aap.postmottak.test.FakeArenaoppslagGateway.Companion.identMedSignifikantSak
+import no.nav.aap.postmottak.test.FakeUnleash
+import no.nav.aap.postmottak.test.fakeGatewayProvider
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
@@ -33,14 +30,11 @@ class ArenaHistorikkRegelTest {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSignifikantSak)))
 
-        val gatewayRegistry = GatewayRegistry()
-            .register<FakeJournalpostGateway>()
-            .register<FakeArenaoppslagGateway>()
-            .register<FakeUnleash>()
+        val gatewayProvider = fakeGatewayProvider()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
-                GatewayProvider(gatewayRegistry)
+                gatewayProvider
             )
         val res = regelMedInputGenerator.vurder(
             RegelInput(
@@ -59,14 +53,11 @@ class ArenaHistorikkRegelTest {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSak)))
 
-        val gatewayRegistry = GatewayRegistry()
-            .register<FakeJournalpostGateway>()
-            .register<FakeArenaoppslagGateway>()
-            .register<FakeUnleash>()
+        val gatewayProvider = fakeGatewayProvider()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
-                GatewayProvider(gatewayRegistry)
+                gatewayProvider
             )
         val res = regelMedInputGenerator.vurder(
             RegelInput(
@@ -85,14 +76,11 @@ class ArenaHistorikkRegelTest {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identHeltUtenSak)))
 
-        val gatewayRegistry = GatewayRegistry()
-            .register<FakeJournalpostGateway>()
-            .register<FakeArenaoppslagGateway>()
-            .register<FakeUnleash>()
+        val gatewayProvider = fakeGatewayProvider()
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
-                GatewayProvider(gatewayRegistry)
+                gatewayProvider
             )
         val res = regelMedInputGenerator.vurder(
             RegelInput(
@@ -111,16 +99,11 @@ class ArenaHistorikkRegelTest {
         val journalpostId = JournalpostId(1)
         val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSak)))
 
-        val gatewayRegistry = GatewayRegistry()
-            .register<FakeJournalpostGateway>()
-            .register<FakeArenaoppslagGateway>()
-            .register<FakeUnleash>()
-
         FakeUnleash.rejectList.add(person.identifikator.toString())
         val regelMedInputGenerator =
             ArenaHistorikkRegel.medDataInnhenting(
                 mockk(),
-                GatewayProvider(gatewayRegistry)
+                fakeGatewayProvider()
             )
 
         val res = regelMedInputGenerator.vurder(
@@ -143,6 +126,4 @@ class ArenaHistorikkRegelTest {
             PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
         }
     }
-
-
 }

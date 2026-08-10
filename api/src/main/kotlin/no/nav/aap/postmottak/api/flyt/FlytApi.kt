@@ -4,7 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
@@ -74,7 +74,7 @@ fun NormalOpenAPIRoute.flytApi(
                     // ved avsluttet journalføringsbehandling, finn id til dokumenthåndteringsbehandlingen som hører til samme journalpost
                     val dokumentHåndteringBehnandlingId =
                         if (behandling.typeBehandling == TypeBehandling.Journalføring && behandling.status() == Status.AVSLUTTET) {
-                            behandlingRepository.hentAlleBehandlingerForSak(behandling.journalpostId)
+                            behandlingRepository.hentAlleBehandlingerForJournalpost(behandling.journalpostId)
                                 .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }
                                 ?.referanse?.referanse
                         } else null

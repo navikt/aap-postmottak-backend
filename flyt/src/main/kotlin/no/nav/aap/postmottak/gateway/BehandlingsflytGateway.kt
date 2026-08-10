@@ -51,7 +51,7 @@ object DokumentTilMeldingParser {
     fun parseTilMelding(dokument: String?, innsendingType: InnsendingType): Melding? {
         return when (innsendingType) {
             InnsendingType.SØKNAD -> DefaultJsonMapper.fromJson(dokument!!, SøknadV0::class.java)
-            InnsendingType.MELDEKORT -> DefaultJsonMapper.fromJson(dokument!!, MeldekortV0::class.java)
+            InnsendingType.MELDEKORT -> dokument?.let { DefaultJsonMapper.fromJson(dokument, MeldekortV0::class.java) }
             InnsendingType.ANNET_RELEVANT_DOKUMENT -> DefaultJsonMapper.fromJson(
                 dokument!!,
                 AnnetRelevantDokument::class.java

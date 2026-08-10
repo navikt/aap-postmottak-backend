@@ -32,7 +32,6 @@ class DigitaliserDokumentSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val avklaringsbehovRepository: AvklaringsbehovRepository
 ) : BehandlingSteg {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : FlytSteg {

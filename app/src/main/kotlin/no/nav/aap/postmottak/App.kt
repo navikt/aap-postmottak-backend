@@ -4,26 +4,15 @@ import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopPreparing
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.install
-import io.ktor.server.application.log
-import io.ktor.server.auth.authenticate
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -32,6 +21,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
@@ -59,6 +49,7 @@ import no.nav.aap.postmottak.mottak.lagMottakStream
 import no.nav.aap.postmottak.prosessering.PostmottakLogInfoProvider
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
+import no.nav.aap.tilgang.TeamAap
 import no.nav.aap.tilgang.TilgangGateway
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -132,7 +123,8 @@ internal fun Application.server(
 
     val motor = lagMotor(dataSource, repositoryRegistry, gatewayProvider)
     val mottakStream = lagMottakStream(dataSource, repositoryRegistry, gatewayProvider)
-
+    val påkrevdeRollerMotor = if (Miljø.erProd()) listOf(TeamAap.id) else emptyList()
+    
     routing {
         authenticate(IdentityProvider.ENTRA_ID.value) {
             install(NavIdentInterceptor)
@@ -146,7 +138,7 @@ internal fun Application.server(
                 finnSakApi(dataSource, repositoryRegistry)
                 digitaliseringApi(dataSource, repositoryRegistry, gatewayProvider)
                 overleveringApi(dataSource, repositoryRegistry)
-                motorApi(dataSource)
+                motorApi(dataSource, påkrevdeRollerMotor)
                 testApi(dataSource, gatewayProvider)
                 auditlogApi(dataSource, repositoryRegistry)
                 driftApi(dataSource, repositoryRegistry)

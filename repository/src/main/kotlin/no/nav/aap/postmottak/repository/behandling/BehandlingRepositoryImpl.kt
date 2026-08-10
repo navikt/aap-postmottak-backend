@@ -19,7 +19,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class BehandlingRepositoryImpl(private val connection: DBConnection) : BehandlingRepository {
     companion object : Factory<BehandlingRepositoryImpl> {
@@ -165,12 +165,12 @@ from behandling b
     ) sh on true
     """.trimIndent()
 
-    override fun hentAlleBehandlingerForSak(saksnummer: JournalpostId): List<Behandling> {
+    override fun hentAlleBehandlingerForJournalpost(journalpostId: JournalpostId): List<Behandling> {
         val query = """$behandlingerQuery WHERE journalpost_id = ?
         """.trimMargin()
 
         return connection.queryList(query) {
-            setParams { setLong(1, saksnummer.referanse) }
+            setParams { setLong(1, journalpostId.referanse) }
             setRowMapper(::mapBehandling)
         }
     }

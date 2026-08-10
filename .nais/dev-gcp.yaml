@@ -37,6 +37,8 @@ spec:
         extra:
           - "NAVident"
           - "azp_name"
+        groups:
+          - id: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5 #NAIS_TEAM_AAP
   kafka:
     pool: nav-dev
     streams: true
@@ -159,3 +161,5 @@ spec:
       value: https://ereg-services-q2.dev-fss-pub.nais.io
     - name: INTEGRASJON_EREG_SCOPE
       value: api://dev-fss.arbeidsforhold.ereg-services/.default
+    - name: NAIS_TEAM_AAP
+      value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5

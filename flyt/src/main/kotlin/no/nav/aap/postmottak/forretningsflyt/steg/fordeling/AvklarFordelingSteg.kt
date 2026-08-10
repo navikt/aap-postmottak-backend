@@ -53,7 +53,7 @@ class AvklarFordelingSteg(
     private val arenaoppslagGateway: ArenaoppslagGateway,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ): BehandlingSteg {
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : FlytSteg {
         override fun konstruer(
@@ -96,7 +96,8 @@ class AvklarFordelingSteg(
                     status = statusMedÅrsakOgRegelresultat.status,
                     årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
                     enhet = hentEnhet(safJournalpost),
-                    regelresultat = statusMedÅrsakOgRegelresultat.regelresultat
+                    regelresultat = statusMedÅrsakOgRegelresultat.regelresultat,
+                    brukerId = safJournalpost.bruker?.id
                 )
             )
             prometheus.journalpostCounter(

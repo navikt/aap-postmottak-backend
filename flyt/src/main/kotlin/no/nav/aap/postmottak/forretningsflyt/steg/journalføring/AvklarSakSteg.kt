@@ -23,14 +23,14 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(AvklarSakSteg::class.java)
-
 class AvklarSakSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytClient: BehandlingsflytGateway,
     private val avklarTemaRepository: AvklarTemaRepository
 ) : BehandlingSteg {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : FlytSteg {
         override fun konstruer(
             repositoryProvider: RepositoryProvider,

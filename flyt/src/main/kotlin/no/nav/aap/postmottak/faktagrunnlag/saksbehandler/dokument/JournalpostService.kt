@@ -39,7 +39,11 @@ class JournalpostService(
     }
 
     fun tilJournalpostMedDokumentTitler(safJournalpost: SafJournalpost): Journalpost {
-        requireNotNull(safJournalpost.bruker?.id) { "Journalpost ${safJournalpost.journalpostId} har ikke brukerid" }
+        requireNotNull(safJournalpost.bruker?.id) {
+            "Journalpost ${safJournalpost.journalpostId} har ikke brukerId " +
+                    "(brukerType=${safJournalpost.bruker?.type}, journalstatus=${safJournalpost.journalstatus})"
+        }
+
         if (safJournalpost.bruker.type == BrukerIdType.ORGNR) {
             throw IllegalStateException(
                 "Kan ikke kjøre finnOgOppdaterPerson for brukertype ORGNR " +

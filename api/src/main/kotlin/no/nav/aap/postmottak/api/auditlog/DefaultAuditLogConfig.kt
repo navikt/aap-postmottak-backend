@@ -10,12 +10,12 @@ import no.nav.aap.tilgang.auditlog.AuditLogPathParamConfig
 import no.nav.aap.tilgang.auditlog.PathBrukerIdentResolver
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.UUID
 import javax.sql.DataSource
 
 object DefaultAuditLogConfig {
-    val auditLogger: Logger = LoggerFactory.getLogger("auditLogger")
-    val app = requiredConfigForKey("NAIS_APP_NAME")
+    private val auditLogger: Logger = LoggerFactory.getLogger("auditLogger")
+    private val app = requiredConfigForKey("NAIS_APP_NAME")
 
     fun fraBehandlingPathParam(pathParam: String, dataSource: DataSource, repositoryRegistry: RepositoryRegistry) =
         AuditLogPathParamConfig(

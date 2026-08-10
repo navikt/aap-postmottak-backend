@@ -33,6 +33,9 @@ jobs:
   publiser-kontrakt:
     if: github.ref == 'refs/heads/main' # Kun publiser kontrakt fra main
     needs: build
+    concurrency:
+      group: publiser-kontrakt
+      queue: max
     permissions:
       contents: write
       packages: write
@@ -43,7 +46,7 @@ jobs:
         with:
           fetch-depth: 0
           #  Ha denne tidlig, så action kan skippe raskt om ingen endringer.
-      - uses: paulhatch/semantic-version@v6.0.2
+      - uses: paulhatch/semantic-version@v6.0.3
         id: tag
         with:
           change_path: "kontrakt/"
@@ -55,7 +58,7 @@ jobs:
         with:
           java-version: 21
           distribution: 'temurin'
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@v6.3.0
         with:
           gradle-version: wrapper
       - id: notes
@@ -90,6 +93,7 @@ jobs:
       id-token: write
     concurrency:
       group: deploy-dev
+      queue: max
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     secrets: inherit
     with:
@@ -104,6 +108,7 @@ jobs:
     needs: [ publiser-kontrakt, deploy-dev ]
     concurrency:
       group: deploy-prod
+      queue: max
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     secrets: inherit
     with:

@@ -5,24 +5,21 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.FakeUnleash
-import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.gateway.GatewayRegistry
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.gateway.BrukerIdType
-import no.nav.aap.postmottak.gateway.EnhetsregisteretGateway
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
-import no.nav.aap.postmottak.klient.pdl.PdlGraphqlKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakeGatewayProvider
 import no.nav.aap.postmottak.test.fakes.TestIdenter
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.assertj.core.api.Assertions.assertThat
@@ -34,13 +31,10 @@ import java.util.*
 @Fakes
 class JoarkClientTest {
 
-    private val gatewayRegistry = GatewayRegistry()
-        .register<SafGraphqlClientCredentialsClient>()
-        .register<PdlGraphqlKlient>()
-        .register<FakeUnleash>()
-        .register<EREGKlient>()
-
-    private val gatewayProvider = GatewayProvider(gatewayRegistry)
+    private val gatewayProvider = fakeGatewayProvider {
+        register<EREGKlient>()
+        register<SafGraphqlClientCredentialsClient>()
+    }
 
     @BeforeEach
     fun setup() {

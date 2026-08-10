@@ -29,9 +29,9 @@ import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
-import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.nomFake
 import no.nav.aap.postmottak.test.fakes.norgFake
 import no.nav.aap.postmottak.test.fakes.safFake
@@ -45,9 +45,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
-private const val POSTMOTTAK_BACKEND = "postmottak-backend"
-private val logger = LoggerFactory.getLogger(FakesExtension::class.java)
-
 class FakePersoner(val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()) {
     fun leggTil(testPerson: TestPerson) {
         fakePersoner[testPerson.aktivIdent().identifikator] = testPerson
@@ -55,7 +52,7 @@ class FakePersoner(val fakePersoner: MutableMap<String, TestPerson> = mutableMap
 }
 
 class FakeServers : AutoCloseable {
-    private val log: Logger = LoggerFactory.getLogger(FakeServers::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     private val texas = embeddedServer(Netty, port = 0) { texasFakes() }
     private val oppgave = embeddedServer(Netty, port = 0, module = { oppgaveFake() })
@@ -83,6 +80,7 @@ class FakeServers : AutoCloseable {
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
         System.setProperty("NAIS_APP_NAME", "postmottak-backend")
+        System.setProperty("NAIS_TEAM_AAP", "nais-team-aap")
 
         // Texas
         System.setProperty("NAIS_TOKEN_ENDPOINT", "http://localhost:${texas.port()}/token")
@@ -186,7 +184,7 @@ class FakeServers : AutoCloseable {
     }
 
     override fun close() {
-        logger.info("Closing Servers.")
+        log.info("Closing Servers.")
         if (!started.get()) {
             return
         }

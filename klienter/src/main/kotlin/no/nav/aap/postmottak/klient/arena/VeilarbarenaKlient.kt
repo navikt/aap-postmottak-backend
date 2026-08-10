@@ -24,7 +24,8 @@ private data class HentOppfølgingsenhetResponse(
 )
 
 class VeilarbarenaKlient : VeilarbarenaGateway {
-    private val log = LoggerFactory.getLogger(VeilarbarenaKlient::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object : Factory<VeilarbarenaKlient> {
         private val veilarbarenaKlient by lazy { VeilarbarenaKlient() }
         override fun konstruer(): VeilarbarenaKlient = veilarbarenaKlient
@@ -58,11 +59,11 @@ class VeilarbarenaKlient : VeilarbarenaGateway {
             // Tjenesten returner 404 dersom det ikke finnes noen oppfølgingsenhet for oppgitt fnr
             return null
         }
-        
+
         if (resp?.oppfolgingsenhet != null) {
             log.info("Oppfølgingsenhet.length: ${resp.oppfolgingsenhet.length}")
         }
-        
+
         return resp?.oppfolgingsenhet
     }
 

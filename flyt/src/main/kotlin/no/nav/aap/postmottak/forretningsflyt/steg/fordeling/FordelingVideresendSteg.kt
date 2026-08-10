@@ -24,7 +24,6 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import org.slf4j.LoggerFactory
 
-
 class FordelingVideresendSteg(
     val avklarFordelingRepository: AvklarFordelingRepository,
     val behandlingRepository: BehandlingRepository,
@@ -33,7 +32,7 @@ class FordelingVideresendSteg(
     val arenaVideresender: ArenaVideresender,
     val prometheus: MeterRegistry = SimpleMeterRegistry()
 ): BehandlingSteg {
-    val logger = LoggerFactory.getLogger(FordelingVideresendSteg::class.java)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object : FlytSteg {
         override fun konstruer(

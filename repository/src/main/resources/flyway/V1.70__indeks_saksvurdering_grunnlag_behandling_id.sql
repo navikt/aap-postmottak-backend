@@ -1,0 +1,1 @@
+CREATE INDEX idx_saksvurdering_grunnlag_behandling_id ON SAKSVURDERING_GRUNNLAG (BEHANDLING_ID);

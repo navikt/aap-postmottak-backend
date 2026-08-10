@@ -20,13 +20,12 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.slf4j.LoggerFactory
 import java.net.URI
 
-
-private val log = LoggerFactory.getLogger(GosysOppgaveKlient::class.java)
-
 /**
  * https://oppgave.intern.dev.nav.no/ for Swagger
  */
 class GosysOppgaveKlient : GosysOppgaveGateway {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     private val url = URI.create(requiredConfigForKey("INTEGRASJON_OPPGAVEAPI_URL"))
     val config = ClientConfig(
         scope = requiredConfigForKey("INTEGRASJON_OPPGAVEAPI_SCOPE"),
@@ -42,7 +41,11 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
         override fun konstruer(): GosysOppgaveKlient = gosysOppgaveKlient
     }
 
-    override fun opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId: JournalpostId, personident: String, journalførendeEnhet: String?) {
+    override fun opprettEndreTemaOppgaveHvisIkkeEksisterer(
+        journalpostId: JournalpostId,
+        personident: String,
+        journalførendeEnhet: String?
+    ) {
         opprettOppgaveHvisIkkeEksisterer(
             OpprettOppgaveRequest(
                 oppgavetype = Oppgavetype.JOURNALFØRING.verdi,

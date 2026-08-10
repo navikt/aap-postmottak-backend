@@ -17,8 +17,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(StegOrkestrator::class.java)
-
 /**
  * Håndterer den definerte prosessen i et gitt steg, flytter behandlingen gjennom de forskjellige fasene internt i et
  * steg. Et steg beveger seg gjennom flere faser som har forskjellig ansvar.
@@ -39,6 +37,7 @@ class StegOrkestrator(
     private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val stegKonstruktør: StegKonstruktør
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     constructor(
         repositoryProvider: RepositoryProvider,

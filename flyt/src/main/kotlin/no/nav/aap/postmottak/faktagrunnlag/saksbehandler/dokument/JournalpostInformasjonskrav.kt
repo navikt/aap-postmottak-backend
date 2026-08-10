@@ -21,8 +21,7 @@ class JournalpostInformasjonskrav(
     private val saksnummerRepository: SaksnummerRepository,
     private val avklarTemaRepository: AvklarTemaRepository
 ) : Informasjonskrav {
-    private val log = LoggerFactory.getLogger(JournalpostInformasjonskrav::class.java)
-
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : Informasjonskravkonstruktør {
         override fun konstruer(
@@ -53,11 +52,19 @@ class JournalpostInformasjonskrav(
                         "Har status: ${safJournalpost.journalstatus}"
             }
 
-            log.info("Journalpost ${safJournalpost.journalpostId} har orgnr som bruker og er journalført. " +
-                    "Lagrer journalposten uten å sjekke for relevante endringer.")
+            log.info(
+                "Journalpost ${safJournalpost.journalpostId} har orgnr som bruker og er journalført. " +
+                        "Lagrer journalposten uten å sjekke for relevante endringer."
+            )
 
             // Lagre oppdatert journalpost med forrige person for å unngå følgefeil i oppgave
-            val oppdatertJournalpost = safJournalpost.tilJournalpost(persistertJournalpost?.person!!)
+            val person = persistertJournalpost?.person
+                ?: throw IllegalStateException(
+                    "Journalpost (journalpostId=${safJournalpost.journalpostId}, " +
+                            "status=${safJournalpost.journalstatus}) med orgnr som bruker har ikke persistert person. "
+                )
+
+            val oppdatertJournalpost = safJournalpost.tilJournalpost(person)
             journalpostRepository.lagre(oppdatertJournalpost)
 
             return IKKE_ENDRET // Endringen er ikke relevant når journalposten er ferdig journalført.

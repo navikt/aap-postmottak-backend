@@ -48,8 +48,6 @@ fun getCheckedOutGitCommitHash(): String {
 }
 
 dependencies {
-    implementation(libs.ktorSerializationJackson)
-
     implementation(libs.jacksonDatatypeJsr310)
     implementation(libs.jacksonDatabind)
     implementation(libs.micrometerRegistryPrometheus)
@@ -69,8 +67,6 @@ dependencies {
     implementation(libs.motorApi)
     implementation(libs.server)
     implementation(libs.hikariCp)
-    implementation(libs.flywayDatabasePostgresql)
-    runtimeOnly(libs.postgresql)
     // Auditlogging
     runtimeOnly(libs.logbackSyslog)
 

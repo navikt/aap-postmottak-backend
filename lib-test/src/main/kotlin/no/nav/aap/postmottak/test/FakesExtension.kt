@@ -11,10 +11,9 @@ import org.junit.jupiter.api.extension.ParameterResolver
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-internal class FakesExtension : BeforeAllCallback,
-    BeforeEachCallback, ParameterResolver {
+internal class FakesExtension : BeforeAllCallback, BeforeEachCallback, ParameterResolver {
 
-    private val log: Logger = LoggerFactory.getLogger(FakeServers::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }

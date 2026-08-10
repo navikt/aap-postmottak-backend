@@ -47,7 +47,7 @@ class AutomatiskJournalføringJobbUtfører(
 
     }
 
-    private var log = LoggerFactory.getLogger(this::class.java)
+    private var log = LoggerFactory.getLogger(javaClass)
 
     override fun utførArena(input: JobbInput, journalpost: Journalpost) {
         val kontekst = input.getAutomatiskJournalføringKontekst()

@@ -38,7 +38,7 @@ class FordelingRegelJobbUtfører(
     private val enhetsutreder: Enhetsutreder,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) : JobbUtfører {
-    private val log = LoggerFactory.getLogger(FordelingRegelJobbUtfører::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : ProvidersJobbSpesifikasjon {
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
@@ -135,7 +135,8 @@ class FordelingRegelJobbUtfører(
                 status = statusMedÅrsakOgRegelresultat.status,
                 årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
                 enhet = hentEnhet(safJournalpost),
-                regelresultat = statusMedÅrsakOgRegelresultat.regelresultat
+                regelresultat = statusMedÅrsakOgRegelresultat.regelresultat,
+                brukerId = safJournalpost.bruker?.id
             )
         )
         prometheus.journalpostCounter(

@@ -14,7 +14,5 @@ public data class DokumentflytStoppetHendelse(
     val status: Status,
     val avklaringsbehov: List<AvklaringsbehovHendelseDto>,
     val opprettetTidspunkt: LocalDateTime,
-    val hendelsesTidspunkt: LocalDateTime,
-    @Deprecated("Dette må oppgave utlede selv i framtiden.")
-    val saksnummer: String? = null
+    val hendelsesTidspunkt: LocalDateTime
 )

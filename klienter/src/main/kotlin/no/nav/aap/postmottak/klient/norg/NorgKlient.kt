@@ -37,7 +37,7 @@ class NorgKlient : NorgGateway {
         override fun konstruer(): NorgKlient = norgKlient
     }
 
-    private val log = LoggerFactory.getLogger(NorgKlient::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     private val url = URI.create(requiredConfigForKey("INTEGRASJON_NORG_URL"))
     private val config = ClientConfig()

@@ -1,4 +1,4 @@
-package no.nav.aap
+package no.nav.aap.postmottak.test
 
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.StatistikkGateway
@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 
 class FakeStatistikkGateway : StatistikkGateway {
     private val logger = LoggerFactory.getLogger(javaClass)
+
     private val hendelser = mutableListOf<DokumentflytStoppetHendelse>()
     companion object : Factory<FakeStatistikkGateway> {
         override fun konstruer(): FakeStatistikkGateway {
