@@ -1,3 +1,7 @@
+-- Nytt felt for å støtte plukkJobbV2 som er mer effektiv enn plukkJobb
+alter table jobb
+    add column kjorbar boolean not null default false;
+
 --    Sørger for unikhet på jobb for en sak/behandling og type med nye plukkV2
 CREATE UNIQUE INDEX UX_JOBB_EKSKLUSIV_AKTIV ON JOBB (COALESCE(SAK_ID, -1), COALESCE(BEHANDLING_ID, -1), TYPE)
     WHERE (STATUS = 'FEILET' OR (STATUS = 'KLAR' AND KJORBAR))
