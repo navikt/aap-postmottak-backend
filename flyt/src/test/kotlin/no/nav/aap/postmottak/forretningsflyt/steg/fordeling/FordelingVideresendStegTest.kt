@@ -10,6 +10,7 @@ import no.nav.aap.fordeler.arena.ArenaVideresender
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
@@ -26,6 +27,7 @@ internal class FordelingVideresendStegTest {
     private val behandlingRepository = mockk<BehandlingRepository>(relaxed = true)
     private val flytJobbRepository = mockk<FlytJobbRepository>(relaxed = true)
     private val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepository>(relaxed = true)
+    private val journalpostService = mockk<JournalpostService>(relaxed = true)
     private val arenaVideresender = mockk<ArenaVideresender>(relaxed = true)
     private val prometheus = SimpleMeterRegistry()
 
@@ -35,6 +37,7 @@ internal class FordelingVideresendStegTest {
         flytJobbRepository,
         innkommendeJournalpostRepository,
         arenaVideresender,
+        journalpostService,
         prometheus,
     )
 
@@ -48,6 +51,9 @@ internal class FordelingVideresendStegTest {
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns
             AvklarFordelingVurdering(AapSystem.KELVIN, "KELVIN", LocalDateTime.now())
         every { behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring) } returns journalføringBehandlingId
+        every { journalpostService.hentJournalpost(journalpostId) } returns mockk {
+            every { erSøknad() } returns true
+        }
 
         steg.utfør(kontekst)
 
@@ -57,7 +63,8 @@ internal class FordelingVideresendStegTest {
                 assertThat(it.type()).isEqualTo(ProsesserBehandlingJobbUtfører.type)
             })
         }
-        assertThat(prometheus.counter("fordeling_videresend", "system", "kelvin").count()).isEqualTo(1.0)
+        val counter = prometheus.counter("fordeling_videresend", "system", "kelvin", "erSoknad", "true")
+        assertThat(counter.count()).isEqualTo(1.0)
     }
 
     @Test
@@ -66,11 +73,15 @@ internal class FordelingVideresendStegTest {
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns
             AvklarFordelingVurdering(AapSystem.ARENA, "KELVIN", LocalDateTime.now())
         every { innkommendeJournalpostRepository.hentId(journalpostId) } returns innkommendeId
+        every { journalpostService.hentJournalpost(journalpostId) } returns mockk {
+            every { erSøknad() } returns true
+        }
 
         steg.utfør(kontekst)
 
         verify { arenaVideresender.videresendJournalpostTilArena(journalpostId, innkommendeId) }
-        assertThat(prometheus.counter("fordeling_videresend", "system", "arena").count()).isEqualTo(1.0)
+        val counter = prometheus.counter("fordeling_videresend", "system", "arena", "erSoknad", "true")
+        assertThat(counter.count()).isEqualTo(1.0)
     }
 
     @Test
