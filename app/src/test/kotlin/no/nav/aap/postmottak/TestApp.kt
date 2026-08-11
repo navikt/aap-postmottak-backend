@@ -64,8 +64,6 @@ private fun opprettBehandlingManuellFordelingDigitalSøknad(connection: DBConnec
 }
 
 private fun opprettBehandlingManuellFordelingPapirSøknad(connection: DBConnection) {
-    // Papirsøknad for samme type person -> stopper på AVKLAR_FORDELING.
-    // Velges KELVIN må saksbehandler i tillegg løse AVKLAR_SAK i journalføringsbehandlingen.
     opprettFordelingsbehandling(
         connection = connection,
         journalpostId = TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT,
