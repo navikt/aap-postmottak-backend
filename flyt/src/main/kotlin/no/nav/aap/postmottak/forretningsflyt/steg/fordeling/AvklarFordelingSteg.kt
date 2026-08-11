@@ -38,6 +38,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
@@ -51,9 +53,11 @@ class AvklarFordelingSteg(
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val arenaService: ArenaService,
     private val arenaoppslagGateway: ArenaoppslagGateway,
+    private val unleashGateway: UnleashGateway,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ): BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
+
 
     companion object : FlytSteg {
         override fun konstruer(
@@ -69,6 +73,7 @@ class AvklarFordelingSteg(
                 gatewayProvider.provide(),
                 ArenaService(gatewayProvider),
                 gatewayProvider.provide(),
+                gatewayProvider.provide(UnleashGateway::class),
                 PrometheusProvider.prometheus
             )
         }
@@ -85,7 +90,7 @@ class AvklarFordelingSteg(
         }
 
         val statusMedÅrsakOgRegelresultat = evaluerDokument(kontekst)
-        if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
+        val skalAvklaresManuelt = if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
             // Hvis dokumentet allerede er lagret, vil status være IGNORERT med årsak ALLEREDE_JOURNALFØRT, derfor skjer dette kun 1 gang
             val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
             innkommendeJournalpostRepository.lagre(
@@ -105,14 +110,22 @@ class AvklarFordelingSteg(
                 filtype = safJournalpost.originalFiltype()
             ).increment()
 
-            if (skalTilManuellVurdering(safJournalpost, kontekst)) {
-                log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
-                return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
-            }
+            unleashGateway.isEnabled(PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena) &&
+                    skalTilManuellVurdering(safJournalpost, kontekst)
+        } else {
+            false
         }
 
-        avklarFordelingRepository.lagreVurdering(kontekst.behandlingId, statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN"))
-        return Fullført
+        return if (skalAvklaresManuelt) {
+            log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
+            FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
+        } else {
+            avklarFordelingRepository.lagreVurdering(
+                kontekst.behandlingId,
+                statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN")
+            )
+            Fullført
+        }
     }
 
     private fun skalTilManuellVurdering(safJournalpost: SafJournalpost, kontekst: FlytKontekst): Boolean {

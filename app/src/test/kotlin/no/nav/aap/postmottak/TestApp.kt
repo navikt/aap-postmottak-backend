@@ -59,7 +59,6 @@ private fun opprettBehandlingManuellFordelingDigitalSøknad(connection: DBConnec
     opprettFordelingsbehandling(
         connection = connection,
         journalpostId = TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT,
-        beskrivelse = "Manuell fordeling (digital søknad)"
     )
 }
 
@@ -67,19 +66,16 @@ private fun opprettBehandlingManuellFordelingPapirSøknad(connection: DBConnecti
     opprettFordelingsbehandling(
         connection = connection,
         journalpostId = TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT,
-        beskrivelse = "Manuell fordeling (papirsøknad)"
     )
 }
 
 private fun opprettFordelingsbehandling(
     connection: DBConnection,
     journalpostId: JournalpostId,
-    beskrivelse: String
 ) {
     val behandlingRepository = BehandlingRepositoryImpl(connection)
     val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
 
-    println("$beskrivelse: http://localhost:3000/postmottak/${behandlingRepository.hent(behandlingId).referanse.referanse}/")
     FlytJobbRepository(connection).leggTil(
         JobbInput(ProsesserBehandlingJobbUtfører)
             .forBehandling(journalpostId.referanse, behandlingId.id)

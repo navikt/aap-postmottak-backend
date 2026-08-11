@@ -32,6 +32,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.TestObjekter.lagTestJournalpost
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -46,6 +48,9 @@ internal class AvklarFordelingStegTest {
     private val gosysOppgaveGateway = mockk<GosysOppgaveGateway>(relaxed = true)
     private val arenaService = mockk<ArenaService>(relaxed = true)
     private val arenaoppslagGateway = mockk<ArenaoppslagGateway>(relaxed = true)
+    private val unleashGateway = mockk<UnleashGateway>(relaxed = true).also {
+        every { it.isEnabled(any<PostmottakFeature>()) } returns true
+    }
 
     private val steg = AvklarFordelingSteg(
         regelService,
@@ -56,6 +61,7 @@ internal class AvklarFordelingStegTest {
         gosysOppgaveGateway,
         arenaService,
         arenaoppslagGateway,
+        unleashGateway,
     )
 
     private val journalpostId = JournalpostId(1L)
