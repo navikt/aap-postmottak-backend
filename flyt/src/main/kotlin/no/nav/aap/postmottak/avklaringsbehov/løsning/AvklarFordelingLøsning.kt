@@ -10,10 +10,7 @@ import no.nav.aap.postmottak.avklaringsbehov.løser.AvklarFordelingLøser
 import no.nav.aap.postmottak.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AVKLAR_FORDELING_KODE
 
-/**
- * Saksbehandler sitt valg av system ved manuell vurdering av fordeling.
- * BEGGE er foreløpig ikke støttet – valget avvises ved løsing (rutingen implementeres senere).
- */
+
 enum class FordelingSystemValg {
     ARENA, KELVIN, BEGGE
 }

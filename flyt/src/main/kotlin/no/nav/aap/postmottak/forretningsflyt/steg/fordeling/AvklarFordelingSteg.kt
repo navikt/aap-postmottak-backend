@@ -105,8 +105,6 @@ class AvklarFordelingSteg(
                 filtype = safJournalpost.originalFiltype()
             ).increment()
 
-            // Dersom saken er "kant-i-kant" med en eksisterende Arena-sak må en saksbehandler
-            // vurdere om søknaden skal til Arena eller Kelvin.
             if (skalTilManuellVurdering(safJournalpost, kontekst)) {
                 log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
                 return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
@@ -118,8 +116,6 @@ class AvklarFordelingSteg(
     }
 
     private fun skalTilManuellVurdering(safJournalpost: SafJournalpost, kontekst: FlytKontekst): Boolean {
-        // Kun søknader (papir og digitale) skal kunne fordeles manuelt. Ettersendelser, legeerklæringer,
-        // meldekort osv. rutes maskinelt som før - og vi unngår unødvendige oppslag mot Arena.
         val brevkode = safJournalpost.hoveddokument()?.brevkode
         if (brevkode != Brevkoder.SØKNAD.kode) {
             log.info(

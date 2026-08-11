@@ -22,8 +22,6 @@ fun Application.arenaoppslagFake() {
         }
     }
 
-    // Identer som skal se ut som om de har en (kant-i-kant) sak i Arena, slik at
-    // fordelingen havner på manuell vurdering (AVKLAR_FORDELING).
     val identerMedSakIArena = setOf(
         TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator,
         TestIdenter.DEFAULT_IDENT.identifikator, // 21345345210
@@ -75,8 +73,6 @@ fun Application.arenaoppslagFake() {
 
         post("/api/v1/person/maksdato") {
             val parsedRequest = call.receive<MaksdatoRequest>()
-            // maxdatoAap er satt "kant-i-kant" (innen 20 uker etter journalpostens mottattDato 2020-12-01)
-            // slik at ArenaService.skalManueltFordeles gir true, og fordelingen havner til manuell vurdering.
             if (parsedRequest.personidentifikator == TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator) {
                 call.respond(
                     """
