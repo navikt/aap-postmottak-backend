@@ -117,14 +117,7 @@ class AvklarFordelingSteg(
 
     private fun skalTilManuellVurdering(safJournalpost: SafJournalpost, kontekst: FlytKontekst): Boolean {
         val brevkode = safJournalpost.hoveddokument()?.brevkode
-        if (brevkode != Brevkoder.SØKNAD.kode) {
-            log.info(
-                "Journalpost ${kontekst.journalpostId} har brevkode $brevkode og er ikke en søknad" +
-                        " - vurderes ikke manuelt"
-            )
-            return false
-        }
-
+        if (brevkode != Brevkoder.SØKNAD.kode) { return false }
         val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
 
         return runBlocking {
