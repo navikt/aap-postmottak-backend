@@ -113,7 +113,7 @@ class AvklarFordelingSteg(
         }
 
         val skalAvklaresManuelt =
-            unleashGateway.isEnabled(PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena) &&
+            unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
                     skalTilManuellVurdering(safJournalpost, kontekst)
         if (skalAvklaresManuelt) {
             log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
