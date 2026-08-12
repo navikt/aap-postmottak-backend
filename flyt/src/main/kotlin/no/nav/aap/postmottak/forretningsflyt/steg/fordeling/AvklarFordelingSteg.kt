@@ -55,7 +55,7 @@ class AvklarFordelingSteg(
     private val arenaoppslagGateway: ArenaoppslagGateway,
     private val unleashGateway: UnleashGateway,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
-): BehandlingSteg {
+) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
 
@@ -119,24 +119,20 @@ class AvklarFordelingSteg(
             log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
             return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
         } else {
-
-            avklarFordelingRepository.lagreVurdering(kontekst.behandlingId, statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN"))
+            avklarFordelingRepository.lagreVurdering(
+                kontekst.behandlingId,
+                statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN")
+            )
             return Fullført
 
         }
-
-    }
-
-    private fun tellJournalpost(safJournalpost: SafJournalpost) {
-        prometheus.journalpostCounter(
-            brevkode = safJournalpost.hoveddokument()?.brevkode,
-            filtype = safJournalpost.originalFiltype()
-        ).increment()
     }
 
     private fun skalTilManuellVurdering(safJournalpost: SafJournalpost, kontekst: FlytKontekst): Boolean {
         val brevkode = safJournalpost.hoveddokument()?.brevkode
-        if (brevkode != Brevkoder.SØKNAD.kode) { return false }
+        if (brevkode != Brevkoder.SØKNAD.kode) {
+            return false
+        }
         val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
 
         return runBlocking {
@@ -252,7 +248,7 @@ class AvklarFordelingSteg(
         fun toFordelingVurdering(vurdertAv: String): AvklarFordelingVurdering {
             val system = if (status != InnkommendeJournalpostStatus.EVALUERT || regelresultat == null) {
                 AapSystem.IGNORERT
-            } else if(regelresultat.skalTilKelvin()) {
+            } else if (regelresultat.skalTilKelvin()) {
                 AapSystem.KELVIN
             } else {
                 AapSystem.ARENA
