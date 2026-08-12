@@ -90,9 +90,10 @@ class AvklarFordelingSteg(
         }
 
         val statusMedÅrsakOgRegelresultat = evaluerDokument(kontekst)
-        val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
-
+        var skalAvklaresManuelt = false
         if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
+            val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
+
             // Hvis dokumentet allerede er lagret, vil status være IGNORERT med årsak ALLEREDE_JOURNALFØRT, derfor skjer dette kun 1 gang
             innkommendeJournalpostRepository.lagre(
                 InnkommendeJournalpost(
@@ -110,11 +111,14 @@ class AvklarFordelingSteg(
                 brevkode = safJournalpost.hoveddokument()?.brevkode,
                 filtype = safJournalpost.originalFiltype()
             ).increment()
+
+
+            skalAvklaresManuelt =
+                unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
+                        skalTilManuellVurdering(safJournalpost, kontekst)
         }
 
-        val skalAvklaresManuelt =
-            unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
-                    skalTilManuellVurdering(safJournalpost, kontekst)
+
         if (skalAvklaresManuelt) {
             log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
             return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
@@ -129,7 +133,8 @@ class AvklarFordelingSteg(
     }
 
     private fun skalTilManuellVurdering(safJournalpost: SafJournalpost, kontekst: FlytKontekst): Boolean {
-        val brevkode = safJournalpost.hoveddokument()?.brevkode
+        val brevkode = safJournalpost.hoveddokument()?.brevkode ?: return false
+
         if (brevkode != Brevkoder.SØKNAD.kode) {
             return false
         }
