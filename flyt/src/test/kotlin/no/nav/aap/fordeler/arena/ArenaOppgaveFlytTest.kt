@@ -107,6 +107,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
         every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
+        every { unleashGateway.isEnabled(PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena) } returns true
 
         dataSource.transaction { connection ->
             val behandlingId = BehandlingRepositoryImpl(connection)
@@ -150,6 +151,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
             )))
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
         every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
+        every { unleashGateway.isEnabled(PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena) } returns true
 
         dataSource.transaction { connection ->
             val behandlingId = BehandlingRepositoryImpl(connection)
@@ -213,6 +215,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
         )
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
         every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
+        every { unleashGateway.isEnabled(PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena) } returns true
 
         val behandlingId = dataSource.transaction { connection ->
             val id = BehandlingRepositoryImpl(connection)
