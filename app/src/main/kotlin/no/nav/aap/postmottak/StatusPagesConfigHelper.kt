@@ -46,7 +46,6 @@ object StatusPagesConfigHelper {
                     )
                 }
 
-
                 is ManglerTilgangException -> {
                     val uri = call.request.local.uri
                     logger.info("Ikke tilgang til endepunkt $uri.", cause)
