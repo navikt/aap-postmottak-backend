@@ -90,55 +90,41 @@ class AvklarFordelingSteg(
         }
 
         val statusMedÅrsakOgRegelresultat = evaluerDokument(kontekst)
-
-        if (statusMedÅrsakOgRegelresultat.status != InnkommendeJournalpostStatus.EVALUERT) {
-            return lagreVurderingOgFullfør(kontekst, statusMedÅrsakOgRegelresultat)
-        }
-
-        // Hvis dokumentet allerede er lagret, vil status være IGNORERT med årsak ALLEREDE_JOURNALFØRT, derfor skjer dette kun 1 gang
         val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
-        lagreInnkommendeJournalpost(safJournalpost, statusMedÅrsakOgRegelresultat)
-        tellJournalpost(safJournalpost)
+
+        if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
+            // Hvis dokumentet allerede er lagret, vil status være IGNORERT med årsak ALLEREDE_JOURNALFØRT, derfor skjer dette kun 1 gang
+            innkommendeJournalpostRepository.lagre(
+                InnkommendeJournalpost(
+                    journalpostId = JournalpostId(safJournalpost.journalpostId),
+                    brevkode = safJournalpost.hoveddokument()?.brevkode,
+                    behandlingstema = safJournalpost.behandlingstema,
+                    status = statusMedÅrsakOgRegelresultat.status,
+                    årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
+                    enhet = hentEnhet(safJournalpost),
+                    regelresultat = statusMedÅrsakOgRegelresultat.regelresultat,
+                    brukerId = safJournalpost.bruker?.id
+                )
+            )
+            prometheus.journalpostCounter(
+                brevkode = safJournalpost.hoveddokument()?.brevkode,
+                filtype = safJournalpost.originalFiltype()
+            ).increment()
+        }
 
         val skalAvklaresManuelt =
             unleashGateway.isEnabled(PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena) &&
                     skalTilManuellVurdering(safJournalpost, kontekst)
-
-        return if (skalAvklaresManuelt) {
+        if (skalAvklaresManuelt) {
             log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
-            FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
+            return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
         } else {
-            lagreVurderingOgFullfør(kontekst, statusMedÅrsakOgRegelresultat)
+
+            avklarFordelingRepository.lagreVurdering(kontekst.behandlingId, statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN"))
+            return Fullført
+
         }
-    }
 
-    private fun lagreVurderingOgFullfør(
-        kontekst: FlytKontekst,
-        statusMedÅrsakOgRegelresultat: StatusMedÅrsakOgRegelresultat
-    ): StegResultat {
-        avklarFordelingRepository.lagreVurdering(
-            kontekst.behandlingId,
-            statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN")
-        )
-        return Fullført
-    }
-
-    private fun lagreInnkommendeJournalpost(
-        safJournalpost: SafJournalpost,
-        statusMedÅrsakOgRegelresultat: StatusMedÅrsakOgRegelresultat
-    ) {
-        innkommendeJournalpostRepository.lagre(
-            InnkommendeJournalpost(
-                journalpostId = JournalpostId(safJournalpost.journalpostId),
-                brevkode = safJournalpost.hoveddokument()?.brevkode,
-                behandlingstema = safJournalpost.behandlingstema,
-                status = statusMedÅrsakOgRegelresultat.status,
-                årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
-                enhet = hentEnhet(safJournalpost),
-                regelresultat = statusMedÅrsakOgRegelresultat.regelresultat,
-                brukerId = safJournalpost.bruker?.id
-            )
-        )
     }
 
     private fun tellJournalpost(safJournalpost: SafJournalpost) {
