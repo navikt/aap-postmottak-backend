@@ -90,9 +90,12 @@ class AvklarFordelingSteg(
         }
 
         val statusMedÅrsakOgRegelresultat = evaluerDokument(kontekst)
-        var skalAvklaresManuelt = false
+        val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
+
+        var skalAvklaresManuelt =
+            unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
+                    skalTilManuellVurdering(safJournalpost, kontekst)
         if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
-            val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
 
             // Hvis dokumentet allerede er lagret, vil status være IGNORERT med årsak ALLEREDE_JOURNALFØRT, derfor skjer dette kun 1 gang
             innkommendeJournalpostRepository.lagre(
@@ -112,10 +115,6 @@ class AvklarFordelingSteg(
                 filtype = safJournalpost.originalFiltype()
             ).increment()
 
-
-            skalAvklaresManuelt =
-                unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
-                        skalTilManuellVurdering(safJournalpost, kontekst)
         }
 
 
