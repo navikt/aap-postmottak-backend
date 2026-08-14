@@ -340,7 +340,7 @@ data class SafSak(
 )
 
 fun SafJournalpost.hoveddokument() =
-    dokumenter?.filterNotNull()?.minBy { it.dokumentInfoId }
+    dokumenter?.filterNotNull()?.minByOrNull { it.dokumentInfoId }
 
 fun SafJournalpost.erSøknad(): Boolean {
     return dokumenter?.filterNotNull()?.any {

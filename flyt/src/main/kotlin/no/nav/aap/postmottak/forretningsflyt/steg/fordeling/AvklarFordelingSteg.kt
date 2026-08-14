@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.fordeling
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.FordelerRegelService
 import no.nav.aap.fordeler.InnkommendeJournalpost
@@ -10,6 +11,7 @@ import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
+import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.fordeler.regler.RegelInput
@@ -19,9 +21,11 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
+import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
+import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
@@ -30,8 +34,12 @@ import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.gateway.originalFiltype
 import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
@@ -43,9 +51,13 @@ class AvklarFordelingSteg(
     private val avklarFordelingRepository: AvklarFordelingRepository,
     private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
+    private val arenaService: ArenaService,
+    private val arenaoppslagGateway: ArenaoppslagGateway,
+    private val unleashGateway: UnleashGateway,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
-): BehandlingSteg {
+) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
+
 
     companion object : FlytSteg {
         override fun konstruer(
@@ -59,6 +71,9 @@ class AvklarFordelingSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 gatewayProvider.provide(),
+                ArenaService(gatewayProvider),
+                gatewayProvider.provide(),
+                gatewayProvider.provide(UnleashGateway::class),
                 PrometheusProvider.prometheus
             )
         }
@@ -75,9 +90,14 @@ class AvklarFordelingSteg(
         }
 
         val statusMedÅrsakOgRegelresultat = evaluerDokument(kontekst)
+        val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
+
+        var skalAvklaresManuelt =
+            unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
+                    skalTilManuellVurdering(safJournalpost, kontekst)
         if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
+
             // Hvis dokumentet allerede er lagret, vil status være IGNORERT med årsak ALLEREDE_JOURNALFØRT, derfor skjer dette kun 1 gang
-            val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
             innkommendeJournalpostRepository.lagre(
                 InnkommendeJournalpost(
                     journalpostId = JournalpostId(safJournalpost.journalpostId),
@@ -94,12 +114,41 @@ class AvklarFordelingSteg(
                 brevkode = safJournalpost.hoveddokument()?.brevkode,
                 filtype = safJournalpost.originalFiltype()
             ).increment()
+
         }
 
-        // På sikt kan regel-resultat være MANUELL_VURDERING: Da må vi ta høyde for dette. Vi skal kun lagre vurderingen automatisk hvis vi har
-        // komplett automatisk vurdering her. For MANUELL_VURDERING må vi returnere FANT_AVKLARINGSBEHOV
-        avklarFordelingRepository.lagreVurdering(kontekst.behandlingId, statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN"))
-        return Fullført
+
+        if (skalAvklaresManuelt) {
+            log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
+            return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
+        } else {
+            avklarFordelingRepository.lagreVurdering(
+                kontekst.behandlingId,
+                statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN")
+            )
+            return Fullført
+
+        }
+    }
+
+    private fun skalTilManuellVurdering(safJournalpost: SafJournalpost, kontekst: FlytKontekst): Boolean {
+        val brevkode = safJournalpost.hoveddokument()?.brevkode ?: return false
+
+        if (brevkode != Brevkoder.SØKNAD.kode) {
+            return false
+        }
+        val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
+
+        return runBlocking {
+            val signifikantHistorikk =
+                arenaoppslagGateway.harSignifikantHistorikk(journalpost.person, journalpost.mottattDato)
+            arenaService.skalManueltFordeles(
+                søker = journalpost.person,
+                mottattDato = journalpost.mottattDato,
+                journalpostId = kontekst.journalpostId.referanse,
+                signifikantHistorikk = signifikantHistorikk
+            )
+        }
     }
 
     private fun evaluerDokument(kontekst: FlytKontekst): StatusMedÅrsakOgRegelresultat {
@@ -203,7 +252,7 @@ class AvklarFordelingSteg(
         fun toFordelingVurdering(vurdertAv: String): AvklarFordelingVurdering {
             val system = if (status != InnkommendeJournalpostStatus.EVALUERT || regelresultat == null) {
                 AapSystem.IGNORERT
-            } else if(regelresultat.skalTilKelvin()) {
+            } else if (regelresultat.skalTilKelvin()) {
                 AapSystem.KELVIN
             } else {
                 AapSystem.ARENA

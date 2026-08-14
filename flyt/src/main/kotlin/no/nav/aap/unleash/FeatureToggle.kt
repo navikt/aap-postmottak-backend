@@ -10,6 +10,7 @@ enum class PostmottakFeature : FeatureToggle {
     DummyFeature,
     BegrensetFordelingTilKelvin,
     PostmottakNyFlytForAvklarKelvinArena,
+    PostmottakManuellVurdering,
     ;
 
     override fun key(): String = name

@@ -47,9 +47,52 @@ fun main() {
             opprettBehandlingKategoriser(it)
             opprettBehandlingDigitaliser(it)
             opprettBehandlingPapirSøknadKategoriser(it)
+            opprettBehandlingManuellFordeling(it)
+            opprettBehandlingManuellFordelingDigitalSøknad(it)
+            opprettBehandlingManuellFordelingPapirSøknad(it)
         }
 
     }.start(wait = true)
+}
+
+private fun opprettBehandlingManuellFordelingDigitalSøknad(connection: DBConnection) {
+    opprettFordelingsbehandling(
+        connection = connection,
+        journalpostId = TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT,
+    )
+}
+
+private fun opprettBehandlingManuellFordelingPapirSøknad(connection: DBConnection) {
+    opprettFordelingsbehandling(
+        connection = connection,
+        journalpostId = TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT,
+    )
+}
+
+private fun opprettFordelingsbehandling(
+    connection: DBConnection,
+    journalpostId: JournalpostId,
+) {
+    val behandlingRepository = BehandlingRepositoryImpl(connection)
+    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(journalpostId.referanse, behandlingId.id)
+            .medCallId()
+    )
+}
+
+private fun opprettBehandlingManuellFordeling(connection: DBConnection) {
+    val journalpostId = TestJournalposter.PERSON_MED_SAK_I_ARENA
+    val behandlingRepository = BehandlingRepositoryImpl(connection)
+    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+
+    FlytJobbRepository(connection).leggTil(
+        JobbInput(ProsesserBehandlingJobbUtfører)
+            .forBehandling(journalpostId.referanse, behandlingId.id)
+            .medCallId()
+    )
 }
 
 private fun opprettBehandlingAvklarTeam(connection: DBConnection) {

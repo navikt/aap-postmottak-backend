@@ -16,3 +16,4 @@ interface ArenaoppslagGateway : Gateway {
 
     suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate?
 }
+

@@ -138,8 +138,12 @@ private fun getAvsenderMottaker(journalpostId: Long) =
 
 private fun finnKanal(journalpostId: Long) =
     when (journalpostId) {
-        TestJournalposter.DIGITAL_SØKNAD_ID.referanse -> KanalFraKodeverk.NAV_NO.name
-        TestJournalposter.PAPIR_SØKNAD.referanse -> KanalFraKodeverk.SKAN_NETS.name
+        TestJournalposter.DIGITAL_SØKNAD_ID.referanse,
+        TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT.referanse -> KanalFraKodeverk.NAV_NO.name
+
+        TestJournalposter.PAPIR_SØKNAD.referanse,
+        TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT.referanse -> KanalFraKodeverk.SKAN_NETS.name
+
         else -> KanalFraKodeverk.UKJENT.name
     }
 
@@ -165,7 +169,8 @@ private fun getDokumenter(journalpostId: Long): String {
         """
 
     return when (journalpostId) {
-        TestJournalposter.DIGITAL_SØKNAD_ID.referanse -> """
+        TestJournalposter.DIGITAL_SØKNAD_ID.referanse,
+        TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT.referanse -> """
         {
             "tittel": "Dokumenttittel",
             "dokumentInfoId": "4542685451",
@@ -174,6 +179,20 @@ private fun getDokumenter(journalpostId: Long): String {
             {
                 "variantformat": "ORIGINAL",
                 "filtype": "JSON"
+            }
+            ]
+        }
+    """
+
+        TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT.referanse -> """
+        {
+            "tittel": "Søknad om AAP",
+            "dokumentInfoId": "4542685451",
+            "brevkode": "NAV 11-13.05",
+            "dokumentvarianter": [
+            {
+                "variantformat": "ARKIV",
+                "filtype": "PDF"
             }
             ]
         }
@@ -270,6 +289,9 @@ private fun finnBruker(journalpostId: Long) =
         TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> TestIdenter.IDENT_UTEN_SAK_I_KELVIN.identifikator
 
         TestJournalposter.PERSON_MED_SAK_I_ARENA.referanse -> TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator
+        TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT.referanse,
+        TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT.referanse -> TestIdenter.IDENT_MED_KANT_I_KANT_SAK.identifikator
+
         TestJournalposter.NY_SØKNAD_MED_TRUKKET_SAK.referanse,
         TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> TestIdenter.IDENT_MED_TRUKKET_SAK_I_KELVIN.identifikator
 
