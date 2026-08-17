@@ -5,7 +5,8 @@ import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.streams.StreamsConfig
-import java.util.*
+import java.util.Properties
+import kotlin.time.Duration.Companion.minutes
 
 data class StreamsConfig(
     val applicationId: String = requiredConfigForKey("KAFKA_STREAMS_APPLICATION_ID") + "-v2",
@@ -54,6 +55,9 @@ data class StreamsConfig(
          * processing requires minimum three brokers
          */
         this[StreamsConfig.PROCESSING_GUARANTEE_CONFIG] = StreamsConfig.EXACTLY_ONCE_V2
+
+        // Reduce the frequency of log messages
+        this[StreamsConfig.LOG_SUMMARY_INTERVAL_MS_CONFIG] = 30.minutes.inWholeMilliseconds
     }
 }
 
