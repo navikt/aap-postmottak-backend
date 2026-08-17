@@ -1,9 +1,9 @@
 [versions]
 ktor = "3.5.2"
-komponenter = "2.0.132"
+komponenter = "2.0.135"
 tilgang = "1.0.234"
 arenaoppslag = "0.6.0"
-behandlingsflyt = "0.0.649"
+behandlingsflyt = "0.0.650"
 junit = "6.1.3"
 kafka = "8.1.1-ce"
 testcontainers = "1.21.4"
