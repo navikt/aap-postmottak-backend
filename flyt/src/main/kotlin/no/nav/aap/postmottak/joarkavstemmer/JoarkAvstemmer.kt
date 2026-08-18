@@ -93,7 +93,7 @@ class JoarkAvstemmer(
         } else if (regelResultat == null) {
             meterRegistry.ubehandledeJournalposterCounter("UKJENT").increment()
             loggUavstemt(
-                "Fant ikke regelresultat for journalpostId. Har ikke nok informasjon til å fullføre. Oppretter fordelingsoppgave.",
+                    "Fant ikke regelresultat for journalpostId. Har ikke nok informasjon til å fullføre. Oppretter fordelingsoppgave.",
                 journalpostId,
                 journalpost.mottaksKanal,
                 journalpost.datoOpprettet.toLocalDate()
