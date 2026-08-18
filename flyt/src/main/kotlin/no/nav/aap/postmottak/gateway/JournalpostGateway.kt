@@ -108,12 +108,12 @@ data class SafJournalpost(
      * Typen avhenger av journalposttypen.
      * @example: DATO_EKSPEDERT
      */
-    val relevanteDatoer: List<SafRelevantDato?>?,
+    val relevanteDatoer: List<SafRelevantDato>,
 
     /**
      * Liste over dokumentinfo tilknyttet journalposten.
      */
-    val dokumenter: List<SafDokumentInfo?>? = null,
+    val dokumenter: List<SafDokumentInfo> = emptyList(),
 )
 
 enum class Journalposttype {
@@ -340,12 +340,10 @@ data class SafSak(
 )
 
 fun SafJournalpost.hoveddokument() =
-    dokumenter?.filterNotNull()?.minByOrNull { it.dokumentInfoId }
+    dokumenter.minByOrNull { it.dokumentInfoId }
 
 fun SafJournalpost.erSøknad(): Boolean {
-    return dokumenter?.filterNotNull()?.any {
-        it.brevkode == Brevkoder.SØKNAD.kode
-    } == true
+    return dokumenter.any { it.brevkode == Brevkoder.SØKNAD.kode }
 }
 
 fun SafJournalpost.originalFiltype() =

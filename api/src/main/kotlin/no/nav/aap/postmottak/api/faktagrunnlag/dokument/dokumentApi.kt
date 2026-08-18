@@ -97,10 +97,9 @@ fun NormalOpenAPIRoute.dokumentApi(
                             avsender?.ident,
                             avsender?.navn?.fulltNavn()
                         ),
-                        dokumenter = journalpost.dokumenter?.mapNotNull { DokumentDto.fromDokument(it!!) }
-                            ?: emptyList(),
-                        registrertDato = journalpost.relevanteDatoer?.find { dato ->
-                            dato?.datotype == SafDatoType.DATO_REGISTRERT
+                        dokumenter = journalpost.dokumenter.map { DokumentDto.fromDokument(it) },
+                        registrertDato = journalpost.relevanteDatoer.find { dato ->
+                            dato.datotype == SafDatoType.DATO_REGISTRERT
                         }?.dato?.toLocalDate()
                     )
                 )
