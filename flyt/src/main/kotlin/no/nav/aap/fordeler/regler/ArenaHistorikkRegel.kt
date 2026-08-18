@@ -8,10 +8,10 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
 import no.nav.aap.postmottak.begrensetInntakTilKelvin
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import no.nav.aap.postmottak.personFinnesIAapArenaTeller
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
-import no.nav.aap.postmottak.signifikantArenaHistorikkTeller
+import no.nav.aap.postmottak.søknadOmAapTeller
 import no.nav.aap.postmottak.tellAntallKantIKantDetektert
 import no.nav.aap.postmottak.tellAntallMaksUtvidetKvoteSnartOppbrukt
 import no.nav.aap.unleash.PostmottakFeature
@@ -36,25 +36,19 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
         internal fun metrikkerForArenaHistorikk(
             harArenaHistorikk: Boolean,
             harSignifikantArenaHistorikk: Boolean,
-            begrensetInntakTilKelvin: Boolean
+            begrensetInntakTilKelvin: Boolean,
+            erSøknad: Boolean
         ) {
-            prometheus.personFinnesIAapArenaTeller(harArenaHistorikk)
-                .increment()
-
-            prometheus.signifikantArenaHistorikkTeller(harSignifikantArenaHistorikk)
-                .increment()
-
             if (!harSignifikantArenaHistorikk) {
                 // Ville blitt fordelt til Kelvin hvis ikke begrensning på inntaket
-                prometheus.begrensetInntakTilKelvin(begrensetInntakTilKelvin)
-                    .increment()
+                prometheus.begrensetInntakTilKelvin(begrensetInntakTilKelvin).increment()
             }
 
             if (harArenaHistorikk) {
-                prometheus.resultatAvSignifikantArenaHistorikkFilterTeller(harSignifikantArenaHistorikk)
-                    .increment()
+                prometheus.resultatAvSignifikantArenaHistorikkFilterTeller(harSignifikantArenaHistorikk).increment()
             }
 
+            prometheus.søknadOmAapTeller(harArenaHistorikk, harSignifikantArenaHistorikk, erSøknad).increment()
         }
     }
 
@@ -87,10 +81,12 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         }
 
         val harSignifikantArenaHistorikk = signifikantHistorikk.harSignifikantHistorikk
+        val erSøknad = Brevkoder.fraKode(input.brevkode) == Brevkoder.SØKNAD
         metrikkerForArenaHistorikk(
             historikk,
             harSignifikantArenaHistorikk,
-            innenforProsentenSomVurderesForKelvin
+            innenforProsentenSomVurderesForKelvin,
+            erSøknad
         )
 
         if (harSignifikantArenaHistorikk) {
@@ -130,9 +126,8 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
 
 
         // Guide til å sette prosent-verdien i Unleash:
-        // 62.5% er taket for hvor mye som er lov å ta inn til Kelvin per nå (tall fra metabase 21. mai).
-        // Vi vil ta inn regler som øker inntaket med 2%. Si for sikkerhets skyld med 2.5%.
-        // Da må vi i tillegg redusere med samme tall, altså ned til 60%.
+        // Anta at vi vil ta inn regler som øker inntaket med 2%. Si for sikkerhets skyld med 2.5%.
+        // Da må vi i tillegg redusere med samme tall, altså ned til 60%, gitt at målet er 62.5%
         // Vi ønsker da å redusere prosenten fra 100 til 60/62.5 % = 96%.
         val resultat = if (innenforProsentenSomVurderesForKelvin) harSignifikantArenaHistorikk else true
 

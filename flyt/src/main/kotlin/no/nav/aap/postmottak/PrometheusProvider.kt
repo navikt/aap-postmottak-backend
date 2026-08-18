@@ -56,16 +56,8 @@ fun MeterRegistry.regelresultat(tilKelvin: Boolean, regel: String): Counter =
 fun MeterRegistry.retriesExceeded(jobbType: String): Counter =
     this.counter("postmottak_retries_exceeded", listOf(Tag.of("jobb_type", jobbType)))
 
-fun MeterRegistry.personFinnesIAapArenaTeller(finnes: Boolean): Counter = this.counter(
-    "postmottak_person_finnes_i_aap_arena", listOf(Tag.of("verdi", finnes.toString()))
-)
-
 fun MeterRegistry.fordelingAvSoknadVedArenaHistorikkCounter(fagsystem: Fagsystem): Counter = this.counter(
     "postmottak_fordeling_av_soknad_ved_arenahistorikk", listOf(Tag.of("fagsystem", fagsystem.name))
-)
-
-fun MeterRegistry.signifikantArenaHistorikkTeller(sperretAvFilter: Boolean): Counter = this.counter(
-    "postmottak_sperret_av_arenahistorikk_filter", listOf(Tag.of("sperret", sperretAvFilter.toString()))
 )
 
 fun MeterRegistry.begrensetInntakTilKelvin(sperretAvFilter: Boolean): Counter = this.counter(
@@ -76,6 +68,22 @@ fun MeterRegistry.resultatAvSignifikantArenaHistorikkFilterTeller(harSignifikant
     this.counter(
         "postmottak_arenaperson_har_signifikant_historikk",
         listOf(Tag.of("signifikant", harSignifikantHistorikk.toString()))
+    )
+
+fun MeterRegistry.søknadOmAapTeller(
+    harArenaHistorikk: Boolean,
+    harSignifikantArenaHistorikk: Boolean,
+    erSøknad: Boolean
+): Counter =
+    // Mål hvor mange som har arena-historikk i det hele tatt, blant de med søknader
+    // Mål hvor mange som har signifikant arena-historikk, blant de med søknader
+    this.counter(
+        "postmottak_soknad_mottatt",
+        listOf(
+            Tag.of("arena_historikk", harArenaHistorikk.toString()),
+            Tag.of("signifikant_arena_historikk", harSignifikantArenaHistorikk.toString()),
+            Tag.of("er_soknad", erSøknad.toString())
+        )
     )
 
 fun MeterRegistry.tellAntallKantIKantDetektert(erKantIKant: Boolean) = this.counter(
