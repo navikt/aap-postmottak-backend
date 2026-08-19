@@ -61,7 +61,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
                 setLocalDateTime(6, journalpost.mottattTid)
                 setString(7, journalpost.tema)
                 setEnumName(8, journalpost.kanal)
-                setString(9, journalpost.saksnummer.toString())
+                setString(9, journalpost.saksnummer)
                 setString(10, journalpost.fagsystem)
                 setString(11, journalpost.behandlingstema)
                 setString(12, journalpost.tittel)
