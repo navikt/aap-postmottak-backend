@@ -389,8 +389,8 @@ class JoarkAvstemmerTest {
             journalfoerendeEnhet = null,
             kanal = KanalFraKodeverk.UKJENT,
             eksternReferanseId = null,
-            relevanteDatoer = null,
-            dokumenter = null,
+            relevanteDatoer = emptyList(),
+            dokumenter = emptyList(),
         )
     }
 }

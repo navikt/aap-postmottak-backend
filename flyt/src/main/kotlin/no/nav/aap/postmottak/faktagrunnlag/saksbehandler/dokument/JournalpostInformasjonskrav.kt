@@ -61,6 +61,7 @@ class JournalpostInformasjonskrav(
             val person = persistertJournalpost?.person
                 ?: throw IllegalStateException(
                     "Journalpost (journalpostId=${safJournalpost.journalpostId}, " +
+                            "dokumentId=[${safJournalpost.dokumenter.joinToString { it.dokumentInfoId }}], " +
                             "status=${safJournalpost.journalstatus}) med orgnr som bruker har ikke persistert person. "
                 )
 
