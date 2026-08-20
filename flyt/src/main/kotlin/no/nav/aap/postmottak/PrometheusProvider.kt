@@ -86,9 +86,9 @@ fun MeterRegistry.søknadOmAapTeller(
         )
     )
 
-fun MeterRegistry.tellAntallKantIKantDetektert(erKantIKant: Boolean) = this.counter(
-    "postmottak_soknad_er_kant_i_kant",
-    listOf(Tag.of("erKantIKant", erKantIKant.toString()))
+fun MeterRegistry.tellManueltFordeles(erKantIKant: Boolean) = this.counter(
+    "postmottak_soknad_fordeles_manuelt",
+    listOf(Tag.of("manuelt", erKantIKant.toString()))
 )
 
 fun MeterRegistry.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt: Boolean) = this.counter(
