@@ -3,6 +3,7 @@ package no.nav.aap.postmottak
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
+import io.ktor.network.sockets.SocketTimeoutException
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
@@ -36,6 +37,7 @@ object StatusPagesConfigHelper {
                 }
 
                 is HttpRequestTimeoutException,
+                is SocketTimeoutException,
                 is HttpTimeoutException -> {
                     logger.warn("Timeout", cause)
                     call.respondWithError(
