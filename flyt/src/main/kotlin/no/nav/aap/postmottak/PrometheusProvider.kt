@@ -86,14 +86,14 @@ fun MeterRegistry.søknadOmAapTeller(
         )
     )
 
-fun MeterRegistry.tellAntallKantIKantDetektert(erKantIKant: Boolean) = this.counter(
-    "postmottak_soknad_er_kant_i_kant",
-    listOf(Tag.of("erKantIKant", erKantIKant.toString()))
+fun MeterRegistry.tellAntallTilManuellFordeling(manuellFordeles: Boolean, erSøknad: Boolean) = this.counter(
+    "postmottak_soknad_fordeles_manuelt",
+    listOf(Tag.of("manuelt", manuellFordeles.toString()), Tag.of("er_soknad", erSøknad.toString()))
 )
 
-fun MeterRegistry.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt: Boolean) = this.counter(
+fun MeterRegistry.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt: Boolean, erSøknad: Boolean) = this.counter(
     "postmottak_soknad_med_maks_utvidet_kvote",
-    listOf(Tag.of("maksKvoteSnartOppbrukt", maksKvoteSnartOppbrukt.toString()))
+    listOf(Tag.of("maksKvoteSnartOppbrukt", maksKvoteSnartOppbrukt.toString()), Tag.of("er_soknad", erSøknad.toString()))
 )
 
 enum class Fagsystem {
