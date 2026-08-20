@@ -12,8 +12,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.søknadOmAapTeller
-import no.nav.aap.postmottak.tellAntallMaksUtvidetKvoteSnartOppbrukt
 import no.nav.aap.postmottak.tellAntallTilManuellFordeling
+import no.nav.aap.postmottak.tellAntallMaksUtvidetKvoteSnartOppbrukt
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -94,29 +94,27 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
                 "Personen har signifikant historikk i AAP-Arena: " +
                         "saker=${signifikantHistorikk}, journalpostId=${input.journalpostId}"
             )
-            if (erSøknad) {
-                runCatching {
-                    // Måles kun, påvirker ikke funksjonaliteten
-                    runBlocking {
-                        val arenaService = ArenaService(gatewayProvider)
-                        val maksKvoteSnartOppbrukt =
-                            arenaService.kanFordelesAutomatiskPga11_12_erMakset(
-                                input.person, input.mottattDato, input.journalpostId,
-                                signifikantHistorikk
-                            )
-                        prometheus.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt).increment()
+            runCatching {
+                // Måles kun, påvirker ikke funksjonaliteten
+                runBlocking {
+                    val arenaService = ArenaService(gatewayProvider)
+                    val maksKvoteSnartOppbrukt =
+                        arenaService.kanFordelesAutomatiskPga11_12_erMakset(
+                            input.person, input.mottattDato, input.journalpostId,
+                            signifikantHistorikk
+                        )
+                    prometheus.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt, erSøknad).increment()
 
-                        if (!maksKvoteSnartOppbrukt) {
-                            val skalManueltFordeles = arenaService.skalManueltFordeles(
-                                input.person, input.mottattDato, input.journalpostId,
-                                signifikantHistorikk
-                            )
-                            prometheus.tellAntallTilManuellFordeling(skalManueltFordeles).increment()
-                        }
+                    if (!maksKvoteSnartOppbrukt) {
+                        val skalManueltFordeles = arenaService.skalManueltFordeles(
+                            input.person, input.mottattDato, input.journalpostId,
+                            signifikantHistorikk
+                        )
+                        prometheus.tellAntallTilManuellFordeling(skalManueltFordeles, erSøknad).increment()
                     }
-                }.onFailure { error ->
-                    logger.warn("Feil under telling av undergrupper til Arena", error)
                 }
+            }.onFailure { error ->
+                logger.warn("Feil under telling av undergrupper til Arena", error)
             }
 
         } else {
