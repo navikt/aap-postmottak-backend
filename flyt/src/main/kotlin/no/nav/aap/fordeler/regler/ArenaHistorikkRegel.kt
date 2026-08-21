@@ -12,8 +12,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.søknadOmAapTeller
-import no.nav.aap.postmottak.tellManueltFordeles
 import no.nav.aap.postmottak.tellAntallMaksUtvidetKvoteSnartOppbrukt
+import no.nav.aap.postmottak.tellManueltFordeles
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
@@ -122,7 +122,8 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         } else {
             logger.info(
                 "Personen har /IKKE/ signifikant historikk i AAP-Arena: " +
-                        "journalpostId=${input.journalpostId}"
+                        "journalpostId=${input.journalpostId}, " +
+                        "innenforProsentenSomVurderesForKelvin=$innenforProsentenSomVurderesForKelvin"
             )
         }
 
