@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.joarkavstemmer
 
 import ch.qos.logback.classic.Level.ERROR
+import ch.qos.logback.classic.Level.INFO
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
@@ -94,7 +95,7 @@ class JoarkAvstemmerTest {
     }
 
     @Test
-    fun `om det ikke finnes regelresultat, logges feil`() {
+    fun `om det ikke finnes regelresultat, logges enkeltmelding som info og oppsummering som error`() {
         every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns null
         every {
@@ -113,6 +114,11 @@ class JoarkAvstemmerTest {
 
         assertThat(loggMeldinger).anySatisfy { loggMelding ->
             assertThat(loggMelding.formattedMessage).contains("Fant ikke regelresultat for journalpost")
+            assertThat(loggMelding.level).isEqualTo(INFO)
+        }
+
+        assertThat(loggMeldinger).anySatisfy { loggMelding ->
+            assertThat(loggMelding.formattedMessage).contains("Fant 1 ubehandlede journalposter eldre enn 5 dager")
             assertThat(loggMelding.level).isEqualTo(ERROR)
         }
 
@@ -122,7 +128,7 @@ class JoarkAvstemmerTest {
     }
 
     @Test
-    fun `for journalposter som skal behandles i kelvin, logges error`() {
+    fun `for journalposter som skal behandles i kelvin, logges enkeltmelding som info og oppsummering som error`() {
         every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
         val regelresultat = Regelresultat(mapOf(), 1, "KELVIN")
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns regelresultat
@@ -135,7 +141,43 @@ class JoarkAvstemmerTest {
 
         assertThat(loggMeldinger).anySatisfy { loggMelding ->
             assertThat(loggMelding.formattedMessage).contains("Fant ubehandlet journalpost eldre enn 5 dager som skal til Kelvin")
+            assertThat(loggMelding.level).isEqualTo(INFO)
         }
+
+        assertThat(loggMeldinger).anySatisfy { loggMelding ->
+            assertThat(loggMelding.formattedMessage).contains("Fant 1 ubehandlede journalposter eldre enn 5 dager")
+            assertThat(loggMelding.level).isEqualTo(ERROR)
+        }
+    }
+
+    @Test
+    fun `flere uavstemte journalposter (UKJENT og KELVIN) gir kun én samlet error-melding med korrekt antall`() {
+        val journalpostUtenRegelresultat = journalpostFraDoksikkerhetsnett()
+        val journalpostTilKelvin = journalpostFraDoksikkerhetsnett()
+
+        every { doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(any()) } returns listOf(
+            journalpostUtenRegelresultat,
+            journalpostTilKelvin,
+        )
+        every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf()
+        every { regelRepository.hentRegelresultat(JournalpostId(journalpostUtenRegelresultat.journalpostId)) } returns null
+        every { regelRepository.hentRegelresultat(JournalpostId(journalpostTilKelvin.journalpostId)) } returns
+                Regelresultat(mapOf(), journalpostTilKelvin.journalpostId, "KELVIN")
+        every { journalpostGateway.hentJournalpost(JournalpostId(journalpostUtenRegelresultat.journalpostId)) } returns
+                journalpost(journalpostUtenRegelresultat.journalpostId)
+        every {
+            gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(any(), any(), any(), any())
+        } just runs
+
+        val listAppender = opprettListAppender()
+
+        joarkAvstemmer().avstem()
+
+        val loggMeldinger = listAppender.list
+        val errorMeldinger = loggMeldinger.filter { it.level == ERROR }
+
+        assertThat(errorMeldinger).hasSize(1)
+        assertThat(errorMeldinger.first().formattedMessage).contains("Fant 2 ubehandlede journalposter eldre enn 5 dager, hvorav 1 gikk til Kelvin. Se info-logg for konkrete journalposter.")
     }
 
     @Test

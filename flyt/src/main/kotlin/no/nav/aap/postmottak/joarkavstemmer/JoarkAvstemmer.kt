@@ -63,41 +63,42 @@ class JoarkAvstemmer(
 
         log.info("Fant ${eldreJournalpost.size} journalposter eldre enn 5 dager.")
 
-        eldreJournalpost
+        val resultater = eldreJournalpost
             // Vi gjør samme filtreringen i no.nav.aap.postmottak.mottak.JoarkKafkaHandler.
             .filter { it.mottaksKanal != KanalFraKodeverk.EESSI.name }
-            .forEach {
-                avstemJournalPost(it)
-            }
+            .map { avstemJournalPost(it) }
+
+        val antallUavstemte = resultater.count {
+            it is AvstemmingsResultat.UavstemtUkjent || it is AvstemmingsResultat.UavstemtKelvin
+        }
+
+        val antallUavstemteKelvin = resultater.filterIsInstance<AvstemmingsResultat.UavstemtKelvin>().size
+
+
+        if (antallUavstemte > 0) {
+            val level = if (Miljø.erProd()) Level.ERROR else Level.INFO
+            log.makeLoggingEventBuilder(level)
+                .setMessage("Fant $antallUavstemte ubehandlede journalposter eldre enn 5 dager, hvorav $antallUavstemteKelvin gikk til Kelvin. Se info-logg for konkrete journalposter.")
+                .log()
+        }
     }
 
-    private fun loggUavstemt(melding: String, journalpostId: JournalpostId, kanal: String?, datoOpprettet: LocalDate) {
-        val level = if (Miljø.erProd()) Level.ERROR else Level.INFO
-        val msg = "$melding Kanal: $kanal. JournalpostId: $journalpostId. Dato opprettet: $datoOpprettet"
-        return log.makeLoggingEventBuilder(level).setMessage(msg).log()
-    }
-
-    private fun avstemJournalPost(journalpost: JournalpostFraDoksikkerhetsnett) {
+    private fun avstemJournalPost(journalpost: JournalpostFraDoksikkerhetsnett): AvstemmingsResultat {
         val journalpostId = JournalpostId(journalpost.journalpostId)
         val regelResultat = regelRepository.hentRegelresultat(journalpostId)
 
         val finnesEksisterendeOppgaverForJournalpost = finnesEksisterendeOppgaverForJournalpost(journalpostId)
         if (finnesEksisterendeOppgaverForJournalpost && regelResultat == null) {
             log.info("Finnes eksisterende Gosys-oppgave for journalpostId=$journalpostId, og har heller ikke regelresultat. Avbryter.")
-            return
+            return AvstemmingsResultat.AlleredeHarOppgave(journalpostId)
         }
 
         if (regelResultat == null && eldreEnnKelvin(journalpost)) {
             log.info("Fant ikke regelresultat for journalpostId=$journalpostId. Har ikke nok informasjon til å fullføre. Dato opprettet: ${journalpost.datoOpprettet}. Kanal: ${journalpost.mottaksKanal}.")
-            return
+            return AvstemmingsResultat.IkkeNokInformasjon(journalpostId)
         } else if (regelResultat == null) {
             meterRegistry.ubehandledeJournalposterCounter("UKJENT").increment()
-            loggUavstemt(
-                "Fant ikke regelresultat for journalpostId. Har ikke nok informasjon til å fullføre. Oppretter fordelingsoppgave.",
-                journalpostId,
-                journalpost.mottaksKanal,
-                journalpost.datoOpprettet.toLocalDate()
-            )
+            log.info("Fant ikke regelresultat for journalpostId=$journalpostId. Har ikke nok informasjon til å fullføre. Oppretter fordelingsoppgave. Kanal: ${journalpost.mottaksKanal}. Dato opprettet: ${journalpost.datoOpprettet.toLocalDate()}.")
             val uthentet = journalpostGateway.hentJournalpost(journalpostId)
             val ident = uthentet.bruker?.id
             gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
@@ -105,13 +106,18 @@ class JoarkAvstemmer(
                 personIdent = ident?.let(::Ident),
                 beskrivelse = "Manglende journalføring - ${uthentet.tittel}",
             )
+            return AvstemmingsResultat.UavstemtUkjent(
+                journalpostId = journalpostId,
+                kanal = journalpost.mottaksKanal,
+                datoOpprettet = journalpost.datoOpprettet.toLocalDate(),
+            )
         } else if (regelResultat.gikkTilKelvin()) {
             meterRegistry.ubehandledeJournalposterCounter("KELVIN").increment()
-            loggUavstemt(
-                "Fant ubehandlet journalpost eldre enn 5 dager som skal til Kelvin.",
-                journalpostId,
-                journalpost.mottaksKanal,
-                journalpost.datoOpprettet.toLocalDate()
+            log.info("Fant ubehandlet journalpost eldre enn 5 dager som skal til Kelvin. Kanal: ${journalpost.mottaksKanal}. JournalpostId: $journalpostId. Dato opprettet: ${journalpost.datoOpprettet.toLocalDate()}.")
+            return AvstemmingsResultat.UavstemtKelvin(
+                journalpostId = journalpostId,
+                kanal = journalpost.mottaksKanal,
+                datoOpprettet = journalpost.datoOpprettet.toLocalDate(),
             )
         } else if (!finnesEksisterendeOppgaverForJournalpost) {
             val uthentet = journalpostGateway.hentJournalpost(journalpostId)
@@ -144,13 +150,16 @@ class JoarkAvstemmer(
                         personIdent = ident?.let(::Ident),
                         beskrivelse = "Manglende journalføring - ${uthentet.tittel}",
                     )
-                    log.warn("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId.", e)
+                    log.error("Kunne ikke opprette Gosys-oppgave for journalpostId=$journalpostId.", e)
+                    return AvstemmingsResultat.FordelingsoppgaveOpprettet(journalpostId)
                 }
             }
             log.info("Opprettet Gosys-oppgave for journalpostId=$journalpostId.")
+            return AvstemmingsResultat.GosysOppgaveOpprettet(journalpostId)
         } else {
             meterRegistry.ubehandledeJournalposterCounter("ARENA").increment()
             log.info("Det finnes allerede en Gosys-oppgave for journalpostId=$journalpostId. Dato opprettet: ${journalpost.datoOpprettet}. Avbryter.")
+            return AvstemmingsResultat.AlleredeHarOppgave(journalpostId)
         }
     }
 
@@ -183,3 +192,28 @@ data class UavstemtJournalpost(
     val datoOpprettet: LocalDate,
     val mottaksKanal: String?,
 )
+
+/**
+ * Beskriver utfallet av å avstemme én journalpost, slik at [JoarkAvstemmer.avstem] kan
+ * aggregere resultatene (bl.a. telle opp uavstemte poster).
+ */
+sealed interface AvstemmingsResultat {
+    val journalpostId: JournalpostId
+
+    data class UavstemtUkjent(
+        override val journalpostId: JournalpostId,
+        val kanal: String?,
+        val datoOpprettet: LocalDate,
+    ) : AvstemmingsResultat
+
+    data class UavstemtKelvin(
+        override val journalpostId: JournalpostId,
+        val kanal: String?,
+        val datoOpprettet: LocalDate,
+    ) : AvstemmingsResultat
+
+    data class GosysOppgaveOpprettet(override val journalpostId: JournalpostId) : AvstemmingsResultat
+    data class FordelingsoppgaveOpprettet(override val journalpostId: JournalpostId) : AvstemmingsResultat
+    data class AlleredeHarOppgave(override val journalpostId: JournalpostId) : AvstemmingsResultat
+    data class IkkeNokInformasjon(override val journalpostId: JournalpostId) : AvstemmingsResultat
+}
