@@ -1,7 +1,14 @@
 package no.nav.aap.postmottak.joarkavstemmer
 
 import io.micrometer.core.instrument.MeterRegistry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import no.nav.aap.fordeler.RegelRepository
+import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.komponenter.httpklient.httpclient.error.BadRequestHttpResponsException
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.postmottak.gateway.DoksikkerhetsnettGateway
@@ -30,10 +37,14 @@ class JoarkAvstemmer(
     private val behandlingRepository: BehandlingRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val journalpostGateway: JournalpostGateway,
-    private val meterRegistry: MeterRegistry
+    private val meterRegistry: MeterRegistry,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    // Begrenser hvor mange journalposter som behandles samtidig i den parallelle HTTP-fasen
+    // i avstem(), for å ikke overbelaste Gosys/SAF.
+    private val maksSamtidigeKall =  10
 
     fun hentUavstemte(): List<UavstemtJournalpost> {
         val eldreJournalpost = doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5)
@@ -63,17 +74,38 @@ class JoarkAvstemmer(
 
         log.info("Fant ${eldreJournalpost.size} journalposter eldre enn 5 dager.")
 
-        val resultater = eldreJournalpost
+        // Fase 1: sekvensielt DB-oppslag. regelRepository er bygget rundt én delt, ikke-trådsikker
+        // DBConnection for hele jobbkjøringen, så disse kallene kan ikke gjøres parallelt.
+        val arbeidsobjekter = eldreJournalpost
             // Vi gjør samme filtreringen i no.nav.aap.postmottak.mottak.JoarkKafkaHandler.
             .filter { it.mottaksKanal != KanalFraKodeverk.EESSI.name }
-            .map { avstemJournalPost(it) }
+            .map { journalpost ->
+                val journalpostId = JournalpostId(journalpost.journalpostId)
+                AvstemmingsInput(
+                    journalpost = journalpost,
+                    journalpostId = journalpostId,
+                    regelResultat = regelRepository.hentRegelresultat(journalpostId),
+                )
+            }
+
+        // Fase 2: parallell HTTP-fase mot Gosys/SAF, med begrenset samtidighet.
+        val semaphore = Semaphore(maksSamtidigeKall)
+        @Suppress("InjectDispatcher") // Ingen egen Dispatcher-parameter pga. LongParameterList-grense.
+        val resultater = runBlocking {
+            arbeidsobjekter
+                .map { input ->
+                    async(Dispatchers.IO) {
+                        semaphore.withPermit { avstemJournalPost(input) }
+                    }
+                }
+                .awaitAll()
+        }
 
         val antallUavstemte = resultater.count {
             it is AvstemmingsResultat.UavstemtUkjent || it is AvstemmingsResultat.UavstemtKelvin
         }
 
         val antallUavstemteKelvin = resultater.filterIsInstance<AvstemmingsResultat.UavstemtKelvin>().size
-
 
         if (antallUavstemte > 0) {
             val level = if (Miljø.erProd()) Level.ERROR else Level.INFO
@@ -83,9 +115,9 @@ class JoarkAvstemmer(
         }
     }
 
-    private fun avstemJournalPost(journalpost: JournalpostFraDoksikkerhetsnett): AvstemmingsResultat {
-        val journalpostId = JournalpostId(journalpost.journalpostId)
-        val regelResultat = regelRepository.hentRegelresultat(journalpostId)
+    private fun avstemJournalPost(input: AvstemmingsInput): AvstemmingsResultat {
+        val (journalpost, journalpostId, regelResultat) = input
+
 
         val finnesEksisterendeOppgaverForJournalpost = finnesEksisterendeOppgaverForJournalpost(journalpostId)
         if (finnesEksisterendeOppgaverForJournalpost && regelResultat == null) {
@@ -185,6 +217,16 @@ class JoarkAvstemmer(
         return journalforendeEnhet
     }
 }
+
+/**
+ * Resultatet av fase 1 (sekvensielt DB-oppslag) i [JoarkAvstemmer.avstem] – input til den
+ * parallelle HTTP-fasen i [JoarkAvstemmer.avstemJournalPost].
+ */
+private data class AvstemmingsInput(
+    val journalpost: JournalpostFraDoksikkerhetsnett,
+    val journalpostId: JournalpostId,
+    val regelResultat: Regelresultat?,
+)
 
 data class UavstemtJournalpost(
     val journalpostId: Long,
