@@ -118,6 +118,7 @@ class JoarkAvstemmer(
     private fun avstemJournalPost(input: AvstemmingsInput): AvstemmingsResultat {
         val (journalpost, journalpostId, regelResultat) = input
 
+
         val finnesEksisterendeOppgaverForJournalpost = finnesEksisterendeOppgaverForJournalpost(journalpostId)
         if (finnesEksisterendeOppgaverForJournalpost && regelResultat == null) {
             log.info("Finnes eksisterende Gosys-oppgave for journalpostId=$journalpostId, og har heller ikke regelresultat. Avbryter.")
