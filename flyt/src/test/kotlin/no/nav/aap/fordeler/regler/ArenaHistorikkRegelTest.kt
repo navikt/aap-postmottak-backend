@@ -11,7 +11,6 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.FakeArenaoppslagGateway.Companion.identHeltUtenSak
 import no.nav.aap.postmottak.test.FakeArenaoppslagGateway.Companion.identMedSak
 import no.nav.aap.postmottak.test.FakeArenaoppslagGateway.Companion.identMedSignifikantSak
-import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.fakeGatewayProvider
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -20,7 +19,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 @Execution(ExecutionMode.SAME_THREAD)
 class ArenaHistorikkRegelTest {
@@ -92,31 +91,6 @@ class ArenaHistorikkRegelTest {
         )
 
         assertTrue(res)
-    }
-
-    @Test
-    fun `Dersom bruker har ikke-signifikant sak i Arena, men fordeling til Kelvin er begrenset av gradual rollout, skal regelen returnere false`() {
-        val journalpostId = JournalpostId(1)
-        val person = Person(1, UUID.randomUUID(), listOf(Ident(identMedSak)))
-
-        FakeUnleash.rejectList.add(person.identifikator.toString())
-        val regelMedInputGenerator =
-            ArenaHistorikkRegel.medDataInnhenting(
-                mockk(),
-                fakeGatewayProvider()
-            )
-
-        val res = regelMedInputGenerator.vurder(
-            RegelInput(
-                journalpostId = journalpostId.referanse,
-                person = person,
-                brevkode = Brevkoder.SØKNAD.name,
-                mottattDato = LocalDate.of(2025, 1, 1)
-            )
-        )
-        FakeUnleash.rejectList.remove(person.identifikator.toString())
-
-        assertFalse(res)
     }
 
     companion object {

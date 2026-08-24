@@ -11,7 +11,6 @@ object FakeUnleash : UnleashGateway {
 
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> TODO()
-            PostmottakFeature.BegrensetFordelingTilKelvin -> TODO()
             PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena -> true
             PostmottakFeature.PostmottakManuellVurdering -> true
         }
@@ -20,7 +19,6 @@ object FakeUnleash : UnleashGateway {
     override fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean {
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> isRolledOutFor(userId)
-            PostmottakFeature.BegrensetFordelingTilKelvin -> isRolledOutFor(userId)
             PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena -> isRolledOutFor(userId)
 
             else -> false
