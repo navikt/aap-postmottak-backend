@@ -26,15 +26,15 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
-import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.unleash.FeatureToggle
@@ -106,7 +106,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
             )))
 
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
-        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
         every { unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) } returns true
 
         dataSource.transaction { connection ->
@@ -120,14 +119,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
 
         util.ventPåSvar()
-        verify {
-            unleashGateway.isEnabled(
-                withArg {
-                    assertThat(it).isEqualTo(PostmottakFeature.BegrensetFordelingTilKelvin)
-                },
-                any()
-            )
-        }
         verify(exactly = 1) {
             arenaWebservicesGateway.opprettArenaOppgave(withArg {
                 assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.STARTVEDTAK)
@@ -150,7 +141,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
                 1, "AKTIV", null, null, null, "AAP", null
             )))
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
-        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
         every { unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) } returns true
 
         dataSource.transaction { connection ->
@@ -164,14 +154,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
         util.ventPåSvar()
 
-        verify {
-            unleashGateway.isEnabled(
-                withArg {
-                    assertThat(it).isEqualTo(PostmottakFeature.BegrensetFordelingTilKelvin)
-                },
-                any()
-            )
-        }
         verify(exactly = 1) {
             arenaWebservicesGateway.opprettArenaOppgave(withArg {
                 assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.BEHENVPERSON)
@@ -214,7 +196,6 @@ class ArenaOppgaveFlytTest : WithDependencies {
             ),
         )
         every { arenaWebservicesGateway.harAktivSak(any()) } returns false
-        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
         every { unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) } returns true
 
         val behandlingId = dataSource.transaction { connection ->

@@ -6,7 +6,6 @@ import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.metrikkerForAren
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
-import no.nav.aap.postmottak.begrensetInntakTilKelvin
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -14,8 +13,6 @@ import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.søknadOmAapTeller
 import no.nav.aap.postmottak.tellAntallMaksUtvidetKvoteSnartOppbrukt
 import no.nav.aap.postmottak.tellManueltFordeles
-import no.nav.aap.unleash.PostmottakFeature
-import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
@@ -36,14 +33,8 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
         internal fun metrikkerForArenaHistorikk(
             harArenaHistorikk: Boolean,
             harSignifikantArenaHistorikk: Boolean,
-            begrensetInntakTilKelvin: Boolean,
             erSøknad: Boolean
         ) {
-            if (!harSignifikantArenaHistorikk) {
-                // Ville blitt fordelt til Kelvin hvis ikke begrensning på inntaket
-                prometheus.begrensetInntakTilKelvin(begrensetInntakTilKelvin).increment()
-            }
-
             if (harArenaHistorikk) {
                 prometheus.resultatAvSignifikantArenaHistorikkFilterTeller(harSignifikantArenaHistorikk).increment()
             }
@@ -53,7 +44,6 @@ class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
     }
 
     override fun vurder(input: ArenaHistorikkRegelInput): Boolean {
-        // TODO: Dersom vi skal ha en mildere regel for Arena-historikk må AvklarSakSteg oppdateres */
         return !input.harSignifikantHistorikkIAAPArena
     }
 
@@ -68,11 +58,6 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
 
     override fun generer(input: RegelInput): ArenaHistorikkRegelInput {
         val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
-        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
-        val innenforProsentenSomVurderesForKelvin = unleashGateway.isEnabled(
-            PostmottakFeature.BegrensetFordelingTilKelvin,
-            input.person.identifikator.toString() // gradual rollout er sticky på userId
-        )
 
         val (historikk, signifikantHistorikk) = runBlocking {
             val historikk = arena.harHistorikk(input.person)
@@ -85,7 +70,6 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         metrikkerForArenaHistorikk(
             historikk,
             harSignifikantArenaHistorikk,
-            innenforProsentenSomVurderesForKelvin,
             erSøknad
         )
 
@@ -122,19 +106,11 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
         } else {
             logger.info(
                 "Personen har /IKKE/ signifikant historikk i AAP-Arena: " +
-                        "journalpostId=${input.journalpostId}, " +
-                        "innenforProsentenSomVurderesForKelvin=$innenforProsentenSomVurderesForKelvin"
+                        "journalpostId=${input.journalpostId}"
             )
         }
 
-
-        // Guide til å sette prosent-verdien i Unleash:
-        // Anta at vi vil ta inn regler som øker inntaket med 2%. Si for sikkerhets skyld med 2.5%.
-        // Da må vi i tillegg redusere med samme tall, altså ned til 60%, gitt at målet er 62.5%
-        // Vi ønsker da å redusere prosenten fra 100 til 60/62.5 % = 96%.
-        val resultat = if (innenforProsentenSomVurderesForKelvin) harSignifikantArenaHistorikk else true
-
-        return ArenaHistorikkRegelInput(resultat, input.person)
+        return ArenaHistorikkRegelInput(harSignifikantArenaHistorikk, input.person)
     }
 
 }
