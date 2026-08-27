@@ -9,14 +9,14 @@ kafka = "8.1.1-ce"
 testcontainers = "1.21.4"
 
 [libraries]
-kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.11.0" }
-ktorHttpJvm = { module = "io.ktor:ktor-http-jvm", version.ref = "ktor" }
-ktorServerNetty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
-ktorOpenApiGen = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.11.0" }
+ktor-http-jvm = { module = "io.ktor:ktor-http-jvm", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-openapi-gen = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
 
-ktorClientCio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktorClientJacksonSerialization = { module = "io.ktor:ktor-serialization-jackson-jvm", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-jackson-serialization = { module = "io.ktor:ktor-serialization-jackson-jvm", version.ref = "ktor" }
 
 dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "komponenter" }
 verdityper = { module = "no.nav.aap.kelvin:verdityper", version.ref = "komponenter" }
@@ -25,48 +25,48 @@ httpklient = { module = "no.nav.aap.kelvin:httpklient", version.ref = "komponent
 infrastructure = { module = "no.nav.aap.kelvin:infrastructure", version.ref = "komponenter" }
 server = { module = "no.nav.aap.kelvin:server", version.ref = "komponenter" }
 motor = { module = "no.nav.aap.kelvin:motor", version.ref = "komponenter" }
-motorApi = { module = "no.nav.aap.kelvin:motor-api", version.ref = "komponenter" }
+motor-api = { module = "no.nav.aap.kelvin:motor-api", version.ref = "komponenter" }
 gateway = { module = "no.nav.aap.kelvin:gateway", version.ref = "komponenter" }
 dbtest = { module = "no.nav.aap.kelvin:dbtest", version.ref = "komponenter" }
-motorTestUtils = { module = "no.nav.aap.kelvin:motor-test-utils", version.ref = "komponenter" }
-tilgangKontrakt = { module = "no.nav.aap.tilgang:api-kontrakt", version.ref = "tilgang" }
-tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
-arenaoppslagKontrakt = { module = "no.nav.aap.arenaoppslag:kontrakt", version.ref = "arenaoppslag" }
-behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }
+motor-test-utils = { module = "no.nav.aap.kelvin:motor-test-utils", version.ref = "komponenter" }
+tilgang-kontrakt = { module = "no.nav.aap.tilgang:api-kontrakt", version.ref = "tilgang" }
+tilgang-plugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
+arenaoppslag-kontrakt = { module = "no.nav.aap.arenaoppslag:kontrakt", version.ref = "arenaoppslag" }
+behandlingsflyt-kontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }
 
 avro = { module = "org.apache.avro:avro", version = "1.12.1" }
-kafkaStreamsAvroSerde = { module = "io.confluent:kafka-streams-avro-serde", version = "8.1.1" }
-teamdokumenthandteringAvroSchemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "1.1.11" }
-kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
-kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
-kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
+kafka-streams-avro-serde = { module = "io.confluent:kafka-streams-avro-serde", version = "8.1.1" }
+teamdokumenthandtering-avro-schemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "1.1.11" }
+kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
+kafka-streams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
+kafka-streams-test-utils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
-jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.22" }
-jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.2" }
-jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.22.2" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.22" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.2" }
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.22.2" }
 
-logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.6.3" }
-logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
-micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
-logbackSyslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.6.3" }
+logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
+logback-syslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
 
-hikariCp = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
+hikari-cp = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
 
-bekkNoCommons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
-unleashClient = { module = "io.getunleash:unleash-client-java", version = "12.2.3" }
-joseJwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.9.1" }
+bekk-no-commons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
+unleash-client = { module = "io.getunleash:unleash-client-java", version = "12.2.3" }
+jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.9.1" }
 
-junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
-junitJupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
-junitJupiterParams = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
-assertJ = { module = "org.assertj:assertj-core", version = "3.27.7" }
+junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+assertj = { module = "org.assertj:assertj-core", version = "3.27.7" }
 mockk = { module = "io.mockk:mockk", version = "1.14.11" }
-testcontainersPostgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
-testcontainersKafka = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
-testcontainersJunit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+testcontainers-kafka = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
+testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 
 [bundles]
-junit = ["junitApi", "junitJupiterEngine", "junitJupiterParams", "assertJ"]
+junit = ["junit-api", "junit-jupiter-engine", "junit-jupiter-params", "assertj"]
 
 [plugins]
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
