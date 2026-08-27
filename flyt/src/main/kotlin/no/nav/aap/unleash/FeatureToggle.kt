@@ -9,7 +9,6 @@ enum class PostmottakFeature : FeatureToggle {
     // Se: https://aap-unleash-web.iap.nav.cloud.nais.io/projects/default
     DummyFeature,
     BegrensetFordelingTilKelvin,
-    PostmottakNyFlytForAvklarKelvinArena,
     PostmottakManuellVurdering,
     ;
 
