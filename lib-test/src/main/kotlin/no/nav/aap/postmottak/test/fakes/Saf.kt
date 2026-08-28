@@ -2,28 +2,16 @@ package no.nav.aap.postmottak.test.fakes
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.http.ContentDisposition
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.serialization.jackson.jackson
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.application.log
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.request.receive
-import io.ktor.server.response.header
-import io.ktor.server.response.respondOutputStream
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.routing
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.postmottak.gateway.Fagsystem
-import no.nav.aap.postmottak.gateway.Sakstype
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 
 fun Application.safFake(
     sakerRespons: String = ingenSakerRespons()
@@ -43,30 +31,21 @@ fun Application.safFake(
                 ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, "ktor_logo.pdf")
                     .toString()
             )
-            val journalpost = call.parameters["journalpostId"]?.toLong()
-            when (journalpost) {
-                TestJournalposter.DIGITAL_SØKNAD_ID.referanse -> {
-                    call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    call.respondText(
-                        DefaultJsonMapper.toJson(
-                            SøknadV0(
-                                student = SøknadStudentDto(erStudent = StudentStatus.Nei),
-                                yrkesskade = "nei",
-                                oppgitteBarn = null,
-                                medlemskap = null,
-                            )
-                        )
-                    )
-                }
+            val journalpostId = call.parameters["journalpostId"]?.toLong()!!
 
-                else -> {
-                    call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
-                    call.respondOutputStream {
-                        this.javaClass.classLoader.getResourceAsStream("sample.pdf").copyTo(this)
-                    }
-                }
+            val testJournalpost = TestJournalposter.hentJournalpost(journalpostId)
+            if (testJournalpost?.digitalSøknad != null) {
+                call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                call.respondText(
+                    DefaultJsonMapper.toJson(testJournalpost.digitalSøknad)
+                )
+                return@get
             }
 
+            call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
+            call.respondOutputStream {
+                this.javaClass.classLoader.getResourceAsStream("sample.pdf")?.copyTo(this)
+            }
         }
         post("/graphql") {
             val body = call.receive<String>()
@@ -74,9 +53,12 @@ fun Application.safFake(
             if (body.contains("saker")) {
                 call.respondText(sakerRespons)
             } else {
-
                 val journalpostId = body.substringAfter("\"journalpostId\" : \"").substringBefore("\"").trim()
                 this@safFake.log.info("Henter dokumenter for journalpost {}", journalpostId)
+
+                val testJournalpost = TestJournalposter.hentJournalpost(journalpostId.toLong()) ?: TestJournalPost(
+                    journalpostId = journalpostId.toLong()
+                )
 
                 call.respondText(
                     """
@@ -87,25 +69,25 @@ fun Application.safFake(
                           "tittel": "Overordnet tittel",
                           "personident": "3",
                           "bruker": {
-                            "id": "${finnBruker(journalpostId.toLong())}",
-                            "type": "${finnBrukerType(journalpostId.toLong())}"
+                            "id": "${finnBrukerId(testJournalpost)}",
+                            "type": "${finnBrukerType(testJournalpost)}"
                           },
-                          ${getAvsenderMottaker(journalpostId.toLong())}
+                          ${getAvsenderMottaker(testJournalpost)}
                           "tittel": "Søknad om AAP",
-                          "journalstatus": "${finnStatus(journalpostId.toLong())}",
-                          "journalfoerendeEnhet": ${finnJournalførendeEnhet(journalpostId.toLong())},
+                          "journalstatus": "${testJournalpost.status.name}",
+                          "journalfoerendeEnhet": ${finnJournalførendeEnhet(testJournalpost)},
                           "mottattDato": "2021-12-01",
-                          "tema": "${finnTema(journalpostId.toLong())}",
-                          "kanal": "${finnKanal(journalpostId.toLong())}",
+                          "tema": "${testJournalpost.tema}",
+                          "kanal": "${testJournalpost.kanal.name}",
                           "relevanteDatoer": [
                             {
                             "dato": "2020-12-01T10:00:00",
                             "datotype": "DATO_REGISTRERT"
                             }
                           ], 
-                          "sak": ${finnSak(journalpostId.toLong())},
+                          "sak": ${finnSak(testJournalpost)},
                           "dokumenter": [
-                            ${getDokumenter(journalpostId.toLong())}
+                            ${getDokumenter(testJournalpost)}
                            ]
                           }
                         }
@@ -118,42 +100,16 @@ fun Application.safFake(
     }
 }
 
-private fun getAvsenderMottaker(journalpostId: Long) =
-    when (journalpostId) {
-        TestJournalposter.UTEN_AVSENDER_MOTTAKER.referanse -> ""
-        TestJournalposter.UTENLANDSK_ORGNR.referanse -> ""
-        TestJournalposter.NY_SØKNAD_MED_TRUKKET_SAK.referanse,
-        TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> """"avsenderMottaker": {
-            "id": "21345345210",
-            "type": "FNR",
-            "navn": "Test Testesen"
+private fun getAvsenderMottaker(testJournalpost: TestJournalPost): String {
+    val avsenderMottaker = testJournalpost.avsenderMottaker ?: return ""
+    return """"avsenderMottaker": {
+            "id": "${avsenderMottaker.id}",
+            "type": "${avsenderMottaker.type}",
+            "navn": "${avsenderMottaker.navn}"
         },"""
+}
 
-        else -> """"avsenderMottaker": {
-            "id": "0000000444",
-            "type": "FNR",
-            "navn": "Test Testesen"
-        },"""
-    }
-
-private fun finnKanal(journalpostId: Long) =
-    when (journalpostId) {
-        TestJournalposter.DIGITAL_SØKNAD_ID.referanse,
-        TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT.referanse -> KanalFraKodeverk.NAV_NO.name
-
-        TestJournalposter.PAPIR_SØKNAD.referanse,
-        TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT.referanse -> KanalFraKodeverk.SKAN_NETS.name
-
-        else -> KanalFraKodeverk.UKJENT.name
-    }
-
-private fun finnTema(journalpostId: Long) =
-    when (journalpostId) {
-        TestJournalposter.ANNET_TEMA.referanse -> "ANNET"
-        else -> "AAP"
-    }
-
-private fun getDokumenter(journalpostId: Long): String {
+private fun getDokumenter(testJournalpost: TestJournalPost): String {
     val legeerklæring = """       
         {
             "tittel": "Legeeerklæring",
@@ -167,14 +123,11 @@ private fun getDokumenter(journalpostId: Long): String {
             ]
         }
         """
-
-    return when (journalpostId) {
-        TestJournalposter.DIGITAL_SØKNAD_ID.referanse,
-        TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT.referanse -> """
+    val søknadjson = """
         {
             "tittel": "Dokumenttittel",
             "dokumentInfoId": "4542685451",
-            "brevkode": "NAV 11-13.05",
+            "brevkode": "${testJournalpost.brevkode.kode}",
             "dokumentvarianter": [
             {
                 "variantformat": "ORIGINAL",
@@ -184,37 +137,7 @@ private fun getDokumenter(journalpostId: Long): String {
         }
     """
 
-        TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT.referanse -> """
-        {
-            "tittel": "Søknad om AAP",
-            "dokumentInfoId": "4542685451",
-            "brevkode": "NAV 11-13.05",
-            "dokumentvarianter": [
-            {
-                "variantformat": "ARKIV",
-                "filtype": "PDF"
-            }
-            ]
-        }
-    """
-
-        TestJournalposter.SØKNAD_ETTERSENDELSE.referanse -> """       
-        {
-            "tittel": "Dokumenttittel",
-            "dokumentInfoId": "4542685451",
-            "brevkode": "NAVe 11-13.05",
-            "dokumentvarianter": [
-                {
-                    "variantformat": "ORIGINAL",
-                    "filtype": "JSON"
-                }
-            ]
-        }
-        """
-
-        TestJournalposter.LEGEERKLÆRING.referanse, TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse, TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> legeerklæring
-
-        TestJournalposter.KLAGE_ETTERSENDING.referanse -> """       
+    val klage = """       
         {
             "tittel": "Ettersendelse til klage",
             "dokumentInfoId": "4542685451",
@@ -228,7 +151,7 @@ private fun getDokumenter(journalpostId: Long): String {
         }
         """
 
-        else -> """ {
+    val ensøknadogenpdf = """ {
             "tittel": "Dokumenttittel",
             "dokumentInfoId": "45426854351",
             "brevkode": "NAV 11-13.05",
@@ -252,19 +175,43 @@ private fun getDokumenter(journalpostId: Long): String {
         ]
     } """
 
+    if (testJournalpost.kanal == KanalFraKodeverk.SKAN_NETS) {
+        return ensøknadogenpdf
+    }
+
+    return when (testJournalpost.brevkode) {
+        Brevkoder.SØKNAD,
+        Brevkoder.STANDARD_ETTERSENDING,
+        Brevkoder.SØKNAD_OM_REISESTØNAD,
+        Brevkoder.SØKNAD_OM_REISESTØNAD_ETTERSENDELSE
+            -> søknadjson
+
+        Brevkoder.LEGEERKLÆRING -> legeerklæring
+        Brevkoder.KLAGE,
+        Brevkoder.KLAGE_ETTERSENDELSE -> klage
+
+        Brevkoder.ANKE -> TODO()
+        Brevkoder.ANKE_ETTERSENDELSE -> TODO()
+        Brevkoder.BREV_UTLAND -> TODO()
+        Brevkoder.EGENERKLÆRING_AAP_EØS -> TODO()
+        Brevkoder.MELDEKORT -> TODO()
+        Brevkoder.MELDEKORT_KORRIGERING -> TODO()
+        Brevkoder.ANNEN -> ensøknadogenpdf // todo, gjør også dette programmerbart
     }
 }
 
-private fun finnSak(journalpostId: Long) =
-    when (journalpostId) {
-        TestJournalposter.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> """{
-            "fagsakId": "123456",
-            "fagsaksystem": "${Fagsystem.FS22.name}",
-            "sakstype": "${Sakstype.GENERELL_SAK.name}"
+private fun finnSak(testJournalpost: TestJournalPost): String {
+    val fagsak = testJournalpost.fagsak
+    return when {
+        fagsak != null -> """{
+            "fagsakId": "${fagsak.fagsakId}",
+            "fagsaksystem": "${fagsak.fagsaksystem?.name}",
+            "sakstype": "${fagsak.sakstype.name}"
         }"""
 
         else -> "null"
     }
+}
 
 private fun ingenSakerRespons() =
     """
@@ -275,40 +222,9 @@ private fun ingenSakerRespons() =
         }
     """
 
-private fun finnStatus(journalpostId: Long) =
-    when (journalpostId) {
-        TestJournalposter.UGYLDIG_STATUS.referanse -> "UTGAAR"
-        TestJournalposter.STATUS_JOURNALFØRT.referanse, TestJournalposter.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM.referanse -> "JOURNALFOERT"
-        else -> "MOTTATT"
-    }
+private fun finnBrukerId(testJournalpost: TestJournalPost) = testJournalpost.brukerId
 
-private fun finnBruker(journalpostId: Long) =
-    when (journalpostId) {
-        TestJournalposter.SØKNAD_ETTERSENDELSE.referanse,
-        TestJournalposter.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT.referanse,
-        TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN.referanse -> TestIdenter.IDENT_UTEN_SAK_I_KELVIN.identifikator
+private fun finnBrukerType(testJournalpost: TestJournalPost) = testJournalpost.brukerType
 
-        TestJournalposter.PERSON_MED_SAK_I_ARENA.referanse -> TestIdenter.IDENT_MED_SAK_I_ARENA.identifikator
-        TestJournalposter.DIGITAL_SØKNAD_KANT_I_KANT.referanse,
-        TestJournalposter.PAPIR_SØKNAD_KANT_I_KANT.referanse -> TestIdenter.IDENT_MED_KANT_I_KANT_SAK.identifikator
-
-        TestJournalposter.NY_SØKNAD_MED_TRUKKET_SAK.referanse,
-        TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK.referanse -> TestIdenter.IDENT_MED_TRUKKET_SAK_I_KELVIN.identifikator
-
-        TestJournalposter.UTENLANDSK_ORGNR.referanse -> "999999999"
-        TestJournalposter.KLAGE_ETTERSENDING.referanse -> TestIdenter.DEFAULT_IDENT_2.identifikator
-        else -> TestIdenter.DEFAULT_IDENT.identifikator
-    }
-
-private fun finnBrukerType(journalpostId: Long) =
-    when (journalpostId) {
-        TestJournalposter.UTENLANDSK_ORGNR.referanse -> "ORGNR"
-        else -> "FNR"
-    }
-
-private fun finnJournalførendeEnhet(journalpostId: Long) =
-    when (journalpostId) {
-        TestJournalposter.KLAGE_ETTERSENDING.referanse -> "4260"
-        else -> "null"
-    }
-
+private fun finnJournalførendeEnhet(testJournalpost: TestJournalPost) =
+    testJournalpost.journalførendeEnhet?.let { "\"$it\"" } ?: "null"

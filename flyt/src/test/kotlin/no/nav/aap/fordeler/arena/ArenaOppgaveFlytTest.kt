@@ -2,17 +2,8 @@ package no.nav.aap.fordeler.arena
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import io.mockk.clearAllMocks
-import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.spyk
-import io.mockk.verify
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.gateway.Factory
@@ -21,22 +12,22 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
-import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
+import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.FssOppgaver
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.test.modell.TestArenaSak
+import no.nav.aap.postmottak.test.modell.TestArenaVedtak
+import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.aap.unleash.FeatureToggle
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
@@ -54,9 +45,7 @@ import java.time.LocalDate
 class ArenaOppgaveFlytTest : WithDependencies {
     companion object {
         private val gatewayProvider = defaultGatewayProvider {
-            register<ArenaoppslagGatewaySpy>()
-            register<ArenaWebservicesGatewaySpy>()
-            register<UnleashSpy>()
+            register<FakeUnleashGateway>()
         }
 
         private lateinit var dataSource: TestDataSource
@@ -92,22 +81,20 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
     @Test
     fun `happycase for søknad, oppretter sak i arena og journalfører automatisk`() {
-        val journalpostId = TestJournalposter.PERSON_UTEN_SAK_I_BEHANDLINGSFLYT
+        val testPerson = TestPersoner.leggTil {
+            aktivSakIArena = false
+            harHistorikkIArena = true
+        }
 
-        val arenaoppslagGateway = gatewayProvider.provide(ArenaoppslagGateway::class)
-        val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
-        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
+        val identifikator = testPerson.aktivIdent()
+        val journalpostId = TestJournalposter.leggTil {
+            person = testPerson
+            digitalSøknad()
+        }.journalpostId()
 
-        clearAllMocks()
-        coEvery { arenaoppslagGateway.harHistorikk(any()) } returns true
-        coEvery { arenaoppslagGateway.harSignifikantHistorikk(any(), any()) } returns SignifikantHistorikkResponse(true,
-            listOf(ArenaVedtak(
-                1, "AKTIV", null, null, null, "AAP", null
-            )))
+        val unleashGateway = gatewayProvider.provide(UnleashGateway::class) as FakeUnleashGateway
 
-        every { arenaWebservicesGateway.harAktivSak(any()) } returns false
-        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
-        every { unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) } returns true
+        unleashGateway.reset()
 
         dataSource.transaction { connection ->
             val behandlingId = BehandlingRepositoryImpl(connection)
@@ -120,38 +107,28 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
 
         util.ventPåSvar()
-        verify {
-            unleashGateway.isEnabled(
-                withArg {
-                    assertThat(it).isEqualTo(PostmottakFeature.BegrensetFordelingTilKelvin)
-                },
-                any()
-            )
-        }
-        verify(exactly = 1) {
-            arenaWebservicesGateway.opprettArenaOppgave(withArg {
-                assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.STARTVEDTAK)
-            })
-        }
+
+        assertThat(FssOppgaver.oppgaver[identifikator]).hasSize(1)
+        assertThat(FssOppgaver.oppgaver[identifikator]!!.single().oppgaveType).isEqualTo(ArenaOppgaveType.STARTVEDTAK)
     }
 
     @Test
     fun `happycase for søknad oppretter sak i arena og journalfører automatisk`() {
-        val journalpostId = TestJournalposter.SØKNAD_ETTERSENDELSE
+        val testPerson = TestPersoner.leggTil {
+            aktivSakIArena = true
+            harHistorikkIArena = true
+        }
+        val identifikator = testPerson.aktivIdent()
+        // STANDARD_ETTERSENDING sendes til OppprettOppgaveIArenaJobbUtfører, som alltid oppretter
+        // en BEHENVPERSON-oppgave (i motsetning til digital søknad, som sjekker harAktivSak).
+        val journalpostId = TestJournalposter.leggTil {
+            person = testPerson
+            brevkode = Brevkoder.STANDARD_ETTERSENDING
+        }.journalpostId()
 
-        val arenaoppslagGateway = gatewayProvider.provide(ArenaoppslagGateway::class)
-        val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
-        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
+        val unleashGateway = gatewayProvider.provide(UnleashGateway::class) as FakeUnleashGateway
 
-        clearAllMocks()
-        coEvery { arenaoppslagGateway.harHistorikk(any()) } returns true
-        coEvery { arenaoppslagGateway.harSignifikantHistorikk(any(), any()) } returns SignifikantHistorikkResponse(true,
-            listOf(ArenaVedtak(
-                1, "AKTIV", null, null, null, "AAP", null
-            )))
-        every { arenaWebservicesGateway.harAktivSak(any()) } returns false
-        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
-        every { unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) } returns true
+        unleashGateway.reset()
 
         dataSource.transaction { connection ->
             val behandlingId = BehandlingRepositoryImpl(connection)
@@ -164,58 +141,43 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
         util.ventPåSvar()
 
-        verify {
-            unleashGateway.isEnabled(
-                withArg {
-                    assertThat(it).isEqualTo(PostmottakFeature.BegrensetFordelingTilKelvin)
-                },
-                any()
-            )
-        }
-        verify(exactly = 1) {
-            arenaWebservicesGateway.opprettArenaOppgave(withArg {
-                assertThat(it.oppgaveType).isEqualTo(ArenaOppgaveType.BEHENVPERSON)
-            })
-        }
+        assertThat(FssOppgaver.oppgaver[identifikator]).hasSize(1)
+        assertThat(FssOppgaver.oppgaver[identifikator]!!.single().oppgaveType).isEqualTo(ArenaOppgaveType.BEHENVPERSON)
     }
 
     @Test
     fun `søknad som er kant-i-kant med Arena-sak klassifiseres til manuell vurdering og stopper på avklar fordeling`() {
-        val journalpostId = TestJournalposter.DIGITAL_SØKNAD_ID
-
-        val arenaoppslagGateway = gatewayProvider.provide(ArenaoppslagGateway::class)
-        val arenaWebservicesGateway = gatewayProvider.provide(ArenaWebservicesGateway::class)
-        val unleashGateway = gatewayProvider.provide(UnleashGateway::class)
-
-        clearAllMocks()
-        coEvery { arenaoppslagGateway.harHistorikk(any()) } returns true
-        coEvery { arenaoppslagGateway.harSignifikantHistorikk(any(), any()) } returns SignifikantHistorikkResponse(
-            true, listOf(ArenaVedtak(1234, "AKTIV", null, null, null, "AAP", null))
-        )
         // Kant-i-kant: løpende vedtak (vedtaktypeKode "O") med maxdatoAap innen 20 uker etter
         // journalpostens mottattDato (DATO_REGISTRERT = 2020-12-01) -> ArenaService.skalManueltFordeles gir true.
-        coEvery { arenaoppslagGateway.sisteVedtakMedMaksdato(any()) } returns SakMedSisteVedtakOgMaksdato(
-            sakId = 1234,
-            saknummer = "2024-23456",
-            sakStatus = "AKTIV",
-            sakRegistrert = LocalDate.of(2024, 1, 1),
-            sakAvsluttet = null,
-            unntaksvilkaarInnvilget = null,
-            unntaksvilkaarGjelderFra = null,
-            sisteVedtak = VedtakMedMaksdato(
-                vedtakId = 99,
-                aktfaseKode = "AKT",
-                vedtaktypeKode = "O",
-                fra = LocalDate.of(2024, 1, 1),
-                til = LocalDate.of(2024, 12, 31),
-                maxdatoOrdinaer = LocalDate.of(2025, 1, 1),
-                maxdatoUnntak = null,
-                maxdatoAap = LocalDate.of(2021, 3, 1),
-            ),
-        )
-        every { arenaWebservicesGateway.harAktivSak(any()) } returns false
-        every { unleashGateway.isEnabled(PostmottakFeature.BegrensetFordelingTilKelvin, any()) } returns true
-        every { unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) } returns true
+        val testPerson = TestPersoner.leggTil {
+            harHistorikkIArena = true
+            arenaSak = TestArenaSak(
+                sakId = 1234,
+                saknummer = "2024-23456",
+                sakStatus = "AKTIV",
+                sakRegistrert = LocalDate.of(2024, 1, 1),
+                sakAvsluttet = null,
+                sisteVedtak = TestArenaVedtak(
+                    vedtakId = 99,
+                    aktfaseKode = "AKT",
+                    vedtaktypeKode = "O",
+                    fra = LocalDate.of(2024, 1, 1),
+                    til = LocalDate.of(2024, 12, 31),
+                    maxdatoOrdinaer = LocalDate.of(2025, 1, 1),
+                    maxdatoUnntak = null,
+                    maxdatoAap = LocalDate.of(2021, 3, 1),
+                ),
+            )
+        }
+        val identifikator = testPerson.aktivIdent()
+        val journalpostId =
+            TestJournalposter.leggTil {
+                person = testPerson
+                digitalSøknad()
+            }.journalpostId()
+
+        val unleashGateway = gatewayProvider.provide(UnleashGateway::class) as FakeUnleashGateway
+        unleashGateway.reset()
 
         val behandlingId = dataSource.transaction { connection ->
             val id = BehandlingRepositoryImpl(connection)
@@ -244,77 +206,30 @@ class ArenaOppgaveFlytTest : WithDependencies {
         }
 
         // Behandlingen er verken rutet til Arena eller Kelvin – den venter på manuell vurdering
-        verify(exactly = 0) { arenaWebservicesGateway.opprettArenaOppgave(any()) }
+        assertThat(FssOppgaver.oppgaver[identifikator]).isNullOrEmpty()
     }
 
 }
 
-class ArenaoppslagGatewaySpy : ArenaoppslagGateway {
-    companion object : Factory<ArenaoppslagGatewaySpy> {
-        val klient = spyk(ArenaoppslagGatewaySpy())
-        override fun konstruer() = klient
+class FakeUnleashGateway : UnleashGateway {
+    companion object : Factory<FakeUnleashGateway> {
+        private val instance = FakeUnleashGateway()
+        override fun konstruer() = instance
     }
 
-    override suspend fun harHistorikk(person: Person): Boolean {
-        TODO("kalles ikke på")
+    var enabledFeatures: MutableSet<FeatureToggle> = mutableSetOf(
+        PostmottakFeature.BegrensetFordelingTilKelvin,
+        PostmottakFeature.PostmottakManuellVurdering,
+    )
+
+    fun reset() {
+        enabledFeatures = mutableSetOf(
+            PostmottakFeature.BegrensetFordelingTilKelvin,
+            PostmottakFeature.PostmottakManuellVurdering,
+        )
     }
 
-    override suspend fun harSignifikantHistorikk(
-        person: Person,
-        mottattDato: LocalDate
-    ): SignifikantHistorikkResponse {
-        TODO("kalles ikke på")
-    }
+    override fun isEnabled(featureToggle: FeatureToggle): Boolean = featureToggle in enabledFeatures
 
-    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? {
-        // Kalles nå i fordelingsflyten (ArenaService.skalManueltFordeles). Default = ingen sak;
-        // enkelttester stubber denne for å simulere kant-i-kant.
-        return null
-    }
-
-    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
-        TODO("kalles ikke på")
-    }
-
-
-}
-
-class ArenaWebservicesGatewaySpy : ArenaWebservicesGateway {
-
-    companion object : Factory<ArenaWebservicesGatewayImpl> {
-        val klient = spyk(ArenaWebservicesGatewayImpl.konstruer())
-        override fun konstruer() = klient
-    }
-
-    override fun nyesteAktiveSak(ident: Ident): String {
-        TODO("Not yet implemented")
-    }
-
-    override fun harAktivSak(ident: Ident): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun opprettArenaOppgave(arenaOpprettetForespørsel: ArenaOpprettOppgaveForespørsel): ArenaOpprettOppgaveRespons {
-        TODO("Not yet implemented")
-    }
-
-    override fun behandleKjoerelisteOgOpprettOppgave(journalpostId: JournalpostId): String {
-        TODO("Not yet implemented")
-    }
-
-}
-
-class UnleashSpy : UnleashGateway {
-    override fun isEnabled(featureToggle: FeatureToggle): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    companion object : Factory<UnleashSpy> {
-        val klient = spyk(UnleashSpy())
-        override fun konstruer() = klient
-    }
+    override fun isEnabled(featureToggle: FeatureToggle, userId: String): Boolean = featureToggle in enabledFeatures
 }

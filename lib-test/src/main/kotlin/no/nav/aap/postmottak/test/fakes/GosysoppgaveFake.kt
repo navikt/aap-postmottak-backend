@@ -22,13 +22,19 @@ fun Application.gosysOppgaveFake(
 
     routing {
         get("/api/v1/oppgaver") {
-            if (call.parameters["journalpostId"] == TestJournalposter.MED_GOSYS_OPPGAVER.referanse.toString()) {
+            val journalpostId = call.parameters["journalpostId"]?.toLong()
+            val testJournalpost = journalpostId?.let { TestJournalposter.hentJournalpost(it) }
+
+            if (testJournalpost?.harEksisterendeGosysOppgave == true) {
                 call.respond(FinnOppgaverResponse(listOf(Oppgave(1))))
             }
             call.respond(FinnOppgaverResponse(emptyList()))
         }
         post("/api/v1/oppgaver") {
-            if (call.parameters["journalpostId"] == TestJournalposter.MED_GOSYS_OPPGAVER.referanse.toString()) {
+            val journalpostId = call.parameters["journalpostId"]?.toLong()
+            val testJournalpost = journalpostId?.let { TestJournalposter.hentJournalpost(it) }
+
+            if (testJournalpost?.harEksisterendeGosysOppgave == true) {
                 throw ShouldNotBeCalledException("Dette endepunktet skal ikke ha blitt kalt ettersom det alt finnes en oppgave")
             }
             call.respond(false)

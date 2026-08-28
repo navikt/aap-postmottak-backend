@@ -4,31 +4,25 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.nimbusds.jwt.JWTParser
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.jackson.jackson
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.application.log
-import io.ktor.server.engine.ConnectorType
-import io.ktor.server.engine.EmbeddedServer
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
-import io.ktor.server.routing.patch
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.routing
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.klient.arena.BehandleKjoerelisteOgOpprettOppgaveRequest
+import no.nav.aap.postmottak.klient.arena.BehandleKjoerelisteOgOpprettOppgaveResponse
+import no.nav.aap.postmottak.klient.arena.HentNyesteAktivSakRequest
 import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
@@ -37,7 +31,7 @@ import no.nav.aap.postmottak.test.fakes.norgFake
 import no.nav.aap.postmottak.test.fakes.safFake
 import no.nav.aap.postmottak.test.fakes.unleashFake
 import no.nav.aap.postmottak.test.fakes.veilarbarena
-import no.nav.aap.postmottak.test.modell.TestPerson
+import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.aap.tilgang.JournalpostTilgangRequest
 import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
@@ -45,19 +39,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
-class FakePersoner(val fakePersoner: MutableMap<String, TestPerson> = mutableMapOf()) {
-    fun leggTil(testPerson: TestPerson) {
-        fakePersoner[testPerson.aktivIdent().identifikator] = testPerson
-    }
-}
-
 class FakeServers : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     private val texas = embeddedServer(Netty, port = 0) { texasFakes() }
     private val oppgave = embeddedServer(Netty, port = 0, module = { oppgaveFake() })
 
-    val fakePersoner: FakePersoner = FakePersoner()
     val saf = embeddedServer(Netty, port = 0, module = { safFake() })
     val joark = embeddedServer(Netty, port = 0, module = { joarkFake() })
     val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
@@ -161,22 +148,24 @@ class FakeServers : AutoCloseable {
             return
         }
 
-        texas.start()
-        unleash.start()
-        oppgave.start()
-        saf.start()
-        joark.start()
-        behandlingsflyt.start()
-        tilgang.start()
-        gosysOppgave.start()
-        arenaoppslag.start()
-        pdl.start()
-        fssProxy.start()
-        nomFake.start()
-        norgFake.start()
-        staistikkFake.start()
-        veilarbarena.start()
-        eregFake.start()
+        listOf(
+            texas,
+            unleash,
+            oppgave,
+            saf,
+            joark,
+            behandlingsflyt,
+            tilgang,
+            gosysOppgave,
+            arenaoppslag,
+            pdl,
+            fssProxy,
+            nomFake,
+            norgFake,
+            staistikkFake,
+            veilarbarena,
+            eregFake,
+        ).parallelStream().forEach { it.start() }
 
         setProperties()
 
@@ -316,7 +305,7 @@ class FakeServers : AutoCloseable {
 
             post("/token/exchange") {
                 val body = call.receive<JsonNode>()
-                val NAVident = JWTParser.parse(body["user_token"].asText())
+                @Suppress("LocalVariableName") val NAVident = JWTParser.parse(body["user_token"].asText())
                     .jwtClaimsSet
                     .getClaimAsString("NAVident")
 
@@ -369,13 +358,25 @@ class FakeServers : AutoCloseable {
         }
         routing {
             post("/arena/nyesteaktivesak") {
-                call.respondText(ContentType.Text.Plain) {
-                    "12345678901"
+                val forespørsel = call.receive<HentNyesteAktivSakRequest>()
+
+                val testperson = TestPersoner.hentPerson(forespørsel.personident)
+
+                when {
+                    (testperson?.harAktivSakIArena == true) -> call.respondText("1234")
+                    else -> call.respond(HttpStatusCode.NoContent)
                 }
             }
             post("/arena/opprettoppgave") {
-                call.receive<ArenaOpprettOppgaveForespørsel>()
+                val forespørsel = call.receive<ArenaOpprettOppgaveForespørsel>()
+                FssOppgaver.oppgaver.compute(Ident(forespørsel.fnr), { fnr, old -> (old ?: emptyList()) + forespørsel })
                 call.respond(ArenaOpprettOppgaveRespons("OPG-1234", "SAK-5678"))
+            }
+
+            post("/arena/behandleKjoerelisteOgOpprettOppgave") {
+                val forespørsel = call.receive<BehandleKjoerelisteOgOpprettOppgaveRequest>()
+
+                call.respond(BehandleKjoerelisteOgOpprettOppgaveResponse(arenaSakId = "1234"))
             }
         }
     }
