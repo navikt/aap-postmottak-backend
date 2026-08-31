@@ -6,8 +6,8 @@ sealed interface Transisjon {
     fun kanFortsette(): Boolean = true
 }
 
-object Fortsett : Transisjon
-object Stopp : Transisjon {
+data object Fortsett : Transisjon
+data object Stopp : Transisjon {
     override fun kanFortsette(): Boolean {
         return false
     }

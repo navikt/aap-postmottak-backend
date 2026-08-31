@@ -3,9 +3,8 @@ package no.nav.aap.postmottak.klient.nom
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.TestIdenter
+import no.nav.aap.postmottak.test.modell.TestPersoner
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -23,7 +22,10 @@ class NomKlientTest {
     @Test
     fun erEgenAnsatt() {
         val client = NomKlient()
-        val actual = client.erEgenAnsatt(TestIdenter.SKJERMET_IDENT)
+        val testPerson = TestPersoner.leggTil {
+            skjermet = true
+        }
+        val actual = client.erEgenAnsatt(testPerson.aktivIdent())
 
         assertThat(actual).isTrue()
     }
@@ -32,7 +34,11 @@ class NomKlientTest {
     fun erIkkeEgenansatt() {
         val client = NomKlient()
 
-        val actual = client.erEgenAnsatt(Ident("123412341243"))
+        val testPerson = TestPersoner.leggTil {
+            skjermet = false
+        }
+
+        val actual = client.erEgenAnsatt(testPerson.aktivIdent())
 
         assertThat(actual).isFalse()
     }

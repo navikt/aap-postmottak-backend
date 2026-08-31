@@ -2,16 +2,15 @@ package no.nav.aap.postmottak.flyt
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.WithDependencies
 import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -30,15 +29,17 @@ import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.internals.TestHendelsesMottak
+import no.nav.aap.postmottak.gateway.Fagsystem
+import no.nav.aap.postmottak.gateway.JournalpostSak
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -56,14 +57,13 @@ import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
-import no.nav.aap.postmottak.test.FakePersoner
+import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.TestIdenter
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
-import no.nav.aap.postmottak.test.modell.TestPerson
+import no.nav.aap.postmottak.test.modell.TestKelvinSak
+import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -94,7 +94,7 @@ class Flyttest : WithDependencies {
         private lateinit var dataSource: TestDataSource
 
         private val gatewayProvider = defaultGatewayProvider {
-            register(FakeUnleash::class)
+            register<FakeUnleash>()
         }
         private lateinit var hendelsesMottak: TestHendelsesMottak
         private lateinit var motor: Motor
@@ -142,7 +142,6 @@ class Flyttest : WithDependencies {
                 ),
                 schemaRegistry = SchemaRegistryConfig(url = "mock://dummy", user = "", password = "")
             )
-
 
             producer = KafkaProducer<String, JournalfoeringHendelseRecord>(Properties().apply {
                 put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKafkaTestContainer.kafka.bootstrapServers)
@@ -221,7 +220,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `digital søknad blir automatisk behandlet`() {
-        val journalpostID = TestJournalposter.DIGITAL_SØKNAD_ID
+        val journalpostID = TestJournalposter.digitalSøknad().journalpostId()
 
         leggJournalpostPåKafka {
             journalpostId = journalpostID.referanse
@@ -233,7 +232,11 @@ class Flyttest : WithDependencies {
 
         assertThat(behandlinger).hasSize(3)
             .extracting<TypeBehandling> { it.typeBehandling }
-            .containsExactlyInAnyOrder(TypeBehandling.Fordeling, TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
+            .containsExactlyInAnyOrder(
+                TypeBehandling.Fordeling,
+                TypeBehandling.Journalføring,
+                TypeBehandling.DokumentHåndtering
+            )
 
         val behandling = behandlinger!!.first()
 
@@ -243,17 +246,25 @@ class Flyttest : WithDependencies {
 
     @Test
     fun fordel() {
-        val journalpostId = TestJournalposter.DIGITAL_SØKNAD_ID
+        val journalpostID = TestJournalposter.digitalSøknad().journalpostId()
 
-        triggFordelingJobb(journalpostId)
+        triggFordelingJobb(journalpostID)
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+        val behandlinger = alleBehandlingerForJournalpost(journalpostID)
         assertThat(behandlinger).isNotEmpty
     }
 
     @Test
     fun `Helautomatisk flyt for legeerklæring som ikke skal til Kelvin`() {
-        val journalpostId = TestJournalposter.LEGEERKLÆRING_IKKE_TIL_KELVIN
+        val testPerson = TestPersoner.leggTil {
+            kelvinSak = null
+        }
+
+        val journalpostId = TestJournalposter.leggTil {
+            person = testPerson
+            brevkode = Brevkoder.LEGEERKLÆRING
+        }.journalpostId()
+
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
 
@@ -267,8 +278,16 @@ class Flyttest : WithDependencies {
     }
 
     @Test
-    fun `Helautomatisk flyt for legeerklæring på trukket søknad som ikke skal til  Kelvin`() {
-        val journalpostId = TestJournalposter.LEGEERKLÆRING_TRUKKET_SAK
+    fun `Helautomatisk flyt for legeerklæring på trukket søknad som ikke skal til Kelvin`() {
+        val testperson = TestPersoner.leggTil {
+            kelvinSak = TestKelvinSak(
+                saksnummer = "!",
+                resultat = ResultatKode.TRUKKET
+            )
+        }
+
+        val journalpostId = TestJournalposter.leggTil { person = testperson }.journalpostId()
+
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         triggProsesserBehandling(journalpostId, behandlingId)
@@ -283,20 +302,16 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Helautomatisk flyt for digital legeerklæring som skal til Kelvin`() {
-        val journalpostId = TestJournalposter.LEGEERKLÆRING
+        val testperson = TestPersoner.leggTil {
+            kelvinSak = TestKelvinSak()
+        }
+
+        val journalpost = TestJournalposter.leggTil { person = testperson }
+
+        val journalpostId = journalpost.journalpostId()
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
-        dataSource.transaction { connection ->
-            SaksnummerRepositoryImpl(connection).lagreKelvinSak(
-                behandlingId, listOf(
-                    Saksinfo(
-                        "sak: 1", Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31)),
-                    )
-                )
-            )
-        }
         triggProsesserBehandling(journalpostId, behandlingId)
-        sleep(100) // FIXME ustabil test uten denne
 
         val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(behandlinger).hasSize(2)
@@ -312,7 +327,11 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Flyt for journalpost som er blitt behandlet i gosys`() {
-        val journalpostId = TestJournalposter.ANNET_TEMA
+        val journalpostId = TestJournalposter.leggTil {
+            tema = "UKJ"
+            brevkode = Brevkoder.ANNEN
+        }.journalpostId()
+
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         dataSource.transaction { connection ->
@@ -336,7 +355,8 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Full helautomatisk flyt for søknad`() {
-        val journalpostId = TestJournalposter.DIGITAL_SØKNAD_ID
+        val journalpostId = TestJournalposter.digitalSøknad().journalpostId()
+
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
         prøv {
@@ -348,9 +368,19 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `kjører en manuell søknad igjennom hele flyten`() {
-        val journalpostId = JournalpostId(1)
+        val journalpostId = TestJournalposter.leggTil {
+            brevkode = Brevkoder.SØKNAD
+            papirsøknad()
+        }.journalpostId()
 
-        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+        leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
+        }!!
+
+        val nyBehandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
+        val behandlingId = nyBehandling.id
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
@@ -364,7 +394,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `manuell digitalisering - først opprettes avklartema-behandling, så digitaliseringsbehandling`() {
-        val journalpostId = TestJournalposter.PAPIR_SØKNAD
+        val journalpostId = TestJournalposter.papirsøknad().journalpostId()
 
         leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
 
@@ -418,7 +448,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `manuell digitalisering skal markere hendelsen før videresending`() {
-        val journalpostId = TestJournalposter.PAPIR_SØKNAD
+        val journalpostId = TestJournalposter.papirsøknad().journalpostId()
 
         leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
 
@@ -470,7 +500,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
-        val journalpostId = JournalpostId(1L)
+        val journalpostId = TestJournalposter.papirsøknad().journalpostId()
 
         triggFordelingJobb(journalpostId)
 
@@ -485,7 +515,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Blir satt på vent for etterspørring av informasjon`() {
-        val journalpostId = JournalpostId(2L)
+        val journalpostId = TestJournalposter.papirsøknad().journalpostId()
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         triggProsesserBehandling(journalpostId, behandlingId)
@@ -550,7 +580,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Skal ikke opprette dokumentflyt dersom journalposten har ugyldig status`() {
-        val journalpostId = TestJournalposter.UGYLDIG_STATUS
+        val journalpostId = TestJournalposter.leggTil { status = Journalstatus.UTGAAR }.journalpostId()
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         triggProsesserBehandling(journalpostId, behandlingId)
@@ -568,7 +598,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Skal videresende dersom journalposten ble journalført utenfor postmottak med tema AAP på Kelvin fagsak `() {
-        val journalpostId = TestJournalposter.STATUS_JOURNALFØRT
+        val journalpostId = TestJournalposter.leggTil { status = Journalstatus.JOURNALFOERT }.journalpostId()
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
 
@@ -582,7 +612,7 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Skal ikke videresende dersom journalposten ble journalført utenfor postmottak med tema AAP, men på annet fagsystem`() {
-        val journalpostId = TestJournalposter.STATUS_JOURNALFØRT_ANNET_FAGSYSTEM
+        val journalpostId = TestJournalposter.leggTil { fagsak = JournalpostSak(fagsaksystem = Fagsystem.FS22) }.journalpostId()
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         triggProsesserBehandling(journalpostId, behandlingId)
@@ -596,11 +626,8 @@ class Flyttest : WithDependencies {
     }
 
     @Test
-    fun `hvis tema ikke skal være AAP, så lukkes behandlingen når journalposten endrer tema`(fakePersoner: FakePersoner) {
-        val testPerson = TestPerson(identer = setOf(TestIdenter.DEFAULT_IDENT))
-        fakePersoner.leggTil(testPerson)
-
-        val journalpostId = JournalpostId(12213123L)
+    fun `hvis tema ikke skal være AAP, så lukkes behandlingen når journalposten endrer tema`() {
+        val journalpostId = TestJournalposter.leggTil { brevkode = Brevkoder.ANNEN }.journalpostId()
 
         // Legg til journalpost på Kafka
         leggJournalpostPåKafka {
@@ -647,11 +674,8 @@ class Flyttest : WithDependencies {
     }
 
     @Test
-    fun `hvis tema ikke skal være AAP, så lukkes behandlingen når journalposten fullføres`(fakePersoner: FakePersoner) {
-        val testPerson = TestPerson(identer = setOf(TestIdenter.DEFAULT_IDENT))
-        fakePersoner.leggTil(testPerson)
-
-        val journalpostId = JournalpostId(12213123L)
+    fun `hvis tema ikke skal være AAP, så lukkes behandlingen når journalposten fullføres`() {
+        val journalpostId = TestJournalposter.leggTil { brevkode = Brevkoder.ANNEN }.journalpostId()
 
         // Legg til journalpost på Kafka
         leggJournalpostPåKafka {
@@ -703,8 +727,10 @@ class Flyttest : WithDependencies {
 
     private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {
         val start = System.currentTimeMillis()
+        var c = 0
         while (System.currentTimeMillis() - start < maksSekunder * 1000) {
             try {
+                c++
                 return block()
             } catch (_: Throwable) {
                 sleep(100)
@@ -767,7 +793,7 @@ class Flyttest : WithDependencies {
 
     private fun opprettJournalføringsBehandling(journalpostId: JournalpostId): BehandlingId =
         dataSource.transaction { connection ->
-            repositoryRegistry.provider(connection).provide(BehandlingRepository::class)
+            repositoryRegistry.provider(connection).provide<BehandlingRepository>()
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
         }
 

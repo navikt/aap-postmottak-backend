@@ -29,7 +29,7 @@ fun Application.unleashFake() {
             )
         }
     }
-    //create route
+
     routing {
         get("/api/client/features") {
             val features = PostmottakFeature.entries.map { MockUnleashFeature(it.name, true) }

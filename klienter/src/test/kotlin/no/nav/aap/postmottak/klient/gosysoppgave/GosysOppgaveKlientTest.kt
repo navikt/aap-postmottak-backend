@@ -4,8 +4,8 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -21,20 +21,26 @@ class GosysOppgaveKlientTest {
 
     @Test
     fun opprettEndreTemaOppgave() {
-        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(1), "YOLO", null)
+        val journalpostId = TestJournalposter.leggTil().journalpostId()
+
+        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId, "YOLO", null)
     }
 
     //TODO: Forbedre denne testen
     @Test
     fun `når en journalpost alt har oppgaver skal det ikke opprettes en ny oppgave`() {
-        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(JournalpostId(128), "YOLO", null)
+        val journalpostId = TestJournalposter.leggTil {
+            harEksisterendeGosysOppgave = true
+        }.journalpostId()
+
+        gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId, "YOLO", null)
         gosysOppgaveKlient.opprettJournalføringsOppgaveHvisIkkeEksisterer(
-            JournalpostId(128),
+            journalpostId,
             Ident("YOLO"),
             "YOLO",
             "YOLO"
         )
-        gosysOppgaveKlient.opprettFordelingsOppgaveHvisIkkeEksisterer(JournalpostId(128), "YOLO", null, "YOLO")
+        gosysOppgaveKlient.opprettFordelingsOppgaveHvisIkkeEksisterer(journalpostId, "YOLO", null, "YOLO")
     }
 
     @Test
