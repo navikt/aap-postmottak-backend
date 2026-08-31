@@ -27,6 +27,7 @@ fun Application.gosysOppgaveFake(
 
             if (testJournalpost?.harEksisterendeGosysOppgave == true) {
                 call.respond(FinnOppgaverResponse(listOf(Oppgave(1))))
+                return@get
             }
             call.respond(FinnOppgaverResponse(emptyList()))
         }

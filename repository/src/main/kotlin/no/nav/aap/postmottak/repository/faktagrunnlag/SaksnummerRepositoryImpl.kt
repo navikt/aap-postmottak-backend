@@ -46,7 +46,6 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
         behandlingId: BehandlingId,
         saksinfo: List<Saksinfo>
     ) {
-        println("SAKSINFO $saksinfo")
         val id = connection.executeReturnKey(
             """
             INSERT INTO INNHENTEDE_SAKER_FOR_BEHANDLING (BEHANDLING_ID) VALUES (?)

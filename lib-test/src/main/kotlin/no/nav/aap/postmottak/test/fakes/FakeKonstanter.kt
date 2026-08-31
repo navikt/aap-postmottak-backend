@@ -118,7 +118,7 @@ object TestJournalposter {
         ).let {
             if (builder.brukerType != BrukerIdType.ORGNR) {
                 it.medFnr(ident)
-            } else it
+            } else it.copy(brukerId = ident.identifikator)
         }
         fakeJournalposter[journalpost.journalpostId] = journalpost
 

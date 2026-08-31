@@ -31,7 +31,11 @@ fun Application.safFake(
                 ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, "ktor_logo.pdf")
                     .toString()
             )
-            val journalpostId = call.parameters["journalpostId"]?.toLong()!!
+            val journalpostId = call.parameters["journalpostId"]?.toLong()
+            if (journalpostId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Mangler eller ugyldig journalpostId")
+                return@get
+            }
 
             val testJournalpost = TestJournalposter.hentJournalpost(journalpostId)
             if (testJournalpost?.digitalSøknad != null) {
@@ -44,7 +48,9 @@ fun Application.safFake(
 
             call.response.header(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
             call.respondOutputStream {
-                this.javaClass.classLoader.getResourceAsStream("sample.pdf")?.copyTo(this)
+                val ressurs = this.javaClass.classLoader.getResourceAsStream("sample.pdf")
+                    ?: error("Fant ikke sample.pdf på classpath")
+                ressurs.copyTo(this)
             }
         }
         post("/graphql") {
@@ -190,13 +196,14 @@ private fun getDokumenter(testJournalpost: TestJournalPost): String {
         Brevkoder.KLAGE,
         Brevkoder.KLAGE_ETTERSENDELSE -> klage
 
-        Brevkoder.ANKE -> TODO()
-        Brevkoder.ANKE_ETTERSENDELSE -> TODO()
-        Brevkoder.BREV_UTLAND -> TODO()
-        Brevkoder.EGENERKLÆRING_AAP_EØS -> TODO()
-        Brevkoder.MELDEKORT -> TODO()
-        Brevkoder.MELDEKORT_KORRIGERING -> TODO()
-        Brevkoder.ANNEN -> ensøknadogenpdf // todo, gjør også dette programmerbart
+        // todo, gjør også dette programmerbart
+        Brevkoder.ANKE,
+        Brevkoder.ANKE_ETTERSENDELSE,
+        Brevkoder.BREV_UTLAND,
+        Brevkoder.EGENERKLÆRING_AAP_EØS,
+        Brevkoder.MELDEKORT,
+        Brevkoder.MELDEKORT_KORRIGERING,
+        Brevkoder.ANNEN -> ensøknadogenpdf
     }
 }
 
