@@ -68,4 +68,18 @@ class AvklarFordelingRepositoryImpl(private val connection: DBConnection): Avkla
             }
         }
     }
+
+    override fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+        connection.execute(
+            """
+            INSERT INTO AVKLAR_FORDELING_GRUNNLAG (AVKLAR_FORDELING_VURDERING_ID, BEHANDLING_ID)
+            SELECT AVKLAR_FORDELING_VURDERING_ID, ? FROM AVKLAR_FORDELING_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV
+            """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, tilBehandling.id)
+                setLong(2, fraBehandling.id)
+            }
+        }
+    }
 }

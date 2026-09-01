@@ -135,6 +135,19 @@ class SaksnummerRepositoryImplTest {
         }
     }
 
+    @Test
+    fun `kan kopiere kelvinSaker fra en behandling til en annen`() {
+        val journalpostId = JournalpostId(1)
+        inContext {
+            val fraBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+            val tilBehandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
+            saksnummerRepository.lagreKelvinSak(fraBehandling, saksinfo)
+            saksnummerRepository.kopier(fraBehandling, tilBehandling)
+
+            assertThat(saksnummerRepository.hentKelvinSaker(tilBehandling)).isEqualTo(saksinfo)
+        }
+    }
+
     private class TestContext(val connection: DBConnection) {
         val saksnummerRepository: SaksnummerRepository = SaksnummerRepositoryImpl(connection)
         val behandlingRepository: BehandlingRepository = BehandlingRepositoryImpl(connection)
