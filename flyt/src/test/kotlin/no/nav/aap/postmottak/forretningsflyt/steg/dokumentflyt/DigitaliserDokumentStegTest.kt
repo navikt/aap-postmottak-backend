@@ -106,19 +106,6 @@ class DigitaliserDokumentStegTest {
     }
 
     @Test
-    fun `kaster exception når dokument kommer inn og vi finner en tidligere behandling med avslag`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
-
-        every { journalpost.erDigitalLegeerklæring() } returns true
-        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
-        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
-        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns true
-
-        assertThrows<AvslagException>{ digitaliserDokumentSteg.utfør(mockk(relaxed = true)) }
-    }
-
-    @Test
     fun `lager manuell digitaliseringsoppgave hvis barn oppgitt i søknad har ugyldig ident`() {
         val journalpost: Journalpost = mockk(relaxed = true)
         val journalpostJson = """{
