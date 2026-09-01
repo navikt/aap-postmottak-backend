@@ -66,7 +66,9 @@ class DigitaliserDokumentSteg(
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId}" }
 
-        if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) throw AvslagException()
+        if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) {
+            log.warn("Det eksisterer avslag, men steget vil gå gjennom likevel.")
+        }
 
         // Prøv automatisk digitalisering av dokumenter som er digitale
         if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
