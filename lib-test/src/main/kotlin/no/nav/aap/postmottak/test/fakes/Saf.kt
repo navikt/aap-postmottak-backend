@@ -12,6 +12,8 @@ import io.ktor.server.routing.*
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 
 fun Application.safFake(
     sakerRespons: String = ingenSakerRespons()
@@ -36,12 +38,20 @@ fun Application.safFake(
                 call.respond(HttpStatusCode.BadRequest, "Mangler eller ugyldig journalpostId")
                 return@get
             }
+            val dokumentInfoId = call.parameters["dokumentInfoId"]
 
             val testJournalpost = TestJournalposter.hentJournalpost(journalpostId)
-            if (testJournalpost?.digitalSøknad != null) {
+            // Om dokumentet som etterspørres er JSON avgjøres av variantene på dokumentet i
+            // testJournalpost.dokumenter (satt sammen med digitalSøknad, se TestJournalPostBuilder).
+            val erJsonDokument = testJournalpost?.dokumenter
+                ?.find { it.dokumentInfoId.dokumentInfoId == dokumentInfoId }
+                ?.varianter?.any { it.filtype == Filtype.JSON }
+                ?: false
+
+            if (erJsonDokument) {
                 call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 call.respondText(
-                    DefaultJsonMapper.toJson(testJournalpost.digitalSøknad)
+                    testJournalpost.digitalSøknad?.let { DefaultJsonMapper.toJson(it) } ?: "{}"
                 )
                 return@get
             }
@@ -72,7 +82,6 @@ fun Application.safFake(
                     {"journalpost":
                         {
                           "journalpostId": "$journalpostId",
-                          "tittel": "Overordnet tittel",
                           "personident": "3",
                           "bruker": {
                             "id": "${finnBrukerId(testJournalpost)}",
@@ -115,7 +124,33 @@ private fun getAvsenderMottaker(testJournalpost: TestJournalPost): String {
         },"""
 }
 
+private fun dokumentTilGraphqlJson(dokument: Dokument): String {
+    val varianter = dokument.varianter.joinToString(",\n") { variant ->
+        """
+            {
+                "variantformat": "${variant.variantformat.name}",
+                "filtype": "${variant.filtype.name}"
+            }
+        """
+    }
+    val tittel = dokument.tittel?.let { "\"$it\"" } ?: "null"
+    return """
+        {
+            "tittel": $tittel,
+            "dokumentInfoId": "${dokument.dokumentInfoId.dokumentInfoId}",
+            "brevkode": "${dokument.brevkode}",
+            "dokumentvarianter": [
+                $varianter
+            ]
+        }
+    """
+}
+
 private fun getDokumenter(testJournalpost: TestJournalPost): String {
+    testJournalpost.dokumenter?.let { dokumenter ->
+        return dokumenter.joinToString(",\n") { dokumentTilGraphqlJson(it) }
+    }
+
     val legeerklæring = """       
         {
             "tittel": "Legeeerklæring",
@@ -169,7 +204,6 @@ private fun getDokumenter(testJournalpost: TestJournalPost): String {
             ]
         },
     {
-        "dokumentInfoId": "2",
         "tittel": "Dokument2",
         "dokumentInfoId": "45426854352",
         "brevkode": null,

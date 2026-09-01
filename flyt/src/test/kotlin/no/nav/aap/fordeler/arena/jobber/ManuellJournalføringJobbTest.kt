@@ -9,29 +9,25 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import org.junit.jupiter.api.BeforeEach
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.junit.jupiter.api.Test
 
 class ManuellJournalføringJobbTest {
     private val gosysMock = mockk<GosysOppgaveGateway>(relaxed = true)
     private val journalpostServiceMock = mockk<JournalpostService>()
-    private val journalpostMock = mockk<Journalpost>()
 
     private val manuellJournalføringJobb = ManuellJournalføringJobbUtfører(
         gosysMock,
         journalpostServiceMock,
     )
 
-    @BeforeEach
-    fun beforeEach() {
-        every { journalpostServiceMock.hentJournalpost(any()) } returns journalpostMock
-    }
-    
     @Test
     fun `Skal opprette fordelingsoppgave hvis oppretting av journalføringsoppgave har feilet 3 ganger`() {
-        every { journalpostMock.status } returns Journalstatus.MOTTATT
+        val journalpost = TestJournalposter.leggTil {
+            status = Journalstatus.MOTTATT
+        }.tilJournalpost()
+        every { journalpostServiceMock.hentJournalpost(any()) } returns journalpost
         every {gosysMock.finnOppgaverForJournalpost(any(), any(), any())} returns emptyList()
         
         val kontekst =   ArenaVideresenderKontekst(
