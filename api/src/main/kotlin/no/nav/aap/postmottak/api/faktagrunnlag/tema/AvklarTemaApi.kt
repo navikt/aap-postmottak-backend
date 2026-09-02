@@ -1,10 +1,8 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.tema
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
@@ -15,12 +13,9 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsrefer
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
-import java.net.URI
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource, repositoryRegistry: RepositoryRegistry) {
-    val gosysUrl = URI.create(requiredConfigForKey("GOSYS_URL"))
-
     route("/api/behandling/{referanse}") {
         route("/grunnlag/avklarTemaVurdering") {
             authorizedGet<BehandlingsreferansePathParam, AvklarTemaGrunnlagDto>(
@@ -51,17 +46,5 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource, repositoryRegistry:
                 respond(grunnlag)
             }
         }
-        // TODO: Denne skal fjernes etter at frontend redirecter til gosys direkte
-        route("/endre-tema") {
-            @Suppress("UnauthorizedPost")
-            post<BehandlingsreferansePathParam, EndreTemaResponse, Unit> { req, _ ->
-                respond(EndreTemaResponse(gosysUrl.toString()))
-            }
-        }
     }
 }
-
-
-data class EndreTemaResponse(
-    val redirectUrl: String
-)
