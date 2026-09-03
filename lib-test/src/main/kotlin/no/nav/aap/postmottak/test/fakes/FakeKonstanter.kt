@@ -45,6 +45,9 @@ data class TestJournalPost(
     val fagsak: JournalpostSak? = null,
     val brevkode: Brevkoder = Brevkoder.LEGEERKLÆRING,
     val digitalSøknad: SøknadV0? = null,
+    // Dokumentene på journalposten. Null betyr at et standarddokument basert på brevkode/kanal skal brukes,
+    // se standardDokument().
+    val dokumenter: List<Dokument>? = null,
     // Journalførende enhet på journalposten, f.eks. satt for klage-ettersendinger
     val journalførendeEnhet: String? = null,
     // Om gosys allerede har en åpen oppgave for journalposten
@@ -66,7 +69,6 @@ data class TestJournalPost(
      *  slik at f.eks. erDigitalLegeerklæring()/erDigitalSøknad() blir true for digitale journalposter.
      */
     fun tilJournalpost(
-        dokumenter: List<Dokument> = listOf(standardDokument()),
         tittel: String? = null,
         behandlingstema: String? = null,
         mottattDato: LocalDate = LocalDate.now(),
@@ -89,7 +91,7 @@ data class TestJournalPost(
                     navn = it.navn
                 )
             },
-            dokumenter = dokumenter,
+            dokumenter = this.dokumenter ?: listOf(standardDokument()),
             kanal = this.kanal,
             saksnummer = this.fagsak?.fagsakId,
             fagsystem = this.fagsak?.fagsaksystem?.name
@@ -135,6 +137,7 @@ class TestJournalPostBuilder {
     var journalførendeEnhet: String? = null
     var harEksisterendeGosysOppgave: Boolean = false
     var digitalSøknad: SøknadV0? = null
+    var dokumenter: List<Dokument>? = null
     var avsenderMottaker: AvsenderMottaker? = null
 
     fun digitalSøknad() {
@@ -144,6 +147,19 @@ class TestJournalPostBuilder {
             yrkesskade = "nei",
             oppgitteBarn = null,
             medlemskap = null,
+        )
+        dokumenter = listOf(
+            Dokument(
+                dokumentInfoId = DokumentInfoId("1"),
+                brevkode = Brevkoder.SØKNAD.kode,
+                tittel = null,
+                varianter = listOf(
+                    Variant(
+                        filtype = Filtype.JSON,
+                        variantformat = Variantformat.ORIGINAL
+                    )
+                )
+            )
         )
     }
 
@@ -156,6 +172,7 @@ class TestJournalPostBuilder {
     fun papirsøknad() {
         kanal = KanalFraKodeverk.SKAN_NETS
         digitalSøknad = null
+        dokumenter = null
         brevkode = Brevkoder.SØKNAD
     }
 }
@@ -178,6 +195,7 @@ object TestJournalposter {
             fagsak = builder.fagsak,
             brevkode = builder.brevkode,
             digitalSøknad = builder.digitalSøknad,
+            dokumenter = builder.dokumenter,
             journalførendeEnhet = builder.journalførendeEnhet,
             harEksisterendeGosysOppgave = builder.harEksisterendeGosysOppgave,
             avsenderMottaker = builder.avsenderMottaker,
@@ -200,3 +218,26 @@ object TestJournalposter {
         return fakeJournalposter[journalpostId]
     }
 }
+
+/**
+ * Lager et hoveddokument (digitalt, ORIGINAL-variant) med gitt brevkode og tittel.
+ * Nyttig for tester som trenger å sette [TestJournalPost.dokumenter] eksplisitt, f.eks. for å
+ * kontrollere Journalpost.getHoveddokumenttittel()/hoveddokumentbrevkode.
+ */
+fun hoveddokument(brevkode: String, tittel: String): Dokument = Dokument(
+    dokumentInfoId = DokumentInfoId("1"),
+    brevkode = brevkode,
+    tittel = tittel,
+    varianter = listOf(Variant(filtype = Filtype.JSON, variantformat = Variantformat.ORIGINAL))
+)
+
+/**
+ * Lager et vedlegg (arkivert PDF-variant) med gitt tittel, for bruk sammen med [hoveddokument]
+ * i [TestJournalPost.dokumenter].
+ */
+fun vedlegg(tittel: String): Dokument = Dokument(
+    dokumentInfoId = DokumentInfoId("2"),
+    brevkode = "N6",
+    tittel = tittel,
+    varianter = listOf(Variant(filtype = Filtype.PDF, variantformat = Variantformat.ARKIV))
+)
