@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.test.MockConnection
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -67,7 +68,7 @@ class BehandlingsflytGatewayMock : BehandlingsflytGateway {
         TODO("Not yet implemented")
     }
 
-    override fun finnSaker(ident: Ident): List<BehandlingsflytSak> {
+    override fun finnSaker(ident: Ident): List<BehandlingsflytSaksInfoTilPostmottak> {
         TODO("Not yet implemented")
     }
 

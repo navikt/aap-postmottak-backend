@@ -6,7 +6,7 @@ import io.mockk.verify
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
-import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -20,9 +20,9 @@ class SaksnummerInfoKravTest {
 
     @Test
     fun `finn saksnummer for saker for borger og lagre på behandling`() {
-        val saksnummre: List<BehandlingsflytSak> = listOf(
-            BehandlingsflytSak("1234", getPeriode(), null),
-            BehandlingsflytSak("5678", getPeriode(), null)
+        val saksnummre: List<BehandlingsflytSaksInfoTilPostmottak> = listOf(
+            BehandlingsflytSaksInfoTilPostmottak("1234", getPeriode(), null, finnesÅpenBehandling = true),
+            BehandlingsflytSaksInfoTilPostmottak("5678", getPeriode(), null, finnesÅpenBehandling = true)
         )
 
         every { behandlingsflytKlient.finnSaker(any()) } returns saksnummre

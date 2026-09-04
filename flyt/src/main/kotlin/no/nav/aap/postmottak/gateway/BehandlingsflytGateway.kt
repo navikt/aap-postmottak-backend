@@ -22,7 +22,7 @@ import kotlin.text.Charsets.UTF_8
 
 interface BehandlingsflytGateway : Gateway {
     fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak
-    fun finnSaker(ident: Ident): List<BehandlingsflytSak>
+    fun finnSaker(ident: Ident): List<BehandlingsflytSaksInfoTilPostmottak>
     fun sendHendelse(
         journalpostId: JournalpostId,
         kanal: KanalFraKodeverk,
@@ -40,6 +40,13 @@ data class BehandlingsflytSak(
     val saksnummer: String,
     val periode: Periode,
     val resultat: ResultatKode?
+)
+
+data class BehandlingsflytSaksInfoTilPostmottak(
+    val saksnummer: String,
+    val periode: Periode,
+    val resultat: ResultatKode?,
+    val finnesÅpenBehandling: Boolean
 )
 
 data class Klagebehandling(

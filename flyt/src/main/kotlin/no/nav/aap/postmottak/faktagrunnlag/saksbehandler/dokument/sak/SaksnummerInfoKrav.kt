@@ -8,7 +8,7 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
-import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 
@@ -47,11 +47,12 @@ class SaksnummerInfoKrav(
 
 }
 
-fun BehandlingsflytSak.tilSaksinfo(): Saksinfo {
+fun BehandlingsflytSaksInfoTilPostmottak.tilSaksinfo(): Saksinfo {
     return Saksinfo(
         saksnummer = saksnummer,
         periode = periode,
         avslag = resultat == ResultatKode.AVSLAG,
-        resultat = resultat
+        resultat = resultat,
+        finnesÅpenBehandling = finnesÅpenBehandling
     )
 }
