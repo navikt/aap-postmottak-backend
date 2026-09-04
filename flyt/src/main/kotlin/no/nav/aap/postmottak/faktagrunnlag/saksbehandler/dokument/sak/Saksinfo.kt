@@ -8,4 +8,5 @@ data class Saksinfo(
     val periode: Periode,
     val avslag: Boolean = false,
     val resultat: ResultatKode? = null,
+    val finnesÅpenBehandling: Boolean? = null,
 )
