@@ -29,6 +29,36 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
     }
+
+    register<JavaExec>("genererOpenApiJson") {
+        group = "documentation"
+        description = "Kjør generering av OpenAPI JSON-fil. Filen blir skrevet til openapi.json"
+        classpath = sourceSets.test.get().runtimeClasspath
+        mainClass.set("no.nav.aap.postmottak.GenererOpenApiJsonKt")
+    }
+
+    register<JavaExec>("runTestApp") {
+        group = "application"
+        description = "Kjør TestApp, med en testcontainer-postgres, lokalt på port 8070."
+        classpath = sourceSets.test.get().runtimeClasspath
+        mainClass.set("no.nav.aap.postmottak.TestAppKt")
+    }
+
+    register<JavaExec>("runTestAppMotBehandlingsflyt") {
+        group = "application"
+        description = "Kjør TestApp mot lokal behandlingsflyt og oppgave, tilsvarende run-konfigurasjonen 'TestApp (mot behandlingsflyt)'."
+        classpath = sourceSets.test.get().runtimeClasspath
+        mainClass.set("no.nav.aap.postmottak.TestAppKt")
+        environment(
+            "NAIS_CLUSTER_NAME" to "LOCAL",
+            "DB_POSTMOTTAK_JDBC_URL" to "jdbc:postgresql://localhost:5441/postgres",
+            "DB_POSTMOTTAK_USERNAME" to "postgres",
+            "DB_POSTMOTTAK_PASSWORD" to "",
+            "INTEGRASJON_BEHANDLINGSFLYT_URL" to "http://localhost:8080",
+            "INTEGRASJON_OPPGAVE_URL" to "http://localhost:8084",
+            "INTEGRASJON_POSTMOTTAK_AZP" to "c62cff74-505a-4858-ac15-16061c2e8290"
+        )
+    }
 }
 
 fun runCommand(command: String): Provider<String> =

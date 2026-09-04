@@ -2,6 +2,7 @@
 
 package no.nav.aap.postmottak
 
+import com.papsign.ktor.openapigen.route.apiRouting
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -50,7 +51,9 @@ fun main() {
 
         // Lar en POST /test/simulerJournalpostHendelse simulere en journalføringshendelse fra
         // Kafka lokalt, uten ekte broker, se SimulerJournalpostHendelseRoute.kt.
-        installSimulerJournalpostHendelseRoute(datasource, postgresRepositoryRegistry, gatewayProvider)
+        apiRouting {
+            simulerJournalpostHendelseApi(datasource, postgresRepositoryRegistry, gatewayProvider)
+        }
 
         datasource.transaction {
             opprettBehandlingAvklarTeam(it)

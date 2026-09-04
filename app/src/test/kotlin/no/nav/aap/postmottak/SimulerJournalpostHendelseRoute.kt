@@ -1,13 +1,11 @@
 package no.nav.aap.postmottak
 
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.respondWithStatus
+import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.request.receiveText
-import io.ktor.server.response.respond
-import io.ktor.server.routing.post
-import io.ktor.server.routing.routing
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -17,6 +15,7 @@ import no.nav.aap.postmottak.mottak.JournalfoeringHendelseAvro
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
+import no.nav.aap.postmottak.test.fakes.TestJournalPost
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -28,6 +27,26 @@ import javax.sql.DataSource
 private val log = LoggerFactory.getLogger("no.nav.aap.postmottak.SimulerJournalpostHendelseRoute")
 
 /**
+ * Forhåndsdefinerte scenarioer som dekker de vanligste [no.nav.aap.postmottak.test.fakes.TestJournalPostBuilder]-
+ * oppsettene, slik at man enkelt kan simulere de samme journalpostene lokalt som i tester.
+ */
+enum class SimulertJournalpostScenario {
+    // Digital legeerklæring. Dette er standardoppsettet til TestJournalPostBuilder (brevkode LEGEERKLÆRING).
+    LEGEERKLÆRING,
+
+    // Tilsvarer TestJournalPostBuilder.digitalSøknad().
+    DIGITAL_SØKNAD,
+
+    // Tilsvarer TestJournalPostBuilder.papirsøknad().
+    PAPIRSØKNAD,
+
+    // Tilsvarer TestJournalPostBuilder.medUtenlandskOrgnr(). NB: Kelvin krever at journalposter med
+    // orgnr som bruker allerede er journalført (se JournalpostInformasjonskrav), så journalpostStatus
+    // må settes til JOURNALFOERT for at behandlingen skal gå gjennom flyten uten feil.
+    UTENLANDSK_ORGNR,
+}
+
+/**
  * Kun for lokal testing i TestApp: simulerer en journalføringshendelse fra Kafka uten å trenge en
  * ekte Kafka-broker. Kjører den samme topologien (filtrering + fordelingslogikk) som
  * [no.nav.aap.postmottak.mottak.kafka.MottakStream] ville gjort i prod, men via en
@@ -37,51 +56,50 @@ private val log = LoggerFactory.getLogger("no.nav.aap.postmottak.SimulerJournalp
  * fakene (SAF, NOM, PDL) svarer konsistent på oppslag for denne journalpostId-en, på samme måte
  * som når en journalpost opprettes via `TestJournalposter.leggTil { ... }` i tester.
  *
- * Ligger bevisst i test-kildesettet (kun brukt av TestApp) slik at test-avhengigheten
- * kafka-streams-test-utils ikke havner i produksjonsjaren, og krever derfor ingen autentisering.
  */
 data class SimulerJournalpostHendelseRequest(
     val journalpostId: Long,
     // Fødselsnummeret journalposten skal knyttes til. Dersom denne ikke settes opprettes det
-    // automatisk en ny testperson (se TestJournalposter.leggTil).
+    // automatisk en ny testperson (se TestJournalposter.leggTil). Brukes ikke ved scenario UTENLANDSK_ORGNR.
     val fnr: String? = null,
     val tema: String = "AAP",
     val temaGammelt: String? = null,
     val journalpostStatus: String = "MOTTATT",
-    val mottaksKanal: String = "NAV_NO",
     val hendelsesType: String = "JournalpostMottatt",
-    // Om journalposten skal simuleres som en digital søknad, dvs. samme oppsett som
-    // TestJournalPostBuilder.digitalSøknad() gir i tester (brevkode SØKNAD + en digital SøknadV0).
-    val erDigitalSøknad: Boolean = false,
+    // Se [SimulertJournalpostScenario] for hva de ulike scenarioene setter opp
+    // (brevkode, kanal, digital/papir-dokumenter osv.).
+    val scenario: SimulertJournalpostScenario = SimulertJournalpostScenario.LEGEERKLÆRING,
 )
 
-fun Application.installSimulerJournalpostHendelseRoute(
+fun NormalOpenAPIRoute.simulerJournalpostHendelseApi(
     dataSource: DataSource,
     repositoryRegistry: RepositoryRegistry,
     gatewayProvider: GatewayProvider,
 ) {
-    routing {
-        post("/test/simulerJournalpostHendelse") {
-            val request = DefaultJsonMapper.fromJson<SimulerJournalpostHendelseRequest>(call.receiveText())
+    route("/test/simulerJournalpostHendelse") {
+        post<Unit, Unit, SimulerJournalpostHendelseRequest> { _, request ->
             log.info("Simulerer journalføringshendelse for journalpostId={}", request.journalpostId)
 
-            registrerTestJournalpost(request)
-            simulerJournalpostHendelse(dataSource, repositoryRegistry, gatewayProvider, request)
+            val journalpost = registrerTestJournalpost(request)
+            simulerJournalpostHendelse(dataSource, repositoryRegistry, gatewayProvider, request, journalpost.kanal)
 
-            call.respond(HttpStatusCode.NoContent)
+            respondWithStatus(HttpStatusCode.NoContent)
         }
     }
 }
 
-private fun registrerTestJournalpost(request: SimulerJournalpostHendelseRequest) {
-    TestJournalposter.leggTil {
+private fun registrerTestJournalpost(request: SimulerJournalpostHendelseRequest): TestJournalPost {
+    return TestJournalposter.leggTil {
         journalpostId = request.journalpostId
         fnr = request.fnr
         tema = request.tema
         status = Journalstatus.valueOf(request.journalpostStatus)
-        kanal = KanalFraKodeverk.valueOf(request.mottaksKanal)
-        if (request.erDigitalSøknad) {
-            digitalSøknad()
+        when (request.scenario) {
+            // Standardoppsettet til builderen er allerede en digital legeerklæring.
+            SimulertJournalpostScenario.LEGEERKLÆRING -> Unit
+            SimulertJournalpostScenario.DIGITAL_SØKNAD -> digitalSøknad()
+            SimulertJournalpostScenario.PAPIRSØKNAD -> papirsøknad()
+            SimulertJournalpostScenario.UTENLANDSK_ORGNR -> medUtenlandskOrgnr()
         }
     }
 }
@@ -91,6 +109,7 @@ private fun simulerJournalpostHendelse(
     repositoryRegistry: RepositoryRegistry,
     gatewayProvider: GatewayProvider,
     request: SimulerJournalpostHendelseRequest,
+    kanal: KanalFraKodeverk,
 ) {
     val config = StreamsConfig(
         applicationId = "postmottak-simuler-lokalt",
@@ -110,7 +129,7 @@ private fun simulerJournalpostHendelse(
         temaGammelt = request.temaGammelt ?: request.tema
         temaNytt = request.tema
         journalpostStatus = request.journalpostStatus
-        mottaksKanal = request.mottaksKanal
+        mottaksKanal = kanal.name
         kanalReferanseId = ""
         behandlingstema = ""
     }.build()
