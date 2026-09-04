@@ -145,14 +145,14 @@ class FlytOrkestrator(
                 behandlingFlyt.faktagrunnlagForGjeldendeSteg()
             )
 
-            log.info("Resultat fra steg: $result. Aktivt steg: ${gjeldendeSteg.javaClass}.")
+            log.info("Resultat fra steg: $result. Aktivt steg: ${gjeldendeSteg.type()}.")
 
             val avklaringsbehov = avklaringsbehovene.åpne()
             validerPlassering(behandlingFlyt, avklaringsbehov)
 
             val neste = utledNesteSteg(behandlingFlyt)
 
-            log.info("Neste utledet steg: ${neste?.javaClass}.")
+            log.info("Neste utledet steg: ${neste?.type()}.")
 
             if (!result.kanFortsette() || neste == null) {
                 if (neste == null) {
