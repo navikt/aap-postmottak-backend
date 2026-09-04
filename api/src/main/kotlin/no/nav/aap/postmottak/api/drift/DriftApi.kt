@@ -4,7 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.repository.RepositoryRegistry
@@ -14,11 +14,13 @@ import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.Operasjon
@@ -53,6 +55,24 @@ fun NormalOpenAPIRoute.driftApi(
                     )
                 }
                 respondWithStatus(HttpStatusCode.NoContent)
+            }
+        }
+
+        route("/person/journalposter/søk") {
+            authorizedPost<Unit, PersonSøkDriftsinfoDto, IdentDto>(
+                AuthorizationBodyPathConfig(
+                    operasjon = Operasjon.DRIFTE
+                )
+            ) { _, req ->
+                val journalposter = dataSource.transaction { connection ->
+                    val repositoryProvider = repositoryRegistry.provider(connection)
+                    val innkommendeJournalpostRepository =
+                        repositoryProvider.provide<InnkommendeJournalpostRepository>()
+
+                    innkommendeJournalpostRepository.finn(Ident(req.ident))
+                }
+
+                respond(PersonSøkDriftsinfoDto(journalposter.map { InnkommendeJournalpostDto.fraDomene(it) }))
             }
         }
 
