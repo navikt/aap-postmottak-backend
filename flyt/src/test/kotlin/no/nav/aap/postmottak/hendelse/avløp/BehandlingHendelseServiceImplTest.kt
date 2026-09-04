@@ -15,7 +15,7 @@ import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.Endring
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
-import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
@@ -83,13 +83,14 @@ class BehandlingHendelseServiceImplTest {
 
 
         every { behandlingsflytGateway.finnSaker(any()) } returns listOf(
-            BehandlingsflytSak(
+            BehandlingsflytSaksInfoTilPostmottak(
                 saksnummer = "52652222",
                 periode = Periode(
                     fom = LocalDate.now().minusYears(2),
                     tom = LocalDate.now().minusMonths(6)
                 ),
-                resultat = null
+                resultat = null,
+                finnesÅpenBehandling = false
             )
         )
 

@@ -4,7 +4,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -31,8 +31,8 @@ class SaksnummerRepositoryImplTest {
 
     fun getPeriode() = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31))
     val saksinfo: List<Saksinfo> = listOf(
-        BehandlingsflytSak("sak: 1", getPeriode(), null).tilSaksinfo(),
-        BehandlingsflytSak("sak: 2", getPeriode(), null).tilSaksinfo()
+        BehandlingsflytSaksInfoTilPostmottak("sak: 1", getPeriode(), null, finnesÅpenBehandling = true).tilSaksinfo(),
+        BehandlingsflytSaksInfoTilPostmottak("sak: 2", getPeriode(), null, finnesÅpenBehandling = true).tilSaksinfo()
     )
 
     @Test
