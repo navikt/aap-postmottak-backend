@@ -6,6 +6,7 @@ import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -102,6 +103,8 @@ class InnkommendeJournalpostRepositoryImplTest {
     @Test
     fun `Eksisterer`() {
         val journalpostId = JournalpostId(1)
+        
+        val brukerId = Random.nextInt().toString()
         val innkommendeJournalpost = InnkommendeJournalpost(
             journalpostId = journalpostId,
             status = InnkommendeJournalpostStatus.EVALUERT,
@@ -118,7 +121,7 @@ class InnkommendeJournalpostRepositoryImplTest {
                 forJournalpost = journalpostId.referanse,
                 systemNavn = "KELVIN"
             ),
-            brukerId = Random.nextInt().toString(),
+            brukerId = brukerId,
         )
         assertFalse(dataSource.transaction { connection ->
             val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
@@ -130,5 +133,10 @@ class InnkommendeJournalpostRepositoryImplTest {
             innkommendeJournalpostRepository.lagre(innkommendeJournalpost)
             innkommendeJournalpostRepository.eksisterer(journalpostId)
         })
+        
+        assertThat(dataSource.transaction { connection ->
+            val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
+            innkommendeJournalpostRepository.finn(Ident(brukerId))
+        }.single()).isEqualTo(innkommendeJournalpost)
     }
 }
