@@ -35,16 +35,22 @@ fun main() {
     val dbConfig = initDbConfig()
     FakeServers().start()
 
+    val gatewayProvider = defaultGatewayProvider()
+
     // Starter server
     embeddedServer(Netty, port = 8070) {
         // Useful for connecting to the test database locally
         // jdbc URL contains the host and port and database name.
         println("jdbcUrl: ${dbConfig.url}. Password: ${dbConfig.password}. Username: ${dbConfig.username}.")
         server(
-            dbConfig, postgresRepositoryRegistry, defaultGatewayProvider()
+            dbConfig, postgresRepositoryRegistry, gatewayProvider
         )
 
         val datasource = initDatasource(dbConfig, SimpleMeterRegistry())
+
+        // Lar en POST /test/simulerJournalpostHendelse simulere en journalføringshendelse fra
+        // Kafka lokalt, uten ekte broker, se SimulerJournalpostHendelseRoute.kt.
+        installSimulerJournalpostHendelseRoute(datasource, postgresRepositoryRegistry, gatewayProvider)
 
         datasource.transaction {
             opprettBehandlingAvklarTeam(it)

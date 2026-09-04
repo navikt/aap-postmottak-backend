@@ -85,4 +85,5 @@ dependencies {
     }
     testImplementation(libs.mockk)
     testImplementation(kotlin("test"))
+    testImplementation(libs.kafka.streams.test.utils)
 }

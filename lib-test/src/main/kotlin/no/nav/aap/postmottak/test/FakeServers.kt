@@ -298,8 +298,11 @@ class FakeServers : AutoCloseable {
         }
         routing {
             post("/token") {
+                // Bruk INTEGRASJON_POSTMOTTAK_AZP som azp-claim når den er satt, slik at en
+                // frittstående testapp for behandlingsflyt kan whiteliste denne verdien.
+                val azp = System.getenv("INTEGRASJON_POSTMOTTAK_AZP") ?: "postmottak"
                 val token = AzureTokenGen("postmottak", "postmottak")
-                    .generate(isApp = true, azp = "postmottak")
+                    .generate(isApp = true, azp = azp)
                 call.respond(TestToken(access_token = token))
             }
 
