@@ -1,6 +1,7 @@
 package no.nav.aap.fordeler
 
 import no.nav.aap.lookup.repository.Repository
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 interface InnkommendeJournalpostRepository: Repository {
@@ -8,5 +9,6 @@ interface InnkommendeJournalpostRepository: Repository {
     fun hent(journalpostId: JournalpostId): InnkommendeJournalpost
     fun hentId(journalpostId: JournalpostId): Long
     fun hentHvisEksisterer(journalpostId: JournalpostId): InnkommendeJournalpost?
+    fun finn(ident: Ident): List<InnkommendeJournalpost>
     fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long
 }
