@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.tillaterAutomatiskBehandlingAvLegeerklæring
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -54,6 +55,7 @@ class OverleverTilFagsystemSteg(
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
 
+        val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
         var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         if (overleveringVurdering == null && digitaliseringsvurdering.kategori in setOf(
@@ -61,7 +63,7 @@ class OverleverTilFagsystemSteg(
                 InnsendingType.LEGEERKLÆRING,
                 InnsendingType.MELDEKORT,
                 InnsendingType.KLAGE
-            )
+            ) && (digitaliseringsvurdering.kategori != InnsendingType.LEGEERKLÆRING || kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring())
         ) {
             val skalOverleveresTilKelvin = when {
                 // Meldekort uten strukturert dokument skal ikke oversendes fagsystem da dette allerede er registrert manuelt i Kelvin
@@ -77,7 +79,7 @@ class OverleverTilFagsystemSteg(
         if (overleveringVurdering == null) {
             return FantAvklaringsbehov(Definisjon.AVKLAR_OVERLEVERING)
         } else {
-            log.info("Dokument overleveres${if (overleveringVurdering.skalOverleveresTilKelvin) " " else "ikke"}til Fagsystem")
+            log.info("Dokument overleveres${if (overleveringVurdering.skalOverleveresTilKelvin) " " else "ikke"} til Fagsystem")
             if (overleveringVurdering.skalOverleveresTilKelvin) {
                 val melding = DokumentTilMeldingParser.parseTilMelding(
                     digitaliseringsvurdering.strukturertDokument,

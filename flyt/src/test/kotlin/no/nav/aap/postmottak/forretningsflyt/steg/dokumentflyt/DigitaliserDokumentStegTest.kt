@@ -39,6 +39,7 @@ class DigitaliserDokumentStegTest {
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -73,6 +74,8 @@ class DigitaliserDokumentStegTest {
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
+
         every {
             dokumentGateway.hentDokument(
                 journalpost.journalpostId,
@@ -91,6 +94,7 @@ class DigitaliserDokumentStegTest {
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -109,6 +113,7 @@ class DigitaliserDokumentStegTest {
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
         every {
             dokumentGateway.hentDokument(
                 journalpost.journalpostId,
