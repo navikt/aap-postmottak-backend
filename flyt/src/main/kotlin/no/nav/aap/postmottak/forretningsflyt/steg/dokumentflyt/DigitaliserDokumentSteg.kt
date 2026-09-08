@@ -4,11 +4,11 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.tillaterAutomatiskBehandlingAvLegeerklæring
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -70,8 +70,9 @@ class DigitaliserDokumentSteg(
             log.warn("Det eksisterer avslag, men steget vil gå gjennom likevel.")
         }
 
+        val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
         // Prøv automatisk digitalisering av dokumenter som er digitale
-        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
+        if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()) || journalpost.erDigitaltMeldekort()) {
             val dokument =
                 if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
                     hentOriginalDokumentFraSaf(journalpost)

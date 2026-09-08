@@ -5,6 +5,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.tillaterAutomatiskBehandlingAvLegeerklæring
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
@@ -89,8 +90,9 @@ class AvklarSakSteg(
         }
 
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
+        val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
 
-        return if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
+        return if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()) || journalpost.erDigitaltMeldekort()) {
             avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
             Fullført
         } else if (saksnummerVurdering != null) {

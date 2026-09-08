@@ -25,6 +25,7 @@ import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.LøsAvklaringsbehovBehandlingHendelse
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
+import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarOverleveringLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarSaksnummerLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarTemaLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklaringsbehovLøsning
@@ -124,14 +125,31 @@ class Flyttest : WithDependencies {
             motor.start()
             PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
+            opprettKafkaTopic()
+            config = lagStreamsConfig()
+            producer = lagKafkaProducer(config)
+            stream = startMottakStream(config)
+        }
+
+        @AfterAll
+        @JvmStatic
+        internal fun afterAll() {
+            motor.stop()
+            producer.close()
+            stream.close()
+        }
+
+        // Oppretter Joark-topicet i det delte Kafka-testcontaineret
+        private fun opprettKafkaTopic() {
             val admin = AdminClient.create(
                 mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to SharedKafkaTestContainer.kafka.bootstrapServers)
             )
-
             admin.createTopics(listOf(NewTopic(JOARK_TOPIC, 1, 1))).all().get()
             admin.close()
+        }
 
-            config = StreamsConfig(
+        private fun lagStreamsConfig(): StreamsConfig {
+            return StreamsConfig(
                 applicationId = "postmottak",
                 brokers = SharedKafkaTestContainer.kafka.bootstrapServers,
                 ssl = SslConfig(
@@ -142,8 +160,10 @@ class Flyttest : WithDependencies {
                 ),
                 schemaRegistry = SchemaRegistryConfig(url = "mock://dummy", user = "", password = "")
             )
+        }
 
-            producer = KafkaProducer<String, JournalfoeringHendelseRecord>(Properties().apply {
+        private fun lagKafkaProducer(config: StreamsConfig): KafkaProducer<String, JournalfoeringHendelseRecord> {
+            return KafkaProducer(Properties().apply {
                 put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, SharedKafkaTestContainer.kafka.bootstrapServers)
                 put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().javaClass)
                 put(
@@ -152,26 +172,18 @@ class Flyttest : WithDependencies {
                 )
                 put("schema.registry.url", "mock://dummy")
             })
-
-            stream =
-                MottakStream(
-                    JoarkKafkaHandler(
-                        config,
-                        dataSource,
-                        repositoryRegistry = repositoryRegistry,
-                        gatewayProvider = gatewayProvider,
-                        prometheus = PrometheusProvider.prometheus
-                    ).topology, config
-                )
-            stream.start()
         }
 
-        @AfterAll
-        @JvmStatic
-        internal fun afterAll() {
-            motor.stop()
-            producer.close()
-            stream.close()
+        private fun startMottakStream(config: StreamsConfig): MottakStream {
+            return MottakStream(
+                JoarkKafkaHandler(
+                    config,
+                    dataSource,
+                    repositoryRegistry = repositoryRegistry,
+                    gatewayProvider = gatewayProvider,
+                    prometheus = PrometheusProvider.prometheus
+                ).topology, config
+            ).also { it.start() }
         }
     }
 
@@ -294,11 +306,75 @@ class Flyttest : WithDependencies {
 
         val behandlinger = alleBehandlingerForJournalpost(journalpostId)
         assertThat(behandlinger).hasSize(1)
-        assertThat(
-            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
-            1
-        )
+            .allSatisfy {
+                assertThat(it.status()).isEqualTo(Status.AVSLUTTET)
+            }
     }
+
+    @Test
+    fun `legeerklæring etter avslag skal gi manuell dokumenthåndtering`() {
+        val testperson = TestPersoner.leggTil {
+            kelvinSak = TestKelvinSak(
+                saksnummer = "!",
+                resultat = ResultatKode.AVSLAG
+            )
+        }
+
+        val journalpostId = TestJournalposter.leggTil { person = testperson }.journalpostId()
+
+        leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
+
+
+//        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+
+//        triggProsesserBehandling(journalpostId, behandlingId)
+
+        sleep(100)
+
+        util.ventPåSvar()
+
+        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+        assertThat(behandlinger).hasSize(2)
+            .filteredOn {
+                it.typeBehandling == TypeBehandling.Journalføring
+            }
+            .allSatisfy {
+                assertThat(it.status()).isEqualTo(Status.UTREDES)
+            }
+
+        val journalføringsbehandling =
+            behandlinger.single { it.typeBehandling == TypeBehandling.Journalføring }
+
+        journalføringsbehandling
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_SAK)
+            .løsAvklaringsBehov(
+                AvklarSaksnummerLøsning(
+                    saksnummer = "!",
+                )
+            )
+            .sjekkÅpentAvklaringsbehov(null)
+
+        val dokumentHåndteringBehandling =
+            alleBehandlingerForJournalpost(journalpostId).single { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+                .sjekkÅpentAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
+                .løsAvklaringsBehov(
+                    DigitaliserDokumentLøsning(
+                        kategori = InnsendingType.LEGEERKLÆRING,
+                        strukturertDokument = null,
+                        søknadsdato = null,
+                    )
+                )
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_OVERLEVERING)
+                .løsAvklaringsBehov(
+                    AvklarOverleveringLøsning(
+                        skalOverleveres = true,
+                    )
+                )
+
+        assertThat(dokumentHåndteringBehandling.status()).isEqualTo(Status.AVSLUTTET)
+
+    }
+
 
     @Test
     fun `Helautomatisk flyt for digital legeerklæring som skal til Kelvin`() {
@@ -612,7 +688,8 @@ class Flyttest : WithDependencies {
 
     @Test
     fun `Skal ikke videresende dersom journalposten ble journalført utenfor postmottak med tema AAP, men på annet fagsystem`() {
-        val journalpostId = TestJournalposter.leggTil { fagsak = JournalpostSak(fagsaksystem = Fagsystem.FS22) }.journalpostId()
+        val journalpostId =
+            TestJournalposter.leggTil { fagsak = JournalpostSak(fagsaksystem = Fagsystem.FS22) }.journalpostId()
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
 
         triggProsesserBehandling(journalpostId, behandlingId)
@@ -727,10 +804,8 @@ class Flyttest : WithDependencies {
 
     private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {
         val start = System.currentTimeMillis()
-        var c = 0
         while (System.currentTimeMillis() - start < maksSekunder * 1000) {
             try {
-                c++
                 return block()
             } catch (_: Throwable) {
                 sleep(100)

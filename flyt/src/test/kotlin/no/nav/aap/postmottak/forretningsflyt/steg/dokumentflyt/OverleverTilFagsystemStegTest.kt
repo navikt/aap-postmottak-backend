@@ -5,6 +5,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.JaNeiVetIkke
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.OppgitteBarn
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
@@ -52,7 +58,7 @@ class OverleverTilFagsystemStegTest {
     val behandling: Behandling = mockk()
     val saksnummer = "String"
     val kanal = KanalFraKodeverk.NAV_NO
-    val mottattDato = LocalDate.of(
+    val mottattDato: LocalDate = LocalDate.of(
         2021,
         1,
         1
@@ -63,6 +69,7 @@ class OverleverTilFagsystemStegTest {
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns
                 TestJournalposter.leggTil { journalpostId = 123 }.tilJournalpost()
         every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns emptyList()
     }
 
     @AfterEach
@@ -108,11 +115,13 @@ class OverleverTilFagsystemStegTest {
 
     @Test
     fun `hvis automatisk journalføring blir digital søknad fra joark sendt til behandlingsflyt`() {
-        val journalpostJson = """{
-            |"yrkesskade": "Nei",
-            |"student": {"erStudent": "Nei", "kommeTilbake": "Nei"},
-            |"oppgitteBarn": {"identer": []}
-            |}""".trimMargin()
+        val journalpostJson = DefaultJsonMapper.toJson(
+            SøknadV0(
+                student = SøknadStudentDto(erStudent = StudentStatus.Nei, kommeTilbake = JaNeiVetIkke.Nei),
+                yrkesskade = "Nei",
+                oppgitteBarn = OppgitteBarn(emptySet()),
+            )
+        )
 
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns Digitaliseringsvurdering(
             InnsendingType.SØKNAD, journalpostJson, mottattDato, null
