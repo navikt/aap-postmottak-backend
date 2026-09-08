@@ -64,7 +64,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val sakenHarBegyntPåAndreÅretMedUnntak = sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak)
         val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker.saker(), sisteSak)
         val signifikanteVedtakUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikanteSaker.signifikanteVedtak)
-        val unntakErInnvilgetiFremtiden = sisteSak?.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
+        val unntakErInnvilgetiFremtiden = sisteSak?.unntaksvilkaarOppfylt() == true
+                && sisteSak.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
 
         val behandlesSomNySøknad = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
@@ -78,7 +79,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             unntakErInnvilgetiFremtiden -> false
             sisteSak.unntaksvilkaarIkkeOppfylt() -> true // 11-12 er vurdert til "Nei"
             else -> {
-                sisteSak.harInnvilget11_12() // saken er tidligere forlenget
+                sisteSak.unntaksvilkaarOppfylt() // saken er tidligere forlenget
                         && sakenHarBegyntPåAndreÅretMedUnntak // er på andre året
             }
         }
