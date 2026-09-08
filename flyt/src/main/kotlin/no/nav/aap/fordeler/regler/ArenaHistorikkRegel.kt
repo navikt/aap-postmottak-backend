@@ -100,7 +100,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
                     runBlocking {
                         val arenaService = ArenaService(gatewayProvider)
                         val maksKvoteSnartOppbrukt =
-                            arenaService.kanFordelesAutomatiskPga11_12_erMakset(
+                            arenaService.kanFordelesAutomatiskTilKelvinPga11_12_erMakset(
                                 input.person, input.mottattDato, input.journalpostId,
                                 signifikantHistorikk
                             )

@@ -32,7 +32,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             sisteSak.utredesForUfor() -> false
             sisteSak.erFerdigAvklart() -> false
             sisteSak.erSykepengeErstatning() -> false
-
+            sisteSak.unntaksvilkaarInnvilget != null -> false // 11-12 er allerede vurdert
             else -> {
                 // maksdato nærmer seg og spesial-situasjonene over treffer ikke
                 true
@@ -49,7 +49,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
     }
 
-    suspend fun kanFordelesAutomatiskPga11_12_erMakset(
+    suspend fun kanFordelesAutomatiskTilKelvinPga11_12_erMakset(
         søker: Person, mottattDato: LocalDate, journalpostId: Long, signifikanteSaker: SignifikantHistorikkResponse
     ): Boolean {
         val sisteSak = hentSisteVedtakMedEffektivMaksdato(søker)
@@ -140,6 +140,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         return if (sisteSak == null) {
             false
         } else {
+            // har vært innvilget unntaksvilkår for 11-12, og det nærmer seg to år siden
             val ettOgEtHalvtÅrSiden = mottattDato.minusMonths(18)
             sisteSak.unntaksvilkaarGjelderFra?.isBefore(ettOgEtHalvtÅrSiden) ?: false
         }
