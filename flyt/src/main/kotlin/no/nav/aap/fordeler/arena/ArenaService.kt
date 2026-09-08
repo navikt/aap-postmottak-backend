@@ -20,9 +20,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val sisteSak = hentSisteVedtakMedEffektivMaksdato(søker)
 
         val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
-        val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikantHistorikk.saker(), sisteSak)
-        val signifikanteVedtakUtoverTypeAap =
-            harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk.signifikanteVedtak)
 
         // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
         // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
@@ -32,8 +29,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             sisteSak == null -> false // maxdato er ikke definert
             !maksdatoNærmerSeg -> false
-            flereSignifikanteSaker -> false
-            signifikanteVedtakUtoverTypeAap -> false
             sisteSak.utredesForUfor() -> false
             sisteSak.erFerdigAvklart() -> false
             sisteSak.erSykepengeErstatning() -> false
@@ -43,12 +38,10 @@ class ArenaService(gatewayProvider: GatewayProvider) {
                 true
             }
         }
-        val tilstand = tilstandSomString(
-            signifikanteVedtakUtoverTypeAap,
-            flereSignifikanteSaker,
-            maksdatoNærmerSeg,
-            sisteSak?.unntaksvilkaarIkkeOppfylt()
-        )
+        val logmsg: StringBuilder = StringBuilder()
+        logmsg.append("maksdatoNærmerSeg=$maksdatoNærmerSeg,")
+        logmsg.append("unntaksvilkaarInnvilget=${sisteSak?.unntaksvilkaarInnvilget}")
+        val tilstand = logmsg.toString()
 
         logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak, tilstand: $tilstand")
 
@@ -64,8 +57,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val sakenHarBegyntPåAndreÅretMedUnntak = sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak)
         val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker.saker(), sisteSak)
         val signifikanteVedtakUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikanteSaker.signifikanteVedtak)
-        val unntakErInnvilgetiFremtiden = sisteSak?.unntaksvilkaarOppfylt() == true
-                && sisteSak.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
+        val unntakErInnvilgetiFremtiden = sisteSak?.unntaksvilkaarInnvilget == true && sisteSak.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
 
         val behandlesSomNySøknad = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
@@ -79,35 +71,24 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             unntakErInnvilgetiFremtiden -> false
             sisteSak.unntaksvilkaarIkkeOppfylt() -> true // 11-12 er vurdert til "Nei"
             else -> {
-                sisteSak.unntaksvilkaarOppfylt() // saken er tidligere forlenget
+                sisteSak.unntaksvilkaarInnvilget == true // saken er tidligere forlenget
                         && sakenHarBegyntPåAndreÅretMedUnntak // er på andre året
             }
         }
 
-        val tilstand = tilstandSomString(
-            signifikanteVedtakUtoverTypeAap,
-            flereSignifikanteSaker,
-            maksdatoNærmerSeg,
-            sisteSak?.unntaksvilkaarIkkeOppfylt()
-        ) + "sakenHarBegyntPåAndreÅretMedUnntak=$sakenHarBegyntPåAndreÅretMedUnntak,"
+        val tilstand = run {
+            val logmsg: StringBuilder = StringBuilder()
+            logmsg.append("signifikanteVedtakUtoverTypeAap=$signifikanteVedtakUtoverTypeAap,")
+            logmsg.append("flereSignifikanteSaker=$flereSignifikanteSaker,")
+            logmsg.append("maksdatoNærmerSeg=$maksdatoNærmerSeg,")
+            logmsg.append("unntaksvilkaarInnvilget=${sisteSak?.unntaksvilkaarInnvilget},")
+            logmsg.append("sakenHarBegyntPåAndreÅretMedUnntak=$sakenHarBegyntPåAndreÅretMedUnntak")
+            logmsg.toString()
+        }
 
         logger.info("JournalpostId $journalpostId kan behandles som ny søknad: $behandlesSomNySøknad, " + "sak: $sisteSak, tilstand: $tilstand")
 
         return behandlesSomNySøknad
-    }
-
-    private fun tilstandSomString(
-        signifikanteVedtakUtoverTypeAap: Boolean,
-        flereSignifikanteSaker: Boolean,
-        maksdatoNærmerSeg: Boolean,
-        unntaksvilkaarIkkeOppfylt: Boolean?
-    ): String {
-        val logmsg: StringBuilder = StringBuilder()
-        logmsg.append("signifikanteVedtakUtoverTypeAap=$signifikanteVedtakUtoverTypeAap,")
-        logmsg.append("flereSignifikanteSaker=$flereSignifikanteSaker,")
-        logmsg.append("maksdatoNærmerSeg=$maksdatoNærmerSeg,")
-        logmsg.append("unntaksvilkaarIkkeOppfylt=$unntaksvilkaarIkkeOppfylt,")
-        return logmsg.toString()
     }
 
     internal fun harSignifikanteVedtakUtoverTypeAap(signifikanteVedtak: List<ArenaVedtak>): Boolean {
