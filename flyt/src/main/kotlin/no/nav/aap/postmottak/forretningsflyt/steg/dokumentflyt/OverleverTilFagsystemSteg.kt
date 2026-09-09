@@ -59,10 +59,12 @@ class OverleverTilFagsystemSteg(
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
 
-        val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
-        val tillaterAutomatiskLegeerklæring =
+        val tillaterAutomatiskLegeerklæring by lazy {
             !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
-                    || kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()
+                    || saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+                        .tillaterAutomatiskBehandlingAvLegeerklæring()
+        }
+
         var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         if (overleveringVurdering == null && digitaliseringsvurdering.kategori in setOf(

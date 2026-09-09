@@ -12,12 +12,12 @@ data class Saksinfo(
 )
 
 /**
- * Legeerklæringer skal ikke trigge automatisk revurdering dersom det er avslag på siste AAP-søknad,
- * med mindre det finnes en åpen behandling.
+ * Legeerklæringer skal ikke trigge automatisk revurdering dersom alle tidligere AAP-saker er avslag,
+ * med mindre det finnes en åpen behandling eller minst én sak ikke er avslag.
  */
 fun List<Saksinfo>.tillaterAutomatiskBehandlingAvLegeerklæring(): Boolean {
     val harÅpenBehandling = any { it.finnesÅpenBehandling == true }
-    val harIkkeAvslag = any { !it.avslag }
+    val harIkkeAvslag = any { !it.avslag && it.resultat != ResultatKode.TRUKKET }
     return isEmpty() || harÅpenBehandling || harIkkeAvslag
 }
 
