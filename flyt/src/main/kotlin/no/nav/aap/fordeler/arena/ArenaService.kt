@@ -23,6 +23,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikantHistorikk.saker(), sisteSak)
         val signifikanteVedtakUtoverTypeAap =
             harSignifikanteVedtakUtoverTypeAap(signifikantHistorikk.signifikanteVedtak)
+        val unntakErInnvilgetiFremtiden = unntaketStarterIFremtiden(sisteSak, mottattDato)
 
         // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
         // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
@@ -37,7 +38,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             sisteSak.utredesForUfor() -> false
             sisteSak.erFerdigAvklart() -> false
             sisteSak.erSykepengeErstatning() -> false
-
+            unntakErInnvilgetiFremtiden -> false // 11-12 er innvilget for et kommende nytt år
             else -> {
                 // maksdato nærmer seg og spesial-situasjonene over treffer ikke
                 true
@@ -64,7 +65,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val sakenHarBegyntPåAndreÅretMedUnntak = sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak)
         val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker.saker(), sisteSak)
         val signifikanteVedtakUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikanteSaker.signifikanteVedtak)
-        val unntakErInnvilgetiFremtiden = sisteSak?.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
+        val unntakErInnvilgetiFremtiden = unntaketStarterIFremtiden(sisteSak, mottattDato)
 
         val behandlesSomNySøknad = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
@@ -94,6 +95,11 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         return behandlesSomNySøknad
     }
+
+    private fun unntaketStarterIFremtiden(
+        sisteSak: SakMedSisteVedtakOgMaksdato?,
+        mottattDato: LocalDate
+    ): Boolean = sisteSak?.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
 
     private fun tilstandSomString(
         signifikanteVedtakUtoverTypeAap: Boolean,
