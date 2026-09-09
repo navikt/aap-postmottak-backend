@@ -75,10 +75,12 @@ class DigitaliserDokumentSteg(
             log.warn("Det eksisterer avslag, men steget vil gå gjennom likevel.")
         }
 
-        val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
-        val tillaterAutomatiskLegeerklæring =
+        val tillaterAutomatiskLegeerklæring by lazy {
             !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
-                    || kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()
+                    || saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+                        .tillaterAutomatiskBehandlingAvLegeerklæring()
+        }
+
         // Prøv automatisk digitalisering av dokumenter som er digitale
         if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && tillaterAutomatiskLegeerklæring) || journalpost.erDigitaltMeldekort()) {
             val dokument =
