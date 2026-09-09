@@ -29,6 +29,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -44,6 +46,7 @@ class OverleverTilFagsystemStegTest {
     val journalpostRepository: JournalpostRepository = mockk()
     val saksnummerRepository: SaksnummerRepository = mockk()
     val overleveringVurderingRepository: OverleveringVurderingRepository = mockk()
+    val unleashGateway: UnleashGateway = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         struktureringsvurderingRepository,
@@ -51,6 +54,7 @@ class OverleverTilFagsystemStegTest {
         journalpostRepository,
         saksnummerRepository,
         overleveringVurderingRepository,
+        unleashGateway,
     )
 
     val kontekst: FlytKontekst = mockk(relaxed = true)
@@ -108,6 +112,63 @@ class OverleverTilFagsystemStegTest {
                 saksnummer,
                 DokumentTilMeldingParser
                     .parseTilMelding(struktureringsvurdering.strukturertDokument, InnsendingType.SØKNAD),
+                false
+            )
+        }
+    }
+
+    @Test
+    fun `legeerklæring med avslag på alle kelvin-saker gir avklaringsbehov om overlevering når feature-toggle er skrudd på`() {
+        val kontekst: FlytKontekst = mockk(relaxed = true)
+        val struktureringsvurdering = Digitaliseringsvurdering(
+            InnsendingType.LEGEERKLÆRING, null, mottattDato, null
+        )
+
+        val journalpost = TestJournalposter.leggTil { journalpostId = 123 }.tilJournalpost()
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
+            every { avslag } returns true
+            every { finnesÅpenBehandling } returns false
+        })
+        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
+
+        val resultat = overførTilFagsystemSteg.utfør(kontekst)
+
+        verify(exactly = 0) { overleveringVurderingRepository.lagre(any(), any()) }
+        verify(exactly = 0) { behandlingsflytKlient.sendHendelse(any(), any(), any(), any(), any(), any(), any()) }
+        assertEquals(FunnetAvklaringsbehov::class.simpleName, resultat.transisjon()::class.simpleName)
+    }
+
+    @Test
+    fun `legeerklæring med avslag på alle kelvin-saker overleveres automatisk når feature-toggle er skrudd av`() {
+        val kontekst: FlytKontekst = mockk(relaxed = true)
+        val struktureringsvurdering = Digitaliseringsvurdering(
+            InnsendingType.LEGEERKLÆRING, null, mottattDato, null
+        )
+
+        val journalpost = TestJournalposter.leggTil { journalpostId = 123 }.tilJournalpost()
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
+            every { avslag } returns true
+            every { finnesÅpenBehandling } returns false
+        })
+        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
+
+        overførTilFagsystemSteg.utfør(kontekst)
+
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                journalpostId,
+                kanal,
+                any(),
+                InnsendingType.LEGEERKLÆRING,
+                saksnummer,
+                any(),
                 false
             )
         }

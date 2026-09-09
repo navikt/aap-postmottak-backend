@@ -19,6 +19,8 @@ import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class OverleverTilFagsystemSteg(
@@ -27,6 +29,7 @@ class OverleverTilFagsystemSteg(
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val overleveringVurderingRepository: OverleveringVurderingRepository,
+    private val unleashGateway: UnleashGateway,
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -40,7 +43,8 @@ class OverleverTilFagsystemSteg(
                 gatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
-                repositoryProvider.provide(OverleveringVurderingRepository::class)
+                repositoryProvider.provide(OverleveringVurderingRepository::class),
+                gatewayProvider.provide(UnleashGateway::class)
             )
         }
 
@@ -56,6 +60,9 @@ class OverleverTilFagsystemSteg(
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
 
         val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+        val tillaterAutomatiskLegeerklæring =
+            !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
+                    || kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()
         var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         if (overleveringVurdering == null && digitaliseringsvurdering.kategori in setOf(
@@ -63,7 +70,7 @@ class OverleverTilFagsystemSteg(
                 InnsendingType.LEGEERKLÆRING,
                 InnsendingType.MELDEKORT,
                 InnsendingType.KLAGE
-            ) && (digitaliseringsvurdering.kategori != InnsendingType.LEGEERKLÆRING || kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring())
+            ) && (digitaliseringsvurdering.kategori != InnsendingType.LEGEERKLÆRING || tillaterAutomatiskLegeerklæring)
         ) {
             val skalOverleveresTilKelvin = when {
                 // Meldekort uten strukturert dokument skal ikke oversendes fagsystem da dette allerede er registrert manuelt i Kelvin

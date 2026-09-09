@@ -13,6 +13,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.DummyFeature -> TODO()
             PostmottakFeature.BegrensetFordelingTilKelvin -> TODO()
             PostmottakFeature.PostmottakManuellVurdering -> true
+            PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag -> true
         }
     }
 

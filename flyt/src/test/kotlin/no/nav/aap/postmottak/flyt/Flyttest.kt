@@ -324,13 +324,6 @@ class Flyttest : WithDependencies {
 
         leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
 
-
-//        val behandlingId = opprettJournalføringsBehandling(journalpostId)
-
-//        triggProsesserBehandling(journalpostId, behandlingId)
-
-        sleep(100)
-
         util.ventPåSvar()
 
         val behandlinger = alleBehandlingerForJournalpost(journalpostId)
