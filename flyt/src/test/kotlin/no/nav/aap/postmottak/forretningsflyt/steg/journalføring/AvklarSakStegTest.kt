@@ -20,6 +20,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -37,11 +39,12 @@ class AvklarSakStegTest {
     val journalpostRepository = mockk<JournalpostRepository>()
     val saksnummerRepository: SaksnummerRepository = mockk(relaxed = true)
     val avklarTemaRepository: AvklarTemaRepository = mockk(relaxed = true)
+    val unleashGateway: UnleashGateway = mockk(relaxed = true)
 
     val avklarSakSteg = AvklarSakSteg(
         saksnummerRepository,
         journalpostRepository,
-        behandlingsflytClient, avklarTemaRepository
+        behandlingsflytClient, avklarTemaRepository, unleashGateway
     )
 
 
@@ -169,6 +172,60 @@ class AvklarSakStegTest {
             })
         }
 
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `legeerklæring med avslag på alle kelvin-saker gir avklaringsbehov når feature-toggle er skrudd på`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns true
+        every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.erUgyldig() } returns false
+        every { journalpost.tema } returns "AAP"
+        every { journalpost.status } returns Journalstatus.MOTTATT
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
+            every { avslag } returns true
+            every { finnesÅpenBehandling } returns false
+        })
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
+        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
+        assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
+        val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
+    }
+
+    @Test
+    fun `legeerklæring med avslag på alle kelvin-saker gir automatisk saksavklaring når feature-toggle er skrudd av`() {
+        val journalpost: Journalpost = mockk(relaxed = true)
+        every { journalpost.erDigitalSøknad() } returns false
+        every { journalpost.erDigitalLegeerklæring() } returns true
+        every { journalpost.erDigitaltMeldekort() } returns false
+        every { journalpost.tema } returns "AAP"
+        every { journalpost.erUgyldig() } returns false
+        every { journalpost.status } returns Journalstatus.MOTTATT
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
+            every { avslag } returns true
+            every { finnesÅpenBehandling } returns false
+        })
+        every { behandlingsflytClient.finnEllerOpprettSak(any(), any()) } returns BehandlingsflytSak(
+            "saksnummer", Periode(
+                LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)
+            ), null
+        )
+        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
 

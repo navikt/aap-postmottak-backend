@@ -22,6 +22,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.BrevkoderHelper
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 
@@ -30,7 +32,8 @@ class DigitaliserDokumentSteg(
     private val journalpostRepository: JournalpostRepository,
     private val dokumentGateway: DokumentGateway,
     private val saksnummerRepository: SaksnummerRepository,
-    private val avklaringsbehovRepository: AvklaringsbehovRepository
+    private val avklaringsbehovRepository: AvklaringsbehovRepository,
+    private val unleashGateway: UnleashGateway
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -44,9 +47,11 @@ class DigitaliserDokumentSteg(
                 repositoryProvider.provide(JournalpostRepository::class),
                 gatewayProvider.provide(DokumentGateway::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
-                repositoryProvider.provide(AvklaringsbehovRepository::class)
+                repositoryProvider.provide(AvklaringsbehovRepository::class),
+                gatewayProvider.provide(UnleashGateway::class)
             )
         }
+
 
         override fun type(): StegType {
             return StegType.DIGITALISER_DOKUMENT
@@ -71,8 +76,11 @@ class DigitaliserDokumentSteg(
         }
 
         val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+        val tillaterAutomatiskLegeerklæring =
+            !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
+                    || kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()
         // Prøv automatisk digitalisering av dokumenter som er digitale
-        if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()) || journalpost.erDigitaltMeldekort()) {
+        if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && tillaterAutomatiskLegeerklæring) || journalpost.erDigitaltMeldekort()) {
             val dokument =
                 if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
                     hentOriginalDokumentFraSaf(journalpost)
