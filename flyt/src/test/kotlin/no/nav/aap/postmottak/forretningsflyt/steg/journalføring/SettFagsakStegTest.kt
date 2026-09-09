@@ -12,12 +12,14 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTem
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
 import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.gateway.AvsenderMottaker
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
+import no.nav.aap.postmottak.gateway.AvsenderMottakerIdType
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -29,14 +31,26 @@ class SettFagsakStegTest {
     val joark: JournalføringService = mockk(relaxed = true)
     val avklaringsbehovRepository: AvklaringsbehovRepository = mockk(relaxed = true)
 
-    val settFagsakSteg = SettFagsakSteg(journalpostRepository, saksnummerRepository, avklarTemaRepository, joark, avklaringsbehovRepository)
+    val settFagsakSteg = SettFagsakSteg(
+        journalpostRepository,
+        saksnummerRepository,
+        avklarTemaRepository,
+        joark,
+        avklaringsbehovRepository
+    )
 
     @Test
     fun `verifiser at journalpost blir oppdatert med saksnummer`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpost = TestJournalposter.leggTil {
+            kanal = KanalFraKodeverk.SKAN_NETS
+            avsenderMottaker = AvsenderMottaker("id", AvsenderMottakerIdType.FNR, "navn")
+        }
+            .tilJournalpost()
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(true, Tema.AAP)
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { avklaringsbehovRepository.hentAvklaringsbehovene(any()).hvemSomLøste(Definisjon.AVKLAR_SAK) } returns null
+        every {
+            avklaringsbehovRepository.hentAvklaringsbehovene(any()).hvemSomLøste(Definisjon.AVKLAR_SAK)
+        } returns null
 
         val vurdering = Saksvurdering(
             "12345",
@@ -64,12 +78,16 @@ class SettFagsakStegTest {
 
     @Test
     fun `Skal sette avsenderMottaker til null hvis journalpost er digitalt innsendt`() {
-        val journalpost: Journalpost = mockk(relaxed = true) {
-            every { kanal } returns KanalFraKodeverk.NAV_NO
+        val journalpost = TestJournalposter.leggTil {
+            kanal = KanalFraKodeverk.NAV_NO
         }
+            .tilJournalpost()
+
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(true, Tema.AAP)
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { avklaringsbehovRepository.hentAvklaringsbehovene(any()).hvemSomLøste(Definisjon.AVKLAR_SAK) } returns null
+        every {
+            avklaringsbehovRepository.hentAvklaringsbehovene(any()).hvemSomLøste(Definisjon.AVKLAR_SAK)
+        } returns null
 
         val vurdering = Saksvurdering(
             "12345",
@@ -97,8 +115,11 @@ class SettFagsakStegTest {
 
     @Test
     fun `går videre dersom journalpost ikke har tema AAP`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.erDigitalSøknad() } returns false
+        val journalpost = TestJournalposter.leggTil {
+            tema = "NOEANNET"
+            kanal = KanalFraKodeverk.SKAN_NETS
+        }
+            .tilJournalpost()
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
