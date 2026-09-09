@@ -175,6 +175,25 @@ class TestJournalPostBuilder {
         dokumenter = null
         brevkode = Brevkoder.SØKNAD
     }
+
+    fun legeerklæring() {
+        kanal = KanalFraKodeverk.SKAN_NETS
+        digitalSøknad = null
+        dokumenter = listOf(
+            Dokument(
+                dokumentInfoId = DokumentInfoId("1"),
+                brevkode = Brevkoder.LEGEERKLÆRING.kode,
+                tittel = null,
+                varianter = listOf(
+                    Variant(
+                        filtype = Filtype.JSON,
+                        variantformat = Variantformat.ORIGINAL
+                    )
+                )
+            )
+        )
+        brevkode = Brevkoder.LEGEERKLÆRING
+    }
 }
 
 object TestJournalposter {
@@ -231,6 +250,8 @@ object TestJournalposter {
     fun digitalSøknad(): TestJournalPost = leggTil { digitalSøknad() }
 
     fun papirsøknad(): TestJournalPost = leggTil { papirsøknad() }
+
+    fun legeerklæring(): TestJournalPost = leggTil { this.legeerklæring() }
 
     fun hentJournalpost(journalpostId: Long): TestJournalPost? {
         return fakeJournalposter[journalpostId]
