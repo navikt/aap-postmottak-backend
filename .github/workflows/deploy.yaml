@@ -28,6 +28,7 @@ jobs:
     secrets: inherit
     with:
       app-navn: postmottak-backend
+      generate-openapi-command: ./gradlew :app:genererOpenApiJson
 
   publiser-kontrakt:
     if: github.ref == 'refs/heads/main' # Kun publiser kontrakt fra main

@@ -12,8 +12,9 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurde
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -31,7 +32,7 @@ class JournalføringStegTest {
 
     @Test
     fun `verifiser at journalpost blir oppdatert med saksnummer og endelig journalført`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpost = TestJournalposter.leggTil().tilJournalpost()
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(true, Tema.AAP)
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
@@ -46,8 +47,10 @@ class JournalføringStegTest {
 
     @Test
     fun `går videre dersom journalpost ikke har tema AAP`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.erDigitalSøknad() } returns false
+        val journalpost = TestJournalposter.leggTil {
+            tema = "IKKE_APP"
+            kanal = KanalFraKodeverk.SKAN_NETS
+        }.tilJournalpost()
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost

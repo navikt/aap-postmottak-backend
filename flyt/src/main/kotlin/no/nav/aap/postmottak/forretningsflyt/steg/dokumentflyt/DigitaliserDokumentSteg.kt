@@ -4,11 +4,11 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.tillaterAutomatiskBehandlingAvLegeerklæring
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -22,6 +22,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.BrevkoderHelper
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 
@@ -30,7 +32,8 @@ class DigitaliserDokumentSteg(
     private val journalpostRepository: JournalpostRepository,
     private val dokumentGateway: DokumentGateway,
     private val saksnummerRepository: SaksnummerRepository,
-    private val avklaringsbehovRepository: AvklaringsbehovRepository
+    private val avklaringsbehovRepository: AvklaringsbehovRepository,
+    private val unleashGateway: UnleashGateway
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -44,9 +47,11 @@ class DigitaliserDokumentSteg(
                 repositoryProvider.provide(JournalpostRepository::class),
                 gatewayProvider.provide(DokumentGateway::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
-                repositoryProvider.provide(AvklaringsbehovRepository::class)
+                repositoryProvider.provide(AvklaringsbehovRepository::class),
+                gatewayProvider.provide(UnleashGateway::class)
             )
         }
+
 
         override fun type(): StegType {
             return StegType.DIGITALISER_DOKUMENT
@@ -70,8 +75,14 @@ class DigitaliserDokumentSteg(
             log.warn("Det eksisterer avslag, men steget vil gå gjennom likevel.")
         }
 
+        val tillaterAutomatiskLegeerklæring by lazy {
+            !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
+                    || saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+                        .tillaterAutomatiskBehandlingAvLegeerklæring()
+        }
+
         // Prøv automatisk digitalisering av dokumenter som er digitale
-        if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
+        if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && tillaterAutomatiskLegeerklæring) || journalpost.erDigitaltMeldekort()) {
             val dokument =
                 if (journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
                     hentOriginalDokumentFraSaf(journalpost)

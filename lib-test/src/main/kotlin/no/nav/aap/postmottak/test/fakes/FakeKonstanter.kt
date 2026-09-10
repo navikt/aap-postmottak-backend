@@ -175,6 +175,25 @@ class TestJournalPostBuilder {
         dokumenter = null
         brevkode = Brevkoder.SØKNAD
     }
+
+    fun legeerklæring() {
+        kanal = KanalFraKodeverk.SKAN_NETS
+        digitalSøknad = null
+        dokumenter = listOf(
+            Dokument(
+                dokumentInfoId = DokumentInfoId("1"),
+                brevkode = Brevkoder.LEGEERKLÆRING.kode,
+                tittel = null,
+                varianter = listOf(
+                    Variant(
+                        filtype = Filtype.JSON,
+                        variantformat = Variantformat.ORIGINAL
+                    )
+                )
+            )
+        )
+        brevkode = Brevkoder.LEGEERKLÆRING
+    }
 }
 
 object TestJournalposter {
@@ -184,9 +203,27 @@ object TestJournalposter {
         return leggTil { }
     }
 
+    // Dersom fnr er satt eksplisitt (uten å gå via `person`) må vi likevel registrere en TestPerson
+    // for identen, slik at NomFake/PdlFake finner en person å svare på for dette fødselsnummeret.
+    private fun registrerTestPersonForFnr(fnr: String): Ident {
+        val eksisterende = TestPersoner.hentPerson(fnr)
+        if (eksisterende != null) {
+            return eksisterende.aktivIdent()
+        }
+        val person = TestPerson(identer = setOf(Ident(fnr)))
+        return TestPersoner.leggTil(person).aktivIdent()
+    }
+
     fun leggTil(block: TestJournalPostBuilder.() -> Unit): TestJournalPost {
         val builder = TestJournalPostBuilder().apply(block)
-        val ident = builder.fnr?.let(::Ident) ?: builder.person?.aktivIdent() ?: TestPersoner.leggTil {}.aktivIdent()
+        // For ORGNR-brukere er `fnr` egentlig et organisasjonsnummer, ikke en persons fødselsnummer,
+        // så det skal ikke registreres en TestPerson for denne (brukes heller ikke av NomFake/PdlFake).
+        val ident = when {
+            builder.brukerType == BrukerIdType.ORGNR -> Ident(requireNotNull(builder.fnr))
+            builder.fnr != null -> registrerTestPersonForFnr(builder.fnr!!)
+            builder.person != null -> builder.person!!.aktivIdent()
+            else -> TestPersoner.leggTil {}.aktivIdent()
+        }
         val journalpost = TestJournalPost(
             journalpostId = builder.journalpostId ?: Random.nextLong(10_000L, 1_000_000_000L),
             tema = builder.tema,
@@ -213,6 +250,8 @@ object TestJournalposter {
     fun digitalSøknad(): TestJournalPost = leggTil { digitalSøknad() }
 
     fun papirsøknad(): TestJournalPost = leggTil { papirsøknad() }
+
+    fun legeerklæring(): TestJournalPost = leggTil { this.legeerklæring() }
 
     fun hentJournalpost(journalpostId: Long): TestJournalPost? {
         return fakeJournalposter[journalpostId]

@@ -43,6 +43,9 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
                     "roles", listOf(
                         "finn-sak",
                         "opprett-sak",
+                        // Kreves av aap-oppgave sin /oppdater-postmottak-oppgaver, se
+                        // OppdaterOppgaveAPI.kt (applicationRole = "oppdater-postmottak-oppgaver").
+                        "oppdater-postmottak-oppgaver",
                     )
                 )
         }
