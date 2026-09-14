@@ -21,10 +21,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
 
-        // Dersom 11-12 allerede er innvilget for et kommende nytt år skal den ikke til manuell fordeling.
-        // Den situasjonen gjenspeiles i maxdatoAap, og maxdatoAap vil da være forbi `terskeldato`.
-        // Derfor er 11-12 situasjonen også håndtert, selv om det ikke er en eksplisitt sjekk for den.
-
         val tilManuellFordeling = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             sisteSak == null -> false // maxdato er ikke definert
