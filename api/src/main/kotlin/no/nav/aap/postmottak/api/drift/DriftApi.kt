@@ -61,10 +61,10 @@ fun NormalOpenAPIRoute.driftApi(
         route("/person/journalposter/søk") {
             authorizedPost<Unit, PersonSøkDriftsinfoDto, IdentDto>(
                 AuthorizationBodyPathConfig(
-                    operasjon = Operasjon.DRIFTE
+                    operasjon = Operasjon.DRIFT_LES
                 )
             ) { _, req ->
-                val journalposter = dataSource.transaction { connection ->
+                val journalposter = dataSource.transaction(readOnly = true) { connection ->
                     val repositoryProvider = repositoryRegistry.provider(connection)
                     val innkommendeJournalpostRepository =
                         repositoryProvider.provide<InnkommendeJournalpostRepository>()
@@ -82,10 +82,10 @@ fun NormalOpenAPIRoute.driftApi(
                     journalpostPathParam = JournalpostPathParam(
                         "referanse",
                     ),
-                    operasjon = Operasjon.DRIFTE,
+                    operasjon = Operasjon.DRIFT_LES,
                 ),
             ) { params ->
-                val dto = dataSource.transaction { connection ->
+                val dto = dataSource.transaction(readOnly = true) { connection ->
                     val repositoryProvider = repositoryRegistry.provider(connection)
                     val journalpostId = JournalpostId(params.referanse)
 
