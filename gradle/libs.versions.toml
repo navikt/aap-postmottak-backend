@@ -53,7 +53,7 @@ logback-syslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0
 hikari-cp = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
 
 bekk-no-commons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
-unleash-client = { module = "io.getunleash:unleash-client-java", version = "12.2.3" }
+unleash-client = { module = "io.getunleash:unleash-client-java", version = "12.3.0" }
 jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.9.1" }
 
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
