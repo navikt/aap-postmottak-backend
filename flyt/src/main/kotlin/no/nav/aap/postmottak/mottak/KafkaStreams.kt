@@ -19,10 +19,7 @@ import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaAAP
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaEndretFraAAP
 import no.nav.aap.postmottak.mottak.JoarkRegel.harStatusMottatt
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
-import no.nav.aap.postmottak.prosessering.FordelingRegelJobbUtfører
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.prosessering.medJournalpostId
-import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -157,23 +154,14 @@ class JoarkKafkaHandler(
     ) {
         log.info("Mottatt ny journalpost: $journalpostId, hendelse: $hendelse")
         transactionProvider.inTransaction {
-            if (unleashGateway.isEnabled(PostmottakFeature.PostmottakNyFlytForAvklarKelvinArena)) {
-                val behandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
-                flytJobbRepository.leggTil(
-                    JobbInput(ProsesserBehandlingJobbUtfører)
-                        .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id)
-                        .medCallId()
-                )
-            } else {
-                flytJobbRepository.leggTil(
-                    JobbInput(FordelingRegelJobbUtfører)
-                        .forSak(journalpostId.referanse)
-                        .medJournalpostId(journalpostId)
-                )
-            }
+            val behandling = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+            flytJobbRepository.leggTil(
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(sakID = journalpostId.referanse, behandlingId = behandling.id)
+                    .medCallId()
+            )
         }
     }
-
 }
 
 object JoarkRegel {

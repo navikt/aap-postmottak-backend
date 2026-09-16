@@ -7,12 +7,12 @@ dependencies {
     implementation(libs.dbconnect)
     implementation(libs.infrastructure)
     implementation(libs.server)
-    implementation(libs.motorApi)
+    implementation(libs.motor.api)
     implementation(libs.verdityper)
-    api(libs.tilgangPlugin)
-    api(libs.tilgangKontrakt)
-    api(libs.behandlingsflytKontrakt)
-    compileOnly(libs.ktorHttpJvm)
+    api(libs.tilgang.plugin)
+    api(libs.tilgang.kontrakt)
+    api(libs.behandlingsflyt.kontrakt)
+    compileOnly(libs.ktor.http.jvm)
 
     testImplementation(libs.bundles.junit)
 }

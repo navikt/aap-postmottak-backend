@@ -36,7 +36,8 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                     row.getString("saksnummer"),
                     row.getPeriode("periode"),
                     row.getBoolean("avslag"),
-                    row.getEnumOrNull("resultatkode")
+                    row.getEnumOrNull("resultatkode"),
+                    row.getBooleanOrNull("finnes_aapen_behandling")
                 )
             }
         }
@@ -56,11 +57,12 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
             """
             INSERT INTO SAKER_PAA_BEHANDLING (
                 INNHENTEDE_SAKER_FOR_BEHANDLING_ID,
-                SAKSNUMMER, 
+                SAKSNUMMER,
                 PERIODE,
                 AVSLAG,
-                RESULTATKODE) 
-                VALUES (?, ?, ?::daterange, ?, ?) 
+                RESULTATKODE,
+                FINNES_AAPEN_BEHANDLING)
+                VALUES (?, ?, ?::daterange, ?, ?, ?)
         """.trimIndent(), saksinfo
         ) {
             setParams {
@@ -69,6 +71,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 setPeriode(3, it.periode)
                 setBoolean(4, it.avslag)
                 setEnumName(5, it.resultat)
+                setBoolean(6, it.finnesÅpenBehandling)
             }
         }
     }
@@ -138,6 +141,46 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
             setParams {
                 setLong(1, tilBehandling.id)
                 setLong(2, fraBehandling.id)
+            }
+        }
+
+        kopierKelvinSaker(fraBehandling, tilBehandling)
+    }
+
+    // Kopierer siste innhentede kelvinSaker-snapshot, siden hentKelvinSaker() kun leser den nyeste
+    private fun kopierKelvinSaker(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
+        val sisteInnhentedeSakerId = connection.queryFirstOrNull<Long>(
+            """
+            SELECT ID FROM INNHENTEDE_SAKER_FOR_BEHANDLING WHERE BEHANDLING_ID = ?
+            ORDER BY OPPRETTET DESC LIMIT 1
+        """.trimIndent()
+        ) {
+            setParams { setLong(1, fraBehandling.id) }
+            setRowMapper { row -> row.getLong("ID") }
+        } ?: return
+
+        val nyInnhentedeSakerId = connection.executeReturnKey(
+            """
+            INSERT INTO INNHENTEDE_SAKER_FOR_BEHANDLING (BEHANDLING_ID) VALUES (?)
+        """.trimIndent()
+        ) { setParams { setLong(1, tilBehandling.id) } }
+
+        connection.execute(
+            """
+            INSERT INTO SAKER_PAA_BEHANDLING (
+                INNHENTEDE_SAKER_FOR_BEHANDLING_ID,
+                SAKSNUMMER,
+                PERIODE,
+                AVSLAG,
+                RESULTATKODE,
+                FINNES_AAPEN_BEHANDLING)
+            SELECT ?, SAKSNUMMER, PERIODE, AVSLAG, RESULTATKODE, FINNES_AAPEN_BEHANDLING
+            FROM SAKER_PAA_BEHANDLING WHERE INNHENTEDE_SAKER_FOR_BEHANDLING_ID = ?
+        """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, nyInnhentedeSakerId)
+                setLong(2, sisteInnhentedeSakerId)
             }
         }
     }

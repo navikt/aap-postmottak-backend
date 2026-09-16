@@ -1,7 +1,10 @@
 package no.nav.aap.postmottak.api.drift
 
+import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
+import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
+import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
@@ -10,6 +13,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.tilgang.plugin.kontrakt.Personreferanse
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -59,5 +64,35 @@ data class ForenkletAvklaringsbehov(
 fun krevDtoErUtenFødselsnummer(dto: Any) {
     if (Regex("""(?<!\w)\d{11}(?!\w)""").containsMatchIn(DefaultJsonMapper.toJson(dto))) {
         throw IkkeTillattException("DTO-en inneholder (potensielt) sensitive personopplysninger!")
+    }
+}
+
+data class PersonSøkDriftsinfoDto(val journalposter: List<InnkommendeJournalpostDto>)
+data class IdentDto(val ident: String) : Personreferanse {
+    override fun hentPersonreferanse(): String = ident
+}
+
+data class InnkommendeJournalpostDto(
+    val journalpostId: JournalpostId,
+    val brevkode: String?,
+    val behandlingstema: String?,
+    val status: InnkommendeJournalpostStatus,
+    val regelresultat: Regelresultat? = null,
+    val årsakTilStatus: ÅrsakTilStatus? = null,
+    val enhet: NavEnhet? = null,
+) {
+    companion object {
+        
+        fun fraDomene(innkommendeJournalpost: InnkommendeJournalpost): InnkommendeJournalpostDto {
+            return InnkommendeJournalpostDto(
+                journalpostId = innkommendeJournalpost.journalpostId,
+                brevkode = innkommendeJournalpost.brevkode,
+                behandlingstema = innkommendeJournalpost.behandlingstema,
+                status = innkommendeJournalpost.status,
+                regelresultat = innkommendeJournalpost.regelresultat,
+                årsakTilStatus = innkommendeJournalpost.årsakTilStatus,
+                enhet = innkommendeJournalpost.enhet,
+            )
+        }
     }
 }

@@ -92,7 +92,7 @@ class AvklarFordelingSteg(
         val statusMedÅrsakOgRegelresultat = evaluerDokument(kontekst)
         val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
 
-        var skalAvklaresManuelt =
+        val skalAvklaresManuelt =
             unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
                     skalTilManuellVurdering(safJournalpost, kontekst)
         if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {

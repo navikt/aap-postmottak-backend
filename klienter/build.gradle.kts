@@ -9,27 +9,27 @@ dependencies {
     implementation(project(":flyt"))
     
     // TODO: undersøk om vi kan bruke en enklere algoritme for arbeidsdager
-    implementation(libs.bekkNoCommons)
+    implementation(libs.bekk.no.commons)
 
     implementation(libs.httpklient)
     implementation(libs.infrastructure)
-    implementation(libs.behandlingsflytKontrakt)
-    implementation(libs.arenaoppslagKontrakt)
+    implementation(libs.behandlingsflyt.kontrakt)
+    implementation(libs.arenaoppslag.kontrakt)
 
-    implementation(libs.ktorClientCio)
-    implementation(libs.ktorClientContentNegotiation)
-    implementation(libs.ktorClientJacksonSerialization)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.jackson.serialization)
 
-    implementation(libs.jacksonDatabind)
-    implementation(libs.jacksonDatatypeJsr310)
+    implementation(libs.jackson.databind)
+    implementation(libs.jackson.datatype.jsr310)
 
-    implementation(libs.logbackClassic)
+    implementation(libs.logback.classic)
 
-    implementation(libs.unleashClient)
-    implementation(libs.kotlinxCoroutinesCore)
+    implementation(libs.unleash.client)
+    implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.bundles.junit)
     testImplementation(libs.mockk)
     testImplementation(project(":lib-test"))
-    testImplementation(libs.ktorServerNetty)
+    testImplementation(libs.ktor.server.netty)
 }

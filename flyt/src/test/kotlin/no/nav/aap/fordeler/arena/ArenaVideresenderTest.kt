@@ -15,12 +15,12 @@ import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.test.fakes.hoveddokument
+import no.nav.aap.postmottak.test.fakes.vedlegg
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.util.*
 
 class ArenaVideresenderTest {
     val journalpostService: JournalpostService = mockk()
@@ -38,28 +38,24 @@ class ArenaVideresenderTest {
     @Test
     fun `når journalpost er en legeerklæring, skal journalposten journalføres med tema OPP`() {
 
-        val journalpostId_ = JournalpostId(1)
-        val journalpost: Journalpost = mockk<Journalpost> {
-            every { hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
-            every { journalpostId } returns journalpostId_
-            every { getHoveddokumenttittel() } returns "Hoveddokumenttittel"
-            every { getVedleggTitler() } returns listOf("Vedlegg")
-            every { person } returns mockk { every { aktivIdent() } returns Ident("1") }
-            every { status } returns Journalstatus.MOTTATT
+        val journalpost = TestJournalposter.leggTil {
+            fnr = "1"
+            brevkode = Brevkoder.LEGEERKLÆRING
+            dokumenter = listOf(hoveddokument(Brevkoder.LEGEERKLÆRING.kode, "Hoveddokumenttittel"), vedlegg("Vedlegg"))
+        }.tilJournalpost()
 
-        }
-        every { innkommendeJournalpostRepository.hent(journalpostId_) } returns mockk {
+        every { innkommendeJournalpostRepository.hent(journalpost.journalpostId) } returns mockk {
             every { enhet } returns "enhet"
         }
 
-        every { journalpostService.hentJournalpost(journalpostId_) } returns journalpost
+        every { journalpostService.hentJournalpost(journalpost.journalpostId) } returns journalpost
 
         arenaVideresender.videresendJournalpostTilArena(
-            journalpostId_, innkommendeJournalpostId = 1L,
+            journalpost.journalpostId, innkommendeJournalpostId = 1L,
         )
 
         verify(exactly = 1) { joarkClient.førJournalpostPåGenerellSak(journalpost, "OPP", null, null, null, null) }
-        verify(exactly = 1) { joarkClient.ferdigstillJournalpostMaskinelt(journalpostId_, null) }
+        verify(exactly = 1) { joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId, null) }
 
     }
 
@@ -74,14 +70,15 @@ class ArenaVideresenderTest {
             vedleggstitler = listOf("vedleggtitler")
         )
 
-        val journalpost: Journalpost = mockk {
-            every { hoveddokumentbrevkode } returns Brevkoder.SØKNAD.kode
-            every { journalpostId } returns actualKontekst.journalpostId
-            every { person } returns mockk { every { aktivIdent() } returns actualKontekst.ident }
-            every { getHoveddokumenttittel() } returns actualKontekst.hoveddokumenttittel
-            every { getVedleggTitler() } returns actualKontekst.vedleggstitler
-            every { status } returns Journalstatus.MOTTATT
-        }
+        val journalpost = TestJournalposter.leggTil {
+            journalpostId = 1
+            fnr = "1"
+            brevkode = Brevkoder.SØKNAD
+            dokumenter = listOf(
+                hoveddokument(Brevkoder.SØKNAD.kode, "hoveddokumenttittel"),
+                vedlegg("vedleggtitler")
+            )
+        }.tilJournalpost()
 
         every { journalpostService.hentJournalpost(actualKontekst.journalpostId) } returns journalpost
         every { innkommendeJournalpostRepository.hent(actualKontekst.journalpostId) } returns mockk {
@@ -113,14 +110,15 @@ class ArenaVideresenderTest {
             navEnhet = "Utland"
         )
 
-        val journalpost: Journalpost = mockk {
-            every { journalpostId } returns arenaVideresenderKontekst.journalpostId
-            every { person } returns Person(1, UUID.randomUUID(), listOf(arenaVideresenderKontekst.ident))
-            every { hoveddokumentbrevkode } returns Brevkoder.STANDARD_ETTERSENDING.kode
-            every { getHoveddokumenttittel() } returns arenaVideresenderKontekst.hoveddokumenttittel
-            every { getVedleggTitler() } returns arenaVideresenderKontekst.vedleggstitler
-            every { status } returns Journalstatus.MOTTATT
-        }
+        val journalpost = TestJournalposter.leggTil {
+            journalpostId = 1
+            fnr = "1"
+            brevkode = Brevkoder.STANDARD_ETTERSENDING
+            dokumenter = listOf(
+                hoveddokument(Brevkoder.STANDARD_ETTERSENDING.kode, "hoveddokumenttittel"),
+                vedlegg("vedleggtittel")
+            )
+        }.tilJournalpost()
 
         every { innkommendeJournalpostRepository.hent(arenaVideresenderKontekst.journalpostId) } returns mockk {
             every { enhet } returns arenaVideresenderKontekst.navEnhet
@@ -144,9 +142,16 @@ class ArenaVideresenderTest {
 
     @Test
     fun `når journalposttyper som ikke har særregler skal gå til manuell journalføring`() {
+        val journalpost = TestJournalposter.leggTil {
+            fnr = "1"
+            dokumenter = listOf(
+                hoveddokument("something else", "hoveddokumenttittel"),
+                vedlegg("vedleggtitler")
+            )
+        }.tilJournalpost()
 
         val actualKontekst = ArenaVideresenderKontekst(
-            journalpostId = JournalpostId(1),
+            journalpostId = journalpost.journalpostId,
             innkommendeJournalpostId = 1L,
 
             ident = Ident("1"),
@@ -154,15 +159,6 @@ class ArenaVideresenderTest {
             hoveddokumenttittel = "hoveddokumenttittel",
             vedleggstitler = listOf("vedleggtitler")
         )
-
-        val journalpost: Journalpost = mockk {
-            every { hoveddokumentbrevkode } returns "something else"
-            every { journalpostId } returns actualKontekst.journalpostId
-            every { person } returns mockk { every { aktivIdent() } returns actualKontekst.ident }
-            every { getHoveddokumenttittel() } returns actualKontekst.hoveddokumenttittel
-            every { getVedleggTitler() } returns actualKontekst.vedleggstitler
-            every { status } returns Journalstatus.MOTTATT
-        }
 
         every { journalpostService.hentJournalpost(actualKontekst.journalpostId) } returns journalpost
         every { innkommendeJournalpostRepository.hent(actualKontekst.journalpostId) } returns mockk {
@@ -182,17 +178,14 @@ class ArenaVideresenderTest {
 
     @Test
     fun `Allerede journalførte journalposter skal ikke føre til nye oppgaver i Arena eller Gosys`() {
+        val journalpost = TestJournalposter.leggTil {
+            status = Journalstatus.JOURNALFOERT
+        }.tilJournalpost()
 
-        val journalpostId_ = JournalpostId(1)
-        val journalpost: Journalpost = mockk {
-            every { journalpostId } returns journalpostId_
-            every { status } returns Journalstatus.JOURNALFOERT
-        }
-
-        every { journalpostService.hentJournalpost(journalpostId_) } returns journalpost
+        every { journalpostService.hentJournalpost(journalpost.journalpostId) } returns journalpost
 
         arenaVideresender.videresendJournalpostTilArena(
-            journalpostId_, innkommendeJournalpostId = 1L,
+            journalpost.journalpostId, innkommendeJournalpostId = 1L,
         )
 
         verify(exactly = 0) { flytJobbRepository.leggTil(any()) }

@@ -2,26 +2,23 @@ package no.nav.aap.postmottak.joark
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tilJournalpost
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakeGatewayProvider
-import no.nav.aap.postmottak.test.fakes.TestIdenter
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.test.modell.TestPersoner
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -45,16 +42,12 @@ class JoarkClientTest {
     fun `før journalpost på fagsak`() {
         val joarkClient = JournalføringService(gatewayProvider)
 
-        val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.person } returns Person(
-            123,
-            identifikator = UUID.randomUUID(),
-            identer = listOf(Ident("12345678"))
-        )
-        every { journalpost.journalpostId } returns JournalpostId(1)
+        val testPerson = TestPersoner.leggTil {}
+        val journalpostId = TestJournalposter.leggTil { person = testPerson }.journalpostId()
+
         joarkClient.førJournalpostPåFagsak(
-            journalpost.journalpostId,
-            journalpost.person.aktivIdent(),
+            journalpostId,
+            testPerson.aktivIdent(),
             "213412",
             tittel = null,
             avsenderMottaker = null,
@@ -66,13 +59,14 @@ class JoarkClientTest {
     @Test
     fun `før journalpost på generell sak`() {
         val joarkClient = JournalføringService(gatewayProvider)
-        val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.person } returns Person(
-            123,
+        val testPerson = TestPersoner.leggTil {}
+        val journalpostId = TestJournalposter.leggTil { person = testPerson }.journalpostId()
+        val person = Person(
+            id = 1,
             identifikator = UUID.randomUUID(),
-            identer = listOf(Ident("12345678"))
+            identer = listOf(testPerson.aktivIdent())
         )
-        every { journalpost.journalpostId } returns JournalpostId(1)
+        val journalpost = SafGraphqlClientCredentialsClient().hentJournalpost(journalpostId).tilJournalpost(person)
 
         joarkClient.førJournalpostPåGenerellSak(
             journalpost,
@@ -86,15 +80,10 @@ class JoarkClientTest {
     @Test
     fun `ferdigstillJournalpost happy path`() {
         val joarkClient = JournalføringService(gatewayProvider)
-        val journalpost: Journalpost = mockk(relaxed = true)
-        every { journalpost.person } returns Person(
-            123,
-            identifikator = UUID.randomUUID(),
-            identer = listOf(Ident("12345678"))
-        )
-        every { journalpost.journalpostId } returns JournalpostId(1)
+        val testPerson = TestPersoner.leggTil {}
+        val journalpostId = TestJournalposter.leggTil { person = testPerson }.journalpostId()
 
-        joarkClient.ferdigstillJournalpostMaskinelt(journalpost.journalpostId, null)
+        joarkClient.ferdigstillJournalpostMaskinelt(journalpostId, null)
     }
 
     @Test
@@ -109,14 +98,20 @@ class JoarkClientTest {
                 unleashGateway = FakeUnleash
             )
 
+        val testPerson = TestPersoner.leggTil {}
+        val journalpostId = TestJournalposter.leggTil {
+            avsenderMottaker = null
+            person = testPerson
+        }.journalpostId()
+
         val safJournalpost =
-            SafGraphqlClientCredentialsClient().hentJournalpost(TestJournalposter.UTEN_AVSENDER_MOTTAKER)
+            SafGraphqlClientCredentialsClient().hentJournalpost(journalpostId)
 
         assertThat(safJournalpost.avsenderMottaker).isNull()
 
         joarkClient.førJournalpostPåFagsak(
-            TestJournalposter.UTEN_AVSENDER_MOTTAKER,
-            TestIdenter.DEFAULT_IDENT,
+            journalpostId,
+            testPerson.aktivIdent(),
             "2344",
             tittel = null,
             avsenderMottaker = null,
@@ -127,7 +122,7 @@ class JoarkClientTest {
         verify {
             restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->
                 val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
-                assertThat(avsenderMottaker?.id).isEqualTo(TestIdenter.DEFAULT_IDENT.identifikator)
+                assertThat(avsenderMottaker?.id).isEqualTo(testPerson.aktivIdent().identifikator)
                 assertThat(avsenderMottaker?.idType).isEqualTo(AvsenderMottakerDto.IdType.FNR)
                 assertThat(avsenderMottaker?.navn).isEqualTo(null)
             }, any())
@@ -145,15 +140,19 @@ class JoarkClientTest {
                 unleashGateway = FakeUnleash
             )
 
+        val journalpostId = TestJournalposter.leggTil {
+            medUtenlandskOrgnr()
+        }.journalpostId()
+
         val safJournalpost =
-            SafGraphqlClientCredentialsClient().hentJournalpost(TestJournalposter.UTENLANDSK_ORGNR)
+            SafGraphqlClientCredentialsClient().hentJournalpost(journalpostId)
 
         assertThat(safJournalpost.avsenderMottaker).isNull()
         assertThat(safJournalpost.bruker?.type).isEqualTo(BrukerIdType.ORGNR)
 
         joarkClient.førJournalpostPåFagsak(
-            TestJournalposter.UTENLANDSK_ORGNR,
-            TestIdenter.DEFAULT_IDENT,
+            journalpostId,
+            TestPersoner.leggTil {}.aktivIdent(),
             "2344",
             tittel = null,
             avsenderMottaker = AvsenderMottakerDto("999999999", AvsenderMottakerDto.IdType.UTL_ORG, "Peppas farm"),

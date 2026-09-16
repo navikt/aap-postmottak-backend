@@ -5,6 +5,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.JaNeiVetIkke
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.OppgitteBarn
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
@@ -20,11 +26,11 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -40,6 +46,7 @@ class OverleverTilFagsystemStegTest {
     val journalpostRepository: JournalpostRepository = mockk()
     val saksnummerRepository: SaksnummerRepository = mockk()
     val overleveringVurderingRepository: OverleveringVurderingRepository = mockk()
+    val unleashGateway: UnleashGateway = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         struktureringsvurderingRepository,
@@ -47,15 +54,15 @@ class OverleverTilFagsystemStegTest {
         journalpostRepository,
         saksnummerRepository,
         overleveringVurderingRepository,
+        unleashGateway,
     )
 
     val kontekst: FlytKontekst = mockk(relaxed = true)
-    val journalpost: Journalpost = mockk()
     val journalpostId: JournalpostId = JournalpostId(123)
     val behandling: Behandling = mockk()
     val saksnummer = "String"
     val kanal = KanalFraKodeverk.NAV_NO
-    val mottattDato = LocalDate.of(
+    val mottattDato: LocalDate = LocalDate.of(
         2021,
         1,
         1
@@ -63,10 +70,10 @@ class OverleverTilFagsystemStegTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { journalpost.journalpostId } returns journalpostId
-        every { journalpost.kanal } returns kanal
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns
+                TestJournalposter.leggTil { journalpostId = 123 }.tilJournalpost()
         every { saksnummerRepository.hentSakVurdering(any())?.saksnummer } returns saksnummer
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns emptyList()
     }
 
     @AfterEach
@@ -84,7 +91,12 @@ class OverleverTilFagsystemStegTest {
             |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"}
             |}""".trimMargin(), mottattDato, null
         )
-        every { journalpost.erDigitalSøknad() } returns false
+
+        val journalpost = TestJournalposter.leggTil {
+            journalpostId = 123
+            digitalSøknad()
+        }.tilJournalpost()
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
         every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
@@ -99,8 +111,64 @@ class OverleverTilFagsystemStegTest {
                 InnsendingType.SØKNAD,
                 saksnummer,
                 DokumentTilMeldingParser
-                    .parseTilMelding(struktureringsvurdering.strukturertDokument, InnsendingType.SØKNAD)
-                ,
+                    .parseTilMelding(struktureringsvurdering.strukturertDokument, InnsendingType.SØKNAD),
+                false
+            )
+        }
+    }
+
+    @Test
+    fun `legeerklæring med avslag på alle kelvin-saker gir avklaringsbehov om overlevering når feature-toggle er skrudd på`() {
+        val kontekst: FlytKontekst = mockk(relaxed = true)
+        val struktureringsvurdering = Digitaliseringsvurdering(
+            InnsendingType.LEGEERKLÆRING, null, mottattDato, null
+        )
+
+        val journalpost = TestJournalposter.leggTil { journalpostId = 123 }.tilJournalpost()
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
+            every { avslag } returns true
+            every { finnesÅpenBehandling } returns false
+        })
+        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
+
+        val resultat = overførTilFagsystemSteg.utfør(kontekst)
+
+        verify(exactly = 0) { overleveringVurderingRepository.lagre(any(), any()) }
+        verify(exactly = 0) { behandlingsflytKlient.sendHendelse(any(), any(), any(), any(), any(), any(), any()) }
+        assertEquals(FunnetAvklaringsbehov::class.simpleName, resultat.transisjon()::class.simpleName)
+    }
+
+    @Test
+    fun `legeerklæring med avslag på alle kelvin-saker overleveres automatisk når feature-toggle er skrudd av`() {
+        val kontekst: FlytKontekst = mockk(relaxed = true)
+        val struktureringsvurdering = Digitaliseringsvurdering(
+            InnsendingType.LEGEERKLÆRING, null, mottattDato, null
+        )
+
+        val journalpost = TestJournalposter.leggTil { journalpostId = 123 }.tilJournalpost()
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
+            every { avslag } returns true
+            every { finnesÅpenBehandling } returns false
+        })
+        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
+
+        overførTilFagsystemSteg.utfør(kontekst)
+
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                journalpostId,
+                kanal,
+                any(),
+                InnsendingType.LEGEERKLÆRING,
+                saksnummer,
+                any(),
                 false
             )
         }
@@ -108,16 +176,14 @@ class OverleverTilFagsystemStegTest {
 
     @Test
     fun `hvis automatisk journalføring blir digital søknad fra joark sendt til behandlingsflyt`() {
-        val dokument: Dokument = mockk()
-        val dokumentInfoId: DokumentInfoId = mockk()
+        val journalpostJson = DefaultJsonMapper.toJson(
+            SøknadV0(
+                student = SøknadStudentDto(erStudent = StudentStatus.Nei, kommeTilbake = JaNeiVetIkke.Nei),
+                yrkesskade = "Nei",
+                oppgitteBarn = OppgitteBarn(emptySet()),
+            )
+        )
 
-        val journalpostJson = """{
-            |"yrkesskade": "Nei",
-            |"student": {"erStudent": "Nei", "kommeTilbake": "Nei"},
-            |"oppgitteBarn": {"identer": []}
-            |}""".trimMargin()
-
-        every { dokument.dokumentInfoId } returns dokumentInfoId
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns Digitaliseringsvurdering(
             InnsendingType.SØKNAD, journalpostJson, mottattDato, null
         )
@@ -142,9 +208,6 @@ class OverleverTilFagsystemStegTest {
 
     @Test
     fun `hvis journalposten er dialogmelding kreves manuell avklaring`() {
-        val dokument: Dokument = mockk()
-        val dokumentInfoId: DokumentInfoId = mockk()
-        every { dokument.dokumentInfoId } returns dokumentInfoId
         every { struktureringsvurderingRepository.hentHvisEksisterer(any())?.kategori } returns InnsendingType.DIALOGMELDING
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
 
@@ -156,9 +219,6 @@ class OverleverTilFagsystemStegTest {
 
     @Test
     fun `dialogmelding som skal til behandlingsflyt blir sendt korrekt`() {
-        val dokument: Dokument = mockk()
-        val dokumentInfoId: DokumentInfoId = mockk()
-        every { dokument.dokumentInfoId } returns dokumentInfoId
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns Digitaliseringsvurdering(
             InnsendingType.DIALOGMELDING,
             null,
@@ -166,8 +226,9 @@ class OverleverTilFagsystemStegTest {
             null
         )
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(true)
-        every { journalpost.mottattDato } returns mottattDato
-        every { journalpost.mottattTid } returns mottattDato.atStartOfDay()
+        val journalpost = TestJournalposter.leggTil { journalpostId = 123 }
+            .tilJournalpost(mottattTid = mottattDato.atStartOfDay())
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val stegresultat = overførTilFagsystemSteg.utfør(kontekst)
         verify(exactly = 1) {

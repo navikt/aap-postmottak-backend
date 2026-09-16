@@ -1,41 +1,282 @@
 package no.nav.aap.postmottak.test.fakes
 
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.postmottak.gateway.AvsenderMottaker
+import no.nav.aap.postmottak.gateway.AvsenderMottakerIdType
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.AvsenderMottaker as JournalpostAvsenderMottaker
+import no.nav.aap.postmottak.gateway.BrukerIdType
+import no.nav.aap.postmottak.gateway.JournalpostSak
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variant
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.modell.TestPerson
+import no.nav.aap.postmottak.test.modell.TestPersoner
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
+import kotlin.random.Random
+
+data class TestJournalPost(
+    val journalpostId: Long = Random.nextLong(10_000L, 1_000_000_000L),
+    // Null betyr at journalposten ikke har noen avsenderMottaker
+    val avsenderMottaker: AvsenderMottaker? = AvsenderMottaker(
+        id = "21345345210",
+        type = AvsenderMottakerIdType.FNR,
+        navn = "Test Testesen",
+    ),
+    // Bruker på journalposten i SAF. Kan avvike fra avsenderMottaker, f.eks. for utenlandske organisasjoner.
+    val brukerId: String = "21345345210",
+    val brukerType: String = "FNR",
+    // Mulige verdier: https://confluence.adeo.no/spaces/BOA/pages/316396024/Tema
+    val tema: String = "AAP",
+    val kanal: KanalFraKodeverk = KanalFraKodeverk.NAV_NO,
+    val status: Journalstatus = Journalstatus.MOTTATT,
+    val fagsak: JournalpostSak? = null,
+    val brevkode: Brevkoder = Brevkoder.LEGEERKLÆRING,
+    val digitalSøknad: SøknadV0? = null,
+    // Dokumentene på journalposten. Null betyr at et standarddokument basert på brevkode/kanal skal brukes,
+    // se standardDokument().
+    val dokumenter: List<Dokument>? = null,
+    // Journalførende enhet på journalposten, f.eks. satt for klage-ettersendinger
+    val journalførendeEnhet: String? = null,
+    // Om gosys allerede har en åpen oppgave for journalposten
+    val harEksisterendeGosysOppgave: Boolean = false,
+) {
+    fun medFnr(ident: Ident): TestJournalPost =
+        this.copy(
+            avsenderMottaker = this.avsenderMottaker?.copy(id = ident.identifikator),
+            brukerId = ident.identifikator
+        )
+
+    fun journalpostId(): JournalpostId {
+        return JournalpostId(journalpostId)
+    }
+
+    /**
+     *  Bruker feltene fra this. Person konstrueres ut fra brukerId.
+     *  Som default lages ett dokument basert på brevkode med en digital (JSON) originalvariant,
+     *  slik at f.eks. erDigitalLegeerklæring()/erDigitalSøknad() blir true for digitale journalposter.
+     */
+    fun tilJournalpost(
+        tittel: String? = null,
+        behandlingstema: String? = null,
+        mottattDato: LocalDate = LocalDate.now(),
+        mottattTid: LocalDateTime? = LocalDateTime.now(),
+    ): Journalpost {
+        return Journalpost(
+            journalpostId = this.journalpostId(),
+            person = Person(1, UUID.randomUUID(), listOf(Ident(this.brukerId))),
+            journalførendeEnhet = this.journalførendeEnhet,
+            tema = this.tema,
+            behandlingstema = behandlingstema,
+            tittel = tittel,
+            status = this.status,
+            mottattDato = mottattDato,
+            mottattTid = mottattTid,
+            avsenderMottaker = this.avsenderMottaker?.let {
+                JournalpostAvsenderMottaker(
+                    id = it.id,
+                    idType = it.type?.name,
+                    navn = it.navn
+                )
+            },
+            dokumenter = this.dokumenter ?: listOf(standardDokument()),
+            kanal = this.kanal,
+            saksnummer = this.fagsak?.fagsakId,
+            fagsystem = this.fagsak?.fagsaksystem?.name
+        )
+    }
+
+    // Papirkanaler skanner inn dokumentet, så det finnes ingen digital (JSON) originalvariant da.
+    private fun standardDokument(): Dokument {
+        val erPapir = this.kanal in listOf(
+            KanalFraKodeverk.SKAN_IM,
+            KanalFraKodeverk.SKAN_PEN,
+            KanalFraKodeverk.SKAN_NETS
+        )
+        return Dokument(
+            dokumentInfoId = DokumentInfoId("1"),
+            brevkode = this.brevkode.kode,
+            tittel = null,
+            varianter = listOf(
+                Variant(
+                    filtype = if (erPapir) Filtype.PDF else Filtype.JSON,
+                    variantformat = Variantformat.ORIGINAL
+                )
+            )
+        )
+    }
+}
+
+class TestJournalPostBuilder {
+    var journalpostId: Long? = null
+
+    // Ident på personen journalposten skal knyttes til. Dersom denne (eller person) ikke settes
+    // eksplisitt opprettes det automatisk en ny TestPerson (bl.a. slik at NomFake finner en person å svare på).
+    var fnr: String? = null
+
+    // Kan brukes i stedet for fnr dersom man trenger å beholde en referanse til TestPerson-objektet.
+    var person: TestPerson? = null
+    var brukerType = BrukerIdType.FNR
+    var tema: String = "AAP"
+    var brevkode: Brevkoder = Brevkoder.LEGEERKLÆRING
+    var kanal: KanalFraKodeverk = KanalFraKodeverk.NAV_NO
+    var status: Journalstatus = Journalstatus.MOTTATT
+    var fagsak: JournalpostSak? = null
+    var journalførendeEnhet: String? = null
+    var harEksisterendeGosysOppgave: Boolean = false
+    var digitalSøknad: SøknadV0? = null
+    var dokumenter: List<Dokument>? = null
+    var avsenderMottaker: AvsenderMottaker? = null
+
+    fun digitalSøknad() {
+        brevkode = Brevkoder.SØKNAD
+        digitalSøknad = SøknadV0(
+            student = SøknadStudentDto(erStudent = StudentStatus.Nei),
+            yrkesskade = "nei",
+            oppgitteBarn = null,
+            medlemskap = null,
+        )
+        dokumenter = listOf(
+            Dokument(
+                dokumentInfoId = DokumentInfoId("1"),
+                brevkode = Brevkoder.SØKNAD.kode,
+                tittel = null,
+                varianter = listOf(
+                    Variant(
+                        filtype = Filtype.JSON,
+                        variantformat = Variantformat.ORIGINAL
+                    )
+                )
+            )
+        )
+    }
+
+    fun medUtenlandskOrgnr(orgnr: String = "999999999") {
+        avsenderMottaker = null
+        fnr = orgnr
+        brukerType = BrukerIdType.ORGNR
+    }
+
+    fun papirsøknad() {
+        kanal = KanalFraKodeverk.SKAN_NETS
+        digitalSøknad = null
+        dokumenter = null
+        brevkode = Brevkoder.SØKNAD
+    }
+
+    fun legeerklæring() {
+        kanal = KanalFraKodeverk.SKAN_NETS
+        digitalSøknad = null
+        dokumenter = listOf(
+            Dokument(
+                dokumentInfoId = DokumentInfoId("1"),
+                brevkode = Brevkoder.LEGEERKLÆRING.kode,
+                tittel = null,
+                varianter = listOf(
+                    Variant(
+                        filtype = Filtype.JSON,
+                        variantformat = Variantformat.ORIGINAL
+                    )
+                )
+            )
+        )
+        brevkode = Brevkoder.LEGEERKLÆRING
+    }
+}
 
 object TestJournalposter {
-    val DIGITAL_SØKNAD_ID = JournalpostId(999)
-    val SØKNAD_ETTERSENDELSE = JournalpostId(1000)
-    val UTEN_AVSENDER_MOTTAKER = JournalpostId(11)
-    val LEGEERKLÆRING = JournalpostId(120)
-    val ANNET_TEMA = JournalpostId(121)
-    val UGYLDIG_STATUS = JournalpostId(122)
-    val STATUS_JOURNALFØRT = JournalpostId(123)
-    val PAPIR_SØKNAD = JournalpostId(124)
-    val LEGEERKLÆRING_IKKE_TIL_KELVIN = JournalpostId(125)
-    val STATUS_JOURNALFØRT_ANNET_FAGSYSTEM = JournalpostId(126)
-    val PERSON_UTEN_SAK_I_BEHANDLINGSFLYT = JournalpostId(127)
-    val MED_GOSYS_OPPGAVER = JournalpostId(128)
-    val PERSON_MED_SAK_I_ARENA = JournalpostId(129)
-    val LEGEERKLÆRING_TRUKKET_SAK = JournalpostId(130)
-    val UTENLANDSK_ORGNR = JournalpostId(131)
-    val KLAGE_ETTERSENDING = JournalpostId(132)
-    val NY_SØKNAD_MED_TRUKKET_SAK = JournalpostId(133)
+    private val fakeJournalposter: MutableMap<Long, TestJournalPost> = mutableMapOf()
 
-    /** Digital søknad for person med kant-i-kant sak i Arena -> manuell fordeling (AVKLAR_FORDELING). */
-    val DIGITAL_SØKNAD_KANT_I_KANT = JournalpostId(134)
+    fun leggTil(): TestJournalPost {
+        return leggTil { }
+    }
 
-    /** Papirsøknad for person med kant-i-kant sak i Arena -> manuell fordeling (AVKLAR_FORDELING). */
-    val PAPIR_SØKNAD_KANT_I_KANT = JournalpostId(135)
+    // Dersom fnr er satt eksplisitt (uten å gå via `person`) må vi likevel registrere en TestPerson
+    // for identen, slik at NomFake/PdlFake finner en person å svare på for dette fødselsnummeret.
+    private fun registrerTestPersonForFnr(fnr: String): Ident {
+        val eksisterende = TestPersoner.hentPerson(fnr)
+        if (eksisterende != null) {
+            return eksisterende.aktivIdent()
+        }
+        val person = TestPerson(identer = setOf(Ident(fnr)))
+        return TestPersoner.leggTil(person).aktivIdent()
+    }
+
+    fun leggTil(block: TestJournalPostBuilder.() -> Unit): TestJournalPost {
+        val builder = TestJournalPostBuilder().apply(block)
+        // For ORGNR-brukere er `fnr` egentlig et organisasjonsnummer, ikke en persons fødselsnummer,
+        // så det skal ikke registreres en TestPerson for denne (brukes heller ikke av NomFake/PdlFake).
+        val ident = when {
+            builder.brukerType == BrukerIdType.ORGNR -> Ident(requireNotNull(builder.fnr))
+            builder.fnr != null -> registrerTestPersonForFnr(builder.fnr!!)
+            builder.person != null -> builder.person!!.aktivIdent()
+            else -> TestPersoner.leggTil {}.aktivIdent()
+        }
+        val journalpost = TestJournalPost(
+            journalpostId = builder.journalpostId ?: Random.nextLong(10_000L, 1_000_000_000L),
+            tema = builder.tema,
+            kanal = builder.kanal,
+            status = builder.status,
+            fagsak = builder.fagsak,
+            brevkode = builder.brevkode,
+            digitalSøknad = builder.digitalSøknad,
+            dokumenter = builder.dokumenter,
+            journalførendeEnhet = builder.journalførendeEnhet,
+            harEksisterendeGosysOppgave = builder.harEksisterendeGosysOppgave,
+            avsenderMottaker = builder.avsenderMottaker,
+            brukerType = builder.brukerType.name
+        ).let {
+            if (builder.brukerType != BrukerIdType.ORGNR) {
+                it.medFnr(ident)
+            } else it.copy(brukerId = ident.identifikator)
+        }
+        fakeJournalposter[journalpost.journalpostId] = journalpost
+
+        return journalpost
+    }
+
+    fun digitalSøknad(): TestJournalPost = leggTil { digitalSøknad() }
+
+    fun papirsøknad(): TestJournalPost = leggTil { papirsøknad() }
+
+    fun legeerklæring(): TestJournalPost = leggTil { this.legeerklæring() }
+
+    fun hentJournalpost(journalpostId: Long): TestJournalPost? {
+        return fakeJournalposter[journalpostId]
+    }
 }
 
+/**
+ * Lager et hoveddokument (digitalt, ORIGINAL-variant) med gitt brevkode og tittel.
+ * Nyttig for tester som trenger å sette [TestJournalPost.dokumenter] eksplisitt, f.eks. for å
+ * kontrollere Journalpost.getHoveddokumenttittel()/hoveddokumentbrevkode.
+ */
+fun hoveddokument(brevkode: String, tittel: String): Dokument = Dokument(
+    dokumentInfoId = DokumentInfoId("1"),
+    brevkode = brevkode,
+    tittel = tittel,
+    varianter = listOf(Variant(filtype = Filtype.JSON, variantformat = Variantformat.ORIGINAL))
+)
 
-object TestIdenter {
-    val DEFAULT_IDENT = Ident("21345345210")
-    val DEFAULT_IDENT_2 = Ident("21345345212")
-    val IDENT_UTEN_SAK_I_KELVIN = Ident("00000001111")
-    val SKJERMET_IDENT = Ident("00000002222")
-    val IDENT_MED_SAK_I_ARENA = Ident("0000000333")
-    val IDENT_MED_TRUKKET_SAK_I_KELVIN = Ident("0000000444")
-    val IDENT_MED_KANT_I_KANT_SAK = Ident("0000000555")
-}
+/**
+ * Lager et vedlegg (arkivert PDF-variant) med gitt tittel, for bruk sammen med [hoveddokument]
+ * i [TestJournalPost.dokumenter].
+ */
+fun vedlegg(tittel: String): Dokument = Dokument(
+    dokumentInfoId = DokumentInfoId("2"),
+    brevkode = "N6",
+    tittel = tittel,
+    varianter = listOf(Variant(filtype = Filtype.PDF, variantformat = Variantformat.ARKIV))
+)

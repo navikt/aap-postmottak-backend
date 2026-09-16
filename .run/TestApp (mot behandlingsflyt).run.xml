@@ -6,6 +6,8 @@
       <env name="DB_POSTMOTTAK_USERNAME" value="postgres" />
       <env name="DB_POSTMOTTAK_PASSWORD" value="" />
       <env name="INTEGRASJON_BEHANDLINGSFLYT_URL" value="http://localhost:8080" />
+      <env name="INTEGRASJON_OPPGAVE_URL" value="http://localhost:8084" />
+      <env name="INTEGRASJON_POSTMOTTAK_AZP" value="c62cff74-505a-4858-ac15-16061c2e8290" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="no.nav.aap.postmottak.TestAppKt" />
     <module name="postmottak.app.test" />

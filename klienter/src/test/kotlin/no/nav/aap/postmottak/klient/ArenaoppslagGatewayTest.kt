@@ -7,7 +7,8 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.arena.ArenaoppslagGatewayImpl
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.TestIdenter
+import no.nav.aap.postmottak.test.modell.TestArenaSak
+import no.nav.aap.postmottak.test.modell.TestPersoner
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -28,9 +29,11 @@ class ArenaoppslagGatewayTest {
 
     @Test
     fun `Kan parse harHistorikk`() {
+        val testPerson = TestPersoner.leggTil { harHistorikkIArena = true }
+
         val res = runBlocking {
-            val testPerson = Person(1, UUID.randomUUID(), listOf(TestIdenter.IDENT_MED_SAK_I_ARENA))
-            arenaOppslagGatewayFake.harHistorikk(testPerson)
+            val person = Person(1, UUID.randomUUID(), listOf(testPerson.aktivIdent()))
+            arenaOppslagGatewayFake.harHistorikk(person)
         }
 
         assertThat(res).isEqualTo(true)
@@ -38,9 +41,11 @@ class ArenaoppslagGatewayTest {
 
     @Test
     fun `Kan parse harSignifikantHistorikk`() {
+        val testPerson = TestPersoner.leggTil { harHistorikkIArena = true }
+
         val vedtak = runBlocking {
-            val testPerson = Person(1, UUID.randomUUID(), listOf(TestIdenter.IDENT_MED_SAK_I_ARENA))
-            arenaOppslagGatewayFake.harSignifikantHistorikk(testPerson, LocalDate.now())
+            val person = Person(1, UUID.randomUUID(), listOf(testPerson.aktivIdent()))
+            arenaOppslagGatewayFake.harSignifikantHistorikk(person, LocalDate.now())
         }
 
         assertThat(vedtak.saker()).containsExactly(1234)
@@ -48,8 +53,10 @@ class ArenaoppslagGatewayTest {
 
     @Test
     fun `Kan parse MaksdatoResponse`() {
+        val testPerson = TestPersoner.leggTil { arenaSak = TestArenaSak() }
+
         val res = runBlocking {
-            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(TestIdenter.IDENT_MED_SAK_I_ARENA)
+            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(testPerson.aktivIdent())
         }
 
         assertThat(res).isNotNull
@@ -58,8 +65,10 @@ class ArenaoppslagGatewayTest {
 
     @Test
     fun `MaksdatoResponse returnerer tom liste ved ikke funnet`() {
+        val testPerson = TestPersoner.leggTil {}
+
         val res = runBlocking {
-            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(TestIdenter.DEFAULT_IDENT)
+            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(testPerson.aktivIdent())
         }
 
         assertThat(res).isNull()
@@ -67,8 +76,12 @@ class ArenaoppslagGatewayTest {
 
     @Test
     fun `Kan parse SisteUtbetalingerResponse`() {
+        val testPerson = TestPersoner.leggTil {
+            arenaSak = TestArenaSak(sisteUtbetalingsdato = LocalDate.parse("2024-05-10"))
+        }
+
         val res = runBlocking {
-            arenaOppslagGatewayFake.sisteUtbetalingsdatoForPerson(TestIdenter.IDENT_MED_SAK_I_ARENA)
+            arenaOppslagGatewayFake.sisteUtbetalingsdatoForPerson(testPerson.aktivIdent())
         }
 
         assertThat(res).isEqualTo(LocalDate.parse("2024-05-10"))
@@ -76,8 +89,10 @@ class ArenaoppslagGatewayTest {
 
     @Test
     fun `SisteUtbetalingerResponse returnerer null ved ikke funnet`() {
+        val testPerson = TestPersoner.leggTil {}
+
         val res = runBlocking {
-            arenaOppslagGatewayFake.sisteUtbetalingsdatoForPerson(TestIdenter.DEFAULT_IDENT)
+            arenaOppslagGatewayFake.sisteUtbetalingsdatoForPerson(testPerson.aktivIdent())
         }
 
         assertThat(res).isNull()

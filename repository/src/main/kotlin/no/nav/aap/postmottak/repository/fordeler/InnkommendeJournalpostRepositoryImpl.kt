@@ -5,6 +5,7 @@ import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.lookup.repository.Factory
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 class InnkommendeJournalpostRepositoryImpl(
@@ -97,4 +98,17 @@ class InnkommendeJournalpostRepositoryImpl(
         return id
     }
 
+    override fun finn(ident: Ident): List<InnkommendeJournalpost> {
+        return connection.queryList(
+            """
+            SELECT * FROM innkommende_journalpost WHERE bruker_id = ?
+        """.trimIndent()
+        ) {
+            setParams { setString(1, ident.identifikator) }
+            setRowMapper { row ->
+                val journalpostId = JournalpostId(row.getLong("journalpost_id"))
+                innkommendeJournalpostRowMapper(row, journalpostId)
+            }
+        }
+    }
 }

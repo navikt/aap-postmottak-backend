@@ -5,6 +5,7 @@ import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.tillaterAutomatiskBehandlingAvLegeerklæring
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
@@ -21,13 +22,16 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class AvklarSakSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytClient: BehandlingsflytGateway,
-    private val avklarTemaRepository: AvklarTemaRepository
+    private val avklarTemaRepository: AvklarTemaRepository,
+    private val unleashGateway: UnleashGateway
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -40,7 +44,8 @@ class AvklarSakSteg(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 gatewayProvider.provide(BehandlingsflytGateway::class),
-                repositoryProvider.provide(AvklarTemaRepository::class)
+                repositoryProvider.provide(AvklarTemaRepository::class),
+                gatewayProvider.provide(UnleashGateway::class)
             )
         }
 
@@ -89,8 +94,9 @@ class AvklarSakSteg(
         }
 
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
+        val tillaterAutomatiskLegeerklæring = tillaterAutomatiskLegeerklæring(kontekst)
 
-        return if (journalpost.erDigitalSøknad() || journalpost.erDigitalLegeerklæring() || journalpost.erDigitaltMeldekort()) {
+        return if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && tillaterAutomatiskLegeerklæring) || journalpost.erDigitaltMeldekort()) {
             avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
             Fullført
         } else if (saksnummerVurdering != null) {
@@ -98,6 +104,12 @@ class AvklarSakSteg(
         } else {
             FantAvklaringsbehov(Definisjon.AVKLAR_SAK)
         }
+    }
+
+    private fun tillaterAutomatiskLegeerklæring(kontekst: FlytKontekst): Boolean {
+        if (!unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)) return true
+        val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+        return kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()
     }
 
     private fun avklarFagSakMaskinelt(behandlingId: BehandlingId, journalpost: Journalpost) {

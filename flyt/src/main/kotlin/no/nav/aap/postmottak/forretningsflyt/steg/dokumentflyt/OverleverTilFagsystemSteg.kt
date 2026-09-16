@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.tillaterAutomatiskBehandlingAvLegeerklæring
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
@@ -18,6 +19,8 @@ import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class OverleverTilFagsystemSteg(
@@ -26,6 +29,7 @@ class OverleverTilFagsystemSteg(
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val overleveringVurderingRepository: OverleveringVurderingRepository,
+    private val unleashGateway: UnleashGateway,
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -39,7 +43,8 @@ class OverleverTilFagsystemSteg(
                 gatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
-                repositoryProvider.provide(OverleveringVurderingRepository::class)
+                repositoryProvider.provide(OverleveringVurderingRepository::class),
+                gatewayProvider.provide(UnleashGateway::class)
             )
         }
 
@@ -54,6 +59,12 @@ class OverleverTilFagsystemSteg(
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
 
+        val tillaterAutomatiskLegeerklæring by lazy {
+            !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
+                    || saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+                        .tillaterAutomatiskBehandlingAvLegeerklæring()
+        }
+
         var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
 
         if (overleveringVurdering == null && digitaliseringsvurdering.kategori in setOf(
@@ -61,7 +72,7 @@ class OverleverTilFagsystemSteg(
                 InnsendingType.LEGEERKLÆRING,
                 InnsendingType.MELDEKORT,
                 InnsendingType.KLAGE
-            )
+            ) && (digitaliseringsvurdering.kategori != InnsendingType.LEGEERKLÆRING || tillaterAutomatiskLegeerklæring)
         ) {
             val skalOverleveresTilKelvin = when {
                 // Meldekort uten strukturert dokument skal ikke oversendes fagsystem da dette allerede er registrert manuelt i Kelvin
@@ -77,7 +88,7 @@ class OverleverTilFagsystemSteg(
         if (overleveringVurdering == null) {
             return FantAvklaringsbehov(Definisjon.AVKLAR_OVERLEVERING)
         } else {
-            log.info("Dokument overleveres${if (overleveringVurdering.skalOverleveresTilKelvin) " " else "ikke"}til Fagsystem")
+            log.info("Dokument overleveres${if (overleveringVurdering.skalOverleveresTilKelvin) " " else "ikke"} til Fagsystem")
             if (overleveringVurdering.skalOverleveresTilKelvin) {
                 val melding = DokumentTilMeldingParser.parseTilMelding(
                     digitaliseringsvurdering.strukturertDokument,

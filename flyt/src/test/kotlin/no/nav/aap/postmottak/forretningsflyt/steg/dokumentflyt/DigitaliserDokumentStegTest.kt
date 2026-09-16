@@ -12,9 +12,10 @@ import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -28,19 +29,20 @@ class DigitaliserDokumentStegTest {
     val dokumentGateway: DokumentGateway = mockk()
     val saksnummerRepository: SaksnummerRepository = mockk()
     val avklaringsbehovRepository: AvklaringsbehovRepository = mockk(relaxed = true)
+    val unleashGateway: UnleashGateway = mockk(relaxed = true)
 
     val digitaliserDokumentSteg = DigitaliserDokumentSteg(
-        struktureringsvurderingRepository, journalpostRepo, dokumentGateway,saksnummerRepository, avklaringsbehovRepository
+        struktureringsvurderingRepository, journalpostRepo, dokumentGateway,saksnummerRepository, avklaringsbehovRepository, unleashGateway
     )
 
     @Test
     fun `når behandlingen må gjøres manuelt og strukturering ikke er gjort forventes et nytt avlaringsbehov for strukturering`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpost = TestJournalposter.papirsøknad().tilJournalpost()
 
-        every { journalpost.erDigitalSøknad() } returns false
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -52,9 +54,8 @@ class DigitaliserDokumentStegTest {
 
     @Test
     fun `når behandlingen må gjøres manuelt og strukturering er utført forventes ingen avklaringsbehov`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpost = TestJournalposter.papirsøknad().tilJournalpost()
 
-        every { journalpost.erDigitalSøknad() } returns false
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns mockk(relaxed = true)
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
@@ -66,19 +67,18 @@ class DigitaliserDokumentStegTest {
 
     @Test
     fun `når behandling kan gjøres automatisk og strukturering ikke er gjort forventes ingen avklaringsbehov`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpost = TestJournalposter.digitalSøknad().tilJournalpost()
         val journalpostJson = """{
             |"yrkesskade": "Nei",
             |"student": {"erStudent": "Nei", "kommeTilbake": "Nei"},
             |"oppgitteBarn": {"identer": [], "barn": []}
             |}""".trimMargin()
 
-        every { journalpost.erDigitalSøknad() } returns true
-        every { journalpost.journalpostId }
-        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.SØKNAD.kode
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
+
         every {
             dokumentGateway.hentDokument(
                 journalpost.journalpostId,
@@ -92,13 +92,12 @@ class DigitaliserDokumentStegTest {
 
     @Test
     fun `digital legeerklæring skal ikke digitaliseres`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpost = TestJournalposter.leggTil().tilJournalpost()
 
-        every { journalpost.erDigitalLegeerklæring() } returns true
-        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
@@ -106,34 +105,56 @@ class DigitaliserDokumentStegTest {
     }
 
     @Test
-    fun `kaster exception når dokument kommer inn og vi finner en tidligere behandling med avslag`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
+    fun `digital legeerklæring med avslag på alle kelvin-saker skal ikke digitaliseres automatisk når feature-toggle er skrudd på`() {
+        val journalpost = TestJournalposter.leggTil().tilJournalpost()
 
-        every { journalpost.erDigitalLegeerklæring() } returns true
-        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.LEGEERKLÆRING.kode
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns true
+        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns listOf(mockk {
+            every { avslag } returns true
+            every { finnesÅpenBehandling } returns false
+        })
+        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
-        assertThrows<AvslagException>{ digitaliserDokumentSteg.utfør(mockk(relaxed = true)) }
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(FantAvklaringsbehov::class.simpleName, stegresultat::class.simpleName)
+        val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.DIGITALISER_DOKUMENT)
+    }
+
+    @Test
+    fun `digital legeerklæring med avslag på alle kelvin-saker digitaliseres automatisk når feature-toggle er skrudd av`() {
+        val journalpost = TestJournalposter.leggTil().tilJournalpost()
+
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns listOf(mockk {
+            every { avslag } returns true
+            every { finnesÅpenBehandling } returns false
+        })
+        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
     }
 
     @Test
     fun `lager manuell digitaliseringsoppgave hvis barn oppgitt i søknad har ugyldig ident`() {
-        val journalpost: Journalpost = mockk(relaxed = true)
+        val journalpost = TestJournalposter.digitalSøknad().tilJournalpost()
         val journalpostJson = """{
             |"yrkesskade": "Nei",
             |"student": {"erStudent": "Nei", "kommeTilbake": "Nei"},
             |"oppgitteBarn": {"identer": [], "barn": [{"navn": "barn", "fødselsdato": "2022-12-12", "ident": {"identifikator": "123456"}, "relasjon": "FORELDER"}]}
             |}""".trimMargin()
 
-        every { journalpost.erDigitalSøknad() } returns true
-        every { journalpost.journalpostId }
-        every { journalpost.hoveddokumentbrevkode } returns Brevkoder.SØKNAD.kode
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
         every {
             dokumentGateway.hentDokument(
                 journalpost.journalpostId,

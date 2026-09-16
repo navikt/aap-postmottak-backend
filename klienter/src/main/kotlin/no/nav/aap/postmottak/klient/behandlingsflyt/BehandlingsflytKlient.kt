@@ -10,6 +10,7 @@ import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.error.IkkeFunnetException
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
@@ -17,6 +18,7 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Klagebehandling
+import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -48,27 +50,18 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
 
     override fun finnEllerOpprettSak(ident: Ident, mottattDato: LocalDate): BehandlingsflytSak {
         log.info("Finn eller opprett sak på person i behandlingsflyt")
-        return finnEllerOpprett(ident.identifikator, mottattDato)
-    }
-
-    private fun finnEllerOpprett(ident: String, mottattDato: LocalDate): BehandlingsflytSak {
         val request = PostRequest(
-            FinnEllerOpprettSak(ident, mottattDato),
+            FinnEllerOpprettSak(ident.identifikator, mottattDato),
             additionalHeaders = listOf(
                 Header("Accept", "application/json")
             )
         )
         return client.post(url.resolve("/api/sak/finnEllerOpprett"), request)
             ?: throw UnknownError("Fikk uforventet respons fra behandlingsflyt")
-
     }
 
-    override fun finnSaker(ident: Ident): List<BehandlingsflytSak> {
+    override fun finnSaker(ident: Ident): List<BehandlingsflytSaksInfoTilPostmottak> {
         log.info("Finn saker for person i behandlingsflyt")
-        return finn(ident)
-    }
-
-    private fun finn(ident: Ident): List<BehandlingsflytSak> {
         val request = PostRequest(
             FinnSaker(ident.identifikator)
         )
@@ -115,7 +108,14 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
                 Header("Accept", "application/json")
             )
         )
-        return client.post<BehandlingsflytTypeBehandling, List<Klagebehandling>>(url, request) ?: emptyList()
+        return try {
+            client.post<BehandlingsflytTypeBehandling, List<Klagebehandling>>(url, request) ?: emptyList()
+        } catch (_: IkkeFunnetException) {
+            // Behandlingsflyt returnerer 404 dersom saksnummeret ikke finnes (f.eks. lokalt der
+            // saksnummeret ikke er en reell sak i behandlingsflyt sin database).
+            log.warn("Fant ikke sak $saksnummer i behandlingsflyt ved henting av klagebehandlinger")
+            emptyList()
+        }
     }
 
 }

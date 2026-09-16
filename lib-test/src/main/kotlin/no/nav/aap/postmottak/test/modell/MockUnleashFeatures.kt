@@ -8,9 +8,4 @@ data class MockUnleashFeatures(
 data class MockUnleashFeature(
     val name: String,
     val enabled: Boolean,
-//    val type: String = "release",
-//    val stale: Boolean = false,
-//    val impressionData: Boolean = false,
-//    val project: String = "project",
-//    val description: String = "Beskrivelse",
 )

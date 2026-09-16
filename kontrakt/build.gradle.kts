@@ -7,9 +7,9 @@ plugins {
 }
 
 dependencies {
-    api(libs.jacksonAnnotations)
-    api(libs.ktorOpenApiGen)
-    compileOnly(libs.tilgangKontrakt)
+    api(libs.jackson.annotations)
+    api(libs.ktor.openapi.gen)
+    compileOnly(libs.tilgang.kontrakt)
 
     testImplementation(libs.bundles.junit)
 }
