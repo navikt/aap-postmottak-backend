@@ -62,7 +62,6 @@ import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.TestJournalPostBuilder
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.modell.TestKelvinSak
 import no.nav.aap.postmottak.test.modell.TestPersoner
@@ -599,12 +598,7 @@ class Flyttest : WithDependencies {
         val behandling2Id = behandling2.id
 
         sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
-
-        dataSource.transaction {
-            val journalpost = JournalpostRepositoryImpl(it).hentHvisEksisterer(journalpostId) ?: error("Fant ikke journalpost med id ${journalpostId} som skal ligge i DB")
-            val oppdatertJournalpost = journalpost.copy(status = Journalstatus.UTGAAR)
-            JournalpostRepositoryImpl(it).lagre(oppdatertJournalpost)
-        }
+        journalpost.status = Journalstatus.UTGAAR
 
         triggProsesserBehandling(journalpostId, behandling2.id)
         val behandling2Oppdatert = hentBehandling(behandling2.id)
