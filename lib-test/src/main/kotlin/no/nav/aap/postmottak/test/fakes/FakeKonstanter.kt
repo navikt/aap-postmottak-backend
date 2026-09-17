@@ -41,7 +41,7 @@ data class TestJournalPost(
     // Mulige verdier: https://confluence.adeo.no/spaces/BOA/pages/316396024/Tema
     val tema: String = "AAP",
     val kanal: KanalFraKodeverk = KanalFraKodeverk.NAV_NO,
-    val status: Journalstatus = Journalstatus.MOTTATT,
+    var status: Journalstatus = Journalstatus.MOTTATT,
     val fagsak: JournalpostSak? = null,
     val brevkode: Brevkoder = Brevkoder.LEGEERKLÆRING,
     val digitalSøknad: SøknadV0? = null,

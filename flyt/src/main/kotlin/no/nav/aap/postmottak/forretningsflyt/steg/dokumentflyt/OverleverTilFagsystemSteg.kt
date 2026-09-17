@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
@@ -29,6 +30,7 @@ class OverleverTilFagsystemSteg(
     private val journalpostRepository: JournalpostRepository,
     private val saksnummerRepository: SaksnummerRepository,
     private val overleveringVurderingRepository: OverleveringVurderingRepository,
+    private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val unleashGateway: UnleashGateway,
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -44,6 +46,7 @@ class OverleverTilFagsystemSteg(
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(OverleveringVurderingRepository::class),
+                repositoryProvider.provide(AvklaringsbehovRepository::class),
                 gatewayProvider.provide(UnleashGateway::class)
             )
         }
@@ -54,10 +57,17 @@ class OverleverTilFagsystemSteg(
     }
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
-        val digitaliseringsvurdering =
-            requireNotNull(digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Digitaliseringsvurdering mangler for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
+
+        if (journalpost.erUgyldig()) {
+            log.warn("Journalposten er ugyldig - dokumentet kan derfor ikke digitaliseres.  JournalpostId: ${journalpost.journalpostId} Status: ${journalpost.status}")
+            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.DIGITALISER_DOKUMENT)
+            return Fullført
+        }
+
+        val digitaliseringsvurdering =
+            requireNotNull(digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Digitaliseringsvurdering mangler for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
 
         val tillaterAutomatiskLegeerklæring by lazy {
             !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)

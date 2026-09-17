@@ -11,6 +11,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
@@ -47,6 +48,7 @@ class OverleverTilFagsystemStegTest {
     val saksnummerRepository: SaksnummerRepository = mockk()
     val overleveringVurderingRepository: OverleveringVurderingRepository = mockk()
     val unleashGateway: UnleashGateway = mockk(relaxed = true)
+    val avklaringsbehovRepository: AvklaringsbehovRepository = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         struktureringsvurderingRepository,
@@ -54,6 +56,7 @@ class OverleverTilFagsystemStegTest {
         journalpostRepository,
         saksnummerRepository,
         overleveringVurderingRepository,
+        avklaringsbehovRepository,
         unleashGateway,
     )
 

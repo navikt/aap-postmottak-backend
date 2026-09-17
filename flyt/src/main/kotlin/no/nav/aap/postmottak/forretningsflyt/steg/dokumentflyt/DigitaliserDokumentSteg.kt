@@ -71,6 +71,12 @@ class DigitaliserDokumentSteg(
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId}" }
 
+        if (journalpost.erUgyldig()) {
+            log.warn("Journalposten er ugyldig - dokumentet kan derfor ikke digitaliseres.  JournalpostId: ${journalpost.journalpostId} Status: ${journalpost.status}")
+            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.DIGITALISER_DOKUMENT)
+            return Fullført
+        }
+
         if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) {
             log.warn("Det eksisterer avslag, men steget vil gå gjennom likevel.")
         }
