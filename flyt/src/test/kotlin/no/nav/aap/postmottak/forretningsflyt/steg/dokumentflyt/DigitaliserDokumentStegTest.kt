@@ -2,10 +2,12 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
-import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -19,8 +21,8 @@ import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.io.ByteArrayInputStream
+import java.time.LocalDate
 
 class DigitaliserDokumentStegTest {
 
@@ -111,10 +113,14 @@ class DigitaliserDokumentStegTest {
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
-        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns listOf(Saksinfo(
+            saksnummer = "...",
+            periode = Periode(LocalDate.now(), LocalDate.now()),
+            avslag = true,
+            resultat = ResultatKode.AVSLAG,
+            finnesÅpenBehandling = false,
+            harRettNåEllerIFramtiden = false
+        ))
         every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
@@ -131,10 +137,14 @@ class DigitaliserDokumentStegTest {
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
         every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
-        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns listOf(Saksinfo(
+            saksnummer = "...",
+            periode = Periode(LocalDate.now(), LocalDate.now()),
+            avslag = true,
+            resultat = ResultatKode.AVSLAG,
+            finnesÅpenBehandling = false,
+            harRettNåEllerIFramtiden = false
+        ))
         every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))

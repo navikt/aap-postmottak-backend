@@ -316,7 +316,8 @@ class Flyttest : WithDependencies {
         val testperson = TestPersoner.leggTil {
             kelvinSak = TestKelvinSak(
                 saksnummer = "!",
-                resultat = ResultatKode.AVSLAG
+                resultat = ResultatKode.AVSLAG,
+                harRettNåEllerIFramtiden = false
             )
         }
 
@@ -372,7 +373,7 @@ class Flyttest : WithDependencies {
     @Test
     fun `Helautomatisk flyt for digital legeerklæring som skal til Kelvin`() {
         val testperson = TestPersoner.leggTil {
-            kelvinSak = TestKelvinSak()
+            kelvinSak = TestKelvinSak(resultat = ResultatKode.INNVILGET, harRettNåEllerIFramtiden = true)
         }
 
         val journalpost = TestJournalposter.leggTil { person = testperson }
