@@ -62,6 +62,7 @@ import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.TestJournalPostBuilder
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.modell.TestKelvinSak
 import no.nav.aap.postmottak.test.modell.TestPersoner
@@ -565,6 +566,49 @@ class Flyttest : WithDependencies {
             val vurdering = DigitaliseringsvurderingRepositoryImpl(it).hentHvisEksisterer(behandling2.id)
             assertThat(vurdering?.digitalisertManueltGjennomPostmottak).isTrue()
         }
+    }
+
+    @Test
+    fun `manuell journalføring hvor journalposten får status utgår skal hoppe over digitaliseringssteget`() {
+        val journalpost = TestJournalposter.papirsøknad()
+        val journalpostId = journalpost.journalpostId()
+
+        leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
+        }!!
+
+        val behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
+        val behandlingId = behandling.id
+
+        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+
+        sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
+        behandling
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+            .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "123"))
+
+        util.ventPåSvar(journalpostId.referanse)
+
+        val behandlinger2 = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 2) }
+        }!!
+
+        val behandling2 = behandlinger2.first { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+        val behandling2Id = behandling2.id
+
+        sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
+
+        dataSource.transaction {
+            val journalpost = JournalpostRepositoryImpl(it).hentHvisEksisterer(journalpostId) ?: error("Fant ikke journalpost med id ${journalpostId} som skal ligge i DB")
+            val oppdatertJournalpost = journalpost.copy(status = Journalstatus.UTGAAR)
+            JournalpostRepositoryImpl(it).lagre(oppdatertJournalpost)
+        }
+
+        triggProsesserBehandling(journalpostId, behandling2.id)
+        val behandling2Oppdatert = hentBehandling(behandling2.id)
+        assertThat(behandling2Oppdatert.status()).isEqualTo(Status.AVSLUTTET)
     }
 
     @Test
