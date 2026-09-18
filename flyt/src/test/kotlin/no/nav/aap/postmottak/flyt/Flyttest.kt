@@ -598,8 +598,12 @@ class Flyttest : WithDependencies {
         val behandling2Id = behandling2.id
 
         sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
-        journalpost.status = Journalstatus.UTGAAR
 
+        dataSource.transaction {connection ->
+            val journalpost = JournalpostRepositoryImpl(connection).hentHvisEksisterer(journalpostId = journalpostId)
+            val oppdatert = journalpost!!.copy(status = Journalstatus.UTGAAR)
+            JournalpostRepositoryImpl(connection).lagre(oppdatert)
+        }
         triggProsesserBehandling(journalpostId, behandling2.id)
         val behandling2Oppdatert = hentBehandling(behandling2.id)
         assertThat(behandling2Oppdatert.status()).isEqualTo(Status.AVSLUTTET)
