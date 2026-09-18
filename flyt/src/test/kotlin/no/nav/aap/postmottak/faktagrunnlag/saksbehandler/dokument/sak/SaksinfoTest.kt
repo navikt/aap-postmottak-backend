@@ -16,7 +16,7 @@ class SaksinfoTest {
     @Test
     fun `tillater automatisk behandling når det finnes en åpen sak, selv om alle avsluttede saker er avslag`() {
         val saker = listOf(
-            sak(avslag = true, finnesÅpenBehandling = true),
+            sak(avslag = true, finnesÅpenBehandling = true, harRettNåEllerIFramtiden = null),
         )
         assertTrue(saker.tillaterAutomatiskBehandlingAvLegeerklæring())
     }
@@ -24,7 +24,7 @@ class SaksinfoTest {
     @Test
     fun `tillater automatisk behandling når det finnes en sak uten avslag`() {
         val saker = listOf(
-            sak(avslag = false, finnesÅpenBehandling = false),
+            sak(avslag = false, finnesÅpenBehandling = false, harRettNåEllerIFramtiden = null),
         )
         assertTrue(saker.tillaterAutomatiskBehandlingAvLegeerklæring())
     }
@@ -32,20 +32,21 @@ class SaksinfoTest {
     @Test
     fun `tillater ikke automatisk behandling når alle saker er avslag og ingen åpen sak finnes`() {
         val saker = listOf(
-            sak(avslag = true, finnesÅpenBehandling = false),
-            sak(avslag = true, finnesÅpenBehandling = null),
+            sak(avslag = true, finnesÅpenBehandling = false, harRettNåEllerIFramtiden = null),
+            sak(avslag = true, finnesÅpenBehandling = null, harRettNåEllerIFramtiden = null),
         )
         assertFalse(saker.tillaterAutomatiskBehandlingAvLegeerklæring())
     }
 
     private fun sak(
         avslag: Boolean,
-        finnesÅpenBehandling: Boolean?
+        finnesÅpenBehandling: Boolean?,
+        harRettNåEllerIFramtiden: Boolean?,
     ) = Saksinfo(
         saksnummer = "42",
         periode = Periode(LocalDate.of(2020, 1, 1), LocalDate.of(2999, 12, 31)),
         avslag = avslag,
-        resultat = null,
-        finnesÅpenBehandling = finnesÅpenBehandling
+        finnesÅpenBehandling = finnesÅpenBehandling,
+        harRettNåEllerIFramtiden = harRettNåEllerIFramtiden,
     )
 }
