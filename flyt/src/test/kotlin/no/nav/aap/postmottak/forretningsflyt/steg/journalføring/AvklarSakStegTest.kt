@@ -205,6 +205,7 @@ class AvklarSakStegTest {
         every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
             every { this@mockk.saksnummer } returns saksnummer
         })
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
@@ -225,6 +226,7 @@ class AvklarSakStegTest {
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
         every { saksnummerRepository.hentKelvinSaker(any()) } returns emptyList()
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
@@ -241,6 +243,7 @@ class AvklarSakStegTest {
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
         every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk(), mockk())
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 

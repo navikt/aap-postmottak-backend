@@ -192,6 +192,7 @@ class DigitaliserDokumentStegTest {
             saksnummer = "saksnummer",
             opprettetNy = false
         )
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
 
         val digitaliseringsvurderingSlot = slot<Digitaliseringsvurdering>()
         every {

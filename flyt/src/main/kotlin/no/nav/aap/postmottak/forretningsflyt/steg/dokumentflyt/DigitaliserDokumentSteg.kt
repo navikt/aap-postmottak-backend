@@ -125,8 +125,10 @@ class DigitaliserDokumentSteg(
             return Fullført
         }
 
-        val saksnummerVurdering = if (journalpost.erKlage()) saksnummerRepository.hentSakVurdering(kontekst.behandlingId) else null
-        if (journalpost.erKlage() && saksnummerVurdering != null && !saksnummerVurdering.opprettetNy) {
+        val automatiskKlageJournalføring = unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing)
+        val saksnummerVurdering =
+            if (automatiskKlageJournalføring && journalpost.erKlage()) saksnummerRepository.hentSakVurdering(kontekst.behandlingId) else null
+        if (automatiskKlageJournalføring && journalpost.erKlage() && saksnummerVurdering != null && !saksnummerVurdering.opprettetNy) {
             log.info("Digitaliserer klage automatisk for behandling ${kontekst.behandlingId}.")
             val melding = KlageV0(kravMottatt = journalpost.mottattDato)
             digitaliseringsvurderingRepository.lagre(

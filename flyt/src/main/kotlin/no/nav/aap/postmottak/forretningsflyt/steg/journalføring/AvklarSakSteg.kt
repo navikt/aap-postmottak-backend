@@ -96,11 +96,12 @@ class AvklarSakSteg(
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val tillaterAutomatiskLegeerklæring = tillaterAutomatiskLegeerklæring(kontekst)
         val eksisterendeKelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+        val automatiskKlageJournalføring = unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing)
 
         return if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && tillaterAutomatiskLegeerklæring) || journalpost.erDigitaltMeldekort()) {
             avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
             Fullført
-        } else if (journalpost.erKlage() && eksisterendeKelvinSaker.size == 1) {
+        } else if (automatiskKlageJournalføring && journalpost.erKlage() && eksisterendeKelvinSaker.size == 1) {
             saksnummerRepository.lagreSakVurdering(
                 kontekst.behandlingId,
                 Saksvurdering(saksnummer = eksisterendeKelvinSaker.single().saksnummer, opprettetNy = false)
