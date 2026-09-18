@@ -218,13 +218,11 @@ class FakeUnleashGateway : UnleashGateway {
     }
 
     var enabledFeatures: MutableSet<FeatureToggle> = mutableSetOf(
-        PostmottakFeature.BegrensetFordelingTilKelvin,
         PostmottakFeature.PostmottakManuellVurdering,
     )
 
     fun reset() {
         enabledFeatures = mutableSetOf(
-            PostmottakFeature.BegrensetFordelingTilKelvin,
             PostmottakFeature.PostmottakManuellVurdering,
         )
     }
