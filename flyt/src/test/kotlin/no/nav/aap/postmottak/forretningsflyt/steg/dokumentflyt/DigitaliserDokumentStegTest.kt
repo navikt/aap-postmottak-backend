@@ -1,18 +1,26 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.slot
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.gateway.DokumentGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.test.fakes.TestJournalPost
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
@@ -171,6 +179,65 @@ class DigitaliserDokumentStegTest {
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns mockk(relaxed = true)
         val stegresultatIgjen = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
         assertEquals(Fullført::class.simpleName, stegresultatIgjen::class.simpleName)
+    }
+
+    @Test
+    fun `klage med avklart eksisterende sak digitaliseres automatisk`() {
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentSakVurdering(any<BehandlingId>()) } returns Saksvurdering(
+            saksnummer = "saksnummer",
+            opprettetNy = false
+        )
+
+        val digitaliseringsvurderingSlot = slot<Digitaliseringsvurdering>()
+        every {
+            struktureringsvurderingRepository.lagre(any(), capture(digitaliseringsvurderingSlot))
+        } just runs
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
+        assertThat(digitaliseringsvurderingSlot.captured.kategori).isEqualTo(InnsendingType.KLAGE)
+        assertThat(digitaliseringsvurderingSlot.captured.strukturertDokument).isNotNull
+    }
+
+    @Test
+    fun `klage uten avklart sak forventes et nytt avklaringsbehov for strukturering`() {
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentSakVurdering(any<BehandlingId>()) } returns null
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(FantAvklaringsbehov::class.simpleName, stegresultat::class.simpleName)
+        val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.DIGITALISER_DOKUMENT)
+    }
+
+    @Test
+    fun `klage knyttet til nyopprettet sak digitaliseres ikke automatisk`() {
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentSakVurdering(any<BehandlingId>()) } returns Saksvurdering(
+            saksnummer = "saksnummer",
+            opprettetNy = true
+        )
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(FantAvklaringsbehov::class.simpleName, stegresultat::class.simpleName)
+        val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.DIGITALISER_DOKUMENT)
     }
 
 }

@@ -17,8 +17,10 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.test.fakes.TestJournalPost
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
@@ -191,6 +193,61 @@ class AvklarSakStegTest {
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `klage med nøyaktig én eksisterende kelvin-sak avklares automatisk mot den saken`() {
+        val saksnummer = "saksnummer"
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
+            every { this@mockk.saksnummer } returns saksnummer
+        })
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
+        verify(exactly = 1) {
+            saksnummerRepository.lagreSakVurdering(any(), withArg {
+                assertThat(it.saksnummer).isEqualTo(saksnummer)
+                assertThat(it.opprettetNy).isFalse()
+            })
+        }
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `klage uten eksisterende kelvin-sak krever manuell avklaring`() {
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns emptyList()
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+        assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
+        val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
+    }
+
+    @Test
+    fun `klage med flere eksisterende kelvin-saker krever manuell avklaring`() {
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk(), mockk())
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+        assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
+        val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
     }
 
 }
