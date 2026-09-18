@@ -14,6 +14,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.BegrensetFordelingTilKelvin -> TODO()
             PostmottakFeature.PostmottakManuellVurdering -> true
             PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag -> true
+            PostmottakFeature.AutomatiskKlageJournalforing -> true
         }
     }
 
@@ -25,6 +26,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.BegrensetFordelingTilKelvin -> isRolledOutFor(userId)
             PostmottakFeature.PostmottakManuellVurdering -> true
             PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag -> true
+            PostmottakFeature.AutomatiskKlageJournalforing -> true
         }
 
     }
