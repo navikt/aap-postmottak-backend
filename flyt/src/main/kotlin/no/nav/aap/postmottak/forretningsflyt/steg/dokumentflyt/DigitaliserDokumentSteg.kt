@@ -136,7 +136,7 @@ class DigitaliserDokumentSteg(
                     kategori = InnsendingType.KLAGE,
                     strukturertDokument = melding.serialiser(),
                     søknadsdato = null,
-                    digitalisertManueltGjennomPostmottak = null
+                    digitalisertManueltGjennomPostmottak = false
                 )
             )
             return Fullført
