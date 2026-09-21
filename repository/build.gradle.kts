@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation(project(":flyt"))
 
-    implementation(libs.logback.classic)
+    implementation(kelvinLibs.logback.classic)
     implementation(libs.dbconnect)
     implementation(libs.verdityper)
     implementation(libs.dbmigrering)
@@ -14,5 +14,5 @@ dependencies {
 
     testImplementation(project(":lib-test"))
     testImplementation(libs.dbtest)
-    testImplementation(libs.bundles.junit)
+    testImplementation(kelvinLibs.bundles.junit)
 }

@@ -1,22 +1,13 @@
 [versions]
-ktor = "3.5.2"
 komponenter = "2.0.163"
 tilgang = "1.0.241"
 arenaoppslag = "0.6.2"
 behandlingsflyt = "0.0.663"
-junit = "6.1.3"
 kafka = "8.1.1-ce"
 testcontainers = "2.0.5"
 
 [libraries]
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.11.0" }
-ktor-http-jvm = { module = "io.ktor:ktor-http-jvm", version.ref = "ktor" }
-ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-openapi-gen = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
-
-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-client-jackson-serialization = { module = "io.ktor:ktor-serialization-jackson-jvm", version.ref = "ktor" }
 
 dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "komponenter" }
 verdityper = { module = "no.nav.aap.kelvin:verdityper", version.ref = "komponenter" }
@@ -41,32 +32,8 @@ kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafk
 kafka-streams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
 kafka-streams-test-utils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.22" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.2" }
-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.22.2" }
-
-logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.6.3" }
-logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
-micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.1" }
-logback-syslog = { module = "com.papertrailapp:logback-syslog4j", version = "1.0.0" }
-
-hikari-cp = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
-
 bekk-no-commons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
-unleash-client = { module = "io.getunleash:unleash-client-java", version = "12.3.0" }
-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.9.1" }
 
-junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
-junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
-assertj = { module = "org.assertj:assertj-core", version = "3.27.7" }
-mockk = { module = "io.mockk:mockk", version = "1.14.11" }
 testcontainers-postgres = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
-
-[bundles]
-junit = ["junit-api", "junit-jupiter-engine", "junit-jupiter-params", "assertj"]
-
-[plugins]
-ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("aap.conventions")
-    alias(libs.plugins.ktor)
+    alias(kelvinLibs.plugins.ktor)
 }
 
 application {
@@ -74,11 +74,11 @@ fun getCheckedOutGitCommitHash(): Provider<String> {
 }
 
 dependencies {
-    implementation(libs.jackson.datatype.jsr310)
-    implementation(libs.jackson.databind)
-    implementation(libs.micrometer.registry.prometheus)
-    implementation(libs.logback.classic)
-    implementation(libs.logstash.logback.encoder)
+    implementation(kelvinLibs.jackson.datatype.jsr310)
+    implementation(kelvinLibs.jackson.databind)
+    implementation(kelvinLibs.micrometer.prometheus)
+    implementation(kelvinLibs.logback.classic)
+    implementation(kelvinLibs.logstash.logback.encoder)
 
     implementation(project(":klienter"))
     implementation(project(":repository"))
@@ -92,12 +92,12 @@ dependencies {
     implementation(libs.motor)
     implementation(libs.motor.api)
     implementation(libs.server)
-    implementation(libs.hikari.cp)
+    implementation(kelvinLibs.hikaricp)
     // Auditlogging
-    runtimeOnly(libs.logback.syslog)
+    runtimeOnly(kelvinLibs.logback.syslog)
 
     // Kafka
-    implementation(libs.kafka.clients)
+    implementation(kelvinLibs.kafka.clients)
     implementation(libs.kafka.streams)
     implementation(libs.avro)
 
@@ -106,14 +106,14 @@ dependencies {
 
     testImplementation(libs.dbtest)
     testImplementation(project(":lib-test"))
-    testImplementation(libs.bundles.junit)
+    testImplementation(kelvinLibs.bundles.junit)
     testImplementation(libs.testcontainers.postgres)
     constraints {
         implementation("org.apache.commons:commons-compress:1.28.0") {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation(libs.mockk)
+    testImplementation(kelvinLibs.mockk)
     testImplementation(kotlin("test"))
     testImplementation(libs.kafka.streams.test.utils)
 }
