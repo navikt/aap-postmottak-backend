@@ -53,6 +53,7 @@ fun BehandlingsflytSaksInfoTilPostmottak.tilSaksinfo(): Saksinfo {
         periode = periode,
         avslag = resultat == ResultatKode.AVSLAG,
         resultat = resultat,
-        finnesÅpenBehandling = finnesÅpenBehandling
+        finnesÅpenBehandling = finnesÅpenBehandling,
+        harRettNåEllerIFramtiden = harRettNåEllerIFramtiden
     )
 }

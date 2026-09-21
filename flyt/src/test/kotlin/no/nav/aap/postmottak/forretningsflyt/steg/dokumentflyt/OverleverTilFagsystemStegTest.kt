@@ -10,13 +10,16 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.OppgitteBarn
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -99,6 +102,7 @@ class OverleverTilFagsystemStegTest {
             journalpostId = 123
             digitalSøknad()
         }.tilJournalpost()
+
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
         every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
@@ -131,10 +135,15 @@ class OverleverTilFagsystemStegTest {
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(Saksinfo(
+            saksnummer = "...",
+            periode = Periode(LocalDate.now(), LocalDate.now()),
+            avslag = true,
+            resultat = ResultatKode.AVSLAG,
+            finnesÅpenBehandling = false,
+            harRettNåEllerIFramtiden = false
+        ))
         every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
         val resultat = overførTilFagsystemSteg.utfør(kontekst)
@@ -156,10 +165,14 @@ class OverleverTilFagsystemStegTest {
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
         every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(Saksinfo(
+            saksnummer = "...",
+            periode = Periode(LocalDate.now(), LocalDate.now()),
+            avslag = true,
+            resultat = ResultatKode.AVSLAG,
+            finnesÅpenBehandling = false,
+            harRettNåEllerIFramtiden = false
+        ))
         every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
 
         overførTilFagsystemSteg.utfør(kontekst)

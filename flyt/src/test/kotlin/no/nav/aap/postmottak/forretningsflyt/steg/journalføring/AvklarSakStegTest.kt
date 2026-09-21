@@ -6,8 +6,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
@@ -158,10 +158,14 @@ class AvklarSakStegTest {
             .tilJournalpost()
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(Saksinfo(
+            saksnummer = "...",
+            periode = Periode(LocalDate.now(), LocalDate.now()),
+            avslag = true,
+            resultat = null,
+            finnesÅpenBehandling = false,
+            harRettNåEllerIFramtiden = false
+        ))
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
         every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
@@ -179,10 +183,14 @@ class AvklarSakStegTest {
             .tilJournalpost()
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(Saksinfo(
+            saksnummer = "...",
+            periode = Periode(LocalDate.now(), LocalDate.now()),
+            avslag = true,
+            resultat = null,
+            finnesÅpenBehandling = false,
+            harRettNåEllerIFramtiden = false
+        ))
         every { behandlingsflytClient.finnEllerOpprettSak(any(), any()) } returns BehandlingsflytSak(
             "saksnummer", Periode(
                 LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)
@@ -204,7 +212,11 @@ class AvklarSakStegTest {
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
         every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
-            Saksinfo(saksnummer = saksnummer, periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)))
+            Saksinfo(
+                saksnummer = saksnummer,
+                periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)),
+                harRettNåEllerIFramtiden = false
+            )
         )
         every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
 
@@ -245,8 +257,8 @@ class AvklarSakStegTest {
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
         every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
-            Saksinfo(saksnummer = "saksnummer-1", periode = periode),
-            Saksinfo(saksnummer = "saksnummer-2", periode = periode)
+            Saksinfo(saksnummer = "saksnummer-1", periode = periode, harRettNåEllerIFramtiden = false),
+            Saksinfo(saksnummer = "saksnummer-2", periode = periode, harRettNåEllerIFramtiden = false)
         )
         every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
 

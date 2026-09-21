@@ -316,7 +316,8 @@ class Flyttest : WithDependencies {
         val testperson = TestPersoner.leggTil {
             kelvinSak = TestKelvinSak(
                 saksnummer = "!",
-                resultat = ResultatKode.AVSLAG
+                resultat = ResultatKode.AVSLAG,
+                harRettNåEllerIFramtiden = false
             )
         }
 
@@ -372,7 +373,7 @@ class Flyttest : WithDependencies {
     @Test
     fun `Helautomatisk flyt for digital legeerklæring som skal til Kelvin`() {
         val testperson = TestPersoner.leggTil {
-            kelvinSak = TestKelvinSak()
+            kelvinSak = TestKelvinSak(resultat = ResultatKode.INNVILGET, harRettNåEllerIFramtiden = true)
         }
 
         val journalpost = TestJournalposter.leggTil { person = testperson }
@@ -598,8 +599,12 @@ class Flyttest : WithDependencies {
         val behandling2Id = behandling2.id
 
         sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
-        journalpost.status = Journalstatus.UTGAAR
 
+        dataSource.transaction {connection ->
+            val journalpost = JournalpostRepositoryImpl(connection).hentHvisEksisterer(journalpostId = journalpostId)
+            val oppdatert = journalpost!!.copy(status = Journalstatus.UTGAAR)
+            JournalpostRepositoryImpl(connection).lagre(oppdatert)
+        }
         triggProsesserBehandling(journalpostId, behandling2.id)
         val behandling2Oppdatert = hentBehandling(behandling2.id)
         assertThat(behandling2Oppdatert.status()).isEqualTo(Status.AVSLUTTET)
