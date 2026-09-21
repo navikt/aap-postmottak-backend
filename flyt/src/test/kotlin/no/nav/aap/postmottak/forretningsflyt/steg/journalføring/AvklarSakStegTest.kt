@@ -7,6 +7,7 @@ import io.mockk.verify
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
@@ -202,9 +203,9 @@ class AvklarSakStegTest {
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { this@mockk.saksnummer } returns saksnummer
-        })
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
+            Saksinfo(saksnummer = saksnummer, periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)))
+        )
         every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
@@ -238,11 +239,15 @@ class AvklarSakStegTest {
 
     @Test
     fun `klage med flere eksisterende kelvin-saker krever manuell avklaring`() {
+        val periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1))
         val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk(), mockk())
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
+            Saksinfo(saksnummer = "saksnummer-1", periode = periode),
+            Saksinfo(saksnummer = "saksnummer-2", periode = periode)
+        )
         every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
