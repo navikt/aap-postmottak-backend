@@ -7,11 +7,11 @@ plugins {
 }
 
 dependencies {
-    api(libs.jackson.annotations)
+    api(kelvinLibs.jackson.annotations)
     api(libs.ktor.openapi.gen)
     compileOnly(libs.tilgang.kontrakt)
 
-    testImplementation(libs.bundles.junit)
+    testImplementation(kelvinLibs.bundles.junit)
 }
 
 java {

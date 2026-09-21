@@ -12,7 +12,7 @@ dependencies {
     implementation(libs.httpklient)
     implementation(libs.motor.api)
     implementation(libs.verdityper)
-    implementation(libs.kotlinx.coroutines.core)
+    implementation(kelvinLibs.coroutines.core)
 
     implementation(kotlin("reflect"))
 
@@ -25,14 +25,14 @@ dependencies {
 
     // https://github.com/navikt/teamdokumenthandtering-avro-schemas
     testImplementation(libs.kafka.streams.test.utils)
-    testImplementation(libs.bundles.junit)
+    testImplementation(kelvinLibs.bundles.junit)
     testImplementation(project(":lib-test"))
     testImplementation(project(":repository"))
     testImplementation(project(":klienter"))
     testImplementation(project(":api"))
     testImplementation(libs.dbtest)
     testImplementation(libs.motor.test.utils)
-    testImplementation(libs.mockk)
+    testImplementation(kelvinLibs.mockk)
     testImplementation(libs.testcontainers.postgres)
     testImplementation(libs.testcontainers.kafka)
     testImplementation(libs.testcontainers.junit)
