@@ -11,6 +11,7 @@ enum class PostmottakFeature : FeatureToggle {
     BegrensetFordelingTilKelvin,
     PostmottakManuellVurdering,
     StoppAutomatikkForLegeerklaringVedAvslag,
+    AutomatiskKlageJournalforing,
     ;
 
     override fun key(): String = name
