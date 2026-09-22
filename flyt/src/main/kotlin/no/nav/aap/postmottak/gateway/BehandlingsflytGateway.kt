@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.gateway
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.AnnetRelevantDokument
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.LegeerklæringV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.MeldekortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.NyÅrsakTilBehandlingV0
@@ -64,6 +65,13 @@ object DokumentTilMeldingParser {
                 dokument!!,
                 AnnetRelevantDokument::class.java
             )
+
+            InnsendingType.LEGEERKLÆRING -> dokument?.let {
+                DefaultJsonMapper.fromJson(
+                    it,
+                    LegeerklæringV0::class.java
+                )
+            }
 
             InnsendingType.NY_ÅRSAK_TIL_BEHANDLING -> DefaultJsonMapper.fromJson(
                 dokument!!,
