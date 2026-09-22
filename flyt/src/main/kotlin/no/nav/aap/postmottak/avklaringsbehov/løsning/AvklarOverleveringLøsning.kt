@@ -14,13 +14,18 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AVKLAR_OVERLEVERING_KODE
 @JsonTypeName(value = AVKLAR_OVERLEVERING_KODE)
 class AvklarOverleveringLøsning(
     val skalOverleveres: Boolean,
+    val begrunnelse: String? = null,
     @param:JsonProperty(
         "behovstype",
         required = true,
         defaultValue = AVKLAR_OVERLEVERING_KODE
     ) val behovstype: String = AVKLAR_OVERLEVERING_KODE
 ) : AvklaringsbehovLøsning {
-    override fun løs(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider, kontekst: AvklaringsbehovKontekst): LøsningsResultat {
+    override fun løs(
+        repositoryProvider: RepositoryProvider,
+        gatewayProvider: GatewayProvider,
+        kontekst: AvklaringsbehovKontekst
+    ): LøsningsResultat {
         return AvklarOverleveringLøser.konstruer(repositoryProvider, gatewayProvider).løs(kontekst, this)
     }
 }

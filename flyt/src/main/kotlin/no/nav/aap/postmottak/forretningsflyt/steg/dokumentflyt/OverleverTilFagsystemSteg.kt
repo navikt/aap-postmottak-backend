@@ -62,7 +62,8 @@ class OverleverTilFagsystemSteg(
 
         if (journalpost.erUgyldig()) {
             log.warn("Journalposten er ugyldig - dokumentet kan derfor ikke digitaliseres.  JournalpostId: ${journalpost.journalpostId} Status: ${journalpost.status}")
-            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.DIGITALISER_DOKUMENT)
+            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+                .avbrytForSteg(StegType.DIGITALISER_DOKUMENT)
             return Fullført
         }
 
@@ -72,7 +73,7 @@ class OverleverTilFagsystemSteg(
         val tillaterAutomatiskLegeerklæring by lazy {
             !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
                     || saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
-                        .tillaterAutomatiskBehandlingAvLegeerklæring()
+                .tillaterAutomatiskBehandlingAvLegeerklæring()
         }
 
         var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
@@ -90,7 +91,7 @@ class OverleverTilFagsystemSteg(
                 else -> true
             }
 
-            val vurdering = OverleveringVurdering(skalOverleveresTilKelvin)
+            val vurdering = OverleveringVurdering(skalOverleveresTilKelvin, begrunnelse = null)
             overleveringVurderingRepository.lagre(kontekst.behandlingId, vurdering)
             overleveringVurdering = vurdering
         }
