@@ -241,7 +241,7 @@ class OverleverTilFagsystemStegTest {
             null,
             null
         )
-        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(true)
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(true, begrunnelse = null)
         val journalpost = TestJournalposter.leggTil { journalpostId = 123 }
             .tilJournalpost(mottattTid = mottattDato.atStartOfDay())
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
@@ -274,7 +274,7 @@ class OverleverTilFagsystemStegTest {
         val stegresultat = overførTilFagsystemSteg.utfør(kontekst)
 
         verify(exactly = 1) {
-            overleveringVurderingRepository.lagre(any(), OverleveringVurdering(false))
+            overleveringVurderingRepository.lagre(any(), OverleveringVurdering(false, begrunnelse = null))
         }
         verify(exactly = 0) {
             behandlingsflytKlient.sendHendelse(any(), any(), any(), any(), any(), any(), any())

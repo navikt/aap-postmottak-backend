@@ -362,6 +362,7 @@ class Flyttest : WithDependencies {
                 .løsAvklaringsBehov(
                     AvklarOverleveringLøsning(
                         skalOverleveres = true,
+                        begrunnelse = "..."
                     )
                 )
 

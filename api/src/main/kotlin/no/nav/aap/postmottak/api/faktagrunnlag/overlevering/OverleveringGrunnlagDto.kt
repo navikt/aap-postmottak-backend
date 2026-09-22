@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.api.faktagrunnlag.overlevering
 
 data class OverleveringVurderingDto(
     val skalOverleveres: Boolean,
+    val begrunnelse: String?
 )
 
 data class OverleveringGrunnlagDto(
