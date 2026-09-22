@@ -14,9 +14,9 @@ import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.avklaringsbehov.FrivilligeAvklaringsbehov
-import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.flyt.utledType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
@@ -77,7 +77,7 @@ fun NormalOpenAPIRoute.behandlingApi(
                                 }
                             )
                         },
-                        aktivtSteg = behandling.stegHistorikk().last().steg(),
+                        aktivtSteg = behandling.aktivtSteg(),
                         versjon = behandling.versjon
                     )
                 }
