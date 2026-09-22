@@ -22,6 +22,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class AvklarTemaSteg(
@@ -30,6 +32,7 @@ class AvklarTemaSteg(
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val saksnummerRepository: SaksnummerRepository,
     private val avklaringsbehovService: AvklaringsbehovService,
+    private val unleashGateway: UnleashGateway,
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -43,7 +46,8 @@ class AvklarTemaSteg(
                 repositoryProvider.provide(),
                 gatewayProvider.provide(),
                 repositoryProvider.provide(),
-                AvklaringsbehovService(repositoryProvider)
+                AvklaringsbehovService(repositoryProvider),
+                gatewayProvider.provide(),
             )
         }
 
@@ -95,7 +99,7 @@ class AvklarTemaSteg(
                 log.info("Journalposten med ID ${journalpost.journalpostId} har blitt endret utenfra. Tema er ikke AAP.")
                 avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(false, Tema.UKJENT))
                 Fullført
-            } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort()) {
+            } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort() || erAutomatiskKlage(journalpost)) {
                 avklarTemaMaskinelt(kontekst.behandlingId, journalpost)
                 Fullført
             } else {
@@ -118,7 +122,11 @@ class AvklarTemaSteg(
     }
 
     private fun kanAvklareMaskinelt(journalpost: Journalpost): Boolean {
-        return (journalpost.tema != "AAP") || (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort())
+        return (journalpost.tema != "AAP") || (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort() || erAutomatiskKlage(journalpost))
+    }
+
+    private fun erAutomatiskKlage(journalpost: Journalpost): Boolean {
+        return unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) && journalpost.erKlage()
     }
 
     private fun venterPåBehandlingIGosys(journalpost: Journalpost, temavurdering: TemaVurdering): Boolean {
@@ -144,8 +152,11 @@ class AvklarTemaSteg(
         } else if (journalpost.erDigitaltMeldekort()) {
             log.info("Avklarer digital meldekort maskinelt. JournalpostId ${journalpost.journalpostId}.")
             avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
+        } else if (erAutomatiskKlage(journalpost)) {
+            log.info("Avklarer klage maskinelt, skal til AAP. JournalpostId ${journalpost.journalpostId}.")
+            avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
         } else {
-            error("Journalpost er ikke en digital søknad, legeerklæring eller meldekort. JournalpostId ${journalpost.journalpostId}.")
+            error("Journalpost er ikke en digital søknad, legeerklæring, meldekort eller klage. JournalpostId ${journalpost.journalpostId}.")
         }
     }
 
