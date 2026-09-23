@@ -1,10 +1,13 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.LegeerklæringV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
@@ -101,10 +104,7 @@ class OverleverTilFagsystemSteg(
         } else {
             log.info("Dokument overleveres${if (overleveringVurdering.skalOverleveresTilKelvin) " " else "ikke"} til Fagsystem")
             if (overleveringVurdering.skalOverleveresTilKelvin) {
-                val melding = DokumentTilMeldingParser.parseTilMelding(
-                    digitaliseringsvurdering.strukturertDokument,
-                    digitaliseringsvurdering.kategori
-                )
+                val melding = utledMelding(digitaliseringsvurdering, overleveringVurdering)
                 behandlingsflytKlient.sendHendelse(
                     journalpostId = journalpost.journalpostId,
                     kanal = journalpost.kanal,
@@ -118,6 +118,21 @@ class OverleverTilFagsystemSteg(
                 )
             }
             return Fullført
+        }
+    }
+
+    fun utledMelding(
+        digitaliseringsvurdering: Digitaliseringsvurdering,
+        overleveringVurdering: OverleveringVurdering
+    ): Melding? {
+        return when {
+            digitaliseringsvurdering.kategori == InnsendingType.LEGEERKLÆRING -> LegeerklæringV0(
+                beskrivelse = overleveringVurdering.begrunnelse
+            )
+            else -> DokumentTilMeldingParser.parseTilMelding(
+                digitaliseringsvurdering.strukturertDokument,
+                digitaliseringsvurdering.kategori
+            )
         }
     }
 }
