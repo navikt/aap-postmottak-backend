@@ -120,7 +120,7 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
 
 }
 
-fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {
+private fun KanalFraKodeverk.tilBehandlingsflytKanal(): Kanal {
     return when (this) {
         KanalFraKodeverk.SKAN_NETS -> Kanal.PAPIR
         KanalFraKodeverk.SKAN_PEN -> Kanal.PAPIR

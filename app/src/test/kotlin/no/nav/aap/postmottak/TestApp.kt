@@ -21,6 +21,7 @@ import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeServers
+import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.modell.TestArenaSak
 import no.nav.aap.postmottak.test.modell.TestArenaVedtak
@@ -36,7 +37,9 @@ fun main() {
     val dbConfig = initDbConfig()
     FakeServers().start()
 
-    val gatewayProvider = defaultGatewayProvider()
+    val gatewayProvider = defaultGatewayProvider {
+        register<FakeUnleash>()
+    }
 
     // Starter server
     embeddedServer(Netty, port = 8070) {

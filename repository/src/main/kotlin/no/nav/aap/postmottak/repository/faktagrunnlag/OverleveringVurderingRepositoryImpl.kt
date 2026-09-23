@@ -6,7 +6,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.Over
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 
-class OverleveringVurderingRepositoryImpl(private val connection: DBConnection): OverleveringVurderingRepository {
+class OverleveringVurderingRepositoryImpl(private val connection: DBConnection) : OverleveringVurderingRepository {
     companion object : Factory<OverleveringVurderingRepositoryImpl> {
         override fun konstruer(connection: DBConnection): OverleveringVurderingRepositoryImpl {
             return OverleveringVurderingRepositoryImpl(connection)
@@ -16,42 +16,53 @@ class OverleveringVurderingRepositoryImpl(private val connection: DBConnection):
     override fun lagre(behandlingId: BehandlingId, overleveringVurdering: OverleveringVurdering) {
         val vurderingId = connection.executeReturnKey(
             """
-            INSERT INTO OVERLEVERING_VURDERING (SKAL_OVERLEVERES) VALUES (
-            ?)
+            INSERT INTO OVERLEVERING_VURDERING (SKAL_OVERLEVERES, BEGRUNNELSE) VALUES (?, ?)
         """.trimIndent()
-        ) { setParams { setBoolean(1, overleveringVurdering.skalOverleveresTilKelvin) } }
-        
+        ) {
+            setParams {
+                setBoolean(1, overleveringVurdering.skalOverleveresTilKelvin)
+                setString(2, overleveringVurdering.begrunnelse)
+            }
+        }
+
         connection.execute("""UPDATE OVERLEVERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ?""") {
             setParams { setLong(1, behandlingId.id) }
         }
-        
-        connection.execute("""
+
+        connection.execute(
+            """
             INSERT INTO OVERLEVERING_GRUNNLAG (BEHANDLING_ID, OVERLEVERING_VURDERING_ID) VALUES (?, ?)
-        """.trimIndent()) {
+        """.trimIndent()
+        ) {
             setParams { setLong(1, behandlingId.id); setLong(2, vurderingId) }
         }
     }
 
     override fun hentHvisEksisterer(behandlingId: BehandlingId): OverleveringVurdering? {
-        return connection.queryFirstOrNull("""
+        return connection.queryFirstOrNull(
+            """
             SELECT * FROM OVERLEVERING_GRUNNLAG 
             JOIN OVERLEVERING_VURDERING ON OVERLEVERING_VURDERING.id = OVERLEVERING_VURDERING_ID
             WHERE BEHANDLING_ID = ? AND AKTIV
-        """.trimIndent()) {
+        """.trimIndent()
+        ) {
             setParams { setLong(1, behandlingId.toLong()) }
             setRowMapper { row ->
                 OverleveringVurdering(
-                    row.getBoolean("skal_overleveres")
+                    row.getBoolean("skal_overleveres"),
+                    begrunnelse = row.getStringOrNull("begrunnelse")
                 )
             }
         }
     }
 
     override fun kopier(fraBehandling: BehandlingId, tilBehandling: BehandlingId) {
-        connection.execute("""
+        connection.execute(
+            """
             INSERT INTO OVERLEVERING_GRUNNLAG (OVERLEVERING_VURDERING_ID, BEHANDLING_ID)
             SELECT OVERLEVERING_VURDERING_ID, ? FROM OVERLEVERING_GRUNNLAG WHERE BEHANDLING_ID = ? AND AKTIV
-        """.trimIndent()) {
+        """.trimIndent()
+        ) {
             setParams {
                 setLong(1, tilBehandling.id)
                 setLong(2, fraBehandling.id)
