@@ -105,7 +105,6 @@ class OverleverTilFagsystemSteg(
             log.info("Dokument overleveres${if (overleveringVurdering.skalOverleveresTilKelvin) " " else "ikke"} til Fagsystem")
             if (overleveringVurdering.skalOverleveresTilKelvin) {
                 val melding = utledMelding(digitaliseringsvurdering, overleveringVurdering)
-                log.info("MELDING: $melding")
                 behandlingsflytKlient.sendHendelse(
                     journalpostId = journalpost.journalpostId,
                     kanal = journalpost.kanal,

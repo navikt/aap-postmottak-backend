@@ -93,11 +93,19 @@ class OverleverTilFagsystemStegTest {
     @Test
     fun `hvis søknad er manuelt strukturert, blir strukturert dokument sendt til behandlingsflyt`() {
         val kontekst: FlytKontekst = mockk(relaxed = true)
+        val søknad = SøknadV0(
+            student = SøknadStudentDto(
+                erStudent = StudentStatus.Nei,
+                kommeTilbake = JaNeiVetIkke.Nei
+            ),
+            yrkesskade = "Nei",
+            oppgitteBarn = null
+        )
         val struktureringsvurdering = Digitaliseringsvurdering(
-            InnsendingType.SØKNAD, """{
-            |"yrkesskade": "Nei",
-            |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"}
-            |}""".trimMargin(), mottattDato, null
+            kategori = InnsendingType.SØKNAD,
+            strukturertDokument = DefaultJsonMapper.toJson(søknad),
+            søknadsdato = mottattDato,
+            digitalisertManueltGjennomPostmottak = null
         )
 
         val journalpost = TestJournalposter.leggTil {
