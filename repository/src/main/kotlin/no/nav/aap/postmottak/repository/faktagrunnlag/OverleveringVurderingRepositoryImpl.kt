@@ -25,7 +25,7 @@ class OverleveringVurderingRepositoryImpl(private val connection: DBConnection) 
             }
         }
 
-        connection.execute("""UPDATE OVERLEVERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ?""") {
+        connection.execute("""UPDATE OVERLEVERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND AKTIV = TRUE""") {
             setParams { setLong(1, behandlingId.id) }
         }
 

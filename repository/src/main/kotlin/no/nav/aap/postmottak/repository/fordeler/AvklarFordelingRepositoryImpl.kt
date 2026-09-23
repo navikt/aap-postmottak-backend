@@ -51,7 +51,7 @@ class AvklarFordelingRepositoryImpl(private val connection: DBConnection): Avkla
         }
 
         connection.execute(
-            """UPDATE AVKLAR_FORDELING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ?"""
+            """UPDATE AVKLAR_FORDELING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND AKTIV = TRUE"""
         ) {
             setParams { setLong(1, behandlingId.id) }
         }
