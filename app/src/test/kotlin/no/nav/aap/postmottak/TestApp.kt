@@ -26,8 +26,8 @@ import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.modell.TestArenaSak
 import no.nav.aap.postmottak.test.modell.TestArenaVedtak
 import no.nav.aap.postmottak.test.modell.TestPersoner
-import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
+import org.testcontainers.postgresql.PostgreSQLContainer
 import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -230,8 +230,8 @@ private fun initDbConfig(): DbConfig {
     }
 }
 
-internal fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
-    val postgres = PostgreSQLContainer<Nothing>("postgres:16")
+internal fun postgreSQLContainer(): PostgreSQLContainer {
+    val postgres = PostgreSQLContainer("postgres:16")
     postgres.waitingFor(HostPortWaitStrategy().withStartupTimeout(Duration.of(60L, ChronoUnit.SECONDS)))
     postgres.start()
     return postgres

@@ -83,6 +83,7 @@ fun NormalOpenAPIRoute.finnSakApi(dataSource: DataSource, repositoryRegistry: Re
 
                 FinnBehandlingerResponse(
                     behandlingRepository.hentBehandlingerForPerson(person)
+                        .sortedByDescending { behandling -> behandling.opprettetTidspunkt }
                         .map { behandling ->
                             BehandlinginfoDTO(
                                 referanse = behandling.referanse.referanse,
