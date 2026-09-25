@@ -81,16 +81,19 @@ fun NormalOpenAPIRoute.driftApi(
             }
         }
 
-        route("/journalpost/{journalpostId}/kopier-journalpost") {
-            authorizedPost<JournalpostPathParam, JournalpostId, Unit>(
-                AuthorizationBodyPathConfig(
+        route("/journalpost/{referanse}/kopier-journalpost") {
+            authorizedPost<JournalpostId, JournalpostId, Unit>(
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                    ),
                     operasjon = Operasjon.DRIFTE
                 )
             ) { journalpostIdParam, _ ->
                 val nyJournalpostId = dataSource.transaction(readOnly = true) { connection ->
                     val journalpostService = JournalpostService.konstruer(repositoryRegistry.provider(connection), gatewayProvider)
                     val journalføringService = JournalføringService(gatewayProvider)
-                    val journalpostId = JournalpostId(journalpostIdParam.param.toLong())
+                    val journalpostId = JournalpostId(journalpostIdParam.referanse)
                     val journalpost = journalpostService.hentJournalpost(journalpostId = journalpostId)
                     if (journalpost.tema != "AAP") {
                         throw UgyldigForespørselException("Kan ikke kopiere en journalpost som ikke er på tema AAP")
