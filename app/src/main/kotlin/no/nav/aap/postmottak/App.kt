@@ -141,7 +141,7 @@ internal fun Application.server(
                 motorApi(dataSource, påkrevdeRollerMotor)
                 testApi(dataSource, gatewayProvider)
                 auditlogApi(dataSource, repositoryRegistry)
-                driftApi(dataSource, repositoryRegistry)
+                driftApi(dataSource, repositoryRegistry, gatewayProvider)
             }
         }
         actuator(motor, mottakStream)
