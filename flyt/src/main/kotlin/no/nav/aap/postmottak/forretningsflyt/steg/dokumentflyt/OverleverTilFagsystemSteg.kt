@@ -156,7 +156,7 @@ class OverleverTilFagsystemSteg(
             )?.let {
                 when (it) {
                     is AnnetRelevantDokument -> {
-                        if (it.begrunnelse == null && overleveringVurdering.begrunnelse != null) when (it) {
+                        if (it.begrunnelse.isNullOrBlank() && overleveringVurdering.begrunnelse != null) when (it) {
                             is AnnetRelevantDokumentV0 -> AnnetRelevantDokumentV1(
                                 årsakerTilBehandling = it.årsakerTilBehandling,
                                 begrunnelse = overleveringVurdering.begrunnelse,
