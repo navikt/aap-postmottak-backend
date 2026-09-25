@@ -7,13 +7,17 @@ import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
@@ -31,6 +35,7 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.driftApi(
     dataSource: DataSource,
     repositoryRegistry: RepositoryRegistry,
+    gatewayProvider: GatewayProvider,
 ) {
     route("/api/drift") {
         route("/behandling/{referanse}/prosesser") {
@@ -73,6 +78,30 @@ fun NormalOpenAPIRoute.driftApi(
                 }
 
                 respond(PersonSøkDriftsinfoDto(journalposter.map { InnkommendeJournalpostDto.fraDomene(it) }))
+            }
+        }
+
+        route("/journalpost/{referanse}/kopier-journalpost") {
+            authorizedPost<JournalpostId, JournalpostId, Unit>(
+                AuthorizationParamPathConfig(
+                    journalpostPathParam = JournalpostPathParam(
+                        "referanse",
+                    ),
+                    operasjon = Operasjon.DRIFTE
+                )
+            ) { journalpostIdParam, _ ->
+                val nyJournalpostId = dataSource.transaction(readOnly = true) { connection ->
+                    val journalpostService = JournalpostService.konstruer(repositoryRegistry.provider(connection), gatewayProvider)
+                    val journalføringService = JournalføringService(gatewayProvider)
+                    val journalpostId = JournalpostId(journalpostIdParam.referanse)
+                    val journalpost = journalpostService.hentJournalpost(journalpostId = journalpostId)
+                    if (journalpost.tema != "AAP") {
+                        throw UgyldigForespørselException("Kan ikke kopiere en journalpost som ikke er på tema AAP")
+                    }
+                    journalføringService.kopierJournalpost(journalpost)
+                }
+
+                respond(JournalpostId(nyJournalpostId.kopierJournalpostId.toLong()))
             }
         }
 
