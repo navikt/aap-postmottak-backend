@@ -6,6 +6,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.JaNeiVetIkke
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.LegeerklæringV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.OppgitteBarn
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
@@ -132,6 +133,32 @@ class OverleverTilFagsystemStegTest {
                 false
             )
         }
+    }
+
+    @Test
+    fun `begrunnelse fra overleveringsvurdering brukes når klage mangler beskrivelse`() {
+        val klage = KlageV0(
+            kravMottatt = mottattDato,
+            beskrivelse = "",
+            behandlingReferanse = "referanse",
+            skalOppretteNyBehandling = false,
+        )
+        val struktureringsvurdering = Digitaliseringsvurdering(
+            kategori = InnsendingType.KLAGE,
+            strukturertDokument = DefaultJsonMapper.toJson(klage),
+            søknadsdato = mottattDato,
+            digitalisertManueltGjennomPostmottak = null,
+        )
+
+        val melding = overførTilFagsystemSteg.utledMelding(
+            struktureringsvurdering,
+            OverleveringVurdering(
+                skalOverleveresTilKelvin = true,
+                begrunnelse = "MIN BEGRUNNELSE",
+            ),
+        )
+
+        assertThat(melding).isEqualTo(klage.copy(beskrivelse = "MIN BEGRUNNELSE"))
     }
 
     @Test
