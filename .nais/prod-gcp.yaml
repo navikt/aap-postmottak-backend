@@ -57,6 +57,11 @@ spec:
             envVarPrefix: DB_POSTMOTTAK
             users:
               - name: datastream
+  startup:
+    path: /actuator/live
+    initialDelay: 10
+    periodSeconds: 5
+    failureThreshold: 18
   liveness:
     path: /actuator/live
     initialDelay: 5
