@@ -84,9 +84,8 @@ class DigitaliserDokumentSteg(
         }
 
         val tillaterAutomatiskLegeerklæring by lazy {
-            !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
-                    || saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
-                        .tillaterAutomatiskBehandlingAvLegeerklæring()
+            saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+                .tillaterAutomatiskBehandlingAvLegeerklæring()
         }
 
         // Prøv automatisk digitalisering av dokumenter som er digitale

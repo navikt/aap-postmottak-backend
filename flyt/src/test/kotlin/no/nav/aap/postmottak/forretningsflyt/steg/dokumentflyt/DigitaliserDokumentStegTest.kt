@@ -115,7 +115,7 @@ class DigitaliserDokumentStegTest {
     }
 
     @Test
-    fun `digital legeerklæring med avslag på alle kelvin-saker skal ikke digitaliseres automatisk når feature-toggle er skrudd på`() {
+    fun `digital legeerklæring med avslag på alle kelvin-saker skal ikke digitaliseres automatisk`() {
         val journalpost = TestJournalposter.leggTil().tilJournalpost()
 
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
@@ -129,35 +129,12 @@ class DigitaliserDokumentStegTest {
             finnesÅpenBehandling = false,
             harRettNåEllerIFramtiden = false
         ))
-        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
         val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
 
         assertEquals(FantAvklaringsbehov::class.simpleName, stegresultat::class.simpleName)
         val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.DIGITALISER_DOKUMENT)
-    }
-
-    @Test
-    fun `digital legeerklæring med avslag på alle kelvin-saker digitaliseres automatisk når feature-toggle er skrudd av`() {
-        val journalpost = TestJournalposter.leggTil().tilJournalpost()
-
-        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
-        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
-        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns listOf(Saksinfo(
-            saksnummer = "...",
-            periode = Periode(LocalDate.now(), LocalDate.now()),
-            avslag = true,
-            resultat = ResultatKode.AVSLAG,
-            finnesÅpenBehandling = false,
-            harRettNåEllerIFramtiden = false
-        ))
-        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
-
-        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
-
-        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
     }
 
     @Test
