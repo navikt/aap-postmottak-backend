@@ -94,7 +94,7 @@ class AvklarSakSteg(
         }
 
         val saksnummerVurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
-        val tillaterAutomatiskLegeerklæring = tillaterAutomatiskLegeerklæring(kontekst)
+        val tillaterAutomatiskLegeerklæring by lazy { tillaterAutomatiskLegeerklæring(kontekst) }
         val eksisterendeKelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
         val automatiskKlageJournalføring = unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing)
 
@@ -115,7 +115,6 @@ class AvklarSakSteg(
     }
 
     private fun tillaterAutomatiskLegeerklæring(kontekst: FlytKontekst): Boolean {
-        if (!unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)) return true
         val kelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
         return kelvinSaker.tillaterAutomatiskBehandlingAvLegeerklæring()
     }
