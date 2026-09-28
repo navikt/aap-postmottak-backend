@@ -153,7 +153,7 @@ class AvklarSakStegTest {
     }
 
     @Test
-    fun `legeerklæring med avslag på alle kelvin-saker gir avklaringsbehov når feature-toggle er skrudd på`() {
+    fun `legeerklæring med avslag på alle kelvin-saker gir avklaringsbehov`() {
         val journalpost = TestJournalposter.legeerklæring()
             .tilJournalpost()
 
@@ -167,7 +167,6 @@ class AvklarSakStegTest {
             harRettNåEllerIFramtiden = false
         ))
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
-        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
@@ -175,33 +174,6 @@ class AvklarSakStegTest {
         assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
         val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
-    }
-
-    @Test
-    fun `legeerklæring med avslag på alle kelvin-saker gir automatisk saksavklaring når feature-toggle er skrudd av`() {
-        val journalpost = TestJournalposter.legeerklæring()
-            .tilJournalpost()
-
-        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(Saksinfo(
-            saksnummer = "...",
-            periode = Periode(LocalDate.now(), LocalDate.now()),
-            avslag = true,
-            resultat = null,
-            finnesÅpenBehandling = false,
-            harRettNåEllerIFramtiden = false
-        ))
-        every { behandlingsflytClient.finnEllerOpprettSak(any(), any()) } returns BehandlingsflytSak(
-            "saksnummer", Periode(
-                LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)
-            ), null
-        )
-        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
-
-        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
-
-        verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
-        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
 
     @Test

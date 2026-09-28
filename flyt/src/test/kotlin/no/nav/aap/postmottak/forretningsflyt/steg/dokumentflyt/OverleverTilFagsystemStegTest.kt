@@ -162,7 +162,7 @@ class OverleverTilFagsystemStegTest {
     }
 
     @Test
-    fun `legeerklæring med avslag på alle kelvin-saker gir avklaringsbehov om overlevering når feature-toggle er skrudd på`() {
+    fun `legeerklæring med avslag på alle kelvin-saker gir avklaringsbehov om overlevering`() {
         val kontekst: FlytKontekst = mockk(relaxed = true)
         val struktureringsvurdering = Digitaliseringsvurdering(
             InnsendingType.LEGEERKLÆRING, null, mottattDato, null
@@ -183,7 +183,6 @@ class OverleverTilFagsystemStegTest {
                 harRettNåEllerIFramtiden = false
             )
         )
-        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
         val resultat = overførTilFagsystemSteg.utfør(kontekst)
 
@@ -211,45 +210,6 @@ class OverleverTilFagsystemStegTest {
             )
         }
         assertEquals(Fortsett::class.simpleName, resultat2.transisjon()::class.simpleName)
-    }
-
-    @Test
-    fun `legeerklæring med avslag på alle kelvin-saker overleveres automatisk når feature-toggle er skrudd av`() {
-        val kontekst: FlytKontekst = mockk(relaxed = true)
-        val struktureringsvurdering = Digitaliseringsvurdering(
-            InnsendingType.LEGEERKLÆRING, null, mottattDato, null
-        )
-
-        val journalpost = TestJournalposter.leggTil { journalpostId = 123 }.tilJournalpost()
-        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
-        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
-        every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
-        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
-            Saksinfo(
-                saksnummer = "...",
-                periode = Periode(LocalDate.now(), LocalDate.now()),
-                avslag = true,
-                resultat = ResultatKode.AVSLAG,
-                finnesÅpenBehandling = false,
-                harRettNåEllerIFramtiden = false
-            )
-        )
-        every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
-
-        overførTilFagsystemSteg.utfør(kontekst)
-
-        verify(exactly = 1) {
-            behandlingsflytKlient.sendHendelse(
-                journalpostId,
-                kanal,
-                any(),
-                InnsendingType.LEGEERKLÆRING,
-                saksnummer,
-                any(),
-                false
-            )
-        }
     }
 
     @Test
