@@ -1,9 +1,11 @@
 package no.nav.aap.postmottak
 
+import com.fasterxml.jackson.core.JacksonException
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
 import io.ktor.network.sockets.SocketTimeoutException
+import io.ktor.serialization.JsonConvertException
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
@@ -12,7 +14,9 @@ import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.exception.TimeoutException
+import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.httpklient.httpclient.error.ManglerTilgangException
+import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
 import no.nav.aap.postmottak.avklaringsbehov.BehandlingUnderProsesseringException
 import no.nav.aap.postmottak.avklaringsbehov.OutdatedBehandlingException
@@ -47,6 +51,18 @@ object StatusPagesConfigHelper {
                         )
                     )
                 }
+
+                is JacksonException,
+                is JsonConvertException,
+                is DeserializationException -> {
+                    val uri = call.request.local.uri
+                    logger.error("Deserialiseringsfeil ved kall til '$uri': ", cause)
+
+                    call.respondWithError(
+                        UgyldigForespørselException(message = "Deserialiseringsfeil ved kall til '$uri'")
+                    )
+                }
+
 
                 is ManglerTilgangException -> {
                     val uri = call.request.local.uri
