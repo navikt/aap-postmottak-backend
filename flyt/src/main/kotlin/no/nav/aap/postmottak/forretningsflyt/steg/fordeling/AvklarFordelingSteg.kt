@@ -140,13 +140,10 @@ class AvklarFordelingSteg(
         val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
 
         return runBlocking {
-            val signifikantHistorikk =
-                arenaoppslagGateway.harSignifikantHistorikk(journalpost.person, journalpost.mottattDato)
             arenaService.skalManueltFordeles(
                 søker = journalpost.person,
                 mottattDato = journalpost.mottattDato,
-                journalpostId = kontekst.journalpostId.referanse,
-                signifikantHistorikk = signifikantHistorikk
+                journalpostId = kontekst.journalpostId.referanse
             )
         }
     }

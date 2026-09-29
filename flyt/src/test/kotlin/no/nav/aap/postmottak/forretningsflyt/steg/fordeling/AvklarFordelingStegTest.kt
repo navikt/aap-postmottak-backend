@@ -124,7 +124,7 @@ internal class AvklarFordelingStegTest {
         every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
         every { regelService.evaluer(any()) } returns regelResultat
-        coEvery { arenaService.skalManueltFordeles(any(), any(), any(), any()) } returns true
+        coEvery { arenaService.skalManueltFordeles(any(), any(), any()) } returns true
 
         val resultat = steg.utfør(kontekst)
 
@@ -164,7 +164,7 @@ internal class AvklarFordelingStegTest {
         val resultat = steg.utfør(kontekst)
 
         assertThat(resultat).isNotInstanceOf(FantAvklaringsbehov::class.java)
-        coVerify(exactly = 0) { arenaService.skalManueltFordeles(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { arenaService.skalManueltFordeles(any(), any(), any()) }
         verify { avklarFordelingRepository.lagreVurdering(eq(behandlingId), any()) }
     }
 
@@ -179,7 +179,7 @@ internal class AvklarFordelingStegTest {
         val resultat = steg.utfør(kontekst)
 
         assertThat(resultat).isNotInstanceOf(FantAvklaringsbehov::class.java)
-        coVerify(exactly = 0) { arenaService.skalManueltFordeles(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { arenaService.skalManueltFordeles(any(), any(), any()) }
         verify { avklarFordelingRepository.lagreVurdering(eq(behandlingId), any()) }
     }
 
@@ -213,7 +213,7 @@ internal class AvklarFordelingStegTest {
         every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns safJournalpost
         every { regelService.evaluer(any()) } returns regelResultat
-        coEvery { arenaService.skalManueltFordeles(any(), any(), any(), any()) } returns true
+        coEvery { arenaService.skalManueltFordeles(any(), any(), any()) } returns true
     }
 
     @Test
