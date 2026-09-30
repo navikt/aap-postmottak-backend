@@ -85,6 +85,18 @@ class RegelRepositoryImpl(private val connection: DBConnection) : RegelRepositor
         }
     }
 
+    fun slett(innkommendeJournalpostId: Long) {
+        connection.execute(
+            """
+            DELETE FROM REGEL_EVALUERING WHERE REGEL_RESULTAT_ID IN
+                (SELECT ID FROM REGELSETT_RESULTAT WHERE INNKOMMENDE_JOURNALPOST = ?)
+            """.trimIndent()
+        ) { setParams { setLong(1, innkommendeJournalpostId) } }
+        connection.execute(
+            "DELETE FROM REGELSETT_RESULTAT WHERE INNKOMMENDE_JOURNALPOST = ?"
+        ) { setParams { setLong(1, innkommendeJournalpostId) } }
+    }
+
     override fun lagre(innkommendeJournalpostId: Long, regelresultat: Regelresultat) {
         val systemNavn = if (regelresultat.skalTilKelvin()) "KELVIN" else "ARENA"
 

@@ -15,7 +15,8 @@ import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.mottak.kafka.config.SchemaRegistryConfig
 import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
-import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.prosessering.getJournalpostId
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -44,9 +45,13 @@ class JoarkKafkaHandlerTest {
 
             verify(exactly = 1) {
                 flytJobbRepository.leggTil(withArg {
-                    assertThat(it.type()).isEqualTo(ProsesserBehandlingJobbUtfører.type)
+                    assertThat(it.type()).isEqualTo(VurderRelevantDokumentForAAPJobbUtfører.type)
+                    assertThat(it.sakId()).isEqualTo(123L)
+                    assertThat(it.getJournalpostId()).isEqualTo(JournalpostId(123L))
                 })
             }
+            // Behandling opprettes først av VurderRelevantDokumentForAAPJobbUtfører, ikke direkte fra Kafka
+            verify(exactly = 0) { behandlingRepository.opprettBehandling(any(), any()) }
         }
 
     }

@@ -4,8 +4,12 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 enum class InnkommendeJournalpostStatus{
     EVALUERT,
+    // Ikke lenger i bruk, men beholdes for å kunne lese eksisterende rader i databasen
+    @Deprecated("Ikke i bruk lenger, beholdes for historiske data")
     VIDERSENDT_TIL_KELVIN,
+    @Deprecated("Ikke i bruk lenger, beholdes for historiske data")
     VIDERESENDT_TIL_ARENA,
+    @Deprecated("Ikke i bruk lenger, beholdes for historiske data")
     GOSYS_JFR,
     GOSYS_FDR,
     IGNORERT,
@@ -27,10 +31,4 @@ data class InnkommendeJournalpost(
     val årsakTilStatus: ÅrsakTilStatus? = null,
     val enhet: NavEnhet? = null,
     val brukerId: String? = null,
-) {
-    init {
-        if (status == InnkommendeJournalpostStatus.EVALUERT && regelresultat == null) {
-            throw IllegalArgumentException("Regelresultat må være satt når status er EVALUERT")
-        }
-    }
-}
+)

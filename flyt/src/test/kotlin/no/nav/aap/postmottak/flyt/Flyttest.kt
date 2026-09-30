@@ -16,7 +16,11 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
+import no.nav.aap.fordeler.InnkommendeJournalpost
+import no.nav.aap.fordeler.InnkommendeJournalpostStatus
+import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
@@ -259,6 +263,7 @@ class Flyttest : WithDependencies {
     @Test
     fun fordel() {
         val journalpostID = TestJournalposter.digitalSøknad().journalpostId()
+        lagreInnkommendeJournalpostUtenRegelresultat(journalpostID)
 
         triggFordelingJobb(journalpostID)
 
@@ -614,6 +619,8 @@ class Flyttest : WithDependencies {
     @Test
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
         val journalpostId = TestJournalposter.papirsøknad().journalpostId()
+        lagreInnkommendeJournalpostUtenRegelresultat(journalpostId)
+        assertThat(hentInnkommendeJournalpost(journalpostId)?.regelresultat).isNull()
 
         triggFordelingJobb(journalpostId)
 
@@ -624,6 +631,16 @@ class Flyttest : WithDependencies {
         assertNotNull(behandling)
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         assertThat(behandling.journalpostId).isEqualTo(journalpostId)
+
+        // AvklarFordelingSteg skal oppdatere eksisterende rad, ikke opprette en ny
+        assertThat(hentInnkommendeJournalpost(journalpostId)?.regelresultat).isNotNull()
+        val antallRader = dataSource.transaction(readOnly = true) { connection ->
+            connection.queryFirst("SELECT COUNT(*) AS antall FROM innkommende_journalpost WHERE journalpost_id = ?") {
+                setParams { setLong(1, journalpostId.referanse) }
+                setRowMapper { it.getLong("antall") }
+            }
+        }
+        assertThat(antallRader).isEqualTo(1L)
     }
 
     @Test
@@ -907,6 +924,30 @@ class Flyttest : WithDependencies {
         dataSource.transaction { connection ->
             repositoryRegistry.provider(connection).provide<BehandlingRepository>()
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+        }
+
+    private fun lagreInnkommendeJournalpostUtenRegelresultat(
+        journalpostId: JournalpostId,
+        status: InnkommendeJournalpostStatus = InnkommendeJournalpostStatus.EVALUERT,
+        årsakTilStatus: ÅrsakTilStatus? = null,
+    ) {
+        dataSource.transaction { connection ->
+            InnkommendeJournalpostRepositoryImpl(connection).lagre(
+                InnkommendeJournalpost(
+                    journalpostId = journalpostId,
+                    brevkode = null,
+                    behandlingstema = null,
+                    status = status,
+                    regelresultat = null,
+                    årsakTilStatus = årsakTilStatus,
+                )
+            )
+        }
+    }
+
+    private fun hentInnkommendeJournalpost(journalpostId: JournalpostId): InnkommendeJournalpost? =
+        dataSource.transaction(readOnly = true) {
+            InnkommendeJournalpostRepositoryImpl(it).hentHvisEksisterer(journalpostId)
         }
 
     private fun triggFordelingJobb(journalpostId: JournalpostId) {
