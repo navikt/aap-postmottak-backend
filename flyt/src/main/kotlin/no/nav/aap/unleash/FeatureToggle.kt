@@ -10,7 +10,6 @@ enum class PostmottakFeature : FeatureToggle {
     DummyFeature,
     BegrensetFordelingTilKelvin,
     PostmottakManuellVurdering,
-    StoppAutomatikkForLegeerklaringVedAvslag,
     AutomatiskKlageJournalforing,
     ;
 
