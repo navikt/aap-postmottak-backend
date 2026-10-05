@@ -7,6 +7,9 @@ import no.nav.aap.WithDependencies.Companion.repositoryRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
+import no.nav.aap.fordeler.InnkommendeJournalpost
+import no.nav.aap.fordeler.InnkommendeJournalpostStatus
+import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -16,11 +19,7 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
-import no.nav.aap.fordeler.InnkommendeJournalpost
-import no.nav.aap.fordeler.InnkommendeJournalpostStatus
-import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.postmottak.PrometheusProvider
-import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
@@ -62,6 +61,7 @@ import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
+import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeUnleash
@@ -389,8 +389,10 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
-        assertThat(behandlinger).hasSize(2)
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId)
+                .also { require(it.size == 2) }
+        }!!
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
             1
@@ -606,7 +608,7 @@ class Flyttest : WithDependencies {
 
         sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
 
-        dataSource.transaction {connection ->
+        dataSource.transaction { connection ->
             val journalpost = JournalpostRepositoryImpl(connection).hentHvisEksisterer(journalpostId = journalpostId)
             val oppdatert = journalpost!!.copy(status = Journalstatus.UTGAAR)
             JournalpostRepositoryImpl(connection).lagre(oppdatert)
@@ -624,9 +626,10 @@ class Flyttest : WithDependencies {
 
         triggFordelingJobb(journalpostId)
 
-        val alleBehandlinger = alleBehandlingerForJournalpost(journalpostId)
-        val behandling = alleBehandlinger
-            .find { it.typeBehandling == TypeBehandling.Journalføring }!!
+        val behandling = prøv {
+            alleBehandlingerForJournalpost(journalpostId)
+                .find { it.typeBehandling == TypeBehandling.Journalføring }
+        }!!
 
         assertNotNull(behandling)
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
@@ -654,9 +657,10 @@ class Flyttest : WithDependencies {
             .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
             .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "23452345"))
 
-        val alleBehandlinger = alleBehandlingerForJournalpost(journalpostId)
-        var behandling = alleBehandlinger
-            .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }!!
+        var behandling = prøv {
+            alleBehandlingerForJournalpost(journalpostId)
+                .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+        }!!
 
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
 
@@ -748,8 +752,10 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
-        assertThat(behandlinger).hasSize(1)
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size == 1)}
+        }!!
+
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
             1
