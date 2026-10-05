@@ -128,7 +128,7 @@ class JoarkKafkaHandlerTest {
 
     private fun config() = StreamsConfig(
         applicationId = "",
-        brokers = "",
+        brokers = "xxx",
         ssl = SslConfig(
             truststorePath = "",
             keystorePath = "",
