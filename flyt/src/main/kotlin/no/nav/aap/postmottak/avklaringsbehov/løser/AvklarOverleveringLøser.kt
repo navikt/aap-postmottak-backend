@@ -15,7 +15,7 @@ class AvklarOverleveringLøser(
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarOverleveringLøsning): LøsningsResultat {
         avklarOverleveringRepository.lagre(
             kontekst.kontekst.behandlingId,
-            OverleveringVurdering(løsning.skalOverleveres)
+            OverleveringVurdering(løsning.skalOverleveres, begrunnelse = løsning.begrunnelse)
         )
         return LøsningsResultat("Dokument skal ${if (løsning.skalOverleveres) "" else "ikke"} overleveres til Kelvin")
     }
@@ -25,9 +25,11 @@ class AvklarOverleveringLøser(
     }
 
     companion object : LøserKonstruktør<AvklarOverleveringLøsning> {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): AvklaringsbehovsLøser<AvklarOverleveringLøsning> {
-            return AvklarOverleveringLøser(repositoryProvider
-                .provide())
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ): AvklaringsbehovsLøser<AvklarOverleveringLøsning> {
+            return AvklarOverleveringLøser(repositoryProvider.provide())
         }
     }
 }

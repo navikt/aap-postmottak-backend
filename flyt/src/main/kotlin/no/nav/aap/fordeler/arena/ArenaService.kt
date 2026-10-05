@@ -2,7 +2,6 @@ package no.nav.aap.fordeler.arena
 
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -15,7 +14,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun skalManueltFordeles(
-        søker: Person, mottattDato: LocalDate, journalpostId: Long, signifikantHistorikk: SignifikantHistorikkResponse
+        søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): Boolean {
         val sisteSak = hentSisteVedtakMedEffektivMaksdato(søker)
 
@@ -46,21 +45,17 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     }
 
     suspend fun kanFordelesAutomatiskTilKelvinPga11_12_erMakset(
-        søker: Person, mottattDato: LocalDate, journalpostId: Long, signifikanteSaker: SignifikantHistorikkResponse
+        søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): Boolean {
         val sisteSak = hentSisteVedtakMedEffektivMaksdato(søker)
         val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
         val sakenHarBegyntPåAndreÅretMedUnntak = sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak)
-        val flereSignifikanteSaker = harFlereSignifikanteSaker(signifikanteSaker.saker(), sisteSak)
-        val signifikanteVedtakUtoverTypeAap = harSignifikanteVedtakUtoverTypeAap(signifikanteSaker.signifikanteVedtak)
         val unntakErInnvilgetiFremtiden = sisteSak?.unntaksvilkaarInnvilget == true && sisteSak.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
 
         val behandlesSomNySøknad = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             sisteSak == null -> false // maxdato er ikke definert
             !maksdatoNærmerSeg -> false
-            flereSignifikanteSaker -> false
-            signifikanteVedtakUtoverTypeAap -> false
             sisteSak.utredesForUfor() -> false
             sisteSak.erFerdigAvklart() -> false
             sisteSak.erSykepengeErstatning() -> false
@@ -74,8 +69,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         val tilstand = run {
             val logmsg: StringBuilder = StringBuilder()
-            logmsg.append("signifikanteVedtakUtoverTypeAap=$signifikanteVedtakUtoverTypeAap,")
-            logmsg.append("flereSignifikanteSaker=$flereSignifikanteSaker,")
             logmsg.append("maksdatoNærmerSeg=$maksdatoNærmerSeg,")
             logmsg.append("unntaksvilkaarInnvilget=${sisteSak?.unntaksvilkaarInnvilget},")
             logmsg.append("sakenHarBegyntPåAndreÅretMedUnntak=$sakenHarBegyntPåAndreÅretMedUnntak")

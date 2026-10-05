@@ -8,8 +8,10 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.put
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
+import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.komponenter.verdityper.Bruker
@@ -21,8 +23,10 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.unleash.UnleashGateway
+import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
+import java.util.UUID
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
@@ -35,6 +39,7 @@ class JournalføringService(
 ) {
 
     private val url = URI.create(requiredConfigForKey("INTEGRASJON_JOARK_URL"))
+    private var log = LoggerFactory.getLogger(javaClass)
 
     companion object {
         private val restClient: RestClient<InputStream> by lazy {
@@ -156,6 +161,13 @@ class JournalføringService(
         client.put(path, request) { _, _ -> }
     }
 
+    fun kopierJournalpost(journalpost: Journalpost): KopierJournalpostResponse {
+        val eksternReferanseId = UUID.randomUUID().toString()
+        log.info("Kopierer Journalpost ${journalpost.journalpostId} med eksternReferanseId=$eksternReferanseId")
+        val path = url.resolve("/rest/journalpostapi/v1/journalpost/kopierJournalpost?kildeJournalpostId=${journalpost.journalpostId}")
+        return client.post<KopierJournalpostRequest, KopierJournalpostResponse>(path, PostRequest(KopierJournalpostRequest(eksternReferanseId = eksternReferanseId))) ?: error("Kunne ikke kopiere journalpost med id ${journalpost.journalpostId}")
+    }
+
     fun ferdigstillJournalpostMaskinelt(
         journalpostId: JournalpostId,
         journalførtAv: Bruker?,
@@ -202,6 +214,14 @@ class JournalføringService(
 
 data class FerdigstillRequest(
     val journalfoerendeEnhet: String
+)
+
+data class KopierJournalpostRequest(
+    val eksternReferanseId: String
+)
+
+data class KopierJournalpostResponse(
+    val kopierJournalpostId: String
 )
 
 data class OppdaterJournalpostRequest(

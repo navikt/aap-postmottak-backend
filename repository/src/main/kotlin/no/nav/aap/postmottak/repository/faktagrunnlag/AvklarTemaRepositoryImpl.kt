@@ -27,7 +27,7 @@ class AvklarTemaRepositoryImpl(private val connection: DBConnection) : AvklarTem
             }
         }
 
-        connection.execute("""UPDATE TEMAVURDERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ?""") {
+        connection.execute("""UPDATE TEMAVURDERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND AKTIV = TRUE""") {
             setParams {
                 setLong(
                     1,

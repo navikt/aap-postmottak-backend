@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -71,6 +73,12 @@ class DigitaliserDokumentSteg(
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Fant ikke journalpost for behandlingID ${kontekst.behandlingId}" }
 
+        if (journalpost.erUgyldig()) {
+            log.warn("Journalposten er ugyldig - dokumentet kan derfor ikke digitaliseres.  JournalpostId: ${journalpost.journalpostId} Status: ${journalpost.status}")
+            avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).avbrytForSteg(StegType.DIGITALISER_DOKUMENT)
+            return Fullført
+        }
+
         if (saksnummerRepository.eksistererAvslagPåTidligereBehandling(kontekst.behandlingId)) {
             log.warn("Det eksisterer avslag, men steget vil gå gjennom likevel.")
         }
@@ -114,6 +122,23 @@ class DigitaliserDokumentSteg(
                 )
             )
 
+            return Fullført
+        }
+
+        val automatiskKlageJournalføring = unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing)
+        val saksnummerVurdering =
+            if (automatiskKlageJournalføring && journalpost.erKlage()) saksnummerRepository.hentSakVurdering(kontekst.behandlingId) else null
+        if (automatiskKlageJournalføring && journalpost.erKlage() && saksnummerVurdering != null && !saksnummerVurdering.opprettetNy) {
+            log.info("Digitaliserer klage automatisk for behandling ${kontekst.behandlingId}.")
+            val melding = KlageV0(kravMottatt = journalpost.mottattDato)
+            digitaliseringsvurderingRepository.lagre(
+                kontekst.behandlingId, Digitaliseringsvurdering(
+                    kategori = InnsendingType.KLAGE,
+                    strukturertDokument = melding.serialiser(),
+                    søknadsdato = null,
+                    digitalisertManueltGjennomPostmottak = false
+                )
+            )
             return Fullført
         }
 

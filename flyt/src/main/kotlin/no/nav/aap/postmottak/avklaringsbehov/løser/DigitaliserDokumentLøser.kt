@@ -28,7 +28,7 @@ class DigitaliserDokumentLøser(
             "Søknadsdato skal kun settes for søknader eller meldekort"
         }
         require(løsning.søknadsdato == null || !løsning.søknadsdato.isAfter(journalpost.mottattDato)) {
-            "Søknadsdato kan ikke være etter registrert dato"
+            "Søknadsdato kan ikke være etter registrert dato. Søknadsdato: ${løsning.søknadsdato}. Mottatt-dato: ${journalpost.mottattDato}"
         }
 
         val behandlingId = kontekst.kontekst.behandlingId

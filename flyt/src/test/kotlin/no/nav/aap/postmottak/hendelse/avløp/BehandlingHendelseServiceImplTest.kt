@@ -90,7 +90,8 @@ class BehandlingHendelseServiceImplTest {
                     tom = LocalDate.now().minusMonths(6)
                 ),
                 resultat = null,
-                finnesÅpenBehandling = false
+                finnesÅpenBehandling = false,
+                null
             )
         )
 

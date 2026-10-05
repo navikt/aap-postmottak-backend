@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nav.aap.postmottak.gateway
 
 import no.nav.aap.komponenter.gateway.Gateway

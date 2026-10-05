@@ -6,6 +6,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
@@ -17,8 +18,10 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSak
 import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.test.fakes.TestJournalPost
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
@@ -155,10 +158,14 @@ class AvklarSakStegTest {
             .tilJournalpost()
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(Saksinfo(
+            saksnummer = "...",
+            periode = Periode(LocalDate.now(), LocalDate.now()),
+            avslag = true,
+            resultat = null,
+            finnesÅpenBehandling = false,
+            harRettNåEllerIFramtiden = false
+        ))
         every { saksnummerRepository.hentSakVurdering(any()) } returns null
         every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
@@ -176,10 +183,14 @@ class AvklarSakStegTest {
             .tilJournalpost()
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(Saksinfo(
+            saksnummer = "...",
+            periode = Periode(LocalDate.now(), LocalDate.now()),
+            avslag = true,
+            resultat = null,
+            finnesÅpenBehandling = false,
+            harRettNåEllerIFramtiden = false
+        ))
         every { behandlingsflytClient.finnEllerOpprettSak(any(), any()) } returns BehandlingsflytSak(
             "saksnummer", Periode(
                 LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)
@@ -191,6 +202,72 @@ class AvklarSakStegTest {
 
         verify(exactly = 1) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `klage med nøyaktig én eksisterende kelvin-sak avklares automatisk mot den saken`() {
+        val saksnummer = "saksnummer"
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
+            Saksinfo(
+                saksnummer = saksnummer,
+                periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)),
+                harRettNåEllerIFramtiden = false
+            )
+        )
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
+        verify(exactly = 1) {
+            saksnummerRepository.lagreSakVurdering(any(), withArg {
+                assertThat(it.saksnummer).isEqualTo(saksnummer)
+                assertThat(it.opprettetNy).isFalse()
+            })
+        }
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+    }
+
+    @Test
+    fun `klage uten eksisterende kelvin-sak krever manuell avklaring`() {
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns emptyList()
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+        assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
+        val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
+    }
+
+    @Test
+    fun `klage med flere eksisterende kelvin-saker krever manuell avklaring`() {
+        val periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1))
+        val journalpost = TestJournalPost(brevkode = Brevkoder.KLAGE).tilJournalpost()
+
+        every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
+        every { saksnummerRepository.hentSakVurdering(any()) } returns null
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
+            Saksinfo(saksnummer = "saksnummer-1", periode = periode, harRettNåEllerIFramtiden = false),
+            Saksinfo(saksnummer = "saksnummer-2", periode = periode, harRettNåEllerIFramtiden = false)
+        )
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) } returns true
+
+        val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
+
+        verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+        assertEquals(FantAvklaringsbehov::class.simpleName, resultat::class.simpleName)
+        val funnetAvklaringsbehov = resultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.AVKLAR_SAK)
     }
 
 }

@@ -5,8 +5,6 @@ package no.nav.aap.postmottak.kontrakt.avklaringsbehov
  */
 public const val MANUELT_SATT_PÅ_VENT_KODE: String = "9001"
 
-@Deprecated("Bruk heller `DIGITALISER_DOKUMENT_KODE`.")
-public const val KATEGORISER_DOKUMENT_KODE: String = "1337"
 public const val DIGITALISER_DOKUMENT_KODE: String = "1338"
 public const val AVKLAR_TEMA_KODE: String = "1339"
 public const val AVKLAR_SAKSNUMMER_KODE: String = "1340"

@@ -12,6 +12,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.gateway.BehandlingsflytSak
+import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.klient.behandlingsflyt.FinnEllerOpprettSak
 import no.nav.aap.postmottak.klient.behandlingsflyt.FinnSaker
@@ -60,10 +61,12 @@ fun Application.behandlingsflytFake() {
 
             if (testperson != null) {
                 call.respond(testperson.kelvinsaker.map {
-                    BehandlingsflytSak(
+                    BehandlingsflytSaksInfoTilPostmottak(
                         saksnummer = it.saksnummer,
                         periode = it.periode,
-                        resultat = it.resultat
+                        resultat = it.resultat,
+                        finnesÅpenBehandling = false,
+                        harRettNåEllerIFramtiden = it.harRettNåEllerIFramtiden
                     )
                 })
                 return@post
@@ -71,10 +74,12 @@ fun Application.behandlingsflytFake() {
 
             call.respond(
                 listOf(
-                    BehandlingsflytSak(
+                    BehandlingsflytSaksInfoTilPostmottak(
                         saksnummer = Saksnummer.valueOf(Random.nextLong(123456)).toString(),
                         periode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2024, 1, 31)),
-                        resultat = null
+                        resultat = null,
+                        finnesÅpenBehandling = false,
+                        harRettNåEllerIFramtiden = false
                     )
                 )
             )

@@ -59,7 +59,7 @@ class ArenaServiceTest {
         )
 
         val skalManueltFordeles = runBlocking {
-            arenaService.skalManueltFordeles(person, mottattDato, 129L, signifikantHistorikk)
+            arenaService.skalManueltFordeles(person, mottattDato, 129L)
         }
 
         assertTrue(skalManueltFordeles)

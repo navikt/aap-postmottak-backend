@@ -31,8 +31,20 @@ class SaksnummerRepositoryImplTest {
 
     fun getPeriode() = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 31))
     val saksinfo: List<Saksinfo> = listOf(
-        BehandlingsflytSaksInfoTilPostmottak("sak: 1", getPeriode(), null, finnesÅpenBehandling = true).tilSaksinfo(),
-        BehandlingsflytSaksInfoTilPostmottak("sak: 2", getPeriode(), null, finnesÅpenBehandling = true).tilSaksinfo()
+        BehandlingsflytSaksInfoTilPostmottak(
+            "sak: 1",
+            getPeriode(),
+            null,
+            finnesÅpenBehandling = true,
+            null
+        ).tilSaksinfo(),
+        BehandlingsflytSaksInfoTilPostmottak(
+            "sak: 2",
+            getPeriode(),
+            null,
+            finnesÅpenBehandling = true,
+            null
+        ).tilSaksinfo()
     )
 
     @Test
@@ -49,14 +61,15 @@ class SaksnummerRepositoryImplTest {
 
     @Test
     fun `hent siste saksnummre for behandling`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
+        val behandlingId =
+            inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
 
         inContext { saksnummerRepository.lagreKelvinSak(behandlingId, saksinfo) }
 
         inContext {
             saksnummerRepository.lagreKelvinSak(
                 behandlingId,
-                saksinfo + Saksinfo("Sak: 3", getPeriode())
+                saksinfo + Saksinfo("Sak: 3", getPeriode(), harRettNåEllerIFramtiden = null)
             )
         }
 
@@ -88,7 +101,8 @@ class SaksnummerRepositoryImplTest {
     @Test
     fun `lagrer saksnummeravklaring på behandling`() {
         val saksnummer = "234234"
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
+        val behandlingId =
+            inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
         inContext {
             val actual = saksnummerRepository.hentSakVurdering(behandlingId)
@@ -100,7 +114,8 @@ class SaksnummerRepositoryImplTest {
     @Test
     fun `kan ikke ha to aktive vurderinger på samme behandling`() {
         val saksnummer = "234234"
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
+        val behandlingId =
+            inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer)) }
 
         catchThrowable {
@@ -115,7 +130,8 @@ class SaksnummerRepositoryImplTest {
 
     @Test
     fun `hvis to vurderinger blir lagt på samme sak blir den første deaktivert`() {
-        val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
+        val behandlingId =
+            inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering("YOLO")) }
         inContext { saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering("SWAG")) }
 

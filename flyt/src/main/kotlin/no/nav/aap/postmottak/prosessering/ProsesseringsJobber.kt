@@ -7,6 +7,7 @@ import no.nav.aap.fordeler.arena.jobber.OppprettOppgaveIArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendSøknadTilArenaJobbUtfører
 import no.nav.aap.fordeler.arena.jobber.SendTilArenaKjørelisteBehandling
 import no.nav.aap.motor.JobbSpesifikasjon
+import no.nav.aap.postmottak.mottak.VurderRelevantDokumentForAAPJobbUtfører
 import no.nav.aap.postmottak.redigitalisering.RedigitaliseringBehandlingJobbUtfører
 import no.nav.aap.postmottak.redigitalisering.RedigitaliseringKopierJobbUtfører
 
@@ -26,6 +27,7 @@ object ProsesseringsJobber {
             JoarkAvstemmerJobbUtfører,
             RedigitaliseringKopierJobbUtfører,
             RedigitaliseringBehandlingJobbUtfører,
+            VurderRelevantDokumentForAAPJobbUtfører,
         )
     }
 }

@@ -1,24 +1,17 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.fordeling
 
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.FordelerRegelService
-import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
-import no.nav.aap.fordeler.InnkommendeJournalpostStatus
-import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
 import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.fordeler.regler.RegelInput
-import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
@@ -26,17 +19,11 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.gateway.BrukerIdType
-import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
-import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.hoveddokument
-import no.nav.aap.postmottak.gateway.originalFiltype
-import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
@@ -47,14 +34,11 @@ import java.time.LocalDateTime
 class AvklarFordelingSteg(
     private val regelService: FordelerRegelService,
     private val journalpostService: JournalpostService,
-    private val enhetsutreder: Enhetsutreder,
     private val avklarFordelingRepository: AvklarFordelingRepository,
     private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
-    private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val arenaService: ArenaService,
     private val arenaoppslagGateway: ArenaoppslagGateway,
     private val unleashGateway: UnleashGateway,
-    private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -67,14 +51,11 @@ class AvklarFordelingSteg(
             return AvklarFordelingSteg(
                 FordelerRegelService(repositoryProvider, gatewayProvider),
                 JournalpostService.konstruer(repositoryProvider, gatewayProvider),
-                Enhetsutreder.konstruer(gatewayProvider),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                gatewayProvider.provide(),
                 ArenaService(gatewayProvider),
                 gatewayProvider.provide(),
                 gatewayProvider.provide(UnleashGateway::class),
-                PrometheusProvider.prometheus
             )
         }
 
@@ -89,42 +70,31 @@ class AvklarFordelingSteg(
             return Fullført
         }
 
-        val statusMedÅrsakOgRegelresultat = evaluerDokument(kontekst)
+        val regelresultat = vurderFordelingRegler(kontekst)
         val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
 
         val skalAvklaresManuelt =
             unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
                     skalTilManuellVurdering(safJournalpost, kontekst)
-        if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
-
-            // Hvis dokumentet allerede er lagret, vil status være IGNORERT med årsak ALLEREDE_JOURNALFØRT, derfor skjer dette kun 1 gang
-            innkommendeJournalpostRepository.lagre(
-                InnkommendeJournalpost(
-                    journalpostId = JournalpostId(safJournalpost.journalpostId),
-                    brevkode = safJournalpost.hoveddokument()?.brevkode,
-                    behandlingstema = safJournalpost.behandlingstema,
-                    status = statusMedÅrsakOgRegelresultat.status,
-                    årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
-                    enhet = hentEnhet(safJournalpost),
-                    regelresultat = statusMedÅrsakOgRegelresultat.regelresultat,
-                    brukerId = safJournalpost.bruker?.id
-                )
-            )
-            prometheus.journalpostCounter(
-                brevkode = safJournalpost.hoveddokument()?.brevkode,
-                filtype = safJournalpost.originalFiltype()
-            ).increment()
-
-        }
 
 
         if (skalAvklaresManuelt) {
             log.info("Journalpost ${kontekst.journalpostId} sendes til manuell vurdering av fordeling")
             return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
         } else {
+            val system = if(regelresultat.skalTilKelvin()) {
+                AapSystem.KELVIN
+            } else {
+                AapSystem.ARENA
+            }
             avklarFordelingRepository.lagreVurdering(
                 kontekst.behandlingId,
-                statusMedÅrsakOgRegelresultat.toFordelingVurdering(vurdertAv = "KELVIN")
+                AvklarFordelingVurdering(
+                    system = system,
+                    vurdertAv = SYSTEMBRUKER.ident,
+                    vurdertTidspunkt = LocalDateTime.now(),
+                    kommentar = "Automatisk vurdert fordeling"
+                )
             )
             return Fullført
 
@@ -140,129 +110,40 @@ class AvklarFordelingSteg(
         val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
 
         return runBlocking {
-            val signifikantHistorikk =
-                arenaoppslagGateway.harSignifikantHistorikk(journalpost.person, journalpost.mottattDato)
             arenaService.skalManueltFordeles(
                 søker = journalpost.person,
                 mottattDato = journalpost.mottattDato,
-                journalpostId = kontekst.journalpostId.referanse,
-                signifikantHistorikk = signifikantHistorikk
+                journalpostId = kontekst.journalpostId.referanse
             )
         }
     }
 
-    private fun evaluerDokument(kontekst: FlytKontekst): StatusMedÅrsakOgRegelresultat {
-        // TODO: Denne kan være problematisk hvis vi skal støtte at journalførte dokumenter skal kunne sendes inn til Kelvin
-        if (innkommendeJournalpostRepository.eksisterer(kontekst.journalpostId)) {
+    private fun vurderFordelingRegler(kontekst: FlytKontekst): Regelresultat {
+        val innkommendeJournalpost = innkommendeJournalpostRepository.hentHvisEksisterer(kontekst.journalpostId)
+
+        requireNotNull(innkommendeJournalpost) {
+            "Journalposten skal allerede være lagret før dette steget kjører, men fant ikke innkommendeJournalpost for ${kontekst.journalpostId}"
+        }
+
+        if (innkommendeJournalpost.regelresultat != null) {
             log.info("Journalposten med ID (${kontekst.journalpostId}) har allerede blitt evaluert - behandler ikke videre")
-            return StatusMedÅrsakOgRegelresultat(
-                InnkommendeJournalpostStatus.IGNORERT,
-                ÅrsakTilStatus.ALLEREDE_JOURNALFØRT
-            )
+            return innkommendeJournalpost.regelresultat
         }
 
         val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
+        val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
 
-        return when {
-            safJournalpost.journalstatus == Journalstatus.JOURNALFOERT -> {
-                log.info("Journalposten har status ${safJournalpost.journalstatus} - behandler ikke videre")
-                StatusMedÅrsakOgRegelresultat(
-                    InnkommendeJournalpostStatus.IGNORERT,
-                    ÅrsakTilStatus.ALLEREDE_JOURNALFØRT
-                )
-            }
-
-            safJournalpost.journalstatus == Journalstatus.UTGAAR -> {
-                log.info("Journalposten har status ${safJournalpost.journalstatus} - behandler ikke videre")
-                StatusMedÅrsakOgRegelresultat(
-                    InnkommendeJournalpostStatus.IGNORERT,
-                    ÅrsakTilStatus.UTGÅTT
-                )
-            }
-
-            safJournalpost.bruker?.id == null -> {
-                val årsak = ÅrsakTilStatus.MANGLER_IDENT
-                log.info("Bruker på ${safJournalpost.journalpostId} var ${safJournalpost.bruker?.type ?: "tom"} - oppretter fordelingsoppgave hvis ikke eksisterer")
-                opprettFordelingsOppgaveHvisIkkeEksisterer(safJournalpost, årsak)
-                StatusMedÅrsakOgRegelresultat(
-                    InnkommendeJournalpostStatus.GOSYS_FDR,
-                    årsak
-                )
-            }
-
-            safJournalpost.bruker.type == BrukerIdType.ORGNR -> {
-                val årsak = ÅrsakTilStatus.ORGNR
-                log.info("Bruker på ${safJournalpost.journalpostId} var organisasjon - oppretter fordelingsoppgave hvis ikke eksisterer")
-                opprettFordelingsOppgaveHvisIkkeEksisterer(safJournalpost, årsak)
-                StatusMedÅrsakOgRegelresultat(
-                    InnkommendeJournalpostStatus.GOSYS_FDR,
-                    årsak
-                )
-            }
-
-            else -> {
-                val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
-                log.info("Evaluerer journalpost med ID ${journalpost.journalpostId}. Brevkode: ${journalpost.hoveddokumentbrevkode}.")
-                val res = regelService.evaluer(
-                    RegelInput(
-                        safJournalpost.journalpostId,
-                        journalpost.person,
-                        journalpost.hoveddokumentbrevkode,
-                        journalpost.mottattDato
-                    )
-                )
-                StatusMedÅrsakOgRegelresultat(
-                    InnkommendeJournalpostStatus.EVALUERT,
-                    regelresultat = res
-                )
-            }
-        }
-    }
-
-    private fun hentEnhet(safJournalpost: SafJournalpost): NavEnhet? {
-        return if (safJournalpost.bruker?.id == null) {
-            log.warn("Journalpost med id=${safJournalpost.journalpostId} mangler bruker – kan ikke utlede enhet")
-            null
-        } else if (safJournalpost.bruker.type == BrukerIdType.ORGNR) {
-            log.warn("Journalpost med id=${safJournalpost.journalpostId} har bruker med idType ORGNR – kan ikke utlede enhet")
-            null
-        } else {
-            val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
-            enhetsutreder.finnJournalføringsenhet(journalpost)
-        }
-    }
-
-    private fun opprettFordelingsOppgaveHvisIkkeEksisterer(journalpost: SafJournalpost, årsak: ÅrsakTilStatus) {
-        val tittel = journalpost.hoveddokument()?.tittel
-            ?: throw IllegalStateException("Fant ingen dokumenter i journalposten")
-
-        gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
-            journalpostId = JournalpostId(journalpost.journalpostId),
-            personIdent = null,
-            orgnr = if (årsak == ÅrsakTilStatus.ORGNR) journalpost.bruker?.id else null,
-            beskrivelse = tittel
-        )
-    }
-
-    data class StatusMedÅrsakOgRegelresultat(
-        val status: InnkommendeJournalpostStatus,
-        val årsak: ÅrsakTilStatus? = null,
-        val regelresultat: Regelresultat? = null
-    ) {
-        fun toFordelingVurdering(vurdertAv: String): AvklarFordelingVurdering {
-            val system = if (status != InnkommendeJournalpostStatus.EVALUERT || regelresultat == null) {
-                AapSystem.IGNORERT
-            } else if (regelresultat.skalTilKelvin()) {
-                AapSystem.KELVIN
-            } else {
-                AapSystem.ARENA
-            }
-
-            return AvklarFordelingVurdering(
-                system = system,
-                vurdertAv = vurdertAv,
-                vurdertTidspunkt = LocalDateTime.now(),
+        val res = regelService.evaluer(
+            RegelInput(
+                safJournalpost.journalpostId,
+                journalpost.person,
+                journalpost.hoveddokumentbrevkode,
+                journalpost.mottattDato
             )
-        }
+        )
+
+        innkommendeJournalpostRepository.update(innkommendeJournalpost.copy(regelresultat = res))
+        log.info("Evaluerte journalpost med ID ${journalpost.journalpostId}. Brevkode: ${journalpost.hoveddokumentbrevkode}. Fordeles til: ${res.systemNavn}")
+        return res
     }
 }

@@ -6,18 +6,25 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.JaNeiVetIkke
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.LegeerklæringV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.OppgitteBarn
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
+import no.nav.aap.postmottak.flyt.steg.Fortsett
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.FunnetAvklaringsbehov
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
@@ -47,6 +54,7 @@ class OverleverTilFagsystemStegTest {
     val saksnummerRepository: SaksnummerRepository = mockk()
     val overleveringVurderingRepository: OverleveringVurderingRepository = mockk()
     val unleashGateway: UnleashGateway = mockk(relaxed = true)
+    val avklaringsbehovRepository: AvklaringsbehovRepository = mockk(relaxed = true)
 
     val overførTilFagsystemSteg = OverleverTilFagsystemSteg(
         struktureringsvurderingRepository,
@@ -54,6 +62,7 @@ class OverleverTilFagsystemStegTest {
         journalpostRepository,
         saksnummerRepository,
         overleveringVurderingRepository,
+        avklaringsbehovRepository,
         unleashGateway,
     )
 
@@ -85,17 +94,26 @@ class OverleverTilFagsystemStegTest {
     @Test
     fun `hvis søknad er manuelt strukturert, blir strukturert dokument sendt til behandlingsflyt`() {
         val kontekst: FlytKontekst = mockk(relaxed = true)
+        val søknad = SøknadV0(
+            student = SøknadStudentDto(
+                erStudent = StudentStatus.Nei,
+                kommeTilbake = JaNeiVetIkke.Nei
+            ),
+            yrkesskade = "Nei",
+            oppgitteBarn = null
+        )
         val struktureringsvurdering = Digitaliseringsvurdering(
-            InnsendingType.SØKNAD, """{
-            |"yrkesskade": "Nei",
-            |"student": {"erStudent":"Nei", "kommeTilbake": "Nei"}
-            |}""".trimMargin(), mottattDato, null
+            kategori = InnsendingType.SØKNAD,
+            strukturertDokument = DefaultJsonMapper.toJson(søknad),
+            søknadsdato = mottattDato,
+            digitalisertManueltGjennomPostmottak = null
         )
 
         val journalpost = TestJournalposter.leggTil {
             journalpostId = 123
             digitalSøknad()
         }.tilJournalpost()
+
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
         every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
@@ -118,6 +136,32 @@ class OverleverTilFagsystemStegTest {
     }
 
     @Test
+    fun `begrunnelse fra overleveringsvurdering brukes når klage mangler beskrivelse`() {
+        val klage = KlageV0(
+            kravMottatt = mottattDato,
+            beskrivelse = "",
+            behandlingReferanse = "referanse",
+            skalOppretteNyBehandling = false,
+        )
+        val struktureringsvurdering = Digitaliseringsvurdering(
+            kategori = InnsendingType.KLAGE,
+            strukturertDokument = DefaultJsonMapper.toJson(klage),
+            søknadsdato = mottattDato,
+            digitalisertManueltGjennomPostmottak = null,
+        )
+
+        val melding = overførTilFagsystemSteg.utledMelding(
+            struktureringsvurdering,
+            OverleveringVurdering(
+                skalOverleveresTilKelvin = true,
+                begrunnelse = "MIN BEGRUNNELSE",
+            ),
+        )
+
+        assertThat(melding).isEqualTo(klage.copy(beskrivelse = "MIN BEGRUNNELSE"))
+    }
+
+    @Test
     fun `legeerklæring med avslag på alle kelvin-saker gir avklaringsbehov om overlevering når feature-toggle er skrudd på`() {
         val kontekst: FlytKontekst = mockk(relaxed = true)
         val struktureringsvurdering = Digitaliseringsvurdering(
@@ -128,10 +172,17 @@ class OverleverTilFagsystemStegTest {
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
+            Saksinfo(
+                saksnummer = "...",
+                periode = Periode(LocalDate.now(), LocalDate.now()),
+                avslag = true,
+                resultat = ResultatKode.AVSLAG,
+                finnesÅpenBehandling = false,
+                harRettNåEllerIFramtiden = false
+            )
+        )
         every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns true
 
         val resultat = overførTilFagsystemSteg.utfør(kontekst)
@@ -139,6 +190,27 @@ class OverleverTilFagsystemStegTest {
         verify(exactly = 0) { overleveringVurderingRepository.lagre(any(), any()) }
         verify(exactly = 0) { behandlingsflytKlient.sendHendelse(any(), any(), any(), any(), any(), any(), any()) }
         assertEquals(FunnetAvklaringsbehov::class.simpleName, resultat.transisjon()::class.simpleName)
+
+        // Etter at løsning er sendt inn:
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(
+            skalOverleveresTilKelvin = true,
+            begrunnelse = "MIN BEGRUNNELSE",
+        )
+
+        val resultat2 = overførTilFagsystemSteg.utfør(kontekst)
+        verify(exactly = 0) { overleveringVurderingRepository.lagre(any(), any()) }
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                LegeerklæringV0(beskrivelse = "MIN BEGRUNNELSE"),
+                any()
+            )
+        }
+        assertEquals(Fortsett::class.simpleName, resultat2.transisjon()::class.simpleName)
     }
 
     @Test
@@ -153,10 +225,16 @@ class OverleverTilFagsystemStegTest {
         every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
         every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
         every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
-        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(mockk {
-            every { avslag } returns true
-            every { finnesÅpenBehandling } returns false
-        })
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns listOf(
+            Saksinfo(
+                saksnummer = "...",
+                periode = Periode(LocalDate.now(), LocalDate.now()),
+                avslag = true,
+                resultat = ResultatKode.AVSLAG,
+                finnesÅpenBehandling = false,
+                harRettNåEllerIFramtiden = false
+            )
+        )
         every { unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag) } returns false
 
         overførTilFagsystemSteg.utfør(kontekst)
@@ -225,7 +303,10 @@ class OverleverTilFagsystemStegTest {
             null,
             null
         )
-        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(true)
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(
+            true,
+            begrunnelse = null
+        )
         val journalpost = TestJournalposter.leggTil { journalpostId = 123 }
             .tilJournalpost(mottattTid = mottattDato.atStartOfDay())
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
@@ -258,7 +339,7 @@ class OverleverTilFagsystemStegTest {
         val stegresultat = overførTilFagsystemSteg.utfør(kontekst)
 
         verify(exactly = 1) {
-            overleveringVurderingRepository.lagre(any(), OverleveringVurdering(false))
+            overleveringVurderingRepository.lagre(any(), OverleveringVurdering(false, begrunnelse = null))
         }
         verify(exactly = 0) {
             behandlingsflytKlient.sendHendelse(any(), any(), any(), any(), any(), any(), any())

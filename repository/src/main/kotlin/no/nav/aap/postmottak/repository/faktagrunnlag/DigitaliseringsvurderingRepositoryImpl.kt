@@ -35,7 +35,7 @@ class DigitaliseringsvurderingRepositoryImpl(private val connection: DBConnectio
             }
         }
 
-        connection.execute("""UPDATE DIGITALISERINGSVURDERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ?""") {
+        connection.execute("""UPDATE DIGITALISERINGSVURDERING_GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND AKTIV = TRUE""") {
             setParams { setLong(1, behandlingId.id) }
         }
 

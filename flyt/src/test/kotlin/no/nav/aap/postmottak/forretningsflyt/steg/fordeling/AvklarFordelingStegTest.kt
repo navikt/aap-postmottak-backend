@@ -5,7 +5,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.fordeler.Enhetsutreder
+import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.FordelerRegelService
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
@@ -14,14 +14,10 @@ import no.nav.aap.fordeler.arena.AapSystem
 import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
+import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.gateway.Bruker
-import no.nav.aap.postmottak.gateway.BrukerIdType
-import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
-import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafDokumentInfo
 import no.nav.aap.postmottak.gateway.SafDokumentvariant
 import no.nav.aap.postmottak.gateway.SafJournalpost
@@ -35,17 +31,29 @@ import no.nav.aap.postmottak.prosessering.TestObjekter.lagTestJournalpost
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 internal class AvklarFordelingStegTest {
 
+    private val journalpostId = JournalpostId(1L)
+    private val behandlingId = BehandlingId(1L)
+    private val kontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Fordeling)
+
     private val regelService = mockk<FordelerRegelService>(relaxed = true)
     private val journalpostService = mockk<JournalpostService>(relaxed = true)
-    private val enhetsutreder = mockk<Enhetsutreder>()
     private val avklarFordelingRepository = mockk<AvklarFordelingRepository>(relaxed = true)
-    private val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepository>(relaxed = true)
-    private val gosysOppgaveGateway = mockk<GosysOppgaveGateway>(relaxed = true)
+    private val innkommendeJournalpostRepository = mockk<InnkommendeJournalpostRepository>(relaxed = true).also {
+        // Standard: journalposten er lagret av VurderRelevantDokumentForAAPJobbUtfører, men ikke evaluert
+        every { it.hentHvisEksisterer(journalpostId) } returns InnkommendeJournalpost(
+            journalpostId = journalpostId,
+            brevkode = Brevkoder.SØKNAD.kode,
+            behandlingstema = null,
+            status = InnkommendeJournalpostStatus.EVALUERT,
+            regelresultat = null,
+        )
+    }
     private val arenaService = mockk<ArenaService>(relaxed = true)
     private val arenaoppslagGateway = mockk<ArenaoppslagGateway>(relaxed = true)
     private val unleashGateway = mockk<UnleashGateway>(relaxed = true).also {
@@ -55,18 +63,12 @@ internal class AvklarFordelingStegTest {
     private val steg = AvklarFordelingSteg(
         regelService,
         journalpostService,
-        enhetsutreder,
         avklarFordelingRepository,
         innkommendeJournalpostRepository,
-        gosysOppgaveGateway,
         arenaService,
         arenaoppslagGateway,
         unleashGateway,
     )
-
-    private val journalpostId = JournalpostId(1L)
-    private val behandlingId = BehandlingId(1L)
-    private val kontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Fordeling)
 
     @Test
     fun `Returnerer Fullført uten å evaluere om vurdering allerede eksisterer`() {
@@ -80,7 +82,7 @@ internal class AvklarFordelingStegTest {
     }
 
     @Test
-    fun `Lagrer innkommendeJournalpost og vurdering etter vellykket evaluering`() {
+    fun `Oppdaterer innkommendeJournalpost med regelresultat og lagrer vurdering etter vellykket evaluering`() {
         val regelResultat = Regelresultat(
             mapOf(
                 "ArenaSakRegel" to false,
@@ -92,14 +94,13 @@ internal class AvklarFordelingStegTest {
         )
 
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
-        every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
         every { regelService.evaluer(any()) } returns regelResultat
 
         steg.utfør(kontekst)
 
         verify {
-            innkommendeJournalpostRepository.lagre(withArg {
+            innkommendeJournalpostRepository.update(withArg {
                 assertThat(it.journalpostId).isEqualTo(journalpostId)
                 assertThat(it.regelresultat).isEqualTo(regelResultat)
                 assertThat(it.status).isEqualTo(InnkommendeJournalpostStatus.EVALUERT)
@@ -121,15 +122,15 @@ internal class AvklarFordelingStegTest {
         )
 
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
-        every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
         every { regelService.evaluer(any()) } returns regelResultat
-        coEvery { arenaService.skalManueltFordeles(any(), any(), any(), any()) } returns true
+        coEvery { arenaService.skalManueltFordeles(any(), any(), any()) } returns true
 
         val resultat = steg.utfør(kontekst)
 
         assertThat(resultat).isInstanceOf(FantAvklaringsbehov::class.java)
-        verify { innkommendeJournalpostRepository.lagre(any()) }
+        verify { innkommendeJournalpostRepository.update(withArg { assertThat(it.regelresultat).isNotNull() }) }
+        verify(exactly = 0) { innkommendeJournalpostRepository.lagre(any()) }
         verify(exactly = 0) { avklarFordelingRepository.lagreVurdering(any(), any()) }
     }
 
@@ -164,7 +165,7 @@ internal class AvklarFordelingStegTest {
         val resultat = steg.utfør(kontekst)
 
         assertThat(resultat).isNotInstanceOf(FantAvklaringsbehov::class.java)
-        coVerify(exactly = 0) { arenaService.skalManueltFordeles(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { arenaService.skalManueltFordeles(any(), any(), any()) }
         verify { avklarFordelingRepository.lagreVurdering(eq(behandlingId), any()) }
     }
 
@@ -179,7 +180,7 @@ internal class AvklarFordelingStegTest {
         val resultat = steg.utfør(kontekst)
 
         assertThat(resultat).isNotInstanceOf(FantAvklaringsbehov::class.java)
-        coVerify(exactly = 0) { arenaService.skalManueltFordeles(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { arenaService.skalManueltFordeles(any(), any(), any()) }
         verify { avklarFordelingRepository.lagreVurdering(eq(behandlingId), any()) }
     }
 
@@ -210,120 +211,115 @@ internal class AvklarFordelingStegTest {
         )
 
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
-        every { enhetsutreder.finnJournalføringsenhet(any()) } returns "1234"
         every { journalpostService.hentSafJournalpost(journalpostId) } returns safJournalpost
         every { regelService.evaluer(any()) } returns regelResultat
-        coEvery { arenaService.skalManueltFordeles(any(), any(), any(), any()) } returns true
+        coEvery { arenaService.skalManueltFordeles(any(), any(), any()) } returns true
     }
 
     @Test
-    fun `Evaluerer ikke og lagrer IGNORERT vurdering om journalposten allerede er evaluert`() {
+    fun `Evaluerer ikke på nytt om journalposten allerede har regelresultat, og bruker lagret resultat`() {
+        val lagretResultat = regelresultat(kelvin = true)
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
-        every { innkommendeJournalpostRepository.eksisterer(journalpostId) } returns true
+        every { innkommendeJournalpostRepository.hentHvisEksisterer(journalpostId) } returns
+            innkommendeJournalpost(regelresultat = lagretResultat)
+        every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
+        every { unleashGateway.isEnabled(any<PostmottakFeature>()) } returns false
 
         steg.utfør(kontekst)
 
         verify(exactly = 0) { regelService.evaluer(any()) }
+        verify(exactly = 0) { innkommendeJournalpostRepository.update(any()) }
+        verify(exactly = 0) { innkommendeJournalpostRepository.lagre(any()) }
         verify {
             avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
-                assertThat(it.system).isEqualTo(AapSystem.IGNORERT)
+                assertThat(it.system).isEqualTo(AapSystem.KELVIN)
             })
         }
     }
 
     @Test
-    fun `Lagrer IGNORERT vurdering for utgaatt journalpost`() {
+    fun `Feiler dersom innkommende journalpost ikke er lagret før steget`() {
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
-        every { journalpostService.hentSafJournalpost(journalpostId) } returns
-            lagTestJournalpost(journalpostId).copy(journalstatus = Journalstatus.UTGAAR)
+        every { innkommendeJournalpostRepository.hentHvisEksisterer(journalpostId) } returns null
 
-        steg.utfør(kontekst)
+        assertThatThrownBy { steg.utfør(kontekst) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("Journalposten skal allerede være lagret")
 
         verify(exactly = 0) { regelService.evaluer(any()) }
+        verify(exactly = 0) { avklarFordelingRepository.lagreVurdering(any(), any()) }
+    }
+
+    @Test
+    fun `Automatisk vurdering til Kelvin når regelresultat sier Kelvin`() {
+        settOppAutomatiskVurdering(regelresultat(kelvin = true))
+
+        steg.utfør(kontekst)
+
         verify {
             avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
-                assertThat(it.system).isEqualTo(AapSystem.IGNORERT)
+                assertThat(it.system).isEqualTo(AapSystem.KELVIN)
+                assertThat(it.vurdertAv).isEqualTo(SYSTEMBRUKER.ident)
+                assertThat(it.kommentar).isEqualTo("Automatisk vurdert fordeling")
             })
         }
     }
 
     @Test
-    fun `Oppretter Gosys fordelingsoppgave og lagrer IGNORERT vurdering for journalpost uten bruker-id`() {
-        val journalpostUtenBruker = SafJournalpost(
-            journalpostId = journalpostId.referanse,
-            bruker = Bruker(id = null, type = BrukerIdType.FNR),
-            dokumenter = listOf(
-                SafDokumentInfo(
-                    dokumentInfoId = "1",
-                    brevkode = "NAV 11-13.05",
-                    tittel = "tittel",
-                    dokumentvarianter = listOf(
-                        SafDokumentvariant(variantformat = SafVariantformat.ORIGINAL, filtype = "json")
-                    )
-                )
-            ),
-            journalstatus = Journalstatus.MOTTATT,
-            tema = Tema.AAP.name,
-            relevanteDatoer = emptyList()
-        )
-        every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
-        every { journalpostService.hentSafJournalpost(journalpostId) } returns journalpostUtenBruker
+    fun `Automatisk vurdering til Arena når regelresultat ikke sier Kelvin`() {
+        settOppAutomatiskVurdering(regelresultat(kelvin = false))
 
         steg.utfør(kontekst)
 
         verify {
-            gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
-                journalpostId = journalpostId,
-                personIdent = null,
-                orgnr = null,
-                beskrivelse = "tittel"
-            )
-        }
-        verify(exactly = 0) { innkommendeJournalpostRepository.lagre(any()) }
-        verify {
             avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
-                assertThat(it.system).isEqualTo(AapSystem.IGNORERT)
+                assertThat(it.system).isEqualTo(AapSystem.ARENA)
+                assertThat(it.vurdertAv).isEqualTo(SYSTEMBRUKER.ident)
             })
         }
     }
 
     @Test
-    fun `Oppretter Gosys fordelingsoppgave og lagrer IGNORERT vurdering for journalpost med orgnummer`() {
-        val journalpostMedOrgnr = SafJournalpost(
-            journalpostId = journalpostId.referanse,
-            bruker = Bruker(id = "orgnr", type = BrukerIdType.ORGNR),
-            dokumenter = listOf(
-                SafDokumentInfo(
-                    dokumentInfoId = "1",
-                    brevkode = "NAV 11-13.05",
-                    tittel = "tittel",
-                    dokumentvarianter = listOf(
-                        SafDokumentvariant(variantformat = SafVariantformat.ORIGINAL, filtype = "json")
-                    )
-                )
-            ),
-            journalstatus = Journalstatus.MOTTATT,
-            tema = Tema.AAP.name,
-            relevanteDatoer = emptyList()
-        )
+    fun `Oppdaterer eksisterende rad og bevarer øvrige felter ved evaluering`() {
+        val eksisterende = innkommendeJournalpost(regelresultat = null).copy(enhet = "4491", brukerId = "fnr")
+        val res = regelresultat(kelvin = false)
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
-        every { journalpostService.hentSafJournalpost(journalpostId) } returns journalpostMedOrgnr
+        every { innkommendeJournalpostRepository.hentHvisEksisterer(journalpostId) } returns eksisterende
+        every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
+        every { regelService.evaluer(any()) } returns res
+        every { unleashGateway.isEnabled(any<PostmottakFeature>()) } returns false
 
         steg.utfør(kontekst)
 
-        verify {
-            gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
-                journalpostId = journalpostId,
-                personIdent = null,
-                orgnr = "orgnr",
-                beskrivelse = "tittel"
-            )
-        }
+        verify(exactly = 1) { innkommendeJournalpostRepository.update(eksisterende.copy(regelresultat = res)) }
         verify(exactly = 0) { innkommendeJournalpostRepository.lagre(any()) }
-        verify {
-            avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
-                assertThat(it.system).isEqualTo(AapSystem.IGNORERT)
-            })
-        }
     }
+
+    private fun settOppAutomatiskVurdering(res: Regelresultat) {
+        every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
+        every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
+        every { regelService.evaluer(any()) } returns res
+        every { unleashGateway.isEnabled(any<PostmottakFeature>()) } returns false
+    }
+
+    private fun regelresultat(kelvin: Boolean) = Regelresultat(
+        mapOf(
+            "ArenaSakRegel" to !kelvin,
+            "KelvinSakRegel" to kelvin,
+            "ErIkkeReisestønadRegel" to true,
+            "ErIkkeAnkeRegel" to true,
+            // Arena krever at minst én av de øvrige reglene gir false
+            "ManueltOverstyrtTilArenaRegel" to !kelvin,
+        ),
+        forJournalpost = journalpostId.referanse,
+    )
+
+    private fun innkommendeJournalpost(regelresultat: Regelresultat?) = InnkommendeJournalpost(
+        journalpostId = journalpostId,
+        brevkode = Brevkoder.SØKNAD.kode,
+        behandlingstema = null,
+        status = InnkommendeJournalpostStatus.EVALUERT,
+        regelresultat = regelresultat,
+    )
 }
+

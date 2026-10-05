@@ -16,7 +16,11 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
+import no.nav.aap.fordeler.InnkommendeJournalpost
+import no.nav.aap.fordeler.InnkommendeJournalpostStatus
+import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositoryImpl
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
@@ -259,6 +263,7 @@ class Flyttest : WithDependencies {
     @Test
     fun fordel() {
         val journalpostID = TestJournalposter.digitalSøknad().journalpostId()
+        lagreInnkommendeJournalpostUtenRegelresultat(journalpostID)
 
         triggFordelingJobb(journalpostID)
 
@@ -316,7 +321,8 @@ class Flyttest : WithDependencies {
         val testperson = TestPersoner.leggTil {
             kelvinSak = TestKelvinSak(
                 saksnummer = "!",
-                resultat = ResultatKode.AVSLAG
+                resultat = ResultatKode.AVSLAG,
+                harRettNåEllerIFramtiden = false
             )
         }
 
@@ -361,6 +367,7 @@ class Flyttest : WithDependencies {
                 .løsAvklaringsBehov(
                     AvklarOverleveringLøsning(
                         skalOverleveres = true,
+                        begrunnelse = "..."
                     )
                 )
 
@@ -372,7 +379,7 @@ class Flyttest : WithDependencies {
     @Test
     fun `Helautomatisk flyt for digital legeerklæring som skal til Kelvin`() {
         val testperson = TestPersoner.leggTil {
-            kelvinSak = TestKelvinSak()
+            kelvinSak = TestKelvinSak(resultat = ResultatKode.INNVILGET, harRettNåEllerIFramtiden = true)
         }
 
         val journalpost = TestJournalposter.leggTil { person = testperson }
@@ -568,8 +575,52 @@ class Flyttest : WithDependencies {
     }
 
     @Test
+    fun `manuell journalføring hvor journalposten får status utgår skal hoppe over digitaliseringssteget`() {
+        val journalpost = TestJournalposter.papirsøknad()
+        val journalpostId = journalpost.journalpostId()
+
+        leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
+        }!!
+
+        val behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
+        val behandlingId = behandling.id
+
+        util.ventPåSvar(journalpostId.referanse, behandlingId.id)
+
+        sjekkÅpentAvklaringsbehov(behandlingId, Definisjon.AVKLAR_TEMA)
+        behandling
+            .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+            .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "123"))
+
+        util.ventPåSvar(journalpostId.referanse)
+
+        val behandlinger2 = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 2) }
+        }!!
+
+        val behandling2 = behandlinger2.first { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+        val behandling2Id = behandling2.id
+
+        sjekkÅpentAvklaringsbehov(behandling2Id, Definisjon.DIGITALISER_DOKUMENT)
+
+        dataSource.transaction {connection ->
+            val journalpost = JournalpostRepositoryImpl(connection).hentHvisEksisterer(journalpostId = journalpostId)
+            val oppdatert = journalpost!!.copy(status = Journalstatus.UTGAAR)
+            JournalpostRepositoryImpl(connection).lagre(oppdatert)
+        }
+        triggProsesserBehandling(journalpostId, behandling2.id)
+        val behandling2Oppdatert = hentBehandling(behandling2.id)
+        assertThat(behandling2Oppdatert.status()).isEqualTo(Status.AVSLUTTET)
+    }
+
+    @Test
     fun `Forventer at en fordelerjobb oppretter en journalføringsbehandling`() {
         val journalpostId = TestJournalposter.papirsøknad().journalpostId()
+        lagreInnkommendeJournalpostUtenRegelresultat(journalpostId)
+        assertThat(hentInnkommendeJournalpost(journalpostId)?.regelresultat).isNull()
 
         triggFordelingJobb(journalpostId)
 
@@ -580,6 +631,16 @@ class Flyttest : WithDependencies {
         assertNotNull(behandling)
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         assertThat(behandling.journalpostId).isEqualTo(journalpostId)
+
+        // AvklarFordelingSteg skal oppdatere eksisterende rad, ikke opprette en ny
+        assertThat(hentInnkommendeJournalpost(journalpostId)?.regelresultat).isNotNull()
+        val antallRader = dataSource.transaction(readOnly = true) { connection ->
+            connection.queryFirst("SELECT COUNT(*) AS antall FROM innkommende_journalpost WHERE journalpost_id = ?") {
+                setParams { setLong(1, journalpostId.referanse) }
+                setRowMapper { it.getLong("antall") }
+            }
+        }
+        assertThat(antallRader).isEqualTo(1L)
     }
 
     @Test
@@ -863,6 +924,30 @@ class Flyttest : WithDependencies {
         dataSource.transaction { connection ->
             repositoryRegistry.provider(connection).provide<BehandlingRepository>()
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+        }
+
+    private fun lagreInnkommendeJournalpostUtenRegelresultat(
+        journalpostId: JournalpostId,
+        status: InnkommendeJournalpostStatus = InnkommendeJournalpostStatus.EVALUERT,
+        årsakTilStatus: ÅrsakTilStatus? = null,
+    ) {
+        dataSource.transaction { connection ->
+            InnkommendeJournalpostRepositoryImpl(connection).lagre(
+                InnkommendeJournalpost(
+                    journalpostId = journalpostId,
+                    brevkode = null,
+                    behandlingstema = null,
+                    status = status,
+                    regelresultat = null,
+                    årsakTilStatus = årsakTilStatus,
+                )
+            )
+        }
+    }
+
+    private fun hentInnkommendeJournalpost(journalpostId: JournalpostId): InnkommendeJournalpost? =
+        dataSource.transaction(readOnly = true) {
+            InnkommendeJournalpostRepositoryImpl(it).hentHvisEksisterer(journalpostId)
         }
 
     private fun triggFordelingJobb(journalpostId: JournalpostId) {

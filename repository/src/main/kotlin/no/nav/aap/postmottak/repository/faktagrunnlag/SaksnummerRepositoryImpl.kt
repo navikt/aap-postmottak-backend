@@ -37,7 +37,8 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                     row.getPeriode("periode"),
                     row.getBoolean("avslag"),
                     row.getEnumOrNull("resultatkode"),
-                    row.getBooleanOrNull("finnes_aapen_behandling")
+                    row.getBooleanOrNull("finnes_aapen_behandling"),
+                    row.getBooleanOrNull("har_rett_naa_eller_i_framtiden"),
                 )
             }
         }
@@ -61,8 +62,9 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 PERIODE,
                 AVSLAG,
                 RESULTATKODE,
-                FINNES_AAPEN_BEHANDLING)
-                VALUES (?, ?, ?::daterange, ?, ?, ?)
+                FINNES_AAPEN_BEHANDLING,
+                HAR_RETT_NAA_ELLER_I_FRAMTIDEN)
+                VALUES (?, ?, ?::daterange, ?, ?, ?, ?)
         """.trimIndent(), saksinfo
         ) {
             setParams {
@@ -72,6 +74,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 setBoolean(4, it.avslag)
                 setEnumName(5, it.resultat)
                 setBoolean(6, it.finnesÅpenBehandling)
+                setBoolean(7, it.harRettNåEllerIFramtiden)
             }
         }
     }
@@ -173,8 +176,9 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 PERIODE,
                 AVSLAG,
                 RESULTATKODE,
-                FINNES_AAPEN_BEHANDLING)
-            SELECT ?, SAKSNUMMER, PERIODE, AVSLAG, RESULTATKODE, FINNES_AAPEN_BEHANDLING
+                FINNES_AAPEN_BEHANDLING,
+                HAR_RETT_NAA_ELLER_I_FRAMTIDEN)
+            SELECT ?, SAKSNUMMER, PERIODE, AVSLAG, RESULTATKODE, FINNES_AAPEN_BEHANDLING, HAR_RETT_NAA_ELLER_I_FRAMTIDEN
             FROM SAKER_PAA_BEHANDLING WHERE INNHENTEDE_SAKER_FOR_BEHANDLING_ID = ?
         """.trimIndent()
         ) {

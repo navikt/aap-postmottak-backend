@@ -98,6 +98,33 @@ class InnkommendeJournalpostRepositoryImpl(
         return id
     }
 
+    override fun update(innkommendeJournalpost: InnkommendeJournalpost) {
+        val id = hentId(innkommendeJournalpost.journalpostId)
+        connection.execute(
+            """
+            UPDATE innkommende_journalpost
+            SET status = ?, aarsak_til_status = ?, behandlingstema = ?, brevkode = ?, enhet = ?, bruker_id = ?
+            WHERE id = ?
+            """.trimIndent()
+        ) {
+            setParams {
+                setEnumName(1, innkommendeJournalpost.status)
+                setEnumName(2, innkommendeJournalpost.årsakTilStatus)
+                setString(3, innkommendeJournalpost.behandlingstema)
+                setString(4, innkommendeJournalpost.brevkode)
+                setString(5, innkommendeJournalpost.enhet)
+                setString(6, innkommendeJournalpost.brukerId)
+                setLong(7, id)
+            }
+            setResultValidator { require(it == 1) { "Forventet å oppdatere en rad, oppdaterte $it" } }
+        }
+        val regelresultat = innkommendeJournalpost.regelresultat
+        if (regelresultat != null) {
+            regelRepository.slett(id)
+            regelRepository.lagre(id, regelresultat)
+        }
+    }
+
     override fun finn(ident: Ident): List<InnkommendeJournalpost> {
         return connection.queryList(
             """

@@ -31,7 +31,12 @@ fun NormalOpenAPIRoute.overleveringApi(dataSource: DataSource, repositoryRegistr
             }
             respond(
                 OverleveringGrunnlagDto(
-                    vurdering?.skalOverleveresTilKelvin?.let(::OverleveringVurderingDto)
+                    vurdering?.let {
+                        OverleveringVurderingDto(
+                            skalOverleveres = it.skalOverleveresTilKelvin,
+                            begrunnelse = it.begrunnelse
+                        )
+                    }
                 )
             )
         }

@@ -9,6 +9,7 @@ data class Saksinfo(
     val avslag: Boolean = false,
     val resultat: ResultatKode? = null,
     val finnesÅpenBehandling: Boolean? = null,
+    val harRettNåEllerIFramtiden: Boolean?,
 )
 
 /**
@@ -17,7 +18,7 @@ data class Saksinfo(
  */
 fun List<Saksinfo>.tillaterAutomatiskBehandlingAvLegeerklæring(): Boolean {
     val harÅpenBehandling = any { it.finnesÅpenBehandling == true }
-    val harIkkeAvslag = any { !it.avslag && it.resultat != ResultatKode.TRUKKET }
-    return isEmpty() || harÅpenBehandling || harIkkeAvslag
+    val harRettNåEllerIFramtiden = any { it.harRettNåEllerIFramtiden == true }
+    return isEmpty() || harÅpenBehandling || harRettNåEllerIFramtiden
 }
 

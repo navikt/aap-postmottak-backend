@@ -18,7 +18,9 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.mottak.VurderRelevantDokumentForAAPJobbUtfører
+import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
@@ -96,15 +98,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
         unleashGateway.reset()
 
-        dataSource.transaction { connection ->
-            val behandlingId = BehandlingRepositoryImpl(connection)
-                .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-        }
+        startMottakAvJournalpost(journalpostId)
 
         util.ventPåSvar()
 
@@ -130,15 +124,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
         unleashGateway.reset()
 
-        dataSource.transaction { connection ->
-            val behandlingId = BehandlingRepositoryImpl(connection)
-                .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(journalpostId.referanse, behandlingId.id)
-                    .medCallId()
-            )
-        }
+        startMottakAvJournalpost(journalpostId)
         util.ventPåSvar()
 
         assertThat(FssOppgaver.oppgaver[identifikator]).hasSize(1)
@@ -179,21 +165,14 @@ class ArenaOppgaveFlytTest : WithDependencies {
         val unleashGateway = gatewayProvider.provide(UnleashGateway::class) as FakeUnleashGateway
         unleashGateway.reset()
 
-        val behandlingId = dataSource.transaction { connection ->
-            val id = BehandlingRepositoryImpl(connection)
-                .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
-            FlytJobbRepository(connection).leggTil(
-                JobbInput(ProsesserBehandlingJobbUtfører)
-                    .forBehandling(journalpostId.referanse, id.id)
-                    .medCallId()
-            )
-            id
-        }
+        startMottakAvJournalpost(journalpostId)
 
         util.ventPåSvar()
 
         dataSource.transaction { connection ->
-            val behandling = BehandlingRepositoryImpl(connection).hent(behandlingId)
+            val behandling = BehandlingRepositoryImpl(connection)
+                .hentAlleBehandlingerForJournalpost(journalpostId)
+                .single { it.typeBehandling == TypeBehandling.Fordeling }
             // Behandlingen står parkert på avklar fordeling-steget
             assertThat(behandling.aktivtSteg()).isEqualTo(StegType.AVKLAR_FORDELING)
 
@@ -207,6 +186,20 @@ class ArenaOppgaveFlytTest : WithDependencies {
 
         // Behandlingen er verken rutet til Arena eller Kelvin – den venter på manuell vurdering
         assertThat(FssOppgaver.oppgaver[identifikator]).isNullOrEmpty()
+    }
+
+    /**
+     * Starter flyten slik Kafka-handleren gjør: VurderRelevantDokumentForAAPJobbUtfører lagrer
+     * innkommende journalpost og oppretter fordelingsbehandlingen.
+     */
+    private fun startMottakAvJournalpost(journalpostId: JournalpostId) {
+        dataSource.transaction { connection ->
+            FlytJobbRepository(connection).leggTil(
+                JobbInput(VurderRelevantDokumentForAAPJobbUtfører)
+                    .forSak(journalpostId.referanse)
+                    .medJournalpostId(journalpostId)
+            )
+        }
     }
 
 }

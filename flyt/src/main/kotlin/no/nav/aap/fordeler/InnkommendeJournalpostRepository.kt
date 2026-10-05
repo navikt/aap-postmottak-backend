@@ -11,4 +11,5 @@ interface InnkommendeJournalpostRepository: Repository {
     fun hentHvisEksisterer(journalpostId: JournalpostId): InnkommendeJournalpost?
     fun finn(ident: Ident): List<InnkommendeJournalpost>
     fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long
+    fun update(innkommendeJournalpost: InnkommendeJournalpost)
 }
