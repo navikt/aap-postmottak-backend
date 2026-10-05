@@ -389,7 +389,10 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId)
+                .also { b -> require(b.size == 2 && b.all { it.status() == Status.AVSLUTTET }) }
+        }!!
         assertThat(behandlinger).hasSize(2)
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
