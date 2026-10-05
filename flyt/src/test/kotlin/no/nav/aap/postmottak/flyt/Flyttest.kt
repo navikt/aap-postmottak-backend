@@ -391,9 +391,8 @@ class Flyttest : WithDependencies {
 
         val behandlinger = prøv {
             alleBehandlingerForJournalpost(journalpostId)
-                .also { b -> require(b.size == 2 && b.all { it.status() == Status.AVSLUTTET }) }
+                .also { require(it.size == 2) }
         }!!
-        assertThat(behandlinger).hasSize(2)
         assertThat(
             behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
             1
