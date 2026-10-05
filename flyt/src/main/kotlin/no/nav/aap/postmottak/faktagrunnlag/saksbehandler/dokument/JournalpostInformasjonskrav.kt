@@ -58,12 +58,17 @@ class JournalpostInformasjonskrav(
             )
 
             // Lagre oppdatert journalpost med forrige person for å unngå følgefeil i oppgave
+            // Hvis vi ikke har en "forrige person", så logger vi det som en warning. I disse tilfellene
+            // er det nok ikke laget en oppgave på personen
             val person = persistertJournalpost?.person
-                ?: throw IllegalStateException(
-                    "Journalpost (journalpostId=${safJournalpost.journalpostId}, " +
-                            "dokumentId=[${safJournalpost.dokumenter.joinToString { it.dokumentInfoId }}], " +
-                            "status=${safJournalpost.journalstatus}) med orgnr som bruker har ikke persistert person. "
-                )
+
+            if (person == null) {
+                log.warn("journalpostId=${safJournalpost.journalpostId}" +
+                        "dokumentId=[${safJournalpost.dokumenter.joinToString { it.dokumentInfoId }}]," +
+                        "status=${safJournalpost.journalstatus}) med orgnr som bruker har ikke persistert person." +
+                        "Ignorerer denne saken og markerer som ikke-endret!")
+                return IKKE_ENDRET
+            }
 
             val oppdatertJournalpost = safJournalpost.tilJournalpost(person)
             journalpostRepository.lagre(oppdatertJournalpost)
