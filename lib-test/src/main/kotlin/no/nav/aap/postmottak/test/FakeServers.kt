@@ -37,6 +37,7 @@ import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
 class FakeServers : AutoCloseable {
@@ -140,6 +141,8 @@ class FakeServers : AutoCloseable {
         // Ereg
         System.setProperty("INTEGRASJON_EREG_URL", "http://localhost:${eregFake.port()}")
         System.setProperty("INTEGRASJON_EREG_SCOPE", "scope")
+
+        System.setProperty("AAP_DRIFT_LES", UUID.randomUUID().toString())
     }
 
     fun start() {
