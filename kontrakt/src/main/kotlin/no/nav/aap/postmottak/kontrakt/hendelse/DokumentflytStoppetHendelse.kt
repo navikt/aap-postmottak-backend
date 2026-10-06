@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.kontrakt.hendelse
 
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -12,6 +13,7 @@ public data class DokumentflytStoppetHendelse(
     val referanse: UUID,
     val behandlingType: TypeBehandling,
     val status: Status,
+    val aktivtAvklaringsbehov: Definisjon? = null,
     val avklaringsbehov: List<AvklaringsbehovHendelseDto>,
     val opprettetTidspunkt: LocalDateTime,
     val hendelsesTidspunkt: LocalDateTime
