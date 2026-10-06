@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.fordeling
 
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.FordelerRegelService
+import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
@@ -19,6 +20,7 @@ import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
+import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
@@ -70,8 +72,29 @@ class AvklarFordelingSteg(
             return Fullført
         }
 
-        val regelresultat = vurderFordelingRegler(kontekst)
+        val innkommendeJournalpost = innkommendeJournalpostRepository.hentHvisEksisterer(kontekst.journalpostId)
         val safJournalpost = journalpostService.hentSafJournalpost(kontekst.journalpostId)
+
+        if (innkommendeJournalpost == null) {
+            // Innkommende journalpost lagres ikke for journalposter med orgnr som bruker. Eldre
+            // fordelingsbehandlinger kan derfor stå her uten innkommende journalpost, og skal ignoreres.
+            require(safJournalpost.bruker?.type == BrukerIdType.ORGNR) {
+                "Journalposten skal allerede være lagret før dette steget kjører, men fant ikke innkommendeJournalpost for ${kontekst.journalpostId}"
+            }
+            log.info("Journalpost med id=${kontekst.journalpostId} er ikke lagret som innkommende journalpost: journalposten skal ignoreres siden den er knyttet til orgnummer. Behandler ikke videre.")
+            avklarFordelingRepository.lagreVurdering(
+                kontekst.behandlingId,
+                AvklarFordelingVurdering(
+                    system = AapSystem.IGNORERT,
+                    vurdertAv = SYSTEMBRUKER.ident,
+                    vurdertTidspunkt = LocalDateTime.now(),
+                    kommentar = "Automatisk vurdert fordeling"
+                )
+            )
+            return Fullført
+        }
+
+        val regelresultat = vurderFordelingRegler(kontekst, innkommendeJournalpost)
 
         val skalAvklaresManuelt =
             unleashGateway.isEnabled(PostmottakFeature.PostmottakManuellVurdering) &&
@@ -118,13 +141,7 @@ class AvklarFordelingSteg(
         }
     }
 
-    private fun vurderFordelingRegler(kontekst: FlytKontekst): Regelresultat {
-        val innkommendeJournalpost = innkommendeJournalpostRepository.hentHvisEksisterer(kontekst.journalpostId)
-
-        requireNotNull(innkommendeJournalpost) {
-            "Journalposten skal allerede være lagret før dette steget kjører, men fant ikke innkommendeJournalpost for ${kontekst.journalpostId}"
-        }
-
+    private fun vurderFordelingRegler(kontekst: FlytKontekst, innkommendeJournalpost: InnkommendeJournalpost): Regelresultat {
         if (innkommendeJournalpost.regelresultat != null) {
             log.info("Journalposten med ID (${kontekst.journalpostId}) har allerede blitt evaluert - behandler ikke videre")
             return innkommendeJournalpost.regelresultat

@@ -60,9 +60,9 @@ class FordelingVideresendSteg(
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val vurdering = avklarFordelingRepository.hentVurderingHvisEksisterer(kontekst.behandlingId)
-        val journalpost = journalpostService.hentJournalpost(kontekst.journalpostId)
 
         vurdering?.system?.toFagsystem()?.let {
+            val journalpost = journalpostService.hentJournalpost(kontekst.journalpostId)
             prometheus.fordelingsCounter(it, journalpost.erSøknad()).increment()
         }
 

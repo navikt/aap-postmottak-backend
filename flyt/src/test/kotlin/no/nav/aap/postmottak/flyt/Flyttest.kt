@@ -19,6 +19,8 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.testutil.TestUtil
+import no.nav.aap.fordeler.arena.AapSystem
+import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.api.flyt.Venteinformasjon
@@ -644,6 +646,32 @@ class Flyttest : WithDependencies {
             }
         }
         assertThat(antallRader).isEqualTo(1L)
+    }
+
+    @Test
+    fun `Fordelingsbehandling for journalpost med orgnr som ident uten innkommende journalpost blir IGNORERT`() {
+        // Gjenskaper feil-tilstand fra prod: fordelingsbehandling står i AvklarFordelingSteg for en journalpost
+        // med orgnr som bruker-ident. Innkommende journalpost blir aldri lagret for orgnr, og journalposten
+        // er i mellomtiden journalført manuelt
+        val journalpostId = TestJournalposter.leggTil {
+            medUtenlandskOrgnr()
+            status = Journalstatus.JOURNALFOERT
+        }.journalpostId()
+        val behandlingId = dataSource.transaction { connection ->
+            BehandlingRepositoryImpl(connection).opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+        }
+        assertThat(hentInnkommendeJournalpost(journalpostId)).isNull()
+
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        val vurdering = dataSource.transaction(readOnly = true) { connection ->
+            repositoryRegistry.provider(connection).provide<AvklarFordelingRepository>()
+                .hentVurderingHvisEksisterer(behandlingId)
+        }
+        assertThat(vurdering?.system).isEqualTo(AapSystem.IGNORERT)
+        assertThat(hentBehandling(behandlingId).status()).isEqualTo(Status.AVSLUTTET)
+        assertThat(alleBehandlingerForJournalpost(journalpostId).map { it.typeBehandling })
+            .containsExactly(TypeBehandling.Fordeling)
     }
 
     @Test
