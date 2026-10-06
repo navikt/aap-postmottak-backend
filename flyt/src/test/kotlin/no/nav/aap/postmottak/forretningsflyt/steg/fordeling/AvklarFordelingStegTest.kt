@@ -17,7 +17,10 @@ import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
+import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
+import no.nav.aap.postmottak.gateway.Bruker
+import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.SafDokumentInfo
 import no.nav.aap.postmottak.gateway.SafDokumentvariant
 import no.nav.aap.postmottak.gateway.SafJournalpost
@@ -238,9 +241,29 @@ internal class AvklarFordelingStegTest {
     }
 
     @Test
-    fun `Feiler dersom innkommende journalpost ikke er lagret før steget`() {
+    fun `Vurderes som IGNORERT dersom journalpost med orgnr ikke har innkommende journalpost`() {
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
         every { innkommendeJournalpostRepository.hentHvisEksisterer(journalpostId) } returns null
+        every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
+            .copy(bruker = Bruker(id = "999999999", type = BrukerIdType.ORGNR))
+
+        val resultat = steg.utfør(kontekst)
+
+        assertThat(resultat).isEqualTo(Fullført)
+        verify(exactly = 0) { regelService.evaluer(any()) }
+        verify {
+            avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
+                assertThat(it.system).isEqualTo(AapSystem.IGNORERT)
+                assertThat(it.vurdertAv).isEqualTo(SYSTEMBRUKER.ident)
+            })
+        }
+    }
+
+    @Test
+    fun `Feiler dersom journalpost med fnr ikke har innkommende journalpost`() {
+        every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
+        every { innkommendeJournalpostRepository.hentHvisEksisterer(journalpostId) } returns null
+        every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
 
         assertThatThrownBy { steg.utfør(kontekst) }
             .isInstanceOf(IllegalArgumentException::class.java)
