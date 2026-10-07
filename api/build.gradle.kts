@@ -12,7 +12,7 @@ dependencies {
     api(libs.tilgang.plugin)
     api(libs.tilgang.kontrakt)
     api(libs.behandlingsflyt.kontrakt)
-    compileOnly(libs.ktor.http.jvm)
+    compileOnly(kelvinLibs.ktor.http.jvm)
 
-    testImplementation(libs.bundles.junit)
+    testImplementation(kelvinLibs.bundles.junit)
 }

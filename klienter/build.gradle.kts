@@ -16,20 +16,20 @@ dependencies {
     implementation(libs.behandlingsflyt.kontrakt)
     implementation(libs.arenaoppslag.kontrakt)
 
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.jackson.serialization)
+    implementation(kelvinLibs.ktor.client.cio)
+    implementation(kelvinLibs.ktor.client.content.negotiation)
+    implementation(kelvinLibs.ktor.serialization.jackson)
 
-    implementation(libs.jackson.databind)
-    implementation(libs.jackson.datatype.jsr310)
+    implementation(kelvinLibs.jackson.databind)
+    implementation(kelvinLibs.jackson.datatype.jsr310)
 
-    implementation(libs.logback.classic)
+    implementation(kelvinLibs.logback.classic)
 
-    implementation(libs.unleash.client)
-    implementation(libs.kotlinx.coroutines.core)
+    implementation(kelvinLibs.unleash.client.java)
+    implementation(kelvinLibs.coroutines.core)
 
-    testImplementation(libs.bundles.junit)
-    testImplementation(libs.mockk)
+    testImplementation(kelvinLibs.bundles.junit)
+    testImplementation(kelvinLibs.mockk)
     testImplementation(project(":lib-test"))
-    testImplementation(libs.ktor.server.netty)
+    testImplementation(kelvinLibs.ktor.server.netty)
 }

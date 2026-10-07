@@ -15,9 +15,9 @@ dependencies {
     implementation(libs.dbtest)
     implementation(libs.server)
 
-    implementation(libs.jackson.databind)
-    implementation(libs.jackson.datatype.jsr310)
-    implementation(libs.bundles.junit)
+    implementation(kelvinLibs.jackson.databind)
+    implementation(kelvinLibs.jackson.datatype.jsr310)
+    implementation(kelvinLibs.bundles.junit)
 
-    implementation(libs.jose.jwt)
+    implementation(kelvinLibs.nimbus.jose.jwt)
 }
