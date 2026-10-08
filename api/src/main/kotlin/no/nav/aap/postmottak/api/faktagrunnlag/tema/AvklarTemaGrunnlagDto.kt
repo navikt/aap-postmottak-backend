@@ -1,7 +1,8 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.tema
 
 data class AvklarTemaVurderingDto(
-    val skalTilAap: Boolean
+    val skalTilAap: Boolean,
+    val tema: String? = null
 )
 
 data class AvklarTemaGrunnlagDto(

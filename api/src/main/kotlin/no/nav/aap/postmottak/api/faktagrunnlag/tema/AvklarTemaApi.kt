@@ -34,7 +34,9 @@ fun NormalOpenAPIRoute.avklarTemaApi(dataSource: DataSource, repositoryRegistry:
                     val arkivDokumenter = journalpost.finnArkivVarianter()
                     AvklarTemaGrunnlagDto(
                         vurdering = repositoryProvider.provide(AvklarTemaRepository::class)
-                            .hentTemaAvklaring(behandling.id)?.skalTilAap?.let(::AvklarTemaVurderingDto),
+                            .hentTemaAvklaring(behandling.id)?.let {
+                                AvklarTemaVurderingDto(it.skalTilAap, it.tema.name)
+                            },
                         dokumenter = arkivDokumenter.map { it.dokumentInfoId.dokumentInfoId },
                         journalpostMetadata = JournalpostMetadata(
                             brevkode = journalpost.hoveddokumentbrevkode,

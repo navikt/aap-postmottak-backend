@@ -12,9 +12,9 @@ enum class PostmottakFeature : FeatureToggle {
     PostmottakManuellVurdering,
     StoppAutomatikkForLegeerklaringVedAvslag,
     AutomatiskKlageJournalforing,
+    PostmottakVelgTema,
     ;
 
     override fun key(): String = name
 }
-
 

@@ -15,6 +15,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.PostmottakManuellVurdering -> true
             PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag -> true
             PostmottakFeature.AutomatiskKlageJournalforing -> true
+            PostmottakFeature.PostmottakVelgTema -> false
         }
     }
 
@@ -27,6 +28,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.PostmottakManuellVurdering -> true
             PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag -> true
             PostmottakFeature.AutomatiskKlageJournalforing -> true
+            PostmottakFeature.PostmottakVelgTema -> false
         }
 
     }
@@ -34,4 +36,3 @@ object FakeUnleash : UnleashGateway {
     val rejectList = mutableSetOf<String>() // for å teste gradual rollout basert på userId
     private fun isRolledOutFor(userId: String): Boolean = !rejectList.contains(userId)
 }
-
