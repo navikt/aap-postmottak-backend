@@ -17,6 +17,8 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
+import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.postmottak.gateway.EndreTemaRequest
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
@@ -247,7 +249,13 @@ class FakeServers : AutoCloseable {
         }
         routing {
             put("/rest/journalpostapi/v1/journalpost/{journalpostId}") {
-                call.receive<OppdaterJournalpostRequest>()
+                val request = call.receive<JsonNode>()
+                if (request.has("sak")) {
+                    DefaultJsonMapper.fromJson<OppdaterJournalpostRequest>(request.toString())
+                } else {
+                    require(request.fieldNames().asSequence().toSet() == setOf("tema"))
+                    DefaultJsonMapper.fromJson<EndreTemaRequest>(request.toString())
+                }
                 call.respondText { """{"journalpostId": "467011764"}""" }
             }
             patch("/rest/journalpostapi/v1/journalpost/{journalpostId}/ferdigstill") {
