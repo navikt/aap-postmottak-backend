@@ -70,6 +70,9 @@ import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.modell.TestKelvinSak
 import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
+import no.nav.aap.unleash.FeatureToggle
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic
@@ -84,12 +87,22 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import java.lang.Thread.sleep
 import java.time.LocalDate
 import java.util.*
 
+
+object TemaFlytUnleash : UnleashGateway by FakeUnleash {
+    @Volatile
+    var velgTema = false
+
+    override fun isEnabled(featureToggle: FeatureToggle): Boolean =
+        if (featureToggle == PostmottakFeature.PostmottakVelgTema) velgTema else FakeUnleash.isEnabled(featureToggle)
+}
 
 @Fakes
 @Execution(ExecutionMode.SAME_THREAD)
@@ -99,7 +112,7 @@ class Flyttest : WithDependencies {
         private lateinit var dataSource: TestDataSource
 
         private val gatewayProvider = defaultGatewayProvider {
-            register<FakeUnleash>()
+            register<TemaFlytUnleash>()
         }
         private lateinit var hendelsesMottak: TestHendelsesMottak
         private lateinit var motor: Motor
@@ -854,6 +867,67 @@ class Flyttest : WithDependencies {
             .apply {
                 assertThat(this.status()).isEqualTo(Status.AVSLUTTET)
             }
+    }
+
+    @Test
+    fun `valgt tema avslutter uten vent og kan tas imot igjen som AAP`() {
+        TemaFlytUnleash.velgTema = true
+        try {
+            val journalpostId = TestJournalposter.leggTil { brevkode = Brevkoder.ANNEN }.journalpostId()
+            leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
+            val behandling = requireNotNull(prøv {
+                alleBehandlingerForJournalpost(journalpostId)
+                    .first { it.typeBehandling == TypeBehandling.Journalføring }
+            })
+            util.ventPåSvar(journalpostId.referanse, behandling.id.id)
+            val avsluttet = hentBehandling(behandling.id)
+                .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false, tema = Tema.BAR))
+                .sjekkÅpentAvklaringsbehov(null)
+                .verifiserIkkePåVent()
+            assertThat(avsluttet.status()).isEqualTo(Status.AVSLUTTET)
+            assertThat(dataSource.transaction {
+                repositoryRegistry.provider(it).provide<AvklarTemaRepository>().hentTemaAvklaring(behandling.id)?.tema
+            }).isEqualTo(Tema.BAR)
+
+            repeat(2) {
+                leggJournalpostPåKafka {
+                    this.journalpostId = journalpostId.referanse
+                    temaGammelt = "BAR"
+                    temaNytt = "AAP"
+                }
+            }
+            val nyBehandling = requireNotNull(prøv {
+                alleBehandlingerForJournalpost(journalpostId)
+                    .first { it.typeBehandling == TypeBehandling.Journalføring && it.id != behandling.id }
+            })
+            util.ventPåSvar(journalpostId.referanse, nyBehandling.id.id)
+            hentBehandling(nyBehandling.id).sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
+            assertThat(alleBehandlingerForJournalpost(journalpostId)).hasSize(3)
+        } finally {
+            TemaFlytUnleash.velgTema = false
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(Tema::class, names = ["UKJENT", "OPP"])
+    fun `UKJENT og OPP avslutter uten vent når temavalg er aktivert`(tema: Tema) {
+        TemaFlytUnleash.velgTema = true
+        try {
+            val journalpostId = TestJournalposter.leggTil { brevkode = Brevkoder.ANNEN }.journalpostId()
+            leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
+            val behandling = requireNotNull(prøv {
+                alleBehandlingerForJournalpost(journalpostId)
+                    .first { it.typeBehandling == TypeBehandling.Journalføring }
+            })
+            util.ventPåSvar(journalpostId.referanse, behandling.id.id)
+            val avsluttet = hentBehandling(behandling.id)
+                .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false, tema = tema))
+                .sjekkÅpentAvklaringsbehov(null)
+                .verifiserIkkePåVent()
+            assertThat(avsluttet.status()).isEqualTo(Status.AVSLUTTET)
+        } finally {
+            TemaFlytUnleash.velgTema = false
+        }
     }
 
     private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {

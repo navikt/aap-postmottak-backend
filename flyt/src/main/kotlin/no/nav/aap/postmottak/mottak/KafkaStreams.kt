@@ -9,10 +9,16 @@ import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovOrkestrator
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
+import no.nav.aap.postmottak.gateway.JournalpostGateway
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelseType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.behandling.Status
+import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.postmottak.mottak.JoarkRegel.erIkkeKanalEESSI
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaAAP
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaEndretFraAAP
@@ -35,7 +41,8 @@ import javax.sql.DataSource
 class TransactionContext(
     val behandlingRepository: BehandlingRepository,
     val flytJobbRepository: FlytJobbRepository,
-    val avklaringsbehovOrkestrator: AvklaringsbehovOrkestrator
+    val avklaringsbehovOrkestrator: AvklaringsbehovOrkestrator,
+    val avklarTemaRepository: AvklarTemaRepository
 )
 
 class TransactionProvider(
@@ -49,7 +56,8 @@ class TransactionProvider(
             TransactionContext(
                 provider.provide(),
                 provider.provide(),
-                AvklaringsbehovOrkestrator(provider, gatewayProvider)
+                AvklaringsbehovOrkestrator(provider, gatewayProvider),
+                provider.provide()
             ).let(block)
         }
     }
@@ -72,6 +80,7 @@ class JoarkKafkaHandler(
         gatewayProvider
     ),
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
+    private val journalpostGateway: JournalpostGateway = gatewayProvider.provide(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -117,7 +126,7 @@ class JoarkKafkaHandler(
                     )
                 }
             } else {
-                opprettFordelingRegelJobb(journalpostId, record.hendelsesType)
+                opprettFordelingRegelJobb(journalpostId, record.hendelsesType, record.temaGammelt)
             }
         }
     }
@@ -151,9 +160,33 @@ class JoarkKafkaHandler(
     private fun opprettFordelingRegelJobb(
         journalpostId: JournalpostId,
         hendelse: String,
+        tidligereTema: String?,
     ) {
         log.info("Mottatt ny journalpost: $journalpostId, hendelse: $hendelse")
         transactionProvider.inTransaction {
+            if (unleashGateway.isEnabled(PostmottakFeature.PostmottakVelgTema) &&
+                !tidligereTema.isNullOrBlank() && tidligereTema != "AAP"
+            ) {
+                val sisteBehandling = behandlingRepository.hentAlleBehandlingerForJournalpost(journalpostId)
+                    .maxByOrNull { it.id.id }
+                if (sisteBehandling?.typeBehandling == TypeBehandling.Journalføring &&
+                    sisteBehandling.status() == Status.AVSLUTTET &&
+                    avklarTemaRepository.hentTemaAvklaring(sisteBehandling.id)?.tema?.journalføresIPostmottak() == false
+                ) {
+                    val journalpost = journalpostGateway.hentJournalpost(journalpostId)
+                    if (journalpost.tema != "AAP" || journalpost.journalstatus != Journalstatus.MOTTATT) {
+                        log.info("Ignorerer utdatert AAP-retur for journalpost $journalpostId")
+                        return@inTransaction
+                    }
+                    // Opprett ny journalføringsbehandling når journalposten returnerer til AAP.
+                    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
+                    flytJobbRepository.leggTil(
+                        JobbInput(ProsesserBehandlingJobbUtfører)
+                            .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
+                    )
+                    return@inTransaction
+                }
+            }
             flytJobbRepository.leggTil(
                 JobbInput(VurderRelevantDokumentForAAPJobbUtfører)
                     .forSak(journalpostId.referanse)
