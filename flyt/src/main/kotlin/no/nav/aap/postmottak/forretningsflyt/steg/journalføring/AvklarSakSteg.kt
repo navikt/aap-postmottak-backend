@@ -75,7 +75,7 @@ class AvklarSakSteg(
 
         val tema = temavurdering?.tema ?: Tema.fraString(journalpost.tema)
 
-        if (tema == Tema.UKJENT) {
+        if (!tema.journalføresIPostmottak()) {
             return Fullført
         } else if (tema == Tema.OPP) {
             avklarGenerellSakMaskinelt(kontekst.behandlingId)

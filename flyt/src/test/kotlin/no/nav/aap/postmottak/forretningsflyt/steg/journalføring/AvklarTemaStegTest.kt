@@ -28,6 +28,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 
 class AvklarTemaStegTest {
@@ -58,6 +60,30 @@ class AvklarTemaStegTest {
     @BeforeEach
     fun before() {
         InMemoryAvklaringsbehovRepository.clearMemory()
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `UKJENT håndteres ulikt avhengig av om temavalg er aktivert`(aktivert: Boolean) {
+        val journalpost = TestJournalPost(tema = "AAP", brevkode = Brevkoder.ANNEN).tilJournalpost()
+        every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null
+        every { unleashGateway.isEnabled(PostmottakFeature.PostmottakVelgTema) } returns aktivert
+        avklarTemaSteg.utfør(kontekst)
+        InMemoryAvklaringsbehovRepository.hentAvklaringsbehovene(behandlingId).løsAvklaringsbehov(
+            Definisjon.AVKLAR_TEMA, begrunnelse = "...", endretAv = "Z1234"
+        )
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
+
+        avklarTemaSteg.utfør(kontekst)
+
+        assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId).any { it.status().erÅpent() })
+            .isEqualTo(!aktivert)
+        verify(exactly = 1) {
+            gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(
+                journalpost.journalpostId, journalpost.person.aktivIdent().identifikator, journalpost.journalførendeEnhet
+            )
+        }
     }
 
     @AfterEach
@@ -181,4 +207,3 @@ class AvklarTemaStegTest {
         assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId)).isEmpty()
     }
 }
-

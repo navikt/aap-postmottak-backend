@@ -17,6 +17,8 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 
 class JournalføringStegTest {
 
@@ -45,13 +47,13 @@ class JournalføringStegTest {
         verify(exactly = 1) { joark.ferdigstillJournalpostMaskinelt(journalpost.journalpostId, null) }
     }
 
-    @Test
-    fun `går videre dersom journalpost ikke har tema AAP`() {
+    @ParameterizedTest
+    @EnumSource(Tema::class, names = ["AAP", "OPP"], mode = EnumSource.Mode.EXCLUDE)
+    fun `andre temaer ferdigstilles ikke`(tema: Tema) {
         val journalpost = TestJournalposter.leggTil {
-            tema = "IKKE_APP"
             kanal = KanalFraKodeverk.SKAN_NETS
         }.tilJournalpost()
-        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, tema)
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
@@ -60,5 +62,6 @@ class JournalføringStegTest {
         val resultat = journalføringSteg.utfør(mockk(relaxed = true))
 
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+        verify(exactly = 0) { joark.ferdigstillJournalpostMaskinelt(any(), any()) }
     }
 }
