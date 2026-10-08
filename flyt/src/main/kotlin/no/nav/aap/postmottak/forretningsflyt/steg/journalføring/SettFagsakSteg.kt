@@ -56,6 +56,15 @@ class SettFagsakSteg(
             return Fullført
         }
 
+        if (!temaavklaring.tema.journalføresIPostmottak()) {
+            val endretAv = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+                .hvemSomLøste(Definisjon.AVKLAR_TEMA)
+            if (journalpost.tema == Tema.AAP.name) {
+                journalføringService.endreTema(journalpost.journalpostId, temaavklaring.tema.name, endretAv)
+            }
+            return Fullført
+        }
+
         val saksvurdering = requireNotNull(saksnummerRepository.hentSakVurdering(kontekst.behandlingId))
 
         val avsenderMottaker = saksvurdering.avsenderMottaker?.takeUnless { journalpost.kanal.erDigitalKanal() }

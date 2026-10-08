@@ -77,6 +77,13 @@ class JournalføringService(
         unleashGateway = gatewayProvider.provide<UnleashGateway>(),
     )
 
+    fun endreTema(journalpostId: JournalpostId, tema: String, endretAv: Bruker?) {
+        client.put<EndreTemaRequest, Unit>(
+            url.resolve("/rest/journalpostapi/v1/journalpost/$journalpostId"),
+            PutRequest(EndreTemaRequest(tema), additionalHeaders = navUserIdHeader(endretAv))
+        )
+    }
+
     fun førJournalpostPåFagsak(
         journalpostId: JournalpostId,
         ident: Ident,
@@ -215,6 +222,8 @@ class JournalføringService(
 data class FerdigstillRequest(
     val journalfoerendeEnhet: String
 )
+
+data class EndreTemaRequest(val tema: String)
 
 data class KopierJournalpostRequest(
     val eksternReferanseId: String
