@@ -19,6 +19,7 @@ data class TestArenaVedtak(
     val maxdatoOrdinaer: LocalDate? = LocalDate.of(2025, 1, 1),
     val maxdatoUnntak: LocalDate? = null,
     val maxdatoAap: LocalDate? = LocalDate.of(2021, 3, 1),
+    val vedtakstatuskode: String = "IVERK"
 )
 
 data class TestArenaSak(

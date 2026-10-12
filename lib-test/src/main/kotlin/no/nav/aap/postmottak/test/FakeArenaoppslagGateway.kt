@@ -55,6 +55,7 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
                 vedtakId = 1,
                 aktfaseKode = "INNV",
                 vedtaktypeKode = "O",
+                vedtakstatuskode = "IVERK",
                 fra = LocalDate.of(2025, 1, 1),
                 til = LocalDate.of(2026, 1, 1),
                 maxdatoOrdinaer = LocalDate.of(2026, 12, 12),

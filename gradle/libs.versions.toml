@@ -1,7 +1,7 @@
 [versions]
 komponenter = "2.0.181"
 tilgang = "1.0.242"
-arenaoppslag = "0.6.2"
+arenaoppslag = "0.7.18"
 behandlingsflyt = "0.0.667"
 
 [libraries]
