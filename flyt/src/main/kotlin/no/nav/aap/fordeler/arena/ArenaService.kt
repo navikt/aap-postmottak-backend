@@ -143,7 +143,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             false
         } else {
             // Har vært innvilget unntaksvilkår for 11-12, og det nærmer seg to år siden den datoen.
-            // To år er ytterste grense.
+            // To år er ytterste grense for 11-12 unntak.
             val nærmerSegToÅr = mottattDato.minusYears(2).plusWeeks(antallUkerFørUtløpMaksimalt)
             sisteSak.unntaksvilkaarGjelderFra?.isBefore(nærmerSegToÅr) ?: false
         }
