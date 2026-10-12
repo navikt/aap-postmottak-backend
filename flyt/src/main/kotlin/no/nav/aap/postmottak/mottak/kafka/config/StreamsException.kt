@@ -7,11 +7,10 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext
 import org.apache.kafka.streams.errors.ProductionExceptionHandler
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler
 import org.slf4j.LoggerFactory
-import org.apache.kafka.streams.errors.DeserializationExceptionHandler.DeserializationHandlerResponse as ConsumerHandler
-import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExceptionHandlerResponse as ProducerHandler
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse as StreamHandler
 
 private val secureLog = LoggerFactory.getLogger("team-logs")
+private val log = LoggerFactory.getLogger("streams-exception-handler")
 
 class ReplaceThread(message: Any) : RuntimeException(message.toString())
 
@@ -21,11 +20,12 @@ class ReplaceThread(message: Any) : RuntimeException(message.toString())
  * Exceptions during deserialization, networks issues etc.
  */
 class EntryPointExceptionHandler : DeserializationExceptionHandler {
-    override fun handle(
+    override fun handleError(
         context: ErrorHandlerContext,
-        record: ConsumerRecord<ByteArray, ByteArray>,
-        exception: Exception,
-    ): ConsumerHandler {
+        record: ConsumerRecord<ByteArray?, ByteArray?>,
+        exception: java.lang.Exception
+    ): DeserializationExceptionHandler.Response {
+        log.error("Feil i deserialisering av type ${exception.javaClass}. Se secure-logs for detaljer.")
         secureLog.warn(
             """
                Exception deserializing record
@@ -37,7 +37,7 @@ class EntryPointExceptionHandler : DeserializationExceptionHandler {
             exception
         )
 
-        return ConsumerHandler.FAIL
+        return DeserializationExceptionHandler.Response.fail()
     }
 
     override fun configure(configs: MutableMap<String, *>) {}
@@ -65,6 +65,7 @@ class ProcessingExceptionHandler : StreamsUncaughtExceptionHandler {
     private fun logAndReplaceThread(
         err: Throwable,
     ): StreamHandler {
+        log.error("Feil ved prosessering av record. Se secure-logs for detaljer.")
         secureLog.error("Feil ved prosessering av record, logger og leser neste record", err)
         return StreamHandler.REPLACE_THREAD
     }
@@ -72,6 +73,7 @@ class ProcessingExceptionHandler : StreamsUncaughtExceptionHandler {
     private fun logAndShutdownClient(
         err: Throwable,
     ): StreamHandler {
+        log.error("Uventet feil ved prosessering av record. Se secure-logs for detaljer.")
         secureLog.error("Uventet feil, logger og avslutter client", err)
         return StreamHandler.SHUTDOWN_CLIENT
     }
@@ -83,13 +85,14 @@ class ProcessingExceptionHandler : StreamsUncaughtExceptionHandler {
  * Exceptions due to serialization, networking etc.
  */
 class ExitPointExceptionHandler : ProductionExceptionHandler {
-    override fun handle(
+    override fun handleError(
         context: ErrorHandlerContext,
-        record: ProducerRecord<ByteArray, ByteArray>,
-        exception: Exception,
-    ): ProducerHandler {
+        record: ProducerRecord<ByteArray?, ByteArray?>,
+        exception: java.lang.Exception
+    ): ProductionExceptionHandler.Response? {
+        log.error("Feil i streams av type ${exception.javaClass}. Se secure-logs for detaljer.")
         secureLog.error("Feil i streams, logger og leser neste record", exception)
-        return ProducerHandler.FAIL
+        return ProductionExceptionHandler.Response.fail()
     }
 
     override fun configure(configs: MutableMap<String, *>) {}
