@@ -174,8 +174,9 @@ class JoarkKafkaHandler(
                     avklarTemaRepository.hentTemaAvklaring(sisteBehandling.id)?.tema?.journalføresIPostmottak() == false
                 ) {
                     val journalpost = journalpostGateway.hentJournalpost(journalpostId)
+                    // Journalposten må fortsatt være AAP og uferdig behandlet for at ny behandling skal gi mening.
                     if (journalpost.tema != "AAP" || journalpost.journalstatus != Journalstatus.MOTTATT) {
-                        log.info("Ignorerer utdatert AAP-retur for journalpost $journalpostId")
+                        log.info("Ignorerer AAP-retur for journalpost $journalpostId: ikke lenger AAP eller status MOTTATT")
                         return@inTransaction
                     }
                     // Opprett ny journalføringsbehandling når journalposten returnerer til AAP.
