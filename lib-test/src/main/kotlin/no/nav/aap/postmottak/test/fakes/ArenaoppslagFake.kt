@@ -102,28 +102,26 @@ private fun maksdatoRespons(arenaSak: TestArenaSak): String {
     val sisteVedtak = arenaSak.sisteVedtak
     return """
         {
-          "sak": 
-            {
-              "sakId": ${arenaSak.sakId},
-              "saknummer": "${arenaSak.saknummer}",
-              "sakStatus": "${arenaSak.sakStatus}",
-              "sakRegistrert": "${arenaSak.sakRegistrert}",
-              "sakAvsluttet": ${arenaSak.sakAvsluttet?.let { "\"$it\"" } ?: "null"},
-              "har_11_12_forlengelse": false,
-              "utredesForUfor": false,
-              "ferdigAvklart": false,
-              "lopendeVedtak": true,
-              "sisteVedtak": {
-                "vedtakId": ${sisteVedtak.vedtakId},
-                "aktfaseKode": "${sisteVedtak.aktfaseKode}",
-                "vedtaktypeKode": "${sisteVedtak.vedtaktypeKode}",
-                "fra": "${sisteVedtak.fra}",
-                "til": ${sisteVedtak.til?.let { "\"$it\"" } ?: "null"},
-                "maxdatoOrdinaer": ${sisteVedtak.maxdatoOrdinaer?.let { "\"$it\"" } ?: "null"},
-                "maxdatoUnntak": ${sisteVedtak.maxdatoUnntak?.let { "\"$it\"" } ?: "null"},
-                "maxdatoAap": ${sisteVedtak.maxdatoAap?.let { "\"$it\"" } ?: "null"}
-              }
+          "sak": {
+            "sakId": ${arenaSak.sakId},
+            "saknummer": "${arenaSak.saknummer}",
+            "sakStatus": "${arenaSak.sakStatus}",
+            "sakRegistrert": "${arenaSak.sakRegistrert}",
+            "sakAvsluttet": ${arenaSak.sakAvsluttet?.let { "\"$it\"" } ?: "null"},
+            "unntaksvilkaarInnvilget": null,
+            "unntaksvilkaarGjelderFra": null,
+            "sisteVedtak": {
+              "vedtakId": ${sisteVedtak.vedtakId},
+              "aktfaseKode": "${sisteVedtak.aktfaseKode}",
+              "vedtaktypeKode": "${sisteVedtak.vedtaktypeKode}",
+              "vedtakstatuskode": "${sisteVedtak.vedtakstatuskode}",
+              "fra": "${sisteVedtak.fra}",
+              "til": ${sisteVedtak.til?.let { "\"$it\"" } ?: "null"},
+              "maxdatoOrdinaer": ${sisteVedtak.maxdatoOrdinaer?.let { "\"$it\"" } ?: "null"},
+              "maxdatoUnntak": ${sisteVedtak.maxdatoUnntak?.let { "\"$it\"" } ?: "null"},
+              "maxdatoAap": ${sisteVedtak.maxdatoAap?.let { "\"$it\"" } ?: "null"}
             }
+          }
         }
         """.trimIndent()
 }

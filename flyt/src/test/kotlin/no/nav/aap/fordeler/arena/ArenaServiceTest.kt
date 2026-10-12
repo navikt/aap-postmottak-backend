@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
 
 class ArenaServiceTest {
 
@@ -42,6 +43,7 @@ class ArenaServiceTest {
                 vedtakId = 99,
                 aktfaseKode = "AKT",
                 vedtaktypeKode = "O",
+                vedtakstatuskode = "IVERK",
                 fra = LocalDate.of(2024, 1, 1),
                 til = LocalDate.of(2024, 12, 31),
                 maxdatoOrdinaer = LocalDate.of(2025, 1, 1),
@@ -159,7 +161,7 @@ class ArenaServiceTest {
     @Test
     fun `sakenHarBegyntPåAndreÅretMedUnntak true naar unntak er mer enn 18 mnd siden`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
-        val unntaksDato = mottattDato.minusMonths(18).minusDays(1) // 19 months + 1 day ago
+        val unntaksDato = mottattDato.minusYears(2).plusWeeks(hentMaksAntallUkerFørUtløpMaksimalt()).minusDays(1) // 19 months + 1 day ago
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
 
         assertTrue(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
@@ -168,7 +170,7 @@ class ArenaServiceTest {
     @Test
     fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er eksakt 18 mnd siden`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
-        val unntaksDato = mottattDato.minusMonths(18) // exactly 18 months ago
+        val unntaksDato = mottattDato.minusYears(2).plusWeeks(hentMaksAntallUkerFørUtløpMaksimalt()) // exactly at limit
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
 
         assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
@@ -230,6 +232,7 @@ class ArenaServiceTest {
                 vedtakId = sakId,
                 aktfaseKode = "INNV",
                 vedtaktypeKode = "O",
+                vedtakstatuskode = "IVERK",
                 fra = LocalDate.of(2025, 1, 1),
                 til = LocalDate.of(2026, 1, 1),
                 maxdatoOrdinaer = null,

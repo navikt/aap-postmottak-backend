@@ -5,6 +5,7 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -12,6 +13,17 @@ import java.time.LocalDate
 class ArenaService(gatewayProvider: GatewayProvider) {
     private val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    companion object {
+        private const val antallUkerFørUtløpMaksimalt = 22L // hvor mange uker før utløp av ytelsen bruker kan søke
+
+        @TestOnly
+        fun hentMaksAntallUkerFørUtløpMaksimalt(): Long {
+            return antallUkerFørUtløpMaksimalt
+        }
+    }
+
+
 
     suspend fun skalManueltFordeles(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
@@ -102,9 +114,10 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     private fun maksdatoNærmerSeg(
         sisteSak: SakMedSisteVedtakOgMaksdato?, mottattDato: LocalDate
     ): Boolean {
+
         return sisteSak?.sisteVedtak?.maxdatoAap?.let { maxdato ->
             val maxdatoErIkkePassert = maxdato.isAfter(mottattDato)
-            val terskeldato = mottattDato.plusWeeks(20L)
+            val terskeldato = mottattDato.plusWeeks(antallUkerFørUtløpMaksimalt)
 
             // Sjekk om søknaden som har en definert maksdato er "kant-i-kant" med forrige søknad:
             (maxdatoErIkkePassert && maxdato <= terskeldato)
@@ -129,9 +142,10 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         return if (sisteSak == null) {
             false
         } else {
-            // har vært innvilget unntaksvilkår for 11-12, og det nærmer seg to år siden
-            val ettOgEtHalvtÅrSiden = mottattDato.minusMonths(18)
-            sisteSak.unntaksvilkaarGjelderFra?.isBefore(ettOgEtHalvtÅrSiden) ?: false
+            // Har vært innvilget unntaksvilkår for 11-12, og det nærmer seg to år siden den datoen.
+            // To år er ytterste grense for 11-12 unntak.
+            val nærmerSegToÅr = mottattDato.minusYears(2).plusWeeks(antallUkerFørUtløpMaksimalt)
+            sisteSak.unntaksvilkaarGjelderFra?.isBefore(nærmerSegToÅr) ?: false
         }
 
     }
