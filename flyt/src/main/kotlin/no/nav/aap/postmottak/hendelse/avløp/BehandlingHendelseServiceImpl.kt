@@ -36,14 +36,20 @@ class BehandlingHendelseServiceImpl(
 
         val ident = journalpost.person.aktivIdent().identifikator
 
+        val alleAvklaringsbehov = avklaringsbehovene.alle()
+            .sortedWith(compareBy(utledType(behandling.typeBehandling).flyt().stegComparator) { it.funnetISteg })
+        val aktivtAvklaringsbehov = alleAvklaringsbehov.firstOrNull {
+            !it.erVentepunkt() && it.skalStoppeHer(behandling.aktivtSteg())
+        }
+
         val hendelse = DokumentflytStoppetHendelse(
             journalpostId = behandling.journalpostId,
             ident = ident,
             referanse = behandling.referanse.referanse,
             behandlingType = behandling.typeBehandling,
             status = behandling.status(),
-            avklaringsbehov = avklaringsbehovene.alle()
-                .sortedWith(compareBy((utledType(behandling.typeBehandling)).flyt().stegComparator) { it.funnetISteg })
+            aktivtAvklaringsbehov = aktivtAvklaringsbehov?.definisjon,
+            avklaringsbehov = alleAvklaringsbehov
                 .map { avklaringsbehov ->
                     AvklaringsbehovHendelseDto(
                         avklaringsbehovDefinisjon = avklaringsbehov.definisjon,
