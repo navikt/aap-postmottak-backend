@@ -56,6 +56,9 @@ fun MeterRegistry.regelresultat(tilKelvin: Boolean, regel: String): Counter =
 fun MeterRegistry.retriesExceeded(jobbType: String): Counter =
     this.counter("postmottak_retries_exceeded", listOf(Tag.of("jobb_type", jobbType)))
 
+fun MeterRegistry.gosysKall(operasjon: GosysOperasjon): Counter =
+    counter("postmottak_gosys_kall", listOf(Tag.of("operasjon", operasjon.metrikkverdi)))
+
 fun MeterRegistry.fordelingAvSoknadVedArenaHistorikkCounter(fagsystem: Fagsystem): Counter = this.counter(
     "postmottak_fordeling_av_soknad_ved_arenahistorikk", listOf(Tag.of("fagsystem", fagsystem.name))
 )
@@ -105,6 +108,12 @@ enum class JournalføringsType {
     automatisk,
     jfr,
     fdr
+}
+
+enum class GosysOperasjon(val metrikkverdi: String) {
+    FINN_OPPGAVER("finn_oppgaver"),
+    OPPRETT_OPPGAVE("opprett_oppgave"),
+    FERDIGSTILL_OPPGAVE("ferdigstill_oppgave")
 }
 
 private fun NavEnhet.tilMonitoreringEnhetsgruppe(): String {
