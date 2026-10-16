@@ -9,11 +9,13 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
+import no.nav.aap.postmottak.GosysOperasjon
 import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
 import no.nav.aap.postmottak.gateway.Oppgavetype
 import no.nav.aap.postmottak.gateway.Statuskategori
+import no.nav.aap.postmottak.gosysKall
 import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -77,6 +79,7 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
         val request = PostRequest(oppgaveRequest)
 
         try {
+            PrometheusProvider.prometheus.gosysKall(GosysOperasjon.OPPRETT_OPPGAVE).increment()
             client.post(path, request) { _, _ -> }
         } catch (e: Exception) {
             log.warn("Feil mot oppgaveApi under opprettelse av oppgave: ${e.message}", e)
@@ -103,6 +106,7 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
         val path =
             url.resolve("/api/v1/oppgaver?journalpostId=$journalpostId$oppgaveparams$temaparams&statuskategori=${statuskategori.name}")
 
+        PrometheusProvider.prometheus.gosysKall(GosysOperasjon.FINN_OPPGAVER).increment()
         return client.get<FinnOppgaverResponse>(path, GetRequest())?.oppgaver?.map { it.id } ?: emptyList()
     }
 
@@ -113,6 +117,7 @@ class GosysOppgaveKlient : GosysOppgaveGateway {
         val request = PatchRequest(FerdigstillOppgaveRequest())
 
         try {
+            PrometheusProvider.prometheus.gosysKall(GosysOperasjon.FERDIGSTILL_OPPGAVE).increment()
             client.patch(path, request) { _, _ -> }
         } catch (e: Exception) {
             log.warn("Feil mot oppgaveApi under lukking av oppgave: ${e.message}", e)

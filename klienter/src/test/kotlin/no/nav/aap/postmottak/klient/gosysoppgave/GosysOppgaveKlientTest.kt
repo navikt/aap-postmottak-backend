@@ -7,23 +7,36 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime.of
 
 @Fakes
 class GosysOppgaveKlientTest {
-    init {
-        PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    }
+    private lateinit var gosysOppgaveKlient: GosysOppgaveKlient
 
-    val gosysOppgaveKlient = GosysOppgaveKlient()
+    @BeforeEach
+    fun setUp() {
+        PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+        gosysOppgaveKlient = GosysOppgaveKlient()
+    }
 
     @Test
     fun opprettEndreTemaOppgave() {
         val journalpostId = TestJournalposter.leggTil().journalpostId()
 
         gosysOppgaveKlient.opprettEndreTemaOppgaveHvisIkkeEksisterer(journalpostId, "YOLO", null)
+
+        assertThat(antallGosysKall("finn_oppgaver")).isEqualTo(1.0)
+        assertThat(antallGosysKall("opprett_oppgave")).isEqualTo(1.0)
+    }
+
+    @Test
+    fun `ferdigstilling av oppgave telles som kall til Gosys`() {
+        gosysOppgaveKlient.ferdigstillOppgave(1)
+
+        assertThat(antallGosysKall("ferdigstill_oppgave")).isEqualTo(1.0)
     }
 
     //TODO: Forbedre denne testen
@@ -58,4 +71,11 @@ class GosysOppgaveKlientTest {
         val toDagerEtterAndrePåskedag = LocalDate.of(2025, 4, 23)
         assertThat(actual).isEqualTo(toDagerEtterAndrePåskedag)
     }
+
+    private fun antallGosysKall(operasjon: String): Double =
+        PrometheusProvider.prometheus
+            .get("postmottak_gosys_kall")
+            .tag("operasjon", operasjon)
+            .counter()
+            .count()
 }
