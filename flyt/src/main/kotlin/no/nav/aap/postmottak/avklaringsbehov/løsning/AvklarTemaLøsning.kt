@@ -9,6 +9,7 @@ import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løser.AvklarTemaLøser
 import no.nav.aap.postmottak.avklaringsbehov.løser.LøsningsResultat
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.AVKLAR_TEMA_KODE
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = AVKLAR_TEMA_KODE)
@@ -19,7 +20,8 @@ class AvklarTemaLøsning(
         "behovstype",
         required = true,
         defaultValue = AVKLAR_TEMA_KODE
-    ) val behovstype: String = AVKLAR_TEMA_KODE
+    ) val behovstype: String = AVKLAR_TEMA_KODE,
+    val tema: Tema? = null,
 ) : AvklaringsbehovLøsning {
     override fun løs(
         repositoryProvider: RepositoryProvider,
@@ -29,5 +31,3 @@ class AvklarTemaLøsning(
         return AvklarTemaLøser.konstruer(repositoryProvider, gatewayProvider).løs(kontekst, this)
     }
 }
-
-

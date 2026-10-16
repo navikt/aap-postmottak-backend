@@ -75,7 +75,8 @@ class AvklarTemaSteg(
             },
             erTilstrekkeligVurdert = {
                 when {
-                    temavurdering != null && venterPåBehandlingIGosys(journalpost, temavurdering) -> false
+                    temavurdering != null && venterPåBehandlingIGosys(journalpost, temavurdering) ->
+                        unleashGateway.isEnabled(PostmottakFeature.PostmottakVelgTema)
                     temavurdering != null && erFerdigBehandletIGosys(journalpost, temavurdering) -> true
                     else -> true
                 }

@@ -27,11 +27,19 @@ import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
 
 class AvklarSakStegTest {
+
+    @BeforeEach
+    fun setup() {
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null
+    }
 
     @AfterEach
     fun tearDown() {
@@ -106,16 +114,18 @@ class AvklarSakStegTest {
 
     }
 
-    @Test
-    fun `går videre dersom journalpost ikke har tema AAP`() {
+    @ParameterizedTest
+    @EnumSource(Tema::class, names = ["AAP", "OPP"], mode = EnumSource.Mode.EXCLUDE)
+    fun `går videre uten Kelvin-sak for andre temaer`(tema: Tema) {
         val journalpost = TestJournalposter.papirsøknad().copy(tema = "IKKE APP").tilJournalpost()
-        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, Tema.UKJENT)
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(false, tema)
 
         every { journalpostRepository.hentHvisEksisterer(any() as BehandlingId) } returns journalpost
 
         val resultat = avklarSakSteg.utfør(mockk(relaxed = true))
 
         verify(exactly = 0) { saksnummerRepository.lagreSakVurdering(any(), any()) }
+        verify(exactly = 0) { behandlingsflytClient.finnEllerOpprettSak(any(), any()) }
         assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
     }
 

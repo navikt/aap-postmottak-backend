@@ -9,8 +9,11 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tilJournalpost
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.gateway.BrukerIdType
+import no.nav.aap.postmottak.gateway.EndreTemaRequest
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
+import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
@@ -36,6 +39,24 @@ class JoarkClientTest {
     @BeforeEach
     fun setup() {
         PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    }
+
+    @Test
+    fun `temaendring sender kun tema i journalpostoppdateringen`() {
+        val restClient = mockk<RestClient<InputStream>>(relaxed = true)
+        val joarkClient = JournalføringService.konstruer(
+            restClient, SafGraphqlClientCredentialsClient(), EREGKlient(), unleashGateway = FakeUnleash
+        )
+        joarkClient.endreTema(JournalpostId(123L), "BAR", null)
+
+        verify(exactly = 1) {
+            restClient.put<EndreTemaRequest, Unit>(withArg {
+                assertThat(it.path).isEqualTo("/rest/journalpostapi/v1/journalpost/123")
+            }, withArg {
+                assertThat(DefaultJsonMapper.fromJson<Map<String, String>>(DefaultJsonMapper.toJson(it.body())))
+                    .isEqualTo(mapOf("tema" to "BAR"))
+            }, any())
+        }
     }
 
     @Test

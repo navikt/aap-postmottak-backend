@@ -47,8 +47,8 @@ class JournalføringSteg(
 
         val tema = requireNotNull(avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)).tema
 
-        if (tema == Tema.UKJENT) {
-            // Journalpost er blitt håndtert i Gosys
+        if (!tema.journalføresIPostmottak()) {
+            // Bare AAP og OPP ferdigstilles i Postmottak.
             return Fullført
         }
 
