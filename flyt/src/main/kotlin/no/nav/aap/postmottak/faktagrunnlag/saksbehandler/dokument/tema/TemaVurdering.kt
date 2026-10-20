@@ -4,7 +4,7 @@ data class TemaVurdering(val skalTilAap: Boolean, val tema: Tema)
 
 enum class Tema {
     AAP, OPP, UKJENT,
-    EYB, BAR, BID, DAG, ENF, ERS, FEI, FOR, FUL, GEN, GRU, KOM, OMS, EYO,
+    EYB, BAR, BID, DAG, ENF, ERS, FEI, FOR, FUL, GEN, GRU, INN, KOM, OMS, EYO,
     PEN, SAK, SER, SYK, TSO, TIL, IND, TRK, UFO, YRK;
 
     fun journalføresIPostmottak(): Boolean = this == AAP || this == OPP
