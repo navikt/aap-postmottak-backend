@@ -43,7 +43,6 @@ import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
@@ -94,9 +93,8 @@ class OverleverTilFagsystemSteg(
             requireNotNull(digitaliseringsvurderingRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Digitaliseringsvurdering mangler for behandlingID ${kontekst.behandlingId} i OverleverTilFagsystemSteg" }
 
         val tillaterAutomatiskLegeerklæring by lazy {
-            !unleashGateway.isEnabled(PostmottakFeature.StoppAutomatikkForLegeerklaringVedAvslag)
-                    || saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
-                .tillaterAutomatiskBehandlingAvLegeerklæring()
+            saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
+        .tillaterAutomatiskBehandlingAvLegeerklæring()
         }
 
         var overleveringVurdering = overleveringVurderingRepository.hentHvisEksisterer(kontekst.behandlingId)
