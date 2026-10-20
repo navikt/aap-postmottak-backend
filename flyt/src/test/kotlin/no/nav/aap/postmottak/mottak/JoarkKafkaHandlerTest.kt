@@ -27,6 +27,7 @@ import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.getJournalpostId
+import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.unleash.FeatureToggle
 import no.nav.aap.unleash.PostmottakFeature
@@ -38,6 +39,7 @@ import org.apache.kafka.streams.TopologyTestDriver
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDateTime
 import java.util.UUID
@@ -58,8 +60,16 @@ class JoarkKafkaHandlerTest {
     val journalpostGateway = mockk<JournalpostGateway>()
 
     @ParameterizedTest
-    @ValueSource(strings = ["AAP", "", "BAR"])
-    fun `kun reell retur fra annet tema starter ny journalføring`(tidligereTema: String) {
+    @CsvSource(
+        "AAP, false, BAR", "'', false, BAR", "BAR, false, BAR",
+        "AAP, true, BAR", "'', true, BAR", "BAR, true, BAR",
+        "BAR, false, UKJENT", "BAR, true, UKJENT",
+    )
+    fun `kun reell retur fra annet tema starter ny journalføring uavhengig av toggle`(
+        tidligereTema: String,
+        velgTema: Boolean,
+        tema: Tema,
+    ) {
         val avsluttet = Behandling(
             BehandlingId(9L), JournalpostId(123L), Status.AVSLUTTET,
             opprettetTidspunkt = LocalDateTime.now(),
@@ -67,13 +77,21 @@ class JoarkKafkaHandlerTest {
             typeBehandling = TypeBehandling.Journalføring
         )
         every { behandlingRepository.hentAlleBehandlingerForJournalpost(any()) } returns listOf(avsluttet)
-        every { avklarTemaRepository.hentTemaAvklaring(avsluttet.id) } returns TemaVurdering(false, Tema.BAR)
+        every { avklarTemaRepository.hentTemaAvklaring(avsluttet.id) } returns TemaVurdering(false, tema)
         every { behandlingRepository.opprettBehandling(any(), any()) } returns BehandlingId(10L)
 
-        setUpStreamsMock(config(), velgTema = true) {
+        setUpStreamsMock(config(), velgTema = velgTema) {
             pipeInput("123", lagHendelseRecord(gammeltTema = tidligereTema))
             verify(exactly = if (tidligereTema == "BAR") 1 else 0) {
                 behandlingRepository.opprettBehandling(JournalpostId(123L), TypeBehandling.Journalføring)
+            }
+            if (tidligereTema == "BAR") {
+                verify(exactly = 1) {
+                    flytJobbRepository.leggTil(withArg {
+                        assertThat(it.type()).isEqualTo(ProsesserBehandlingJobbUtfører.type)
+                        assertThat(it.behandlingId()).isEqualTo(10L)
+                    })
+                }
             }
         }
     }
@@ -88,7 +106,7 @@ class JoarkKafkaHandlerTest {
         )
         every { behandlingRepository.hentAlleBehandlingerForJournalpost(any()) } returns listOf(avsluttet)
         every { avklarTemaRepository.hentTemaAvklaring(avsluttet.id) } returns TemaVurdering(true, Tema.AAP)
-        setUpStreamsMock(config(), velgTema = true) {
+        setUpStreamsMock(config()) {
             pipeInput("123", lagHendelseRecord(gammeltTema = "BAR"))
             verify(exactly = 0) { behandlingRepository.opprettBehandling(any(), any()) }
         }
@@ -105,7 +123,7 @@ class JoarkKafkaHandlerTest {
         )
         every { behandlingRepository.hentAlleBehandlingerForJournalpost(any()) } returns listOf(avsluttet)
         every { avklarTemaRepository.hentTemaAvklaring(avsluttet.id) } returns TemaVurdering(false, Tema.BAR)
-        setUpStreamsMock(config(), velgTema = true) {
+        setUpStreamsMock(config()) {
             every { journalpostGateway.hentJournalpost(any()) } returns SafJournalpost(
                 123L, tema = if (tilstand == "BAR") "BAR" else "AAP",
                 journalstatus = if (tilstand == "BAR") Journalstatus.MOTTATT else Journalstatus.JOURNALFOERT,

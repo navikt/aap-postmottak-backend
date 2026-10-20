@@ -91,6 +91,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import java.lang.Thread.sleep
@@ -903,8 +904,9 @@ class Flyttest : WithDependencies {
             }
     }
 
-    @Test
-    fun `valgt tema avslutter uten vent og kan tas imot igjen som AAP`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `valgt tema avslutter uten vent og kan tas imot igjen som AAP`(toggleVedRetur: Boolean) {
         TemaFlytUnleash.velgTema = true
         try {
             val journalpostId = TestJournalposter.leggTil { brevkode = Brevkoder.ANNEN }.journalpostId()
@@ -923,6 +925,7 @@ class Flyttest : WithDependencies {
                 repositoryRegistry.provider(it).provide<AvklarTemaRepository>().hentTemaAvklaring(behandling.id)?.tema
             }).isEqualTo(Tema.BAR)
 
+            TemaFlytUnleash.velgTema = toggleVedRetur
             repeat(2) {
                 leggJournalpostPåKafka {
                     this.journalpostId = journalpostId.referanse

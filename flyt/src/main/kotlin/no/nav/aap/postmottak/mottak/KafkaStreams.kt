@@ -18,7 +18,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReposi
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.behandling.Status
-import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.postmottak.mottak.JoarkRegel.erIkkeKanalEESSI
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaAAP
 import no.nav.aap.postmottak.mottak.JoarkRegel.erTemaEndretFraAAP
@@ -164,9 +163,7 @@ class JoarkKafkaHandler(
     ) {
         log.info("Mottatt ny journalpost: $journalpostId, hendelse: $hendelse")
         transactionProvider.inTransaction {
-            if (unleashGateway.isEnabled(PostmottakFeature.PostmottakVelgTema) &&
-                !tidligereTema.isNullOrBlank() && tidligereTema != "AAP"
-            ) {
+            if (!tidligereTema.isNullOrBlank() && tidligereTema != "AAP") {
                 val sisteBehandling = behandlingRepository.hentAlleBehandlingerForJournalpost(journalpostId)
                     .maxByOrNull { it.id.id }
                 if (sisteBehandling?.typeBehandling == TypeBehandling.Journalføring &&
