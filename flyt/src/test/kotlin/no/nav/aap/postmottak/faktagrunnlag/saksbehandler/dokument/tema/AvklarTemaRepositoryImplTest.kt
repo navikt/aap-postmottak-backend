@@ -37,6 +37,22 @@ class AvklarTemaRepositoryImplTest {
     }
 
     @Test
+    fun `tidligere lagret INN leses som PAI`() {
+        val behandlingId = inContext {
+            behandlingRepository.opprettBehandling(JournalpostId(11111), TypeBehandling.Journalføring).also {
+                avklarTemaRepository.lagreTemaAvklaring(it, false, Tema.PAI)
+            }
+        }
+        dataSource.transaction {
+            it.execute("UPDATE TEMAVURDERING SET TEMA = 'INN' WHERE TEMA = 'PAI'")
+        }
+        inContext {
+            assertThat(avklarTemaRepository.hentTemaAvklaring(behandlingId))
+                .isEqualTo(TemaVurdering(false, Tema.PAI))
+        }
+    }
+
+    @Test
     fun `når to temaavklaringer blir lagret forventer jeg å finne den siste på behandlingen`() {
         val behandlingId = inContext { behandlingRepository.opprettBehandling(JournalpostId(1), TypeBehandling.Journalføring) }
         inContext { avklarTemaRepository.lagreTemaAvklaring(behandlingId, false, Tema.UKJENT) }
