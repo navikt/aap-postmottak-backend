@@ -1,5 +1,6 @@
 package no.nav.aap.fordeler.arena
 
+import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
@@ -14,6 +15,9 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
+import kotlinx.coroutines.runBlocking
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
 
 class ArenaServiceTest {
@@ -218,4 +222,11 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
     override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? = null
 
     override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? = null
+
+    override suspend fun historikkStatusDetalj(
+        person: Person,
+        mottattDato: LocalDate
+    ): HistorikkStatusDetaljResponse {
+        return HistorikkStatusDetaljResponse.ingen
+    }
 }
