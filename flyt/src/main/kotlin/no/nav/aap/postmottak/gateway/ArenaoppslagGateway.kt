@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.gateway
 
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.komponenter.gateway.Gateway
@@ -15,5 +16,7 @@ interface ArenaoppslagGateway : Gateway {
     suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato?
 
     suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate?
+
+    suspend fun historikkStatusDetalj(person: Person, mottattDato: LocalDate): HistorikkStatusDetaljResponse
 }
 
