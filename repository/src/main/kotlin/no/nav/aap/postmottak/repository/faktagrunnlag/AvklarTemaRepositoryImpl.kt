@@ -55,7 +55,7 @@ class AvklarTemaRepositoryImpl(private val connection: DBConnection) : AvklarTem
                     row.getBoolean(
                         "skal_til_aap"
                     ),
-                    row.getEnum("tema")
+                    row.getString("tema").let { Tema.valueOf(if (it == "INN") "PAI" else it) }
                 )
             }
         }
