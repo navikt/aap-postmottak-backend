@@ -28,6 +28,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoMedVedtakResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
@@ -96,6 +97,13 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
             return ArenaoppslagGatewayImpl()
         }
     }
+
+    suspend fun hentHistorikkStatusDetalj(
+        req: SignifikantHistorikkRequest
+    ): HistorikkStatusDetaljResponse =
+        gjørArenaOppslag<HistorikkStatusDetaljResponse>(
+            "/api/v1/person/historikk/status/detalj", req
+        ).getOrThrow()
 
     suspend fun harHistorikk(
         req: HarHistorikkRequest
@@ -200,6 +208,15 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         val request = SisteUtbetalingerRequest(ident.identifikator)
         val response = hentSisteUtbetalingsDatoISaker(request)
         return response.utbetalingsdato
+    }
+
+    override suspend fun historikkStatusDetalj(
+        person: Person,
+        mottattDato: LocalDate
+    ): HistorikkStatusDetaljResponse {
+        val request = SignifikantHistorikkRequest(person.aktivIdent().identifikator, mottattDato)
+        val response = hentHistorikkStatusDetalj(request)
+        return response
     }
 
 }
