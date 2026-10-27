@@ -52,49 +52,30 @@ class ArenaoppslagGatewayTest {
     }
 
     @Test
-    fun `Kan parse MaksdatoResponse`() {
+    fun `Kan parse historikkStatusDetalj`() {
         val testPerson = TestPersoner.leggTil { arenaSak = TestArenaSak() }
 
         val res = runBlocking {
-            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(testPerson.aktivIdent())
+            val person = Person(1, UUID.randomUUID(), listOf(testPerson.aktivIdent()))
+            arenaOppslagGatewayFake.historikkStatusDetalj(person, LocalDate.now())
         }
 
         assertThat(res).isNotNull
-        assertThat(res?.sakId).isEqualTo(1234)
+        assertThat(res.sisteSakOgVedtak?.sakId).isEqualTo(1234)
     }
 
     @Test
-    fun `MaksdatoResponse returnerer tom liste ved ikke funnet`() {
+    fun `historikkStatusDetalj returnerer tom liste ved ikke funnet`() {
         val testPerson = TestPersoner.leggTil {}
 
         val res = runBlocking {
-            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(testPerson.aktivIdent())
+            val person = Person(1, UUID.randomUUID(), listOf(testPerson.aktivIdent()))
+            arenaOppslagGatewayFake.historikkStatusDetalj(person, LocalDate.now())
         }
 
-        assertThat(res).isNull()
+        assertThat(res.sisteSakOgVedtak).isNull()
+        assertThat(res.sisteUtbetalingDato).isNull()
+        assertThat(res.telleverk).isNull()
     }
 
-    @Test
-    fun `Kan parse SisteUtbetalingerResponse`() {
-        val testPerson = TestPersoner.leggTil {
-            arenaSak = TestArenaSak(sisteUtbetalingsdato = LocalDate.parse("2024-05-10"))
-        }
-
-        val res = runBlocking {
-            arenaOppslagGatewayFake.sisteUtbetalingsdatoForPerson(testPerson.aktivIdent())
-        }
-
-        assertThat(res).isEqualTo(LocalDate.parse("2024-05-10"))
-    }
-
-    @Test
-    fun `SisteUtbetalingerResponse returnerer null ved ikke funnet`() {
-        val testPerson = TestPersoner.leggTil {}
-
-        val res = runBlocking {
-            arenaOppslagGatewayFake.sisteUtbetalingsdatoForPerson(testPerson.aktivIdent())
-        }
-
-        assertThat(res).isNull()
-    }
 }
