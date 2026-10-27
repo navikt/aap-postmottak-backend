@@ -2,14 +2,12 @@ package no.nav.aap.postmottak.test
 
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.TelleverkForPerson
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import java.time.LocalDate
 
@@ -46,34 +44,6 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
         }
     }
 
-    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato {
-        return SakMedSisteVedtakOgMaksdato(
-            sakId = 1234,
-            saknummer = "2025-11",
-            sakStatus = "AKTIV",
-            sakRegistrert = LocalDate.of(2025, 1, 1),
-            sakAvsluttet = LocalDate.of(2026, 12, 12),
-            unntaksvilkaarGjelderFra = null,
-            unntaksvilkaarInnvilget = null,
-            sisteVedtak = VedtakMedMaksdato(
-                vedtakId = 1,
-                aktfaseKode = "INNV",
-                vedtaktypeKode = "O",
-                vedtakstatuskode = "IVERK",
-                fra = LocalDate.of(2025, 1, 1),
-                til = LocalDate.of(2026, 1, 1),
-                maxdatoOrdinaer = LocalDate.of(2026, 12, 12),
-                maxdatoUnntak = null,
-                maxdatoAap = LocalDate.of(2026, 12, 12),
-
-                )
-        )
-    }
-
-    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
-        return LocalDate.of(2026, 12, 12)
-    }
-
     override suspend fun historikkStatusDetalj(
         person: Person,
         mottattDato: LocalDate
@@ -98,10 +68,18 @@ class FakeArenaoppslagGateway : ArenaoppslagGateway {
                     maxdatoOrdinaer = LocalDate.of(2026, 12, 12),
                     maxdatoUnntak = null,
                     maxdatoAap = LocalDate.of(2026, 12, 12),
-                ), vedtakene = listOf(
+                ),
+                vedtakene = listOf(
                     ArenaVedtak(
-                        1, "IVERK",
-                        "O", null, null, "AAP", null, 1, "UA"
+                        sakId = 1234,
+                        statusKode = "IVERK",
+                        vedtaktypeKode = "O",
+                        fraOgMed = LocalDate.of(2025, 1, 1),
+                        tilDato = LocalDate.of(2026, 1, 1),
+                        rettighetkode = "AAP",
+                        utfallkode = "JA",
+                        vedtakId = 1,
+                        aktivitetsfaseKode = "UA"
                     )
                 )
             ),

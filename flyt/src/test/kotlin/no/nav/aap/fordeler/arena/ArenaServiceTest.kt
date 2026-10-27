@@ -3,7 +3,6 @@ package no.nav.aap.fordeler.arena
 import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.komponenter.gateway.Factory
@@ -18,6 +17,8 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.TelleverkForPerson
 import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
 
 class ArenaServiceTest {
@@ -183,8 +184,8 @@ class ArenaServiceTest {
         null
     )
 
-    private fun sakMedId(sakId: Int): SakMedSisteVedtakOgMaksdato {
-        return SakMedSisteVedtakOgMaksdato(
+    private fun sakMedId(sakId: Int): SisteSakDetaljer {
+        return SisteSakDetaljer(
             sakId = sakId,
             saknummer = "$sakId-25",
             sakStatus = "AKTIV",
@@ -202,7 +203,18 @@ class ArenaServiceTest {
                 maxdatoAap = LocalDate.of(2026, 12, 12),
             ),
             unntaksvilkaarGjelderFra = null,
-            unntaksvilkaarInnvilget = null
+            unntaksvilkaarInnvilget = null,
+            vedtakene = listOf(
+                ArenaVedtak(
+                    sakId = sakId,
+                    statusKode = "IVERK",
+                    vedtaktypeKode = "O",
+                    fraOgMed = LocalDate.of(2025, 1, 1),
+                    tilDato = LocalDate.of(2026, 1, 1),
+                    rettighetkode = "AAP",
+                    utfallkode = "JA"
+                )
+            )
         )
     }
 }

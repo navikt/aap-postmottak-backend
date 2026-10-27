@@ -29,9 +29,6 @@ import io.ktor.serialization.jackson.jackson
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoMedVedtakResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
@@ -119,20 +116,6 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
             "/api/v1/person/historikk/signifikant", req
         ).getOrThrow()
 
-    suspend fun hentMaksdatoISisteVedtak(
-        req: MaksdatoRequest
-    ): MaksdatoMedVedtakResponse = gjørArenaOppslag<MaksdatoMedVedtakResponse>(
-        "/api/v1/person/maksdato", req
-    ).recover { throwable ->
-        if (responseStatus(throwable) == HttpStatusCode.NotFound) {
-            secureLog.error("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
-            // Vedtak for personen ble ikke funnet i Arena – returner ingen sak
-            MaksdatoMedVedtakResponse(null)
-        } else {
-            throw throwable
-        }
-    }.getOrThrow()
-
     suspend fun hentSisteUtbetalingsDatoISaker(
         req: SisteUtbetalingerRequest
     ): SisteUtbetalingerResponse = gjørArenaOppslag<SisteUtbetalingerResponse>(
@@ -196,18 +179,6 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         val request = SignifikantHistorikkRequest(person.aktivIdent().identifikator, mottattDato)
         val response = harSignifikantHistorikk(request)
         return response
-    }
-
-    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? {
-        val request = MaksdatoRequest(ident.identifikator)
-        val response = hentMaksdatoISisteVedtak(request)
-        return response.sak
-    }
-
-    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
-        val request = SisteUtbetalingerRequest(ident.identifikator)
-        val response = hentSisteUtbetalingsDatoISaker(request)
-        return response.utbetalingsdato
     }
 
     override suspend fun historikkStatusDetalj(
