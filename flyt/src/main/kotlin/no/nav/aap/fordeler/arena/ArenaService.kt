@@ -94,7 +94,10 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         } ?: false
     }
 
-    private suspend fun hentSisteVedtakMedEffektivMaksdato(søker: Person, mottattDato: LocalDate): HistorikkStatusDetaljResponse {
+    private suspend fun hentSisteVedtakMedEffektivMaksdato(
+        søker: Person,
+        mottattDato: LocalDate
+    ): HistorikkStatusDetaljResponse {
         return arena.historikkStatusDetalj(søker, mottattDato)
     }
 
