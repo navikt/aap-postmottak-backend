@@ -33,6 +33,19 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
 
+        // 11-12 status
+        val utfallAv11_12vurderingErKjent = sisteSak?.unntaksvilkaarInnvilget != null
+        // sjekk om det er registrert nytt vedtak som bærer 11-12 vurderingen, etter ny prosedyre
+        val eget11_12vedtak = historikk.sisteSakOgVedtak?.vedtakene?.find {
+                        it.vedtaktypeKode == "O"
+                    && it.rettighetkode == "AAP"
+                    && it.utfallkode == "NEI"
+                    && it.fraOgMed?.isAfter(sisteSak?.sisteVedtak?.til) == true
+            // TODO krev også at det har registrert vedtaksfakta med unntak nei
+            // ha også med vedtakId slik at vi kan debugge ved behov
+            // og ha med aktfasekode, må være == AU eller UA
+        }
+
         val tilManuellFordeling = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             sisteSak == null -> false // maxdato er ikke definert
@@ -127,7 +140,10 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         } ?: false
     }
 
-    private suspend fun hentSisteVedtakMedEffektivMaksdato(søker: Person, mottattDato: LocalDate): HistorikkStatusDetaljResponse {
+    private suspend fun hentSisteVedtakMedEffektivMaksdato(
+        søker: Person,
+        mottattDato: LocalDate
+    ): HistorikkStatusDetaljResponse {
         return arena.historikkStatusDetalj(søker, mottattDato)
     }
 
