@@ -24,20 +24,24 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         }
     }
 
+    /**
+     * @return null hvis vurderingen ikke er gjort enda, true hvis innvilget, false hvis avslått
+     */
     suspend fun statusPå11_12Vurdering(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): Boolean? {
         val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
         val sisteSak = historikk.sisteSakOgVedtak
 
+        // er den gjort etter ordinær prosedyre?
         val utfallAv11_12vurdering = sisteSak?.unntaksvilkaarInnvilget
 
-        // sjekk om det er registrert nytt vedtak som bærer 11-12 vurderingen, etter ny prosedyre
-        val eget11_12vedtak = historikk.sisteSakOgVedtak?.vedtakene?.find {
+        // er den gjort etter ny prosedyre?
+        val eget11_12vedtak = sisteSak?.vedtakene?.find {
             it.vedtaktypeKode == "O"
                     && it.rettighetkode == "AAP"
                     && it.utfallkode == "NEI"
-                    && it.fraOgMed?.isAfter(sisteSak?.sisteVedtak?.til) == true
+                    && it.fraOgMed?.isAfter(sisteSak.sisteVedtak.til) == true
             // TODO krev også at det har registrert vedtaksfakta med unntak nei
             // ha også med vedtakId slik at vi kan debugge ved behov
             // og ha med aktfasekode, må være == AU eller UA
@@ -45,7 +49,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         val resultat = if (utfallAv11_12vurdering == null) {
             if (eget11_12vedtak != null) {
-                logger.debug("JournalpostId $journalpostId har et eget 11-12 vedtak: $eget11_12vedtak")
+                logger.debug("JournalpostId $journalpostId har et 11-12 vedtak etter ny prosedyre: $eget11_12vedtak")
                 false // TODO hent ut verdien
             } else {
                 null
