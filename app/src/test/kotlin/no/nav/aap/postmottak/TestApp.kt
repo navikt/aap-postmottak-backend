@@ -23,13 +23,9 @@ import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
-import no.nav.aap.postmottak.test.modell.TestArenaSak
-import no.nav.aap.postmottak.test.modell.TestArenaVedtak
-import no.nav.aap.postmottak.test.modell.TestPersoner
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.postgresql.PostgreSQLContainer
 import java.time.Duration
-import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 // Kjøres opp for å få logback i console uten json
@@ -64,82 +60,9 @@ fun main() {
             opprettBehandlingKategoriser(it)
             opprettBehandlingDigitaliser(it)
             opprettBehandlingPapirSøknadKategoriser(it)
-            opprettBehandlingManuellFordeling(it)
-            opprettBehandlingManuellFordelingDigitalSøknad(it)
-            opprettBehandlingManuellFordelingPapirSøknad(it)
         }
 
     }.start(wait = true)
-}
-
-// Vedtak med maxdatoAap innen 20 uker etter journalpostens mottattDato (DATO_REGISTRERT = 2020-12-01)
-// gjør at ArenaService.skalManueltFordeles gir true, dvs. manuell fordeling (AVKLAR_FORDELING).
-private fun kantIKantArenaSak() = TestArenaSak(
-    saknummer = "ABC-555",
-    sakRegistrert = LocalDate.of(2020, 1, 1),
-    sisteVedtak = TestArenaVedtak(
-        vedtakId = 100,
-        fra = LocalDate.of(2020, 1, 1),
-        til = LocalDate.of(2021, 3, 1),
-        maxdatoOrdinaer = LocalDate.of(2021, 3, 1),
-        maxdatoAap = LocalDate.of(2021, 3, 1),
-    ),
-)
-
-private fun opprettBehandlingManuellFordelingDigitalSøknad(connection: DBConnection) {
-    val testPerson = TestPersoner.leggTil { arenaSak = kantIKantArenaSak() }
-    val journalpostId = TestJournalposter.leggTil {
-        digitalSøknad()
-        person = testPerson
-    }.journalpostId()
-
-    opprettFordelingsbehandling(
-        connection = connection,
-        journalpostId = journalpostId,
-    )
-}
-
-private fun opprettBehandlingManuellFordelingPapirSøknad(connection: DBConnection) {
-    val testPerson = TestPersoner.leggTil { arenaSak = kantIKantArenaSak() }
-    val journalpostId = TestJournalposter.leggTil {
-        papirsøknad()
-        person = testPerson
-    }.journalpostId()
-
-    opprettFordelingsbehandling(
-        connection = connection,
-        journalpostId = journalpostId,
-    )
-}
-
-private fun opprettFordelingsbehandling(
-    connection: DBConnection,
-    journalpostId: JournalpostId,
-) {
-    val behandlingRepository = BehandlingRepositoryImpl(connection)
-    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
-
-    FlytJobbRepository(connection).leggTil(
-        JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(journalpostId.referanse, behandlingId.id)
-            .medCallId()
-    )
-}
-
-private fun opprettBehandlingManuellFordeling(connection: DBConnection) {
-    val testPerson = TestPersoner.leggTil { aktivSakIArena = true }
-    val journalpostId = TestJournalposter.leggTil {
-        person = testPerson
-    }.journalpostId()
-
-    val behandlingRepository = BehandlingRepositoryImpl(connection)
-    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
-
-    FlytJobbRepository(connection).leggTil(
-        JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(journalpostId.referanse, behandlingId.id)
-            .medCallId()
-    )
 }
 
 private fun opprettBehandlingAvklarTeam(connection: DBConnection) {

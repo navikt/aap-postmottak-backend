@@ -13,7 +13,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.søknadOmAapTeller
 import no.nav.aap.postmottak.tellAntallMaksUtvidetKvoteSnartOppbrukt
-import no.nav.aap.postmottak.tellManueltFordeles
 import org.slf4j.LoggerFactory
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
@@ -97,13 +96,6 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
                                 input.person, input.mottattDato, input.journalpostId
                             )
                         prometheus.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt).increment()
-
-                        if (!maksKvoteSnartOppbrukt) {
-                            val skalManueltFordeles = arenaService.skalManueltFordeles(
-                                input.person, input.mottattDato, input.journalpostId
-                            )
-                            prometheus.tellManueltFordeles(skalManueltFordeles).increment()
-                        }
                     }
                 }.onFailure { error ->
                     logger.warn("Feil under telling av undergrupper til Arena", error)
