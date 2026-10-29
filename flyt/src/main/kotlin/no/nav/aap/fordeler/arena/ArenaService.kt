@@ -16,7 +16,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
-        private const val antallUkerFørUtløpMaksimalt = 22L // hvor mange uker før utløp av ytelsen bruker kan søke
+        private const val antallUkerFørUtløpMaksimalt = 26L // hvor mange uker før utløp av ytelsen bruker kan søke
 
         @TestOnly
         fun hentMaksAntallUkerFørUtløpMaksimalt(): Long {
