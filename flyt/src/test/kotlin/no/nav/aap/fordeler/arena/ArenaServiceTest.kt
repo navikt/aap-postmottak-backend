@@ -1,6 +1,5 @@
 package no.nav.aap.fordeler.arena
 
-import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
@@ -15,8 +14,6 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.UUID
-import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
 
 class ArenaServiceTest {
@@ -27,45 +24,6 @@ class ArenaServiceTest {
 
     private val arenaService = ArenaService(gatewayProvider)
 
-
-    @Test
-    fun `skalManueltFordeles er true for kant-i-kant sak som i ArenaoppslagFake`() {
-        // Speiler dataene i ArenaoppslagFake for IDENT_MED_SAK_I_ARENA (journalpost 129 i TestApp).
-        val sak = SakMedSisteVedtakOgMaksdato(
-            sakId = 1234,
-            saknummer = "ABC-123",
-            sakStatus = "AKTIV",
-            sakRegistrert = LocalDate.of(2024, 1, 1),
-            sakAvsluttet = null,
-            unntaksvilkaarInnvilget = null,
-            unntaksvilkaarGjelderFra = null,
-            sisteVedtak = VedtakMedMaksdato(
-                vedtakId = 99,
-                aktfaseKode = "AKT",
-                vedtaktypeKode = "O",
-                vedtakstatuskode = "IVERK",
-                fra = LocalDate.of(2024, 1, 1),
-                til = LocalDate.of(2024, 12, 31),
-                maxdatoOrdinaer = LocalDate.of(2025, 1, 1),
-                maxdatoUnntak = null,
-                maxdatoAap = LocalDate.of(2021, 3, 1),
-            ),
-        )
-        coEvery { ArenaoppslagGatewayMock.konstruer().sisteVedtakMedMaksdato(any()) } returns sak
-
-        val person = Person(1, UUID.randomUUID(), listOf(Ident("0000000333")))
-        val mottattDato = LocalDate.of(2020, 12, 1) // DATO_REGISTRERT for journalpost 129
-        val signifikantHistorikk = SignifikantHistorikkResponse(
-            true,
-            listOf(ArenaVedtak(1234, "AKTIV", null, null, null, "AAP", null))
-        )
-
-        val skalManueltFordeles = runBlocking {
-            arenaService.skalManueltFordeles(person, mottattDato, 129L)
-        }
-
-        assertTrue(skalManueltFordeles)
-    }
 
     @Test
     fun `returnerer false naar listen er tom`() {

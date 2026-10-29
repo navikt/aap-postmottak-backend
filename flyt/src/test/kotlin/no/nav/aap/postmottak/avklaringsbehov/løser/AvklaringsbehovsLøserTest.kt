@@ -43,7 +43,6 @@ class AvklaringsbehovsLøserTest {
     @Test
     fun `alle subtyper skal ha unik verdi 2`() {
         val forventedeLøsere = setOf(
-            AvklarFordelingLøser::class,
             AvklarOverleveringLøser::class,
             AvklarSakLøser::class,
             AvklarTemaLøser::class,

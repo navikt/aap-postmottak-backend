@@ -14,8 +14,6 @@ import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -31,7 +29,6 @@ import no.nav.aap.postmottak.test.modell.TestArenaSak
 import no.nav.aap.postmottak.test.modell.TestArenaVedtak
 import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.aap.unleash.FeatureToggle
-import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -132,9 +129,7 @@ class ArenaOppgaveFlytTest : WithDependencies {
     }
 
     @Test
-    fun `søknad som er kant-i-kant med Arena-sak klassifiseres til manuell vurdering og stopper på avklar fordeling`() {
-        // Kant-i-kant: løpende vedtak (vedtaktypeKode "O") med maxdatoAap innen 20 uker etter
-        // journalpostens mottattDato (DATO_REGISTRERT = 2020-12-01) -> ArenaService.skalManueltFordeles gir true.
+    fun `søknad som er kant-i-kant med Arena-sak fordeles automatisk uten avklaringsbehov`() {
         val testPerson = TestPersoner.leggTil {
             harHistorikkIArena = true
             arenaSak = TestArenaSak(
@@ -173,19 +168,12 @@ class ArenaOppgaveFlytTest : WithDependencies {
             val behandling = BehandlingRepositoryImpl(connection)
                 .hentAlleBehandlingerForJournalpost(journalpostId)
                 .single { it.typeBehandling == TypeBehandling.Fordeling }
-            // Behandlingen står parkert på avklar fordeling-steget
-            assertThat(behandling.aktivtSteg()).isEqualTo(StegType.AVKLAR_FORDELING)
-
-            // ...med et åpent AVKLAR_FORDELING-avklaringsbehov til saksbehandler
-            val behov = AvklaringsbehovRepositoryImpl(connection)
-                .hentAvklaringsbehovene(behandling.id)
-                .hentBehovForDefinisjon(Definisjon.AVKLAR_FORDELING)
-            assertThat(behov).isNotNull
-            assertThat(behov!!.status()).isEqualTo(Status.OPPRETTET)
+            assertThat(behandling.aktivtSteg()).isNotEqualTo(StegType.AVKLAR_FORDELING)
+            assertThat(AvklaringsbehovRepositoryImpl(connection).hentAvklaringsbehovene(behandling.id).alle())
+                .isEmpty()
         }
 
-        // Behandlingen er verken rutet til Arena eller Kelvin – den venter på manuell vurdering
-        assertThat(FssOppgaver.oppgaver[identifikator]).isNullOrEmpty()
+        assertThat(FssOppgaver.oppgaver[identifikator]).isNotEmpty()
     }
 
     /**
@@ -210,14 +198,10 @@ class FakeUnleashGateway : UnleashGateway {
         override fun konstruer() = instance
     }
 
-    var enabledFeatures: MutableSet<FeatureToggle> = mutableSetOf(
-        PostmottakFeature.PostmottakManuellVurdering,
-    )
+    var enabledFeatures: MutableSet<FeatureToggle> = mutableSetOf()
 
     fun reset() {
-        enabledFeatures = mutableSetOf(
-            PostmottakFeature.PostmottakManuellVurdering,
-        )
+        enabledFeatures = mutableSetOf()
     }
 
     override fun isEnabled(featureToggle: FeatureToggle): Boolean = featureToggle in enabledFeatures
