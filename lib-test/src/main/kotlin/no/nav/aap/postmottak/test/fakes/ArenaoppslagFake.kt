@@ -10,10 +10,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
-import no.nav.aap.postmottak.test.modell.TestArenaSak
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.postmottak.test.modell.TestPersoner
 
 fun Application.arenaoppslagFake() {
@@ -71,16 +72,43 @@ fun Application.arenaoppslagFake() {
             }
         }
 
-        post("/api/v1/person/maksdato") {
-            val parsedRequest = call.receive<MaksdatoRequest>()
+        post("/api/v1/person/historikk/status/detalj") {
+            val parsedRequest = call.receive<SignifikantHistorikkRequest>()
             val arenaSak = TestPersoner.hentPerson(parsedRequest.personidentifikator)?.arenaSak
 
             if (arenaSak == null) {
-                call.respond(HttpStatusCode.NotFound)
+                call.respond(HistorikkStatusDetaljResponse.ingen)
                 return@post
             }
 
-            call.respond(maksdatoRespons(arenaSak))
+            val sisteVedtak = arenaSak.sisteVedtak
+            call.respond(
+                HistorikkStatusDetaljResponse(
+                    telleverk = null,
+                    sisteSakOgVedtak = SisteSakDetaljer(
+                        sakId = arenaSak.sakId,
+                        saknummer = arenaSak.saknummer,
+                        sakStatus = arenaSak.sakStatus,
+                        sakRegistrert = arenaSak.sakRegistrert,
+                        sakAvsluttet = arenaSak.sakAvsluttet,
+                        unntaksvilkaarInnvilget = null,
+                        unntaksvilkaarGjelderFra = null,
+                        sisteVedtak = VedtakMedMaksdato(
+                            vedtakId = sisteVedtak.vedtakId,
+                            aktfaseKode = sisteVedtak.aktfaseKode,
+                            vedtaktypeKode = sisteVedtak.vedtaktypeKode,
+                            vedtakstatuskode = sisteVedtak.vedtakstatuskode,
+                            fra = sisteVedtak.fra,
+                            til = sisteVedtak.til,
+                            maxdatoOrdinaer = sisteVedtak.maxdatoOrdinaer,
+                            maxdatoUnntak = sisteVedtak.maxdatoUnntak,
+                            maxdatoAap = sisteVedtak.maxdatoAap,
+                        ),
+                        vedtakene = emptyList(),
+                    ),
+                    sisteUtbetalingDato = arenaSak.sisteUtbetalingsdato,
+                )
+            )
         }
 
         post("/api/v1/utbetalinger/siste") {
@@ -96,32 +124,4 @@ fun Application.arenaoppslagFake() {
         }
 
     }
-}
-
-private fun maksdatoRespons(arenaSak: TestArenaSak): String {
-    val sisteVedtak = arenaSak.sisteVedtak
-    return """
-        {
-          "sak": {
-            "sakId": ${arenaSak.sakId},
-            "saknummer": "${arenaSak.saknummer}",
-            "sakStatus": "${arenaSak.sakStatus}",
-            "sakRegistrert": "${arenaSak.sakRegistrert}",
-            "sakAvsluttet": ${arenaSak.sakAvsluttet?.let { "\"$it\"" } ?: "null"},
-            "unntaksvilkaarInnvilget": null,
-            "unntaksvilkaarGjelderFra": null,
-            "sisteVedtak": {
-              "vedtakId": ${sisteVedtak.vedtakId},
-              "aktfaseKode": "${sisteVedtak.aktfaseKode}",
-              "vedtaktypeKode": "${sisteVedtak.vedtaktypeKode}",
-              "vedtakstatuskode": "${sisteVedtak.vedtakstatuskode}",
-              "fra": "${sisteVedtak.fra}",
-              "til": ${sisteVedtak.til?.let { "\"$it\"" } ?: "null"},
-              "maxdatoOrdinaer": ${sisteVedtak.maxdatoOrdinaer?.let { "\"$it\"" } ?: "null"},
-              "maxdatoUnntak": ${sisteVedtak.maxdatoUnntak?.let { "\"$it\"" } ?: "null"},
-              "maxdatoAap": ${sisteVedtak.maxdatoAap?.let { "\"$it\"" } ?: "null"}
-            }
-          }
-        }
-        """.trimIndent()
 }

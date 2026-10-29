@@ -28,16 +28,13 @@ import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoMedVedtakResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.MaksdatoRequest
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerResponse
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -97,6 +94,13 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         }
     }
 
+    suspend fun hentHistorikkStatusDetalj(
+        req: SignifikantHistorikkRequest
+    ): HistorikkStatusDetaljResponse =
+        gjørArenaOppslag<HistorikkStatusDetaljResponse>(
+            "/api/v1/person/historikk/status/detalj", req
+        ).getOrThrow()
+
     suspend fun harHistorikk(
         req: HarHistorikkRequest
     ): HarHistorikkResponse =
@@ -110,20 +114,6 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         gjørArenaOppslag<SignifikantHistorikkResponse>(
             "/api/v1/person/historikk/signifikant", req
         ).getOrThrow()
-
-    suspend fun hentMaksdatoISisteVedtak(
-        req: MaksdatoRequest
-    ): MaksdatoMedVedtakResponse = gjørArenaOppslag<MaksdatoMedVedtakResponse>(
-        "/api/v1/person/maksdato", req
-    ).recover { throwable ->
-        if (responseStatus(throwable) == HttpStatusCode.NotFound) {
-            secureLog.error("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
-            // Vedtak for personen ble ikke funnet i Arena – returner ingen sak
-            MaksdatoMedVedtakResponse(null)
-        } else {
-            throw throwable
-        }
-    }.getOrThrow()
 
     suspend fun hentSisteUtbetalingsDatoISaker(
         req: SisteUtbetalingerRequest
@@ -190,16 +180,13 @@ class ArenaoppslagGatewayImpl : ArenaoppslagGateway {
         return response
     }
 
-    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? {
-        val request = MaksdatoRequest(ident.identifikator)
-        val response = hentMaksdatoISisteVedtak(request)
-        return response.sak
-    }
-
-    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? {
-        val request = SisteUtbetalingerRequest(ident.identifikator)
-        val response = hentSisteUtbetalingsDatoISaker(request)
-        return response.utbetalingsdato
+    override suspend fun historikkStatusDetalj(
+        person: Person,
+        mottattDato: LocalDate
+    ): HistorikkStatusDetaljResponse {
+        val request = SignifikantHistorikkRequest(person.aktivIdent().identifikator, mottattDato)
+        val response = hentHistorikkStatusDetalj(request)
+        return response
     }
 
 }

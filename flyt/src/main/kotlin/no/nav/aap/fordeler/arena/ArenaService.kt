@@ -1,7 +1,8 @@
 package no.nav.aap.fordeler.arena
 
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -15,7 +16,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
-        private const val antallUkerFørUtløpMaksimalt = 22L // hvor mange uker før utløp av ytelsen bruker kan søke
+        private const val antallUkerFørUtløpMaksimalt = 26L // hvor mange uker før utløp av ytelsen bruker kan søke
 
         @TestOnly
         fun hentMaksAntallUkerFørUtløpMaksimalt(): Long {
@@ -23,14 +24,53 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         }
     }
 
+    /**
+     * @return null hvis vurderingen ikke er gjort enda, true hvis innvilget, false hvis avslått
+     */
+    suspend fun statusPå11_12Vurdering(
+        søker: Person, mottattDato: LocalDate, journalpostId: Long
+    ): Boolean? {
+        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
+        val sisteSak = historikk.sisteSakOgVedtak
 
+        // er den gjort etter ordinær prosedyre?
+        val utfallAv11_12vurdering = sisteSak?.unntaksvilkaarInnvilget
+
+        // er den gjort etter ny prosedyre?
+        val eget11_12vedtak = sisteSak?.vedtakene?.find {
+            it.vedtaktypeKode == "O"
+                    && it.rettighetkode == "AAP"
+                    && it.utfallkode == "NEI"
+                    && it.fraOgMed?.isAfter(sisteSak.sisteVedtak.til) == true
+            // TODO krev også at det har registrert vedtaksfakta med unntak nei
+            // ha også med vedtakId slik at vi kan debugge ved behov
+            // og ha med aktfasekode, må være == AU eller UA
+        }
+
+        val resultat = if (utfallAv11_12vurdering == null) {
+            if (eget11_12vedtak != null) {
+                logger.debug("JournalpostId $journalpostId har et 11-12 vedtak etter ny prosedyre: $eget11_12vedtak")
+                false // TODO hent ut verdien
+            } else {
+                null
+            }
+        } else {
+            utfallAv11_12vurdering
+        }
+
+        logger.info("JournalpostId $journalpostId har status for 11-12 vurdering: $resultat, løpende_vedtak: $utfallAv11_12vurdering, eget11_12vedtak: $eget11_12vedtak")
+
+        return resultat
+    }
 
     suspend fun skalManueltFordeles(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): Boolean {
-        val sisteSak = hentSisteVedtakMedEffektivMaksdato(søker)
+        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
+        val sisteSak = historikk.sisteSakOgVedtak
 
         val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
+
 
         val tilManuellFordeling = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
@@ -59,10 +99,12 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     suspend fun kanFordelesAutomatiskTilKelvinPga11_12_erMakset(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): Boolean {
-        val sisteSak = hentSisteVedtakMedEffektivMaksdato(søker)
+        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
+        val sisteSak = historikk.sisteSakOgVedtak
         val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
         val sakenHarBegyntPåAndreÅretMedUnntak = sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak)
-        val unntakErInnvilgetiFremtiden = sisteSak?.unntaksvilkaarInnvilget == true && sisteSak.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
+        val unntakErInnvilgetiFremtiden =
+            sisteSak?.unntaksvilkaarInnvilget == true && sisteSak.unntaksvilkaarGjelderFra?.isAfter(mottattDato) ?: false
 
         val behandlesSomNySøknad = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
@@ -100,7 +142,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     }
 
     internal fun harFlereSignifikanteSaker(
-        saker: List<Int>, sisteSak: SakMedSisteVedtakOgMaksdato?
+        saker: List<Int>, sisteSak: SisteSakDetaljer?
     ): Boolean {
         return if (sisteSak == null) {
             false
@@ -112,7 +154,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     }
 
     private fun maksdatoNærmerSeg(
-        sisteSak: SakMedSisteVedtakOgMaksdato?, mottattDato: LocalDate
+        sisteSak: SisteSakDetaljer?, mottattDato: LocalDate
     ): Boolean {
 
         return sisteSak?.sisteVedtak?.maxdatoAap?.let { maxdato ->
@@ -124,20 +166,15 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         } ?: false
     }
 
-    private suspend fun hentSisteVedtakMedEffektivMaksdato(søker: Person): SakMedSisteVedtakOgMaksdato? {
-        return when (val sisteVedtak = arena.sisteVedtakMedMaksdato(søker.aktivIdent())) {
-            null -> null
-            else if (sisteVedtak.sakAvsluttet != null // helt avsluttet, kan ikke ha maxdato i nær fremtid
-                    || !sisteVedtak.erLopende()) -> sisteVedtak.medUdefinertMaxsdato()
-
-            else -> {
-                sisteVedtak // har en gyldig maxdato
-            }
-        }
+    private suspend fun hentSisteVedtakMedEffektivMaksdato(
+        søker: Person,
+        mottattDato: LocalDate
+    ): HistorikkStatusDetaljResponse {
+        return arena.historikkStatusDetalj(søker, mottattDato)
     }
 
     internal fun sakenHarBegyntPåAndreÅretMedUnntak(
-        mottattDato: LocalDate, sisteSak: SakMedSisteVedtakOgMaksdato?
+        mottattDato: LocalDate, sisteSak: SisteSakDetaljer?
     ): Boolean {
         return if (sisteSak == null) {
             false

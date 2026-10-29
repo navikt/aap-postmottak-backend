@@ -3,7 +3,6 @@ package no.nav.aap.fordeler.arena
 import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.komponenter.gateway.Factory
@@ -17,6 +16,9 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.TelleverkForPerson
 import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
 
 class ArenaServiceTest {
@@ -31,7 +33,7 @@ class ArenaServiceTest {
     @Test
     fun `skalManueltFordeles er true for kant-i-kant sak som i ArenaoppslagFake`() {
         // Speiler dataene i ArenaoppslagFake for IDENT_MED_SAK_I_ARENA (journalpost 129 i TestApp).
-        val sak = SakMedSisteVedtakOgMaksdato(
+        val sak = SisteSakDetaljer(
             sakId = 1234,
             saknummer = "ABC-123",
             sakStatus = "AKTIV",
@@ -50,15 +52,27 @@ class ArenaServiceTest {
                 maxdatoUnntak = null,
                 maxdatoAap = LocalDate.of(2021, 3, 1),
             ),
+            vedtakene = listOf(
+                ArenaVedtak(
+                    sakId = 1234,
+                    statusKode = "IVERK",
+                    vedtaktypeKode = "O",
+                    fraOgMed = LocalDate.of(2024, 1, 1),
+                    tilDato = LocalDate.of(2024, 12, 31),
+                    rettighetkode = "AAP",
+                    utfallkode = "JA"
+                )
+            ),
         )
-        coEvery { ArenaoppslagGatewayMock.konstruer().sisteVedtakMedMaksdato(any()) } returns sak
+        val response = HistorikkStatusDetaljResponse(
+            telleverk = TelleverkForPerson(100, 200),
+            sisteSakOgVedtak = sak,
+            sisteUtbetalingDato = LocalDate.of(2025,1,1)
+        )
+        coEvery { ArenaoppslagGatewayMock.konstruer().historikkStatusDetalj(any(), any()) } returns response
 
         val person = Person(1, UUID.randomUUID(), listOf(Ident("0000000333")))
         val mottattDato = LocalDate.of(2020, 12, 1) // DATO_REGISTRERT for journalpost 129
-        val signifikantHistorikk = SignifikantHistorikkResponse(
-            true,
-            listOf(ArenaVedtak(1234, "AKTIV", null, null, null, "AAP", null))
-        )
 
         val skalManueltFordeles = runBlocking {
             arenaService.skalManueltFordeles(person, mottattDato, 129L)
@@ -221,8 +235,8 @@ class ArenaServiceTest {
         null
     )
 
-    private fun sakMedId(sakId: Int): SakMedSisteVedtakOgMaksdato {
-        return SakMedSisteVedtakOgMaksdato(
+    private fun sakMedId(sakId: Int): SisteSakDetaljer {
+        return SisteSakDetaljer(
             sakId = sakId,
             saknummer = "$sakId-25",
             sakStatus = "AKTIV",
@@ -240,7 +254,18 @@ class ArenaServiceTest {
                 maxdatoAap = LocalDate.of(2026, 12, 12),
             ),
             unntaksvilkaarGjelderFra = null,
-            unntaksvilkaarInnvilget = null
+            unntaksvilkaarInnvilget = null,
+            vedtakene = listOf(
+                ArenaVedtak(
+                    sakId = sakId,
+                    statusKode = "IVERK",
+                    vedtaktypeKode = "O",
+                    fraOgMed = LocalDate.of(2025, 1, 1),
+                    tilDato = LocalDate.of(2026, 1, 1),
+                    rettighetkode = "AAP",
+                    utfallkode = "JA"
+                )
+            )
         )
     }
 }
@@ -257,7 +282,10 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
         return SignifikantHistorikkResponse.ingen
     }
 
-    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? = null
-
-    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? = null
+    override suspend fun historikkStatusDetalj(
+        person: Person,
+        mottattDato: LocalDate
+    ): HistorikkStatusDetaljResponse {
+        return HistorikkStatusDetaljResponse.ingen
+    }
 }
