@@ -24,6 +24,74 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         }
     }
 
+    suspend fun statusPå11_12Vurdering(
+        søker: Person, mottattDato: LocalDate, journalpostId: Long
+    ): Boolean? {
+        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
+        val sisteSak = historikk.sisteSakOgVedtak
+
+        val utfallAv11_12vurdering = sisteSak?.unntaksvilkaarInnvilget
+
+        // sjekk om det er registrert nytt vedtak som bærer 11-12 vurderingen, etter ny prosedyre
+        val eget11_12vedtak = historikk.sisteSakOgVedtak?.vedtakene?.find {
+            it.vedtaktypeKode == "O"
+                    && it.rettighetkode == "AAP"
+                    && it.utfallkode == "NEI"
+                    && it.fraOgMed?.isAfter(sisteSak?.sisteVedtak?.til) == true
+            // TODO krev også at det har registrert vedtaksfakta med unntak nei
+            // ha også med vedtakId slik at vi kan debugge ved behov
+            // og ha med aktfasekode, må være == AU eller UA
+        }
+
+        val resultat = if (utfallAv11_12vurdering == null) {
+            if (eget11_12vedtak != null) {
+                logger.debug("JournalpostId $journalpostId har et eget 11-12 vedtak: $eget11_12vedtak")
+                false // TODO hent ut verdien
+            } else {
+                null
+            }
+        } else {
+            utfallAv11_12vurdering
+        }
+
+        logger.info("JournalpostId $journalpostId har status for 11-12 vurdering: $resultat, løpende_vedtak: $utfallAv11_12vurdering, eget11_12vedtak: $eget11_12vedtak")
+
+        return resultat
+    }
+
+    suspend fun skalManueltFordeles(
+        søker: Person, mottattDato: LocalDate, journalpostId: Long
+    ): Boolean {
+        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
+        val sisteSak = historikk.sisteSakOgVedtak
+
+        val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
+
+
+        val tilManuellFordeling = when {
+            // Bruker har valgt å sende en ny søknad om AAP og ..
+            sisteSak == null -> false // maxdato er ikke definert
+            !maksdatoNærmerSeg -> false
+            sisteSak.utredesForUfor() -> false
+            sisteSak.erFerdigAvklart() -> false
+            sisteSak.erSykepengeErstatning() -> false
+            sisteSak.unntaksvilkaarInnvilget != null -> false // 11-12 er allerede vurdert
+            else -> {
+                // maksdato nærmer seg og spesial-situasjonene over treffer ikke
+                true
+            }
+        }
+        val logmsg: StringBuilder = StringBuilder()
+        logmsg.append("maksdatoNærmerSeg=$maksdatoNærmerSeg,")
+        logmsg.append("unntaksvilkaarInnvilget=${sisteSak?.unntaksvilkaarInnvilget}")
+        val tilstand = logmsg.toString()
+
+        logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak, tilstand: $tilstand")
+
+        return tilManuellFordeling
+
+    }
+
     suspend fun kanFordelesAutomatiskTilKelvinPga11_12_erMakset(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): Boolean {
