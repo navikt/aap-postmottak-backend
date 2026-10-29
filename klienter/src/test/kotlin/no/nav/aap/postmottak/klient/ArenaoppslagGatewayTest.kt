@@ -53,7 +53,8 @@ class ArenaoppslagGatewayTest {
 
     @Test
     fun `Kan parse historikkStatusDetalj`() {
-        val testPerson = TestPersoner.leggTil { arenaSak = TestArenaSak() }
+        val sak = TestArenaSak(sakId = 4321)
+        val testPerson = TestPersoner.leggTil { arenaSak = sak }
 
         val res = runBlocking {
             val person = Person(1, UUID.randomUUID(), listOf(testPerson.aktivIdent()))
@@ -61,7 +62,11 @@ class ArenaoppslagGatewayTest {
         }
 
         assertThat(res).isNotNull
-        assertThat(res.sisteSakOgVedtak?.sakId).isEqualTo(1234)
+        assertThat(res.sisteSakOgVedtak?.sakId).isEqualTo(sak.sakId)
+        assertThat(res.sisteSakOgVedtak?.saknummer).isEqualTo(sak.saknummer)
+        assertThat(res.sisteSakOgVedtak?.sisteVedtak?.vedtakId).isEqualTo(sak.sisteVedtak.vedtakId)
+        assertThat(res.sisteSakOgVedtak?.sisteVedtak?.maxdatoAap).isEqualTo(sak.sisteVedtak.maxdatoAap)
+        assertThat(res.sisteUtbetalingDato).isEqualTo(sak.sisteUtbetalingsdato)
     }
 
     @Test

@@ -35,7 +35,6 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteUtbetalingerResponse
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
