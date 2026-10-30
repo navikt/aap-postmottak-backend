@@ -138,8 +138,9 @@ klienter, mottak) ligger i `.github/instructions/` og gjelder når du lager elle
   den feilet.
 - Feilutsatte områder (andel fiks-commits 1,4–1,5 × snittet): `fordeler/arena`, `fordeler/regler`, `klient/pdl`,
   `klient/norg`, `klient/gosysoppgave`, `JournalpostService.kt`. Her skal det alltid være test for den nye grenen.
-- Før du sier «ferdig»: kompiler endrede moduler, kjør `coreTest` og `:arkitektur:test`, og si hvilke DB-/Kafka-tester
-  som gjenstår for mennesket eller CI.
+- Før du sier «ferdig»: kjør skillen `verifiser` (`.github/skills/verifiser/`). Den kompilerer endrede moduler, kjører
+  `coreTest`, `:arkitektur:test` og målrettede tester for filene du har endret, og sier hvilke DB-/Kafka-tester som
+  gjenstår for mennesket eller CI.
 
 ## Dokumentasjon
 - `README.md` (lokal kjøring, tester), `RUNBOOK.md` (driftsspørringer; inneholder SQL som henter fødselsnummer, bare for mennesker).
