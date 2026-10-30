@@ -124,6 +124,9 @@ Alle injiserbare klasser har en `companion object` som konstruerer dem fra provi
 `Informasjonskravkonstruktør`, `ProvidersJobbSpesifikasjon`, `RegelFactory`, `Factory` (repository og klient).
 Ingen DI-ramme. Parametertyper er grensesnittet, aldri `*Impl`.
 
+Regler for enkeltområder (steg, avklaringsbehov, repository og migrasjoner, kontrakt, api, fordelingsregler, jobber,
+klienter, mottak) ligger i `.github/instructions/` og gjelder når du lager eller endrer filer i området.
+
 ## Testing
 - Nivåer: stegtester, løsertester, regeltester og jobbtester med mockk uten DB (`flyt/src/test`, kjører i `coreTest`);
   klienttester mot fake-servere med `@Fakes`; `*RepositoryImplTest` mot Postgres (`TestDataSource`, `@Tag("db")`);
