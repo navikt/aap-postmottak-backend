@@ -20,6 +20,7 @@ import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.Fakes
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.io.BufferedWriter
 import java.io.FileWriter
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets
 import kotlin.test.fail
 
 @Fakes
+@Tag("db")
 class ApiTest {
 
     companion object {

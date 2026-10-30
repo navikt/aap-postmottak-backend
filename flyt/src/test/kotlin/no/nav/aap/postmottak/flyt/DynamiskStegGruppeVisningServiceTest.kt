@@ -26,9 +26,11 @@ import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
+@Tag("db")
 class DynamiskStegGruppeVisningServiceTest {
     val repositoryRegistry = RepositoryRegistry()
         .register<JournalpostRepositoryImpl>()
