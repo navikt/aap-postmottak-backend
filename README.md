@@ -38,6 +38,11 @@ hver kjøring. Filene kjører også når `TestApp`/`ApiTest` migrerer mot compos
 test-JVM-er er halvparten av kjernene; overstyr med `-PtestForks=N`, f.eks. når bare én modul testes på en maskin med
 mange kjerner (hver JVM med en `db`-test starter sin egen Postgres-container).
 
+Lokalt kjører testene uten Ryuk (Testcontainers sin opprydder), fordi den har feilet under last i Docker Desktop.
+Containerne stoppes da når test-JVM-en avslutter. Blir det likevel liggende igjen containere (f.eks. etter `kill -9`):
+`docker rm -f $(docker ps -aq --filter label=org.testcontainers)`.
+Etter endring av `TESTCONTAINERS_*`/`DOCKER_HOST` i skallet: `rm -rf .gradle/configuration-cache`.
+
 ### Kjøre lokalt mot dev-gcp
 
 Prosjektet inneholder en run config som kan kjøres av IntelliJ. Burde være synlig under "Run configurations" med navnet
