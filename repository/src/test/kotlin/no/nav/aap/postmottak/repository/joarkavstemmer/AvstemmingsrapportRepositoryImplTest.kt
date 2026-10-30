@@ -7,10 +7,12 @@ import no.nav.aap.postmottak.joarkavstemmer.Avstemmingsutfall
 import no.nav.aap.postmottak.joarkavstemmer.JournalpostAvstemmingsresultat
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AutoClose
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
 
+@Tag("db")
 class AvstemmingsrapportRepositoryImplTest {
     @AutoClose
     private val dataSource = TestDataSource()

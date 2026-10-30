@@ -15,6 +15,24 @@ For macOS og Linux anbefaler vi Colima. Det kan være nødvendig med et par tilp
 
 Ved lokal kjøring mot aap-saksbehandling, så finnes det genererte test oppgaver på http://localhost:3000/postmottak/ 
 
+### Tester
+
+```bash
+./gradlew coreTest                     # kjernetestene i alle moduler, uten Docker (~15 s)
+./gradlew :flyt:coreTest               # kjernetestene i én modul (~11 s)
+./gradlew test                         # alle testene, slik CI kjører dem (~1,5 min lokalt)
+./gradlew :flyt:test --tests "*Flyttest"
+```
+
+Testklasser som trenger Docker (Testcontainers) er tagget, og `coreTest` hopper over dem:
+
+- `@Tag("db")`: bruker Postgres via `TestDataSource` eller `postgreSQLContainer()`.
+- `@Tag("kafka")`: bruker Kafka-containeren (bare `Flyttest`).
+
+En ny test som bruker Docker uten tag feiler i `coreTest` med en melding om hvilken tag som mangler, så kjernetestene
+forblir raske og kan kjøres uten Docker. `coreTest` er et alias for `test` med filter og kan ikke kombineres med
+`test`/`check`/`build` i samme kommando.
+
 ### Kjøre lokalt mot dev-gcp
 
 Prosjektet inneholder en run config som kan kjøres av IntelliJ. Burde være synlig under "Run configurations" med navnet

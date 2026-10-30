@@ -21,9 +21,11 @@ import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
+@Tag("db")
 internal class JournalpostRepositoryImplTest {
     private lateinit var dataSource: TestDataSource
 

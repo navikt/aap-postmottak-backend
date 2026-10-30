@@ -12,9 +12,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
+@Tag("db")
 internal class DigitaliseringsvurderingRepositoryImplTest {
 
     private lateinit var dataSource: TestDataSource

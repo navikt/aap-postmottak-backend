@@ -6,8 +6,10 @@ import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AutoClose
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("db")
 class ManuellFordelingRepositoryImplTest {
 
     @AutoClose
