@@ -126,6 +126,8 @@ Ingen DI-ramme. Parametertyper er grensesnittet, aldri `*Impl`.
 
 Regler for enkeltområder (steg, avklaringsbehov, repository og migrasjoner, kontrakt, api, fordelingsregler, jobber,
 klienter, mottak) ligger i `.github/instructions/` og gjelder når du lager eller endrer filer i området.
+Oppskrifter for vanlige endringer finnes som skills i `.github/skills/`: `nytt-steg`, `nytt-avklaringsbehov`,
+`ny-regel`, `ny-jobb`, `ny-klient`. Bruk dem.
 
 ## Testing
 - Nivåer: stegtester, løsertester, regeltester og jobbtester med mockk uten DB (`flyt/src/test`, kjører i `coreTest`);
