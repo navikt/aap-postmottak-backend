@@ -57,7 +57,8 @@ if (kjørerCoreTest && gradle.startParameter.taskNames.any { it.substringAfterLa
 tasks {
     test {
         useJUnitPlatform()
-        maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
+        // Overstyr med -PtestForks=N, f.eks. når bare én modul testes på en maskin med mange kjerner
+        maxParallelForks = providers.gradleProperty("testForks").orNull?.toInt() ?: (Runtime.getRuntime().availableProcessors() / 2)
         testLogging {
             events("passed", "skipped", "failed")
         }

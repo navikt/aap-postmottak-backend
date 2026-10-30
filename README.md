@@ -33,6 +33,11 @@ En ny test som bruker Docker uten tag feiler i `coreTest` med en melding om hvil
 forblir raske og kan kjøres uten Docker. `coreTest` er et alias for `test` med filter og kan ikke kombineres med
 `test`/`check`/`build` i samme kommando.
 
+Testdatabasene kjører uten fsync (`lib-test/src/main/resources/flyway/beforeMigrate__*.sql`), siden de kastes etter
+hver kjøring. Filene kjører også når `TestApp`/`ApiTest` migrerer mot compose-Postgres på port 5441. Antall parallelle
+test-JVM-er er halvparten av kjernene; overstyr med `-PtestForks=N`, f.eks. når bare én modul testes på en maskin med
+mange kjerner (hver JVM med en `db`-test starter sin egen Postgres-container).
+
 ### Kjøre lokalt mot dev-gcp
 
 Prosjektet inneholder en run config som kan kjøres av IntelliJ. Burde være synlig under "Run configurations" med navnet
