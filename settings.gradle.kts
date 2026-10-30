@@ -16,7 +16,8 @@ include(
     "repository",
     "kontrakt",
     "flyt",
-    "klienter"
+    "klienter",
+    "arkitektur"
 )
 
 dependencyResolutionManagement {
