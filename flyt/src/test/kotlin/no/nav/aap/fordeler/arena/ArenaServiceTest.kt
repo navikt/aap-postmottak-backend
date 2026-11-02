@@ -1,25 +1,20 @@
 package no.nav.aap.fordeler.arena
 
-import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
+import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.createGatewayProvider
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.UUID
-import kotlinx.coroutines.runBlocking
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.TelleverkForPerson
-import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
 
 class ArenaServiceTest {
 
@@ -68,8 +63,10 @@ class ArenaServiceTest {
         val sisteSakId = 1234
         val historikk = SignifikantHistorikkResponse(
             true,
-            listOf(arenaVedtak(sakId = sisteSakId, rettighetskode = "AAP"),
-                arenaVedtak(sakId = sisteSakId, rettighetskode = "AA115"))
+            listOf(
+                arenaVedtak(sakId = sisteSakId, rettighetskode = "AAP"),
+                arenaVedtak(sakId = sisteSakId, rettighetskode = "AA115")
+            )
         )
         val sisteSak = sakMedId(sisteSakId)
 
@@ -124,7 +121,8 @@ class ArenaServiceTest {
     @Test
     fun `sakenHarBegyntPåAndreÅretMedUnntak true naar unntak er mer enn 18 mnd siden`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
-        val unntaksDato = mottattDato.minusYears(2).plusWeeks(hentMaksAntallUkerFørUtløpMaksimalt()).minusDays(1) // 19 months + 1 day ago
+        val unntaksDato = mottattDato.minusYears(2).plusWeeks(hentMaksAntallUkerFørUtløpMaksimalt())
+            .minusDays(1) // 19 months + 1 day ago
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
 
         assertTrue(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
@@ -181,7 +179,9 @@ class ArenaServiceTest {
         null,
         null,
         rettighetskode,
-        null
+        null,
+        1,
+        "AU"
     )
 
     private fun sakMedId(sakId: Int): SisteSakDetaljer {
@@ -212,7 +212,9 @@ class ArenaServiceTest {
                     fraOgMed = LocalDate.of(2025, 1, 1),
                     tilDato = LocalDate.of(2026, 1, 1),
                     rettighetkode = "AAP",
-                    utfallkode = "JA"
+                    utfallkode = "JA",
+                    1,
+                    "AU"
                 )
             )
         )
@@ -230,10 +232,6 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
     override suspend fun harSignifikantHistorikk(person: Person, mottattDato: LocalDate): SignifikantHistorikkResponse {
         return SignifikantHistorikkResponse.ingen
     }
-
-    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? = null
-
-    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? = null
 
     override suspend fun historikkStatusDetalj(
         person: Person,
