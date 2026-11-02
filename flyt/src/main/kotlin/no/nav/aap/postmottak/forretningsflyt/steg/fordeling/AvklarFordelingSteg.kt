@@ -7,6 +7,8 @@ import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
 import no.nav.aap.fordeler.arena.ArenaService
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.IkkeRelevantSøknad
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
@@ -17,7 +19,6 @@ import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
-import no.nav.aap.postmottak.flyt.steg.FantAvklaringsbehov
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
@@ -26,7 +27,6 @@ import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.tellOppbruktRettighetResultat
 import no.nav.aap.unleash.UnleashGateway
@@ -95,42 +95,37 @@ class AvklarFordelingSteg(
 
         val regelresultat = vurderFordelingRegler(kontekst, innkommendeJournalpost)
 
+        val oppbruktRettighetIArenaResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
         // Togglet av for nå
-        val oppbruktRettighetIArena = kunOppbruktRettighetIArena(safJournalpost, kontekst)
-        val erKantIKant = false && oppbruktRettighetIArena
+        val kantIKantSakSomSkalTilKelvin = false && oppbruktRettighetIArenaResultat.skalTilKelvin()
 
-
-        if (erKantIKant) {
-            log.info("Journalpost ${kontekst.journalpostId} er kant-i-kant og kan sendes til Kelvin")
-            return FantAvklaringsbehov(Definisjon.AVKLAR_FORDELING)
+        val system = if (regelresultat.skalTilKelvin() || kantIKantSakSomSkalTilKelvin) {
+            AapSystem.KELVIN
         } else {
-            val system = if(regelresultat.skalTilKelvin()) {
-                AapSystem.KELVIN
-            } else {
-                AapSystem.ARENA
-            }
-            avklarFordelingRepository.lagreVurdering(
-                kontekst.behandlingId,
-                AvklarFordelingVurdering(
-                    system = system,
-                    vurdertAv = SYSTEMBRUKER.ident,
-                    vurdertTidspunkt = LocalDateTime.now(),
-                    kommentar = "Automatisk vurdert fordeling"
-                )
-            )
-            return Fullført
-
+            AapSystem.ARENA
         }
+        avklarFordelingRepository.lagreVurdering(
+            kontekst.behandlingId,
+            AvklarFordelingVurdering(
+                system = system,
+                vurdertAv = SYSTEMBRUKER.ident,
+                vurdertTidspunkt = LocalDateTime.now(),
+                kommentar = "Automatisk vurdert fordeling"
+            )
+        )
+        return Fullført
     }
 
-    private fun kunOppbruktRettighetIArena(safJournalpost: SafJournalpost, kontekst: FlytKontekst): Boolean {
-        val brevkode = safJournalpost.hoveddokument()?.brevkode ?: return false
-
+    private fun erRettighetOppbruktIArena(
+        safJournalpost: SafJournalpost,
+        kontekst: FlytKontekst
+    ): OppbruktRettighetResultat {
+        val brevkode = safJournalpost.hoveddokument()?.brevkode
         if (brevkode != Brevkoder.SØKNAD.kode) {
-            return false
+            return IkkeRelevantSøknad
         }
-        val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
 
+        val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
         val oppbruktRettighetResultat = runBlocking {
             arenaService.harOppbruktRettighet(
                 søker = journalpost.person,
@@ -140,10 +135,13 @@ class AvklarFordelingSteg(
         }
         prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat).increment()
 
-        return oppbruktRettighetResultat is HarOppbruktRettighet
+        return oppbruktRettighetResultat
     }
 
-    private fun vurderFordelingRegler(kontekst: FlytKontekst, innkommendeJournalpost: InnkommendeJournalpost): Regelresultat {
+    private fun vurderFordelingRegler(
+        kontekst: FlytKontekst,
+        innkommendeJournalpost: InnkommendeJournalpost
+    ): Regelresultat {
         if (innkommendeJournalpost.regelresultat != null) {
             log.info("Journalposten med ID (${kontekst.journalpostId}) har allerede blitt evaluert - behandler ikke videre")
             return innkommendeJournalpost.regelresultat

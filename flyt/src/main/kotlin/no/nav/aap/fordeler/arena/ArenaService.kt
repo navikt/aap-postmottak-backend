@@ -8,6 +8,7 @@ import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeO
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.VedtattAtIkkeForlenges
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.postmottak.Fagsystem
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.jetbrains.annotations.TestOnly
@@ -45,6 +46,9 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     }
 
     sealed class OppbruktRettighetResultat private constructor() {
+
+        fun skalTilKelvin() = this is HarOppbruktRettighet
+
         sealed class HarOppbruktRettighet private constructor() : OppbruktRettighetResultat() {
             data object HarBruktOppForlengelsen : HarOppbruktRettighet()
             data object VedtattAtIkkeForlenges : HarOppbruktRettighet()

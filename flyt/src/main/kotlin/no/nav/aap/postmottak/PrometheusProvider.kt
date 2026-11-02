@@ -96,7 +96,7 @@ fun MeterRegistry.tellOppbruktRettighetResultat(oppbruktRettighetResultat: Arena
         "postmottak_kant_i_kant_maks_fordeling",
         listOf(
             Tag.of("helt_oppbrukt_kvote", bruktOppFemÅr.toString()),
-            Tag.of("forlenges_ikke", bruktOppTreÅrForlengesIkke.toString())
+            Tag.of("vedtatt_forlenges_ikke", bruktOppTreÅrForlengesIkke.toString())
         )
     )
 }
