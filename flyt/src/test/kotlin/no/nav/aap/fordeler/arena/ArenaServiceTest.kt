@@ -52,26 +52,6 @@ class ArenaServiceTest {
         assertEquals(IkkeRelevantSøknad, vurder(null))
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "UVUP, true", "UVUP, false", "UVUP,",
-        "FA, true", "FA, false", "FA,",
-        "SPE, true", "SPE, false", "SPE,"
-    )
-    fun `søknaden er ikke relevant for utredning av uførhet ferdig avklart eller sykepengeerstatning`(
-        aktivitetsfase: String,
-        unntaksvilkaarInnvilget: Boolean?
-    ) = runBlocking {
-        val sak = sakMedId(1234).let {
-            it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
-                sisteVedtak = it.sisteVedtak.copy(aktfaseKode = aktivitetsfase, maxdatoUnntak = maksdato)
-            )
-        }
-
-        assertEquals(IkkeRelevantSøknad, vurder(sak))
-    }
-
     @Test
     fun `avslått forlengelse gir oppbrukt rettighet`() = runBlocking {
         val sak = sakMedId(1234).copy(unntaksvilkaarInnvilget = false)

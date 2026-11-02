@@ -55,20 +55,21 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): OppbruktRettighetResultat {
         val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
-        val sisteSak = historikk.sisteSakOgVedtak
+        val sisteSak = historikk.sisteSakOgVedtak // aktivitetsfase er UA eller AU
+        if (sisteSak == null) {
+            logger.info("Journalpost $journalpostId har ingen aktuell sak i Arena, vurderer som ikke relevant")
+            return IkkeRelevantSøknad
+        }
 
         val tilDatoErIkkeLikOrdinærMaksdato = !erTildatoLikMaksdatoInnenforToleranse(sisteSak)
         val tilDatoErLikMaksdatoForUnntak = erTildatoLikMaksdatoForUnntakInnenforToleranse(sisteSak)
         val maksdatoErIkkeInnenRimeligTid = !maksDatoNærmerSeg(sisteSak, mottattDato)
-        val skalIkkeForlenges = unntakEtter11_12Er(historikk) == false
-        val erAlleredeForlenget = unntakEtter11_12Er(historikk) == true
+        val skalIkkeForlenges = sisteSak.unntaksvilkaarIkkeOppfylt()
+        val erAlleredeForlenget = sisteSak.unntaksvilkaarOppfylt()
 
         val harKunOppbrukt = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             sisteSak == null -> IkkeRelevantSøknad // har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
-            sisteSak.utredesForUfor() -> IkkeRelevantSøknad
-            sisteSak.erFerdigAvklart() -> IkkeRelevantSøknad
-            sisteSak.erSykepengeErstatning() -> IkkeRelevantSøknad
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
             tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // søknaden er ikke kant-i-kant med ytelsen i Arena
             // Tilfellet med å ha brukt opp ordinær kvote og unntaksvilkårene for 11-12 er oppfylt
@@ -94,11 +95,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         logger.info("Journalpost $journalpostId er 'kant-i-kant': $harKunOppbrukt, sak: $sisteSak, tilstand: $tilstand")
 
         return harKunOppbrukt
-    }
-
-    private fun unntakEtter11_12Er(historikk: HistorikkStatusDetaljResponse): Boolean? {
-        val unntaksvilkaarInnvilget = historikk.sisteSakOgVedtak?.unntaksvilkaarInnvilget
-        return unntaksvilkaarInnvilget
     }
 
     private fun maksDatoNærmerSeg(
