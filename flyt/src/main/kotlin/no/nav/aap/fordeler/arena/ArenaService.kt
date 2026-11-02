@@ -8,7 +8,9 @@ import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
+import java.time.Duration
 import java.time.LocalDate
+import java.time.Period
 
 @Suppress("MagicNumber")
 class ArenaService(gatewayProvider: GatewayProvider) {
@@ -17,6 +19,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
     companion object {
         private const val antallUkerFørUtløpMaksimalt = 26L // hvor mange uker før utløp av ytelsen bruker kan søke
+        private val periodeFørMaksdato = Period.ofMonths(6)
+        private val toleranse = Duration.ofDays(5)
 
         @TestOnly
         fun hentMaksAntallUkerFørUtløpMaksimalt(): Long {
@@ -28,41 +32,87 @@ class ArenaService(gatewayProvider: GatewayProvider) {
      * @return null hvis vurderingen ikke er gjort enda, true hvis innvilget, false hvis avslått
      */
     suspend fun statusPå11_12Vurdering(
-        søker: Person, mottattDato: LocalDate, journalpostId: Long
+        søker: Person, mottattDato: LocalDate
     ): Boolean? {
+        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
+
+        return historikk.sisteSakOgVedtak?.unntaksvilkaarInnvilget
+    }
+
+    suspend fun harKunOppbruktRettighet(
+        søker: Person, mottattDato: LocalDate, journalpostId: Long
+    ): Boolean {
         val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
         val sisteSak = historikk.sisteSakOgVedtak
 
-        // er den gjort etter ordinær prosedyre?
-        val utfallAv11_12vurdering = sisteSak?.unntaksvilkaarInnvilget
+        val tilDatoErIkkeLikMaksdato = !erTildatoLikMaksdatoInnenforToleranse(sisteSak)
+        val maksdatoErIkkeInnenRimeligTid = !maksDatoNærmerSeg(sisteSak, mottattDato)
+        val skalIkkeForlenges = unntakEtter11_12ErVurdertTilNei(historikk)
+        val erTildatoLikMaksdatoForUnntakInnenforToleranse = erTildatoLikMaksdatoForUnntakInnenforToleranse(sisteSak)
 
-        // er den gjort etter ny prosedyre?
-        val eget11_12vedtak = sisteSak?.vedtakene?.find {
-            it.vedtaktypeKode == "O"
-                    && it.rettighetkode == "AAP"
-                    && it.utfallkode == "NEI"
-                    && it.fraOgMed?.isAfter(sisteSak.sisteVedtak.til) == true
-            // TODO krev også at det har registrert vedtaksfakta med unntak nei
-            // ha også med vedtakId slik at vi kan debugge ved behov
-            // og ha med aktfasekode, må være == AU eller UA
-        }
-
-        val resultat = if (utfallAv11_12vurdering == null) {
-            if (eget11_12vedtak != null) {
-                logger.debug("JournalpostId $journalpostId har et 11-12 vedtak etter ny prosedyre: $eget11_12vedtak")
-                false // TODO hent ut verdien
-            } else {
-                null
+        val harKunOppbrukt = when {
+            // Bruker har valgt å sende en ny søknad om AAP og ..
+            sisteSak == null -> false // har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
+            sisteSak.utredesForUfor() -> false
+            sisteSak.erFerdigAvklart() -> false
+            sisteSak.erSykepengeErstatning() -> false
+            maksdatoErIkkeInnenRimeligTid -> false
+            tilDatoErIkkeLikMaksdato -> false
+            // tilfellet med å ha brukt opp ordinær kvote og unntaksvilkår for 11-12 ikke er oppfylt
+            !skalIkkeForlenges -> true
+            else -> {
+                // Tilfellet med å ha fått maks to av to år med unntaksvilkår for 11-12
+                erTildatoLikMaksdatoForUnntakInnenforToleranse
             }
-        } else {
-            utfallAv11_12vurdering
         }
+        val logmsg: StringBuilder = StringBuilder()
+        logmsg.append("tilDatoErLikMaksdato=${!tilDatoErIkkeLikMaksdato},")
+        logmsg.append("maksdatoErInnenRimeligTid=${!maksdatoErIkkeInnenRimeligTid}")
+        logmsg.append("vedtatt at ikke forlenges=${skalIkkeForlenges}")
+        logmsg.append("brukt opp fem år=${erTildatoLikMaksdatoForUnntakInnenforToleranse}")
+        val tilstand = logmsg.toString()
 
-        logger.info("JournalpostId $journalpostId har status for 11-12 vurdering: $resultat, løpende_vedtak: $utfallAv11_12vurdering, eget11_12vedtak: $eget11_12vedtak")
+        logger.info("Journalpost $journalpostId er 'kant-i-kant': $harKunOppbrukt, sak: $sisteSak, tilstand: $tilstand")
 
-        return resultat
+        return harKunOppbrukt
     }
 
+    private fun unntakEtter11_12ErVurdertTilNei(historikk: HistorikkStatusDetaljResponse): Boolean {
+        val unntaksvilkaarInnvilget = historikk.sisteSakOgVedtak?.unntaksvilkaarInnvilget
+        val unntakIkkeInvilget = unntaksvilkaarInnvilget == false
+        return unntakIkkeInvilget
+    }
+
+    private fun maksDatoNærmerSeg(
+        sisteSak: SisteSakDetaljer?,
+        mottattDato: LocalDate
+    ): Boolean {
+        return sisteSak?.sisteVedtak?.maxdatoAap?.minus(periodeFørMaksdato)?.isBefore(mottattDato) == true
+    }
+
+    private fun erTildatoLikMaksdatoInnenforToleranse(sisteSak: SisteSakDetaljer?): Boolean {
+        return erDatoerInnenforToleranse(
+            sisteSak?.sisteVedtak?.til,
+            sisteSak?.sisteVedtak?.maxdatoOrdinaer
+        )
+    }
+
+    private fun erTildatoLikMaksdatoForUnntakInnenforToleranse(sisteSak: SisteSakDetaljer?): Boolean {
+        return erDatoerInnenforToleranse(
+            sisteSak?.sisteVedtak?.til,
+            sisteSak?.sisteVedtak?.maxdatoUnntak
+        )
+    }
+
+    private fun erDatoerInnenforToleranse(tilDato: LocalDate?, maksdato: LocalDate?): Boolean =
+        if (tilDato == null || maksdato == null) {
+            false
+        } else {
+            val avstand = Duration.between(tilDato.atStartOfDay(), maksdato.atStartOfDay()).abs()
+            toleranse >= avstand
+        }
+
+    @Deprecated("Bruk statusPå11_12Vurdering() eller harKunOppbruktRettighet()")
     suspend fun skalManueltFordeles(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): Boolean {
@@ -70,7 +120,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val sisteSak = historikk.sisteSakOgVedtak
 
         val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
-
 
         val tilManuellFordeling = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
