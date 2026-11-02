@@ -1,6 +1,5 @@
 package no.nav.aap.fordeler.arena
 
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.IkkeRelevantSøknad
@@ -10,7 +9,6 @@ import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbr
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
-import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.Period
@@ -23,14 +21,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
-        private const val antallUkerFørUtløpMaksimalt = 26L // hvor mange uker før utløp av ytelsen bruker kan søke
         private val periodeFørMaksdato = Period.ofWeeks(26)
-        private val toleranse = 5.days
-
-        @TestOnly
-        fun hentMaksAntallUkerFørUtløpMaksimalt(): Long {
-            return antallUkerFørUtløpMaksimalt
-        }
+        private val toleranseForLikeDatoer = 5.days
     }
 
     /**
@@ -134,7 +126,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             false
         } else {
             val dagerMellom = ChronoUnit.DAYS.between(tilDato, maksdato).days
-            dagerMellom.absoluteValue <= toleranse
+            dagerMellom.absoluteValue <= toleranseForLikeDatoer
         }
 
     private suspend fun hentSisteVedtakMedEffektivMaksdato(
