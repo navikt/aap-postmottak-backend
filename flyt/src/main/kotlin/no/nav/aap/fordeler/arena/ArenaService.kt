@@ -103,6 +103,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         sisteSak: SisteSakDetaljer?,
         mottattDato: LocalDate
     ): Boolean {
+        // bruker den siste av ordinær eller unntaks-maksdatoen for å vurdere om søknaden er relevant
         return sisteSak?.sisteVedtak?.maxdatoAap?.isBefore(mottattDato + periodeFørMaksdato) == true
     }
 
