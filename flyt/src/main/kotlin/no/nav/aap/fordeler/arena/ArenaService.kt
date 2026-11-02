@@ -55,8 +55,9 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): OppbruktRettighetResultat {
         val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
-        val sisteSak = historikk.sisteSakOgVedtak // aktivitetsfase er UA eller AU
+        val sisteSak = historikk.sisteSakOgVedtak
         if (sisteSak == null) {
+            //søker har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
             logger.info("Journalpost $journalpostId har ingen aktuell sak i Arena, vurderer som ikke relevant")
             return IkkeRelevantSøknad
         }
@@ -69,7 +70,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         val harKunOppbrukt = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
-            sisteSak == null -> IkkeRelevantSøknad // har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
             tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // søknaden er ikke kant-i-kant med ytelsen i Arena
             // Ordinær kvote er brukt opp og unntaksvilkårene for 11-12 er /IKKE/ oppfylt
