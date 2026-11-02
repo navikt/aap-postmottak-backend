@@ -51,6 +51,7 @@ public enum class Definisjon(
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.OVERLEVER_TIL_FAGSYSTEM
     ),
+    @Deprecated("Manuell fordeling er fjernet. Fordeling skjer alltid automatisk; finnes bare i historiske data.")
     AVKLAR_FORDELING(
         kode = AvklaringsbehovKode.`1343`,
         type = BehovType.MANUELT_PÅKREVD,
