@@ -144,6 +144,7 @@ class FakeServers : AutoCloseable {
         System.setProperty("INTEGRASJON_EREG_URL", "http://localhost:${eregFake.port()}")
         System.setProperty("INTEGRASJON_EREG_SCOPE", "scope")
 
+        System.setProperty("AAP_DRIFT", UUID.randomUUID().toString())
         System.setProperty("AAP_DRIFT_LES", UUID.randomUUID().toString())
     }
 
