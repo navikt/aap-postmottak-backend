@@ -70,10 +70,11 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             sisteSak.erFerdigAvklart() -> IkkeRelevantSøknad
             sisteSak.erSykepengeErstatning() -> IkkeRelevantSøknad
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
-            tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // det er ikke kant-i-kant med ytelsen i Arena
-            // tilfellet med å ha brukt opp ordinær kvote og unntaksvilkår for 11-12 ikke er oppfylt
-            skalIkkeForlenges -> VedtattAtIkkeForlenges
+            tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // søknaden er ikke kant-i-kant med ytelsen i Arena
+            // Tilfellet med å ha brukt opp ordinær kvote og unntaksvilkårene for 11-12 er oppfylt
             erAlleredeForlenget -> VedtattForlenget
+            // Det samme tilfellet, men vilkårene er vurdert til å ikke være oppfylt
+            skalIkkeForlenges -> VedtattAtIkkeForlenges
             else -> {
                 if (tilDatoErLikMaksdatoForUnntak) {
                     // Tilfellet med å ha fått maks to av to år med unntaksvilkår for 11-12
