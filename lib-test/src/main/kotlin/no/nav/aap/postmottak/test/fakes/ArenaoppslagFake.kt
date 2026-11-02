@@ -46,6 +46,7 @@ fun Application.arenaoppslagFake() {
                     """
                     {
                       "harSignifikantHistorikk" : true,
+                      "ukjentResponsfelt": {"verdi": true},
                       "signifikanteVedtak" : [
                         {
                           "sakId": 1234,
@@ -54,7 +55,10 @@ fun Application.arenaoppslagFake() {
                           "fraOgMed": null,
                           "tilDato": null,
                           "rettighetkode": "AAP",
-                          "utfallkode": null
+                          "utfallkode": null,
+                          "vedtakId": 5678,
+                          "aktivitetsfaseKode": "UA",
+                          "ukjentVedtaksfelt": {"verdier": [1, 2]}
                         }
                       ]
                     }

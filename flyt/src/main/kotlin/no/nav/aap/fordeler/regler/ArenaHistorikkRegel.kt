@@ -87,6 +87,7 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
                         "saker=${signifikantHistorikk}, journalpostId=${input.journalpostId}"
             )
             if (erSøknad) {
+                // TODO flytt denne målingen ut
                 runCatching {
                     // Måles kun, påvirker ikke funksjonaliteten
                     runBlocking {

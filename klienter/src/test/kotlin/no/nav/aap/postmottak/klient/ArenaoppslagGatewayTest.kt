@@ -40,7 +40,7 @@ class ArenaoppslagGatewayTest {
     }
 
     @Test
-    fun `Kan parse harSignifikantHistorikk`() {
+    fun `harSignifikantHistorikk ignorerer ukjente felt i respons og vedtak`() {
         val testPerson = TestPersoner.leggTil { harHistorikkIArena = true }
 
         val vedtak = runBlocking {
@@ -48,7 +48,12 @@ class ArenaoppslagGatewayTest {
             arenaOppslagGatewayFake.harSignifikantHistorikk(person, LocalDate.now())
         }
 
+        assertThat(vedtak.harSignifikantHistorikk).isTrue()
         assertThat(vedtak.saker()).containsExactly(1234)
+        val signifikantVedtak = vedtak.signifikanteVedtak.single()
+        assertThat(signifikantVedtak.vedtakId).isEqualTo(5678)
+        assertThat(signifikantVedtak.aktivitetsfaseKode).isEqualTo("UA")
+        assertThat(signifikantVedtak.rettighetkode).isEqualTo("AAP")
     }
 
     @Test

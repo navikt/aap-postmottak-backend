@@ -112,39 +112,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             toleranse >= avstand
         }
 
-    @Deprecated("Bruk statusPå11_12Vurdering() eller harKunOppbruktRettighet()")
-    suspend fun skalManueltFordeles(
-        søker: Person, mottattDato: LocalDate, journalpostId: Long
-    ): Boolean {
-        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
-        val sisteSak = historikk.sisteSakOgVedtak
-
-        val maksdatoNærmerSeg = maksdatoNærmerSeg(sisteSak, mottattDato)
-
-        val tilManuellFordeling = when {
-            // Bruker har valgt å sende en ny søknad om AAP og ..
-            sisteSak == null -> false // maxdato er ikke definert
-            !maksdatoNærmerSeg -> false
-            sisteSak.utredesForUfor() -> false
-            sisteSak.erFerdigAvklart() -> false
-            sisteSak.erSykepengeErstatning() -> false
-            sisteSak.unntaksvilkaarInnvilget != null -> false // 11-12 er allerede vurdert
-            else -> {
-                // maksdato nærmer seg og spesial-situasjonene over treffer ikke
-                true
-            }
-        }
-        val logmsg: StringBuilder = StringBuilder()
-        logmsg.append("maksdatoNærmerSeg=$maksdatoNærmerSeg,")
-        logmsg.append("unntaksvilkaarInnvilget=${sisteSak?.unntaksvilkaarInnvilget}")
-        val tilstand = logmsg.toString()
-
-        logger.info("Journalpost $journalpostId er 'kant-i-kant': $tilManuellFordeling, sak: $sisteSak, tilstand: $tilstand")
-
-        return tilManuellFordeling
-
-    }
-
+    @Deprecated("Bruk oppbruktRettighet()")
     suspend fun kanFordelesAutomatiskTilKelvinPga11_12_erMakset(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): Boolean {
