@@ -81,6 +81,7 @@ val toolchainLauncher = javaToolchains.launcherFor {
 tasks.withType<Test>().configureEach {
     javaLauncher.set(toolchainLauncher)
     systemProperty("net.bytebuddy.safe", "true")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
 tasks.withType<JavaExec>().configureEach { javaLauncher.set(toolchainLauncher) }
 
