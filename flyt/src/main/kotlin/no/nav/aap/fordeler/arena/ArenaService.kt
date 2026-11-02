@@ -72,14 +72,16 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             sisteSak == null -> IkkeRelevantSøknad // har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
             tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // søknaden er ikke kant-i-kant med ytelsen i Arena
-            // Tilfellet med å ha brukt opp ordinær kvote og unntaksvilkårene for 11-12 er oppfylt
-            erAlleredeForlenget -> VedtattForlenget
-            // Det samme tilfellet, men vilkårene er vurdert til å ikke være oppfylt
+            // Ordinær kvote er brukt opp og unntaksvilkårene for 11-12 er /IKKE/ oppfylt
             skalIkkeForlenges -> VedtattAtIkkeForlenges
             else -> {
-                if (tilDatoErLikMaksdatoForUnntak) {
-                    // Tilfellet med å ha fått maks to av to år med unntaksvilkår for 11-12
+                if (tilDatoErLikMaksdatoForUnntak && erAlleredeForlenget) {
+                    // Har fått forlengelse og brukt den helt opp
                     HarBruktOppForlengelsen
+                } else if (erAlleredeForlenget) {
+                    // Forlenget, men vi er ikke ved utløpet av unntaksperioden
+                    // Feks. søkeren er på år ett av to av forlengelsen
+                    VedtattForlenget
                 } else {
                     IkkeRelevantSøknad
                 }

@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 
 class ArenaServiceTest {
@@ -45,7 +44,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `innvilget forlengelse gir ikke oppbrukt rettighet`() = runBlocking {
+    fun `innvilget forlengelse uten maksdato for unntak gir ikke oppbrukt rettighet`() = runBlocking {
         val sak = sisteSak().copy(unntaksvilkaarInnvilget = true)
 
         assertEquals(VedtattForlenget, vurder(sak))
@@ -57,16 +56,33 @@ class ArenaServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(longs = [-6, -5, 0, 5, 6])
-    fun `forlengelsen er oppbrukt når sluttdato er innen fem dager fra maksdato for unntak`(
-        avvikIDager: Long
+    @CsvSource(
+        "null, true", "-6, true", "-5, true", "0, true", "5, true", "6, true",
+        "null, false", "-6, false", "-5, false", "0, false", "5, false", "6, false",
+        "null, null", "-6, null", "-5, null", "0, null", "5, null", "6, null",
+        nullValues = ["null"]
+    )
+    fun `forlengelsen er bare oppbrukt når den er innvilget og sluttdato er innen fem dager fra maksdato for unntak`(
+        avvikIDager: Long?,
+        unntaksvilkaarInnvilget: Boolean?
     ) = runBlocking {
         val sak = sisteSak().let {
-            it.copy(sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato.plusDays(avvikIDager)))
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = avvikIDager?.let(maksdato::plusDays))
+            )
         }
 
         assertEquals(
-            if (avvikIDager in -5L..5L) HarBruktOppForlengelsen else IkkeRelevantSøknad,
+            when (unntaksvilkaarInnvilget) {
+                true -> if (avvikIDager != null && avvikIDager in -5L..5L) {
+                    HarBruktOppForlengelsen
+                } else {
+                    VedtattForlenget
+                }
+                false -> VedtattAtIkkeForlenges
+                null -> IkkeRelevantSøknad
+            },
             vurder(sak)
         )
     }
@@ -95,9 +111,9 @@ class ArenaServiceTest {
         assertEquals(
             when {
                 avvikIDager !in -5L..5L -> IkkeRelevantSøknad
-                unntaksvilkaarInnvilget == true -> VedtattForlenget
+                unntaksvilkaarInnvilget == true -> HarBruktOppForlengelsen
                 unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
-                else -> HarBruktOppForlengelsen
+                else -> IkkeRelevantSøknad
             },
             vurder(sak)
         )
@@ -154,33 +170,10 @@ class ArenaServiceTest {
         assertEquals(
             when {
                 dagerTilEffektivMaksdato >= 182 -> IkkeRelevantSøknad
-                unntaksvilkaarInnvilget == true -> VedtattForlenget
+                unntaksvilkaarInnvilget == true -> HarBruktOppForlengelsen
                 unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
-                else -> HarBruktOppForlengelsen
+                else -> IkkeRelevantSøknad
             },
-            vurder(sak)
-        )
-    }
-
-    @ParameterizedTest
-    @CsvSource(
-        "null, true", "-6, true", "0, true", "6, true",
-        "null, false", "-6, false", "0, false", "6, false",
-        nullValues = ["null"]
-    )
-    fun `vurderingen av unntak har forrang uansett maksdato for unntak`(
-        avvikIDager: Long?,
-        unntaksvilkaarInnvilget: Boolean
-    ) = runBlocking {
-        val sak = sisteSak().let {
-            it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
-                sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = avvikIDager?.let(maksdato::plusDays))
-            )
-        }
-
-        assertEquals(
-            if (unntaksvilkaarInnvilget) VedtattForlenget else VedtattAtIkkeForlenges,
             vurder(sak)
         )
     }
