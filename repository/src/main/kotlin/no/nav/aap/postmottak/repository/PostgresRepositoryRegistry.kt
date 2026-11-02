@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.repository.fordeler.InnkommendeJournalpostRepositor
 import no.nav.aap.postmottak.repository.fordeler.ManuellFordelingRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.RegelRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
+import no.nav.aap.postmottak.repository.joarkavstemmer.AvstemmingsrapportRepositoryImpl
 import no.nav.aap.postmottak.repository.lås.TaSkriveLåsRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 
@@ -33,3 +34,4 @@ val postgresRepositoryRegistry = RepositoryRegistry()
         .register<FlytJobbRepositoryImpl>()
         .register<GjenopptakRepositoryImpl>()
         .register<ManuellFordelingRepositoryImpl>()
+        .register<AvstemmingsrapportRepositoryImpl>()

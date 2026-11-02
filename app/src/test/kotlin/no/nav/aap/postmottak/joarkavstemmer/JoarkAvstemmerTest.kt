@@ -83,6 +83,9 @@ class JoarkAvstemmerTest {
         every { gosysOppgaveGateway.finnOppgaverForJournalpost(any(), any(), any(), any()) } returns listOf(1L)
         every { regelRepository.hentRegelresultat(any<JournalpostId>()) } returns null
 
+        assertThat(joarkAvstemmer().avstem())
+            .isEqualTo(listOf(AvstemmingsResultat.AlleredeHarOppgave(JournalpostId(1))))
+
         verify(exactly = 0) {
             gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
                 any(),
@@ -108,7 +111,15 @@ class JoarkAvstemmerTest {
         } just runs
         val listAppender = opprettListAppender()
 
-        joarkAvstemmer().avstem()
+        val resultater = joarkAvstemmer().avstem()
+
+        assertThat(resultater).isEqualTo(
+            listOf(
+                AvstemmingsResultat.UavstemtUkjent(
+                    JournalpostId(1), "NAV_NO", datoOpprettet.toLocalDate()
+                )
+            )
+        )
 
         val loggMeldinger = listAppender.list
 
@@ -135,7 +146,15 @@ class JoarkAvstemmerTest {
 
         val listAppender = opprettListAppender()
 
-        joarkAvstemmer().avstem()
+        val resultater = joarkAvstemmer().avstem()
+
+        assertThat(resultater).isEqualTo(
+            listOf(
+                AvstemmingsResultat.UavstemtKelvin(
+                    JournalpostId(1), "NAV_NO", datoOpprettet.toLocalDate()
+                )
+            )
+        )
 
         val loggMeldinger = listAppender.list
 
@@ -192,7 +211,8 @@ class JoarkAvstemmerTest {
 
         val avstemmer = joarkAvstemmer()
 
-        avstemmer.avstem()
+        assertThat(avstemmer.avstem())
+            .isEqualTo(listOf(AvstemmingsResultat.GosysOppgaveOpprettet(JournalpostId(1))))
 
         verify(exactly = 1) {
             gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
@@ -238,7 +258,8 @@ class JoarkAvstemmerTest {
 
         val avstemmer = joarkAvstemmer()
 
-        avstemmer.avstem()
+        assertThat(avstemmer.avstem())
+            .isEqualTo(listOf(AvstemmingsResultat.GosysOppgaveOpprettet(JournalpostId(1))))
 
         verify(exactly = 1) {
             gosysOppgaveGateway.opprettJournalføringsOppgaveHvisIkkeEksisterer(
@@ -280,7 +301,8 @@ class JoarkAvstemmerTest {
 
         val avstemmer = joarkAvstemmer()
 
-        avstemmer.avstem()
+        assertThat(avstemmer.avstem())
+            .isEqualTo(listOf(AvstemmingsResultat.FordelingsoppgaveOpprettet(JournalpostId(1))))
 
         verify(exactly = 1) {
             gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(
@@ -401,6 +423,7 @@ class JoarkAvstemmerTest {
     }
 
     private val counter = AtomicInteger(0)
+    private val datoOpprettet = OffsetDateTime.now().minusDays(10)
     private fun journalpostFraDoksikkerhetsnett(
         kanal: String = "NAV_NO"
     ): JournalpostFraDoksikkerhetsnett {
@@ -411,7 +434,7 @@ class JoarkAvstemmerTest {
             tema = "AAP",
             behandlingstema = "AAP",
             journalforendeEnhet = "FFFF",
-            datoOpprettet = OffsetDateTime.now().minusDays(10)
+            datoOpprettet = datoOpprettet
         )
     }
 
