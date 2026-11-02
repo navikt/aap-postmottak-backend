@@ -7,11 +7,13 @@ import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
 import no.nav.aap.fordeler.arena.ArenaService
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.fordeler.regler.RegelInput
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
+import no.nav.aap.postmottak.PrometheusProvider.Companion.prometheus
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
@@ -26,6 +28,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
+import no.nav.aap.postmottak.tellOppbruktRettighetResultat
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -128,13 +131,16 @@ class AvklarFordelingSteg(
         }
         val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
 
-        return runBlocking {
-            arenaService.harKunOppbruktRettighet(
+        val oppbruktRettighetResultat = runBlocking {
+            arenaService.harOppbruktRettighet(
                 søker = journalpost.person,
                 mottattDato = journalpost.mottattDato,
                 journalpostId = kontekst.journalpostId.referanse
             )
         }
+        prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat).increment()
+
+        return oppbruktRettighetResultat is HarOppbruktRettighet
     }
 
     private fun vurderFordelingRegler(kontekst: FlytKontekst, innkommendeJournalpost: InnkommendeJournalpost): Regelresultat {

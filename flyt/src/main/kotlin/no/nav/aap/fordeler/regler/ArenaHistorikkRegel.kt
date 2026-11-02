@@ -1,7 +1,6 @@
 package no.nav.aap.fordeler.regler
 
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.regler.ArenaHistorikkRegel.Companion.metrikkerForArenaHistorikk
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -12,7 +11,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.resultatAvSignifikantArenaHistorikkFilterTeller
 import no.nav.aap.postmottak.søknadOmAapTeller
-import no.nav.aap.postmottak.tellAntallMaksUtvidetKvoteSnartOppbrukt
 import org.slf4j.LoggerFactory
 
 class ArenaHistorikkRegel : Regel<ArenaHistorikkRegelInput> {
@@ -86,23 +84,6 @@ class ArenaHistorikkRegelInputGenerator(private val gatewayProvider: GatewayProv
                 "Personen har signifikant historikk i AAP-Arena: " +
                         "saker=${signifikantHistorikk}, journalpostId=${input.journalpostId}"
             )
-            if (erSøknad) {
-                // TODO flytt denne målingen ut
-                runCatching {
-                    // Måles kun, påvirker ikke funksjonaliteten
-                    runBlocking {
-                        val arenaService = ArenaService(gatewayProvider)
-                        val maksKvoteSnartOppbrukt =
-                            arenaService.kanFordelesAutomatiskTilKelvinPga11_12_erMakset(
-                                input.person, input.mottattDato, input.journalpostId
-                            )
-                        prometheus.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt).increment()
-                    }
-                }.onFailure { error ->
-                    logger.warn("Feil under telling av undergrupper til Arena", error)
-                }
-            }
-
         } else {
             logger.info(
                 "Personen har /IKKE/ signifikant historikk i AAP-Arena: journalpostId=${input.journalpostId}"

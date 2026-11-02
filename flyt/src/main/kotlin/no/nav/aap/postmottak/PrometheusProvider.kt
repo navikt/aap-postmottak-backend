@@ -5,6 +5,9 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.fordeler.NavEnhet
+import no.nav.aap.fordeler.arena.ArenaService
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.VedtattAtIkkeForlenges
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 
@@ -59,10 +62,6 @@ fun MeterRegistry.retriesExceeded(jobbType: String): Counter =
 fun MeterRegistry.gosysKall(operasjon: GosysOperasjon): Counter =
     counter("postmottak_gosys_kall", listOf(Tag.of("operasjon", operasjon.metrikkverdi)))
 
-fun MeterRegistry.fordelingAvSoknadVedArenaHistorikkCounter(fagsystem: Fagsystem): Counter = this.counter(
-    "postmottak_fordeling_av_soknad_ved_arenahistorikk", listOf(Tag.of("fagsystem", fagsystem.name))
-)
-
 fun MeterRegistry.begrensetInntakTilKelvin(sperretAvFilter: Boolean): Counter = this.counter(
     "postmottak_begrensetInntakTilKelvin", listOf(Tag.of("sperret", sperretAvFilter.toString()))
 )
@@ -78,7 +77,7 @@ fun MeterRegistry.søknadOmAapTeller(
     harSignifikantArenaHistorikk: Boolean,
     erSøknad: Boolean
 ): Counter =
-    // Mål hvor mange som har arena-historikk i det hele tatt, blant de med søknader
+// Mål hvor mange som har arena-historikk i det hele tatt, blant de med søknader
     // Mål hvor mange som har signifikant arena-historikk, blant de med søknader
     this.counter(
         "postmottak_soknad_mottatt",
@@ -89,10 +88,18 @@ fun MeterRegistry.søknadOmAapTeller(
         )
     )
 
-fun MeterRegistry.tellAntallMaksUtvidetKvoteSnartOppbrukt(maksKvoteSnartOppbrukt: Boolean) = this.counter(
-    "postmottak_soknad_med_maks_utvidet_kvote",
-    listOf(Tag.of("maksKvoteSnartOppbrukt", maksKvoteSnartOppbrukt.toString()))
-)
+fun MeterRegistry.tellOppbruktRettighetResultat(oppbruktRettighetResultat: ArenaService.OppbruktRettighetResultat): Counter {
+    val bruktOppFemÅr = oppbruktRettighetResultat is HarBruktOppForlengelsen
+    val bruktOppTreÅrForlengesIkke = oppbruktRettighetResultat is VedtattAtIkkeForlenges
+
+    return this.counter(
+        "postmottak_kant_i_kant_maks_fordeling",
+        listOf(
+            Tag.of("helt_oppbrukt_kvote", bruktOppFemÅr.toString()),
+            Tag.of("forlenges_ikke", bruktOppTreÅrForlengesIkke.toString())
+        )
+    )
+}
 
 enum class Fagsystem {
     arena,

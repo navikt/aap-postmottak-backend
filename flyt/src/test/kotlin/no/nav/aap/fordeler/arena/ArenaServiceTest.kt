@@ -48,7 +48,7 @@ class ArenaServiceTest {
         for (dagerFørMaksdato in listOf(181L, 182L, 183L)) {
             assertEquals(
                 dagerFørMaksdato < 182,
-                arenaService.harKunOppbruktRettighet(person, maksdato.minusDays(dagerFørMaksdato), 1),
+                arenaService.harOppbruktRettighet(person, maksdato.minusDays(dagerFørMaksdato), 1),
                 "$dagerFørMaksdato days before maximum date"
             )
         }

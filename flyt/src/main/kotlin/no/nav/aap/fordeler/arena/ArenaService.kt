@@ -3,6 +3,10 @@ package no.nav.aap.fordeler.arena
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.IkkeRelevantSøknad
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.VedtattForlenget
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.VedtattAtIkkeForlenges
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -40,37 +44,55 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         return historikk.sisteSakOgVedtak?.unntaksvilkaarInnvilget
     }
 
-    suspend fun harKunOppbruktRettighet(
+    sealed class OppbruktRettighetResultat private constructor() {
+        sealed class HarOppbruktRettighet private constructor() : OppbruktRettighetResultat() {
+            data object HarBruktOppForlengelsen : HarOppbruktRettighet()
+            data object VedtattAtIkkeForlenges : HarOppbruktRettighet()
+        }
+
+        sealed class HarIkkeOppbruktRettighet private constructor() : OppbruktRettighetResultat() {
+            data object IkkeRelevantSøknad : HarIkkeOppbruktRettighet()
+            data object VedtattForlenget : HarIkkeOppbruktRettighet()
+        }
+    }
+
+    suspend fun harOppbruktRettighet(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
-    ): Boolean {
+    ): OppbruktRettighetResultat {
         val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
         val sisteSak = historikk.sisteSakOgVedtak
 
-        val tilDatoErIkkeLikMaksdato = !erTildatoLikMaksdatoInnenforToleranse(sisteSak)
+        val tilDatoErIkkeLikOrdinærMaksdato = !erTildatoLikMaksdatoInnenforToleranse(sisteSak)
+        val tilDatoErLikMaksdatoForUnntak = erTildatoLikMaksdatoForUnntakInnenforToleranse(sisteSak)
         val maksdatoErIkkeInnenRimeligTid = !maksDatoNærmerSeg(sisteSak, mottattDato)
-        val skalIkkeForlenges = unntakEtter11_12ErVurdertTilNei(historikk)
-        val erTildatoLikMaksdatoForUnntakInnenforToleranse = erTildatoLikMaksdatoForUnntakInnenforToleranse(sisteSak)
+        val skalIkkeForlenges = unntakEtter11_12Er(historikk) == false
+        val erAlleredeForlenget = unntakEtter11_12Er(historikk) == true
 
         val harKunOppbrukt = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
-            sisteSak == null -> false // har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
-            sisteSak.utredesForUfor() -> false
-            sisteSak.erFerdigAvklart() -> false
-            sisteSak.erSykepengeErstatning() -> false
-            maksdatoErIkkeInnenRimeligTid -> false
-            tilDatoErIkkeLikMaksdato -> false
+            sisteSak == null -> IkkeRelevantSøknad // har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
+            sisteSak.utredesForUfor() -> IkkeRelevantSøknad
+            sisteSak.erFerdigAvklart() -> IkkeRelevantSøknad
+            sisteSak.erSykepengeErstatning() -> IkkeRelevantSøknad
+            maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
+            tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // det er ikke kant-i-kant med ytelsen i Arena
             // tilfellet med å ha brukt opp ordinær kvote og unntaksvilkår for 11-12 ikke er oppfylt
-            !skalIkkeForlenges -> true
+            skalIkkeForlenges -> VedtattAtIkkeForlenges
+            erAlleredeForlenget -> VedtattForlenget
             else -> {
-                // Tilfellet med å ha fått maks to av to år med unntaksvilkår for 11-12
-                erTildatoLikMaksdatoForUnntakInnenforToleranse
+                if (tilDatoErLikMaksdatoForUnntak) {
+                    // Tilfellet med å ha fått maks to av to år med unntaksvilkår for 11-12
+                    HarBruktOppForlengelsen
+                } else {
+                    IkkeRelevantSøknad
+                }
             }
         }
         val logmsg: StringBuilder = StringBuilder()
-        logmsg.append("tilDatoErLikMaksdato=${!tilDatoErIkkeLikMaksdato},")
+        logmsg.append("tilDatoErLikMaksdato=${!tilDatoErIkkeLikOrdinærMaksdato},")
         logmsg.append("maksdatoErInnenRimeligTid=${!maksdatoErIkkeInnenRimeligTid}")
         logmsg.append("vedtatt at ikke forlenges=${skalIkkeForlenges}")
-        logmsg.append("brukt opp fem år=${erTildatoLikMaksdatoForUnntakInnenforToleranse}")
+        logmsg.append("brukt opp fem år=${tilDatoErLikMaksdatoForUnntak}")
         val tilstand = logmsg.toString()
 
         logger.info("Journalpost $journalpostId er 'kant-i-kant': $harKunOppbrukt, sak: $sisteSak, tilstand: $tilstand")
@@ -78,10 +100,9 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         return harKunOppbrukt
     }
 
-    private fun unntakEtter11_12ErVurdertTilNei(historikk: HistorikkStatusDetaljResponse): Boolean {
+    private fun unntakEtter11_12Er(historikk: HistorikkStatusDetaljResponse): Boolean? {
         val unntaksvilkaarInnvilget = historikk.sisteSakOgVedtak?.unntaksvilkaarInnvilget
-        val unntakIkkeInvilget = unntaksvilkaarInnvilget == false
-        return unntakIkkeInvilget
+        return unntaksvilkaarInnvilget
     }
 
     private fun maksDatoNærmerSeg(
