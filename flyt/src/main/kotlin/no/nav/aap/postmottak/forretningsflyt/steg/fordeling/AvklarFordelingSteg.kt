@@ -9,7 +9,6 @@ import no.nav.aap.fordeler.arena.AapSystem
 import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.IkkeRelevantSøknad
-import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.fordeler.regler.RegelInput
@@ -95,9 +94,9 @@ class AvklarFordelingSteg(
 
         val regelresultat = vurderFordelingRegler(kontekst, innkommendeJournalpost)
 
-        val oppbruktRettighetIArenaResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
+        val erRettighetHeltOppbruktISisteArenaSak = erRettighetOppbruktIArena(safJournalpost, kontekst)
         // Togglet av for nå
-        val kantIKantSakSomSkalTilKelvin = false && oppbruktRettighetIArenaResultat.skalTilKelvin()
+        val kantIKantSakSomSkalTilKelvin = false && erRettighetHeltOppbruktISisteArenaSak.skalTilKelvin()
 
         val system = if (regelresultat.skalTilKelvin() || kantIKantSakSomSkalTilKelvin) {
             AapSystem.KELVIN
