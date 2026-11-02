@@ -18,6 +18,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.gateway.JournalføringService
+import no.nav.aap.postmottak.joarkavstemmer.AvstemmingsrapportRepository
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
@@ -26,11 +27,58 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.Drift
+import no.nav.aap.tilgang.DriftLes
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.Operasjon
+import no.nav.aap.tilgang.RollerConfig
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
+import java.time.Instant
+import java.time.LocalDate
 import javax.sql.DataSource
+
+data class AvstemmingsrapportDto(
+    val startetTidspunkt: Instant?,
+    val fullfortTidspunkt: Instant?,
+    val resultater: List<JournalpostAvstemmingsresultatDto>,
+)
+
+data class JournalpostAvstemmingsresultatDto(
+    val journalpostId: Long,
+    val utfall: String,
+    val kanal: String?,
+    val datoOpprettet: LocalDate?,
+)
+
+private fun NormalOpenAPIRoute.joarkAvstemmingApi(
+    dataSource: DataSource,
+    repositoryRegistry: RepositoryRegistry,
+) {
+    route("/joark-avstemming") {
+        authorizedGet<Unit, AvstemmingsrapportDto>(
+            RollerConfig(listOf(DriftLes, Drift)),
+        ) {
+            val rapport = dataSource.transaction(readOnly = true) { connection ->
+                repositoryRegistry.provider(connection).provide<AvstemmingsrapportRepository>().hentSiste()
+            }
+            respond(
+                AvstemmingsrapportDto(
+                    startetTidspunkt = rapport?.startetTidspunkt,
+                    fullfortTidspunkt = rapport?.fullførtTidspunkt,
+                    resultater = rapport?.resultater.orEmpty().map { resultat ->
+                        JournalpostAvstemmingsresultatDto(
+                            journalpostId = resultat.journalpostId,
+                            utfall = resultat.utfall.name,
+                            kanal = resultat.kanal,
+                            datoOpprettet = resultat.datoOpprettet,
+                        )
+                    },
+                )
+            )
+        }
+    }
+}
 
 fun NormalOpenAPIRoute.driftApi(
     dataSource: DataSource,
@@ -38,6 +86,7 @@ fun NormalOpenAPIRoute.driftApi(
     gatewayProvider: GatewayProvider,
 ) {
     route("/api/drift") {
+        joarkAvstemmingApi(dataSource, repositoryRegistry)
         route("/behandling/{referanse}/prosesser") {
             authorizedPost<BehandlingsreferansePathParam, Unit, Unit>(
                 AuthorizationParamPathConfig(
@@ -91,7 +140,8 @@ fun NormalOpenAPIRoute.driftApi(
                 )
             ) { journalpostIdParam, _ ->
                 val nyJournalpostId = dataSource.transaction(readOnly = true) { connection ->
-                    val journalpostService = JournalpostService.konstruer(repositoryRegistry.provider(connection), gatewayProvider)
+                    val journalpostService =
+                        JournalpostService.konstruer(repositoryRegistry.provider(connection), gatewayProvider)
                     val journalføringService = JournalføringService(gatewayProvider)
                     val journalpostId = JournalpostId(journalpostIdParam.referanse)
                     val journalpost = journalpostService.hentJournalpost(journalpostId = journalpostId)

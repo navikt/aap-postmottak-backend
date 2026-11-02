@@ -69,7 +69,7 @@ class JoarkAvstemmer(
             }
     }
 
-    fun avstem() {
+    fun avstem(): List<AvstemmingsResultat> {
         val eldreJournalpost = doksikkerhetsnettGateway.finnMottatteJournalposterEldreEnn(5)
 
         log.info("Fant ${eldreJournalpost.size} journalposter eldre enn 5 dager.")
@@ -113,6 +113,8 @@ class JoarkAvstemmer(
                 .setMessage("Fant $antallUavstemte ubehandlede journalposter eldre enn 5 dager, hvorav $antallUavstemteKelvin gikk til Kelvin. Se info-logg for konkrete journalposter.")
                 .log()
         }
+
+        return resultater
     }
 
     private fun avstemJournalPost(input: AvstemmingsInput): AvstemmingsResultat {
