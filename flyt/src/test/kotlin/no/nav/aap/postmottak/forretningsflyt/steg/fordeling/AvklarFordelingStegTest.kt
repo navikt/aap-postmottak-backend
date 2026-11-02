@@ -9,11 +9,13 @@ import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
+import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.gateway.Bruker
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -22,6 +24,8 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.TestObjekter.lagTestJournalpost
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -46,12 +50,18 @@ internal class AvklarFordelingStegTest {
             regelresultat = null,
         )
     }
+    private val arenaService = mockk<ArenaService>(relaxed = true)
+    private val unleashGateway = mockk<UnleashGateway>(relaxed = true).also {
+        every { it.isEnabled(any<PostmottakFeature>()) } returns true
+    }
 
     private val steg = AvklarFordelingSteg(
         regelService,
         journalpostService,
         avklarFordelingRepository,
         innkommendeJournalpostRepository,
+        arenaService,
+        unleashGateway,
     )
 
     @Test
