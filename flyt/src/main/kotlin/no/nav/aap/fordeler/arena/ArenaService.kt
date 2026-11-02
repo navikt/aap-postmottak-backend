@@ -80,7 +80,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             skalIkkeForlenges -> VedtattAtIkkeForlenges
             else -> {
                 if (tilDatoErLikMaksdatoForUnntak && erAlleredeForlenget) {
-                    // har fått forlengelse og brukt den helt opp
+                    // har fått forlengelse og brukt den helt opp når ytelsen i Arena utløper
                     HarBruktOppForlengelsen
                 } else if (erAlleredeForlenget) {
                     // forlenget, men vi er ikke ved utløpet av unntaksperioden
