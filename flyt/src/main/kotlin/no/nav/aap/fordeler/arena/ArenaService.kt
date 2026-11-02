@@ -8,9 +8,10 @@ import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
-import java.time.Duration
 import java.time.LocalDate
 import java.time.Period
+import java.time.temporal.ChronoUnit
+import kotlin.time.Duration.Companion.days
 
 @Suppress("MagicNumber")
 class ArenaService(gatewayProvider: GatewayProvider) {
@@ -19,8 +20,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
     companion object {
         private const val antallUkerFørUtløpMaksimalt = 26L // hvor mange uker før utløp av ytelsen bruker kan søke
-        private val periodeFørMaksdato = Period.ofMonths(6)
-        private val toleranse = Duration.ofDays(5)
+        private val periodeFørMaksdato = Period.ofWeeks(26)
+        private val toleranse = 5.days
 
         @TestOnly
         fun hentMaksAntallUkerFørUtløpMaksimalt(): Long {
@@ -87,7 +88,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         sisteSak: SisteSakDetaljer?,
         mottattDato: LocalDate
     ): Boolean {
-        return sisteSak?.sisteVedtak?.maxdatoAap?.minus(periodeFørMaksdato)?.isBefore(mottattDato) == true
+        return sisteSak?.sisteVedtak?.maxdatoAap?.isBefore(mottattDato + periodeFørMaksdato) == true
     }
 
     private fun erTildatoLikMaksdatoInnenforToleranse(sisteSak: SisteSakDetaljer?): Boolean {
@@ -108,8 +109,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         if (tilDato == null || maksdato == null) {
             false
         } else {
-            val avstand = Duration.between(tilDato.atStartOfDay(), maksdato.atStartOfDay()).abs()
-            toleranse >= avstand
+            val dagerMellom = ChronoUnit.DAYS.between(tilDato, maksdato).days.absoluteValue
+            dagerMellom <= toleranse
         }
 
     @Deprecated("Bruk oppbruktRettighet()")

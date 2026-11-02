@@ -1,6 +1,9 @@
 package no.nav.aap.fordeler.arena
 
+import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
@@ -11,6 +14,7 @@ import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.createGatewayProvider
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -23,6 +27,32 @@ class ArenaServiceTest {
     }
 
     private val arenaService = ArenaService(gatewayProvider)
+
+    @Test
+    fun `maximum date must be less than 26 weeks away`() = runBlocking {
+        val maksdato = LocalDate.of(2026, 12, 12)
+        val vedtak = requireNotNull(sakMedId(1234).sisteVedtak).copy(
+            til = maksdato,
+            maxdatoOrdinaer = maksdato,
+            maxdatoAap = maksdato
+        )
+        val sisteSak = mockk<SisteSakDetaljer>(relaxed = true)
+        every { sisteSak.sisteVedtak } returns vedtak
+        every { sisteSak.unntaksvilkaarInnvilget } returns null
+        val historikk = mockk<HistorikkStatusDetaljResponse>()
+        every { historikk.sisteSakOgVedtak } returns sisteSak
+        val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
+        coEvery { arena.historikkStatusDetalj(any(), any()) } returns historikk
+        val person = mockk<Person>()
+
+        for (dagerFørMaksdato in listOf(181L, 182L, 183L)) {
+            assertEquals(
+                dagerFørMaksdato < 182,
+                arenaService.harKunOppbruktRettighet(person, maksdato.minusDays(dagerFørMaksdato), 1),
+                "$dagerFørMaksdato days before maximum date"
+            )
+        }
+    }
 
 
     @Test
