@@ -33,98 +33,35 @@ class ArenaServiceTest {
     private val maksdato = LocalDate.of(2026, 12, 12)
 
     @Test
-    fun `maksdato må være innen rimelig tid`() = runBlocking {
-        val sak = sakMedId(1234).let {
-            it.copy(sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato))
-        }
-
-        for (dagerFørMaksdato in listOf(181L, 182L, 183L, 0L, -1L)) {
-            assertEquals(
-                if (dagerFørMaksdato < 182) HarBruktOppForlengelsen else IkkeRelevantSøknad,
-                vurder(sak, maksdato.minusDays(dagerFørMaksdato)),
-                "$dagerFørMaksdato dager før maksdato"
-            )
-        }
-    }
-
-    @Test
     fun `søknaden er ikke relevant når det ikke finnes en siste sak`() = runBlocking {
         assertEquals(IkkeRelevantSøknad, vurder(null))
     }
 
     @Test
     fun `avslått forlengelse gir oppbrukt rettighet`() = runBlocking {
-        val sak = sakMedId(1234).copy(unntaksvilkaarInnvilget = false)
+        val sak = sisteSak().copy(unntaksvilkaarInnvilget = false)
 
         assertEquals(VedtattAtIkkeForlenges, vurder(sak))
     }
 
     @Test
     fun `innvilget forlengelse gir ikke oppbrukt rettighet`() = runBlocking {
-        val sak = sakMedId(1234).copy(unntaksvilkaarInnvilget = true)
+        val sak = sisteSak().copy(unntaksvilkaarInnvilget = true)
 
         assertEquals(VedtattForlenget, vurder(sak))
     }
 
     @Test
-    fun `forlengelsen er oppbrukt når sluttdato er lik begge maksdatoene uten vurdering av unntak`() =
-        runBlocking {
-            val sak = sakMedId(1234).let {
-                it.copy(sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato))
-            }
-
-            assertEquals(HarBruktOppForlengelsen, vurder(sak))
-        }
-
-    @Test
     fun `søknaden er ikke relevant uten vurdering av unntak eller maksdato for unntak`() = runBlocking {
-        assertEquals(IkkeRelevantSøknad, vurder(sakMedId(1234)))
+        assertEquals(IkkeRelevantSøknad, vurder(sisteSak()))
     }
 
     @ParameterizedTest
-    @CsvSource("true, false", "false, false", "true, true", "false, true")
-    fun `vurderingen av unntak har forrang selv når sluttdato er lik maksdato for unntak`(
-        unntaksvilkaarInnvilget: Boolean,
-        søkerForTidlig: Boolean
+    @ValueSource(longs = [-6, -5, 0, 5, 6])
+    fun `forlengelsen er oppbrukt når sluttdato er innen fem dager fra maksdato for unntak`(
+        avvikIDager: Long
     ) = runBlocking {
-        val sak = sakMedId(1234).let {
-            it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
-                sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato)
-            )
-        }
-        val mottattDato = if (søkerForTidlig) maksdato.minusWeeks(26) else maksdato
-
-        assertEquals(
-            when {
-                søkerForTidlig -> IkkeRelevantSøknad
-                unntaksvilkaarInnvilget -> VedtattForlenget
-                else -> VedtattAtIkkeForlenges
-            },
-            vurder(sak, mottattDato)
-        )
-    }
-
-    @ParameterizedTest
-    @ValueSource(longs = [-6, -5, 0, 5, 6])
-    fun `sluttdato må være innen fem dager fra ordinær maksdato`(avvikIDager: Long) = runBlocking {
-        val sak = sakMedId(1234).let {
-            it.copy(
-                unntaksvilkaarInnvilget = false,
-                sisteVedtak = it.sisteVedtak.copy(maxdatoOrdinaer = maksdato.plusDays(avvikIDager))
-            )
-        }
-
-        assertEquals(
-            if (avvikIDager in -5L..5L) VedtattAtIkkeForlenges else IkkeRelevantSøknad,
-            vurder(sak)
-        )
-    }
-
-    @ParameterizedTest
-    @ValueSource(longs = [-6, -5, 0, 5, 6])
-    fun `sluttdato må være innen fem dager fra maksdato for unntak`(avvikIDager: Long) = runBlocking {
-        val sak = sakMedId(1234).let {
+        val sak = sisteSak().let {
             it.copy(sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato.plusDays(avvikIDager)))
         }
 
@@ -135,18 +72,56 @@ class ArenaServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource("til, true", "til, false", "ordinær, true", "ordinær, false", "aap, true", "aap, false")
+    @CsvSource(
+        "-6, true", "-5, true", "0, true", "5, true", "6, true",
+        "-6, false", "-5, false", "0, false", "5, false", "6, false",
+        "-6, null", "-5, null", "0, null", "5, null", "6, null",
+        nullValues = ["null"]
+    )
+    fun `sluttdato må være innen fem dager fra ordinær maksdato uansett vurdering av unntak`(
+        avvikIDager: Long,
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = sisteSak().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoOrdinaer = maksdato.plusDays(avvikIDager),
+                    maxdatoUnntak = maksdato
+                )
+            )
+        }
+
+        assertEquals(
+            when {
+                avvikIDager !in -5L..5L -> IkkeRelevantSøknad
+                unntaksvilkaarInnvilget == true -> VedtattForlenget
+                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
+                else -> HarBruktOppForlengelsen
+            },
+            vurder(sak)
+        )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "til, true", "til, false", "til, null",
+        "ordinær, true", "ordinær, false", "ordinær, null",
+        "aap, true", "aap, false", "aap, null",
+        nullValues = ["null"]
+    )
     fun `søknaden er ikke relevant når en nødvendig dato mangler`(
         manglendeDato: String,
-        unntaksvilkaarInnvilget: Boolean
+        unntaksvilkaarInnvilget: Boolean?
     ) = runBlocking {
-        val sak = sakMedId(1234).let {
+        val sak = sisteSak().let {
+            val vedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato)
             it.copy(
                 unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
                 sisteVedtak = when (manglendeDato) {
-                    "til" -> it.sisteVedtak.copy(til = null)
-                    "ordinær" -> it.sisteVedtak.copy(maxdatoOrdinaer = null)
-                    "aap" -> it.sisteVedtak.copy(maxdatoAap = null)
+                    "til" -> vedtak.copy(til = null)
+                    "ordinær" -> vedtak.copy(maxdatoOrdinaer = null)
+                    "aap" -> vedtak.copy(maxdatoAap = null)
                     else -> error("Ukjent dato: $manglendeDato")
                 }
             )
@@ -155,18 +130,59 @@ class ArenaServiceTest {
         assertEquals(IkkeRelevantSøknad, vurder(sak))
     }
 
-    @Test
-    fun `søknaden er ikke relevant når bare maksdato for unntak samsvarer med sluttdato`() = runBlocking {
-        val sak = sakMedId(1234).let {
+    @ParameterizedTest
+    @CsvSource(
+        "-1, true", "0, true", "181, true", "182, true", "183, true",
+        "-1, false", "0, false", "181, false", "182, false", "183, false",
+        "-1, null", "0, null", "181, null", "182, null", "183, null",
+        nullValues = ["null"]
+    )
+    fun `effektiv maksdato må være mindre enn 26 uker etter mottatt dato uansett vurdering av unntak`(
+        dagerTilEffektivMaksdato: Long,
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = sisteSak().let {
             it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
                 sisteVedtak = it.sisteVedtak.copy(
-                    maxdatoOrdinaer = maksdato.minusYears(2),
+                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato),
                     maxdatoUnntak = maksdato
                 )
             )
         }
 
-        assertEquals(IkkeRelevantSøknad, vurder(sak))
+        assertEquals(
+            when {
+                dagerTilEffektivMaksdato >= 182 -> IkkeRelevantSøknad
+                unntaksvilkaarInnvilget == true -> VedtattForlenget
+                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
+                else -> HarBruktOppForlengelsen
+            },
+            vurder(sak)
+        )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "null, true", "-6, true", "0, true", "6, true",
+        "null, false", "-6, false", "0, false", "6, false",
+        nullValues = ["null"]
+    )
+    fun `vurderingen av unntak har forrang uansett maksdato for unntak`(
+        avvikIDager: Long?,
+        unntaksvilkaarInnvilget: Boolean
+    ) = runBlocking {
+        val sak = sisteSak().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = avvikIDager?.let(maksdato::plusDays))
+            )
+        }
+
+        assertEquals(
+            if (unntaksvilkaarInnvilget) VedtattForlenget else VedtattAtIkkeForlenges,
+            vurder(sak)
+        )
     }
 
     private suspend fun vurder(
@@ -181,41 +197,39 @@ class ArenaServiceTest {
         return arenaService.harOppbruktRettighet(person, mottattDato, 1)
     }
 
-    private fun sakMedId(sakId: Int): SisteSakDetaljer {
-        return SisteSakDetaljer(
-            sakId = sakId,
-            saknummer = "$sakId-25",
-            sakStatus = "AKTIV",
-            sakRegistrert = LocalDate.of(2025, 1, 1),
-            sakAvsluttet = null,
-            sisteVedtak = VedtakMedMaksdato(
-                vedtakId = sakId,
-                aktfaseKode = "AU",
+    private fun sisteSak() = SisteSakDetaljer(
+        sakId = 1234,
+        saknummer = "1234-25",
+        sakStatus = "AKTIV",
+        sakRegistrert = LocalDate.of(2025, 1, 1),
+        sakAvsluttet = null,
+        sisteVedtak = VedtakMedMaksdato(
+            vedtakId = 1,
+            aktfaseKode = "AU",
+            vedtaktypeKode = "O",
+            vedtakstatuskode = "IVERK",
+            fra = LocalDate.of(2025, 1, 1),
+            til = maksdato,
+            maxdatoOrdinaer = maksdato,
+            maxdatoUnntak = null,
+            maxdatoAap = maksdato
+        ),
+        unntaksvilkaarGjelderFra = null,
+        unntaksvilkaarInnvilget = null,
+        vedtakene = listOf(
+            ArenaVedtak(
+                sakId = 1234,
+                statusKode = "IVERK",
                 vedtaktypeKode = "O",
-                vedtakstatuskode = "IVERK",
-                fra = LocalDate.of(2025, 1, 1),
-                til = maksdato,
-                maxdatoOrdinaer = maksdato,
-                maxdatoUnntak = null,
-                maxdatoAap = maksdato,
-            ),
-            unntaksvilkaarGjelderFra = null,
-            unntaksvilkaarInnvilget = null,
-            vedtakene = listOf(
-                ArenaVedtak(
-                    sakId = sakId,
-                    statusKode = "IVERK",
-                    vedtaktypeKode = "O",
-                    fraOgMed = LocalDate.of(2025, 1, 1),
-                    tilDato = LocalDate.of(2026, 1, 1),
-                    rettighetkode = "AAP",
-                    utfallkode = "JA",
-                    1,
-                    "AU"
-                )
+                fraOgMed = LocalDate.of(2025, 1, 1),
+                tilDato = maksdato,
+                rettighetkode = "AAP",
+                utfallkode = "JA",
+                vedtakId = 1,
+                aktivitetsfaseKode = "AU"
             )
         )
-    }
+    )
 }
 
 class ArenaoppslagGatewayMock : ArenaoppslagGateway {

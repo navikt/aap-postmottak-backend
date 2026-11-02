@@ -61,9 +61,9 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             return IkkeRelevantSøknad
         }
 
+        val maksdatoErIkkeInnenRimeligTid = !maksDatoNærmerSeg(sisteSak, mottattDato)
         val tilDatoErIkkeLikOrdinærMaksdato = !erTildatoLikMaksdatoInnenforToleranse(sisteSak)
         val tilDatoErLikMaksdatoForUnntak = erTildatoLikMaksdatoForUnntakInnenforToleranse(sisteSak)
-        val maksdatoErIkkeInnenRimeligTid = !maksDatoNærmerSeg(sisteSak, mottattDato)
         val skalIkkeForlenges = sisteSak.unntaksvilkaarIkkeOppfylt()
         val erAlleredeForlenget = sisteSak.unntaksvilkaarOppfylt()
 
@@ -92,7 +92,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         logmsg.append("brukt opp fem år=${tilDatoErLikMaksdatoForUnntak}")
         val tilstand = logmsg.toString()
 
-        logger.info("Journalpost $journalpostId er 'kant-i-kant': $harKunOppbrukt, sak: $sisteSak, tilstand: $tilstand")
+        logger.info("Journalpost $journalpostId er 'kant-i-kant': ${harKunOppbrukt::class.simpleName}, sak: $sisteSak, tilstand: $tilstand")
 
         return harKunOppbrukt
     }
