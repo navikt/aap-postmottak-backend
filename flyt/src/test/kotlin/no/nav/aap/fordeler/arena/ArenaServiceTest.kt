@@ -10,6 +10,8 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
 import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.IkkeRelevantSøknad
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
@@ -29,11 +31,12 @@ class ArenaServiceTest {
     private val arenaService = ArenaService(gatewayProvider)
 
     @Test
-    fun `maximum date must be less than 26 weeks away`() = runBlocking {
+    fun `maksdato må være innen rimelig tid`() = runBlocking {
         val maksdato = LocalDate.of(2026, 12, 12)
         val vedtak = requireNotNull(sakMedId(1234).sisteVedtak).copy(
             til = maksdato,
             maxdatoOrdinaer = maksdato,
+            maxdatoUnntak = maksdato,
             maxdatoAap = maksdato
         )
         val sisteSak = mockk<SisteSakDetaljer>(relaxed = true)
@@ -47,21 +50,24 @@ class ArenaServiceTest {
 
         for (dagerFørMaksdato in listOf(181L, 182L, 183L)) {
             assertEquals(
-                dagerFørMaksdato < 182,
+                if (dagerFørMaksdato < 182) {
+                    HarBruktOppForlengelsen
+                } else {
+                    IkkeRelevantSøknad
+                },
                 arenaService.harOppbruktRettighet(person, maksdato.minusDays(dagerFørMaksdato), 1),
                 "$dagerFørMaksdato days before maximum date"
             )
         }
     }
 
-
     @Test
-    fun `returnerer false naar listen er tom`() {
+    fun `returnerer false når listen er tom`() {
         assertFalse(arenaService.harSignifikanteVedtakUtoverTypeAap(emptyList()))
     }
 
     @Test
-    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar det er klage`() {
+    fun `harSignifikanteVedtakUtoverTypeAap returnerer true når det finnes en klage`() {
         val vedtak = listOf(
             arenaVedtak(rettighetskode = "AAP"),
             arenaVedtak(rettighetskode = "AA115"),
@@ -72,14 +78,14 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar rettighetskoder ikke inneholder AAP`() {
+    fun `harSignifikanteVedtakUtoverTypeAap returnerer true når rettighetskodene ikke inneholder AAP`() {
         val vedtak = listOf(arenaVedtak(rettighetskode = "KLAG1"))
 
         assertTrue(arenaService.harSignifikanteVedtakUtoverTypeAap(vedtak))
     }
 
     @Test
-    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar det finnes flere rettighetskoder inkludert AAP`() {
+    fun `harSignifikanteVedtakUtoverTypeAap returnerer true når det finnes flere rettighetskoder inkludert AAP`() {
         val vedtak = listOf(
             arenaVedtak(rettighetskode = "AAP"),
             arenaVedtak(rettighetskode = "KLAG1")
@@ -89,7 +95,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `harFlereSignifikanteSaker returnerer false naar det kun finnes en sak`() {
+    fun `harFlereSignifikanteSaker returnerer false når det bare finnes én sak`() {
         val sisteSakId = 1234
         val historikk = SignifikantHistorikkResponse(
             true,
@@ -104,7 +110,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `harFlereSignifikanteSaker returnerer true naar det finnes fler saker enn sisteSak`() {
+    fun `harFlereSignifikanteSaker returnerer true når det finnes andre saker enn sisteSak`() {
         val historikk = SignifikantHistorikkResponse(
             true,
             listOf(
@@ -118,7 +124,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `harFlereSignifikanteSaker returnerer false naar historikk er tomt`() {
+    fun `harFlereSignifikanteSaker returnerer false når historikken er tom`() {
         val historikk = SignifikantHistorikkResponse.ingen
         val sisteSak = sakMedId(1234)
 
@@ -126,7 +132,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `harFlereSignifikanteSaker returnerer true naar det finnes tre saker`() {
+    fun `harFlereSignifikanteSaker returnerer true når det finnes tre saker`() {
         val historikk = SignifikantHistorikkResponse(
             true,
             listOf(
@@ -141,7 +147,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er null`() {
+    fun `sakenHarBegyntPåAndreÅretMedUnntak returnerer false når unntak er null`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = null)
 
@@ -149,7 +155,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak true naar unntak er mer enn 18 mnd siden`() {
+    fun `sakenHarBegyntPåAndreÅretMedUnntak returnerer true når unntak er mer enn 18 måneder siden`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
         val unntaksDato = mottattDato.minusYears(2).plusWeeks(hentMaksAntallUkerFørUtløpMaksimalt())
             .minusDays(1) // 19 months + 1 day ago
@@ -159,7 +165,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er eksakt 18 mnd siden`() {
+    fun `sakenHarBegyntPåAndreÅretMedUnntak returnerer false når unntak er nøyaktig 18 måneder siden`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
         val unntaksDato = mottattDato.minusYears(2).plusWeeks(hentMaksAntallUkerFørUtløpMaksimalt()) // exactly at limit
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
@@ -168,7 +174,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er mindre enn 18 mnd siden`() {
+    fun `sakenHarBegyntPåAndreÅretMedUnntak returnerer false når unntak er mindre enn 18 måneder siden`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
         val unntaksDato = mottattDato.minusMonths(18).plusDays(1) // 17 months + 29 days ago
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
@@ -177,7 +183,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er i dag`() {
+    fun `sakenHarBegyntPåAndreÅretMedUnntak returnerer false når unntak er i dag`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = mottattDato)
 
@@ -185,7 +191,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er i fremtiden`() {
+    fun `sakenHarBegyntPåAndreÅretMedUnntak returnerer false når unntak er i fremtiden`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
         val unntaksDato = mottattDato.plusMonths(1)
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
@@ -194,7 +200,7 @@ class ArenaServiceTest {
     }
 
     @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak true naar unntak er langt tilbake`() {
+    fun `sakenHarBegyntPåAndreÅretMedUnntak returnerer true når unntak er langt tilbake i tid`() {
         val mottattDato = LocalDate.of(2026, 6, 10)
         val unntaksDato = LocalDate.of(2020, 1, 1)
         val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)

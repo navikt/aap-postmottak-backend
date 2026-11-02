@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.fordeling
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -12,6 +14,7 @@ import no.nav.aap.fordeler.arena.AapSystem
 import no.nav.aap.fordeler.arena.ArenaService
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
+import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -28,6 +31,7 @@ import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -63,6 +67,11 @@ internal class AvklarFordelingStegTest {
         arenaService,
         unleashGateway,
     )
+
+    @BeforeEach
+    fun settOppPrometheus() {
+        PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    }
 
     @Test
     fun `Returnerer Fullført uten å evaluere om vurdering allerede eksisterer`() {
@@ -226,4 +235,3 @@ internal class AvklarFordelingStegTest {
         regelresultat = regelresultat,
     )
 }
-
