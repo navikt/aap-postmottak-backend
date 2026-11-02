@@ -57,8 +57,12 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
         val sisteSak = historikk.sisteSakOgVedtak
         if (sisteSak == null) {
-            //søker har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
+            // Søker har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
             logger.info("Journalpost $journalpostId har ingen aktuell sak i Arena, vurderer som ikke relevant")
+            return IkkeRelevantSøknad
+        } else if (harVedtakIArenaSomStarterIFremtiden(sisteSak, mottattDato)) {
+            // Søker har allerede fått innvilget AAP i Arena for fremtidig periode
+            logger.info("Journalpost $journalpostId har allerede innvilget AAP i Arena for fremtidig periode, vurderer som ikke relevant")
             return IkkeRelevantSøknad
         }
 
@@ -72,15 +76,15 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
             tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // søknaden er ikke kant-i-kant med ytelsen i Arena
-            // Ordinær kvote er brukt opp og unntaksvilkårene for 11-12 er /IKKE/ oppfylt
+            // ordinær kvote er brukt opp og unntaksvilkårene for 11-12 er /IKKE/ oppfylt
             skalIkkeForlenges -> VedtattAtIkkeForlenges
             else -> {
                 if (tilDatoErLikMaksdatoForUnntak && erAlleredeForlenget) {
-                    // Har fått forlengelse og brukt den helt opp
+                    // har fått forlengelse og brukt den helt opp
                     HarBruktOppForlengelsen
                 } else if (erAlleredeForlenget) {
-                    // Forlenget, men vi er ikke ved utløpet av unntaksperioden
-                    // Feks. søkeren er på år ett av to av forlengelsen
+                    // forlenget, men vi er ikke ved utløpet av unntaksperioden
+                    // feks. søkeren er på år ett av to av forlengelsen
                     VedtattForlenget
                 } else {
                     IkkeRelevantSøknad
@@ -98,6 +102,11 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
         return harKunOppbrukt
     }
+
+    private fun harVedtakIArenaSomStarterIFremtiden(
+        sisteSak: SisteSakDetaljer,
+        mottattDato: LocalDate
+    ): Boolean = sisteSak.sisteVedtak.fra?.isAfter(mottattDato) == true
 
     private fun maksDatoNærmerSeg(
         sisteSak: SisteSakDetaljer?,

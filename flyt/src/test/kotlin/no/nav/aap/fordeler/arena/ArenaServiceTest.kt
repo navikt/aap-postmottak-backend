@@ -1,6 +1,7 @@
 package no.nav.aap.fordeler.arena
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
@@ -17,6 +18,8 @@ import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.createGatewayProvider
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -53,6 +56,51 @@ class ArenaServiceTest {
     @Test
     fun `søknaden er ikke relevant uten vurdering av unntak eller maksdato for unntak`() = runBlocking {
         assertEquals(IkkeRelevantSøknad, vurder(sisteSak()))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "null, true, true", "-1, true, true", "0, true, true", "1, true, true",
+        "null, true, false", "-1, true, false", "0, true, false", "1, true, false",
+        "null, false, true", "-1, false, true", "0, false, true", "1, false, true",
+        "null, false, false", "-1, false, false", "0, false, false", "1, false, false",
+        "null, null, true", "-1, null, true", "0, null, true", "1, null, true",
+        "null, null, false", "-1, null, false", "0, null, false", "1, null, false",
+        nullValues = ["null"]
+    )
+    fun `harVedtakFremITidIArena vurderer fra dato mot mottaksdato uansett vurdering av unntak`(
+        dagerTilFraDato: Long?,
+        unntaksvilkaarInnvilget: Boolean?,
+        harNåddMaksdatoForUnntak: Boolean
+    ) = runBlocking {
+        val mottattDato = maksdato.minusDays(30)
+        val sak = sisteSak().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(
+                    fra = dagerTilFraDato?.let(mottattDato::plusDays),
+                    maxdatoUnntak = if (harNåddMaksdatoForUnntak) maksdato else null
+                )
+            )
+        }
+
+        val resultat = vurder(sak, mottattDato)
+        assertEquals(
+            when {
+                dagerTilFraDato != null && dagerTilFraDato > 0 -> IkkeRelevantSøknad
+                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
+                unntaksvilkaarInnvilget == true && harNåddMaksdatoForUnntak -> HarBruktOppForlengelsen
+                unntaksvilkaarInnvilget == true -> VedtattForlenget
+                else -> IkkeRelevantSøknad
+            },
+            resultat
+        )
+        assertEquals(
+            (dagerTilFraDato == null || dagerTilFraDato <= 0) &&
+                    (unntaksvilkaarInnvilget == false ||
+                            (unntaksvilkaarInnvilget == true && harNåddMaksdatoForUnntak)),
+            resultat.skalTilKelvin()
+        )
     }
 
     @ParameterizedTest
@@ -178,6 +226,21 @@ class ArenaServiceTest {
         )
     }
 
+    @Test
+    fun `feil fra Arena oppslag videreføres`() {
+        val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
+        val person = mockk<Person>()
+        val feil = IllegalStateException("Arena-oppslag feilet")
+        coEvery { arena.historikkStatusDetalj(person, maksdato) } throws feil
+
+        val kastetFeil = assertThrows(IllegalStateException::class.java) {
+            runBlocking { arenaService.harOppbruktRettighet(person, maksdato, 1) }
+        }
+
+        assertSame(feil, kastetFeil)
+        coVerify(exactly = 1) { arena.historikkStatusDetalj(person, maksdato) }
+    }
+
     private suspend fun vurder(
         sisteSak: SisteSakDetaljer?,
         mottattDato: LocalDate = maksdato
@@ -187,7 +250,9 @@ class ArenaServiceTest {
         coEvery { arena.historikkStatusDetalj(person, mottattDato) } returns
                 HistorikkStatusDetaljResponse(null, sisteSak, null)
 
-        return arenaService.harOppbruktRettighet(person, mottattDato, 1)
+        val resultat = arenaService.harOppbruktRettighet(person, mottattDato, 1)
+        coVerify(exactly = 1) { arena.historikkStatusDetalj(person, mottattDato) }
+        return resultat
     }
 
     private fun sisteSak() = SisteSakDetaljer(
