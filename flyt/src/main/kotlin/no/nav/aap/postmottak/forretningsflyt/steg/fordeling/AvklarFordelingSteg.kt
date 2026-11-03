@@ -28,6 +28,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.tellOppbruktRettighetResultat
+import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -94,9 +95,13 @@ class AvklarFordelingSteg(
 
         val regelresultat = vurderFordelingRegler(kontekst, innkommendeJournalpost)
 
-        val erRettighetHeltOppbruktISisteArenaSak = erRettighetOppbruktIArena(safJournalpost, kontekst)
-        // Togglet av for nå
-        val kantIKantSakSomSkalTilKelvin = false && erRettighetHeltOppbruktISisteArenaSak.skalTilKelvin()
+        // Feiler hardt hvis Arena ikke svarer, slik at jobben prøves på nytt i stedet for å rute feil
+        val kantIKantSakSomSkalTilKelvin =
+            if (unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1)) {
+                erRettighetOppbruktIArena(safJournalpost, kontekst).skalTilKelvin()
+            } else {
+                false
+            }
 
         val system = if (regelresultat.skalTilKelvin() || kantIKantSakSomSkalTilKelvin) {
             AapSystem.KELVIN

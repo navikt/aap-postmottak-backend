@@ -13,6 +13,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.DummyFeature -> TODO()
             PostmottakFeature.AutomatiskKlageJournalforing -> true
             PostmottakFeature.PostmottakVelgTema -> false
+            PostmottakFeature.KantTilKantV1 -> false
         }
     }
 
@@ -23,6 +24,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.DummyFeature -> isRolledOutFor(userId)
             PostmottakFeature.AutomatiskKlageJournalforing -> true
             PostmottakFeature.PostmottakVelgTema -> false
+            PostmottakFeature.KantTilKantV1 -> false
         }
 
     }
