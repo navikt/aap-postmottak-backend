@@ -31,7 +31,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     suspend fun statusPå11_12Vurdering(
         søker: Person, mottattDato: LocalDate
     ): Boolean? {
-        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
+        val historikk = hentHistorikkDetalj(søker, mottattDato)
 
         return historikk.sisteSakOgVedtak?.unntaksvilkaarInnvilget
     }
@@ -54,9 +54,9 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     suspend fun harOppbruktRettighet(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): OppbruktRettighetResultat {
-        val historikk = hentSisteVedtakMedEffektivMaksdato(søker, mottattDato)
+        val historikk = hentHistorikkDetalj(søker, mottattDato)
         val sisteSak = historikk.sisteSakOgVedtak
-        if (sisteSak == null) {
+        if (sisteSak == null || !sisteSak.erUnderArbeidsAvklaring() && !sisteSak.erUnderArbeidsUtprøving()) {
             // Søker har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
             logger.info("Journalpost $journalpostId har ingen aktuell sak i Arena, vurderer som ikke relevant")
             return IkkeRelevantSøknad
@@ -104,13 +104,11 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     }
 
     private fun harVedtakIArenaSomStarterIFremtiden(
-        sisteSak: SisteSakDetaljer,
-        mottattDato: LocalDate
+        sisteSak: SisteSakDetaljer, mottattDato: LocalDate
     ): Boolean = sisteSak.sisteVedtak.fra?.isAfter(mottattDato) == true
 
     private fun maksDatoNærmerSeg(
-        sisteSak: SisteSakDetaljer?,
-        mottattDato: LocalDate
+        sisteSak: SisteSakDetaljer?, mottattDato: LocalDate
     ): Boolean {
         // bruker den siste av ordinær eller unntaks-maksdatoen for å vurdere om søknaden er relevant
         return sisteSak?.sisteVedtak?.maxdatoAap?.isBefore(mottattDato + periodeFørMaksdato) == true
@@ -118,15 +116,13 @@ class ArenaService(gatewayProvider: GatewayProvider) {
 
     private fun erTildatoLikMaksdatoInnenforToleranse(sisteSak: SisteSakDetaljer?): Boolean {
         return erDatoerInnenforToleranse(
-            sisteSak?.sisteVedtak?.til,
-            sisteSak?.sisteVedtak?.maxdatoOrdinaer
+            sisteSak?.sisteVedtak?.til, sisteSak?.sisteVedtak?.maxdatoOrdinaer
         )
     }
 
     private fun erTildatoLikMaksdatoForUnntakInnenforToleranse(sisteSak: SisteSakDetaljer?): Boolean {
         return erDatoerInnenforToleranse(
-            sisteSak?.sisteVedtak?.til,
-            sisteSak?.sisteVedtak?.maxdatoUnntak
+            sisteSak?.sisteVedtak?.til, sisteSak?.sisteVedtak?.maxdatoUnntak
         )
     }
 
@@ -138,9 +134,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
             dagerMellom.absoluteValue <= toleranseForLikeDatoer
         }
 
-    private suspend fun hentSisteVedtakMedEffektivMaksdato(
-        søker: Person,
-        mottattDato: LocalDate
+    private suspend fun hentHistorikkDetalj(
+        søker: Person, mottattDato: LocalDate
     ): HistorikkStatusDetaljResponse {
         return arena.historikkStatusDetalj(søker, mottattDato)
     }
