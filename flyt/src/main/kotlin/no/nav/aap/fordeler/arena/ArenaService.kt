@@ -51,6 +51,29 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         }
     }
 
+    // TODO docs
+    suspend fun harIkkeRettTilGjenopptak(
+        søker: Person, mottattDato: LocalDate, journalpostId: Long
+    ): Boolean {
+        val historikk = hentHistorikkDetalj(søker, mottattDato)
+        val sisteSakOgVedtak = historikk.sisteSakOgVedtak
+        val vedtakGirIkkeRettTilGjenopptak = sisteSakOgVedtak != null
+                && (sisteSakOgVedtak.utredesForUfor()
+                || sisteSakOgVedtak.erFerdigAvklart()
+                || sisteSakOgVedtak.erSykepengeErstatning())
+        val tommeKvoter = historikk.telleverk?.ordineerAAPKvote == 0 && historikk.telleverk?.utvidetAAPKvote == 0
+
+        val logmsg: StringBuilder = StringBuilder()
+        logmsg.append("tommeKvoter=${tommeKvoter},")
+        logmsg.append("ingenVedtakGirRettTilGjenopptak=${vedtakGirIkkeRettTilGjenopptak}")
+        val tilstand = logmsg.toString()
+
+        logger.info("Journalpost $journalpostId er uten rett til gjenopptak: ${historikk}, tilstand: $tilstand")
+
+        return vedtakGirIkkeRettTilGjenopptak && tommeKvoter
+    }
+
+    // TODO docs
     suspend fun harOppbruktRettighet(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): OppbruktRettighetResultat {
