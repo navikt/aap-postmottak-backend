@@ -95,15 +95,15 @@ class AvklarFordelingSteg(
 
         val regelresultat = vurderFordelingRegler(kontekst, innkommendeJournalpost)
 
+        val oppbruktRettighetResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
+        log.info("oppbruktRettighetResultat=${oppbruktRettighetResultat} journalpostId=${innkommendeJournalpost.journalpostId}")
+        
         // Feiler hardt hvis Arena ikke svarer, slik at jobben prøves på nytt i stedet for å rute feil
         val kantIKantSakSomSkalTilKelvin =
             if (unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1)) {
-                val oppbruktRettighetResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
                 prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat).increment()
                 oppbruktRettighetResultat.skalTilKelvin()
             } else {
-                val oppbruktRettighetResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
-                log.info("oppbruktRettighetResultat=${oppbruktRettighetResultat} journalpostId=${innkommendeJournalpost.journalpostId}")
                 false
             }
 
