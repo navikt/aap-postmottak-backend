@@ -98,8 +98,12 @@ class AvklarFordelingSteg(
         // Feiler hardt hvis Arena ikke svarer, slik at jobben prøves på nytt i stedet for å rute feil
         val kantIKantSakSomSkalTilKelvin =
             if (unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1)) {
-                erRettighetOppbruktIArena(safJournalpost, kontekst).skalTilKelvin()
+                val oppbruktRettighetResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
+                prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat).increment()
+                oppbruktRettighetResultat.skalTilKelvin()
             } else {
+                val oppbruktRettighetResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
+                log.info("oppbruktRettighetResultat=${oppbruktRettighetResultat} journalpostId=${innkommendeJournalpost.journalpostId}")
                 false
             }
 
@@ -137,7 +141,6 @@ class AvklarFordelingSteg(
                 journalpostId = kontekst.journalpostId.referanse
             )
         }
-        prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat).increment()
 
         return oppbruktRettighetResultat
     }
