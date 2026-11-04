@@ -2,6 +2,8 @@ package no.nav.aap.postmottak.forretningsflyt.steg.fordeling
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -12,6 +14,10 @@ import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
 import no.nav.aap.fordeler.arena.ArenaService
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.VedtattForlenget
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.VedtattAtIkkeForlenges
 import no.nav.aap.fordeler.arena.AvklarFordelingRepository
 import no.nav.aap.fordeler.arena.AvklarFordelingVurdering
 import no.nav.aap.postmottak.PrometheusProvider
@@ -33,6 +39,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDateTime
 
 internal class AvklarFordelingStegTest {
@@ -207,6 +215,67 @@ internal class AvklarFordelingStegTest {
 
         verify(exactly = 1) { innkommendeJournalpostRepository.update(eksisterende.copy(regelresultat = res)) }
         verify(exactly = 0) { innkommendeJournalpostRepository.lagre(any()) }
+    }
+
+    @ParameterizedTest
+    @MethodSource("oppbrukteRettigheter")
+    fun `Kant i kant med oppbrukt rettighet rutes til Kelvin når KantTilKantV1 er på`(
+        oppbruktRettighet: HarOppbruktRettighet,
+    ) {
+        settOppAutomatiskVurdering(regelresultat(kelvin = false))
+        every { unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1) } returns true
+        coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns oppbruktRettighet
+
+        steg.utfør(kontekst)
+
+        verify {
+            avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
+                assertThat(it.system).isEqualTo(AapSystem.KELVIN)
+            })
+        }
+        assertThat(
+            PrometheusProvider.prometheus.counter(
+                "postmottak_kant_i_kant_maks_fordeling",
+                "helt_oppbrukt_kvote", (oppbruktRettighet is HarBruktOppForlengelsen).toString(),
+                "vedtatt_forlenges_ikke", (oppbruktRettighet is VedtattAtIkkeForlenges).toString(),
+            ).count()
+        ).isEqualTo(1.0)
+    }
+
+    @Test
+    fun `Forlenget rettighet i Arena rutes til Arena når KantTilKantV1 er på`() {
+        settOppAutomatiskVurdering(regelresultat(kelvin = false))
+        every { unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1) } returns true
+        coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns VedtattForlenget
+
+        steg.utfør(kontekst)
+
+        verify {
+            avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
+                assertThat(it.system).isEqualTo(AapSystem.ARENA)
+            })
+        }
+    }
+
+    @Test
+    fun `Oppbrukt rettighet i Arena påvirker ikke fordeling når KantTilKantV1 er av`() {
+        settOppAutomatiskVurdering(regelresultat(kelvin = false))
+        every { unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1) } returns false
+        coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns HarBruktOppForlengelsen
+
+        steg.utfør(kontekst)
+
+        coVerify(exactly = 1) { arenaService.harOppbruktRettighet(any(), any(), any()) }
+        verify {
+            avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
+                assertThat(it.system).isEqualTo(AapSystem.ARENA)
+            })
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun oppbrukteRettigheter() = listOf(HarBruktOppForlengelsen, VedtattAtIkkeForlenges)
     }
 
     private fun settOppAutomatiskVurdering(res: Regelresultat) {
