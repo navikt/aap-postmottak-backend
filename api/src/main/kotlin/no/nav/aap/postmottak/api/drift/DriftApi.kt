@@ -19,6 +19,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostSer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.joarkavstemmer.AvstemmingsrapportRepository
+import no.nav.aap.postmottak.joarkavstemmer.Avstemmingsutfall
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
@@ -44,9 +45,18 @@ data class AvstemmingsrapportDto(
     val resultater: List<JournalpostAvstemmingsresultatDto>,
 )
 
+enum class AvstemmingsutfallDto {
+    UAVSTEMT_UKJENT,
+    UAVSTEMT_KELVIN,
+    GOSYS_OPPGAVE_OPPRETTET,
+    FORDELINGSOPPGAVE_OPPRETTET,
+    ALLEREDE_HAR_OPPGAVE,
+    IKKE_NOK_INFORMASJON,
+}
+
 data class JournalpostAvstemmingsresultatDto(
     val journalpostId: Long,
-    val utfall: String,
+    val utfall: AvstemmingsutfallDto,
     val kanal: String?,
     val datoOpprettet: LocalDate?,
 )
@@ -69,7 +79,14 @@ private fun NormalOpenAPIRoute.joarkAvstemmingApi(
                     resultater = rapport?.resultater.orEmpty().map { resultat ->
                         JournalpostAvstemmingsresultatDto(
                             journalpostId = resultat.journalpostId,
-                            utfall = resultat.utfall.name,
+                            utfall = when (resultat.utfall) {
+                                Avstemmingsutfall.UAVSTEMT_UKJENT -> AvstemmingsutfallDto.UAVSTEMT_UKJENT
+                                Avstemmingsutfall.UAVSTEMT_KELVIN -> AvstemmingsutfallDto.UAVSTEMT_KELVIN
+                                Avstemmingsutfall.GOSYS_OPPGAVE_OPPRETTET -> AvstemmingsutfallDto.GOSYS_OPPGAVE_OPPRETTET
+                                Avstemmingsutfall.FORDELINGSOPPGAVE_OPPRETTET -> AvstemmingsutfallDto.FORDELINGSOPPGAVE_OPPRETTET
+                                Avstemmingsutfall.ALLEREDE_HAR_OPPGAVE -> AvstemmingsutfallDto.ALLEREDE_HAR_OPPGAVE
+                                Avstemmingsutfall.IKKE_NOK_INFORMASJON -> AvstemmingsutfallDto.IKKE_NOK_INFORMASJON
+                            },
                             kanal = resultat.kanal,
                             datoOpprettet = resultat.datoOpprettet,
                         )
