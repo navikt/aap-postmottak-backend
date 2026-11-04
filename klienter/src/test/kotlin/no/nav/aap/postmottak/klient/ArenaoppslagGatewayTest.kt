@@ -40,7 +40,7 @@ class ArenaoppslagGatewayTest {
     }
 
     @Test
-    fun `Kan parse harSignifikantHistorikk`() {
+    fun `harSignifikantHistorikk ignorerer ukjente felt i respons og vedtak`() {
         val testPerson = TestPersoner.leggTil { harHistorikkIArena = true }
 
         val vedtak = runBlocking {
@@ -48,53 +48,44 @@ class ArenaoppslagGatewayTest {
             arenaOppslagGatewayFake.harSignifikantHistorikk(person, LocalDate.now())
         }
 
+        assertThat(vedtak.harSignifikantHistorikk).isTrue()
         assertThat(vedtak.saker()).containsExactly(1234)
+        val signifikantVedtak = vedtak.signifikanteVedtak.single()
+        assertThat(signifikantVedtak.vedtakId).isEqualTo(5678)
+        assertThat(signifikantVedtak.aktivitetsfaseKode).isEqualTo("UA")
+        assertThat(signifikantVedtak.rettighetkode).isEqualTo("AAP")
     }
 
     @Test
-    fun `Kan parse MaksdatoResponse`() {
-        val testPerson = TestPersoner.leggTil { arenaSak = TestArenaSak() }
+    fun `Kan parse historikkStatusDetalj`() {
+        val sak = TestArenaSak(sakId = 4321)
+        val testPerson = TestPersoner.leggTil { arenaSak = sak }
 
         val res = runBlocking {
-            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(testPerson.aktivIdent())
+            val person = Person(1, UUID.randomUUID(), listOf(testPerson.aktivIdent()))
+            arenaOppslagGatewayFake.historikkStatusDetalj(person, LocalDate.now())
         }
 
         assertThat(res).isNotNull
-        assertThat(res?.sakId).isEqualTo(1234)
+        assertThat(res.sisteSakOgVedtak?.sakId).isEqualTo(sak.sakId)
+        assertThat(res.sisteSakOgVedtak?.saknummer).isEqualTo(sak.saknummer)
+        assertThat(res.sisteSakOgVedtak?.sisteVedtak?.vedtakId).isEqualTo(sak.sisteVedtak.vedtakId)
+        assertThat(res.sisteSakOgVedtak?.sisteVedtak?.maxdatoAap).isEqualTo(sak.sisteVedtak.maxdatoAap)
+        assertThat(res.sisteUtbetalingDato).isEqualTo(sak.sisteUtbetalingsdato)
     }
 
     @Test
-    fun `MaksdatoResponse returnerer tom liste ved ikke funnet`() {
+    fun `historikkStatusDetalj returnerer tom liste ved ikke funnet`() {
         val testPerson = TestPersoner.leggTil {}
 
         val res = runBlocking {
-            arenaOppslagGatewayFake.sisteVedtakMedMaksdato(testPerson.aktivIdent())
+            val person = Person(1, UUID.randomUUID(), listOf(testPerson.aktivIdent()))
+            arenaOppslagGatewayFake.historikkStatusDetalj(person, LocalDate.now())
         }
 
-        assertThat(res).isNull()
+        assertThat(res.sisteSakOgVedtak).isNull()
+        assertThat(res.sisteUtbetalingDato).isNull()
+        assertThat(res.telleverk).isNull()
     }
 
-    @Test
-    fun `Kan parse SisteUtbetalingerResponse`() {
-        val testPerson = TestPersoner.leggTil {
-            arenaSak = TestArenaSak(sisteUtbetalingsdato = LocalDate.parse("2024-05-10"))
-        }
-
-        val res = runBlocking {
-            arenaOppslagGatewayFake.sisteUtbetalingsdatoForPerson(testPerson.aktivIdent())
-        }
-
-        assertThat(res).isEqualTo(LocalDate.parse("2024-05-10"))
-    }
-
-    @Test
-    fun `SisteUtbetalingerResponse returnerer null ved ikke funnet`() {
-        val testPerson = TestPersoner.leggTil {}
-
-        val res = runBlocking {
-            arenaOppslagGatewayFake.sisteUtbetalingsdatoForPerson(testPerson.aktivIdent())
-        }
-
-        assertThat(res).isNull()
-    }
 }

@@ -78,7 +78,11 @@ kotlin {
 val toolchainLauncher = javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(25))
 }
-tasks.withType<Test>().configureEach { javaLauncher.set(toolchainLauncher) }
+tasks.withType<Test>().configureEach {
+    javaLauncher.set(toolchainLauncher)
+    systemProperty("net.bytebuddy.safe", "true")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
 tasks.withType<JavaExec>().configureEach { javaLauncher.set(toolchainLauncher) }
 
 
