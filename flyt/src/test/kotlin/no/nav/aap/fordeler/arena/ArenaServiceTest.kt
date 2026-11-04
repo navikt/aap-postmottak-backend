@@ -1,20 +1,29 @@
 package no.nav.aap.fordeler.arena
 
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakMedSisteVedtakOgMaksdato
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.IkkeRelevantSøknad
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.VedtattForlenget
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.VedtattAtIkkeForlenges
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.createGatewayProvider
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.time.LocalDate
-import no.nav.aap.fordeler.arena.ArenaService.Companion.hentMaksAntallUkerFørUtløpMaksimalt
 
 class ArenaServiceTest {
 
@@ -23,184 +32,262 @@ class ArenaServiceTest {
     }
 
     private val arenaService = ArenaService(gatewayProvider)
-
+    private val maksdato = LocalDate.of(2026, 12, 12)
 
     @Test
-    fun `returnerer false naar listen er tom`() {
-        assertFalse(arenaService.harSignifikanteVedtakUtoverTypeAap(emptyList()))
+    fun `søknaden er ikke relevant når det ikke finnes en siste sak`() = runBlocking {
+        assertEquals(IkkeRelevantSøknad, vurder(null))
     }
 
     @Test
-    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar det er klage`() {
-        val vedtak = listOf(
-            arenaVedtak(rettighetskode = "AAP"),
-            arenaVedtak(rettighetskode = "AA115"),
-            arenaVedtak(rettighetskode = "KLAG1")
-        )
+    fun `avslått forlengelse gir oppbrukt rettighet`() = runBlocking {
+        val sak = sisteSak().copy(unntaksvilkaarInnvilget = false)
 
-        assertTrue(arenaService.harSignifikanteVedtakUtoverTypeAap(vedtak))
+        assertEquals(VedtattAtIkkeForlenges, vurder(sak))
     }
 
     @Test
-    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar rettighetskoder ikke inneholder AAP`() {
-        val vedtak = listOf(arenaVedtak(rettighetskode = "KLAG1"))
+    fun `innvilget forlengelse uten maksdato for unntak gir ikke oppbrukt rettighet`() = runBlocking {
+        val sak = sisteSak().copy(unntaksvilkaarInnvilget = true)
 
-        assertTrue(arenaService.harSignifikanteVedtakUtoverTypeAap(vedtak))
+        assertEquals(VedtattForlenget, vurder(sak))
     }
 
     @Test
-    fun `harSignifikanteVedtakUtoverTypeAap returnerer true naar det finnes flere rettighetskoder inkludert AAP`() {
-        val vedtak = listOf(
-            arenaVedtak(rettighetskode = "AAP"),
-            arenaVedtak(rettighetskode = "KLAG1")
-        )
-
-        assertTrue(arenaService.harSignifikanteVedtakUtoverTypeAap(vedtak))
+    fun `søknaden er ikke relevant uten vurdering av unntak eller maksdato for unntak`() = runBlocking {
+        assertEquals(IkkeRelevantSøknad, vurder(sisteSak()))
     }
 
-    @Test
-    fun `harFlereSignifikanteSaker returnerer false naar det kun finnes en sak`() {
-        val sisteSakId = 1234
-        val historikk = SignifikantHistorikkResponse(
-            true,
-            listOf(arenaVedtak(sakId = sisteSakId, rettighetskode = "AAP"),
-                arenaVedtak(sakId = sisteSakId, rettighetskode = "AA115"))
-        )
-        val sisteSak = sakMedId(sisteSakId)
-
-        assertFalse(arenaService.harFlereSignifikanteSaker(historikk.saker(), sisteSak))
-    }
-
-    @Test
-    fun `harFlereSignifikanteSaker returnerer true naar det finnes fler saker enn sisteSak`() {
-        val historikk = SignifikantHistorikkResponse(
-            true,
-            listOf(
-                arenaVedtak(sakId = 1234, rettighetskode = "AAP"),
-                arenaVedtak(sakId = 5678, rettighetskode = "AAP")
-            )
-        )
-        val sisteSak = sakMedId(1234)
-
-        assertTrue(arenaService.harFlereSignifikanteSaker(historikk.saker(), sisteSak))
-    }
-
-    @Test
-    fun `harFlereSignifikanteSaker returnerer false naar historikk er tomt`() {
-        val historikk = SignifikantHistorikkResponse.ingen
-        val sisteSak = sakMedId(1234)
-
-        assertFalse(arenaService.harFlereSignifikanteSaker(historikk.saker(), sisteSak))
-    }
-
-    @Test
-    fun `harFlereSignifikanteSaker returnerer true naar det finnes tre saker`() {
-        val historikk = SignifikantHistorikkResponse(
-            true,
-            listOf(
-                arenaVedtak(sakId = 1111, rettighetskode = "AAP"),
-                arenaVedtak(sakId = 2222, rettighetskode = "AA115"),
-                arenaVedtak(sakId = 3333, rettighetskode = "AAP")
-            )
-        )
-        val sisteSak = sakMedId(1111)
-
-        assertTrue(arenaService.harFlereSignifikanteSaker(historikk.saker(), sisteSak))
-    }
-
-    @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er null`() {
-        val mottattDato = LocalDate.of(2026, 6, 10)
-        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = null)
-
-        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
-    }
-
-    @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak true naar unntak er mer enn 18 mnd siden`() {
-        val mottattDato = LocalDate.of(2026, 6, 10)
-        val unntaksDato = mottattDato.minusYears(2).plusWeeks(hentMaksAntallUkerFørUtløpMaksimalt()).minusDays(1) // 19 months + 1 day ago
-        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
-
-        assertTrue(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
-    }
-
-    @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er eksakt 18 mnd siden`() {
-        val mottattDato = LocalDate.of(2026, 6, 10)
-        val unntaksDato = mottattDato.minusYears(2).plusWeeks(hentMaksAntallUkerFørUtløpMaksimalt()) // exactly at limit
-        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
-
-        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
-    }
-
-    @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er mindre enn 18 mnd siden`() {
-        val mottattDato = LocalDate.of(2026, 6, 10)
-        val unntaksDato = mottattDato.minusMonths(18).plusDays(1) // 17 months + 29 days ago
-        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
-
-        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
-    }
-
-    @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er i dag`() {
-        val mottattDato = LocalDate.of(2026, 6, 10)
-        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = mottattDato)
-
-        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
-    }
-
-    @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak false naar unntak er i fremtiden`() {
-        val mottattDato = LocalDate.of(2026, 6, 10)
-        val unntaksDato = mottattDato.plusMonths(1)
-        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
-
-        assertFalse(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
-    }
-
-    @Test
-    fun `sakenHarBegyntPåAndreÅretMedUnntak true naar unntak er langt tilbake`() {
-        val mottattDato = LocalDate.of(2026, 6, 10)
-        val unntaksDato = LocalDate.of(2020, 1, 1)
-        val sisteSak = sakMedId(1234).copy(unntaksvilkaarGjelderFra = unntaksDato)
-
-        assertTrue(arenaService.sakenHarBegyntPåAndreÅretMedUnntak(mottattDato, sisteSak))
-    }
-
-    private fun arenaVedtak(sakId: Int = 1, rettighetskode: String) = ArenaVedtak(
-        sakId,
-        "AKTIV",
-        null,
-        null,
-        null,
-        rettighetskode,
-        null
+    @ParameterizedTest
+    @CsvSource(
+        "null, true, true", "-1, true, true", "0, true, true", "1, true, true",
+        "null, true, false", "-1, true, false", "0, true, false", "1, true, false",
+        "null, false, true", "-1, false, true", "0, false, true", "1, false, true",
+        "null, false, false", "-1, false, false", "0, false, false", "1, false, false",
+        "null, null, true", "-1, null, true", "0, null, true", "1, null, true",
+        "null, null, false", "-1, null, false", "0, null, false", "1, null, false",
+        nullValues = ["null"]
     )
+    fun `harVedtakFremITidIArena vurderer fra dato mot mottaksdato uansett vurdering av unntak`(
+        dagerTilFraDato: Long?,
+        unntaksvilkaarInnvilget: Boolean?,
+        harNåddMaksdatoForUnntak: Boolean
+    ) = runBlocking {
+        val mottattDato = maksdato.minusDays(30)
+        val sak = sisteSak().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(
+                    fra = dagerTilFraDato?.let(mottattDato::plusDays),
+                    maxdatoUnntak = if (harNåddMaksdatoForUnntak) maksdato else null
+                )
+            )
+        }
 
-    private fun sakMedId(sakId: Int): SakMedSisteVedtakOgMaksdato {
-        return SakMedSisteVedtakOgMaksdato(
-            sakId = sakId,
-            saknummer = "$sakId-25",
-            sakStatus = "AKTIV",
-            sakRegistrert = LocalDate.of(2025, 1, 1),
-            sakAvsluttet = null,
-            sisteVedtak = VedtakMedMaksdato(
-                vedtakId = sakId,
-                aktfaseKode = "INNV",
-                vedtaktypeKode = "O",
-                vedtakstatuskode = "IVERK",
-                fra = LocalDate.of(2025, 1, 1),
-                til = LocalDate.of(2026, 1, 1),
-                maxdatoOrdinaer = null,
-                maxdatoUnntak = null,
-                maxdatoAap = LocalDate.of(2026, 12, 12),
-            ),
-            unntaksvilkaarGjelderFra = null,
-            unntaksvilkaarInnvilget = null
+        val resultat = vurder(sak, mottattDato)
+        assertEquals(
+            when {
+                dagerTilFraDato != null && dagerTilFraDato > 0 -> IkkeRelevantSøknad
+                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
+                unntaksvilkaarInnvilget == true && harNåddMaksdatoForUnntak -> HarBruktOppForlengelsen
+                unntaksvilkaarInnvilget == true -> VedtattForlenget
+                else -> IkkeRelevantSøknad
+            },
+            resultat
+        )
+        assertEquals(
+            (dagerTilFraDato == null || dagerTilFraDato <= 0) &&
+                    (unntaksvilkaarInnvilget == false ||
+                            (unntaksvilkaarInnvilget == true && harNåddMaksdatoForUnntak)),
+            resultat.skalTilKelvin()
         )
     }
+
+    @ParameterizedTest
+    @CsvSource(
+        "null, true", "-6, true", "-5, true", "0, true", "5, true", "6, true",
+        "null, false", "-6, false", "-5, false", "0, false", "5, false", "6, false",
+        "null, null", "-6, null", "-5, null", "0, null", "5, null", "6, null",
+        nullValues = ["null"]
+    )
+    fun `forlengelsen er bare oppbrukt når den er innvilget og sluttdato er innen fem dager fra maksdato for unntak`(
+        avvikIDager: Long?,
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = sisteSak().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = avvikIDager?.let(maksdato::plusDays))
+            )
+        }
+
+        assertEquals(
+            when (unntaksvilkaarInnvilget) {
+                true -> if (avvikIDager != null && avvikIDager in -5L..5L) {
+                    HarBruktOppForlengelsen
+                } else {
+                    VedtattForlenget
+                }
+                false -> VedtattAtIkkeForlenges
+                null -> IkkeRelevantSøknad
+            },
+            vurder(sak)
+        )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "-6, true", "-5, true", "0, true", "5, true", "6, true",
+        "-6, false", "-5, false", "0, false", "5, false", "6, false",
+        "-6, null", "-5, null", "0, null", "5, null", "6, null",
+        nullValues = ["null"]
+    )
+    fun `sluttdato må være innen fem dager fra ordinær maksdato uansett vurdering av unntak`(
+        avvikIDager: Long,
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = sisteSak().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoOrdinaer = maksdato.plusDays(avvikIDager),
+                    maxdatoUnntak = maksdato
+                )
+            )
+        }
+
+        assertEquals(
+            when {
+                avvikIDager !in -5L..5L -> IkkeRelevantSøknad
+                unntaksvilkaarInnvilget == true -> HarBruktOppForlengelsen
+                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
+                else -> IkkeRelevantSøknad
+            },
+            vurder(sak)
+        )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "til, true", "til, false", "til, null",
+        "ordinær, true", "ordinær, false", "ordinær, null",
+        "aap, true", "aap, false", "aap, null",
+        nullValues = ["null"]
+    )
+    fun `søknaden er ikke relevant når en nødvendig dato mangler`(
+        manglendeDato: String,
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = sisteSak().let {
+            val vedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato)
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = when (manglendeDato) {
+                    "til" -> vedtak.copy(til = null)
+                    "ordinær" -> vedtak.copy(maxdatoOrdinaer = null)
+                    "aap" -> vedtak.copy(maxdatoAap = null)
+                    else -> error("Ukjent dato: $manglendeDato")
+                }
+            )
+        }
+
+        assertEquals(IkkeRelevantSøknad, vurder(sak))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "-1, true", "0, true", "181, true", "182, true", "183, true",
+        "-1, false", "0, false", "181, false", "182, false", "183, false",
+        "-1, null", "0, null", "181, null", "182, null", "183, null",
+        nullValues = ["null"]
+    )
+    fun `effektiv maksdato må være mindre enn 26 uker etter mottatt dato uansett vurdering av unntak`(
+        dagerTilEffektivMaksdato: Long,
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = sisteSak().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato),
+                    maxdatoUnntak = maksdato
+                )
+            )
+        }
+
+        assertEquals(
+            when {
+                dagerTilEffektivMaksdato >= 182 -> IkkeRelevantSøknad
+                unntaksvilkaarInnvilget == true -> HarBruktOppForlengelsen
+                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
+                else -> IkkeRelevantSøknad
+            },
+            vurder(sak)
+        )
+    }
+
+    @Test
+    fun `feil fra Arena oppslag videreføres`() {
+        val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
+        val person = mockk<Person>()
+        val feil = IllegalStateException("Arena-oppslag feilet")
+        coEvery { arena.historikkStatusDetalj(person, maksdato) } throws feil
+
+        val kastetFeil = assertThrows(IllegalStateException::class.java) {
+            runBlocking { arenaService.harOppbruktRettighet(person, maksdato, 1) }
+        }
+
+        assertSame(feil, kastetFeil)
+        coVerify(exactly = 1) { arena.historikkStatusDetalj(person, maksdato) }
+    }
+
+    private suspend fun vurder(
+        sisteSak: SisteSakDetaljer?,
+        mottattDato: LocalDate = maksdato
+    ): ArenaService.OppbruktRettighetResultat {
+        val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
+        val person = mockk<Person>()
+        coEvery { arena.historikkStatusDetalj(person, mottattDato) } returns
+                HistorikkStatusDetaljResponse(null, sisteSak, null)
+
+        val resultat = arenaService.harOppbruktRettighet(person, mottattDato, 1)
+        coVerify(exactly = 1) { arena.historikkStatusDetalj(person, mottattDato) }
+        return resultat
+    }
+
+    private fun sisteSak() = SisteSakDetaljer(
+        sakId = 1234,
+        saknummer = "1234-25",
+        sakStatus = "AKTIV",
+        sakRegistrert = LocalDate.of(2025, 1, 1),
+        sakAvsluttet = null,
+        sisteVedtak = VedtakMedMaksdato(
+            vedtakId = 1,
+            aktfaseKode = "AU",
+            vedtaktypeKode = "O",
+            vedtakstatuskode = "IVERK",
+            fra = LocalDate.of(2025, 1, 1),
+            til = maksdato,
+            maxdatoOrdinaer = maksdato,
+            maxdatoUnntak = null,
+            maxdatoAap = maksdato
+        ),
+        unntaksvilkaarGjelderFra = null,
+        unntaksvilkaarInnvilget = null,
+        vedtakene = listOf(
+            ArenaVedtak(
+                sakId = 1234,
+                statusKode = "IVERK",
+                vedtaktypeKode = "O",
+                fraOgMed = LocalDate.of(2025, 1, 1),
+                tilDato = maksdato,
+                rettighetkode = "AAP",
+                utfallkode = "JA",
+                vedtakId = 1,
+                aktivitetsfaseKode = "AU"
+            )
+        )
+    )
 }
 
 class ArenaoppslagGatewayMock : ArenaoppslagGateway {
@@ -215,7 +302,10 @@ class ArenaoppslagGatewayMock : ArenaoppslagGateway {
         return SignifikantHistorikkResponse.ingen
     }
 
-    override suspend fun sisteVedtakMedMaksdato(ident: Ident): SakMedSisteVedtakOgMaksdato? = null
-
-    override suspend fun sisteUtbetalingsdatoForPerson(ident: Ident): LocalDate? = null
+    override suspend fun historikkStatusDetalj(
+        person: Person,
+        mottattDato: LocalDate
+    ): HistorikkStatusDetaljResponse {
+        return HistorikkStatusDetaljResponse.ingen
+    }
 }
