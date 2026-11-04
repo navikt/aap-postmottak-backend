@@ -9,6 +9,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaVedtak
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkRequest
@@ -108,7 +109,19 @@ fun Application.arenaoppslagFake() {
                             maxdatoUnntak = sisteVedtak.maxdatoUnntak,
                             maxdatoAap = sisteVedtak.maxdatoAap,
                         ),
-                        vedtakene = emptyList(),
+                        vedtakene = listOf(
+                            ArenaVedtak(
+                                sakId = arenaSak.sakId,
+                                vedtaktypeKode = sisteVedtak.vedtaktypeKode,
+                                statusKode = sisteVedtak.vedtakstatuskode,
+                                fraOgMed = sisteVedtak.fra,
+                                tilDato = sisteVedtak.til,
+                                rettighetkode = "AAP",
+                                utfallkode = "JA",
+                                vedtakId = sisteVedtak.vedtakId,
+                                aktivitetsfaseKode = sisteVedtak.aktfaseKode,
+                            )
+                        ),
                     ),
                     sisteUtbetalingDato = arenaSak.sisteUtbetalingsdato,
                 )
