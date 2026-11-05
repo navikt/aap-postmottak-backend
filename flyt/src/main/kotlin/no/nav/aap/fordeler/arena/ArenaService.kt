@@ -75,7 +75,6 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val harKunOppbrukt = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
-            // forlenget sak: kant-i-kant vurderes mot maksdato for unntak, ikke ordinær maksdato
             erAlleredeForlenget -> if (tilDatoErLikMaksdatoForUnntak) {
                 // har fått forlengelse og brukt den helt opp når ytelsen i Arena utløper
                 HarBruktOppForlengelsen
