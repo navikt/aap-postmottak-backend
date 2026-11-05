@@ -11,6 +11,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.LegeerklæringV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.OppgitteBarn
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.StudentStatus
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadStudentDto
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadUtenlandsoppholdV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadV0
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -33,6 +34,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
@@ -305,5 +307,60 @@ class OverleverTilFagsystemStegTest {
             behandlingsflytKlient.sendHendelse(any(), any(), any(), any(), any(), any(), any())
         }
         assertThat(stegresultat).isEqualTo(Fullført)
+    }
+
+    @Test
+    fun `søknad om AAP i utlandet overleveres automatisk til behandlingsflyt med melding`() {
+        val melding = SøknadUtenlandsoppholdV0(mottattDato = mottattDato)
+        val digitaliseringsvurdering = Digitaliseringsvurdering(
+            kategori = InnsendingType.SØKNAD_UTENLANDSOPPHOLD,
+            strukturertDokument = DefaultJsonMapper.toJson(melding),
+            søknadsdato = null,
+            digitalisertManueltGjennomPostmottak = false,
+        )
+        val journalpost = TestJournalposter.leggTil {
+            journalpostId = 123
+            brevkode = Brevkoder.SØKNAD_OM_AAP_I_UTLANDET
+        }.tilJournalpost()
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { overleveringVurderingRepository.lagre(any(), any()) } returns Unit
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns digitaliseringsvurdering
+
+        val resultat = overførTilFagsystemSteg.utfør(kontekst)
+
+        assertEquals(Fullført::class.simpleName, resultat::class.simpleName)
+        verify(exactly = 1) {
+            overleveringVurderingRepository.lagre(any(), OverleveringVurdering(true, null))
+        }
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                journalpost.journalpostId,
+                journalpost.kanal,
+                any(),
+                InnsendingType.SØKNAD_UTENLANDSOPPHOLD,
+                saksnummer,
+                melding,
+                false
+            )
+        }
+    }
+
+    @Test
+    fun `utledMelding gir SøknadUtenlandsoppholdV0 uendret`() {
+        val melding = SøknadUtenlandsoppholdV0(mottattDato = mottattDato, fritekst = "Fritekst")
+        val digitaliseringsvurdering = Digitaliseringsvurdering(
+            kategori = InnsendingType.SØKNAD_UTENLANDSOPPHOLD,
+            strukturertDokument = DefaultJsonMapper.toJson(melding),
+            søknadsdato = null,
+            digitalisertManueltGjennomPostmottak = false,
+        )
+
+        val utledet = overførTilFagsystemSteg.utledMelding(
+            digitaliseringsvurdering,
+            OverleveringVurdering(skalOverleveresTilKelvin = true, begrunnelse = null)
+        )
+
+        assertThat(utledet).isEqualTo(melding)
     }
 }

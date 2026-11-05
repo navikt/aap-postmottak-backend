@@ -5,9 +5,13 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
+import io.mockk.verify
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadUtenlandsoppholdV0
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
@@ -228,4 +232,102 @@ class DigitaliserDokumentStegTest {
         assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.DIGITALISER_DOKUMENT)
     }
 
+    private fun utlandsøknad() = TestJournalPost(brevkode = Brevkoder.SØKNAD_OM_AAP_I_UTLANDET).tilJournalpost()
+
+    private fun klargjørUtlandsøknad(
+        toggle: Boolean = true,
+        journalpost: no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost = utlandsøknad(),
+    ) {
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns null
+        every { journalpostRepo.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { saksnummerRepository.eksistererAvslagPåTidligereBehandling(any<BehandlingId>()) } returns false
+        every { saksnummerRepository.hentKelvinSaker(any<BehandlingId>()) } returns emptyList()
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskJournalforingSoknadUtland) } returns toggle
+    }
+
+    @Test
+    fun `søknad om AAP i utlandet digitaliseres automatisk`() {
+        klargjørUtlandsøknad()
+        val digitaliseringsvurderingSlot = slot<Digitaliseringsvurdering>()
+        every {
+            struktureringsvurderingRepository.lagre(any(), capture(digitaliseringsvurderingSlot))
+        } just runs
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
+        val vurdering = digitaliseringsvurderingSlot.captured
+        assertThat(vurdering.kategori).isEqualTo(InnsendingType.SØKNAD_UTENLANDSOPPHOLD)
+        assertThat(vurdering.digitalisertManueltGjennomPostmottak).isFalse
+        val melding = DefaultJsonMapper.fromJson<SøknadUtenlandsoppholdV0>(vurdering.strukturertDokument!!)
+        assertThat(melding.mottattDato).isEqualTo(utlandsøknad().mottattDato)
+    }
+
+    @Test
+    fun `søknad om AAP i utlandet med toggle av reiser manuell digitalisering`() {
+        klargjørUtlandsøknad(toggle = false)
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.DIGITALISER_DOKUMENT)
+        verify(exactly = 0) { struktureringsvurderingRepository.lagre(any(), any()) }
+    }
+
+    @Test
+    fun `søknad om AAP i utlandet digitaliseres automatisk uavhengig av hvordan saken ble avklart`() {
+        klargjørUtlandsøknad()
+        every { struktureringsvurderingRepository.lagre(any(), any()) } just runs
+        listOf(
+            null,
+            Saksvurdering(saksnummer = "saksnummer", opprettetNy = false),
+            Saksvurdering(saksnummer = "saksnummer", opprettetNy = true),
+        ).forEach { saksvurdering ->
+            every { saksnummerRepository.hentSakVurdering(any<BehandlingId>()) } returns saksvurdering
+
+            val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+            assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
+        }
+        verify(exactly = 3) { struktureringsvurderingRepository.lagre(any(), any()) }
+    }
+
+    @Test
+    fun `søknad om AAP i utlandet på papir digitaliseres automatisk`() {
+        val papir = TestJournalPost(
+            brevkode = Brevkoder.SØKNAD_OM_AAP_I_UTLANDET,
+            kanal = KanalFraKodeverk.SKAN_NETS
+        ).tilJournalpost()
+        klargjørUtlandsøknad(journalpost = papir)
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
+        verify(exactly = 1) { struktureringsvurderingRepository.lagre(any(), any()) }
+    }
+
+    @Test
+    fun `ugyldig journalpost med søknad om AAP i utlandet digitaliseres ikke`() {
+        val ugyldig = TestJournalPost(
+            brevkode = Brevkoder.SØKNAD_OM_AAP_I_UTLANDET,
+            status = no.nav.aap.postmottak.gateway.Journalstatus.UTGAAR
+        ).tilJournalpost()
+        klargjørUtlandsøknad(journalpost = ugyldig)
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        assertEquals(Fullført::class.simpleName, stegresultat::class.simpleName)
+        verify(exactly = 0) { struktureringsvurderingRepository.lagre(any(), any()) }
+    }
+
+    @Test
+    fun `ettersending til søknad om AAP i utlandet (NAVe 11-03_07, brevkode ANNEN) digitaliseres ikke automatisk`() {
+        val ettersending = TestJournalPost(brevkode = Brevkoder.ANNEN).tilJournalpost()
+        klargjørUtlandsøknad(journalpost = ettersending)
+
+        val stegresultat = digitaliserDokumentSteg.utfør(mockk(relaxed = true))
+
+        val funnetAvklaringsbehov = stegresultat.transisjon() as FunnetAvklaringsbehov
+        assertThat(funnetAvklaringsbehov.avklaringsbehov()).isEqualTo(Definisjon.DIGITALISER_DOKUMENT)
+    }
 }

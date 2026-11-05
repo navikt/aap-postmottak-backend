@@ -51,7 +51,8 @@ object BrevkoderHelper {
             Brevkoder.LEGEERKLÆRING to InnsendingType.LEGEERKLÆRING,
             Brevkoder.MELDEKORT to InnsendingType.MELDEKORT,
             Brevkoder.MELDEKORT_KORRIGERING to InnsendingType.MELDEKORT,
-            Brevkoder.KLAGE to InnsendingType.KLAGE
+            Brevkoder.KLAGE to InnsendingType.KLAGE,
+            Brevkoder.SØKNAD_OM_AAP_I_UTLANDET to InnsendingType.SØKNAD_UTENLANDSOPPHOLD
         )
 
         return brevkodeTilInnsendingMap[Brevkoder.fraKode(brevkode)]
