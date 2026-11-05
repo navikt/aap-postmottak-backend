@@ -21,6 +21,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Oppfølgingsoppga
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.PdlHendelseV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SykepengevedtakV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Søknad
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadUtenlandsoppholdV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.TilbakekrevingHendelse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.UførevedtakV0
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -103,7 +104,8 @@ class OverleverTilFagsystemSteg(
                 InnsendingType.SØKNAD,
                 InnsendingType.LEGEERKLÆRING,
                 InnsendingType.MELDEKORT,
-                InnsendingType.KLAGE
+                InnsendingType.KLAGE,
+                InnsendingType.SØKNAD_UTENLANDSOPPHOLD
             ) && (digitaliseringsvurdering.kategori != InnsendingType.LEGEERKLÆRING || tillaterAutomatiskLegeerklæring)
         ) {
             val skalOverleveresTilKelvin = when {
@@ -192,6 +194,7 @@ class OverleverTilFagsystemSteg(
                     is PdlHendelseV0,
                     is SykepengevedtakV0,
                     is Søknad,
+                    is SøknadUtenlandsoppholdV0,
                     is TilbakekrevingHendelse,
                     is UførevedtakV0 -> it
                 }

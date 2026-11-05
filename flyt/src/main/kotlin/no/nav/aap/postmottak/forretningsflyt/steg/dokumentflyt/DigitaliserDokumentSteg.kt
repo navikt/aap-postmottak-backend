@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadUtenlandsoppholdV0
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -141,7 +142,32 @@ class DigitaliserDokumentSteg(
             return Fullført
         }
 
+        if (unleashGateway.isEnabled(PostmottakFeature.AutomatiskJournalforingSoknadUtland)
+            && journalpost.erSøknadOmAapIUtlandet()
+            && erSakAvklartMaskinelt(kontekst)
+        ) {
+            log.info("Digitaliserer søknad om AAP i utlandet automatisk for behandling ${kontekst.behandlingId}.")
+            val melding = SøknadUtenlandsoppholdV0(mottattDato = journalpost.mottattDato)
+            digitaliseringsvurderingRepository.lagre(
+                kontekst.behandlingId, Digitaliseringsvurdering(
+                    kategori = InnsendingType.SØKNAD_UTENLANDSOPPHOLD,
+                    strukturertDokument = melding.serialiser(),
+                    søknadsdato = null,
+                    digitalisertManueltGjennomPostmottak = false
+                )
+            )
+            return Fullført
+        }
+
         return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
+    }
+
+    // Saken er avklart maskinelt hvis AvklarSakSteg valgte en eksisterende sak uten å reise AVKLAR_SAK
+    private fun erSakAvklartMaskinelt(kontekst: FlytKontekst): Boolean {
+        val saksvurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
+        val manuellAvklaring = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId)
+            .hentBehovForDefinisjon(Definisjon.AVKLAR_SAK)
+        return saksvurdering != null && !saksvurdering.opprettetNy && manuellAvklaring == null
     }
 
     private fun hentOriginalDokumentFraSaf(journalpost: Journalpost): ByteArray {

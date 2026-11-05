@@ -45,6 +45,7 @@ import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -462,6 +463,29 @@ class Flyttest : WithDependencies {
         }!!
     }
 
+
+    @Test
+    fun `Full helautomatisk flyt for søknad om AAP i utlandet på person med kelvin-sak`() {
+        val testPerson = TestPersoner.leggTil {
+            kelvinSak = TestKelvinSak(resultat = ResultatKode.INNVILGET, harRettNåEllerIFramtiden = true)
+        }
+        val journalpostId = TestJournalposter.leggTil {
+            person = testPerson
+            brevkode = Brevkoder.SØKNAD_OM_AAP_I_UTLANDET
+            kanal = KanalFraKodeverk.SKAN_NETS
+        }.journalpostId()
+
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId)
+                .also { b -> require(b.size > 1 && b.all { it.status() == Status.AVSLUTTET }) }
+        }!!
+        assertThat(behandlinger.map { it.typeBehandling })
+            .contains(TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
+        assertThat(behandlinger.flatMap { hentAvklaringsbehov(it) }).isEmpty()
+    }
 
     @Test
     fun `kjører en manuell søknad igjennom hele flyten`() {

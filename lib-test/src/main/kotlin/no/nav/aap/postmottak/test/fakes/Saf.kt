@@ -215,6 +215,24 @@ private fun getDokumenter(testJournalpost: TestJournalPost): String {
         ]
     } """
 
+    val søknadOmAapIUtlandet = """
+        {
+            "tittel": "Søknad om å beholde AAP under opphold i utlandet",
+            "dokumentInfoId": "45426854353",
+            "brevkode": "${Brevkoder.SØKNAD_OM_AAP_I_UTLANDET.kode}",
+            "dokumentvarianter": [
+            {
+                "variantformat": "ARKIV",
+                "filtype": "PDF"
+            }
+            ]
+        }
+    """
+
+    if (testJournalpost.brevkode == Brevkoder.SØKNAD_OM_AAP_I_UTLANDET) {
+        return søknadOmAapIUtlandet
+    }
+
     if (testJournalpost.kanal == KanalFraKodeverk.SKAN_NETS) {
         return ensøknadogenpdf
     }
@@ -235,6 +253,7 @@ private fun getDokumenter(testJournalpost: TestJournalPost): String {
         Brevkoder.ANKE_ETTERSENDELSE,
         Brevkoder.BREV_UTLAND,
         Brevkoder.EGENERKLÆRING_AAP_EØS,
+        Brevkoder.SØKNAD_OM_AAP_I_UTLANDET -> søknadOmAapIUtlandet
         Brevkoder.MELDEKORT,
         Brevkoder.MELDEKORT_KORRIGERING,
         Brevkoder.ANNEN -> ensøknadogenpdf
