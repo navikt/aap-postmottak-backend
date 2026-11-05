@@ -96,12 +96,14 @@ class AvklarFordelingSteg(
         val regelresultat = vurderFordelingRegler(kontekst, innkommendeJournalpost)
 
         val oppbruktRettighetResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
-        log.info("oppbruktRettighetResultat=${oppbruktRettighetResultat} journalpostId=${innkommendeJournalpost.journalpostId}")
+        if (erSøknad(safJournalpost)) {
+            log.info("oppbruktRettighetResultat=${oppbruktRettighetResultat} journalpostId=${innkommendeJournalpost.journalpostId}")
+            prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat).increment()
+        }
         
         // Feiler hardt hvis Arena ikke svarer, slik at jobben prøves på nytt i stedet for å rute feil
         val kantIKantSakSomSkalTilKelvin =
             if (unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1)) {
-                prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat).increment()
                 oppbruktRettighetResultat.skalTilKelvin()
             } else {
                 false
@@ -124,12 +126,21 @@ class AvklarFordelingSteg(
         return Fullført
     }
 
+    private fun erSøknad(safJournalpost: SafJournalpost): Boolean {
+        val brevkode = safJournalpost.hoveddokument()?.brevkode
+        val erSøknad = if (brevkode != Brevkoder.SØKNAD.kode) {
+            true
+        } else {
+            false
+        }
+        return erSøknad
+    }
+
     private fun erRettighetOppbruktIArena(
         safJournalpost: SafJournalpost,
         kontekst: FlytKontekst
     ): OppbruktRettighetResultat {
-        val brevkode = safJournalpost.hoveddokument()?.brevkode
-        if (brevkode != Brevkoder.SØKNAD.kode) {
+        if (!erSøknad(safJournalpost)) {
             return IkkeRelevantSøknad
         }
 
