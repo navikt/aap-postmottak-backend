@@ -117,6 +117,32 @@ class AvklarTemaStegTest {
     }
 
     @Test
+    fun `søknad om AAP i utlandet avklares automatisk til tema AAP når feature-toggle er skrudd på`() {
+        val journalpost = TestJournalPost(tema = "AAP", brevkode = Brevkoder.SØKNAD_OM_AAP_I_UTLANDET).tilJournalpost()
+        every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskJournalforingSoknadUtland) } returns true
+
+        avklarTemaSteg.utfør(kontekst)
+
+        verify(exactly = 1) { avklarTemaRepository.lagreTemaAvklaring(behandlingId, true, Tema.AAP) }
+        assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId)).isEmpty()
+    }
+
+    @Test
+    fun `søknad om AAP i utlandet krever manuell avklaring av tema når feature-toggle er skrudd av`() {
+        val journalpost = TestJournalPost(tema = "AAP", brevkode = Brevkoder.SØKNAD_OM_AAP_I_UTLANDET).tilJournalpost()
+        every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
+        every { avklarTemaRepository.hentTemaAvklaring(any()) } returns null
+        every { unleashGateway.isEnabled(PostmottakFeature.AutomatiskJournalforingSoknadUtland) } returns false
+
+        avklarTemaSteg.utfør(kontekst)
+
+        verify(exactly = 0) { avklarTemaRepository.lagreTemaAvklaring(any(), any(), any()) }
+        assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId).filter { it.status().erÅpent() }).isNotEmpty()
+    }
+
+    @Test
     fun `klage krever manuell avklaring av tema når feature-toggle er skrudd av`() {
         val journalpost = TestJournalPost(tema = "AAP", brevkode = Brevkoder.KLAGE).tilJournalpost()
         every { journalpostRepo.hentHvisEksisterer(behandlingId) } returns journalpost
