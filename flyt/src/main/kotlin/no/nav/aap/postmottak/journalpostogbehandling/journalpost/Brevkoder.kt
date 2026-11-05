@@ -11,6 +11,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 enum class Brevkoder(val kode: String, val behandlingstype: String?) {
     SØKNAD("NAV 11-13.05", null),
     STANDARD_ETTERSENDING("NAVe 11-13.05", null),
+    SØKNAD_OM_AAP_I_UTLANDET("NAV 11-03.07", null),
     LEGEERKLÆRING("NAV 08-07.08", null),
     SØKNAD_OM_REISESTØNAD("NAV 11-12.05", null),
     SØKNAD_OM_REISESTØNAD_ETTERSENDELSE("NAVe 11-12.05", null),
