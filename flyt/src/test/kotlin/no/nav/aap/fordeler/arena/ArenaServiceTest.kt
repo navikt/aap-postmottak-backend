@@ -194,6 +194,37 @@ class ArenaServiceTest {
         assertEquals(IkkeRelevantSøknad, vurder(sak))
     }
 
+    @Test
+    fun `forlenget sak som er kant i kant med maksdato for unntak gir brukt opp forlengelsen`() = runBlocking {
+        val sak = SisteSakDetaljer(
+            sakId = 1234,
+            saknummer = "2026-1234",
+            sakStatus = "AKTIV",
+            sakRegistrert = LocalDate.of(2026, 11, 3),
+            sakAvsluttet = null,
+            unntaksvilkaarInnvilget = true,
+            unntaksvilkaarGjelderFra = LocalDate.of(2026, 10, 28),
+            sisteVedtak = VedtakMedMaksdato(
+                vedtakId = 2,
+                aktfaseKode = "UA",
+                vedtaktypeKode = "E",
+                vedtakstatuskode = "IVERK",
+                fra = LocalDate.of(2026, 10, 28),
+                til = LocalDate.of(2026, 11, 29),
+                maxdatoOrdinaer = LocalDate.of(2026, 10, 27),
+                maxdatoUnntak = LocalDate.of(2026, 11, 29),
+                maxdatoAap = LocalDate.of(2026, 11, 29),
+            ),
+            vedtakene = listOf(
+                ArenaVedtak(1234, "IVERK", "O", LocalDate.of(2026, 10, 1), null, "AA115", "JA", 1, "IKKE"),
+                ArenaVedtak(1234, "IVERK", "E", LocalDate.of(2026, 10, 28), LocalDate.of(2026, 11, 29), "AAP", "JA", 2, "UA"),
+                ArenaVedtak(1234, "AVSLU", "O", LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 27), "AAP", "JA", 3, "UA"),
+            ),
+        )
+
+        assertEquals(HarBruktOppForlengelsen, vurder(sak, LocalDate.of(2026, 11, 4)))
+    }
+
     @ParameterizedTest
     @CsvSource(
         "-1, true", "0, true", "181, true", "182, true", "183, true",

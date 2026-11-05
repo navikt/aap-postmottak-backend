@@ -75,26 +75,25 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val harKunOppbrukt = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
+            // forlenget sak: kant-i-kant vurderes mot maksdato for unntak, ikke ordinær maksdato
+            erAlleredeForlenget -> if (tilDatoErLikMaksdatoForUnntak) {
+                // har fått forlengelse og brukt den helt opp når ytelsen i Arena utløper
+                HarBruktOppForlengelsen
+            } else {
+                // forlenget, men vi er ikke ved utløpet av unntaksperioden
+                // feks. søkeren er på år ett av to av forlengelsen
+                VedtattForlenget
+            }
             tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // søknaden er ikke kant-i-kant med ytelsen i Arena
             // ordinær kvote er brukt opp og unntaksvilkårene for 11-12 er /IKKE/ oppfylt
             skalIkkeForlenges -> VedtattAtIkkeForlenges
-            else -> {
-                if (tilDatoErLikMaksdatoForUnntak && erAlleredeForlenget) {
-                    // har fått forlengelse og brukt den helt opp når ytelsen i Arena utløper
-                    HarBruktOppForlengelsen
-                } else if (erAlleredeForlenget) {
-                    // forlenget, men vi er ikke ved utløpet av unntaksperioden
-                    // feks. søkeren er på år ett av to av forlengelsen
-                    VedtattForlenget
-                } else {
-                    IkkeRelevantSøknad
-                }
-            }
+            else -> IkkeRelevantSøknad
         }
         val logmsg: StringBuilder = StringBuilder()
-        logmsg.append("tilDatoErLikMaksdato=${!tilDatoErIkkeLikOrdinærMaksdato},")
-        logmsg.append("maksdatoErInnenRimeligTid=${!maksdatoErIkkeInnenRimeligTid}")
-        logmsg.append("vedtatt at ikke forlenges=${skalIkkeForlenges}")
+        logmsg.append("tilDatoErLikOrdinærMaksdato=${!tilDatoErIkkeLikOrdinærMaksdato}, ")
+        logmsg.append("maksdatoErInnenRimeligTid=${!maksdatoErIkkeInnenRimeligTid}, ")
+        logmsg.append("vedtatt at ikke forlenges=${skalIkkeForlenges}, ")
+        logmsg.append("er forlenget=${erAlleredeForlenget}, ")
         logmsg.append("brukt opp fem år=${tilDatoErLikMaksdatoForUnntak}")
         val tilstand = logmsg.toString()
 
