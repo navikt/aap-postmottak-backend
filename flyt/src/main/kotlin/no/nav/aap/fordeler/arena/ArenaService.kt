@@ -41,16 +41,25 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         fun skalTilKelvin() = this is HarOppbruktRettighet
 
         sealed class HarOppbruktRettighet private constructor() : OppbruktRettighetResultat() {
+            // Personen har fått forlengelse, og den er brukt helt opp
             data object HarBruktOppForlengelsen : HarOppbruktRettighet()
+
+            // Personen har brukt opp ordinær kvote, men har ikke fått forlengelse
             data object VedtattAtIkkeForlenges : HarOppbruktRettighet()
         }
 
         sealed class HarIkkeOppbruktRettighet private constructor() : OppbruktRettighetResultat() {
+            // Søknaden er ikke kant-i-kant med vedtakene i Arena
             data object IkkeRelevantSøknad : HarIkkeOppbruktRettighet()
+
+            // Søknaden er vedtatt forlenget, men ikke brukt opp
             data object VedtattForlenget : HarIkkeOppbruktRettighet()
         }
     }
 
+    /*   Vurderer om søker har oppbrukt rettighet til AAP, basert på siste vedtak i Arena.
+        Returnerer et resultat som viser om historikken gjør søknaden relevant for behandling eller ikke.
+     */
     suspend fun harOppbruktRettighet(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): OppbruktRettighetResultat {

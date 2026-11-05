@@ -9,6 +9,7 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.HistorikkStatusDetaljResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SisteSakDetaljer
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.VedtakMedMaksdato
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.IkkeRelevantSøknad
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.VedtattForlenget
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
@@ -22,9 +23,13 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
+
+private const val TOLERANSE_I_DAGER = 5L
+private const val PERIODE_FØR_MAKSDATO_I_UKER = 26L
+private const val PERIODE_FØR_MAKSDATO_I_DAGER = PERIODE_FØR_MAKSDATO_I_UKER * 7
 
 class ArenaServiceTest {
 
@@ -36,257 +41,404 @@ class ArenaServiceTest {
     private val maksdato = LocalDate.of(2026, 12, 12)
 
     @Test
-    fun `søknaden er ikke relevant når det ikke finnes en siste sak`() = runBlocking {
-        assertEquals(IkkeRelevantSøknad, vurder(null))
+    fun `søker uten en sak i Arena har ikke en kant-i-kant-søknad`() = runBlocking {
+        assertVurderingAvOppbruktRettighet(null, IkkeRelevantSøknad, skalTilKelvin = false)
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "UA, true", "UA, false", "UA, null",
-        "AU, true", "AU, false", "AU, null",
-        "UVUP, true", "UVUP, false", "UVUP, null",
-        "FA, true", "FA, false", "FA, null",
-        "SPE, true", "SPE, false", "SPE, null",
-        "IKKE, true", "IKKE, false", "IKKE, null",
-        nullValues = ["null"]
-    )
-    fun `bare siste vedtak i UA eller AU kan gi oppbrukt rettighet`(
-        aktivitetsfase: String,
-        unntaksvilkaarInnvilget: Boolean?
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(strings = [
+        "UA",
+        "AU"
+    ])
+    fun `søker i arbeidsavklaring eller arbeidsutprøving kan ha brukt opp ordinær kvote og fått avslag på forlengelse`(
+        aktivitetsfase: String
     ) = runBlocking {
-        val sak = sisteSak().let {
-            it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
-                sisteVedtak = it.sisteVedtak.copy(aktfaseKode = aktivitetsfase, maxdatoUnntak = maksdato),
-                vedtakene = it.vedtakene.map { vedtak -> vedtak.copy(aktivitetsfaseKode = aktivitetsfase) }
-            )
+        val sak = sakMedAvslåttForlengelse().let {
+            it.copy(sisteVedtak = it.sisteVedtak.copy(aktfaseKode = aktivitetsfase))
         }
 
-        assertEquals(
-            when {
-                aktivitetsfase !in listOf("UA", "AU") -> IkkeRelevantSøknad
-                unntaksvilkaarInnvilget == true -> HarBruktOppForlengelsen
-                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
-                else -> IkkeRelevantSøknad
-            },
-            vurder(sak)
-        )
+        assertVurderingAvOppbruktRettighet(sak, VedtattAtIkkeForlenges, skalTilKelvin = true)
     }
 
-    @Test
-    fun `avslått forlengelse gir oppbrukt rettighet når sluttdato samsvarer med ordinær maksdato`() = runBlocking {
-        val sak = sisteSak().copy(unntaksvilkaarInnvilget = false)
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(strings = [
+        "UA",
+        "AU"
+    ])
+    fun `søker i arbeidsavklaring eller arbeidsutprøving kan ha brukt opp innvilget forlengelse`(
+        aktivitetsfase: String
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(sisteVedtak = it.sisteVedtak.copy(aktfaseKode = aktivitetsfase))
+        }
 
-        assertEquals(VedtattAtIkkeForlenges, vurder(sak))
+        assertVurderingAvOppbruktRettighet(sak, HarBruktOppForlengelsen, skalTilKelvin = true)
     }
 
-    @Test
-    fun `innvilget forlengelse uten maksdato for unntak gir ikke oppbrukt rettighet`() = runBlocking {
-        val sak = sisteSak().copy(unntaksvilkaarInnvilget = true)
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(strings = [
+        "UVUP",
+        "FA",
+        "SPE",
+        "IKKE"
+    ])
+    fun `søker uten siste vedtak i aktivitetsfase arbeidsavklaring eller arbeidsutprøving har ikke en kant-i-kant-søknad`(
+        aktivitetsfase: String
+    ) = runBlocking {
+        val sak = sakMedAvslåttForlengelse().let {
+            it.copy(sisteVedtak = it.sisteVedtak.copy(aktfaseKode = aktivitetsfase))
+        }
 
-        assertEquals(VedtattForlenget, vurder(sak))
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
     }
 
-    @Test
-    fun `søknaden er ikke relevant når både vurdering av unntak og maksdato for unntak mangler`() = runBlocking {
-        assertEquals(IkkeRelevantSøknad, vurder(sisteSak()))
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(strings = [
+        "UVUP",
+        "FA",
+        "SPE",
+        "IKKE"
+    ])
+    fun `oppbrukt forlengelse gir ikke en kant-i-kant-søknad uten siste vedtak i aktivitetsfase arbeidsavklaring eller arbeidsutprøving`(
+        aktivitetsfase: String
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(sisteVedtak = it.sisteVedtak.copy(aktfaseKode = aktivitetsfase))
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "null, true, true", "-1, true, true", "0, true, true", "1, true, true",
-        "null, true, false", "-1, true, false", "0, true, false", "1, true, false",
-        "null, false, true", "-1, false, true", "0, false, true", "1, false, true",
-        "null, false, false", "-1, false, false", "0, false, false", "1, false, false",
-        "null, null, true", "-1, null, true", "0, null, true", "1, null, true",
-        "null, null, false", "-1, null, false", "0, null, false", "1, null, false",
-        nullValues = ["null"]
-    )
-    fun `bare startdato etter mottaksdato avviser søknaden som fremtidig`(
-        dagerTilFraDato: Long?,
-        unntaksvilkaarInnvilget: Boolean?,
-        sluttdatoSamsvarerMedMaksdatoForUnntak: Boolean
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        1,
+        30
+    ])
+    fun `ny søknad er ikke kant-i-kant når søker allerede har fått innvilget AAP i Arena for en fremtidig periode`(
+        dagerTilVedtaketStarter: Long
     ) = runBlocking {
         val mottattDato = maksdato.minusDays(30)
-        val sak = sisteSak().let {
+        val sak = sakMedAvslåttForlengelse().let {
             it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
                 sisteVedtak = it.sisteVedtak.copy(
-                    fra = dagerTilFraDato?.let(mottattDato::plusDays),
-                    maxdatoUnntak = if (sluttdatoSamsvarerMedMaksdatoForUnntak) maksdato else null
+                    fra = mottattDato.plusDays(dagerTilVedtaketStarter)
                 )
             )
         }
 
-        val resultat = vurder(sak, mottattDato)
-        assertEquals(
-            when {
-                dagerTilFraDato != null && dagerTilFraDato > 0 -> IkkeRelevantSøknad
-                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
-                unntaksvilkaarInnvilget == true && sluttdatoSamsvarerMedMaksdatoForUnntak -> HarBruktOppForlengelsen
-                unntaksvilkaarInnvilget == true -> VedtattForlenget
-                else -> IkkeRelevantSøknad
-            },
-            resultat
-        )
-        assertEquals(
-            (dagerTilFraDato == null || dagerTilFraDato <= 0) &&
-                    (unntaksvilkaarInnvilget == false ||
-                            (unntaksvilkaarInnvilget == true && sluttdatoSamsvarerMedMaksdatoForUnntak)),
-            resultat.skalTilKelvin()
-        )
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato)
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "null, true", "-6, true", "-5, true", "0, true", "5, true", "6, true",
-        "null, false", "-6, false", "-5, false", "0, false", "5, false", "6, false",
-        "null, null", "-6, null", "-5, null", "0, null", "5, null", "6, null",
-        nullValues = ["null"]
-    )
-    fun `forlengelsen er bare oppbrukt når den er innvilget og sluttdato er innen fem dager fra maksdato for unntak`(
-        avvikIDager: Long?,
-        unntaksvilkaarInnvilget: Boolean?
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @NullSource
+    @ValueSource(longs = [
+        0,
+        30
+    ])
+    fun `et fremtidig AAP-vedtak gjør søknaden uaktuell også når søker har fått innvilget forlengelse`(
+        dagerTilMaksdatoForUnntak: Long?
     ) = runBlocking {
-        val sak = sisteSak().let {
+        val mottattDato = maksdato.minusDays(30)
+        val sak = sakMedInnvilgetForlengelse().let {
             it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
-                sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = avvikIDager?.let(maksdato::plusDays))
-            )
-        }
-
-        assertEquals(
-            when (unntaksvilkaarInnvilget) {
-                true -> if (avvikIDager != null && avvikIDager in -5L..5L) {
-                    HarBruktOppForlengelsen
-                } else {
-                    VedtattForlenget
-                }
-                false -> VedtattAtIkkeForlenges
-                null -> IkkeRelevantSøknad
-            },
-            vurder(sak)
-        )
-    }
-
-    @ParameterizedTest
-    @CsvSource(
-        "-6, false", "-5, false", "0, false", "5, false", "6, false",
-        "-6, null", "-5, null", "0, null", "5, null", "6, null",
-        nullValues = ["null"]
-    )
-    fun `uten innvilget forlengelse krever oppbrukt rettighet sluttdato innen fem dager fra ordinær maksdato`(
-        avvikIDager: Long,
-        unntaksvilkaarInnvilget: Boolean?
-    ) = runBlocking {
-        val sak = sisteSak().let {
-            it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
                 sisteVedtak = it.sisteVedtak.copy(
-                    maxdatoOrdinaer = maksdato.plusDays(avvikIDager),
-                    maxdatoUnntak = maksdato
+                    fra = mottattDato.plusDays(1),
+                    maxdatoUnntak = dagerTilMaksdatoForUnntak?.let(maksdato::plusDays)
                 )
             )
         }
 
-        assertEquals(
-            when {
-                avvikIDager !in -5L..5L -> IkkeRelevantSøknad
-                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
-                else -> IkkeRelevantSøknad
-            },
-            vurder(sak)
-        )
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato)
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "null, null", "null, -6", "null, -5", "null, 0", "null, 5", "null, 6",
-        "-365, null", "-365, -6", "-365, -5", "-365, 0", "-365, 5", "-365, 6",
-        "-6, null", "-6, -6", "-6, -5", "-6, 0", "-6, 5", "-6, 6",
-        "0, null", "0, -6", "0, -5", "0, 0", "0, 5", "0, 6",
-        "6, null", "6, -6", "6, -5", "6, 0", "6, 5", "6, 6",
-        nullValues = ["null"]
-    )
-    fun `innvilget forlengelse vurderes mot maksdato for unntak uavhengig av ordinær maksdato`(
-        avvikFraOrdinærMaksdato: Long?,
+    @Test
+    fun `et fremtidig AAP-vedtak gjør søknaden uaktuell selv om forlengelse ikke er vurdert`() = runBlocking {
+        val mottattDato = maksdato.minusDays(30)
+        val sak = testDataMedSisteSakDetaljer().let {
+            it.copy(sisteVedtak = it.sisteVedtak.copy(fra = mottattDato.plusDays(1)))
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        -1,
+        0
+    ])
+    fun `søker kan ha brukt opp forlengelsen når vedtaket starter senest den dagen søknaden mottas`(
+        dagerTilVedtaketStarter: Long
+    ) = runBlocking {
+        val mottattDato = maksdato.minusDays(30)
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    fra = mottattDato.plusDays(dagerTilVedtaketStarter)
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, HarBruktOppForlengelsen, skalTilKelvin = true, mottattDato = mottattDato)
+    }
+
+    @Test
+    fun `manglende startdato hindrer ikke at innvilget forlengelse regnes som oppbrukt`() = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(sisteVedtak = it.sisteVedtak.copy(fra = null))
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, HarBruktOppForlengelsen, skalTilKelvin = true)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(booleans = [
+        true,
+        false
+    ])
+    fun `oppbrukt kvote gir ikke en kant-i-kant-søknad når unntaksvilkårene for forlengelse ikke er vurdert`(
+        harMaksdatoForUnntak: Boolean
+    ) = runBlocking {
+        val sak = testDataMedSisteSakDetaljer().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoUnntak = if (harMaksdatoForUnntak) maksdato else null
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
+    }
+
+    @Test
+    fun `innvilget forlengelse regnes ikke som oppbrukt når maksdato for unntak mangler`() = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = null))
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, VedtattForlenget, skalTilKelvin = false)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        -TOLERANSE_I_DAGER,
+        0,
+        TOLERANSE_I_DAGER
+    ])
+    fun `søker har brukt opp forlengelsen når vedtaket løper til maksdato for unntak med fem dagers toleranse`(
+        avvikFraMaksdatoForUnntak: Long
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoUnntak = maksdato.plusDays(avvikFraMaksdatoForUnntak)
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, HarBruktOppForlengelsen, skalTilKelvin = true)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        -(TOLERANSE_I_DAGER + 1),
+        TOLERANSE_I_DAGER + 1
+    ])
+    fun `innvilget forlengelse regnes ikke som oppbrukt når sluttdato avviker mer enn fem dager fra maksdato for unntak`(
+        avvikFraMaksdatoForUnntak: Long
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoUnntak = maksdato.plusDays(avvikFraMaksdatoForUnntak)
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, VedtattForlenget, skalTilKelvin = false)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @NullSource
+    @ValueSource(longs = [
+        -(TOLERANSE_I_DAGER + 1),
+        -TOLERANSE_I_DAGER,
+        0,
+        TOLERANSE_I_DAGER,
+        TOLERANSE_I_DAGER + 1
+    ])
+    fun `søker har brukt opp ordinær kvote og fått avslag på forlengelse uavhengig av maksdato for unntak`(
         avvikFraMaksdatoForUnntak: Long?
     ) = runBlocking {
-        val sak = sisteSak().let {
+        val sak = sakMedAvslåttForlengelse().let {
             it.copy(
-                unntaksvilkaarInnvilget = true,
                 sisteVedtak = it.sisteVedtak.copy(
-                    maxdatoOrdinaer = avvikFraOrdinærMaksdato?.let(maksdato::plusDays),
                     maxdatoUnntak = avvikFraMaksdatoForUnntak?.let(maksdato::plusDays)
                 )
             )
         }
 
-        assertEquals(
-            if (avvikFraMaksdatoForUnntak != null && avvikFraMaksdatoForUnntak in -5L..5L) {
-                HarBruktOppForlengelsen
-            } else {
-                VedtattForlenget
-            },
-            vurder(sak)
-        )
+        assertVurderingAvOppbruktRettighet(sak, VedtattAtIkkeForlenges, skalTilKelvin = true)
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "til, true", "til, false", "til, null",
-        "ordinær, true", "ordinær, false", "ordinær, null",
-        "aap, true", "aap, false", "aap, null",
-        nullValues = ["null"]
-    )
-    fun `manglende datoer vurderes ut fra om forlengelse er innvilget`(
-        manglendeDato: String,
-        unntaksvilkaarInnvilget: Boolean?
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        -TOLERANSE_I_DAGER,
+        0,
+        TOLERANSE_I_DAGER
+    ])
+    fun `søker har brukt opp ordinær kvote og fått avslag på forlengelse når vedtaket løper til ordinær maksdato med fem dagers toleranse`(
+        avvikFraOrdinærMaksdato: Long
     ) = runBlocking {
-        val sak = sisteSak().let {
-            val vedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato)
+        val sak = sakMedAvslåttForlengelse().let {
             it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
-                sisteVedtak = when (manglendeDato) {
-                    "til" -> vedtak.copy(til = null)
-                    "ordinær" -> vedtak.copy(maxdatoOrdinaer = null)
-                    "aap" -> vedtak.copy(maxdatoAap = null)
-                    else -> error("Ukjent dato: $manglendeDato")
-                }
-            )
-        }
-
-        assertEquals(
-            when {
-                unntaksvilkaarInnvilget != true || manglendeDato == "aap" -> IkkeRelevantSøknad
-                manglendeDato == "til" -> VedtattForlenget
-                else -> HarBruktOppForlengelsen
-            },
-            vurder(sak)
-        )
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = [true, false])
-    fun `innvilget forlengelse uten sluttdato gir vedtatt forlenget uansett ordinær maksdato`(
-        harOrdinærMaksdato: Boolean
-    ) = runBlocking {
-        val sak = sisteSak().let {
-            it.copy(
-                unntaksvilkaarInnvilget = true,
                 sisteVedtak = it.sisteVedtak.copy(
-                    til = null,
-                    maxdatoOrdinaer = if (harOrdinærMaksdato) maksdato else null,
-                    maxdatoUnntak = null
+                    maxdatoOrdinaer = maksdato.plusDays(avvikFraOrdinærMaksdato)
                 )
             )
         }
 
-        assertEquals(VedtattForlenget, vurder(sak))
+        assertVurderingAvOppbruktRettighet(sak, VedtattAtIkkeForlenges, skalTilKelvin = true)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        -(TOLERANSE_I_DAGER + 1),
+        TOLERANSE_I_DAGER + 1
+    ])
+    fun `avslag på forlengelse betyr ikke oppbrukt ordinær kvote når vedtaket ikke løper til ordinær maksdato`(
+        avvikFraOrdinærMaksdato: Long
+    ) = runBlocking {
+        val sak = sakMedAvslåttForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoOrdinaer = maksdato.plusDays(avvikFraOrdinærMaksdato)
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @NullSource
+    @ValueSource(longs = [
+        -365,
+        -(TOLERANSE_I_DAGER + 1),
+        0,
+        TOLERANSE_I_DAGER + 1
+    ])
+    fun `søker har brukt opp forlengelsen ved utløpet av unntaksperioden uavhengig av ordinær maksdato`(
+        avvikFraOrdinærMaksdato: Long?
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoOrdinaer = avvikFraOrdinærMaksdato?.let(maksdato::plusDays)
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, HarBruktOppForlengelsen, skalTilKelvin = true)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @NullSource
+    @ValueSource(longs = [
+        -365,
+        -(TOLERANSE_I_DAGER + 1),
+        0,
+        TOLERANSE_I_DAGER + 1
+    ])
+    fun `forlengelsen er ikke brukt opp før unntaksperioden utløper uavhengig av ordinær maksdato`(
+        avvikFraOrdinærMaksdato: Long?
+    ) = runBlocking {
+        val maksdatoForUnntak = maksdato.plusDays(30)
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoOrdinaer = avvikFraOrdinærMaksdato?.let(maksdato::plusDays),
+                    maxdatoUnntak = maksdatoForUnntak,
+                    maxdatoAap = maksdatoForUnntak
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, VedtattForlenget, skalTilKelvin = false)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @NullSource
+    @ValueSource(booleans = [false])
+    fun `ordinær kvote regnes ikke som oppbrukt når vedtakets sluttdato mangler`(
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = testDataMedSisteSakDetaljer().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(til = null, maxdatoUnntak = maksdato)
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @NullSource
+    @ValueSource(booleans = [false])
+    fun `ordinær kvote regnes ikke som oppbrukt når ordinær maksdato mangler`(
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = testDataMedSisteSakDetaljer().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(maxdatoOrdinaer = null, maxdatoUnntak = maksdato)
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @NullSource
+    @ValueSource(booleans = [
+        true,
+        false
+    ])
+    fun `uten effektiv maksdato kan ikke søknaden vurderes som kant-i-kant`(
+        unntaksvilkaarInnvilget: Boolean?
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
+                sisteVedtak = it.sisteVedtak.copy(maxdatoAap = null)
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(booleans = [
+        true,
+        false
+    ])
+    fun `innvilget forlengelse regnes ikke som oppbrukt uten sluttdato uavhengig av ordinær maksdato`(
+        harOrdinærMaksdato: Boolean
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    til = null,
+                    maxdatoOrdinaer = if (harOrdinærMaksdato) maksdato else null
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, VedtattForlenget, skalTilKelvin = false)
     }
 
     @Test
-    fun `oppbrukt forlengelse krever ikke at sluttdato samsvarer med ordinær maksdato`() = runBlocking {
+    fun `søker har brukt opp forlengelsen selv om ordinær kvote ble brukt opp i et tidligere vedtak`() = runBlocking {
         val sak = SisteSakDetaljer(
             sakId = 1234,
             saknummer = "2026-1234",
@@ -313,39 +465,90 @@ class ArenaServiceTest {
             ),
         )
 
-        assertEquals(HarBruktOppForlengelsen, vurder(sak, LocalDate.of(2026, 11, 4)))
+        assertVurderingAvOppbruktRettighet(
+            sak,
+            HarBruktOppForlengelsen,
+            skalTilKelvin = true,
+            mottattDato = LocalDate.of(2026, 11, 4)
+        )
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "-1, true", "0, true", "181, true", "182, true", "183, true",
-        "-1, false", "0, false", "181, false", "182, false", "183, false",
-        "-1, null", "0, null", "181, null", "182, null", "183, null",
-        nullValues = ["null"]
-    )
-    fun `effektiv maksdato må være mindre enn 26 uker etter mottatt dato uansett vurdering av unntak`(
-        dagerTilEffektivMaksdato: Long,
-        unntaksvilkaarInnvilget: Boolean?
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        -1,
+        0,
+        PERIODE_FØR_MAKSDATO_I_DAGER - 1
+    ])
+    fun `ny søknad nær eller etter effektiv maksdato er kant-i-kant når ordinær kvote er brukt opp og forlengelse er avslått`(
+        dagerTilEffektivMaksdato: Long
     ) = runBlocking {
-        val sak = sisteSak().let {
+        val sak = sakMedAvslåttForlengelse().let {
             it.copy(
-                unntaksvilkaarInnvilget = unntaksvilkaarInnvilget,
                 sisteVedtak = it.sisteVedtak.copy(
-                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato),
-                    maxdatoUnntak = maksdato
+                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato)
                 )
             )
         }
 
-        assertEquals(
-            when {
-                dagerTilEffektivMaksdato >= 182 -> IkkeRelevantSøknad
-                unntaksvilkaarInnvilget == true -> HarBruktOppForlengelsen
-                unntaksvilkaarInnvilget == false -> VedtattAtIkkeForlenges
-                else -> IkkeRelevantSøknad
-            },
-            vurder(sak)
-        )
+        assertVurderingAvOppbruktRettighet(sak, VedtattAtIkkeForlenges, skalTilKelvin = true)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        -1,
+        0,
+        PERIODE_FØR_MAKSDATO_I_DAGER - 1
+    ])
+    fun `ny søknad nær eller etter effektiv maksdato er kant-i-kant når innvilget forlengelse er brukt opp`(
+        dagerTilEffektivMaksdato: Long
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato)
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, HarBruktOppForlengelsen, skalTilKelvin = true)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        PERIODE_FØR_MAKSDATO_I_DAGER,
+        PERIODE_FØR_MAKSDATO_I_DAGER + 1
+    ])
+    fun `søker har søkt for tidlig med minst 26 uker til effektiv maksdato selv om forlengelse er avslått`(
+        dagerTilEffektivMaksdato: Long
+    ) = runBlocking {
+        val sak = sakMedAvslåttForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato)
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
+    }
+
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @ValueSource(longs = [
+        PERIODE_FØR_MAKSDATO_I_DAGER,
+        PERIODE_FØR_MAKSDATO_I_DAGER + 1
+    ])
+    fun `søker har søkt for tidlig med minst 26 uker til effektiv maksdato selv om siste vedtak løper ut forlengelsen`(
+        dagerTilEffektivMaksdato: Long
+    ) = runBlocking {
+        val sak = sakMedInnvilgetForlengelse().let {
+            it.copy(
+                sisteVedtak = it.sisteVedtak.copy(
+                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato)
+                )
+            )
+        }
+
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
     }
 
     @Test
@@ -363,10 +566,12 @@ class ArenaServiceTest {
         coVerify(exactly = 1) { arena.historikkStatusDetalj(person, maksdato) }
     }
 
-    private suspend fun vurder(
+    private suspend fun assertVurderingAvOppbruktRettighet(
         sisteSak: SisteSakDetaljer?,
+        forventetResultat: OppbruktRettighetResultat,
+        skalTilKelvin: Boolean,
         mottattDato: LocalDate = maksdato
-    ): ArenaService.OppbruktRettighetResultat {
+    ) {
         val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
         val person = mockk<Person>()
         coEvery { arena.historikkStatusDetalj(person, mottattDato) } returns
@@ -374,10 +579,21 @@ class ArenaServiceTest {
 
         val resultat = arenaService.harOppbruktRettighet(person, mottattDato, 1)
         coVerify(exactly = 1) { arena.historikkStatusDetalj(person, mottattDato) }
-        return resultat
+        assertEquals(forventetResultat, resultat)
+        assertEquals(skalTilKelvin, resultat.skalTilKelvin())
     }
 
-    private fun sisteSak() = SisteSakDetaljer(
+    private fun sakMedInnvilgetForlengelse() = testDataMedSisteSakDetaljer().let {
+        it.copy(
+            unntaksvilkaarInnvilget = true,
+            sisteVedtak = it.sisteVedtak.copy(maxdatoUnntak = maksdato)
+        )
+    }
+
+    private fun sakMedAvslåttForlengelse() =
+        testDataMedSisteSakDetaljer().copy(unntaksvilkaarInnvilget = false)
+
+    private fun testDataMedSisteSakDetaljer() = SisteSakDetaljer(
         sakId = 1234,
         saknummer = "1234-25",
         sakStatus = "AKTIV",
