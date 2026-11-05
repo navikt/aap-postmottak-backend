@@ -86,7 +86,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -259,21 +258,22 @@ class Flyttest : WithDependencies {
         }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostID).also { require(it.size > 2) }
+            alleBehandlingerForJournalpost(journalpostID).also {
+                assertThat(it).hasSize(3)
+                    .extracting<TypeBehandling> { behandling -> behandling.typeBehandling }
+                    .containsExactlyInAnyOrder(
+                        TypeBehandling.Fordeling,
+                        TypeBehandling.Journalføring,
+                        TypeBehandling.DokumentHåndtering
+                    )
+            }
         }
 
-        assertThat(behandlinger).hasSize(3)
-            .extracting<TypeBehandling> { it.typeBehandling }
-            .containsExactlyInAnyOrder(
-                TypeBehandling.Fordeling,
-                TypeBehandling.Journalføring,
-                TypeBehandling.DokumentHåndtering
-            )
+        val behandling = behandlinger.first()
 
-        val behandling = behandlinger!!.first()
-
-        val åpneAvklaringsbehov = hentAvklaringsbehov(behandling)
-        assertThat(åpneAvklaringsbehov).isEmpty()
+        prøv {
+            assertThat(hentAvklaringsbehov(behandling)).isEmpty()
+        }
     }
 
     @Test
@@ -283,8 +283,10 @@ class Flyttest : WithDependencies {
 
         triggFordelingJobb(journalpostID)
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostID)
-        assertThat(behandlinger).isNotEmpty
+        prøv {
+            val behandlinger = alleBehandlingerForJournalpost(journalpostID)
+            assertThat(behandlinger).isNotEmpty
+        }
     }
 
     @Test
@@ -301,13 +303,13 @@ class Flyttest : WithDependencies {
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
-
-        assertThat(behandlinger).hasSize(1)
-        assertThat(
-            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
-            1
-        )
+        prøv {
+            val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+            assertThat(behandlinger).hasSize(1)
+            assertThat(
+                behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }
+            ).hasSize(1)
+        }
     }
 
     @Test
@@ -325,11 +327,13 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
-        assertThat(behandlinger).hasSize(1)
-            .allSatisfy {
-                assertThat(it.status()).isEqualTo(Status.AVSLUTTET)
-            }
+        prøv {
+            val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+            assertThat(behandlinger).hasSize(1)
+                .allSatisfy {
+                    assertThat(it.status()).isEqualTo(Status.AVSLUTTET)
+                }
+        }
     }
 
     @Test
@@ -348,14 +352,15 @@ class Flyttest : WithDependencies {
 
         util.ventPåSvar()
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
-        assertThat(behandlinger).hasSize(2)
-            .filteredOn {
-                it.typeBehandling == TypeBehandling.Journalføring
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId).also {
+                assertThat(it).hasSize(2)
+                    .filteredOn { behandling -> behandling.typeBehandling == TypeBehandling.Journalføring }
+                    .allSatisfy { behandling ->
+                        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+                    }
             }
-            .allSatisfy {
-                assertThat(it.status()).isEqualTo(Status.UTREDES)
-            }
+        }
 
         val journalføringsbehandling =
             behandlinger.single { it.typeBehandling == TypeBehandling.Journalføring }
@@ -370,7 +375,12 @@ class Flyttest : WithDependencies {
             .sjekkÅpentAvklaringsbehov(null)
 
         val dokumentHåndteringBehandling =
-            alleBehandlingerForJournalpost(journalpostId).single { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+            prøv {
+                alleBehandlingerForJournalpost(journalpostId)
+                    .filter { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+                    .also { assertThat(it).hasSize(1) }
+                    .single()
+            }
                 .sjekkÅpentAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
                 .løsAvklaringsBehov(
                     DigitaliserDokumentLøsning(
@@ -387,7 +397,9 @@ class Flyttest : WithDependencies {
                     )
                 )
 
-        assertThat(dokumentHåndteringBehandling.status()).isEqualTo(Status.AVSLUTTET)
+        prøv {
+            assertThat(hentBehandling(dokumentHåndteringBehandling.id).status()).isEqualTo(Status.AVSLUTTET)
+        }
 
     }
 
@@ -405,18 +417,16 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId)
-                .also { require(it.size == 2) }
-        }!!
-        assertThat(
-            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
-            1
-        )
-        assertThat(
-            behandlinger.filter { it.typeBehandling == TypeBehandling.DokumentHåndtering && it.status() == Status.AVSLUTTET }).hasSize(
-            1
-        )
+        prøv {
+            val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+            assertThat(behandlinger).hasSize(2)
+            assertThat(
+                behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }
+            ).hasSize(1)
+            assertThat(
+                behandlinger.filter { it.typeBehandling == TypeBehandling.DokumentHåndtering && it.status() == Status.AVSLUTTET }
+            ).hasSize(1)
+        }
     }
 
     @Test
@@ -435,8 +445,10 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandling = hentBehandling(behandlingId)
-        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+        prøv {
+            val behandling = hentBehandling(behandlingId)
+            assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+        }
 
         val jobber: List<String> = dataSource.transaction { connection ->
             connection.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
@@ -454,9 +466,10 @@ class Flyttest : WithDependencies {
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
         prøv {
-            alleBehandlingerForJournalpost(journalpostId)
-                .also { b -> require(b.isNotEmpty() && b.all { it.status() == Status.AVSLUTTET }) }
-        }!!
+            val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+            assertThat(behandlinger).isNotEmpty
+                .allSatisfy { assertThat(it.status()).isEqualTo(Status.AVSLUTTET) }
+        }
     }
 
 
@@ -470,8 +483,8 @@ class Flyttest : WithDependencies {
         leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
-        }!!
+            alleBehandlingerForJournalpost(journalpostId).also { assertThat(it).hasSizeGreaterThan(1) }
+        }
 
         val nyBehandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = nyBehandling.id
@@ -479,11 +492,14 @@ class Flyttest : WithDependencies {
         triggProsesserBehandling(journalpostId, behandlingId)
 
         val behandling = hentBehandling(behandlingId)
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
             .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "23452345"))
             .sjekkÅpentAvklaringsbehov(null)
 
-        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+        prøv {
+            assertThat(hentBehandling(behandling.id).status()).isEqualTo(Status.AVSLUTTET)
+        }
     }
 
     @Test
@@ -493,10 +509,9 @@ class Flyttest : WithDependencies {
         leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
-        }!!
+            alleBehandlingerForJournalpost(journalpostId).also { assertThat(it).hasSize(2) }
+        }
 
-        assertThat(behandlinger).hasSize(2)
         var behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
 
@@ -507,14 +522,14 @@ class Flyttest : WithDependencies {
             .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
             .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "123"))
 
-        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+        prøv {
+            assertThat(hentBehandling(behandling.id).status()).isEqualTo(Status.AVSLUTTET)
+        }
         util.ventPåSvar(journalpostId.referanse)
 
         val behandlinger2 = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 2) }
-        }!!
-
-        assertThat(behandlinger2).hasSize(3)
+            alleBehandlingerForJournalpost(journalpostId).also { assertThat(it).hasSize(3) }
+        }
 
         var behandling2 = behandlinger2.first { it.typeBehandling == TypeBehandling.DokumentHåndtering }
         val behandling2Id = behandling2.id
@@ -537,7 +552,9 @@ class Flyttest : WithDependencies {
         )
 
         sjekkÅpentAvklaringsbehov(behandling2Id, null)
-        assertThat(behandling2.status()).isEqualTo(Status.AVSLUTTET)
+        prøv {
+            assertThat(hentBehandling(behandling2.id).status()).isEqualTo(Status.AVSLUTTET)
+        }
     }
 
     @Test
@@ -548,7 +565,7 @@ class Flyttest : WithDependencies {
 
         val behandlinger = prøv {
             alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
-        }!!
+        }
 
         val behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
@@ -564,7 +581,7 @@ class Flyttest : WithDependencies {
 
         val behandlinger2 = prøv {
             alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 2) }
-        }!!
+        }
 
         var behandling2 = behandlinger2.first { it.typeBehandling == TypeBehandling.DokumentHåndtering }
         val behandling2Id = behandling2.id
@@ -601,7 +618,7 @@ class Flyttest : WithDependencies {
 
         val behandlinger = prøv {
             alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
-        }!!
+        }
 
         val behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
@@ -617,7 +634,7 @@ class Flyttest : WithDependencies {
 
         val behandlinger2 = prøv {
             alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 2) }
-        }!!
+        }
 
         val behandling2 = behandlinger2.first { it.typeBehandling == TypeBehandling.DokumentHåndtering }
         val behandling2Id = behandling2.id
@@ -630,8 +647,10 @@ class Flyttest : WithDependencies {
             JournalpostRepositoryImpl(connection).lagre(oppdatert)
         }
         triggProsesserBehandling(journalpostId, behandling2.id)
-        val behandling2Oppdatert = hentBehandling(behandling2.id)
-        assertThat(behandling2Oppdatert.status()).isEqualTo(Status.AVSLUTTET)
+        prøv {
+            val behandling2Oppdatert = hentBehandling(behandling2.id)
+            assertThat(behandling2Oppdatert.status()).isEqualTo(Status.AVSLUTTET)
+        }
     }
 
     @Test
@@ -644,11 +663,12 @@ class Flyttest : WithDependencies {
 
         val behandling = prøv {
             alleBehandlingerForJournalpost(journalpostId)
-                .find { it.typeBehandling == TypeBehandling.Journalføring }
-        }!!
+                .filter { it.typeBehandling == TypeBehandling.Journalføring }
+                .also { assertThat(it).hasSize(1) }
+                .single()
+                .also { assertThat(it.status()).isEqualTo(Status.UTREDES) }
+        }
 
-        assertNotNull(behandling)
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         assertThat(behandling.journalpostId).isEqualTo(journalpostId)
 
         // AvklarFordelingSteg skal oppdatere eksisterende rad, ikke opprette en ny
@@ -678,14 +698,16 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val vurdering = dataSource.transaction(readOnly = true) { connection ->
-            repositoryRegistry.provider(connection).provide<AvklarFordelingRepository>()
-                .hentVurderingHvisEksisterer(behandlingId)
+        prøv {
+            val vurdering = dataSource.transaction(readOnly = true) { connection ->
+                repositoryRegistry.provider(connection).provide<AvklarFordelingRepository>()
+                    .hentVurderingHvisEksisterer(behandlingId)
+            }
+            assertThat(vurdering?.system).isEqualTo(AapSystem.IGNORERT)
+            assertThat(hentBehandling(behandlingId).status()).isEqualTo(Status.AVSLUTTET)
+            assertThat(alleBehandlingerForJournalpost(journalpostId).map { it.typeBehandling })
+                .containsExactly(TypeBehandling.Fordeling)
         }
-        assertThat(vurdering?.system).isEqualTo(AapSystem.IGNORERT)
-        assertThat(hentBehandling(behandlingId).status()).isEqualTo(Status.AVSLUTTET)
-        assertThat(alleBehandlingerForJournalpost(journalpostId).map { it.typeBehandling })
-            .containsExactly(TypeBehandling.Fordeling)
     }
 
     @Test
@@ -696,22 +718,27 @@ class Flyttest : WithDependencies {
         triggProsesserBehandling(journalpostId, behandlingId)
 
         hentBehandling(behandlingId)
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
             .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
             .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "23452345"))
 
         var behandling = prøv {
             alleBehandlingerForJournalpost(journalpostId)
-                .find { it.typeBehandling == TypeBehandling.DokumentHåndtering }
-        }!!
-
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
-
-        val alleAvklaringsbehov = dataSource.transaction(readOnly = true) { connection ->
-            hentAvklaringsbehov(behandling.id, connection).alle()
+                .filter { it.typeBehandling == TypeBehandling.DokumentHåndtering }
+                .also { assertThat(it).hasSize(1) }
+                .single()
+                .also { assertThat(it.status()).isEqualTo(Status.UTREDES) }
         }
-        assertThat(alleAvklaringsbehov)
-            .extracting(Avklaringsbehov::erÅpent, Avklaringsbehov::definisjon)
-            .containsExactly(tuple(true, Definisjon.DIGITALISER_DOKUMENT))
+
+        prøv {
+            val alleAvklaringsbehov = dataSource.transaction(readOnly = true) { connection ->
+                hentAvklaringsbehov(behandling.id, connection).alle()
+            }
+            assertThat(alleAvklaringsbehov)
+                .extracting(Avklaringsbehov::erÅpent, Avklaringsbehov::definisjon)
+                .containsExactly(tuple(true, Definisjon.DIGITALISER_DOKUMENT))
+        }
+        behandling = hentBehandling(behandling.id)
 
         hendelsesMottak.håndtere(
             behandling.id, BehandlingSattPåVent(
@@ -761,8 +788,9 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandling = hentBehandling(behandlingId)
-        assertThat(behandling.status()).isEqualTo(Status.AVSLUTTET)
+        prøv {
+            assertThat(hentBehandling(behandlingId).status()).isEqualTo(Status.AVSLUTTET)
+        }
 
         val jobber: List<String> = dataSource.transaction {
             it.queryList("""SELECT * FROM behandling WHERE type = 'DokumentHåndtering'""") {
@@ -778,11 +806,12 @@ class Flyttest : WithDependencies {
         val behandlingId = opprettJournalføringsBehandling(journalpostId)
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = alleBehandlingerForJournalpost(journalpostId)
-        assertThat(
-            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
-            1
-        )
+        prøv {
+            val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+            assertThat(
+                behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }
+            ).hasSize(1)
+        }
 
     }
 
@@ -794,14 +823,13 @@ class Flyttest : WithDependencies {
 
         triggProsesserBehandling(journalpostId, behandlingId)
 
-        val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.size == 1)}
-        }!!
-
-        assertThat(
-            behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }).hasSize(
-            1
-        )
+        prøv {
+            val behandlinger = alleBehandlingerForJournalpost(journalpostId)
+            assertThat(behandlinger).hasSize(1)
+            assertThat(
+                behandlinger.filter { it.typeBehandling == TypeBehandling.Journalføring && it.status() == Status.AVSLUTTET }
+            ).hasSize(1)
+        }
     }
 
     @Test
@@ -814,10 +842,8 @@ class Flyttest : WithDependencies {
         }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
-        }!!
-
-        assertThat(behandlinger).hasSize(2)
+            alleBehandlingerForJournalpost(journalpostId).also { assertThat(it).hasSize(2) }
+        }
         var behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
 
@@ -848,7 +874,9 @@ class Flyttest : WithDependencies {
             )
             .sjekkÅpentAvklaringsbehov(null)
             .apply {
-                assertThat(this.status()).isEqualTo(Status.AVSLUTTET)
+                prøv {
+                    assertThat(hentBehandling(this.id).status()).isEqualTo(Status.AVSLUTTET)
+                }
             }
     }
 
@@ -862,10 +890,8 @@ class Flyttest : WithDependencies {
         }
 
         val behandlinger = prøv {
-            alleBehandlingerForJournalpost(journalpostId).also { require(it.size > 1) }
-        }!!
-
-        assertThat(behandlinger).hasSize(2)
+            alleBehandlingerForJournalpost(journalpostId).also { assertThat(it).hasSize(2) }
+        }
         var behandling = behandlinger.first { it.typeBehandling == TypeBehandling.Journalføring }
         val behandlingId = behandling.id
 
@@ -900,7 +926,9 @@ class Flyttest : WithDependencies {
             )
             .sjekkÅpentAvklaringsbehov(null)
             .apply {
-                assertThat(this.status()).isEqualTo(Status.AVSLUTTET)
+                prøv {
+                    assertThat(hentBehandling(this.id).status()).isEqualTo(Status.AVSLUTTET)
+                }
             }
     }
 
@@ -911,16 +939,21 @@ class Flyttest : WithDependencies {
         try {
             val journalpostId = TestJournalposter.leggTil { brevkode = Brevkoder.ANNEN }.journalpostId()
             leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
-            val behandling = requireNotNull(prøv {
+            val behandling = prøv {
                 alleBehandlingerForJournalpost(journalpostId)
-                    .first { it.typeBehandling == TypeBehandling.Journalføring }
-            })
+                    .filter { it.typeBehandling == TypeBehandling.Journalføring }
+                    .also { assertThat(it).hasSize(1) }
+                    .single()
+            }
             util.ventPåSvar(journalpostId.referanse, behandling.id.id)
             val avsluttet = hentBehandling(behandling.id)
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
                 .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false, tema = Tema.BAR))
                 .sjekkÅpentAvklaringsbehov(null)
                 .verifiserIkkePåVent()
-            assertThat(avsluttet.status()).isEqualTo(Status.AVSLUTTET)
+            prøv {
+                assertThat(hentBehandling(avsluttet.id).status()).isEqualTo(Status.AVSLUTTET)
+            }
             assertThat(dataSource.transaction {
                 repositoryRegistry.provider(it).provide<AvklarTemaRepository>().hentTemaAvklaring(behandling.id)?.tema
             }).isEqualTo(Tema.BAR)
@@ -933,13 +966,17 @@ class Flyttest : WithDependencies {
                     temaNytt = "AAP"
                 }
             }
-            val nyBehandling = requireNotNull(prøv {
+            val nyBehandling = prøv {
                 alleBehandlingerForJournalpost(journalpostId)
-                    .first { it.typeBehandling == TypeBehandling.Journalføring && it.id != behandling.id }
-            })
+                    .filter { it.typeBehandling == TypeBehandling.Journalføring && it.id != behandling.id }
+                    .also { assertThat(it).hasSize(1) }
+                    .single()
+            }
             util.ventPåSvar(journalpostId.referanse, nyBehandling.id.id)
             hentBehandling(nyBehandling.id).sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
-            assertThat(alleBehandlingerForJournalpost(journalpostId)).hasSize(3)
+            prøv {
+                assertThat(alleBehandlingerForJournalpost(journalpostId)).hasSize(3)
+            }
         } finally {
             TemaFlytUnleash.velgTema = false
         }
@@ -952,65 +989,78 @@ class Flyttest : WithDependencies {
         try {
             val journalpostId = TestJournalposter.leggTil { brevkode = Brevkoder.ANNEN }.journalpostId()
             leggJournalpostPåKafka { this.journalpostId = journalpostId.referanse }
-            val behandling = requireNotNull(prøv {
+            val behandling = prøv {
                 alleBehandlingerForJournalpost(journalpostId)
-                    .first { it.typeBehandling == TypeBehandling.Journalføring }
-            })
+                    .filter { it.typeBehandling == TypeBehandling.Journalføring }
+                    .also { assertThat(it).hasSize(1) }
+                    .single()
+            }
             util.ventPåSvar(journalpostId.referanse, behandling.id.id)
             val avsluttet = hentBehandling(behandling.id)
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
                 .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = false, tema = tema))
                 .sjekkÅpentAvklaringsbehov(null)
                 .verifiserIkkePåVent()
-            assertThat(avsluttet.status()).isEqualTo(Status.AVSLUTTET)
+            prøv {
+                assertThat(hentBehandling(avsluttet.id).status()).isEqualTo(Status.AVSLUTTET)
+            }
         } finally {
             TemaFlytUnleash.velgTema = false
         }
     }
 
-    private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R? {
-        val start = System.currentTimeMillis()
-        while (System.currentTimeMillis() - start < maksSekunder * 1000) {
+    private fun <R> prøv(maksSekunder: Long = 10, block: () -> R): R {
+        val start = System.nanoTime()
+        while (true) {
             try {
                 return block()
-            } catch (_: Throwable) {
-                sleep(100)
+            } catch (feil: AssertionError) {
+                if (System.nanoTime() - start >= maksSekunder * 1_000_000_000) {
+                    throw feil
+                }
             }
+            sleep(100)
         }
-        return null
     }
 
     private fun sjekkÅpentAvklaringsbehov(behandlingId: BehandlingId, behov: Definisjon?) {
-        val åpneBehov = dataSource.transaction { connection ->
-            hentAvklaringsbehov(behandlingId, connection).åpne()
-        }
+        prøv {
+            val åpneBehov = dataSource.transaction { connection ->
+                hentAvklaringsbehov(behandlingId, connection).åpne()
+            }
 
-        if (behov == null) {
-            assertThat(åpneBehov).isEmpty()
-        } else {
-            assertThat(åpneBehov).extracting<Definisjon> { it.definisjon }.contains(behov)
+            if (behov == null) {
+                assertThat(åpneBehov).isEmpty()
+            } else {
+                assertThat(åpneBehov).extracting<Definisjon> { it.definisjon }.contains(behov)
+            }
         }
     }
 
     private fun Behandling.sjekkÅpentAvklaringsbehov(behov: Definisjon?): Behandling {
         sjekkÅpentAvklaringsbehov(this.id, behov)
-        return this
+        return hentBehandling(this.id)
     }
 
     fun Behandling.verifiserErPåVent(definisjon: (List<Definisjon>) -> Unit = {}): Behandling {
-        val åpneVenteBehov = dataSource.transaction { connection ->
-            hentAvklaringsbehov(this.id, connection).hentVentepunkter()
+        prøv {
+            val åpneVenteBehov = dataSource.transaction { connection ->
+                hentAvklaringsbehov(this.id, connection).hentVentepunkter()
+            }
+            assertThat(åpneVenteBehov).isNotEmpty()
+            definisjon(åpneVenteBehov.map(Avklaringsbehov::definisjon))
         }
-        assertThat(åpneVenteBehov).isNotEmpty()
-        definisjon(åpneVenteBehov.map(Avklaringsbehov::definisjon))
-        return this
+        return hentBehandling(this.id)
     }
 
     fun Behandling.verifiserIkkePåVent(): Behandling {
-        val åpneVenteBehov = dataSource.transaction { connection ->
-            hentAvklaringsbehov(this.id, connection).hentVentepunkter()
+        prøv {
+            val åpneVenteBehov = dataSource.transaction { connection ->
+                hentAvklaringsbehov(this.id, connection).hentVentepunkter()
+            }
+            assertThat(åpneVenteBehov).isEmpty()
         }
-        assertThat(åpneVenteBehov).isEmpty()
-        return this
+        return hentBehandling(this.id)
     }
 
     private fun alleBehandlingerForJournalpost(journalpostId: JournalpostId): List<Behandling> =
