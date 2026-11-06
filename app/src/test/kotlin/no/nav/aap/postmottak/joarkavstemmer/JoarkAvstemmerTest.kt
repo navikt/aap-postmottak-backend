@@ -1,6 +1,6 @@
 package no.nav.aap.postmottak.joarkavstemmer
 
-import ch.qos.logback.classic.Level.ERROR
+import ch.qos.logback.classic.Level.WARN
 import ch.qos.logback.classic.Level.INFO
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -130,7 +130,7 @@ class JoarkAvstemmerTest {
 
         assertThat(loggMeldinger).anySatisfy { loggMelding ->
             assertThat(loggMelding.formattedMessage).contains("Fant 1 ubehandlede journalposter eldre enn 5 dager")
-            assertThat(loggMelding.level).isEqualTo(ERROR)
+            assertThat(loggMelding.level).isEqualTo(WARN)
         }
 
         verify(exactly = 1) {
@@ -165,7 +165,7 @@ class JoarkAvstemmerTest {
 
         assertThat(loggMeldinger).anySatisfy { loggMelding ->
             assertThat(loggMelding.formattedMessage).contains("Fant 1 ubehandlede journalposter eldre enn 5 dager")
-            assertThat(loggMelding.level).isEqualTo(ERROR)
+            assertThat(loggMelding.level).isEqualTo(WARN)
         }
     }
 
@@ -193,7 +193,7 @@ class JoarkAvstemmerTest {
         joarkAvstemmer().avstem()
 
         val loggMeldinger = listAppender.list
-        val errorMeldinger = loggMeldinger.filter { it.level == ERROR }
+        val errorMeldinger = loggMeldinger.filter { it.level == WARN }
 
         assertThat(errorMeldinger).hasSize(1)
         assertThat(errorMeldinger.first().formattedMessage).contains("Fant 2 ubehandlede journalposter eldre enn 5 dager, hvorav 1 gikk til Kelvin. Se info-logg for konkrete journalposter.")
