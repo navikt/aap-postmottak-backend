@@ -15,6 +15,34 @@ For macOS og Linux anbefaler vi Colima. Det kan være nødvendig med et par tilp
 
 Ved lokal kjøring mot aap-saksbehandling, så finnes det genererte test oppgaver på http://localhost:3000/postmottak/ 
 
+### Tester
+
+```bash
+./gradlew coreTest                     # kjernetestene i alle moduler, uten Docker (~15 s)
+./gradlew :flyt:coreTest               # kjernetestene i én modul (~11 s)
+./gradlew test                         # alle testene, slik CI kjører dem (~1,5 min lokalt)
+./gradlew :flyt:test --tests "*Flyttest"
+```
+
+Testklasser som trenger Docker (Testcontainers) er tagget, og `coreTest` hopper over dem:
+
+- `@Tag("db")`: bruker Postgres via `TestDataSource` eller `postgreSQLContainer()`.
+- `@Tag("kafka")`: bruker Kafka-containeren (bare `Flyttest`).
+
+En ny test som bruker Docker uten tag feiler i `coreTest` med en melding om hvilken tag som mangler, så kjernetestene
+forblir raske og kan kjøres uten Docker. `coreTest` er et alias for `test` med filter og kan ikke kombineres med
+`test`/`check`/`build` i samme kommando.
+
+Testdatabasene kjører uten fsync (`lib-test/src/main/resources/flyway/beforeMigrate__*.sql`), siden de kastes etter
+hver kjøring. Filene kjører også når `TestApp`/`ApiTest` migrerer mot compose-Postgres på port 5441. Antall parallelle
+test-JVM-er er halvparten av kjernene; overstyr med `-PtestForks=N`, f.eks. når bare én modul testes på en maskin med
+mange kjerner (hver JVM med en `db`-test starter sin egen Postgres-container).
+
+Lokalt kjører testene uten Ryuk (Testcontainers sin opprydder), fordi den har feilet under last i Docker Desktop.
+Containerne stoppes da når test-JVM-en avslutter. Blir det likevel liggende igjen containere (f.eks. etter `kill -9`):
+`docker rm -f $(docker ps -aq --filter label=org.testcontainers)`.
+Etter endring av `TESTCONTAINERS_*`/`DOCKER_HOST` i skallet: `rm -rf .gradle/configuration-cache`.
+
 ### Kjøre lokalt mot dev-gcp
 
 Prosjektet inneholder en run config som kan kjøres av IntelliJ. Burde være synlig under "Run configurations" med navnet

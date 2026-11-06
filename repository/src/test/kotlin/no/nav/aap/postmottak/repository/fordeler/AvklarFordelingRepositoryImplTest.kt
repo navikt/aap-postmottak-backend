@@ -9,9 +9,11 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AutoClose
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
+@Tag("db")
 class AvklarFordelingRepositoryImplTest {
 
     @AutoClose

@@ -2,6 +2,11 @@ pluginManagement {
     includeBuild("build-logic")
 }
 
+plugins {
+    // Laster ned JDK 25 automatisk når maskinen mangler den (jvmToolchain(25) i aap.conventions)
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
 rootProject.name = "postmottak"
 
 include(
@@ -11,7 +16,8 @@ include(
     "repository",
     "kontrakt",
     "flyt",
-    "klienter"
+    "klienter",
+    "arkitektur"
 )
 
 dependencyResolutionManagement {

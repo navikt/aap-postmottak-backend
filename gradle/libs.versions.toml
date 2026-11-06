@@ -2,7 +2,7 @@
 komponenter = "2.0.185"
 tilgang = "1.0.243"
 arenaoppslag = "0.7.33"
-behandlingsflyt = "0.0.667"
+behandlingsflyt = "0.0.673-utland-lokal"
 
 [libraries]
 ktor-openapi-gen = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
@@ -27,3 +27,4 @@ kafka-streams-avro-serde = { module = "io.confluent:kafka-streams-avro-serde", v
 teamdokumenthandtering-avro-schemas = { module = "no.nav.teamdokumenthandtering:teamdokumenthandtering-avro-schemas", version = "2.0.0" }
 
 bekk-no-commons = { module = "no.bekk.bekkopen:nocommons", version = "0.17.0" }
+konsist = { module = "com.lemonappdev:konsist", version = "0.17.3" }
