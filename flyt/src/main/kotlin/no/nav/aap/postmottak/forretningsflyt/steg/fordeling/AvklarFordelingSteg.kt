@@ -128,7 +128,7 @@ class AvklarFordelingSteg(
 
     private fun erSøknad(safJournalpost: SafJournalpost): Boolean {
         val brevkode = safJournalpost.hoveddokument()?.brevkode
-        return brevkode != Brevkoder.SØKNAD.kode
+        return brevkode == Brevkoder.SØKNAD.kode
     }
 
     private fun erRettighetOppbruktIArena(
