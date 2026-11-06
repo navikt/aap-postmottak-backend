@@ -7,8 +7,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.FordelerRegelService
+import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
@@ -42,7 +42,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
-import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDateTime
 
 internal class AvklarFordelingStegTest {
@@ -287,9 +286,17 @@ internal class AvklarFordelingStegTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = [true, false])
-    fun `søknadsbrevkoden hopper over Arena-oppslag og bruker regelresultatet`(kelvin: Boolean) {
-        settOppAutomatiskVurdering(regelresultat(kelvin), Brevkoder.SØKNAD.kode)
+    @CsvSource(
+        "true, NAVe 11-13.05", "false, NAVe 11-13.05",
+        "true, ANNEN", "false, ANNEN",
+        "true, null", "false, null",
+        nullValues = ["null"]
+    )
+    fun `brevkode som ikke er søknad hopper over Arena-oppslag og bruker regelresultatet`(
+        kelvin: Boolean,
+        brevkode: String?
+    ) {
+        settOppAutomatiskVurdering(regelresultat(kelvin), brevkode)
         coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns HarBruktOppForlengelsen
 
         val resultat = steg.utfør(kontekst)
@@ -306,10 +313,9 @@ internal class AvklarFordelingStegTest {
         ).isEmpty()
     }
 
-    @ParameterizedTest
-    @CsvSource("NAVe 11-13.05", "ANNEN", "null", nullValues = ["null"])
-    fun `annen eller manglende brevkode gir erSøknad true og utløser Arena-oppslag`(brevkode: String?) {
-        settOppAutomatiskVurdering(regelresultat(kelvin = false), brevkode)
+    @Test
+    fun `søknadsbrevkode utløser Arena-oppslag`() {
+        settOppAutomatiskVurdering(regelresultat(kelvin = false))
         coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns HarBruktOppForlengelsen
 
         val resultat = steg.utfør(kontekst)
@@ -347,7 +353,7 @@ internal class AvklarFordelingStegTest {
 
     private fun settOppAutomatiskVurdering(
         res: Regelresultat,
-        brevkode: String? = Brevkoder.STANDARD_ETTERSENDING.kode
+        brevkode: String? = Brevkoder.SØKNAD.kode
     ) {
         val safJournalpost = lagTestJournalpost(journalpostId).let {
             it.copy(dokumenter = it.dokumenter.map { dokument -> dokument.copy(brevkode = brevkode) })
