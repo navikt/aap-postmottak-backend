@@ -14,6 +14,7 @@ import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.AapSystem
 import no.nav.aap.fordeler.arena.ArenaService
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.IkkeRelevantSøknad
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.VedtattForlenget
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
@@ -24,7 +25,6 @@ import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.flyt.steg.Fullført
-import no.nav.aap.postmottak.gateway.ArenaoppslagGateway
 import no.nav.aap.postmottak.gateway.Bruker
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -40,7 +40,9 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDateTime
 
 internal class AvklarFordelingStegTest {
@@ -62,7 +64,9 @@ internal class AvklarFordelingStegTest {
             regelresultat = null,
         )
     }
-    private val arenaService = mockk<ArenaService>(relaxed = true)
+    private val arenaService = mockk<ArenaService>().also {
+        coEvery { it.harOppbruktRettighet(any(), any(), any()) } returns IkkeRelevantSøknad
+    }
     private val unleashGateway = mockk<UnleashGateway>(relaxed = true).also {
         every { it.isEnabled(any<PostmottakFeature>()) } returns true
     }
@@ -219,7 +223,7 @@ internal class AvklarFordelingStegTest {
 
     @ParameterizedTest
     @MethodSource("oppbrukteRettigheter")
-    fun `Kant i kant med oppbrukt rettighet rutes til Kelvin når KantTilKantV1 er på`(
+    fun `oppbrukt rettighet rutes til Kelvin når erSøknad er true og KantTilKantV1 er på`(
         oppbruktRettighet: HarOppbruktRettighet,
     ) {
         settOppAutomatiskVurdering(regelresultat(kelvin = false))
@@ -228,6 +232,7 @@ internal class AvklarFordelingStegTest {
 
         steg.utfør(kontekst)
 
+        coVerify(exactly = 1) { arenaService.harOppbruktRettighet(any(), any(), journalpostId.referanse) }
         verify {
             avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
                 assertThat(it.system).isEqualTo(AapSystem.KELVIN)
@@ -243,13 +248,14 @@ internal class AvklarFordelingStegTest {
     }
 
     @Test
-    fun `Forlenget rettighet i Arena rutes til Arena når KantTilKantV1 er på`() {
+    fun `forlenget rettighet rutes til Arena når erSøknad er true og KantTilKantV1 er på`() {
         settOppAutomatiskVurdering(regelresultat(kelvin = false))
         every { unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1) } returns true
         coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns VedtattForlenget
 
         steg.utfør(kontekst)
 
+        coVerify(exactly = 1) { arenaService.harOppbruktRettighet(any(), any(), journalpostId.referanse) }
         verify {
             avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
                 assertThat(it.system).isEqualTo(AapSystem.ARENA)
@@ -258,7 +264,7 @@ internal class AvklarFordelingStegTest {
     }
 
     @Test
-    fun `Oppbrukt rettighet i Arena påvirker ikke fordeling når KantTilKantV1 er av`() {
+    fun `oppbrukt rettighet telles men påvirker ikke fordeling når KantTilKantV1 er av`() {
         settOppAutomatiskVurdering(regelresultat(kelvin = false))
         every { unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1) } returns false
         coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns HarBruktOppForlengelsen
@@ -271,6 +277,67 @@ internal class AvklarFordelingStegTest {
                 assertThat(it.system).isEqualTo(AapSystem.ARENA)
             })
         }
+        assertThat(
+            PrometheusProvider.prometheus.counter(
+                "postmottak_kant_i_kant_maks_fordeling",
+                "helt_oppbrukt_kvote", "true",
+                "vedtatt_forlenges_ikke", "false",
+            ).count()
+        ).isEqualTo(1.0)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `søknadsbrevkoden hopper over Arena-oppslag og bruker regelresultatet`(kelvin: Boolean) {
+        settOppAutomatiskVurdering(regelresultat(kelvin), Brevkoder.SØKNAD.kode)
+        coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns HarBruktOppForlengelsen
+
+        val resultat = steg.utfør(kontekst)
+
+        assertThat(resultat).isEqualTo(Fullført)
+        coVerify(exactly = 0) { arenaService.harOppbruktRettighet(any(), any(), any()) }
+        verify(exactly = 1) {
+            avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
+                assertThat(it.system).isEqualTo(if (kelvin) AapSystem.KELVIN else AapSystem.ARENA)
+            })
+        }
+        assertThat(
+            PrometheusProvider.prometheus.find("postmottak_kant_i_kant_maks_fordeling").counters()
+        ).isEmpty()
+    }
+
+    @ParameterizedTest
+    @CsvSource("NAVe 11-13.05", "ANNEN", "null", nullValues = ["null"])
+    fun `annen eller manglende brevkode gir erSøknad true og utløser Arena-oppslag`(brevkode: String?) {
+        settOppAutomatiskVurdering(regelresultat(kelvin = false), brevkode)
+        coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } returns HarBruktOppForlengelsen
+
+        val resultat = steg.utfør(kontekst)
+
+        assertThat(resultat).isEqualTo(Fullført)
+        coVerify(exactly = 1) { arenaService.harOppbruktRettighet(any(), any(), journalpostId.referanse) }
+        verify(exactly = 1) {
+            avklarFordelingRepository.lagreVurdering(eq(behandlingId), withArg {
+                assertThat(it.system).isEqualTo(AapSystem.KELVIN)
+            })
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource("true, true", "true, false", "false, true", "false, false")
+    fun `Arena-feil avbryter fordelingen uansett feature flagg og regelresultat`(
+        kantTilKantPå: Boolean,
+        kelvin: Boolean
+    ) {
+        settOppAutomatiskVurdering(regelresultat(kelvin))
+        every { unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1) } returns kantTilKantPå
+        val feil = IllegalStateException("Arena-oppslag feilet")
+        coEvery { arenaService.harOppbruktRettighet(any(), any(), any()) } throws feil
+
+        assertThatThrownBy { steg.utfør(kontekst) }.isSameAs(feil)
+
+        coVerify(exactly = 1) { arenaService.harOppbruktRettighet(any(), any(), journalpostId.referanse) }
+        verify(exactly = 0) { avklarFordelingRepository.lagreVurdering(any(), any()) }
     }
 
     companion object {
@@ -278,9 +345,15 @@ internal class AvklarFordelingStegTest {
         fun oppbrukteRettigheter() = listOf(HarBruktOppForlengelsen, VedtattAtIkkeForlenges)
     }
 
-    private fun settOppAutomatiskVurdering(res: Regelresultat) {
+    private fun settOppAutomatiskVurdering(
+        res: Regelresultat,
+        brevkode: String? = Brevkoder.STANDARD_ETTERSENDING.kode
+    ) {
+        val safJournalpost = lagTestJournalpost(journalpostId).let {
+            it.copy(dokumenter = it.dokumenter.map { dokument -> dokument.copy(brevkode = brevkode) })
+        }
         every { avklarFordelingRepository.hentVurderingHvisEksisterer(behandlingId) } returns null
-        every { journalpostService.hentSafJournalpost(journalpostId) } returns lagTestJournalpost(journalpostId)
+        every { journalpostService.hentSafJournalpost(journalpostId) } returns safJournalpost
         every { regelService.evaluer(any()) } returns res
     }
 

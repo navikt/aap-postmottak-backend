@@ -41,16 +41,25 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         fun skalTilKelvin() = this is HarOppbruktRettighet
 
         sealed class HarOppbruktRettighet private constructor() : OppbruktRettighetResultat() {
+            // Personen har fått forlengelse, og den er brukt helt opp
             data object HarBruktOppForlengelsen : HarOppbruktRettighet()
+
+            // Personen har brukt opp ordinær kvote, men har ikke fått forlengelse
             data object VedtattAtIkkeForlenges : HarOppbruktRettighet()
         }
 
         sealed class HarIkkeOppbruktRettighet private constructor() : OppbruktRettighetResultat() {
+            // Søknaden er ikke kant-i-kant med vedtakene i Arena
             data object IkkeRelevantSøknad : HarIkkeOppbruktRettighet()
+
+            // Søknaden er vedtatt forlenget, men ikke brukt opp
             data object VedtattForlenget : HarIkkeOppbruktRettighet()
         }
     }
 
+    /*   Vurderer om søker har oppbrukt rettighet til AAP, basert på siste vedtak i Arena.
+        Returnerer et resultat som viser om historikken gjør søknaden relevant for behandling eller ikke.
+     */
     suspend fun harOppbruktRettighet(
         søker: Person, mottattDato: LocalDate, journalpostId: Long
     ): OppbruktRettighetResultat {
@@ -58,11 +67,11 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val sisteSak = historikk.sisteSakOgVedtak
         if (sisteSak == null || !sisteSak.erUnderArbeidsAvklaring() && !sisteSak.erUnderArbeidsUtprøving()) {
             // Søker har ingen løpende eller avsluttet AAP-vedtak i aktivitetsfase UA eller AU
-            logger.info("Journalpost $journalpostId har ingen aktuell sak i Arena, vurderer som ikke relevant")
+            logger.info("Søkeren i journalpost $journalpostId har ingen aktuell sak i Arena, vurderer som ikke relevant")
             return IkkeRelevantSøknad
         } else if (harVedtakIArenaSomStarterIFremtiden(sisteSak, mottattDato)) {
             // Søker har allerede fått innvilget AAP i Arena for fremtidig periode
-            logger.info("Journalpost $journalpostId har allerede innvilget AAP i Arena for fremtidig periode, vurderer som ikke relevant")
+            logger.info("Søkeren i journalpost $journalpostId har allerede innvilget AAP i Arena for fremtidig periode, vurderer som ikke relevant")
             return IkkeRelevantSøknad
         }
 
@@ -75,26 +84,26 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val harKunOppbrukt = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
-            tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad // søknaden er ikke kant-i-kant med ytelsen i Arena
-            // ordinær kvote er brukt opp og unntaksvilkårene for 11-12 er /IKKE/ oppfylt
-            skalIkkeForlenges -> VedtattAtIkkeForlenges
-            else -> {
-                if (tilDatoErLikMaksdatoForUnntak && erAlleredeForlenget) {
-                    // har fått forlengelse og brukt den helt opp når ytelsen i Arena utløper
-                    HarBruktOppForlengelsen
-                } else if (erAlleredeForlenget) {
-                    // forlenget, men vi er ikke ved utløpet av unntaksperioden
-                    // feks. søkeren er på år ett av to av forlengelsen
-                    VedtattForlenget
-                } else {
-                    IkkeRelevantSøknad
-                }
+            erAlleredeForlenget -> if (tilDatoErLikMaksdatoForUnntak) {
+                // har fått forlengelse og brukt den helt opp når ytelsen i Arena utløper
+                HarBruktOppForlengelsen
+            } else {
+                // forlenget, men vi er ikke ved utløpet av unntaksperioden
+                // feks. søkeren er på år ett av to av forlengelsen
+                VedtattForlenget
             }
+            // vedtaket i Arena går ikke til maksdato for ordinær ytelse, ytelsen kan derfor ikke være oppbrukt:
+            tilDatoErIkkeLikOrdinærMaksdato -> IkkeRelevantSøknad
+            // ordinær kvote er brukt opp og unntaksvilkårene for 11-12 er /IKKE/ oppfylt:
+            skalIkkeForlenges -> VedtattAtIkkeForlenges
+            // andre tilfeller, som ikke oppfyller kriteriene:
+            else -> IkkeRelevantSøknad
         }
         val logmsg: StringBuilder = StringBuilder()
-        logmsg.append("tilDatoErLikMaksdato=${!tilDatoErIkkeLikOrdinærMaksdato},")
-        logmsg.append("maksdatoErInnenRimeligTid=${!maksdatoErIkkeInnenRimeligTid}")
-        logmsg.append("vedtatt at ikke forlenges=${skalIkkeForlenges}")
+        logmsg.append("tilDatoErLikOrdinærMaksdato=${!tilDatoErIkkeLikOrdinærMaksdato}, ")
+        logmsg.append("maksdatoErInnenRimeligTid=${!maksdatoErIkkeInnenRimeligTid}, ")
+        logmsg.append("vedtatt at ikke forlenges=${skalIkkeForlenges}, ")
+        logmsg.append("er forlenget=${erAlleredeForlenget}, ")
         logmsg.append("brukt opp fem år=${tilDatoErLikMaksdatoForUnntak}")
         val tilstand = logmsg.toString()
 
