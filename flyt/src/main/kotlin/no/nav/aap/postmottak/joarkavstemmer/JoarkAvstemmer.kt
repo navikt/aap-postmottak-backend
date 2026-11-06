@@ -108,7 +108,7 @@ class JoarkAvstemmer(
         val antallUavstemteKelvin = resultater.filterIsInstance<AvstemmingsResultat.UavstemtKelvin>().size
 
         if (antallUavstemte > 0) {
-            val level = if (Miljø.erProd()) Level.ERROR else Level.INFO
+            val level = if (Miljø.erProd()) Level.WARN else Level.INFO
             log.makeLoggingEventBuilder(level)
                 .setMessage("Fant $antallUavstemte ubehandlede journalposter eldre enn 5 dager, hvorav $antallUavstemteKelvin gikk til Kelvin. Se info-logg for konkrete journalposter.")
                 .log()
