@@ -6,6 +6,7 @@ import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.arena.ArenaService
+import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarIkkeOppbruktRettighet.VedtattForlenget
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.HarBruktOppForlengelsen
 import no.nav.aap.fordeler.arena.ArenaService.OppbruktRettighetResultat.HarOppbruktRettighet.VedtattAtIkkeForlenges
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
@@ -89,14 +90,11 @@ fun MeterRegistry.søknadOmAapTeller(
     )
 
 fun MeterRegistry.tellOppbruktRettighetResultat(oppbruktRettighetResultat: ArenaService.OppbruktRettighetResultat): Counter {
-    val bruktOppFemÅr = oppbruktRettighetResultat is HarBruktOppForlengelsen
-    val bruktOppTreÅrForlengesIkke = oppbruktRettighetResultat is VedtattAtIkkeForlenges
-
+    val resultatStreng = oppbruktRettighetResultat::class.simpleName ?: "Ukjent"
     return this.counter(
-        "postmottak_kant_i_kant_maks_fordeling",
+        "postmottak_kant_i_kant_oppbrukt_rettighet",
         listOf(
-            Tag.of("helt_oppbrukt_kvote", bruktOppFemÅr.toString()),
-            Tag.of("vedtatt_forlenges_ikke", bruktOppTreÅrForlengesIkke.toString())
+            Tag.of("resultat", resultatStreng),
         )
     )
 }
