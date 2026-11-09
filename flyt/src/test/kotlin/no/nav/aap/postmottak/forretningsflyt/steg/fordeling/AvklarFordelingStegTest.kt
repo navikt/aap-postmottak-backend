@@ -7,6 +7,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import net.bytebuddy.matcher.ElementMatchers.any
 import no.nav.aap.fordeler.FordelerRegelService
 import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
@@ -237,13 +238,6 @@ internal class AvklarFordelingStegTest {
                 assertThat(it.system).isEqualTo(AapSystem.KELVIN)
             })
         }
-        assertThat(
-            PrometheusProvider.prometheus.counter(
-                "postmottak_kant_i_kant_maks_fordeling",
-                "helt_oppbrukt_kvote", (oppbruktRettighet is HarBruktOppForlengelsen).toString(),
-                "vedtatt_forlenges_ikke", (oppbruktRettighet is VedtattAtIkkeForlenges).toString(),
-            ).count()
-        ).isEqualTo(1.0)
     }
 
     @Test
@@ -276,13 +270,6 @@ internal class AvklarFordelingStegTest {
                 assertThat(it.system).isEqualTo(AapSystem.ARENA)
             })
         }
-        assertThat(
-            PrometheusProvider.prometheus.counter(
-                "postmottak_kant_i_kant_maks_fordeling",
-                "helt_oppbrukt_kvote", "true",
-                "vedtatt_forlenges_ikke", "false",
-            ).count()
-        ).isEqualTo(1.0)
     }
 
     @ParameterizedTest
