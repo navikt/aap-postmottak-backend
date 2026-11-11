@@ -46,7 +46,8 @@ gyldig Kelvin-sak.
 
 ### Endringer
 1. **`Brevkoder`**: legg til `SØKNAD_OM_AAP_I_UTLANDET("NAV 11-03.07", null)` (behandlingstype `null`, som `SØKNAD`) og
-   `Journalpost.erSøknadOmAapIUtlandet()`.
+   `Journalpost.erSøknadOmAapIUtlandet()`. Den sjekker bare brevkoden, så både digitale søknader og papirsøknader
+   journalføres og digitaliseres maskinelt. Se «Papir og digitalt» under.
    Lagrede enum-navn må ikke endres.
 2. **Toggle**: `PostmottakFeature.AutomatiskJournalforingSoknadUtland`, også i begge `when` i `FakeUnleash`.
    Toggelen skal være av i prod til del 2 er ute.
@@ -65,6 +66,17 @@ gyldig Kelvin-sak.
    den nye meldingstypen i `utledMelding`. Den nye kontraktsversjonen gjør `when` ufullstendig, så kompilatoren sier
    fra.
 9. **Kontrakt**: oppgrader `aap-behandlingsflyt-kontrakt` til versjonen fra del 2.
+
+### Papir og digitalt
+Dokumenter som vi trenger strukturert data fra, må digitaliseres manuelt når de kommer på papir. Det gjelder ikke
+klage og søknad om AAP i utlandet. De saksbehandles av et menneske uansett, så et ekstra digitaliseringssteg, kanskje
+av en annen person, er bortkastet tid. Derfor journalføres begge variantene maskinelt.
+
+Ulempen er at feil som burde vært stoppet i journalføringen, kan gå videre. Skanningen kan være uleselig, eller
+journalposten kan inneholde en annen persons dokument som burde vært splittet. Avveiningen er tidsbesparelse i
+journalføringen mot ekstra opprydding når et dokument med feil allerede er journalført. Utvikleren har valgt
+maskinell journalføring også for papir. For hver ny dokumenttype som ikke trenger strukturert data, skal valget
+bekreftes med utvikleren.
 
 ### Tester
 - Stegtester for `AvklarTemaSteg`, `AvklarSakSteg`, `DigitaliserDokumentSteg` og `OverleverTilFagsystemSteg`, med
@@ -104,6 +116,8 @@ ytelsesbehandlingene.
 - `Definisjon.BEKREFT_BREV_SENDT_MANUELT` med ny `AvklaringsbehovKode`, `BehovType.MANUELT_PÅKREVD`,
   `løsesAv = listOf(Rolle.SAKSBEHANDLER_OPPFOLGING)` og ny `StegType`. Dagens brevbehov (`SKRIV_BREV`,
   `SKRIV_VEDTAKSBREV`) er knyttet til brevproduksjon i Kelvin og passer ikke her.
+- Mellomlagring: Vurderingen i `VURDER_SØKNAD_UTENLANDSOPPHOLD` (4401) mellomlagres, som er standard for
+  vurderingsskjemaer. Brevbekreftelsen (4402) mellomlagres ikke, fordi den bare er en avkrysning.
 
 ### Flyt `Utenlandsopphold`
 `StartBehandlingSteg` → `VurderSøknadUtenlandsoppholdSteg` → `BekreftBrevSendtSteg` → `AvsluttBehandlingSteg`.
@@ -115,7 +129,7 @@ endres ikke.
 
 Vurdering og brevbekreftelse er to separate avklaringsbehov i hvert sitt steg. Det har tre fordeler:
 - Brevet sendes først når vurderingen er lagret.
-- Hvis vurderingen endres, må brevbekreftelsen gjøres på nytt.
+- Behandlingen avsluttes når brevet er bekreftet. Etter det kan ingen av vurderingene endres.
 - Oppgavelisten skiller mellom «må vurderes» og «venter på brev».
 - Steget kan senere byttes ut med automatisk brev uten at vurderingen må endres.
 
@@ -134,19 +148,20 @@ samme sak samtidig. Det følger samme mønster som `opprettOppfølgingsbehandlin
 | Felt | Type | Merknad |
 |---|---|---|
 | `søknadsperiode` | `Periode` | Perioden personen søker om. Én periode i første versjon. |
-| `land` | `String` (ISO 3166) | Ett land i første versjon |
+| `land` | `String` (ISO 3166) | Ett land i første versjon. `NO` avvises, siden søknaden gjelder opphold i utlandet |
 | `resultat` | `INNVILGET` / `DELVIS_INNVILGET` / `AVSLÅTT` | |
 | `godkjentPeriode` / `antallGodkjenteDager` | `Periode?` / `Int?` | Påkrevd ved innvilgelse |
 | `begrunnelse` | `String` | Påkrevd |
-| `vurdertAv` / `vurdertTidspunkt` | | Settes automatisk |
+| `vurdertAv` / `vurdertTidspunkt` | `Bruker` / `LocalDateTime` | Settes automatisk |
 
-### Løsning for `BEKREFT_BREV_SENDT_MANUELT` (eget grunnlag eller egen tabell)
+### Løsning for `BEKREFT_BREV_SENDT_MANUELT` (ingen egen tabell)
 | Felt | Type | Merknad |
 |---|---|---|
 | `brevSendt` | `Boolean` | Settes med en påkrevd avkrysning i frontenden. Løseren avviser `false` med `UgyldigForespørselException`. |
-| `bekreftetAv` / `bekreftetTidspunkt` | | Settes automatisk |
 
-Behandlingen kan ikke avsluttes før saksbehandler har bekreftet at brevet er sendt manuelt.
+Bekreftelsen lagres ikke i egen tabell. Hvem som bekreftet og når, finnes allerede på avklaringsbehovet, og
+`BekreftBrevSendtSteg` er tilfreds når behovet er løst. Behandlingen kan ikke avsluttes før saksbehandler har
+bekreftet at brevet er sendt manuelt.
 
 ### Berørte repoer
 | Repo | Endring |
