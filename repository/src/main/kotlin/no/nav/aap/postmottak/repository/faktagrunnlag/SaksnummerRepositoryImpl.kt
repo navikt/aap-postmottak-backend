@@ -205,6 +205,32 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
             setRowMapper { row -> row.getStringOrNull("SAKSNUMMER") }
         }
 
+    override fun hentJournalposterForSak(saksnummer: String): List<JournalpostId> =
+        connection.queryList(
+            """
+            WITH journalposter AS (
+                SELECT DISTINCT ON (JOURNALPOST_ID) JOURNALPOST_ID, SAKSNUMMER
+                FROM JOURNALPOST
+                ORDER BY JOURNALPOST_ID, OPPRETTET_TID DESC, ID DESC
+            ), saksvurderinger AS (
+                SELECT DISTINCT ON (b.JOURNALPOST_ID) b.JOURNALPOST_ID, sa.SAKSNUMMER
+                FROM SAKSVURDERING_GRUNNLAG sg
+                JOIN SAKSNUMMER_AVKLARING sa ON sa.ID = sg.SAKSNUMMER_AVKLARING_ID
+                JOIN BEHANDLING b ON b.ID = sg.BEHANDLING_ID
+                WHERE sg.AKTIV
+                ORDER BY b.JOURNALPOST_ID, sg.OPPRETTET_TID DESC, sg.ID DESC
+            )
+            SELECT COALESCE(j.JOURNALPOST_ID, s.JOURNALPOST_ID) AS JOURNALPOST_ID
+            FROM journalposter j
+            FULL JOIN saksvurderinger s ON s.JOURNALPOST_ID = j.JOURNALPOST_ID
+            WHERE COALESCE(j.SAKSNUMMER, s.SAKSNUMMER) = ?
+            ORDER BY JOURNALPOST_ID
+            """.trimIndent()
+        ) {
+            setParams { setString(1, saksnummer) }
+            setRowMapper { row -> JournalpostId(row.getLong("JOURNALPOST_ID")) }
+        }
+
     override fun eksistererAvslagPåTidligereBehandling(behandlingId: BehandlingId): Boolean {
         val kelvinSaker = hentKelvinSaker(behandlingId)
         return kelvinSaker.any { it.avslag }

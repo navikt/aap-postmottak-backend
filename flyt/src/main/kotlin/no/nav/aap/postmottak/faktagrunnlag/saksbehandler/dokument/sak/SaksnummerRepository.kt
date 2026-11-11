@@ -13,5 +13,6 @@ interface SaksnummerRepository: Repository {
     fun lagreSakVurdering(behandlingId: BehandlingId, saksvurdering: Saksvurdering)
     fun hentSakVurdering(behandlingId: BehandlingId): Saksvurdering?
     fun hentSaksnummerForJournalpost(journalpostId: JournalpostId): String?
+    fun hentJournalposterForSak(saksnummer: String): List<JournalpostId>
     fun eksistererAvslagPåTidligereBehandling(behandlingId: BehandlingId): Boolean
 }
