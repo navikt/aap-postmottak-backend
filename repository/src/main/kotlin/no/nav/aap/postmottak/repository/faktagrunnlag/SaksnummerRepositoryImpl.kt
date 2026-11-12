@@ -5,6 +5,7 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.json.DefaultJsonMapper.fromJson
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.JournalpostPåSak
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
@@ -205,7 +206,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
             setRowMapper { row -> row.getStringOrNull("SAKSNUMMER") }
         }
 
-    override fun hentJournalposterForSak(saksnummer: String): List<JournalpostId> =
+    override fun hentJournalposterForSak(saksnummer: String): List<JournalpostPåSak> =
         connection.queryList(
             """
             WITH kandidater AS (
@@ -219,10 +220,10 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 JOIN BEHANDLING b ON b.ID = sg.BEHANDLING_ID
                 WHERE sa.SAKSNUMMER = ? AND sg.AKTIV
             )
-            SELECT k.JOURNALPOST_ID
+            SELECT k.JOURNALPOST_ID, j.STATUS, j.MOTTATT_DATO, j.KANAL, j.TEMA
             FROM kandidater k
             LEFT JOIN LATERAL (
-                SELECT SAKSNUMMER
+                SELECT SAKSNUMMER, STATUS, MOTTATT_DATO, KANAL, TEMA
                 FROM JOURNALPOST
                 WHERE JOURNALPOST_ID = k.JOURNALPOST_ID
                 ORDER BY OPPRETTET_TID DESC, ID DESC
@@ -246,7 +247,15 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 setString(2, saksnummer)
                 setString(3, saksnummer)
             }
-            setRowMapper { row -> JournalpostId(row.getLong("JOURNALPOST_ID")) }
+            setRowMapper { row ->
+                JournalpostPåSak(
+                    journalpostId = JournalpostId(row.getLong("JOURNALPOST_ID")),
+                    journalstatus = row.getEnumOrNull("STATUS"),
+                    mottattDato = row.getLocalDateOrNull("MOTTATT_DATO"),
+                    kanal = row.getEnumOrNull("KANAL"),
+                    tema = row.getStringOrNull("TEMA"),
+                )
+            }
         }
 
     override fun eksistererAvslagPåTidligereBehandling(behandlingId: BehandlingId): Boolean {

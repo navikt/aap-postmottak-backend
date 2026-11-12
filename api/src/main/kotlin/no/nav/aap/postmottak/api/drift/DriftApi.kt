@@ -111,6 +111,15 @@ fun NormalOpenAPIRoute.driftApi(
                 val journalposter = dataSource.transaction(readOnly = true) { connection ->
                     repositoryRegistry.provider(connection).provide<SaksnummerRepository>()
                         .hentJournalposterForSak(params.saksnummer)
+                        .map {
+                            JournalpostPåSakDto(
+                                journalpostId = it.journalpostId,
+                                journalstatus = it.journalstatus,
+                                mottattDato = it.mottattDato,
+                                kanal = it.kanal,
+                                tema = it.tema,
+                            )
+                        }
                 }
                 respond(SakJournalposterDto(journalposter))
             }
