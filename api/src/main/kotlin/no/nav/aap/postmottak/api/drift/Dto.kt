@@ -7,6 +7,7 @@ import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
+import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
 import no.nav.aap.postmottak.gateway.Journalstatus
@@ -15,10 +16,12 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.Kanal
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.tilgang.plugin.kontrakt.AuditlogResolverInput
 import no.nav.aap.tilgang.plugin.kontrakt.Personreferanse
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Base64
+import java.util.UUID
 import no.nav.aap.postmottak.kontrakt.behandling.Status as BehandlingStatus
 
 data class JournalpostDriftsinfoDto(
@@ -107,4 +110,72 @@ data class InnkommendeJournalpostDto(
             )
         }
     }
+}
+
+data class EttersendForPersonRequest(
+    val ident: String,
+    val pdfBase64: String,
+    val filNavn: String,
+    val eksternReferanseId: String?,
+) : Personreferanse, AuditlogResolverInput {
+    override fun hentPersonreferanse(): String = ident.trim()
+    override fun hentAuditlogResolverInput(): String = ident.trim()
+}
+
+data class EttersendForPersonResponse(
+    val journalpostId: Long,
+)
+
+data class EttersendForPersonInput(
+    val ident: String,
+    val pdf: ByteArray,
+    val filNavn: String,
+    val eksternReferanseId: UUID?,
+)
+
+fun EttersendForPersonRequest.valider(): EttersendForPersonInput {
+    val normalisertIdent = ident.trim()
+    if(!normalisertIdent.matches(Regex("^\\d{11}$"))) {
+        throw UgyldigForespørselException("Ident må være 11 siffer")
+    }
+
+    val eksternRef = if(eksternReferanseId != null) {
+        requireUuid(eksternReferanseId.trim(), "eksternReferanseId må være en UUID")
+    } else {
+        null
+    }
+    val pdf = requirePdf(pdfBase64)
+
+    return EttersendForPersonInput(
+        ident = normalisertIdent,
+        pdf = pdf,
+        filNavn = filNavn,
+        eksternReferanseId = eksternRef,
+    )
+}
+
+private fun requirePdf(pdfBase64: String): ByteArray {
+    val bytes = try {
+        Base64.getDecoder().decode(pdfBase64)
+    } catch (_: IllegalArgumentException) {
+        throw UgyldigForespørselException("pdfBase64 er ikke gyldig base64")
+    }
+    if(bytes.size > 10 * 1024 * 1024){
+        throw UgyldigForespørselException("PDF kan ikke være større enn 10 MB")
+    }
+    if (!bytes.hasPdfHeader()){
+        throw UgyldigForespørselException("Innholdet er ikke en gyldig PDF")
+    }
+    return bytes
+}
+
+private fun ByteArray.hasPdfHeader(): Boolean {
+    val header = byteArrayOf('%'.code.toByte(), 'P'.code.toByte(), 'D'.code.toByte(), 'F'.code.toByte(), '-'.code.toByte())
+    return size >= header.size && header.indices.all { this[it] == header[it] }
+}
+
+private fun requireUuid(value: String, message: String): UUID = try {
+    UUID.fromString(value)
+} catch (_: IllegalArgumentException) {
+    throw UgyldigForespørselException(message)
 }

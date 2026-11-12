@@ -5,6 +5,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tilJournalpost
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
@@ -12,11 +13,13 @@ import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.EndreTemaRequest
 import no.nav.aap.postmottak.gateway.JournalføringService
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
-import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.gateway.OpprettJournalpostRequest
+import no.nav.aap.postmottak.gateway.OpprettJournalpostResponse
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakeGatewayProvider
@@ -26,7 +29,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.InputStream
-import java.util.*
+import java.util.UUID
 
 @Fakes
 class JoarkClientTest {
@@ -105,6 +108,56 @@ class JoarkClientTest {
         val journalpostId = TestJournalposter.leggTil { person = testPerson }.journalpostId()
 
         joarkClient.ferdigstillJournalpostMaskinelt(journalpostId, null)
+    }
+
+    @Test
+    fun `oppretter journalpost for person`() {
+        val restClient = mockk<RestClient<InputStream>>(relaxed = true)
+        val joarkClient = JournalføringService.konstruer(
+            restClient,
+            SafGraphqlClientCredentialsClient(),
+            EREGKlient(),
+            unleashGateway = FakeUnleash
+        )
+
+        val ident = Ident("12345678910")
+        val eksternReferanseId = UUID.randomUUID()
+
+        io.mockk.every {
+            restClient.post<OpprettJournalpostRequest, OpprettJournalpostResponse>(
+                any(),
+                any(),
+                any()
+            )
+        } returns OpprettJournalpostResponse("467011765")
+
+        val journalpostId = joarkClient.opprettJournalpostForPerson(
+            ident = ident,
+            pdf = "%PDF-1.4\n".toByteArray(),
+            filNavn = "filnavn",
+            eksternReferanseId = eksternReferanseId
+        )
+
+        assertThat(journalpostId).isEqualTo(JournalpostId(467011765))
+
+        verify(exactly = 1) {
+            restClient.post<OpprettJournalpostRequest, OpprettJournalpostResponse>(
+                withArg {
+                    assertThat(it.path).isEqualTo("/rest/journalpostapi/v1/journalpost")
+                    assertThat(it.query).contains("forsoekFerdigstilling=false")
+                },
+                withArg { request ->
+                    val body = request.body() as OpprettJournalpostRequest
+                    assertThat(body.tema).isEqualTo("AAP")
+                    assertThat(body.bruker.id).isEqualTo("12345678910")
+                    assertThat(body.kanal).isEqualTo("INNSENDT_NAV_ANSATT")
+                    assertThat(body.eksternReferanseId).isEqualTo(eksternReferanseId.toString())
+                    assertThat(body.dokumenter.single().brevkode).isEqualTo("NAVe 11-13.05")
+                    assertThat(body.dokumenter.single().dokumentvarianter.single().fysiskDokument).isNotBlank()
+                },
+                any()
+            )
+        }
     }
 
     @Test

@@ -18,14 +18,19 @@ import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Behandlingstema
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
+import java.util.Base64
 import java.util.UUID
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
@@ -175,6 +180,45 @@ class JournalføringService(
         return client.post<KopierJournalpostRequest, KopierJournalpostResponse>(path, PostRequest(KopierJournalpostRequest(eksternReferanseId = eksternReferanseId))) ?: error("Kunne ikke kopiere journalpost med id ${journalpost.journalpostId}")
     }
 
+    fun opprettJournalpostForPerson(
+        ident: Ident,
+        pdf: ByteArray,
+        filNavn: String,
+        eksternReferanseId: UUID?,
+    ): JournalpostId {
+        val path = url.resolve("/rest/journalpostapi/v1/journalpost?forsoekFerdigstilling=false")
+        val request = OpprettJournalpostRequest(
+            journalposttype = Journalposttype.I.name,
+            tema = Tema.AAP.toString(),
+            behandlingstema = Behandlingstema.AAP.kode,
+            kanal = KanalFraKodeverk.INNSENDT_NAV_ANSATT.toString(),
+            eksternReferanseId = eksternReferanseId?.toString(),
+            tittel = "Ettersendelse for arbeidsavklaringspenger sendt inn av saksbehandler på vegne av innbygger",
+            bruker = JournalpostBruker(id = ident.identifikator),
+            avsenderMottaker = AvsenderMottakerDto(id = ident.identifikator, idType = AvsenderMottakerDto.IdType.FNR),
+            dokumenter = listOf(
+                NyttDokumentRequest(
+                    tittel = filNavn,
+                    brevkode = Brevkoder.STANDARD_ETTERSENDING.kode,
+                    dokumentvarianter = listOf(
+                        NyttDokumentvariantRequest(
+                            filtype = "PDF",
+                            variantformat = "ARKIV",
+                            fysiskDokument = Base64.getEncoder().encodeToString(pdf)
+                        )
+                    )
+                )
+            )
+        )
+        val response = requireNotNull(
+            client.post<OpprettJournalpostRequest, OpprettJournalpostResponse>(
+                path,
+                PostRequest(request)
+            )
+        ) { "Kunne ikke opprette journalpost for person" }
+        return JournalpostId(response.journalpostId.toLong())
+    }
+
     fun ferdigstillJournalpostMaskinelt(
         journalpostId: JournalpostId,
         journalførtAv: Bruker?,
@@ -244,6 +288,34 @@ data class OppdaterJournalpostRequest(
     val avsenderMottaker: AvsenderMottakerDto?,
     @param:JsonInclude(JsonInclude.Include.NON_NULL)
     val dokumenter: List<ForenkletDokument>?
+)
+
+data class OpprettJournalpostRequest(
+    val journalposttype: String,
+    val tema: String,
+    val behandlingstema: String,
+    val kanal: String,
+    val eksternReferanseId: String?,
+    val tittel: String,
+    val bruker: JournalpostBruker,
+    val avsenderMottaker: AvsenderMottakerDto,
+    val dokumenter: List<NyttDokumentRequest>,
+)
+
+data class NyttDokumentRequest(
+    val tittel: String,
+    val brevkode: String,
+    val dokumentvarianter: List<NyttDokumentvariantRequest>,
+)
+
+data class NyttDokumentvariantRequest(
+    val filtype: String,
+    val variantformat: String,
+    val fysiskDokument: String,
+)
+
+data class OpprettJournalpostResponse(
+    val journalpostId: String,
 )
 
 data class AvsenderMottakerDto(
