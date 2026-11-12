@@ -70,7 +70,15 @@ fun krevDtoErUtenFødselsnummer(dto: Any) {
 
 data class PersonSøkDriftsinfoDto(val journalposter: List<InnkommendeJournalpostDto>)
 data class SaksnummerPathParam(@param:PathParam("saksnummer") val saksnummer: String)
-data class SakJournalposterDto(val journalposter: List<JournalpostId>)
+data class SakJournalposterDto(val journalposter: List<JournalpostPåSakDto>)
+
+data class JournalpostPåSakDto(
+    val journalpostId: JournalpostId,
+    val journalstatus: Journalstatus?,
+    val mottattDato: LocalDate?,
+    val kanal: KanalFraKodeverk?,
+    val tema: String?,
+)
 
 data class IdentDto(val ident: String) : Personreferanse {
     override fun hentPersonreferanse(): String = ident

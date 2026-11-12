@@ -2,8 +2,9 @@ package no.nav.aap.postmottak.repository.journalpost
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
-import no.nav.aap.postmottak.gateway.Fagsystem
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.JournalpostPåSak
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
+import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -127,14 +128,21 @@ internal class JournalpostRepositoryImplTest {
             saksnummerRepository.lagreSakVurdering(utenJournalpost, Saksvurdering(saksnummer))
 
             assertThat(saksnummerRepository.hentJournalposterForSak(saksnummer))
+                .extracting<JournalpostId> { it.journalpostId }
                 .containsExactly(journalpost.journalpostId, journalpostUtenSaksnummer.journalpostId, journalpostIdUtenGrunnlag)
             assertThat(saksnummerRepository.hentJournalposterForSak(gammeltSaksnummer)).isEmpty()
             assertThat(saksnummerRepository.hentJournalposterForSak("ukjent-sak")).isEmpty()
+            val journalpostUtenLagredeData = saksnummerRepository.hentJournalposterForSak(saksnummer)
+                .single { it.journalpostId == journalpostIdUtenGrunnlag }
+            assertThat(journalpostUtenLagredeData)
+                .isEqualTo(JournalpostPåSak(journalpostIdUtenGrunnlag, null, null, null, null))
 
             saksnummerRepository.lagreSakVurdering(nyBehandling, Saksvurdering(annetSaksnummer))
             assertThat(saksnummerRepository.hentJournalposterForSak(saksnummer))
+                .extracting<JournalpostId> { it.journalpostId }
                 .containsExactly(journalpost.journalpostId, journalpostIdUtenGrunnlag)
             assertThat(saksnummerRepository.hentJournalposterForSak(annetSaksnummer))
+                .extracting<JournalpostId> { it.journalpostId }
                 .containsExactly(journalpostUtenSaksnummer.journalpostId, journalpostPåAnnenSak.journalpostId)
         }
     }
@@ -158,7 +166,37 @@ internal class JournalpostRepositoryImplTest {
 
             assertThat(saksnummerRepository.hentJournalposterForSak(opprinneligSaksnummer)).isEmpty()
             assertThat(saksnummerRepository.hentJournalposterForSak(nyttSaksnummer))
+                .extracting<JournalpostId> { it.journalpostId }
                 .containsExactly(journalpost.journalpostId)
+        }
+    }
+
+    @Test
+    fun `henter metadata fra siste journalpostversjon`() {
+        dataSource.transaction { connection ->
+            val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
+            val journalpostRepository = JournalpostRepositoryImpl(connection)
+            val saksnummerRepository = SaksnummerRepositoryImpl(connection)
+            val journalpost = genererJournalpost(person)
+            val oppdatertJournalpost = journalpost.copy(
+                status = Journalstatus.JOURNALFOERT,
+                mottattDato = LocalDate.of(2026, 11, 12),
+                kanal = KanalFraKodeverk.NAV_NO,
+                tema = "OPP",
+            )
+            journalpostRepository.lagre(journalpost)
+            journalpostRepository.lagre(oppdatertJournalpost)
+
+            assertThat(saksnummerRepository.hentJournalposterForSak(requireNotNull(journalpost.saksnummer)))
+                .containsExactly(
+                    JournalpostPåSak(
+                        journalpostId = oppdatertJournalpost.journalpostId,
+                        journalstatus = oppdatertJournalpost.status,
+                        mottattDato = oppdatertJournalpost.mottattDato,
+                        kanal = oppdatertJournalpost.kanal,
+                        tema = oppdatertJournalpost.tema,
+                    )
+                )
         }
     }
 
