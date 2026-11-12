@@ -180,6 +180,10 @@ class JournalføringService(
         return client.post<KopierJournalpostRequest, KopierJournalpostResponse>(path, PostRequest(KopierJournalpostRequest(eksternReferanseId = eksternReferanseId))) ?: error("Kunne ikke kopiere journalpost med id ${journalpost.journalpostId}")
     }
 
+    enum class OpprettJournalpostType {
+        INNGAAENDE, UTGAAENDE, NOTAT
+    }
+
     fun opprettJournalpostForPerson(
         ident: Ident,
         pdf: ByteArray,
@@ -188,7 +192,7 @@ class JournalføringService(
     ): JournalpostId {
         val path = url.resolve("/rest/journalpostapi/v1/journalpost?forsoekFerdigstilling=false")
         val request = OpprettJournalpostRequest(
-            journalposttype = Journalposttype.I.name,
+            journalposttype = OpprettJournalpostType.INNGAAENDE.name,
             tema = Tema.AAP.toString(),
             behandlingstema = Behandlingstema.AAP.kode,
             kanal = KanalFraKodeverk.INNSENDT_NAV_ANSATT.toString(),
