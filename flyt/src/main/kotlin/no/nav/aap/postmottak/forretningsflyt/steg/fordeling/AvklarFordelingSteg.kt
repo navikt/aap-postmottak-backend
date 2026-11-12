@@ -98,9 +98,9 @@ class AvklarFordelingSteg(
         val oppbruktRettighetResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
         if (erSøknad(safJournalpost)) {
             log.info("oppbruktRettighetResultat=${oppbruktRettighetResultat} journalpostId=${innkommendeJournalpost.journalpostId}")
-            prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat).increment()
+            prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat, regelresultat).increment()
         }
-        
+
         // Feiler hardt hvis Arena ikke svarer, slik at jobben prøves på nytt i stedet for å rute feil
         val kantIKantSakSomSkalTilKelvin =
             if (unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1)) {
