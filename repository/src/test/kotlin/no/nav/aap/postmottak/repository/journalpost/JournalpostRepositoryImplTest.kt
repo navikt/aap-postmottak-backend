@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.repository.journalpost
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.postmottak.gateway.Fagsystem
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
@@ -17,6 +18,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Variantformat
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -87,6 +89,78 @@ internal class JournalpostRepositoryImplTest {
         }
     }
 
+
+    @Test
+    fun `henter unike journalposter for sak fra nyeste journalpost eller saksvurdering`() {
+        dataSource.transaction { connection ->
+            val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
+            val journalpostRepository = JournalpostRepositoryImpl(connection)
+            val saksnummerRepository = SaksnummerRepositoryImpl(connection)
+            val behandlingRepository = BehandlingRepositoryImpl(connection)
+            val saksnummer = "saksnummer"
+            val annetSaksnummer = "annen-sak"
+            val gammeltSaksnummer = "gammel-sak"
+            val journalpost = genererJournalpost(person).copy(saksnummer = saksnummer)
+            val journalpostUtenSaksnummer = journalpost.copy(journalpostId = JournalpostId(20), saksnummer = null)
+            val journalpostPåAnnenSak =
+                journalpost.copy(journalpostId = JournalpostId(30), saksnummer = annetSaksnummer)
+            val journalpostIdUtenGrunnlag = JournalpostId(40)
+
+            journalpostRepository.lagre(journalpost)
+            journalpostRepository.lagre(journalpost)
+            journalpostRepository.lagre(journalpostUtenSaksnummer)
+            journalpostRepository.lagre(journalpostPåAnnenSak)
+
+            val behandling = behandlingRepository.opprettBehandling(
+                journalpostUtenSaksnummer.journalpostId, TypeBehandling.Journalføring
+            )
+            saksnummerRepository.lagreSakVurdering(behandling, Saksvurdering(gammeltSaksnummer))
+            saksnummerRepository.lagreSakVurdering(behandling, Saksvurdering(saksnummer))
+            val nyBehandling = behandlingRepository.opprettBehandling(
+                journalpostUtenSaksnummer.journalpostId, TypeBehandling.DokumentHåndtering
+            )
+            saksnummerRepository.kopier(behandling, nyBehandling)
+
+            val utenJournalpost = behandlingRepository.opprettBehandling(
+                journalpostIdUtenGrunnlag, TypeBehandling.Journalføring
+            )
+            saksnummerRepository.lagreSakVurdering(utenJournalpost, Saksvurdering(saksnummer))
+
+            assertThat(saksnummerRepository.hentJournalposterForSak(saksnummer))
+                .containsExactly(journalpost.journalpostId, journalpostUtenSaksnummer.journalpostId, journalpostIdUtenGrunnlag)
+            assertThat(saksnummerRepository.hentJournalposterForSak(gammeltSaksnummer)).isEmpty()
+            assertThat(saksnummerRepository.hentJournalposterForSak("ukjent-sak")).isEmpty()
+
+            saksnummerRepository.lagreSakVurdering(nyBehandling, Saksvurdering(annetSaksnummer))
+            assertThat(saksnummerRepository.hentJournalposterForSak(saksnummer))
+                .containsExactly(journalpost.journalpostId, journalpostIdUtenGrunnlag)
+            assertThat(saksnummerRepository.hentJournalposterForSak(annetSaksnummer))
+                .containsExactly(journalpostUtenSaksnummer.journalpostId, journalpostPåAnnenSak.journalpostId)
+        }
+    }
+
+    @Test
+    fun `historiske sakstilknytninger ignoreres og journalpostens saksnummer har forrang`() {
+        dataSource.transaction { connection ->
+            val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
+            val journalpostRepository = JournalpostRepositoryImpl(connection)
+            val saksnummerRepository = SaksnummerRepositoryImpl(connection)
+            val behandlingRepository = BehandlingRepositoryImpl(connection)
+            val opprinneligSaksnummer = "saksnummer"
+            val nyttSaksnummer = "ny-sak"
+            val journalpost = genererJournalpost(person).copy(saksnummer = opprinneligSaksnummer)
+            val oppdatertJournalpost = journalpost.copy(saksnummer = nyttSaksnummer)
+
+            journalpostRepository.lagre(journalpost)
+            journalpostRepository.lagre(oppdatertJournalpost)
+            val behandling = behandlingRepository.opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
+            saksnummerRepository.lagreSakVurdering(behandling, Saksvurdering(opprinneligSaksnummer))
+
+            assertThat(saksnummerRepository.hentJournalposterForSak(opprinneligSaksnummer)).isEmpty()
+            assertThat(saksnummerRepository.hentJournalposterForSak(nyttSaksnummer))
+                .containsExactly(journalpost.journalpostId)
+        }
+    }
 
     private fun genererJournalpost(
         person: Person,

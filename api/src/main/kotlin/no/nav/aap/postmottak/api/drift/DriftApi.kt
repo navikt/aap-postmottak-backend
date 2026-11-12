@@ -104,6 +104,18 @@ fun NormalOpenAPIRoute.driftApi(
 ) {
     route("/api/drift") {
         joarkAvstemmingApi(dataSource, repositoryRegistry)
+        route("/sak/{saksnummer}/journalposter") {
+            authorizedGet<SaksnummerPathParam, SakJournalposterDto>(
+                RollerConfig(listOf(DriftLes, Drift)),
+            ) { params ->
+                val journalposter = dataSource.transaction(readOnly = true) { connection ->
+                    repositoryRegistry.provider(connection).provide<SaksnummerRepository>()
+                        .hentJournalposterForSak(params.saksnummer)
+                }
+                respond(SakJournalposterDto(journalposter))
+            }
+        }
+
         route("/behandling/{referanse}/prosesser") {
             authorizedPost<BehandlingsreferansePathParam, Unit, Unit>(
                 AuthorizationParamPathConfig(

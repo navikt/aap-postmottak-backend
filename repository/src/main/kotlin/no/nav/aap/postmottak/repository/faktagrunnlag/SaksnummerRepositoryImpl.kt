@@ -205,6 +205,50 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
             setRowMapper { row -> row.getStringOrNull("SAKSNUMMER") }
         }
 
+    override fun hentJournalposterForSak(saksnummer: String): List<JournalpostId> =
+        connection.queryList(
+            """
+            WITH kandidater AS (
+                SELECT JOURNALPOST_ID
+                FROM JOURNALPOST
+                WHERE SAKSNUMMER = ?
+                UNION
+                SELECT b.JOURNALPOST_ID
+                FROM SAKSVURDERING_GRUNNLAG sg
+                JOIN SAKSNUMMER_AVKLARING sa ON sa.ID = sg.SAKSNUMMER_AVKLARING_ID
+                JOIN BEHANDLING b ON b.ID = sg.BEHANDLING_ID
+                WHERE sa.SAKSNUMMER = ? AND sg.AKTIV
+            )
+            SELECT k.JOURNALPOST_ID
+            FROM kandidater k
+            LEFT JOIN LATERAL (
+                SELECT SAKSNUMMER
+                FROM JOURNALPOST
+                WHERE JOURNALPOST_ID = k.JOURNALPOST_ID
+                ORDER BY OPPRETTET_TID DESC, ID DESC
+                LIMIT 1
+            ) j ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT sa.SAKSNUMMER
+                FROM SAKSVURDERING_GRUNNLAG sg
+                JOIN SAKSNUMMER_AVKLARING sa ON sa.ID = sg.SAKSNUMMER_AVKLARING_ID
+                JOIN BEHANDLING b ON b.ID = sg.BEHANDLING_ID
+                WHERE b.JOURNALPOST_ID = k.JOURNALPOST_ID AND sg.AKTIV
+                ORDER BY sg.OPPRETTET_TID DESC, sg.ID DESC
+                LIMIT 1
+            ) s ON TRUE
+            WHERE COALESCE(j.SAKSNUMMER, s.SAKSNUMMER) = ?
+            ORDER BY k.JOURNALPOST_ID
+            """.trimIndent()
+        ) {
+            setParams {
+                setString(1, saksnummer)
+                setString(2, saksnummer)
+                setString(3, saksnummer)
+            }
+            setRowMapper { row -> JournalpostId(row.getLong("JOURNALPOST_ID")) }
+        }
+
     override fun eksistererAvslagPåTidligereBehandling(behandlingId: BehandlingId): Boolean {
         val kelvinSaker = hentKelvinSaker(behandlingId)
         return kelvinSaker.any { it.avslag }

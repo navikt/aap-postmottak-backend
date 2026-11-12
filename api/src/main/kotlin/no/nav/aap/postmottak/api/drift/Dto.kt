@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.api.drift
 
+import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
 import no.nav.aap.fordeler.NavEnhet
@@ -68,6 +69,9 @@ fun krevDtoErUtenFødselsnummer(dto: Any) {
 }
 
 data class PersonSøkDriftsinfoDto(val journalposter: List<InnkommendeJournalpostDto>)
+data class SaksnummerPathParam(@param:PathParam("saksnummer") val saksnummer: String)
+data class SakJournalposterDto(val journalposter: List<JournalpostId>)
+
 data class IdentDto(val ident: String) : Personreferanse {
     override fun hentPersonreferanse(): String = ident
 }
