@@ -38,7 +38,7 @@ fun main() {
     }
 
     // Starter server
-    embeddedServer(Netty, port = 8087) {
+    embeddedServer(Netty, port = 8070) {
         // Useful for connecting to the test database locally
         // jdbc URL contains the host and port and database name.
         println("jdbcUrl: ${dbConfig.url}. Password: ${dbConfig.password}. Username: ${dbConfig.username}.")
