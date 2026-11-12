@@ -20,6 +20,7 @@ import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.gateway.EndreTemaRequest
 import no.nav.aap.postmottak.gateway.FerdigstillRequest
+import no.nav.aap.postmottak.gateway.OpprettJournalpostRequest
 import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.arena.BehandleKjoerelisteOgOpprettOppgaveRequest
@@ -252,6 +253,10 @@ class FakeServers : AutoCloseable {
             jackson()
         }
         routing {
+            post("/rest/journalpostapi/v1/journalpost") {
+                call.receive<OpprettJournalpostRequest>()
+                call.respondText { """{"journalpostId": "467011765"}""" }
+            }
             put("/rest/journalpostapi/v1/journalpost/{journalpostId}") {
                 val request = call.receive<JsonNode>()
                 if (request.has("sak")) {

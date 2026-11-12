@@ -12,6 +12,7 @@ import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.postmottak.api.auditlog.DefaultAuditLogConfig
 import no.nav.aap.postmottak.api.journalpostIdFraBehandlingResolver
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -144,6 +145,22 @@ fun NormalOpenAPIRoute.driftApi(
                 }
 
                 respond(PersonSøkDriftsinfoDto(journalposter.map { InnkommendeJournalpostDto.fraDomene(it) }))
+            }
+        }
+
+        route("/ettersend-for-person") {
+            authorizedPost<Unit, EttersendForPersonResponse, EttersendForPersonRequest>(
+                AuthorizationBodyPathConfig(operasjon = Operasjon.DRIFTE),
+                DefaultAuditLogConfig.fraPersonreferanseBody()
+            ) { _, req ->
+                val input = req.valider()
+                val journalpostId = JournalføringService(gatewayProvider).opprettJournalpostForPerson(
+                    ident = Ident(input.ident),
+                    pdf = input.pdf,
+                    filNavn = input.filNavn,
+                    eksternReferanseId = input.eksternReferanseId
+                )
+                respond(EttersendForPersonResponse(journalpostId.referanse))
             }
         }
 

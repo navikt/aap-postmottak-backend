@@ -6,8 +6,10 @@ import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.tilgang.auditlog.AuditLogBodyConfig
 import no.nav.aap.tilgang.auditlog.AuditLogPathParamConfig
 import no.nav.aap.tilgang.auditlog.PathBrukerIdentResolver
+import no.nav.aap.tilgang.plugin.kontrakt.BrukerIdentResolver
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -45,6 +47,13 @@ object DefaultAuditLogConfig {
             )
         )
 
+    fun fraPersonreferanseBody() =
+        AuditLogBodyConfig(
+            logger = auditLogger,
+            app = app,
+            brukerIdentResolver = BrukerIdentResolver { ident -> ident },
+        )
+
     private fun hentIdentForBehandling(
         referanse: Behandlingsreferanse,
         dataSource: DataSource,
@@ -68,4 +77,3 @@ object DefaultAuditLogConfig {
         }
 
 }
-
