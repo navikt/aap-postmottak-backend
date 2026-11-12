@@ -208,26 +208,44 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
     override fun hentJournalposterForSak(saksnummer: String): List<JournalpostId> =
         connection.queryList(
             """
-            WITH journalposter AS (
-                SELECT DISTINCT ON (JOURNALPOST_ID) JOURNALPOST_ID, SAKSNUMMER
+            WITH kandidater AS (
+                SELECT JOURNALPOST_ID
                 FROM JOURNALPOST
-                ORDER BY JOURNALPOST_ID, OPPRETTET_TID DESC, ID DESC
-            ), saksvurderinger AS (
-                SELECT DISTINCT ON (b.JOURNALPOST_ID) b.JOURNALPOST_ID, sa.SAKSNUMMER
+                WHERE SAKSNUMMER = ?
+                UNION
+                SELECT b.JOURNALPOST_ID
                 FROM SAKSVURDERING_GRUNNLAG sg
                 JOIN SAKSNUMMER_AVKLARING sa ON sa.ID = sg.SAKSNUMMER_AVKLARING_ID
                 JOIN BEHANDLING b ON b.ID = sg.BEHANDLING_ID
-                WHERE sg.AKTIV
-                ORDER BY b.JOURNALPOST_ID, sg.OPPRETTET_TID DESC, sg.ID DESC
+                WHERE sa.SAKSNUMMER = ? AND sg.AKTIV
             )
-            SELECT COALESCE(j.JOURNALPOST_ID, s.JOURNALPOST_ID) AS JOURNALPOST_ID
-            FROM journalposter j
-            FULL JOIN saksvurderinger s ON s.JOURNALPOST_ID = j.JOURNALPOST_ID
+            SELECT k.JOURNALPOST_ID
+            FROM kandidater k
+            LEFT JOIN LATERAL (
+                SELECT SAKSNUMMER
+                FROM JOURNALPOST
+                WHERE JOURNALPOST_ID = k.JOURNALPOST_ID
+                ORDER BY OPPRETTET_TID DESC, ID DESC
+                LIMIT 1
+            ) j ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT sa.SAKSNUMMER
+                FROM SAKSVURDERING_GRUNNLAG sg
+                JOIN SAKSNUMMER_AVKLARING sa ON sa.ID = sg.SAKSNUMMER_AVKLARING_ID
+                JOIN BEHANDLING b ON b.ID = sg.BEHANDLING_ID
+                WHERE b.JOURNALPOST_ID = k.JOURNALPOST_ID AND sg.AKTIV
+                ORDER BY sg.OPPRETTET_TID DESC, sg.ID DESC
+                LIMIT 1
+            ) s ON TRUE
             WHERE COALESCE(j.SAKSNUMMER, s.SAKSNUMMER) = ?
-            ORDER BY JOURNALPOST_ID
+            ORDER BY k.JOURNALPOST_ID
             """.trimIndent()
         ) {
-            setParams { setString(1, saksnummer) }
+            setParams {
+                setString(1, saksnummer)
+                setString(2, saksnummer)
+                setString(3, saksnummer)
+            }
             setRowMapper { row -> JournalpostId(row.getLong("JOURNALPOST_ID")) }
         }
 
