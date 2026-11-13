@@ -9,7 +9,6 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.tilgang.auditlog.AuditLogBodyConfig
 import no.nav.aap.tilgang.auditlog.AuditLogPathParamConfig
 import no.nav.aap.tilgang.auditlog.PathBrukerIdentResolver
-import no.nav.aap.tilgang.plugin.kontrakt.BrukerIdentResolver
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
