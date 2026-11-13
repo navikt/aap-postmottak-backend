@@ -7,6 +7,7 @@ import no.nav.aap.postmottak.klient.arena.ArenaWebservicesGatewayImpl
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
 import no.nav.aap.postmottak.klient.arena.VeilarbarenaKlient
 import no.nav.aap.postmottak.klient.behandlingsflyt.BehandlingsflytKlient
+import no.nav.aap.postmottak.klient.dokarkiv.DokarkivGatewayKlient
 import no.nav.aap.postmottak.klient.gosysoppgave.GosysOppgaveKlient
 import no.nav.aap.postmottak.klient.nom.NomKlient
 import no.nav.aap.postmottak.klient.norg.NorgKlient
@@ -41,5 +42,6 @@ fun defaultGatewayProvider(utvidelser: GatewayRegistry.() -> Unit = {}) = create
     register<UnleashService>()
     register<DoksikkerhetsnettGatewayImpl>()
     register<EREGKlient>()
+    register<DokarkivGatewayKlient>()
     utvidelser()
 }
