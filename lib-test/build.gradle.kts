@@ -5,7 +5,6 @@ plugins {
 dependencies {
     implementation(project(":flyt"))
     implementation(project(":klienter"))
-    implementation(project(":repository"))
 
     implementation(libs.tilgang.kontrakt)
     implementation(libs.behandlingsflyt.kontrakt)

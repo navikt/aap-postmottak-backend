@@ -189,7 +189,7 @@ class InnkommendeJournalpostRepositoryImplTest {
     }
 
     @Test
-    fun `Eksisterer`() {
+    fun eksisterer() {
         val journalpostId = JournalpostId(1)
         
         val brukerId = Random.nextInt().toString()

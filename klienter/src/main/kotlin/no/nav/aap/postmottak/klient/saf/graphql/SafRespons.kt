@@ -1,4 +1,4 @@
-package no.nav.aap.postmottak.saf.graphql
+package no.nav.aap.postmottak.klient.saf.graphql
 
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.SafSak

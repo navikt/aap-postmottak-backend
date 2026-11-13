@@ -389,7 +389,7 @@ class FakeServers : AutoCloseable {
             }
             post("/arena/opprettoppgave") {
                 val forespørsel = call.receive<ArenaOpprettOppgaveForespørsel>()
-                FssOppgaver.oppgaver.compute(Ident(forespørsel.fnr), { fnr, old -> (old ?: emptyList()) + forespørsel })
+                FssOppgaver.oppgaver.compute(Ident(forespørsel.fnr)) { _, old -> (old ?: emptyList()) + forespørsel }
                 call.respond(ArenaOpprettOppgaveRespons("OPG-1234", "SAK-5678"))
             }
 
