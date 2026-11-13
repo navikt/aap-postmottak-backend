@@ -206,7 +206,7 @@ fun NormalOpenAPIRoute.driftApi(
                     journalføringService.kopierJournalpost(journalpost)
                 }
 
-                respond(JournalpostId(nyJournalpostId.kopierJournalpostId.toLong()))
+                respond(nyJournalpostId)
             }
         }
 

@@ -36,7 +36,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
-import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -63,7 +62,6 @@ class OverleverTilFagsystemStegTest {
         saksnummerRepository,
         overleveringVurderingRepository,
         avklaringsbehovRepository,
-        unleashGateway,
     )
 
     val kontekst: FlytKontekst = mockk(relaxed = true)

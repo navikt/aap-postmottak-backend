@@ -1,7 +1,6 @@
 package no.nav.aap.postmottak.faktagrunnlag.person
 
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate

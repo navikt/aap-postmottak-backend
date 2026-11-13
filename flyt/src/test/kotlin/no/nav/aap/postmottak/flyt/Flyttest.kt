@@ -1141,8 +1141,7 @@ class Flyttest : WithDependencies {
 
     private fun Behandling.løsAvklaringsBehov(
         avklaringsBehovLøsning: AvklaringsbehovLøsning,
-        bruker: Bruker = Bruker("SAKSBEHANDLER"),
-        ingenEndringIGruppe: Boolean = false
+        bruker: Bruker = Bruker("SAKSBEHANDLER")
     ): Behandling {
         dataSource.transaction {
             AvklaringsbehovHendelseHåndterer(
@@ -1153,8 +1152,7 @@ class Flyttest : WithDependencies {
                 this.id, LøsAvklaringsbehovBehandlingHendelse(
                     løsning = avklaringsBehovLøsning,
                     behandlingVersjon = this.versjon,
-                    bruker = bruker,
-                    ingenEndringIGruppe = ingenEndringIGruppe
+                    bruker = bruker
                 )
             )
         }

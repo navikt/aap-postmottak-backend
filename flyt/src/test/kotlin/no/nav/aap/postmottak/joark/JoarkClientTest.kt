@@ -2,25 +2,17 @@ package no.nav.aap.postmottak.joark
 
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tilJournalpost
 import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import no.nav.aap.postmottak.gateway.BrukerIdType
-import no.nav.aap.postmottak.gateway.EndreTemaRequest
 import no.nav.aap.postmottak.gateway.JournalføringService
-import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
-import no.nav.aap.postmottak.gateway.OpprettJournalpostRequest
-import no.nav.aap.postmottak.gateway.OpprettJournalpostResponse
-import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.klient.dokarkiv.DokarkivGatewayKlient
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakeGatewayProvider
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
@@ -28,8 +20,7 @@ import no.nav.aap.postmottak.test.modell.TestPersoner
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.io.InputStream
-import java.util.UUID
+import java.util.*
 
 @Fakes
 class JoarkClientTest {
@@ -37,29 +28,12 @@ class JoarkClientTest {
     private val gatewayProvider = fakeGatewayProvider {
         register<EREGKlient>()
         register<SafGraphqlClientCredentialsClient>()
+        register<DokarkivGatewayKlient>()
     }
 
     @BeforeEach
     fun setup() {
         PrometheusProvider.prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    }
-
-    @Test
-    fun `temaendring sender kun tema i journalpostoppdateringen`() {
-        val restClient = mockk<RestClient<InputStream>>(relaxed = true)
-        val joarkClient = JournalføringService.konstruer(
-            restClient, SafGraphqlClientCredentialsClient(), EREGKlient(), unleashGateway = FakeUnleash
-        )
-        joarkClient.endreTema(JournalpostId(123L), "BAR", null)
-
-        verify(exactly = 1) {
-            restClient.put<EndreTemaRequest, Unit>(withArg {
-                assertThat(it.path).isEqualTo("/rest/journalpostapi/v1/journalpost/123")
-            }, withArg {
-                assertThat(DefaultJsonMapper.fromJson<Map<String, String>>(DefaultJsonMapper.toJson(it.body())))
-                    .isEqualTo(mapOf("tema" to "BAR"))
-            }, any())
-        }
     }
 
     @Test
@@ -111,66 +85,13 @@ class JoarkClientTest {
     }
 
     @Test
-    fun `oppretter journalpost for person`() {
-        val restClient = mockk<RestClient<InputStream>>(relaxed = true)
-        val joarkClient = JournalføringService.konstruer(
-            restClient,
-            SafGraphqlClientCredentialsClient(),
-            EREGKlient(),
-            unleashGateway = FakeUnleash
-        )
-
-        val ident = Ident("12345678910")
-        val eksternReferanseId = UUID.randomUUID()
-
-        io.mockk.every {
-            restClient.post<OpprettJournalpostRequest, OpprettJournalpostResponse>(
-                any(),
-                any(),
-                any()
-            )
-        } returns OpprettJournalpostResponse("467011765")
-
-        val journalpostId = joarkClient.opprettJournalpostForPerson(
-            ident = ident,
-            pdf = "%PDF-1.4\n".toByteArray(),
-            filNavn = "filnavn",
-            eksternReferanseId = eksternReferanseId
-        )
-
-        assertThat(journalpostId).isEqualTo(JournalpostId(467011765))
-
-        verify(exactly = 1) {
-            restClient.post<OpprettJournalpostRequest, OpprettJournalpostResponse>(
-                withArg {
-                    assertThat(it.path).isEqualTo("/rest/journalpostapi/v1/journalpost")
-                    assertThat(it.query).contains("forsoekFerdigstilling=false")
-                },
-                withArg { request ->
-                    val body = request.body() as OpprettJournalpostRequest
-                    assertThat(body.tema).isEqualTo("AAP")
-                    assertThat(body.bruker.id).isEqualTo("12345678910")
-                    assertThat(body.kanal).isEqualTo("INNSENDT_NAV_ANSATT")
-                    assertThat(body.eksternReferanseId).isEqualTo(eksternReferanseId.toString())
-                    assertThat(body.dokumenter.single().brevkode).isEqualTo("NAVe 11-13.05")
-                    assertThat(body.dokumenter.single().dokumentvarianter.single().fysiskDokument).isNotBlank()
-                },
-                any()
-            )
-        }
-    }
-
-    @Test
     fun `avsenderMottaker blir satt til samme som bruker dersom den mangler`() {
-
-        val restClient = mockk<RestClient<InputStream>>(relaxed = true)
-        val joarkClient =
-            JournalføringService.konstruer(
-                restClient,
-                SafGraphqlClientCredentialsClient(),
-                enhetsregisteretGateway = EREGKlient(),
-                unleashGateway = FakeUnleash
-            )
+        val spy = spyk(DokarkivGatewayKlient())
+        val joarkClient = JournalføringService.konstruer(
+            safGraphqlKlient = SafGraphqlClientCredentialsClient(),
+            enhetsregisteretGateway = EREGKlient(),
+            dokarkivGateway = spy
+        )
 
         val testPerson = TestPersoner.leggTil {}
         val journalpostId = TestJournalposter.leggTil {
@@ -194,25 +115,23 @@ class JoarkClientTest {
         )
 
         verify {
-            restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->
-                val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
-                assertThat(avsenderMottaker?.id).isEqualTo(testPerson.aktivIdent().identifikator)
-                assertThat(avsenderMottaker?.idType).isEqualTo(AvsenderMottakerDto.IdType.FNR)
-                assertThat(avsenderMottaker?.navn).isEqualTo(null)
-            }, any())
+            spy.førJournalpostPåFagsak(any(), any(), any(), any(), any(), any(), withArg { avsenderMottaker ->
+                assertThat(avsenderMottaker.id).isEqualTo(testPerson.aktivIdent().identifikator)
+                assertThat(avsenderMottaker.idType).isEqualTo(AvsenderMottakerDto.IdType.FNR)
+                assertThat(avsenderMottaker.navn).isEqualTo(null)
+            }, any(), any())
         }
     }
 
     @Test
     fun `avsenderMottaker for utenlandsk organisasjon får type UTL_ORG`() {
-        val restClient = mockk<RestClient<InputStream>>(relaxed = true)
-        val joarkClient =
-            JournalføringService.konstruer(
-                restClient,
-                SafGraphqlClientCredentialsClient(),
-                enhetsregisteretGateway = EREGKlient(),
-                unleashGateway = FakeUnleash
-            )
+        val spy = spyk(DokarkivGatewayKlient())
+
+        val joarkClient = JournalføringService.konstruer(
+            safGraphqlKlient = SafGraphqlClientCredentialsClient(),
+            enhetsregisteretGateway = EREGKlient(),
+            dokarkivGateway = spy
+        )
 
         val journalpostId = TestJournalposter.leggTil {
             medUtenlandskOrgnr()
@@ -235,11 +154,10 @@ class JoarkClientTest {
         )
 
         verify {
-            restClient.put<OppdaterJournalpostRequest, Any>(any(), withArg { request ->
-                val avsenderMottaker = (request.body() as OppdaterJournalpostRequest).avsenderMottaker
-                assertThat(avsenderMottaker?.id).isEqualTo("999999999")
-                assertThat(avsenderMottaker?.idType).isEqualTo(AvsenderMottakerDto.IdType.UTL_ORG)
-            }, any())
+            spy.førJournalpostPåFagsak(any(), any(), any(), any(), any(), any(), withArg { avsenderMottaker ->
+                assertThat(avsenderMottaker.id).isEqualTo("999999999")
+                assertThat(avsenderMottaker.idType).isEqualTo(AvsenderMottakerDto.IdType.UTL_ORG)
+            }, any(), any())
         }
     }
 }

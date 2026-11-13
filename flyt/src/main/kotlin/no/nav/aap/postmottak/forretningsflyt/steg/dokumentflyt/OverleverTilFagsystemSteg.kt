@@ -43,7 +43,6 @@ import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 
 class OverleverTilFagsystemSteg(
@@ -53,7 +52,6 @@ class OverleverTilFagsystemSteg(
     private val saksnummerRepository: SaksnummerRepository,
     private val overleveringVurderingRepository: OverleveringVurderingRepository,
     private val avklaringsbehovRepository: AvklaringsbehovRepository,
-    private val unleashGateway: UnleashGateway,
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -68,8 +66,7 @@ class OverleverTilFagsystemSteg(
                 repositoryProvider.provide(JournalpostRepository::class),
                 repositoryProvider.provide(SaksnummerRepository::class),
                 repositoryProvider.provide(OverleveringVurderingRepository::class),
-                repositoryProvider.provide(AvklaringsbehovRepository::class),
-                gatewayProvider.provide(UnleashGateway::class)
+                repositoryProvider.provide(AvklaringsbehovRepository::class)
             )
         }
 

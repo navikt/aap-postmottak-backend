@@ -1,92 +1,52 @@
 package no.nav.aap.postmottak.gateway
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.post
-import no.nav.aap.komponenter.httpklient.httpclient.put
-import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.postmottak.JournalføringsType
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.avklaringsbehov.løsning.ForenkletDokument
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.journalføringCounter
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Behandlingstema
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.unleash.UnleashGateway
-import org.slf4j.LoggerFactory
-import java.io.InputStream
-import java.net.URI
-import java.util.Base64
-import java.util.UUID
+import java.util.*
 
 private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
 class JournalføringService(
-    private val client: RestClient<InputStream>,
     private val safGraphqlKlient: JournalpostGateway,
+    private val dokarkivGateway: DokarkivGateway,
     private val enhetsregisteretGateway: EnhetsregisteretGateway,
     val prometheus: MeterRegistry = SimpleMeterRegistry(),
-    private val unleashGateway: UnleashGateway,
 ) {
 
-    private val url = URI.create(requiredConfigForKey("INTEGRASJON_JOARK_URL"))
-    private var log = LoggerFactory.getLogger(javaClass)
-
     companion object {
-        private val restClient: RestClient<InputStream> by lazy {
-            RestClient.withDefaultResponseHandler(
-                config = ClientConfig(
-                    scope = requiredConfigForKey("INTEGRASJON_JOARK_SCOPE"),
-                ),
-                tokenProvider = AzureM2MTokenProvider,
-                prometheus = PrometheusProvider.prometheus,
-            )
-        }
-
         fun konstruer(
-            restClient: RestClient<InputStream>,
             safGraphqlKlient: JournalpostGateway,
+            dokarkivGateway: DokarkivGateway,
             enhetsregisteretGateway: EnhetsregisteretGateway,
             prometheus: MeterRegistry = SimpleMeterRegistry(),
-            unleashGateway: UnleashGateway,
         ): JournalføringService {
             return JournalføringService(
-                restClient,
                 safGraphqlKlient,
+                dokarkivGateway,
                 enhetsregisteretGateway,
-                prometheus,
-                unleashGateway
+                prometheus
             )
         }
     }
 
     constructor(gatewayProvider: GatewayProvider) : this(
         safGraphqlKlient = gatewayProvider.provide(JournalpostGateway::class),
+        dokarkivGateway = gatewayProvider.provide(),
         enhetsregisteretGateway = gatewayProvider.provide(EnhetsregisteretGateway::class),
         prometheus = PrometheusProvider.prometheus,
-        client = restClient,
-        unleashGateway = gatewayProvider.provide<UnleashGateway>(),
     )
 
     fun endreTema(journalpostId: JournalpostId, tema: String, endretAv: Bruker?) {
-        client.put<EndreTemaRequest, Unit>(
-            url.resolve("/rest/journalpostapi/v1/journalpost/$journalpostId"),
-            PutRequest(EndreTemaRequest(tema), additionalHeaders = navUserIdHeader(endretAv))
-        )
+        dokarkivGateway.endreTema(journalpostId, tema, endretAv)
     }
 
     fun førJournalpostPåFagsak(
@@ -100,25 +60,17 @@ class JournalføringService(
         dokumenter: List<ForenkletDokument>? = null,
         endretAv: Bruker?,
     ) {
-        val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
-
-        val request = PutRequest(
-            body = OppdaterJournalpostRequest(
-                sak = JournalpostSak(
-                    fagsakId = fagsakId,
-                    fagsaksystem = fagsystem,
-                ),
-                tema = tema,
-                bruker = JournalpostBruker(
-                    id = ident.identifikator
-                ),
-                tittel = tittel,
-                avsenderMottaker = hentMottaker(avsenderMottaker, journalpostId),
-                dokumenter = dokumenter
-            ),
-            additionalHeaders = navUserIdHeader(endretAv),
+        dokarkivGateway.førJournalpostPåFagsak(
+            journalpostId = journalpostId,
+            ident = ident,
+            fagsakId = fagsakId,
+            tema = tema,
+            fagsystem = fagsystem,
+            tittel = tittel,
+            avsenderMottaker = hentMottaker(avsenderMottaker, journalpostId),
+            dokumenter = dokumenter,
+            endretAv = endretAv
         )
-        client.put<OppdaterJournalpostRequest, Unit>(path, request)
     }
 
     fun hentMottaker(avsenderMottaker: AvsenderMottakerDto?, journalpostId: JournalpostId): AvsenderMottakerDto? {
@@ -151,37 +103,20 @@ class JournalføringService(
         dokumenter: List<ForenkletDokument>? = null,
         endretAv: Bruker?,
     ) {
-        val path = url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}")
-        val request = PutRequest(
-            body = OppdaterJournalpostRequest(
-                sak = JournalpostSak(
-                    sakstype = Sakstype.GENERELL_SAK,
-                    fagsaksystem = null
-                ),
-                tema = tema,
-                bruker = JournalpostBruker(
-                    id = journalpost.person.aktivIdent().identifikator
-                ),
-                tittel = tittel,
-                avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
-                    journalpost.journalpostId
-                ),
-                dokumenter = dokumenter
+        dokarkivGateway.førJournalpostPåGenerellSak(
+            journalpost = journalpost,
+            tema = tema,
+            tittel = tittel,
+            avsenderMottaker = avsenderMottaker?.entenKunNavnEllerIdOgType() ?: hentAvsenderMottakerOmNødvendig(
+                journalpost.journalpostId
             ),
-            additionalHeaders = navUserIdHeader(endretAv),
+            dokumenter = dokumenter,
+            endretAv = endretAv
         )
-        client.put(path, request) { _, _ -> }
     }
 
-    fun kopierJournalpost(journalpost: Journalpost): KopierJournalpostResponse {
-        val eksternReferanseId = UUID.randomUUID().toString()
-        log.info("Kopierer Journalpost ${journalpost.journalpostId} med eksternReferanseId=$eksternReferanseId")
-        val path = url.resolve("/rest/journalpostapi/v1/journalpost/kopierJournalpost?kildeJournalpostId=${journalpost.journalpostId}")
-        return client.post<KopierJournalpostRequest, KopierJournalpostResponse>(path, PostRequest(KopierJournalpostRequest(eksternReferanseId = eksternReferanseId))) ?: error("Kunne ikke kopiere journalpost med id ${journalpost.journalpostId}")
-    }
-
-    enum class OpprettJournalpostType {
-        INNGAAENDE, UTGAAENDE, NOTAT
+    fun kopierJournalpost(journalpost: Journalpost): JournalpostId {
+        return dokarkivGateway.kopierJournalpost(journalpost)
     }
 
     fun opprettJournalpostForPerson(
@@ -190,37 +125,12 @@ class JournalføringService(
         filNavn: String,
         eksternReferanseId: UUID?,
     ): JournalpostId {
-        val path = url.resolve("/rest/journalpostapi/v1/journalpost?forsoekFerdigstilling=false")
-        val request = OpprettJournalpostRequest(
-            journalposttype = OpprettJournalpostType.INNGAAENDE.name,
-            tema = Tema.AAP.toString(),
-            behandlingstema = Behandlingstema.AAP.kode,
-            kanal = KanalFraKodeverk.INNSENDT_NAV_ANSATT.toString(),
-            eksternReferanseId = eksternReferanseId?.toString(),
-            tittel = "Ettersendelse for arbeidsavklaringspenger sendt inn av saksbehandler på vegne av innbygger",
-            bruker = JournalpostBruker(id = ident.identifikator),
-            avsenderMottaker = AvsenderMottakerDto(id = ident.identifikator, idType = AvsenderMottakerDto.IdType.FNR),
-            dokumenter = listOf(
-                NyttDokumentRequest(
-                    tittel = filNavn,
-                    brevkode = Brevkoder.STANDARD_ETTERSENDING.kode,
-                    dokumentvarianter = listOf(
-                        NyttDokumentvariantRequest(
-                            filtype = "PDF",
-                            variantformat = "ARKIV",
-                            fysiskDokument = Base64.getEncoder().encodeToString(pdf)
-                        )
-                    )
-                )
-            )
+        return dokarkivGateway.opprettJournalpostForPerson(
+            ident = ident,
+            pdf = pdf,
+            filNavn = filNavn,
+            eksternReferanseId = eksternReferanseId
         )
-        val response = requireNotNull(
-            client.post<OpprettJournalpostRequest, OpprettJournalpostResponse>(
-                path,
-                PostRequest(request)
-            )
-        ) { "Kunne ikke opprette journalpost for person" }
-        return JournalpostId(response.journalpostId.toLong())
     }
 
     fun ferdigstillJournalpostMaskinelt(
@@ -235,21 +145,9 @@ class JournalføringService(
         journalfoerendeEnhet: String,
         journalførtAv: Bruker?,
     ) {
-        val path = url.resolve("/rest/journalpostapi/v1/journalpost/$journalpostId/ferdigstill")
-        val request = PatchRequest(
-            body = FerdigstillRequest(journalfoerendeEnhet),
-            additionalHeaders = navUserIdHeader(journalførtAv),
-        )
-        client.patch(path, request) { _, _ -> }
+        dokarkivGateway.ferdigstillJournalpost(journalpostId, journalfoerendeEnhet, journalførtAv)
         prometheus.journalføringCounter(type = JournalføringsType.automatisk).increment()
     }
-
-    private fun navUserIdHeader(endretAv: Bruker?): List<Header> =
-        listOfNotNull(
-            endretAv?.let {
-                Header("Nav-User-Id", it.ident)
-            }
-        )
 
 
     private fun hentAvsenderMottakerOmNødvendig(journalpostId: JournalpostId): AvsenderMottakerDto? {
@@ -266,61 +164,6 @@ class JournalføringService(
         }
     }
 }
-
-data class FerdigstillRequest(
-    val journalfoerendeEnhet: String
-)
-
-data class EndreTemaRequest(val tema: String)
-
-data class KopierJournalpostRequest(
-    val eksternReferanseId: String
-)
-
-data class KopierJournalpostResponse(
-    val kopierJournalpostId: String
-)
-
-data class OppdaterJournalpostRequest(
-    val behandlingstema: String? = null,
-    val sak: JournalpostSak,
-    val tema: String,
-    val bruker: JournalpostBruker,
-    @param:JsonInclude(JsonInclude.Include.NON_NULL)
-    val tittel: String?,
-    @param:JsonInclude(JsonInclude.Include.NON_NULL)
-    val avsenderMottaker: AvsenderMottakerDto?,
-    @param:JsonInclude(JsonInclude.Include.NON_NULL)
-    val dokumenter: List<ForenkletDokument>?
-)
-
-data class OpprettJournalpostRequest(
-    val journalposttype: String,
-    val tema: String,
-    val behandlingstema: String,
-    val kanal: String,
-    val eksternReferanseId: String?,
-    val tittel: String,
-    val bruker: JournalpostBruker,
-    val avsenderMottaker: AvsenderMottakerDto,
-    val dokumenter: List<NyttDokumentRequest>,
-)
-
-data class NyttDokumentRequest(
-    val tittel: String,
-    val brevkode: String,
-    val dokumentvarianter: List<NyttDokumentvariantRequest>,
-)
-
-data class NyttDokumentvariantRequest(
-    val filtype: String,
-    val variantformat: String,
-    val fysiskDokument: String,
-)
-
-data class OpprettJournalpostResponse(
-    val journalpostId: String,
-)
 
 data class AvsenderMottakerDto(
     val id: String?,
@@ -360,9 +203,4 @@ data class JournalpostSak(
     val sakstype: Sakstype = Sakstype.FAGSAK,
     val fagsakId: String? = null,
     val fagsaksystem: Fagsystem? = Fagsystem.KELVIN
-)
-
-data class JournalpostBruker(
-    val id: String,
-    val idType: String = "FNR"
 )

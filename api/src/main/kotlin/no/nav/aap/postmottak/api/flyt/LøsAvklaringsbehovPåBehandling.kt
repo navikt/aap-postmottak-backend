@@ -13,7 +13,7 @@ import no.nav.aap.tilgang.plugin.kontrakt.Journalpostreferanse
 data class LøsAvklaringsbehovPåBehandling(
     @param:JsonProperty(value = "referanse", required = true) val referanse: Behandlingsreferanse,
     @param:JsonProperty(value = "behandlingVersjon", required = true, defaultValue = "0") val behandlingVersjon: Long,
-    @param:JsonProperty(value = "behov", required = true) val behov: `AvklaringsbehovLøsning`,
+    @param:JsonProperty(value = "behov", required = true) val behov: AvklaringsbehovLøsning,
     @param:JsonProperty(value = "ingenEndringIGruppe") val ingenEndringIGruppe: Boolean?,
 ) : Journalpostreferanse {
     override fun hentPåkrevdRolle(): List<Rolle> {

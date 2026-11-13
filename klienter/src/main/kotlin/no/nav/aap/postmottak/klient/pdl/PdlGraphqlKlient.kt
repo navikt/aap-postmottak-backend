@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.klient.pdl
 
-import PdlResponseHandler
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.gateway.Factory
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig

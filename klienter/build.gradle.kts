@@ -7,6 +7,8 @@ plugins {
 dependencies {
     implementation(project(":kontrakt"))
     implementation(project(":flyt"))
+
+    implementation(libs.verdityper)
     
     // TODO: undersøk om vi kan bruke en enklere algoritme for arbeidsdager
     implementation(libs.bekk.no.commons)

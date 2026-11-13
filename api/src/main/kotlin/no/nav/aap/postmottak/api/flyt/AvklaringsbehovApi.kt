@@ -67,7 +67,6 @@ fun NormalOpenAPIRoute.avklaringsbehovApi(
                             key = behandling.id,
                             hendelse = LøsAvklaringsbehovBehandlingHendelse(
                                 request.behov,
-                                request.ingenEndringIGruppe ?: false,
                                 request.behandlingVersjon,
                                 bruker()
                             )

@@ -18,14 +18,14 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.postmottak.gateway.EndreTemaRequest
-import no.nav.aap.postmottak.gateway.FerdigstillRequest
-import no.nav.aap.postmottak.gateway.OpprettJournalpostRequest
-import no.nav.aap.postmottak.gateway.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.arena.BehandleKjoerelisteOgOpprettOppgaveRequest
 import no.nav.aap.postmottak.klient.arena.BehandleKjoerelisteOgOpprettOppgaveResponse
 import no.nav.aap.postmottak.klient.arena.HentNyesteAktivSakRequest
+import no.nav.aap.postmottak.klient.dokarkiv.EndreTemaRequest
+import no.nav.aap.postmottak.klient.dokarkiv.FerdigstillRequest
+import no.nav.aap.postmottak.klient.dokarkiv.OppdaterJournalpostRequest
+import no.nav.aap.postmottak.klient.dokarkiv.OpprettJournalpostRequest
 import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
@@ -40,7 +40,7 @@ import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class FakeServers : AutoCloseable {
@@ -389,7 +389,7 @@ class FakeServers : AutoCloseable {
             }
             post("/arena/opprettoppgave") {
                 val forespørsel = call.receive<ArenaOpprettOppgaveForespørsel>()
-                FssOppgaver.oppgaver.compute(Ident(forespørsel.fnr), { fnr, old -> (old ?: emptyList()) + forespørsel })
+                FssOppgaver.oppgaver.compute(Ident(forespørsel.fnr)) { _, old -> (old ?: emptyList()) + forespørsel }
                 call.respond(ArenaOpprettOppgaveRespons("OPG-1234", "SAK-5678"))
             }
 
