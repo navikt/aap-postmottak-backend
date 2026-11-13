@@ -755,7 +755,7 @@ class Flyttest : WithDependencies {
 
             if (avklaringsbehovene.erSattPåVent()) {
                 val avklaringsbehov = avklaringsbehovene.hentVentepunkter().first()
-                Venteinformasjon(avklaringsbehov.frist(), avklaringsbehov.begrunnelse(), avklaringsbehov.grunn())
+                Venteinformasjon(avklaringsbehov.frist(), avklaringsbehov.begrunnelse())
             } else {
                 null
             }
@@ -1153,8 +1153,7 @@ class Flyttest : WithDependencies {
                 this.id, LøsAvklaringsbehovBehandlingHendelse(
                     løsning = avklaringsBehovLøsning,
                     behandlingVersjon = this.versjon,
-                    bruker = bruker,
-                    ingenEndringIGruppe = ingenEndringIGruppe
+                    bruker = bruker
                 )
             )
         }

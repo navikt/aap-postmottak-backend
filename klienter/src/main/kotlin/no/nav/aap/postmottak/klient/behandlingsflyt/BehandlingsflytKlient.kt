@@ -82,16 +82,16 @@ class BehandlingsflytKlient : BehandlingsflytGateway {
         val url = url.resolve("/api/hendelse/send")
         val request = PostRequest(
             Innsending(
-                Saksnummer(saksnummer),
-                InnsendingReferanse(
-                    InnsendingReferanse.Type.JOURNALPOST,
-                    journalpostId.referanse.toString()
+                saksnummer = Saksnummer(saksnummer),
+                referanse = InnsendingReferanse(
+                    type = InnsendingReferanse.Type.JOURNALPOST,
+                    verdi = journalpostId.referanse.toString()
                 ),
-                innsendingstype,
-                kanal.tilBehandlingsflytKanal(),
-                mottattDato,
-                melding,
-                digitalisertIPostmottak
+                type = innsendingstype,
+                kanal = kanal.tilBehandlingsflytKanal(),
+                mottattTidspunkt = mottattDato,
+                melding = melding,
+                digitalisertAvPostmottak = digitalisertIPostmottak
             ),
             additionalHeaders = listOf(
                 Header("Accept", "application/json")

@@ -131,7 +131,29 @@ data class EttersendForPersonInput(
     val pdf: ByteArray,
     val filNavn: String,
     val eksternReferanseId: UUID?,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as EttersendForPersonInput
+
+        if (ident != other.ident) return false
+        if (!pdf.contentEquals(other.pdf)) return false
+        if (filNavn != other.filNavn) return false
+        if (eksternReferanseId != other.eksternReferanseId) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = ident.hashCode()
+        result = 31 * result + pdf.contentHashCode()
+        result = 31 * result + filNavn.hashCode()
+        result = 31 * result + eksternReferanseId.hashCode()
+        return result
+    }
+}
 
 fun EttersendForPersonRequest.valider(): EttersendForPersonInput {
     val normalisertIdent = ident.trim()
@@ -140,7 +162,7 @@ fun EttersendForPersonRequest.valider(): EttersendForPersonInput {
     }
 
     val eksternRef = if(eksternReferanseId != null) {
-        requireUuid(eksternReferanseId.trim(), "eksternReferanseId må være en UUID")
+        requireUuid(eksternReferanseId.trim())  { "eksternReferanseId må være en UUID" }
     } else {
         null
     }
@@ -174,8 +196,8 @@ private fun ByteArray.hasPdfHeader(): Boolean {
     return size >= header.size && header.indices.all { this[it] == header[it] }
 }
 
-private fun requireUuid(value: String, message: String): UUID = try {
+private fun requireUuid(value: String, message: () -> String): UUID = try {
     UUID.fromString(value)
 } catch (_: IllegalArgumentException) {
-    throw UgyldigForespørselException(message)
+    throw UgyldigForespørselException(message())
 }

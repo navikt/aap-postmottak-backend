@@ -1,12 +1,10 @@
 package no.nav.aap.postmottak.api.drift
 
 import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
-import no.nav.aap.postmottak.gateway.AvsenderMottakerDto
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
-import java.util.Base64
-import java.util.UUID
+import java.util.*
 
 class EttersendForPersonRequestTest {
 

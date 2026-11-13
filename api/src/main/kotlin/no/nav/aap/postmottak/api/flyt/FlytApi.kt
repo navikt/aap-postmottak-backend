@@ -234,8 +234,7 @@ fun NormalOpenAPIRoute.flytApi(
                         val avklaringsbehov = ventepunkter.first()
                         Venteinformasjon(
                             avklaringsbehov.frist(),
-                            avklaringsbehov.begrunnelse(),
-                            avklaringsbehov.grunn()
+                            avklaringsbehov.begrunnelse()
                         )
                     } else {
                         null

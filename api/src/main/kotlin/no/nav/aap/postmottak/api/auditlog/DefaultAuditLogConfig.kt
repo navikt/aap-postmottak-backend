@@ -51,7 +51,7 @@ object DefaultAuditLogConfig {
         AuditLogBodyConfig(
             logger = auditLogger,
             app = app,
-            brukerIdentResolver = BrukerIdentResolver { ident -> ident },
+            brukerIdentResolver = { ident -> ident },
         )
 
     private fun hentIdentForBehandling(

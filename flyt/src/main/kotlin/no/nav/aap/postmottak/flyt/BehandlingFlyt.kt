@@ -201,11 +201,6 @@ class BehandlingFlyt private constructor(
         return flyt.isEmpty()
     }
 
-    fun gjenståendeStegIAktivGruppe(): List<StegType> {
-        val aktivtStegType = requireNotNull(aktivtSteg).steg.type()
-        return stegene().filter { it.gruppe == aktivtStegType.gruppe && !erStegFørEllerLik(it, aktivtStegType) }
-    }
-
     internal fun aktivtStegType(): StegType {
         return requireNotNull(aktivtSteg).steg.type()
     }

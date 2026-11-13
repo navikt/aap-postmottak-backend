@@ -26,7 +26,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Behandlingstema
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
@@ -40,7 +39,6 @@ class JournalføringService(
     private val safGraphqlKlient: JournalpostGateway,
     private val enhetsregisteretGateway: EnhetsregisteretGateway,
     val prometheus: MeterRegistry = SimpleMeterRegistry(),
-    private val unleashGateway: UnleashGateway,
 ) {
 
     private val url = URI.create(requiredConfigForKey("INTEGRASJON_JOARK_URL"))
@@ -62,14 +60,12 @@ class JournalføringService(
             safGraphqlKlient: JournalpostGateway,
             enhetsregisteretGateway: EnhetsregisteretGateway,
             prometheus: MeterRegistry = SimpleMeterRegistry(),
-            unleashGateway: UnleashGateway,
         ): JournalføringService {
             return JournalføringService(
                 restClient,
                 safGraphqlKlient,
                 enhetsregisteretGateway,
-                prometheus,
-                unleashGateway
+                prometheus
             )
         }
     }
@@ -79,7 +75,6 @@ class JournalføringService(
         enhetsregisteretGateway = gatewayProvider.provide(EnhetsregisteretGateway::class),
         prometheus = PrometheusProvider.prometheus,
         client = restClient,
-        unleashGateway = gatewayProvider.provide<UnleashGateway>(),
     )
 
     fun endreTema(journalpostId: JournalpostId, tema: String, endretAv: Bruker?) {

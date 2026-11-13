@@ -6,8 +6,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 
-class RedigitaliseringKopierJobbUtfører(
-) : JobbUtfører {
+class RedigitaliseringKopierJobbUtfører : JobbUtfører {
     companion object : ProvidersJobbSpesifikasjon {
         override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): JobbUtfører {
             return RedigitaliseringKopierJobbUtfører()

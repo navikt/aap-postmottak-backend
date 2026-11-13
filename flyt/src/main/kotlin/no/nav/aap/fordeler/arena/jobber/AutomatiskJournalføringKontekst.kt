@@ -10,7 +10,7 @@ data class AutomatiskJournalføringKontekst(
     override val innkommendeJournalpostId: Long,
     val ident: Ident,
     val saksnummer: String,
-) : ArenaBaseKontekst(journalpostId, innkommendeJournalpostId) {}
+) : ArenaBaseKontekst(journalpostId, innkommendeJournalpostId)
 
 
 fun JobbInput.getAutomatiskJournalføringKontekst() = DefaultJsonMapper.fromJson(this.payload(), AutomatiskJournalføringKontekst::class.java)

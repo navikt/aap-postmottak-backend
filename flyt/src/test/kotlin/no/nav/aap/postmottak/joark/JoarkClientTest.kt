@@ -20,7 +20,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.ereg.EREGKlient
 import no.nav.aap.postmottak.klient.saf.graphql.SafGraphqlClientCredentialsClient
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.fakeGatewayProvider
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
@@ -29,7 +28,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.InputStream
-import java.util.UUID
+import java.util.*
 
 @Fakes
 class JoarkClientTest {
@@ -48,7 +47,7 @@ class JoarkClientTest {
     fun `temaendring sender kun tema i journalpostoppdateringen`() {
         val restClient = mockk<RestClient<InputStream>>(relaxed = true)
         val joarkClient = JournalføringService.konstruer(
-            restClient, SafGraphqlClientCredentialsClient(), EREGKlient(), unleashGateway = FakeUnleash
+            restClient, SafGraphqlClientCredentialsClient(), EREGKlient(),
         )
         joarkClient.endreTema(JournalpostId(123L), "BAR", null)
 
@@ -117,7 +116,6 @@ class JoarkClientTest {
             restClient,
             SafGraphqlClientCredentialsClient(),
             EREGKlient(),
-            unleashGateway = FakeUnleash
         )
 
         val ident = Ident("12345678910")
@@ -169,7 +167,6 @@ class JoarkClientTest {
                 restClient,
                 SafGraphqlClientCredentialsClient(),
                 enhetsregisteretGateway = EREGKlient(),
-                unleashGateway = FakeUnleash
             )
 
         val testPerson = TestPersoner.leggTil {}
@@ -211,7 +208,6 @@ class JoarkClientTest {
                 restClient,
                 SafGraphqlClientCredentialsClient(),
                 enhetsregisteretGateway = EREGKlient(),
-                unleashGateway = FakeUnleash
             )
 
         val journalpostId = TestJournalposter.leggTil {
