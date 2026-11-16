@@ -128,10 +128,12 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         return utførHentQuery(query) { setLong(1, behandlingId.toLong()) }
     }
 
-    override fun hent(journalpostId: JournalpostId): Behandling {
+    override fun hentSisteBehandling(journalpostId: JournalpostId): Behandling {
         val query = """
             $behandlingerQuery
             WHERE b.journalpost_id = ?
+            ORDER BY b.id DESC
+            LIMIT 1
             """.trimIndent()
 
         return utførHentQuery(query) { setLong(1, journalpostId.referanse) }

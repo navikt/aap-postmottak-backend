@@ -14,7 +14,7 @@ interface BehandlingRepository : Repository {
 
     fun hent(referanse: Behandlingsreferanse): Behandling
 
-    fun hent(journalpostId: JournalpostId): Behandling
+    fun hentSisteBehandling(journalpostId: JournalpostId): Behandling
 
     fun hentAlleBehandlingerForJournalpost(journalpostId: JournalpostId): List<Behandling>
 
