@@ -30,7 +30,7 @@ fun NormalOpenAPIRoute.vurderingerApi(dataSource: DataSource, repositoryRegistry
         ) { journalpostId ->
             val vurderinger = dataSource.transaction(readOnly = true) { connection ->
                 val repositoryProvider = repositoryRegistry.provider(connection)
-                val behandling = repositoryProvider.provide<BehandlingRepository>().hent(journalpostId)
+                val behandling = repositoryProvider.provide<BehandlingRepository>().hentSisteBehandling(journalpostId)
 
                 VurderingerService(
                     repositoryProvider.provide<AvklarFordelingRepository>(),
