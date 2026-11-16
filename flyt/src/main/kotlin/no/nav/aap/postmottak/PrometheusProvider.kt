@@ -93,9 +93,9 @@ fun MeterRegistry.tellOppbruktRettighetResultat(
 ): Counter {
     val resultatStreng = oppbruktRettighetResultat::class.simpleName ?: "Ukjent"
     val system = if (regelresultat.skalTilKelvin()) {
-        no.nav.aap.postmottak.Fagsystem.kelvin
+        Fagsystem.kelvin
     } else {
-        no.nav.aap.postmottak.Fagsystem.arena
+        Fagsystem.arena
     }
     return this.counter(
         "postmottak_kant_i_kant_oppbrukt_rettighet",
