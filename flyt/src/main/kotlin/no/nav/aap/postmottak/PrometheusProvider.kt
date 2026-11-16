@@ -7,7 +7,6 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.ArenaService
-import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 
