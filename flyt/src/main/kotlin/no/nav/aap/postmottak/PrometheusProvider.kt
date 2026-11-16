@@ -7,6 +7,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.Regelresultat
 import no.nav.aap.fordeler.arena.ArenaService
+import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 
@@ -92,11 +93,16 @@ fun MeterRegistry.tellOppbruktRettighetResultat(
     regelresultat: Regelresultat
 ): Counter {
     val resultatStreng = oppbruktRettighetResultat::class.simpleName ?: "Ukjent"
+    val system = if (regelresultat.skalTilKelvin()) {
+        no.nav.aap.postmottak.Fagsystem.kelvin
+    } else {
+        no.nav.aap.postmottak.Fagsystem.arena
+    }
     return this.counter(
         "postmottak_kant_i_kant_oppbrukt_rettighet",
         listOf(
             Tag.of("resultat", resultatStreng),
-            Tag.of("fordelt_til", regelresultat.systemNavn.toString())
+            Tag.of("fordelt_til", system.toString())
         )
     )
 }
