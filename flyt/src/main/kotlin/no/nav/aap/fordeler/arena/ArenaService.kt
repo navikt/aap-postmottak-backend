@@ -135,6 +135,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         )
     }
 
+    // Til-dato er ofte noen få dager før maksdato, men skal være innenfor en viss toleranse for å regnes som "like"
     private fun erDatoerInnenforToleranse(tilDato: LocalDate?, maksdato: LocalDate?): Boolean =
         if (tilDato == null || maksdato == null) {
             false
