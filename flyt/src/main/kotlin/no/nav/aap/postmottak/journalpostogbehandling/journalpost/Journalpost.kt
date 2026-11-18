@@ -35,6 +35,12 @@ data class Journalpost(
         }
     }
 
+    fun erSøknadOmAapIUtlandet(): Boolean {
+        return dokumenter.any {
+            it.brevkode == Brevkoder.SØKNAD_OM_AAP_I_UTLANDET.kode
+        }
+    }
+
     // TODO: Bør ikke denne sjekke hoveddokumentet - ikke bare returere første treff?
     fun finnOriginal(): Dokument? = dokumenter.find { dokument ->
         dokument.varianter.any { variant -> variant.variantformat == Variantformat.ORIGINAL }

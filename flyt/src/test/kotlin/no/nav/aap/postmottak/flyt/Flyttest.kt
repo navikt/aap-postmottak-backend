@@ -42,6 +42,7 @@ import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalpostSak
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
@@ -472,6 +473,38 @@ class Flyttest : WithDependencies {
         }
     }
 
+
+    @Test
+    fun `Full helautomatisk flyt for digital søknad om AAP i utlandet på person med kelvin-sak`() {
+        helautomatiskFlytForSøknadOmAapIUtlandet(KanalFraKodeverk.NAV_NO)
+    }
+
+    @Test
+    fun `Full helautomatisk flyt for søknad om AAP i utlandet på papir på person med kelvin-sak`() {
+        helautomatiskFlytForSøknadOmAapIUtlandet(KanalFraKodeverk.SKAN_NETS)
+    }
+
+    private fun helautomatiskFlytForSøknadOmAapIUtlandet(kanal: KanalFraKodeverk) {
+        val testPerson = TestPersoner.leggTil {
+            kelvinSak = TestKelvinSak(resultat = ResultatKode.INNVILGET, harRettNåEllerIFramtiden = true)
+        }
+        val journalpostId = TestJournalposter.leggTil {
+            person = testPerson
+            brevkode = Brevkoder.SØKNAD_OM_AAP_I_UTLANDET
+            this.kanal = kanal
+        }.journalpostId()
+
+        val behandlingId = opprettJournalføringsBehandling(journalpostId)
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        val behandlinger = prøv {
+            alleBehandlingerForJournalpost(journalpostId)
+                .also { b -> require(b.size > 1 && b.all { it.status() == Status.AVSLUTTET }) }
+        }!!
+        assertThat(behandlinger.map { it.typeBehandling })
+            .contains(TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
+        assertThat(behandlinger.flatMap { hentAvklaringsbehov(it) }).isEmpty()
+    }
 
     @Test
     fun `kjører en manuell søknad igjennom hele flyten`() {

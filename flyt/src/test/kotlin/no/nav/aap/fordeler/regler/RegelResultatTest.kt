@@ -1,9 +1,13 @@
 package no.nav.aap.fordeler.regler
 
 import no.nav.aap.fordeler.Regelresultat
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.util.UUID
 
 class RegelResultatTest {
 
@@ -38,6 +42,29 @@ class RegelResultatTest {
                 "ArenaSakRegel" to false,
                 "ManueltOverstyrtTilArenaRegel" to false,
                 "ErIkkeReisestønadRegel" to true,
+                "ErIkkeAnkeRegel" to true,
+                "GeografiskTilknytningRegel" to false,
+                "MaksAntallPersonerIKelvinRegel" to false,
+            ),
+            forJournalpost = 123L
+        )
+
+        assertThat(regelResultat.skalTilKelvin()).isTrue()
+    }
+
+    @Test
+    fun `Søknad om AAP i utlandet skal til Kelvin når personen har en Kelvin-sak`() {
+        val brevkode = Brevkoder.fraKode("NAV 11-03.07")
+        assertThat(brevkode).isEqualTo(Brevkoder.SØKNAD_OM_AAP_I_UTLANDET)
+        val regelInput = ErIkkeReisestønadRegelInputGenerator()
+            .generer(RegelInput(1, Person(1, UUID.randomUUID(), emptyList()), brevkode.kode, LocalDate.of(2025, 1, 1)))
+
+        val regelResultat = Regelresultat(
+            mapOf(
+                "KelvinSakRegel" to KelvinSakRegel().vurder(KelvinSakRegelInput(listOf("saksnummer"))),
+                "ArenaSakRegel" to false,
+                "ManueltOverstyrtTilArenaRegel" to false,
+                "ErIkkeReisestønadRegel" to ErIkkeReisestønadRegel().vurder(regelInput),
                 "ErIkkeAnkeRegel" to true,
                 "GeografiskTilknytningRegel" to false,
                 "MaksAntallPersonerIKelvinRegel" to false,

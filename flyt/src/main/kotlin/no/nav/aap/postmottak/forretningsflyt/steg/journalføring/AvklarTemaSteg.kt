@@ -100,7 +100,7 @@ class AvklarTemaSteg(
                 log.info("Journalposten med ID ${journalpost.journalpostId} har blitt endret utenfra. Tema er ikke AAP.")
                 avklarTemaMaskinelt(kontekst.behandlingId, TemaVurdering(false, Tema.UKJENT))
                 Fullført
-            } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort() || erAutomatiskKlage(journalpost)) {
+            } else if (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort() || erAutomatiskKlage(journalpost) || skalSøknadOmAapIUtlandetAvklaresMaskinelt(journalpost)) {
                 avklarTemaMaskinelt(kontekst.behandlingId, journalpost)
                 Fullført
             } else {
@@ -123,11 +123,16 @@ class AvklarTemaSteg(
     }
 
     private fun kanAvklareMaskinelt(journalpost: Journalpost): Boolean {
-        return (journalpost.tema != "AAP") || (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort() || erAutomatiskKlage(journalpost))
+        return (journalpost.tema != "AAP") || (journalpost.erDigitalLegeerklæring() || journalpost.erDigitalSøknad() || journalpost.erDigitaltMeldekort() || erAutomatiskKlage(journalpost) || skalSøknadOmAapIUtlandetAvklaresMaskinelt(journalpost))
     }
 
     private fun erAutomatiskKlage(journalpost: Journalpost): Boolean {
         return unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing) && journalpost.erKlage()
+    }
+
+    private fun skalSøknadOmAapIUtlandetAvklaresMaskinelt(journalpost: Journalpost): Boolean {
+        return unleashGateway.isEnabled(PostmottakFeature.AutomatiskJournalforingSoknadUtland) &&
+                journalpost.erSøknadOmAapIUtlandet()
     }
 
     private fun venterPåBehandlingIGosys(journalpost: Journalpost, temavurdering: TemaVurdering): Boolean {
@@ -156,8 +161,11 @@ class AvklarTemaSteg(
         } else if (erAutomatiskKlage(journalpost)) {
             log.info("Avklarer klage maskinelt, skal til AAP. JournalpostId ${journalpost.journalpostId}.")
             avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
+        } else if (skalSøknadOmAapIUtlandetAvklaresMaskinelt(journalpost)) {
+            log.info("Avklarer søknad om AAP under opphold i utlandet maskinelt, skal til AAP. JournalpostId ${journalpost.journalpostId}.")
+            avklarTemaMaskinelt(behandlingId, TemaVurdering(skalTilAap = true, Tema.AAP))
         } else {
-            error("Journalpost er ikke en digital søknad, legeerklæring, meldekort eller klage. JournalpostId ${journalpost.journalpostId}.")
+            error("Journalpost er ikke en digital søknad, legeerklæring, meldekort, klage eller søknad om AAP i utlandet. JournalpostId ${journalpost.journalpostId}.")
         }
     }
 

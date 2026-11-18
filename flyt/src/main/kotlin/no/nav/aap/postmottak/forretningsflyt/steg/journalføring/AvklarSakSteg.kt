@@ -1,8 +1,10 @@
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
 
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.ResultatKode
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.tillaterAutomatiskBehandlingAvLegeerklæring
@@ -98,7 +100,9 @@ class AvklarSakSteg(
         val eksisterendeKelvinSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId)
         val automatiskKlageJournalføring = unleashGateway.isEnabled(PostmottakFeature.AutomatiskKlageJournalforing)
 
-        return if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && tillaterAutomatiskLegeerklæring) || journalpost.erDigitaltMeldekort()) {
+        return if (unleashGateway.isEnabled(PostmottakFeature.AutomatiskJournalforingSoknadUtland) && journalpost.erSøknadOmAapIUtlandet()) {
+            avklarSakForSøknadOmAapIUtlandet(kontekst.behandlingId, journalpost, eksisterendeKelvinSaker, saksnummerVurdering)
+        } else if (journalpost.erDigitalSøknad() || (journalpost.erDigitalLegeerklæring() && tillaterAutomatiskLegeerklæring) || journalpost.erDigitaltMeldekort()) {
             avklarFagSakMaskinelt(kontekst.behandlingId, journalpost)
             Fullført
         } else if (automatiskKlageJournalføring && journalpost.erKlage() && eksisterendeKelvinSaker.size == 1) {
@@ -125,6 +129,27 @@ class AvklarSakSteg(
             journalpost.mottattDato
         ).saksnummer
         saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer, false))
+    }
+
+    private fun avklarSakForSøknadOmAapIUtlandet(
+        behandlingId: BehandlingId,
+        journalpost: Journalpost,
+        kelvinSaker: List<Saksinfo>,
+        eksisterendeVurdering: Saksvurdering?
+    ): StegResultat {
+        if (eksisterendeVurdering != null) return Fullført
+
+        val sakerSomIkkeErTrukket = kelvinSaker.filter { it.resultat != ResultatKode.TRUKKET }
+        if (sakerSomIkkeErTrukket.size > 1) {
+            error(
+                "Fant ${sakerSomIkkeErTrukket.size} Kelvin-saker som ikke er trukket for søknad om AAP i utlandet. " +
+                        "JournalpostId ${journalpost.journalpostId}, behandlingId $behandlingId."
+            )
+        }
+        val sak = sakerSomIkkeErTrukket.singleOrNull() ?: return FantAvklaringsbehov(Definisjon.AVKLAR_SAK)
+
+        saksnummerRepository.lagreSakVurdering(behandlingId, Saksvurdering(saksnummer = sak.saksnummer, opprettetNy = false))
+        return Fullført
     }
 
     private fun avklarGenerellSakMaskinelt(behandlingId: BehandlingId) {

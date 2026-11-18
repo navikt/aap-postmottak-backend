@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.gateway
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.AnnetRelevantDokument
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadUtenlandsoppholdV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.LegeerklæringV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.MeldekortV0
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Melding
@@ -79,6 +80,11 @@ object DokumentTilMeldingParser {
             )
 
             InnsendingType.KLAGE -> DefaultJsonMapper.fromJson(dokument!!, KlageV0::class.java)
+            InnsendingType.SØKNAD_UTENLANDSOPPHOLD -> DefaultJsonMapper.fromJson(
+                dokument!!,
+                SøknadUtenlandsoppholdV0::class.java
+            )
+
             else -> null
         }
     }

@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.SøknadUtenlandsoppholdV0
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -133,6 +134,22 @@ class DigitaliserDokumentSteg(
             digitaliseringsvurderingRepository.lagre(
                 kontekst.behandlingId, Digitaliseringsvurdering(
                     kategori = InnsendingType.KLAGE,
+                    strukturertDokument = melding.serialiser(),
+                    søknadsdato = null,
+                    digitalisertManueltGjennomPostmottak = false
+                )
+            )
+            return Fullført
+        }
+
+        if (unleashGateway.isEnabled(PostmottakFeature.AutomatiskJournalforingSoknadUtland)
+            && journalpost.erSøknadOmAapIUtlandet()
+        ) {
+            log.info("Digitaliserer søknad om AAP i utlandet automatisk for behandling ${kontekst.behandlingId}.")
+            val melding = SøknadUtenlandsoppholdV0(mottattDato = journalpost.mottattDato)
+            digitaliseringsvurderingRepository.lagre(
+                kontekst.behandlingId, Digitaliseringsvurdering(
+                    kategori = InnsendingType.SØKNAD_UTENLANDSOPPHOLD,
                     strukturertDokument = melding.serialiser(),
                     søknadsdato = null,
                     digitalisertManueltGjennomPostmottak = false

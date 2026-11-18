@@ -37,6 +37,31 @@ class JournalpostTest {
     }
 
     @Test
+    fun `søknad om AAP i utlandet er ikke vanlig søknad, og ettersending er ikke søknad om AAP i utlandet`() {
+        val utland = genererJournalpost(dokumenter = listOf(genererDokument(brevkode = "NAV 11-03.07")))
+        val ettersending = genererJournalpost(dokumenter = listOf(genererDokument(brevkode = "NAVe 11-03.07")))
+
+        assertThat(utland.erSøknadOmAapIUtlandet()).isTrue()
+        assertThat(utland.erSøknad()).isFalse()
+        assertThat(ettersending.erSøknadOmAapIUtlandet()).isFalse()
+    }
+
+    @Test
+    fun `søknad om AAP i utlandet på papir er også søknad om AAP i utlandet`() {
+        val papir = genererJournalpost(
+            dokumenter = listOf(
+                Dokument(
+                    dokumentInfoId = DokumentInfoId("1"),
+                    brevkode = "NAV 11-03.07",
+                    varianter = listOf(Variant(filtype = Filtype.PDF, variantformat = Variantformat.ORIGINAL))
+                )
+            )
+        )
+
+        assertThat(papir.erSøknadOmAapIUtlandet()).isTrue()
+    }
+
+    @Test
     fun `forventer å få dokument med varianttype original når journalpost har dokument med varianttype original`() {
         val dokument = genererDokument(variantformat = Variantformat.ORIGINAL)
         val journalpost = genererJournalpost(dokumenter = listOf(dokument))
