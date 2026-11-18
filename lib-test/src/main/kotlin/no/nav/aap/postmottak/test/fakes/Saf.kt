@@ -13,6 +13,7 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
 
 fun Application.safFake(
@@ -66,7 +67,16 @@ fun Application.safFake(
         post("/graphql") {
             val body = call.receive<String>()
 
-            if (body.contains("saker")) {
+            if (body.contains("tilknyttedeJournalposter")) {
+                val request = DefaultJsonMapper.objectMapper().readTree(body)
+                val dokumentInfoId = DokumentInfoId(request["variables"]["dokumentInfoId"].asText())
+                check(request["query"].asText().contains("tilknytning: GJENBRUK"))
+                call.respond(
+                    mapOf("data" to mapOf(
+                        "tilknyttedeJournalposter" to TestJournalposter.hentTilknyttedeJournalposter(dokumentInfoId)
+                    ))
+                )
+            } else if (body.contains("saker")) {
                 call.respondText(sakerRespons)
             } else {
                 val journalpostId = body.substringAfter("\"journalpostId\" : \"").substringBefore("\"").trim()
