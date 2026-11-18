@@ -101,7 +101,7 @@ class AvklarFordelingSteg(
             val totalVurdering = regelresultat.skalTilKelvin() || oppbruktRettighetResultat.skalTilKelvin()
 
             val logValues: Map<String, String> = mapOf(
-                "gammeltRegelsettResultat" to (regelresultat.systemNavn ?: "Ukjent"),
+                "gammeltRegelsettSkalTilKelvin" to regelresultat.skalTilKelvin().toString(),
                 "totalRegelvurderingHvisAktivertToggle" to totalVurdering.toString(),
                 "oppbruktRettighetResultat" to oppbruktRettighetResultat.toString(),
                 "featureToggleTilstand" to unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1).toString(),
@@ -113,7 +113,7 @@ class AvklarFordelingSteg(
                 .addArgument(logValues)
                 .apply { logValues.forEach { (k, v) -> addKeyValue(k, v) } }
                 .log()
-            
+
             prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat, regelresultat).increment()
         }
 
