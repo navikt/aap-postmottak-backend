@@ -71,15 +71,23 @@ class BehandlingRepositoryImplTest {
     }
 
     @Test
-    fun `hent behandling med journalpostId returnerer behandling`() {
+    fun `hent siste behandling returnerer nyeste behandling for angitt journalpost`() {
         inContext {
-            val behandlingsreferanse = JournalpostId(11111)
-            val behandlingId =
-                behandlingRepository.opprettBehandling(behandlingsreferanse, TypeBehandling.Journalføring)
+            val journalpostId = JournalpostId(1)
+            behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Fordeling)
+            behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
 
-            val hentetBehandling = behandlingRepository.hent(behandlingId)
+            val sisteBehandlingId =
+                behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.DokumentHåndtering)
 
-            assertThat(hentetBehandling).isNotNull()
+            // Annen journalpost med behandling som ikke skal hentes
+            behandlingRepository.opprettBehandling(JournalpostId(2), TypeBehandling.Journalføring)
+
+            val hentetBehandling = behandlingRepository.hentSisteBehandling(journalpostId)
+
+            assertThat(hentetBehandling.id).isEqualTo(sisteBehandlingId)
+            assertThat(hentetBehandling.journalpostId).isEqualTo(journalpostId)
+            assertThat(hentetBehandling.typeBehandling).isEqualTo(TypeBehandling.DokumentHåndtering)
         }
     }
 

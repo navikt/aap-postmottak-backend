@@ -97,7 +97,23 @@ class AvklarFordelingSteg(
 
         val oppbruktRettighetResultat = erRettighetOppbruktIArena(safJournalpost, kontekst)
         if (erSøknad(safJournalpost)) {
-            log.info("oppbruktRettighetResultat=${oppbruktRettighetResultat} journalpostId=${innkommendeJournalpost.journalpostId}")
+
+            val totalVurdering = regelresultat.skalTilKelvin() || oppbruktRettighetResultat.skalTilKelvin()
+
+            val logValues: Map<String, String> = mapOf(
+                "gammeltRegelsettSkalTilKelvin" to regelresultat.skalTilKelvin().toString(),
+                "totalRegelvurderingHvisAktivertToggle" to totalVurdering.toString(),
+                "oppbruktRettighetResultat" to oppbruktRettighetResultat.toString(),
+                "featureToggleTilstand" to unleashGateway.isEnabled(PostmottakFeature.KantTilKantV1).toString(),
+                "journalpostId" to innkommendeJournalpost.journalpostId.toString(),
+            )
+
+            log.atInfo()
+                .setMessage("Evaluering av fordeling Kelvin/arena: {}")
+                .addArgument(logValues)
+                .apply { logValues.forEach { (k, v) -> addKeyValue(k, v) } }
+                .log()
+
             prometheus.tellOppbruktRettighetResultat(oppbruktRettighetResultat, regelresultat).increment()
         }
 

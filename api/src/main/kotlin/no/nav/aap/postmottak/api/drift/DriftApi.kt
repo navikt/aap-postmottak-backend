@@ -4,7 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.gateway.GatewayProvider
@@ -105,6 +105,7 @@ fun NormalOpenAPIRoute.driftApi(
 ) {
     route("/api/drift") {
         joarkAvstemmingApi(dataSource, repositoryRegistry)
+        vurderingerApi(dataSource, repositoryRegistry)
         route("/sak/{saksnummer}/journalposter") {
             authorizedGet<SaksnummerPathParam, SakJournalposterDto>(
                 RollerConfig(listOf(DriftLes, Drift)),

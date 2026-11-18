@@ -92,11 +92,16 @@ fun MeterRegistry.tellOppbruktRettighetResultat(
     regelresultat: Regelresultat
 ): Counter {
     val resultatStreng = oppbruktRettighetResultat::class.simpleName ?: "Ukjent"
+    val system = if (regelresultat.skalTilKelvin()) {
+        Fagsystem.kelvin
+    } else {
+        Fagsystem.arena
+    }
     return this.counter(
         "postmottak_kant_i_kant_oppbrukt_rettighet",
         listOf(
             Tag.of("resultat", resultatStreng),
-            Tag.of("fordelt_til", regelresultat.systemNavn.toString())
+            Tag.of("fordelt_til", system.toString())
         )
     )
 }
