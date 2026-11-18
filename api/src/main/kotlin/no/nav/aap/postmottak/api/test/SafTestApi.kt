@@ -6,14 +6,13 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.SafTilknyttetJournalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 
 fun NormalOpenAPIRoute.safTestApi(gatewayProvider: GatewayProvider) {
-    if (Miljø.er() != MiljøKode.DEV) return
+    if (Miljø.erProd()) return
 
     route("/test/saf/tilknyttede-journalposter/{dokumentInfoId}") {
         @Suppress("UnauthorizedGet") // SAF kontrollerer tilgangen med OBO-tokenet.
