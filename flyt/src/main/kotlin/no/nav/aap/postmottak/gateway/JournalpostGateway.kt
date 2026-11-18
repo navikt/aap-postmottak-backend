@@ -2,23 +2,40 @@
 
 package no.nav.aap.postmottak.gateway
 
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
 import no.nav.aap.komponenter.gateway.Gateway
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDateTime
 
 interface JournalpostGateway : Gateway {
     fun hentJournalpost(journalpostId: JournalpostId): SafJournalpost
     fun hentSaker(fnr: String): List<SafSak>
+    fun hentTilknyttedeJournalposter(dokumentInfoId: DokumentInfoId): List<SafTilknyttetJournalpost>
 }
 
 
 interface JournalpostOboGateway : Gateway {
     fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken): SafJournalpost
     fun hentSaker(fnr: String, currentToken: OidcToken): List<SafSak>
+    fun hentTilknyttedeJournalposter(
+        dokumentInfoId: DokumentInfoId,
+        currentToken: OidcToken
+    ): List<SafTilknyttetJournalpost>
 }
+
+data class SafTilknyttetJournalpost(
+    val journalpostId: String,
+    val sak: Sak?,
+    @param:JsonSetter(contentNulls = Nulls.FAIL)
+    val dokumenter: List<SafTilknyttetDokument>
+)
+
+data class SafTilknyttetDokument(val dokumentInfoId: String)
 
 data class SafJournalpost(
     /**

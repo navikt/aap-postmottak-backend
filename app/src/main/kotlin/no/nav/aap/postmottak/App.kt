@@ -42,6 +42,7 @@ import no.nav.aap.postmottak.api.flyt.avklaringsbehovApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
 import no.nav.aap.postmottak.api.flyt.flytApi
 import no.nav.aap.postmottak.api.test.testApi
+import no.nav.aap.postmottak.api.test.safTestApi
 import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.mottak.kafka.Stream
@@ -140,6 +141,7 @@ internal fun Application.server(
                 overleveringApi(dataSource, repositoryRegistry)
                 motorApi(dataSource, påkrevdeRollerMotor)
                 testApi(dataSource, gatewayProvider)
+                safTestApi(gatewayProvider)
                 auditlogApi(dataSource, repositoryRegistry)
                 driftApi(dataSource, repositoryRegistry, gatewayProvider)
             }
