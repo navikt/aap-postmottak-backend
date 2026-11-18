@@ -15,6 +15,8 @@ import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.SafJournalpost
 import no.nav.aap.postmottak.gateway.SafSak
+import no.nav.aap.postmottak.gateway.SafTilknyttetJournalpost
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import org.slf4j.LoggerFactory
 import java.io.InputStream
@@ -42,6 +44,12 @@ class SafGraphqlOboClient : JournalpostOboGateway {
     override fun hentSaker(fnr: String, currentToken: OidcToken): List<SafSak> =
         safGraphqlKlient.hentSakerInternal(fnr, currentToken)
 
+    override fun hentTilknyttedeJournalposter(
+        dokumentInfoId: DokumentInfoId,
+        currentToken: OidcToken
+    ): List<SafTilknyttetJournalpost> =
+        safGraphqlKlient.hentTilknyttedeJournalposterInternal(dokumentInfoId, currentToken)
+
 }
 
 class SafGraphqlClientCredentialsClient : JournalpostGateway {
@@ -65,12 +73,16 @@ class SafGraphqlClientCredentialsClient : JournalpostGateway {
         safGraphqlKlient.hentJournalpostInternal(journalpostId, null)
 
     override fun hentSaker(fnr: String) = safGraphqlKlient.hentSakerInternal(fnr, null)
+
+    override fun hentTilknyttedeJournalposter(dokumentInfoId: DokumentInfoId): List<SafTilknyttetJournalpost> =
+        safGraphqlKlient.hentTilknyttedeJournalposterInternal(dokumentInfoId, null)
 }
 
-class SafGraphqlKlient(val restClient: RestClient<InputStream>) {
+class SafGraphqlKlient(
+    val restClient: RestClient<InputStream>,
+    private val graphqlUrl: URI = URI.create(requiredConfigForKey("INTEGRASJON_SAF_URL_GRAPHQL"))
+) {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_SAF_URL_GRAPHQL"))
 
     fun hentJournalpostInternal(journalpostId: JournalpostId, currentToken: OidcToken?): SafJournalpost {
         log.info("Henter journalpost: $journalpostId")
@@ -92,6 +104,23 @@ class SafGraphqlKlient(val restClient: RestClient<InputStream>) {
         val response = graphqlQuery(request, currentToken)
         val saker: List<SafSak> = response.data?.saker ?: emptyList()
         return saker
+    }
+
+    fun hentTilknyttedeJournalposterInternal(
+        dokumentInfoId: DokumentInfoId,
+        currentToken: OidcToken?
+    ): List<SafTilknyttetJournalpost> {
+        require(dokumentInfoId.dokumentInfoId.isNotBlank()) { "Dokumentinfo-ID må være utfylt" }
+        val response = graphqlQuery(SafRequest.hentTilknyttedeJournalposter(dokumentInfoId), currentToken)
+        check(response.extensions?.warnings.isNullOrEmpty()) {
+            "SAF returnerte advarsler ved oppslag av tilknyttede journalposter"
+        }
+        val journalposter = checkNotNull(response.data?.tilknyttedeJournalposter) {
+            "SAF mangler resultat for tilknyttede journalposter"
+        }
+        return journalposter.map {
+            checkNotNull(it) { "SAF returnerte et ufullstendig resultat for tilknyttede journalposter" }
+        }
     }
 
     private fun graphqlQuery(query: SafRequest, currentToken: OidcToken?): SafRespons {

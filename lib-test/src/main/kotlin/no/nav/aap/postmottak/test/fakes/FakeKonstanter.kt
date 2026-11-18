@@ -9,6 +9,9 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.AvsenderMottake
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalpostSak
 import no.nav.aap.postmottak.gateway.Journalstatus
+import no.nav.aap.postmottak.gateway.SafTilknyttetDokument
+import no.nav.aap.postmottak.gateway.SafTilknyttetJournalpost
+import no.nav.aap.postmottak.gateway.Sak
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
@@ -256,6 +259,19 @@ object TestJournalposter {
     fun hentJournalpost(journalpostId: Long): TestJournalPost? {
         return fakeJournalposter[journalpostId]
     }
+
+    fun hentTilknyttedeJournalposter(dokumentInfoId: DokumentInfoId): List<SafTilknyttetJournalpost> =
+        fakeJournalposter.values.filter { journalpost ->
+            journalpost.dokumenter?.any { it.dokumentInfoId == dokumentInfoId } == true
+        }.map { journalpost ->
+            SafTilknyttetJournalpost(
+                journalpostId = journalpost.journalpostId.toString(),
+                sak = journalpost.fagsak?.let { Sak(it.fagsakId, it.fagsaksystem?.name, it.sakstype) },
+                dokumenter = requireNotNull(journalpost.dokumenter).map {
+                    SafTilknyttetDokument(it.dokumentInfoId.dokumentInfoId)
+                }
+            )
+        }
 }
 
 /**
