@@ -41,8 +41,9 @@ import no.nav.aap.postmottak.api.faktagrunnlag.tema.avklarTemaApi
 import no.nav.aap.postmottak.api.flyt.avklaringsbehovApi
 import no.nav.aap.postmottak.api.flyt.behandlingApi
 import no.nav.aap.postmottak.api.flyt.flytApi
-import no.nav.aap.postmottak.api.test.testApi
+import no.nav.aap.postmottak.api.test.dokarkivTestApi
 import no.nav.aap.postmottak.api.test.safTestApi
+import no.nav.aap.postmottak.api.test.testApi
 import no.nav.aap.postmottak.avklaringsbehov.løsning.utledSubtypes
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.mottak.kafka.Stream
@@ -142,6 +143,7 @@ internal fun Application.server(
                 motorApi(dataSource, påkrevdeRollerMotor)
                 testApi(dataSource, gatewayProvider)
                 safTestApi(gatewayProvider)
+                dokarkivTestApi(dataSource, repositoryRegistry, gatewayProvider)
                 auditlogApi(dataSource, repositoryRegistry)
                 driftApi(dataSource, repositoryRegistry, gatewayProvider)
             }

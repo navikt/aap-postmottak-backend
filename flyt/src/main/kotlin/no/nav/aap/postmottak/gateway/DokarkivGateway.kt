@@ -34,6 +34,12 @@ interface DokarkivGateway : Gateway {
 
     fun kopierJournalpost(journalpost: Journalpost): JournalpostId
 
+    fun knyttTilAnnenSak(
+        journalpost: Journalpost,
+        fagsakId: String,
+        journalfoerendeEnhet: String,
+    ): JournalpostId
+
     fun opprettJournalpostForPerson(
         ident: Ident,
         pdf: ByteArray,
