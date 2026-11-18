@@ -1,18 +1,14 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løsning.DigitaliserDokumentLøsning
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.ManuellDigitalisering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
-import no.nav.aap.postmottak.gateway.DokumentTilMeldingParser
-import no.nav.aap.postmottak.gateway.serialiser
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import org.slf4j.LoggerFactory
 
 class DigitaliserDokumentLøser(
     val struktureringsvurderingRepository: DigitaliseringsvurderingRepository,
@@ -20,31 +16,15 @@ class DigitaliserDokumentLøser(
     val sakVurderingRepository: SaksnummerRepository,
 ) : AvklaringsbehovsLøser<DigitaliserDokumentLøsning> {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: DigitaliserDokumentLøsning): LøsningsResultat {
         val journalpost = requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.kontekst.journalpostId))
-        require((løsning.søknadsdato == null) xor (løsning.kategori == InnsendingType.SØKNAD || løsning.kategori == InnsendingType.MELDEKORT)) {
-            "Søknadsdato skal kun settes for søknader eller meldekort"
-        }
-        require(løsning.søknadsdato == null || !løsning.søknadsdato.isAfter(journalpost.mottattDato)) {
-            "Søknadsdato kan ikke være etter registrert dato. Søknadsdato: ${løsning.søknadsdato}. Mottatt-dato: ${journalpost.mottattDato}"
-        }
-
         val behandlingId = kontekst.kontekst.behandlingId
-        val avklartSak = sakVurderingRepository.hentSakVurdering(behandlingId)
-        require(!(løsning.kategori == InnsendingType.KLAGE && avklartSak?.opprettetNy!!)) {
-            "Klage skal knyttes mot eksisterende sak"
-        }
-
-        log.info("Parser dokument med journalpostId ${journalpost.journalpostId}.")
-        val dokument = DokumentTilMeldingParser.parseTilMelding(løsning.strukturertDokument, løsning.kategori)
-
-        val digitaliseringsvurdering = Digitaliseringsvurdering(
+        val digitaliseringsvurdering = ManuellDigitalisering.lagVurdering(
+            journalpost = journalpost,
             kategori = løsning.kategori,
-            strukturertDokument = dokument?.serialiser(),
+            strukturertDokument = løsning.strukturertDokument,
             søknadsdato = løsning.søknadsdato,
-            digitalisertManueltGjennomPostmottak = true
+            saksvurdering = sakVurderingRepository.hentSakVurdering(behandlingId)
         )
         struktureringsvurderingRepository.lagre(
             behandlingId,

@@ -19,6 +19,7 @@ import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.Digitaliseringsvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.digitalisering.DigitaliseringsvurderingRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.DokumentOverleveringService
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.overlever.OverleveringVurderingRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksinfo
@@ -42,7 +43,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 class OverleverTilFagsystemStegTest {
@@ -148,15 +152,25 @@ class OverleverTilFagsystemStegTest {
             digitalisertManueltGjennomPostmottak = null,
         )
 
-        val melding = overførTilFagsystemSteg.utledMelding(
-            struktureringsvurdering,
-            OverleveringVurdering(
-                skalOverleveresTilKelvin = true,
-                begrunnelse = "MIN BEGRUNNELSE",
-            ),
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns struktureringsvurdering
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(
+            skalOverleveresTilKelvin = true,
+            begrunnelse = "MIN BEGRUNNELSE"
         )
 
-        assertThat(melding).isEqualTo(klage.copy(beskrivelse = "MIN BEGRUNNELSE"))
+        overførTilFagsystemSteg.utfør(kontekst)
+
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                journalpostId,
+                kanal,
+                mottattDato.atStartOfDay(),
+                InnsendingType.KLAGE,
+                saksnummer,
+                klage.copy(beskrivelse = "MIN BEGRUNNELSE"),
+                false
+            )
+        }
     }
 
     @Test
@@ -303,5 +317,79 @@ class OverleverTilFagsystemStegTest {
             behandlingsflytKlient.sendHendelse(any(), any(), any(), any(), any(), any(), any())
         }
         assertThat(stegresultat).isEqualTo(Fullført)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "2020-12-31, 2021-01-01T10:15, true, 2020-12-31T00:00, true",
+        "null, 2021-01-01T10:15, false, 2021-01-01T10:15, false",
+        "null, null, null, 2021-01-01T00:00, false",
+        nullValues = ["null"]
+    )
+    fun `beholder prioritering av mottatt-tidspunkt og digitaliseringsmarkør`(
+        søknadsdato: LocalDate?,
+        mottattTid: LocalDateTime?,
+        digitalisertManuelt: Boolean?,
+        forventetMottattTid: LocalDateTime,
+        forventetDigitalisertManuelt: Boolean
+    ) {
+        val søknad = SøknadV0(student = null, yrkesskade = "Nei", oppgitteBarn = null)
+        val journalpost = TestJournalposter.papirsøknad().tilJournalpost(
+            mottattDato = mottattDato,
+            mottattTid = mottattTid
+        )
+        val vurdering = Digitaliseringsvurdering(
+            InnsendingType.SØKNAD, DefaultJsonMapper.toJson(søknad), søknadsdato, digitalisertManuelt
+        )
+        every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
+        every { struktureringsvurderingRepository.hentHvisEksisterer(any()) } returns vurdering
+        every { overleveringVurderingRepository.hentHvisEksisterer(any()) } returns OverleveringVurdering(true, null)
+
+        overførTilFagsystemSteg.utfør(kontekst)
+
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                journalpost.journalpostId,
+                journalpost.kanal,
+                forventetMottattTid,
+                InnsendingType.SØKNAD,
+                saksnummer,
+                søknad,
+                forventetDigitalisertManuelt
+            )
+        }
+    }
+
+    @Test
+    fun `kan overlevere med annen journalpost-ID og kildejournalpostens mottaksopplysninger`() {
+        val søknad = SøknadV0(student = null, yrkesskade = "Nei", oppgitteBarn = null)
+        val kildejournalpost = TestJournalposter.papirsøknad().tilJournalpost(
+            mottattDato = mottattDato,
+            mottattTid = mottattDato.atTime(10, 15)
+        )
+        val nyJournalpostId = JournalpostId(kildejournalpost.journalpostId.referanse + 1)
+        val vurdering = Digitaliseringsvurdering(
+            InnsendingType.SØKNAD, DefaultJsonMapper.toJson(søknad), null, true
+        )
+
+        DokumentOverleveringService(behandlingsflytKlient).overlever(
+            journalpostId = nyJournalpostId,
+            kildejournalpost = kildejournalpost,
+            digitaliseringsvurdering = vurdering,
+            saksnummer = saksnummer,
+            begrunnelse = null
+        )
+
+        verify(exactly = 1) {
+            behandlingsflytKlient.sendHendelse(
+                nyJournalpostId,
+                kildejournalpost.kanal,
+                mottattDato.atTime(10, 15),
+                InnsendingType.SØKNAD,
+                saksnummer,
+                søknad,
+                true
+            )
+        }
     }
 }
