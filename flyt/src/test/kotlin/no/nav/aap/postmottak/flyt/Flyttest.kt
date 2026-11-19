@@ -51,6 +51,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.mottak.JOARK_TOPIC
 import no.nav.aap.postmottak.mottak.JoarkKafkaHandler
 import no.nav.aap.postmottak.mottak.JournalfoeringHendelseAvro
@@ -274,6 +275,41 @@ class Flyttest : WithDependencies {
         prøv {
             assertThat(hentAvklaringsbehov(behandling)).isEmpty()
         }
+    }
+
+    @Test
+    fun `under18-flyten feiler eksplisitt i første uferdige steg`() {
+        val journalpostId = TestJournalposter.leggTil { }.journalpostId()
+        val behandlingId = dataSource.transaction { connection ->
+            repositoryRegistry.provider(connection).provide<BehandlingRepository>()
+                .opprettBehandling(journalpostId, TypeBehandling.Under18)
+        }
+
+        triggProsesserBehandling(journalpostId, behandlingId)
+
+        prøv {
+            val jobbStatuser = dataSource.transaction(readOnly = true) { connection ->
+                connection.queryList(
+                    """
+                    SELECT status
+                    FROM JOBB
+                    WHERE behandling_id = ?
+                        AND type = ?
+                    """.trimIndent()
+                ) {
+                    setParams {
+                        setLong(1, behandlingId.id)
+                        setString(2, ProsesserBehandlingJobbUtfører.type)
+                    }
+                    setRowMapper { it.getString("status") }
+                }
+            }
+            assertThat(jobbStatuser).contains("FEILET")
+        }
+
+        val behandling = hentBehandling(behandlingId)
+        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        assertThat(behandling.aktivtSteg()).isEqualTo(StegType.AVKLAR_UNDER18)
     }
 
     @Test

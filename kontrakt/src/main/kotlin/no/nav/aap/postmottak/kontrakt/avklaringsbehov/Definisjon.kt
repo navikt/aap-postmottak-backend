@@ -51,6 +51,22 @@ public enum class Definisjon(
         type = BehovType.MANUELT_PÅKREVD,
         løsesISteg = StegType.OVERLEVER_TIL_FAGSYSTEM
     ),
+    AVKLAR_UNDER18_SØKNAD(
+        kode = AvklaringsbehovKode.`1344`,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.AVKLAR_UNDER18
+    ),
+    AVKLAR_UNDER18_SAMTYKKE(
+        kode = AvklaringsbehovKode.`1345`,
+        type = BehovType.MANUELT_PÅKREVD,
+        løsesISteg = StegType.AVKLAR_UNDER18_SAMTYKKE
+    ),
+    VENT_PA_UNDER18_SAMTYKKE(
+        kode = AvklaringsbehovKode.`1347`,
+        type = BehovType.VENTEPUNKT,
+        defaultFrist = Period.ofWeeks(3),
+        løsesISteg = StegType.AVKLAR_UNDER18_SAMTYKKE
+    ),
     @Deprecated("Manuell fordeling er fjernet. Fordeling skjer alltid automatisk; finnes bare i historiske data.")
     AVKLAR_FORDELING(
         kode = AvklaringsbehovKode.`1343`,

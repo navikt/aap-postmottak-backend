@@ -55,4 +55,16 @@ public enum class StegType(
         gruppe = StegGruppe.IVERKSETTES,
         status = Status.IVERKSETTES,
     ),
+    AVKLAR_UNDER18(
+        gruppe = StegGruppe.UNDER18,
+        status = Status.UTREDES,
+    ),
+    AVKLAR_UNDER18_SAMTYKKE(
+        gruppe = StegGruppe.UNDER18,
+        status = Status.UTREDES,
+    ),
+    OPPRETT_UNDER18_SAK(
+        gruppe = StegGruppe.UNDER18,
+        status = Status.UTREDES,
+    ),
 }

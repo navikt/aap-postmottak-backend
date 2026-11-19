@@ -12,5 +12,6 @@ public enum class StegGruppe(public val skalVises: Boolean, public val obligator
     OVERLEVER_TIL_FAGSYSTEM(true, true),
     AVKLAR_SAK(true, true),
     VIDERESEND(false, false),
-    IVERKSETTES(false, false)
+    IVERKSETTES(false, false),
+    UNDER18(true, true)
 }

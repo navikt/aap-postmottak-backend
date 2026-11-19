@@ -12,6 +12,7 @@ public const val AVKLAR_OVERLEVERING_KODE: String = "1341"
 @Deprecated("Manuell fordeling er fjernet. Fordeling skjer alltid automatisk; koden finnes bare i historiske data.")
 public const val AVKLAR_FORDELING_KODE: String = "1343"
 
+@Suppress("EnumEntryName")
 public enum class AvklaringsbehovKode {
     `9001`,
     `1337`,
@@ -20,5 +21,8 @@ public enum class AvklaringsbehovKode {
     `1340`,
     `1341`,
     `1342`,
-    `1343`
+    `1343`,
+    `1344`,
+    `1345`,
+    `1347`
 }
