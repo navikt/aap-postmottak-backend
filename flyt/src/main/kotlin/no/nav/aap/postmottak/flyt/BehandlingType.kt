@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.flyt
 import no.nav.aap.postmottak.forretningsflyt.behandlingstyper.Dokumentflyt
 import no.nav.aap.postmottak.forretningsflyt.behandlingstyper.Fordelingflyt
 import no.nav.aap.postmottak.forretningsflyt.behandlingstyper.Journalføringsflyt
+import no.nav.aap.postmottak.forretningsflyt.behandlingstyper.Under18Flyt
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 
 interface BehandlingType {
@@ -14,5 +15,6 @@ fun utledType(identifikator: TypeBehandling): BehandlingType {
         TypeBehandling.Fordeling -> Fordelingflyt
         TypeBehandling.DokumentHåndtering -> Dokumentflyt
         TypeBehandling.Journalføring -> Journalføringsflyt
+        TypeBehandling.Under18 -> Under18Flyt
     }
 }

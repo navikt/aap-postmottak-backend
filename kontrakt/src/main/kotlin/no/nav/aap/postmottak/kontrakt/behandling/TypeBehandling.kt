@@ -4,7 +4,8 @@ public enum class TypeBehandling(private var identifikator: String) {
 
     Fordeling("ae1998"),
     DokumentHåndtering("ae1999"),
-    Journalføring("ae2000");
+    Journalføring("ae2000"),
+    Under18("under18");
 
     public fun identifikator(): String = identifikator
 
