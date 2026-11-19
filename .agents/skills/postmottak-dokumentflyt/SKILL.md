@@ -48,7 +48,6 @@ VurderRelevantDokumentForAAPJobbUtfører (once per journalpost)
 Fordeling        AVKLAR_FORDELING → AVKLAR_FORDELING_VIDERESEND
   ├─ KELVIN   → new Journalføring behandling (no vurderinger copied)
   ├─ ARENA    → ArenaVideresender: Arena jobs or Gosys JFR; legeerklæring → generell sak tema OPP
-  ├─ ARENA_VURDER_11_12 → journalført on the Arena sak without Arena oppgave + Gosys oppgave for 11-12 (stub)
   └─ IGNORERT → nothing (old orgnr cases)
 Journalføring    AVKLAR_TEMA → AVKLAR_SAK → SETT_FAGSAK → ENDELIG_JOURNALFØRING → VIDERESEND
   ├─ tema not AAP/OPP → tema changed in Joark (or Gosys-vent), finished
@@ -75,7 +74,7 @@ The Journalføring stopped at AVKLAR_TEMA, resumed after the løsning, stopped a
 
 | Flyt | Question it answers | Typical manual step |
 | --- | --- | --- |
-| Fordeling | Should Kelvin or Arena handle this document? Rule-based (`FordelerRegelService`), stored as `AvklarFordelingVurdering`. | None when `PostmottakVurder11_12_gosys` is on: a søknad from a person with løpende ordinær AAP in Arena and < 26 weeks left is routed by the 11-12 vurdering. Manual fordeling (AVKLAR_FORDELING) has been removed; fordeling is always automatic. |
+| Fordeling | Should Kelvin or Arena handle this document? Rule-based (`FordelerRegelService`), stored as `AvklarFordelingVurdering`. | None. With toggle `KantTilKantV1` on, a søknad that is kant-til-kant (rettighet oppbrukt in Arena, maksdato less than 12 weeks away) also goes to Kelvin. The 12 weeks are temporary for MVP kant-til-kant and go back to 26 in part 2. Manual fordeling (AVKLAR_FORDELING) has been removed; fordeling is always automatic. |
 | Journalføring | Make the journalpost correct and final in Joark: confirm tema, choose sak, update and ferdigstill the journalpost, hand over. | AVKLAR_TEMA, AVKLAR_SAK |
 | DokumentHåndtering | Turn the document into data Kelvin understands and deliver it. | DIGITALISER_DOKUMENT (kategori + structured JSON), AVKLAR_OVERLEVERING (send to Kelvin or not) |
 
@@ -95,7 +94,7 @@ Automatic paths fall back to the manual avklaringsbehov when parsing fails. `til
 
 | Toggle | Effect when on | Value in tests (`FakeUnleash`) |
 | --- | --- | --- |
-| `PostmottakVurder11_12_gosys` | 11-12 fordeling of Arena søknader (see `references/fordeling-og-arena.md`)| on |
+| `KantTilKantV1` | Kant-til-kant søknader (rettighet oppbrukt in Arena) go to Kelvin; when off, the result is only logged and counted (see `references/fordeling-og-arena.md`) | off |
 | `AutomatiskKlageJournalforing` | Automatic tema, sak and digitalisering for klage | on |
 | `PostmottakVelgTema` | Saksbehandler picks the actual tema; no Gosys-vent; SETT_FAGSAK changes tema in Joark | off |
 | `DummyFeature` | example only | throws `NotImplementedError` |

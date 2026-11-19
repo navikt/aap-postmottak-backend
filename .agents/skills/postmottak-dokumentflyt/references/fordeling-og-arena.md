@@ -7,22 +7,27 @@ Code: `flyt/src/main/kotlin/no/nav/aap/fordeler/` (rules, Arena) and `flyt/.../p
 1. A vurdering already exists → `Fullført`.
 2. No innkommende journalpost: allowed only when the SAF bruker is an orgnr (old behandlinger); stores `IGNORERT` and finishes. Otherwise `IllegalArgumentException`.
 3. Regelresultat: reuse the stored one, or evaluate the rules once and store it on the innkommende journalpost.
-4. Store `KELVIN` if `regelresultat.skalTilKelvin()`. Else, when `PostmottakVurder11_12_gosys` is on and the hoveddokument is a søknad, store the result of `Vurdering11_12Service.vurderFordeling` (below). Else `ARENA`. All vurdert av SYSTEMBRUKER. The step never raises an avklaringsbehov: manual fordeling (Definisjon AVKLAR_FORDELING, 1343) has been removed and the definisjon is deprecated, kept only for historical rows.
+4. For a søknad (hoveddokument brevkode SØKNAD): `ArenaService.harOppbruktRettighet` checks whether the søknad is "kant-til-kant" (the person has used up the right to AAP in Arena). Arena failures throw, so the step fails and the job retries. The result is logged and counted in the metric `postmottak_kant_i_kant_oppbrukt_rettighet` (tags `resultat`, `fordelt_til`) whatever the toggle says.
+5. Store `KELVIN` if `regelresultat.skalTilKelvin()`, or if toggle `KantTilKantV1` is on and the kant-til-kant result is `skalTilKelvin()`. Else `ARENA`. All vurdert av SYSTEMBRUKER. The step never raises an avklaringsbehov: manual fordeling (Definisjon AVKLAR_FORDELING, 1343) has been removed and the definisjon is deprecated, kept only for historical rows.
 
-### 11-12 fordeling (`fordeler/arena/Vurdering11_12Service.kt`)
+### Kant-til-kant (`fordeler/arena/ArenaService.harOppbruktRettighet`)
 
-A søknad from a person with significant Arena history and løpende ordinær AAP (§§ 11-5/11-6) is either a forlengelse of the Arena sak (§ 11-12, Arena) or a new sak (Kelvin). Evaluated in order:
+Based on the latest sak and vedtak from aap-arenaoppslag (`historikkStatusDetalj`). Evaluated in order:
 
-| Condition | Result |
-| --- | --- |
-| `ArenaService.kanFordelesAutomatiskTilKelvinPga11_12_erMakset` | `KELVIN` |
-| No løpende ordinær AAP: no sak, sak avsluttet, not `erLopende()`, aktfase UVUP/FA/SPE, 11-12 already innvilget, or maksdato passed | `ARENA` |
-| Maksdato (`maxdatoOrdinaer`, fallback `maxdatoAap`) ≥ mottatt dato + 26 weeks | `ARENA` |
-| `ArenaService.statusPå11_12Vurdering` = true (forlengelse) | `ARENA` |
-| `statusPå11_12Vurdering` = false (ny sak) | `KELVIN` |
-| `statusPå11_12Vurdering` = null (not vurdert) | `ARENA_VURDER_11_12` |
+| Condition | Result | To Kelvin |
+| --- | --- | --- |
+| No sak, or the sak is neither arbeidsavklaring (UA) nor arbeidsutprøving (AU) | `IkkeRelevantSøknad` | no |
+| The latest vedtak starts after mottatt dato | `IkkeRelevantSøknad` | no |
+| `maxdatoAap` ≥ mottatt dato + 12 weeks (søkt for tidlig) | `IkkeRelevantSøknad` | no |
+| Unntak (11-12) innvilget and vedtak `til` ≈ `maxdatoUnntak` | `HarBruktOppForlengelsen` | yes |
+| Unntak (11-12) innvilget, not at the end of it | `VedtattForlenget` | no |
+| Vedtak `til` not ≈ `maxdatoOrdinaer` | `IkkeRelevantSøknad` | no |
+| Unntak (11-12) not oppfylt | `VedtattAtIkkeForlenges` | yes |
+| anything else | `IkkeRelevantSøknad` | no |
 
-`statusPå11_12Vurdering` is a stub that returns null until implemented. Arena failures throw, so the step fails and the job retries. In tests the status is injected through the `Vurdering11_12Service` constructor.
+"≈" means within 5 days (`toleranseForLikeDatoer`).
+
+**The 12-week limit is temporary** (`periodeFørMaksdato`). It is set to 12 weeks for MVP kant-til-kant, so søknader with between 12 and 26 weeks left to maksdato go to Arena as normal. It goes back to 26 weeks in part 2 of MVP kant-til-kant. `ArenaServiceTest` uses its own constant `PERIODE_FØR_MAKSDATO_I_UKER` that must change with it.
 
 ## Rules (`fordeler/regler/`)
 
@@ -55,7 +60,6 @@ Notes:
 | --- | --- |
 | `KELVIN` | Create a `Journalføring` behandling and enqueue processing. Nothing is copied from the Fordeling behandling. |
 | `ARENA` | `ArenaVideresender.videresendJournalpostTilArena` |
-| `ARENA_VURDER_11_12` | `ArenaVideresender.videresendSøknadForVurdering11_12`: job `JournalførSøknadForVurdering11_12JobbUtfører` (same JOURNALFOERT/UTGAAR/enhet checks as above) |
 | `IGNORERT` or none | log only |
 | `BEGGE` | throws: not supported yet |
 
@@ -78,9 +82,6 @@ SendSøknadTilArena:      no enhet, or Arena already has an active sak for the p
                          else opprett STARTVEDTAK oppgave in Arena → AutomatiskJournalføring(arenaSakId)
 OppprettOppgaveIArena:   nyeste aktive Arena-sak → opprett BEHENVPERSON oppgave → AutomatiskJournalføring
 SendTilArenaKjøreliste:  behandleKjoerelisteOgOpprettOppgave → AutomatiskJournalføring
-JournalførSøknadForVurdering11_12: nyesteAktiveSak → AutomatiskJournalføring(arenaSakId), no Arena oppgave,
-                         then Vurdering11_12Service.opprettGosysOppgaveFor11_12Vurdering (stub);
-                         no aktiv sak or ≥ 3 retries → Manuell
 AutomatiskJournalføring: journalfør on the Arena fagsak (fagsystem AO01) → ferdigstill → close Gosys AAP oppgaver
 ManuellJournalføring:    enhet known and < 3 earlier failures → Gosys JFR oppgave for the enhet; otherwise Gosys FDR oppgave
 ```

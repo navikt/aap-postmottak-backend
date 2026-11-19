@@ -34,7 +34,7 @@ Everything here lives in `lib-test/src/main/kotlin/no/nav/aap/postmottak/test/` 
 | `kelvinSak = TestKelvinSak(saksnummer, periode, resultat, harRettNåEllerIFramtiden)` | the person's Kelvin sak in the behandlingsflyt fake (`null` = no sak) |
 | `aktivSakIArena` | fss-proxy reports an active Arena sak |
 | `harHistorikkIArena` | arenaoppslag reports (significant) history → `ArenaHistorikkRegel` false → Arena |
-| `arenaSak = TestArenaSak(...)` | maksdato data for 11-12 fordeling (`Vurdering11_12Service`, uses `maxdatoOrdinaer` first) |
+| `arenaSak = TestArenaSak(...)` | latest Arena sak and vedtak for kant-til-kant (`ArenaService.harOppbruktRettighet`, via `ArenaoppslagFake`) |
 | `skjermet` | NOM says egen ansatt |
 
 `TestJournalposter.leggTil { }` (`fakes/FakeKonstanter.kt`) returns a `TestJournalPost` registered for the SAF, Gosys and REST fakes:
@@ -59,7 +59,7 @@ Shortcuts: `TestJournalposter.digitalSøknad()`, `.papirsøknad()`, `.legeerklæ
 
 | Fake | Notes |
 | --- | --- |
-| `FakeUnleash` (object) | `PostmottakVurder11_12_gosys` on, `AutomatiskKlageJournalforing` on, `PostmottakVelgTema` off, `DummyFeature` throws. Override one toggle with `object X : UnleashGateway by FakeUnleash { override fun isEnabled(...) }` |
+| `FakeUnleash` (object) | `AutomatiskKlageJournalforing` on, `KantTilKantV1` off, `PostmottakVelgTema` off, `DummyFeature` throws. Override one toggle with `object X : UnleashGateway by FakeUnleash { override fun isEnabled(...) }` |
 | `fakeGatewayProvider(unleash)` | registers `FakeArenaoppslagGateway`, `FakeJournalpostGateway` and an Unleash fake. `FakeJournalpostGateway.hentJournalpost` is `TODO()` |
 | `FakeArenaoppslagGateway` | history only for ident `09876543210`; fixed maksdato data |
 | `FakeStatistikkGateway` | records hendelser, but `konstruer()` makes a new instance each time, so you cannot read them back |

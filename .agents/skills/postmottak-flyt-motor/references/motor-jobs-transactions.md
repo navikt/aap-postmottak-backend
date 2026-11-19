@@ -46,7 +46,6 @@ The job `type` string is persisted in `JOBB.type` and parsed back through the re
 | `JoarkAvstemmerJobbUtfører` | `Joark-avstemming` | 3 | cron daily 03:00 (`navn` and `type` look swapped) |
 | `SendSøknadTilArenaJobbUtfører` | `arena.søknad` | 4 | `antallRetriesForsøkt ≥ 3` → ManuellJournalføring job |
 | `OppprettOppgaveIArenaJobbUtfører` | `arena.oppgaveoppretter` | 4 | no enhet or `≥ 2` → ManuellJournalføring job |
-| `JournalførSøknadForVurdering11_12JobbUtfører` | `arena.søknad.vurder1112` | 4 | no aktiv Arena sak or `≥ 3` → ManuellJournalføring job |
 | `SendTilArenaKjørelisteBehandling` | `arena.kjøreliste` | 4 | `≥ 2` → ManuellJournalføring job |
 | `AutomatiskJournalføringJobbUtfører` | `arena.automatiskjournalføring` | 3 | `≥ 3` → ManuellJournalføring job; only reachable after `FEILET` + retryFeilede |
 | `ManuellJournalføringJobbUtfører` | `arena.manuell.journalføring` | 6 | enhet and `< 3` → Gosys JFR oppgave, otherwise FDR (fordeling) oppgave |
