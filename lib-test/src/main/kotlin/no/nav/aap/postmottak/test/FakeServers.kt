@@ -18,14 +18,19 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveForespørsel
 import no.nav.aap.fordeler.arena.ArenaOpprettOppgaveRespons
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.postmottak.gateway.JournalpostSak
+import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.klient.arena.BehandleKjoerelisteOgOpprettOppgaveRequest
 import no.nav.aap.postmottak.klient.arena.BehandleKjoerelisteOgOpprettOppgaveResponse
 import no.nav.aap.postmottak.klient.arena.HentNyesteAktivSakRequest
 import no.nav.aap.postmottak.klient.dokarkiv.EndreTemaRequest
 import no.nav.aap.postmottak.klient.dokarkiv.FerdigstillRequest
+import no.nav.aap.postmottak.klient.dokarkiv.KnyttTilAnnenSakRequest
+import no.nav.aap.postmottak.klient.dokarkiv.KnyttTilAnnenSakResponse
 import no.nav.aap.postmottak.klient.dokarkiv.OppdaterJournalpostRequest
 import no.nav.aap.postmottak.klient.dokarkiv.OpprettJournalpostRequest
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.fakes.arenaoppslagFake
 import no.nav.aap.postmottak.test.fakes.behandlingsflytFake
 import no.nav.aap.postmottak.test.fakes.gosysOppgaveFake
@@ -256,6 +261,28 @@ class FakeServers : AutoCloseable {
             post("/rest/journalpostapi/v1/journalpost") {
                 call.receive<OpprettJournalpostRequest>()
                 call.respondText { """{"journalpostId": "467011765"}""" }
+            }
+            put("/rest/journalpostapi/v1/journalpost/{journalpostId}/knyttTilAnnenSak") {
+                val kilde = TestJournalposter.hentJournalpost(requireNotNull(call.parameters["journalpostId"]).toLong())
+                    ?: return@put call.respond(HttpStatusCode.NotFound)
+                val request = call.receive<KnyttTilAnnenSakRequest>()
+                val dokumenter = kilde.tilJournalpost().dokumenter.filter {
+                    it.dokumentInfoId.dokumentInfoId.toLong() in request.dokumenter
+                }
+                require(dokumenter.size == request.dokumenter.size) { "Dokumentene finnes ikke på kildejournalposten" }
+                val nyJournalpost = TestJournalposter.leggTil {
+                    fnr = request.bruker.id
+                    tema = request.tema
+                    kanal = kilde.kanal
+                    brevkode = kilde.brevkode
+                    status = Journalstatus.JOURNALFOERT
+                    fagsak = JournalpostSak(request.sakstype, request.fagsakId, request.fagsaksystem)
+                    this.dokumenter = dokumenter
+                    journalførendeEnhet = request.journalfoerendeEnhet
+                    avsenderMottaker = kilde.avsenderMottaker
+                    digitalSøknad = kilde.digitalSøknad
+                }
+                call.respond(KnyttTilAnnenSakResponse(nyJournalpost.journalpostId))
             }
             put("/rest/journalpostapi/v1/journalpost/{journalpostId}") {
                 val request = call.receive<JsonNode>()

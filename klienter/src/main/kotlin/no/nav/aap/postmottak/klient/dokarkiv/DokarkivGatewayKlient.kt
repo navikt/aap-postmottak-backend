@@ -34,11 +34,12 @@ import java.util.*
 
 class DokarkivGatewayKlient(
     private val restClient: RestClient<InputStream> = client,
+    private val url: URI = baseUrl,
 ) : DokarkivGateway {
     private var log = LoggerFactory.getLogger(javaClass)
 
     companion object : Factory<DokarkivGateway> {
-        private val url = URI.create(requiredConfigForKey("INTEGRASJON_JOARK_URL"))
+        private val baseUrl = URI.create(requiredConfigForKey("INTEGRASJON_JOARK_URL"))
         private val client: RestClient<InputStream> by lazy {
             RestClient.withDefaultResponseHandler(
                 config = ClientConfig(
@@ -123,6 +124,30 @@ class DokarkivGatewayKlient(
             ?: error("Kunne ikke kopiere journalpost med id ${journalpost.journalpostId}")
     }
 
+    override fun knyttTilAnnenSak(
+        journalpost: Journalpost,
+        fagsakId: String,
+        journalfoerendeEnhet: String,
+    ): JournalpostId {
+        val request = KnyttTilAnnenSakRequest(
+            bruker = JournalpostBruker(journalpost.person.aktivIdent().identifikator),
+            dokumenter = journalpost.dokumenter.map { it.dokumentInfoId.dokumentInfoId.toLong() },
+            fagsakId = fagsakId,
+            fagsaksystem = Fagsystem.KELVIN,
+            journalfoerendeEnhet = journalfoerendeEnhet,
+            sakstype = Sakstype.FAGSAK,
+            tema = Tema.AAP.name,
+        )
+        val response = restClient.put<KnyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(
+            url.resolve("/rest/journalpostapi/v1/journalpost/${journalpost.journalpostId}/knyttTilAnnenSak"),
+            PutRequest(request),
+        )
+        val nyJournalpostId = checkNotNull(response?.nyJournalpostId) {
+            "Manglende nyJournalpostId ved tilknytning av journalpost ${journalpost.journalpostId}"
+        }
+        return JournalpostId(nyJournalpostId)
+    }
+
     override fun opprettJournalpostForPerson(
         ident: Ident, pdf: ByteArray, filNavn: String, eksternReferanseId: UUID?
     ): JournalpostId {
@@ -174,6 +199,18 @@ class DokarkivGatewayKlient(
 }
 
 data class EndreTemaRequest(val tema: String)
+
+data class KnyttTilAnnenSakRequest(
+    val bruker: JournalpostBruker,
+    val dokumenter: List<Long>,
+    val fagsakId: String,
+    val fagsaksystem: Fagsystem,
+    val journalfoerendeEnhet: String,
+    val sakstype: Sakstype,
+    val tema: String,
+)
+
+data class KnyttTilAnnenSakResponse(val nyJournalpostId: Long?)
 
 data class FerdigstillRequest(
     val journalfoerendeEnhet: String

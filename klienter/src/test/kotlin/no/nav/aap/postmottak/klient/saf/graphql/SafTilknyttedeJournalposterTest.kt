@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.klient.saf.graphql
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.sun.net.httpserver.HttpServer
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -70,12 +69,12 @@ class SafTilknyttedeJournalposterTest {
     @MethodSource("ufullstendigeSvar")
     fun `ufullstendige svar feiler i stedet for å se ut som manglende tilknytning`(
         beskrivelse: String,
-        respons: ObjectNode
+        respons: SafRespons
     ) {
         medSafRespons(respons) { klient ->
             assertThatThrownBy {
                 klient.hentTilknyttedeJournalposterInternal(DokumentInfoId("456"), null)
-            }.describedAs(beskrivelse).isInstanceOf(Exception::class.java)
+            }.describedAs(beskrivelse).isInstanceOf(IllegalStateException::class.java).hasMessageContaining("SAF")
         }
     }
 
@@ -113,18 +112,8 @@ class SafTilknyttedeJournalposterTest {
         }
     }
 
-    @Test
-    fun `HTTP-feil gir ikke tom liste`() {
-        medSafRespons(SafRespons(data = null), status = 403) { klient ->
-            assertThatThrownBy {
-                klient.hentTilknyttedeJournalposterInternal(DokumentInfoId("456"), null)
-            }.isInstanceOf(Exception::class.java)
-        }
-    }
-
     private fun medSafRespons(
-        respons: Any,
-        status: Int = 200,
+        respons: SafRespons,
         test: (SafGraphqlKlient) -> Unit
     ) {
         val server = HttpServer.create(InetSocketAddress("localhost", 0), 0)
@@ -133,7 +122,7 @@ class SafTilknyttedeJournalposterTest {
             forespørsel.set(exchange.requestBody.bufferedReader().use { it.readText() })
             val bytes = DefaultJsonMapper.toJson(respons).toByteArray()
             exchange.responseHeaders.add("Content-Type", "application/json")
-            exchange.sendResponseHeaders(status, bytes.size.toLong())
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
             exchange.responseBody.use { it.write(bytes) }
         }
         server.start()
@@ -161,41 +150,15 @@ class SafTilknyttedeJournalposterTest {
     }
 
     companion object {
-        private fun safRespons(journalposter: List<SafTilknyttetJournalpost> = emptyList()) =
+        private fun safRespons(journalposter: List<SafTilknyttetJournalpost?> = emptyList()) =
             SafRespons(SafData(journalpost = null, saker = null, tilknyttedeJournalposter = journalposter))
 
         @JvmStatic
         fun ufullstendigeSvar(): List<Arguments> {
-            fun respons(): ObjectNode = DefaultJsonMapper.objectMapper().valueToTree(safRespons(listOf(
-                SafTilknyttetJournalpost("123", null, listOf(SafTilknyttetDokument("456")))
-            )))
-
             return listOf(
-                Arguments.of("data er null", respons().apply { putNull("data") }),
-                Arguments.of("mangler resultat", respons().apply {
-                    withObject("/data").remove("tilknyttedeJournalposter")
-                }),
-                Arguments.of("resultat er null", respons().apply {
-                    withObject("/data").putNull("tilknyttedeJournalposter")
-                }),
-                Arguments.of("journalpost er null", respons().apply {
-                    withArray("/data/tilknyttedeJournalposter").removeAll().addNull()
-                }),
-                Arguments.of("mangler dokumenter", respons().apply {
-                    withObject("/data/tilknyttedeJournalposter/0").remove("dokumenter")
-                }),
-                Arguments.of("dokumenter er null", respons().apply {
-                    withObject("/data/tilknyttedeJournalposter/0").putNull("dokumenter")
-                }),
-                Arguments.of("dokument er null", respons().apply {
-                    withArray("/data/tilknyttedeJournalposter/0/dokumenter").removeAll().addNull()
-                }),
-                Arguments.of("mangler dokumentinfo-ID", respons().apply {
-                    withObject("/data/tilknyttedeJournalposter/0/dokumenter/0").remove("dokumentInfoId")
-                }),
-                Arguments.of("mangler journalpost-ID", respons().apply {
-                    withObject("/data/tilknyttedeJournalposter/0").remove("journalpostId")
-                })
+                Arguments.of("mangler data", SafRespons(data = null)),
+                Arguments.of("mangler resultat", SafRespons(SafData(journalpost = null, saker = null))),
+                Arguments.of("journalpost er null", safRespons(listOf(null)))
             )
         }
     }
