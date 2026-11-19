@@ -95,6 +95,7 @@ API calls never run steps: they store a decision and enqueue `flyt.prosesserBeha
   - jobs: registered in `flyt/.../prosessering/ProsesseringsJobber.kt`. Never rename a job `type`; rows with the old type must still parse;
   - avklaringsbehov løsninger: added to `utledSubtypes()` in `flyt/.../avklaringsbehov/løsning/AvklaringsbehovLøsning.kt`.
   Step-by-step recipes, including what happens to behandlinger already in flight: `postmottak-flyt-motor/references/recipes.md`.
+- Each repository owns its own tables. Do not have multiple repositories read or write the same table; add new data to a table owned by the repository responsible for it.
 - Flyway: add a new `V1.<next>__beskrivelse.sql` migration, using the next version after the latest migration in the repository; never edit an applied migration. **Every table needs a primary key**: all tables are published for Datastream, and Postgres rejects `UPDATE`/`DELETE` on a published table without one. Tests do not catch this. Prod runs Postgres 16, tests use 18, so avoid newer SQL features.
 - Personal data (fødselsnummer, names) only goes to the `team-logs` logger (`LoggerFactory.getLogger("team-logs")`), never to the normal log.
 - Style: `.editorconfig` (4 spaces, 120 columns, no wildcard imports), detekt rules in `config/detekt/detekt.yml`. Match the surrounding code; most code has no comments.

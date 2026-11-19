@@ -45,6 +45,7 @@ import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -321,7 +322,7 @@ class FakeServers : AutoCloseable {
                 } else if (body.contains("hentGeografiskTilknytning")) {
                     call.respondText(genererHentAdressebeskytelseOgGeotilknytning())
                 } else {
-                    call.respondText(genererHentPersonRespons())
+                    call.respondText(genererHentPersonRespons(body))
                 }
             }
         }
@@ -515,7 +516,9 @@ class FakeServers : AutoCloseable {
         }
     }
 
-    private fun genererHentPersonRespons(): String {
+    private fun genererHentPersonRespons(body: String): String {
+        val fødselsdato = TestPersoner.hentPerson(finnIdentIBody(body))?.fødselsdato?.toLocalDate()
+            ?: LocalDate.of(1990, 1, 1)
         return """
             { "data":
             {"hentPerson": {
@@ -528,7 +531,7 @@ class FakeServers : AutoCloseable {
                     ],
                     "foedselsdato": [
                         {
-                            "foedselsdato": "1990-01-01",
+                            "foedselsdato": "$fødselsdato",
                             "metadata": {
                                 "historisk": false
                             }
