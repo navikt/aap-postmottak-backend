@@ -59,9 +59,10 @@ Dependencies point inwards: `repository`, `klienter` and `api` depend on `flyt`;
 ```text
 Joark Kafka event → JoarkKafkaHandler (filters; Kafka Streams thread, not the motor)
   → job vurderdokument.innkommende → INNKOMMENDE_JOURNALPOST (EVALUERT / IGNORERT / GOSYS_FDR)
-  → Fordeling behandling: Kelvin or Arena (rules; for søknader with løpende ordinær AAP in Arena and
-      < 26 weeks left, the 11-12 vurdering decides; always automatic, AVKLAR_FORDELING (1343) is
-      deprecated and only exists in historical data)
+  → Fordeling behandling: Kelvin or Arena (rules; with toggle KantTilKantV1, a søknad whose rettighet is
+      oppbrukt in Arena and maksdato is < 12 weeks away also goes to Kelvin. 12 weeks is temporary for MVP
+      kant-til-kant, back to 26 in part 2. Always automatic, AVKLAR_FORDELING (1343) is deprecated and only
+      exists in historical data)
       Arena → Arena jobs or a Gosys oppgave
   → Journalføring behandling: AVKLAR_TEMA, AVKLAR_SAK, SETT_FAGSAK, ENDELIG_JOURNALFØRING, VIDERESEND
   → DokumentHåndtering behandling: DIGITALISER_DOKUMENT, OVERLEVER_TIL_FAGSYSTEM → hendelse to behandlingsflyt

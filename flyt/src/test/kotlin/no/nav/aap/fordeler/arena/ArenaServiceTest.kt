@@ -28,7 +28,8 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 
 private const val TOLERANSE_I_DAGER = 5L
-private const val PERIODE_FØR_MAKSDATO_I_UKER = 26L
+// Midlertidig 12 uker for MVP kant-til-kant, skal tilbake til 26 uker i del 2
+private const val PERIODE_FØR_MAKSDATO_I_UKER = 12L
 private const val PERIODE_FØR_MAKSDATO_I_DAGER = PERIODE_FØR_MAKSDATO_I_UKER * 7
 
 class ArenaServiceTest {
@@ -518,7 +519,7 @@ class ArenaServiceTest {
         PERIODE_FØR_MAKSDATO_I_DAGER,
         PERIODE_FØR_MAKSDATO_I_DAGER + 1
     ])
-    fun `søker har søkt for tidlig med minst 26 uker til effektiv maksdato selv om forlengelse er avslått`(
+    fun `søker har søkt for tidlig med minst 12 uker til effektiv maksdato selv om forlengelse er avslått`(
         dagerTilEffektivMaksdato: Long
     ) = runBlocking {
         val sak = sakMedAvslåttForlengelse().let {
@@ -537,7 +538,7 @@ class ArenaServiceTest {
         PERIODE_FØR_MAKSDATO_I_DAGER,
         PERIODE_FØR_MAKSDATO_I_DAGER + 1
     ])
-    fun `søker har søkt for tidlig med minst 26 uker til effektiv maksdato selv om siste vedtak løper ut forlengelsen`(
+    fun `søker har søkt for tidlig med minst 12 uker til effektiv maksdato selv om siste vedtak løper ut forlengelsen`(
         dagerTilEffektivMaksdato: Long
     ) = runBlocking {
         val sak = sakMedInnvilgetForlengelse().let {
