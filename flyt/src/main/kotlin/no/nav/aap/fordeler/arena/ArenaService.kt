@@ -21,7 +21,9 @@ class ArenaService(gatewayProvider: GatewayProvider) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
-        private val periodeFørMaksdato = Period.ofWeeks(26)
+        // Midlertidig satt til 12 uker for MVP kant-til-kant, slik at søknader med mellom 12 og 26 uker
+        // til maksdato sendes til Arena som normalt. Skal endres tilbake til 26 uker i del 2 av MVP kant-til-kant.
+        private val periodeFørMaksdato = Period.ofWeeks(12)
         private val toleranseForLikeDatoer = 5.days
     }
 
