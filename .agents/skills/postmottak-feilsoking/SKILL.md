@@ -38,7 +38,7 @@ Background on what *should* happen: `postmottak-dokumentflyt` (business flow) an
 | Behandling not avsluttet, no open behov, no `KLAR`/`FEILET` job | Stuck (should not happen) | SQL "Stuck behandlinger", then `POST /api/drift/behandling/{ref}/prosesser` |
 
 Facts that explain many tickets:
-- A Journalføring behandling that resumes with the cursor past AVKLAR_TEMA (typically after the AVKLAR_SAK løsning) is rewound to AVKLAR_TEMA and runs it again; the compact steg history shows `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`. Not a bug in itself.
+- `T` in compact steg history shows that a steg was rewound, not why. Expired ventepunkter and open avklaringsbehov in earlier steg can also cause a rewind. The log line `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'` identifies a rewind caused by an informasjonskrav returning `ENDRET`. Before November 2026 this happened on almost every resume in Journalføring because of an inverted check; that older history can show `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`. Repeated newer log lines of this kind point to an informasjonskrav that reports `ENDRET` every time.
 - A saksbehandler-solved DIGITALISER_DOKUMENT shows status `AVBRUTT`; look for an `AVSLUTTET` endring in its history.
 - Steps are re-run after rewinds and retries, so repeated calls to Joark, Gosys or behandlingsflyt for the same journalpost are expected.
 - `IVERKSETTES` behandling status means "in the last steps", not "done". `AVSLUTTET` is done.

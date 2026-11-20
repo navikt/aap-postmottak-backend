@@ -63,6 +63,21 @@ internal class JournalpostRepositoryImplTest {
     }
 
     @Test
+    fun `Journalpost uten avsenderMottaker hentes uendret`() {
+        dataSource.transaction { connection ->
+            val person = PersonRepositoryImpl(connection).finnEllerOpprett(listOf(Ident("12345678")))
+            val journalpost = genererJournalpost(person).copy(avsenderMottaker = null)
+            val behandlingid = BehandlingRepositoryImpl(connection)
+                .opprettBehandling(journalpost.journalpostId, TypeBehandling.Journalføring)
+            val journalpostRepository = JournalpostRepositoryImpl(connection)
+
+            journalpostRepository.lagre(journalpost)
+
+            assertThat(journalpostRepository.hentHvisEksisterer(behandlingid)).isEqualTo(journalpost)
+        }
+    }
+
+    @Test
     fun `Henter nyeste journalpost når det er flere på en behandling`() {
         val behandlingid = dataSource.transaction { connection ->
             // Setup

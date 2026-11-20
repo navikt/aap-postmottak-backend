@@ -43,27 +43,17 @@ if på vent:                                              any open VENTEPUNKT
 førTilbakeTilTidligsteÅpneAvklaringsbehov               open behov in an EARLIER steg than the current one?
                                                          log.error("...er dette en bug") and rewind to it
 
-uendret = informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(flyt.alleFaktagrunnlagFørGjeldendeSteg())
-tilbakefør(flyt.tilbakeflytEtterEndringer(uendret))
+endret = informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(flyt.alleFaktagrunnlagFørGjeldendeSteg())
+tilbakefør(flyt.tilbakeflytEtterEndringer(endret))
 ```
 
 ### The informasjonskrav rewind, precisely
 
 - `alleFaktagrunnlagFørGjeldendeSteg()` returns `(steg, krav)` for every steg strictly before the current one. The `oppdaterFaktagrunnlag` flag is always `true` (builder default, never changed).
-- `InformasjonskravGrunnlagImpl.oppdaterFaktagrunnlagForKravliste` calls `oppdater()` on each and returns the krav whose result was **not** `ENDRET`:
-  ```kotlin
-  // Hva gir dette leddet?
-  return kravkonstruktører.filterNot { (_, k) -> k.konstruer(...).oppdater(kontekst) == ENDRET }.map { it.second }
-  ```
-  The interface KDoc says the opposite ("informasjonskrav som har endret seg"). Git history: commit `40cf556e7` (2024-09) replaced `harIkkeGjortOppdateringNå` with `oppdater() == ENDRET` but kept `filterNot`, which inverted the meaning.
-- `tilbakeflytEtterEndringer(list)` picks the earliest steg whose kravliste contains any returned krav (excluding steps with status `OPPRETTET`, i.e. START_BEHANDLING) and rewinds there if it is before the current steg.
-- `SaksnummerInfoKrav.oppdater` always returns `IKKE_ENDRET`. So in the Journalføring flyt, any resume with the cursor after AVKLAR_TEMA rewinds to AVKLAR_TEMA and re-runs AVKLAR_TEMA, AVKLAR_SAK, ... **Verified**:
-  ```text
-  [b=1] FlytOrkestrator: Tilbakeført etter oppdatering av registeropplysninger fra 'AVKLAR_SAK' til 'AVKLAR_TEMA'
-  [b=1] FlytOrkestrator: Stopper opp ved AVKLAR_TEMA med []
-  [b=1] JobbRepository: Planlagt kjøring av jobb[flyt.hendelse] ...      ← extra DokumentflytStoppetHendelse
-  [b=1] StegOrkestrator: Behandler steg 'AVKLAR_TEMA'
-  ```
+- `InformasjonskravGrunnlagImpl.oppdaterFaktagrunnlagForKravliste` calls `oppdater()` on each and returns the krav whose result was `ENDRET`, as the KDoc on `InformasjonskravGrunnlag` says and as in aap-behandlingsflyt.
+- `tilbakeflytEtterEndringer(list)` picks the earliest steg whose kravliste contains any returned krav (excluding steps with status `OPPRETTET`, i.e. START_BEHANDLING) and rewinds there if it is before the current steg. A rewind logs `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'` and emits an extra `DokumentflytStoppetHendelse`.
+- `JournalpostInformasjonskrav` returns `ENDRET` only when the stored journalpost differs from SAF and the difference in tema or saksnummer is relevant; `SaksnummerInfoKrav` always returns `IKKE_ENDRET`. So a normal Journalføring behandling is not rewound when it resumes. Stored and fetched data must compare equal, otherwise the informasjonskrav reports `ENDRET` on every resume.
+- History: commit `40cf556e7` (2024-09) replaced `harIkkeGjortOppdateringNå` with `oppdater() == ENDRET` but kept `filterNot`, which inverted the meaning until November 2026. In that period, Journalføring was rewound to AVKLAR_TEMA on almost every resume, which old steg history shows as `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`.
 - Even with the "intended" semantics the rewind would usually happen: `JournalpostInformasjonskrav` reports `ENDRET` when Joark's saksnummer/tema differs from the vurdering, which is the normal state until SETT_FAGSAK has run.
 - Fordeling and DokumentHåndtering are not affected: no krav before their manual steps.
 

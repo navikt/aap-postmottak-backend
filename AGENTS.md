@@ -103,7 +103,7 @@ API calls never run steps: they store a decision and enqueue `flyt.prosesserBeha
 
 ## Load-bearing quirks: read before "fixing"
 
-1. Resuming a Journalføring behandling past AVKLAR_TEMA rewinds it to AVKLAR_TEMA, in practice every time (`InformasjonskravGrunnlagImpl` returns the *unchanged* krav). Steps therefore re-run often.
+1. When a behandling resumes, every informasjonskrav of earlier steps is refreshed, and the behandling is rewound to the earliest steg whose informasjonskrav returned `ENDRET` (same semantics as aap-behandlingsflyt). An informasjonskrav that wrongly reports `ENDRET` causes a rewind on every resume. Before November 2026 the result was inverted, so Journalføring was rewound to AVKLAR_TEMA on almost every resume; old steg history shows this.
 2. Every step must be idempotent: `utfør()` runs again after each stop, rewind and retry, and calls to other systems repeat.
 3. A failing job commits everything up to the last savepoint (after START and OPPDATER_FAKTAGRUNNLAG of each steg), then retries. When its attempts are used up (3 for `flyt.prosesserBehandling`) it is `FEILET` and blocks later jobs of the same type for that behandling.
 4. Vurderinger are per behandling; Journalføring copies them to DokumentHåndtering, Fordeling copies nothing. Journalpost data is shared per journalpostId.

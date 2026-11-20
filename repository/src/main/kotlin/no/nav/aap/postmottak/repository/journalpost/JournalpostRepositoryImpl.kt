@@ -83,14 +83,15 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
             }
         }
 
+        val avsenderMottaker = journalpost.avsenderMottaker ?: return
         connection.execute(
             "INSERT INTO AVSENDERMOTTAKER (JOURNALPOST_ID, IDENT, IDENT_TYPE, NAVN) VALUES (?, ?, ?, ?)",
         ) {
             setParams {
                 setLong(1, journalpostId)
-                setString(2, journalpost.avsenderMottaker?.id)
-                setString(3, journalpost.avsenderMottaker?.idType)
-                setString(4, journalpost.avsenderMottaker?.navn)
+                setString(2, avsenderMottaker.id)
+                setString(3, avsenderMottaker.idType)
+                setString(4, avsenderMottaker.navn)
             }
         }
     }

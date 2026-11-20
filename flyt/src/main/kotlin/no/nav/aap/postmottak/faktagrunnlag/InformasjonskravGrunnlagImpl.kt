@@ -14,8 +14,7 @@ class InformasjonskravGrunnlagImpl(
         kravkonstruktører: List<Pair<StegType, Informasjonskravkonstruktør>>,
         kontekst: FlytKontekst
     ): List<Informasjonskravkonstruktør> {
-        // Hva gir dette leddet?
-        return kravkonstruktører.filterNot { (_, konstruktør) ->
+        return kravkonstruktører.filter { (_, konstruktør) ->
             konstruktør.konstruer(repositoryProvider, gatewayProvider)
                 .oppdater(kontekst) == Informasjonskrav.Endret.ENDRET
         }.map { it.second }
