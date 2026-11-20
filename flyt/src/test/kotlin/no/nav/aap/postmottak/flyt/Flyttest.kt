@@ -69,6 +69,7 @@ import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SamtykkeLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SøknadLøsning
@@ -76,6 +77,7 @@ import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsd
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVSLUTTET
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.OPPRETTET
 import no.nav.aap.postmottak.test.modell.TestPerson
+import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.under18.Under18Søknadssituasjon
 import no.nav.aap.postmottak.test.modell.TestKelvinSak
 import no.nav.aap.postmottak.test.modell.TestPersoner
@@ -114,6 +116,13 @@ object TemaFlytUnleash : UnleashGateway by FakeUnleash {
         if (featureToggle == PostmottakFeature.PostmottakVelgTema) velgTema else FakeUnleash.isEnabled(featureToggle)
 }
 
+object TestKlokke : Klokke {
+    @Volatile
+    var dato: LocalDate = LocalDate.now()
+
+    override fun dagensDato(): LocalDate = dato
+}
+
 @Fakes
 @Execution(ExecutionMode.SAME_THREAD)
 class Flyttest : WithDependencies {
@@ -123,6 +132,7 @@ class Flyttest : WithDependencies {
 
         private val gatewayProvider = defaultGatewayProvider {
             register<TemaFlytUnleash>()
+            register<TestKlokke>()
         }
         private lateinit var hendelsesMottak: TestHendelsesMottak
         private lateinit var motor: Motor
@@ -340,6 +350,49 @@ class Flyttest : WithDependencies {
 
         verifiserStoppetIOpprettUnder18Sak(behandling.id)
         assertThat(hentAvklaringsbehov(behandling)).isEmpty()
+    }
+
+    @Test
+    fun `under18 - 18-årsdagen krever ny søknadsavklaring før sak opprettes`() {
+        val startDato = LocalDate.now()
+        val fødselsdato = startDato.minusYears(18).plusDays(7)
+        TestKlokke.dato = startDato
+        try {
+            val behandling = opprettUnder18Behandling(fødselsdato)
+
+            behandling
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+                .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = false))
+                .verifiserErPåVent { assertThat(it).containsExactly(Definisjon.VENT_PA_UNDER18_SAMTYKKE) }
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+
+            val vent = dataSource.transaction(readOnly = true) { connection ->
+                hentAvklaringsbehov(behandling.id, connection).hentVentepunkter().single()
+            }
+            assertThat(vent.frist()).isEqualTo(fødselsdato.plusYears(18))
+
+            settFristTilIdag(behandling.id, Definisjon.VENT_PA_UNDER18_SAMTYKKE)
+            TestKlokke.dato = fødselsdato.plusYears(18)
+            triggProsesserBehandling(behandling.journalpostId, behandling.id)
+
+            assertThat(
+                InMemoryUnder18Repository.hentAktivSamtykkevurdering(behandling.id)?.beggeForeldreSamtykket
+            ).isFalse()
+            hentBehandling(behandling.id)
+                .also { assertThat(it.aktivtSteg()).isEqualTo(StegType.AVKLAR_UNDER18) }
+                .verifiserIkkePåVent()
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+                .løsAvklaringsBehov(
+                    AvklarUnder18SøknadLøsning(
+                        situasjon = Under18Søknadssituasjon.SØKER_FYLT_18,
+                        søkerVilFortsette = true,
+                    )
+                )
+
+            verifiserStoppetIOpprettUnder18Sak(behandling.id)
+        } finally {
+            TestKlokke.dato = LocalDate.now()
+        }
     }
 
     @Test

@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostInformasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 
@@ -15,6 +16,7 @@ class Under18FødselsdatoInformasjonskrav(
     private val journalpostRepository: JournalpostRepository,
     private val under18Repository: Under18Repository,
     private val persondataGateway: PersondataGateway,
+    private val klokke: Klokke,
 ) : Informasjonskrav {
     companion object : Informasjonskravkonstruktør {
         override val avhengigheter = setOf(JournalpostInformasjonskrav)
@@ -26,6 +28,7 @@ class Under18FødselsdatoInformasjonskrav(
             repositoryProvider.provide(),
             repositoryProvider.provide(),
             gatewayProvider.provide(),
+            gatewayProvider.provide(),
         )
     }
 
@@ -36,11 +39,14 @@ class Under18FødselsdatoInformasjonskrav(
         val fødselsdato = checkNotNull(persondataGateway.hentFødselsdato(journalpost.person.aktivIdent().identifikator)) {
             "Fant ikke fødselsdato for søker på journalpost ${kontekst.journalpostId}"
         }
-        val lagret = under18Repository.hentFødselsdato(kontekst.behandlingId)
-        if (lagret == fødselsdato) {
+        val lagretFødselsdato = under18Repository.hentFødselsdato(kontekst.behandlingId)
+        val aldersgruppe = Under18Aldersgruppe.vurder(fødselsdato, klokke.dagensDato())
+        val lagretAldersgruppe = under18Repository.hentAldersgruppe(kontekst.behandlingId)
+        if (lagretFødselsdato == fødselsdato && lagretAldersgruppe == aldersgruppe) {
             return IKKE_ENDRET
         }
         under18Repository.lagreFødselsdato(kontekst.behandlingId, fødselsdato)
-        return if (lagret == null) IKKE_ENDRET else ENDRET
+        under18Repository.lagreAldersgruppe(kontekst.behandlingId, aldersgruppe)
+        return if (lagretFødselsdato == null) IKKE_ENDRET else ENDRET
     }
 }
