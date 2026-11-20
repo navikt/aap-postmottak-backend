@@ -39,8 +39,8 @@ Templates for each type: `references/test-templates.md`. What every fake returns
 
 Prerequisites: Docker for Testcontainers (Postgres 18; Kafka `apache/kafka-native` for `Flyttest`). With Colima, export the three `TESTCONTAINERS_*`/`DOCKER_HOST` variables from the README. Gradle uses a JDK 25 toolchain.
 
-- **Do not run the whole suite to "check".** `./gradlew test` or `build` runs all modules in parallel (`org.gradle.parallel=true`) and each module's tests in `cores / 2` JVM forks, each starting its own containers. In a sandbox this is slow and can time out.
-- Use the bundled script; it forces `--rerun` (otherwise Gradle's up-to-date check and build cache can skip the task and you see zero tests), caps `--max-workers=2`, keeps the full log in a temp file and prints a short summary with failure messages:
+- **Always run the full suite with `./gradlew test` before saying a task is done.** Run it once at the end, not while iterating. Narrow runs miss other test classes that construct the same steps or løsere. Example: a new gateway dependency in a løser broke `AvklaringsbehovsLøserTest`, which builds every løser with its own `createGatewayProvider`. The suite runs all modules in parallel (`org.gradle.parallel=true`) and each module's tests in `cores / 2` JVM forks, and each fork starts its own containers. Expect several minutes, so use a long timeout or run it in the background. Tests in unchanged modules may come from Gradle's build cache, which is fine.
+- While iterating, use the bundled script. It trusts Gradle's up-to-date check and build cache (a cached task shows zero tests and says `UP-TO-DATE` or `FROM-CACHE`; that means nothing changed since the last passing run, so do not force `--rerun`), caps `--max-workers=2`, keeps the full log in a temp file and prints a short summary with failure messages:
   ```bash
   .agents/skills/postmottak-testing/scripts/run-tests.sh flyt 'no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarSakStegTest'
   .agents/skills/postmottak-testing/scripts/run-tests.sh flyt 'no.nav.aap.postmottak.flyt.Flyttest.kjører en manuell søknad igjennom hele flyten'
@@ -68,6 +68,10 @@ It keeps job pick/finish/enqueue, steps, results, avklaringsbehov, rewinds, warn
 
 1. `TestUtil.ventPåSvar` **never fails**: after `maxTid` it logs "Avbryter venting nå" and returns, and it treats `FEILET` jobs as finished. If a flyt test sees a half-processed behandling, look for `Feil under prosessering av jobb` in the trace before anything else.
 2. Fake state is global and never cleared: `TestJournalposter`, `TestPersoner`, `FssOppgaver` are JVM singletons. Always create new data through the builders (random ids) and never assert on global counts.
+   Never invent random fødselsnumre (`Random.nextLong(...)`) for persons or identer. Use the helpers in `lib-test/.../test/modell/TestPerson.kt`:
+   - `TestPersoner.leggTil { }` when a fake server must know the person (SAF, PDL, NOM, behandlingsflyt, Arena).
+   - `TestPerson()` and `person.aktivIdent()` when the test only needs identer, for example in repository tests. Add a historical ident with `TestPerson().let { it.copy(identer = it.identer + Ident(genererIdent(dato).identifikator, aktivIdent = false)) }`.
+   - `genererIdent(fødselsdato)` for a single valid fnr with a given fødselsdato.
 3. Create journalposter through `TestJournalposter.leggTil { }`: it registers the person, and the NOM fake answers 404 for unknown persons. Builder defaults: digital **legeerklæring**, kanal NAV_NO, tema AAP, status MOTTATT, new person, no avsenderMottaker.
 4. `defaultGatewayProvider()` **without** `register<FakeUnleash>()` uses the real Unleash client against the HTTP fake, which reports **every** toggle enabled. `FakeUnleash` instead has `PostmottakVelgTema` off and throws for `DummyFeature`. Toggle overrides in tests are shared objects; reset them in `finally` (see `TemaFlytUnleash` in `Flyttest`).
 5. Tests run as "dev": `Aldersregel` and `SøknadRegel` are inactive, so fordeling differs from prod.

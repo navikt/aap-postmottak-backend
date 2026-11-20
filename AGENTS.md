@@ -74,8 +74,8 @@ API calls never run steps: they store a decision and enqueue `flyt.prosesserBeha
 
 - Prerequisites: JDK 25 toolchain and Docker for Testcontainers (Postgres, Kafka). With Colima, export the variables listed in `README.md`.
 - Compile check (fast): `./gradlew :flyt:compileTestKotlin`, or `./gradlew assemble`.
-- **Do not run `./gradlew test` or `./gradlew build` to check your work.** Every module runs in parallel with `cores / 2` test JVMs, each starting containers. That is slow and times out in sandboxes. Gradle's build cache can also skip test tasks silently.
-- Run narrow test sets with the script, which forces `--rerun`, caps workers and prints a compact summary:
+- **Always run the full test suite with `./gradlew test` before saying a task is done.** Run it once at the end, not while iterating. It runs every module in parallel with `cores / 2` test JVMs, and each JVM starts its own containers. Expect several minutes, so give the command a long timeout or run it in the background. Tests in unchanged modules may come from Gradle's build cache, which is fine. Narrow test runs have missed failures in other test classes that construct the same steps or løsere.
+- While iterating, run narrow test sets with the script. It caps workers and prints a compact summary. Trust Gradle's up-to-date check and build cache; do not force `--rerun`:
   ```bash
   .agents/skills/postmottak-testing/scripts/run-tests.sh flyt 'no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarSakStegTest'
   .agents/skills/postmottak-testing/scripts/run-tests.sh flyt 'no.nav.aap.postmottak.flyt.Flyttest.kjører en manuell søknad igjennom hele flyten'
