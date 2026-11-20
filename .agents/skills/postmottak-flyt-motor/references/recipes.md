@@ -54,7 +54,7 @@ Paths: `flyt/src/main/kotlin/no/nav/aap/postmottak/` unless stated otherwise. Ea
 
 1. Implement `Informasjonskrav.oppdater(kontekst): Endret` and a `companion object : Informasjonskravkonstruktør`.
 2. Attach it: `.medSteg(steg = X, informasjonskrav = listOf(MittKrav))`. It then runs in X's OPPDATER_FAKTAGRUNNLAG phase and, on every resume where the cursor is after X, in `forberedBehandling`.
-3. **Rewind semantics:** with the current `filterNot` in `InformasjonskravGrunnlagImpl`, a krav that returns `IKKE_ENDRET` makes every resumed behandling past X rewind to X (see `engine-walkthrough.md` §3). Decide deliberately and cover it with a flyt test that resumes after X.
+3. **Rewind semantics:** returning `ENDRET` rewinds every resumed behandling past X to X (see `engine-walkthrough.md` §3). Return `ENDRET` only for changes that require X and later steps to be evaluated again, and make sure stored and fetched data compare equal when nothing has changed. Cover it with a flyt test that resumes after X.
 
 ## Add a per-behandling vurdering (grunnlag repository)
 
