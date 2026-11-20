@@ -10,7 +10,9 @@ class VentebehovEvaluererServiceImpl(
     private val evaluerere: List<SpesifikkVentebehovEvaluerer>,
 ) : VentebehovEvaluererService {
 
-    constructor(@Suppress("unused") repositoryProvider: RepositoryProvider) : this(evaluerere = emptyList())
+    constructor(repositoryProvider: RepositoryProvider) : this(
+        evaluerere = listOf(Under18SamtykkeVurderingVentebehovEvaluerer(repositoryProvider.provide()))
+    )
 
     private val fristEvaluerer = FristUtløptVentebehovEvaluerer
 

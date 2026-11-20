@@ -73,6 +73,7 @@ import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SamtykkeLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SøknadLøsning
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVSLUTTET
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.OPPRETTET
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.postmottak.under18.Under18Søknadssituasjon
@@ -378,6 +379,14 @@ class Flyttest : WithDependencies {
             .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
             .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = true))
             .verifiserIkkePåVent()
+
+        val avsluttetVentHistorikk = dataSource.transaction(readOnly = true) { connection ->
+            hentAvklaringsbehov(behandling.id, connection)
+                .hentBehovForDefinisjon(Definisjon.VENT_PA_UNDER18_SAMTYKKE)!!.historikk
+        }
+        assertThat(avsluttetVentHistorikk.map { it.status })
+            .containsExactly(OPPRETTET, AVSLUTTET, OPPRETTET, AVSLUTTET)
+        assertThat(avsluttetVentHistorikk.last().endretAv).isEqualTo(SYSTEMBRUKER.ident)
 
         verifiserStoppetIOpprettUnder18Sak(behandling.id)
     }

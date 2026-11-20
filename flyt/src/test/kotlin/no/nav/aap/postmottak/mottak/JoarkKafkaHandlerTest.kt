@@ -29,6 +29,8 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.getJournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
+import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.unleash.FeatureToggle
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
@@ -191,6 +193,7 @@ class JoarkKafkaHandlerTest {
         every { repositoryProvider.provide<JournalpostRepository>() } returns mockk()
         every { repositoryProvider.provide<AvklaringsbehovRepository>() } returns mockk()
         every { repositoryProvider.provide<AvklarTemaRepository>() } returns avklarTemaRepository
+        every { repositoryProvider.provide<Under18Repository>() } returns InMemoryUnder18Repository
         every { repositoryRegistry.provider(any()) } returns repositoryProvider
         every { journalpostGateway.hentJournalpost(any()) } returns SafJournalpost(
             123L, tema = "AAP", journalstatus = Journalstatus.MOTTATT, relevanteDatoer = emptyList()

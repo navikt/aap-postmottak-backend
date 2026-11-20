@@ -27,20 +27,11 @@ class AvklarUnder18SamtykkeLøser(
             )
         )
 
-        val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.kontekst.behandlingId)
-        val vent = Definisjon.VENT_PA_UNDER18_SAMTYKKE
-        if (løsning.beggeForeldreSamtykket) {
-            if (avklaringsbehovene.hentVentepunkter().any { it.definisjon == vent }) {
-                avklaringsbehovene.løsAvklaringsbehov(
-                    definisjon = vent,
-                    begrunnelse = "Samtykke fra begge foreldre er mottatt.",
-                    endretAv = kontekst.bruker.ident,
-                )
-            }
-        } else {
+        if (!løsning.beggeForeldreSamtykket) {
             val fødselsdato = under18Repository.hentFødselsdatoFor(kontekst.kontekst.behandlingId)
             if (Under18Aldersgruppe.vurder(fødselsdato, LocalDate.now()) == Under18Aldersgruppe.SAMTYKKE) {
-                avklaringsbehovene.leggTil(
+                val vent = Definisjon.VENT_PA_UNDER18_SAMTYKKE
+                avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.kontekst.behandlingId).leggTil(
                     definisjon = vent,
                     stegType = vent.løsesISteg,
                     grunn = ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER,

@@ -55,15 +55,18 @@ class AvklarUnder18SamtykkeLøserTest {
     }
 
     @Test
-    fun `godkjent samtykke tar behandlingen av vent`() {
+    fun `godkjent samtykke lagres uten å ta behandlingen av vent direkte`() {
         val kontekst = kontekst(LocalDate.now().minusYears(18).plusWeeks(1))
         løser.løs(kontekst, AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = false))
 
         løser.løs(kontekst, AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = true))
 
         val avklaringsbehovene = InMemoryAvklaringsbehovRepository.hentAvklaringsbehovene(kontekst.kontekst.behandlingId)
-        assertThat(avklaringsbehovene.erSattPåVent()).isFalse()
-        assertThat(avklaringsbehovene.hentBehovForDefinisjon(Definisjon.VENT_PA_UNDER18_SAMTYKKE)!!.erAvsluttet())
+        assertThat(avklaringsbehovene.erSattPåVent()).isTrue()
+        assertThat(
+            InMemoryUnder18Repository.hentAktivSamtykkevurdering(kontekst.kontekst.behandlingId)
+                ?.beggeForeldreSamtykket
+        )
             .isTrue()
     }
 
