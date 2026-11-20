@@ -2,19 +2,31 @@ package no.nav.aap.postmottak.test.fakes
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.ContentDisposition
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.receive
+import io.ktor.server.response.header
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondOutputStream
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
+import java.time.LocalDateTime
+import kotlin.random.Random
 
 fun Application.safFake(
     sakerRespons: String = ingenSakerRespons()
@@ -86,6 +98,9 @@ fun Application.safFake(
                     journalpostId = journalpostId.toLong()
                 )
 
+                // Tilfeldig dag i uken som har gått
+                val datoRegistrert = LocalDateTime.now().minusDays(Random.nextLong(0, 7))
+
                 call.respondText(
                     """
                     { "data":
@@ -106,7 +121,7 @@ fun Application.safFake(
                           "kanal": "${testJournalpost.kanal.name}",
                           "relevanteDatoer": [
                             {
-                            "dato": "2020-12-01T10:00:00",
+                            "dato": "$datoRegistrert",
                             "datotype": "DATO_REGISTRERT"
                             }
                           ], 

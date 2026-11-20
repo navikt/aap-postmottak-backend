@@ -6,7 +6,7 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
@@ -22,12 +22,13 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsrefer
 import no.nav.aap.postmottak.journalpostogbehandling.lås.TaSkriveLåsRepository
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.mottak.VurderRelevantDokumentForAAPJobbUtfører
-import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.prosessering.medJournalpostId
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
 import no.nav.aap.tilgang.authorizedGet
 import javax.sql.DataSource
+import kotlin.random.Random
 
 fun NormalOpenAPIRoute.behandlingApi(
     dataSource: DataSource,
@@ -126,11 +127,16 @@ fun NormalOpenAPIRoute.behandlingApi(
             if (Miljø.er() != MiljøKode.LOKALT) {
                 throw IllegalStateException("Behandling kan kun opprettes manuelt i lokalt miljø")
             }
+
+            val referanse =
+                body.referanse.takeUnless { it == 0L }
+                    ?: Random.nextLong(1_000_000_000, 9_999_999_999)
+
             dataSource.transaction { connection ->
                 FlytJobbRepository(connection).leggTil(
                     JobbInput(VurderRelevantDokumentForAAPJobbUtfører)
                         .forSak(body.referanse)
-                        .medJournalpostId(JournalpostId(body.referanse))
+                        .medJournalpostId(JournalpostId(referanse))
                 )
             }
             respondWithStatus(HttpStatusCode.Accepted)
