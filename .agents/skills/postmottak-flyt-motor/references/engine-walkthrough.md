@@ -36,9 +36,10 @@ avklaringsbehovene.validateTilstand(behandling)          throws UgyldigForespør
 flyt = utledType(type).flyt(); flyt.forberedFlyt(behandling.aktivtSteg())   cursor := current steg
 
 if på vent:                                              any open VENTEPUNKT
-    løs every ventepunkt with frist <= today            as SYSTEMBRUKER
+    VentebehovEvaluererService.løsVentebehov:            as SYSTEMBRUKER
+      løs every ventepunkt with frist <= today, or that its SpesifikkVentebehovEvaluerer considers solved
     if no longer på vent:
-        tilbakefør(flyt.tilbakeflyt(expired))           back to the steg the vent belongs to (no-op if same steg)
+        tilbakefør(flyt.tilbakeflyt(løste))           back to the steg the vent belongs to (no-op if same steg)
 
 førTilbakeTilTidligsteÅpneAvklaringsbehov               open behov in an EARLIER steg than the current one?
                                                          log.error("...er dette en bug") and rewind to it

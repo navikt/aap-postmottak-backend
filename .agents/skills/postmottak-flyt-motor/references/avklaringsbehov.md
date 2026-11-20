@@ -75,7 +75,8 @@ A løser that throws (most validation is `require`) rolls everything back.
 | Removed by | løsning `SattPåVentLøsning` (behovstype 9001), or frist | `taAvVentPgaGosys` (AvklarTemaLøser with AAP or with the toggle on; Kafka AAP event for a journalpost with an open Journalføring behandling), or frist |
 
 Common rules:
-- Frist expiry: cron `GjenopptaBehandlingJobbUtfører` (07:00) enqueues processing for `UTREDES` behandlinger whose behov has a latest endring `OPPRETTET` with `frist <= today`. `FlytOrkestrator` then solves expired ventepunkter as SYSTEMBRUKER and rewinds to their steg.
+- Frist expiry: cron `GjenopptaBehandlingJobbUtfører` (07:00) enqueues processing for `UTREDES` behandlinger whose behov has a latest endring `OPPRETTET` with `frist <= today`. `FlytOrkestrator.forberedBehandling` then solves expired ventepunkter as SYSTEMBRUKER through `VentebehovEvaluererService` and rewinds to their steg.
+- Event-based lifting: add a `SpesifikkVentebehovEvaluerer` (in `flyt/ventebehov/`, added to the list in `VentebehovEvaluererServiceImpl`'s `RepositoryProvider` constructor; no reflection) that says when a ventepunkt is solved, for example a document received after the vent was set. It only runs during processing, so whatever produces the event must also enqueue `ProsesserBehandlingJobbUtfører`. All evaluators are constructed for every processing of a behandling på vent; use only repositories registered in production.
 - A step returning `Fullført` closes open ventepunkter **only if the behandling has no non-vente avklaringsbehov in any status**. **Verified consequence:** after Gosys moves the journalpost to another tema, AVKLAR_TEMA becomes `AVBRUTT`, but `VENT_PA_GOSYS` stays open until frist, so the Journalføring behandling waits up to two weeks before it finishes.
 - `AVKLARINGSPUNKT` stops on an open ventepunkt in the current steg just like on any other behov.
 - Being på vent does not change the behandling status.
