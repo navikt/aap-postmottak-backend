@@ -21,6 +21,7 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
+import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
 import org.junit.jupiter.api.AfterEach
@@ -50,6 +51,7 @@ class AvklaringsbehovOrkestratorTest {
         .register<BehandlingRepositoryImpl>()
         .register<AvklaringsbehovRepositoryImpl>()
         .register<FlytJobbRepositoryImpl>()
+        .register<InMemoryUnder18Repository>()
 
 
     @Test

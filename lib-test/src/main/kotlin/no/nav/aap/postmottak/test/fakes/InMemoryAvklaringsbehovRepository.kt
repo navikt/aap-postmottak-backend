@@ -85,10 +85,6 @@ object InMemoryAvklaringsbehovRepository : AvklaringsbehovRepository {
         endreAvklaringsbehov(avklaringsbehovId, endring)
     }
 
-    fun clearMemory() {
-        memory.clear()
-    }
-
     private fun endreAvklaringsbehov(
         avklaringsbehovId: Long,
         endring: Endring

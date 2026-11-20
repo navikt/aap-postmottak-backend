@@ -63,7 +63,7 @@ Shortcuts: `TestJournalposter.digitalSøknad()`, `.papirsøknad()`, `.legeerklæ
 | `fakeGatewayProvider(unleash)` | registers `FakeArenaoppslagGateway`, `FakeJournalpostGateway` and an Unleash fake. `FakeJournalpostGateway.hentJournalpost` is `TODO()` |
 | `FakeArenaoppslagGateway` | history only for ident `09876543210`; fixed maksdato data |
 | `FakeStatistikkGateway` | records hendelser, but `konstruer()` makes a new instance each time, so you cannot read them back |
-| `InMemoryAvklaringsbehovRepository` (object) | in-memory `AvklaringsbehovRepository`; call `clearMemory()` between tests |
+| `InMemoryAvklaringsbehovRepository`, `InMemoryUnder18Repository` (objects) | in-memory repositories with global state. Do not call `clearMemory()`; use unique ids per test |
 | `MockConnection().toDBConnection()` | a `DBConnection` whose JDBC calls throw; only for constructing repositories you will not call |
 | `FødselsnummerGenerator`, `AzureTokenGen` | valid fnr for a birth date; signed test tokens |
 | Test-local: `TemaFlytUnleash` (`Flyttest`), `FakeUnleashGateway` (`ArenaOppgaveFlytTest`), `JoarkTemavalgUnleash` (`JoarkKafkaHandlerTest`), `BehandlingsflytGatewayMock` (`AvklaringsbehovsLøserTest`, all `TODO()`) | examples of per-test overrides |
