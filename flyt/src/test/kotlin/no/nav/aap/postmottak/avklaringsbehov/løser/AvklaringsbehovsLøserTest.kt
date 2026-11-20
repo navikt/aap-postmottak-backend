@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.klient.SystemKlokke
 import no.nav.aap.postmottak.klient.createGatewayProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.WithDependencies
@@ -33,6 +34,7 @@ class AvklaringsbehovsLøserTest {
                     createGatewayProvider {
                         register<BehandlingsflytGatewayMock>()
                         register<FakeUnleash>()
+                        register<SystemKlokke>()
                     })
                 .forBehov()
         }.toSet()

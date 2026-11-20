@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.test.fakes
 
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.under18.Under18Aldersgruppe
 import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.under18.Under18SamtykkeVurdering
 import no.nav.aap.postmottak.under18.Under18Søknadsavklaring
@@ -14,6 +15,7 @@ import java.time.LocalDate
 object InMemoryUnder18Repository : Under18Repository {
     private val søknader = HashMap<BehandlingId, MutableList<JournalpostId>>()
     private val fødselsdatoer = HashMap<BehandlingId, LocalDate>()
+    private val aldersgrupper = HashMap<BehandlingId, Under18Aldersgruppe>()
     private val søknadsavklaringer = HashMap<BehandlingId, Under18Søknadsavklaring>()
     private val samtykkevurderinger = HashMap<BehandlingId, MutableList<Under18SamtykkeVurdering>>()
     private val lock = Any()
@@ -35,6 +37,13 @@ object InMemoryUnder18Repository : Under18Repository {
 
     override fun hentFødselsdato(behandlingId: BehandlingId): LocalDate? =
         synchronized(lock) { fødselsdatoer[behandlingId] }
+
+    override fun lagreAldersgruppe(behandlingId: BehandlingId, aldersgruppe: Under18Aldersgruppe) {
+        synchronized(lock) { aldersgrupper[behandlingId] = aldersgruppe }
+    }
+
+    override fun hentAldersgruppe(behandlingId: BehandlingId): Under18Aldersgruppe? =
+        synchronized(lock) { aldersgrupper[behandlingId] }
 
     override fun lagreSøknadsavklaring(behandlingId: BehandlingId, avklaring: Under18Søknadsavklaring) {
         synchronized(lock) { søknadsavklaringer[behandlingId] = avklaring }

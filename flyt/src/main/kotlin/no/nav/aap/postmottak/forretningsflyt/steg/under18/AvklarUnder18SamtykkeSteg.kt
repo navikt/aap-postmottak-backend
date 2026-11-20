@@ -11,13 +11,14 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.under18.Under18Aldersgruppe
+import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.under18.hentFødselsdatoFor
-import java.time.LocalDate
 
 class AvklarUnder18SamtykkeSteg(
     private val under18Repository: Under18Repository,
     private val avklaringsbehovService: AvklaringsbehovService,
+    private val klokke: Klokke,
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -26,6 +27,7 @@ class AvklarUnder18SamtykkeSteg(
         ): BehandlingSteg = AvklarUnder18SamtykkeSteg(
             under18Repository = repositoryProvider.provide(),
             avklaringsbehovService = AvklaringsbehovService(repositoryProvider),
+            klokke = gatewayProvider.provide(),
         )
 
         override fun type(): StegType = StegType.AVKLAR_UNDER18_SAMTYKKE
@@ -33,7 +35,7 @@ class AvklarUnder18SamtykkeSteg(
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val fødselsdato = under18Repository.hentFødselsdatoFor(kontekst.behandlingId)
-        val aldersgruppe = Under18Aldersgruppe.vurder(fødselsdato, LocalDate.now())
+        val aldersgruppe = Under18Aldersgruppe.vurder(fødselsdato, klokke.dagensDato())
         val samtykkeKreves = aldersgruppe == Under18Aldersgruppe.SAMTYKKE
         val vurdering = under18Repository.hentAktivSamtykkevurdering(kontekst.behandlingId)
 
@@ -47,7 +49,7 @@ class AvklarUnder18SamtykkeSteg(
         if (!samtykkeKreves) {
             val søknadsavklaring = under18Repository.hentSøknadsavklaring(kontekst.behandlingId)
             check(søknadsavklaring?.situasjon == aldersgruppe.påkrevdSøknadssituasjon) {
-                "Aldersgruppen er endret til $aldersgruppe etter AVKLAR_UNDER18. Tilbakeføring er ikke implementert ennå."
+                "Aldersgruppen er endret til $aldersgruppe, men søknadsavklaringen er ikke oppdatert."
             }
         }
 
