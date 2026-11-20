@@ -10,6 +10,7 @@ interface InnkommendeJournalpostRepository: Repository {
     fun hentId(journalpostId: JournalpostId): Long
     fun hentHvisEksisterer(journalpostId: JournalpostId): InnkommendeJournalpost?
     fun finn(ident: Ident): List<InnkommendeJournalpost>
+    fun finnMottakshistorikk(identer: List<Ident>): List<Mottakshendelse>
     fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long
     fun update(innkommendeJournalpost: InnkommendeJournalpost)
 }

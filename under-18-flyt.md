@@ -615,8 +615,10 @@ samtykke mangler. Samtykkesteget gjenåpner det manuelle behovet, men oppretter
 ikke vent ved ny kjøring. Triggere utenfor flytstegene tar behandlingen av vent.
 Grunnlagstabellene har ingen FK til avklaringsbehov eller endringshistorikken deres.
 Dette hindrer ikke at samme dokument tar behandlingen av vent flere ganger.
-Hvordan slike duplikater håndteres, må fortsatt avklares.
-Det er fortsatt ikke besluttet om mottakshistorikken trenger en egen ny tabell.
+Leveranse 2 håndterer duplikater uten ny tabell: triggerjobben tar behandlingen av
+vent bare når journalposten er mottatt etter at venten sist ble opprettet.
+Mottakshistorikken trenger ingen egen tabell. Den leses fra `INNKOMMENDE_JOURNALPOST`,
+som har én rad per journalpost, `BRUKER_ID` og `OPPRETTET_TID`.
 
 Koblingen til Kelvin lagres én gang per behandling og kildejournalpost,
 også når samme journalpost er både søknad og samtykke.
@@ -1430,6 +1432,7 @@ Status per 20. november 2026: #974 (flytskjelettet) og #976
 avklaringsflyten, mens #972 inneholder første versjon av Postgres-repoet. Begge
 PR-ene er åpne. #978 legger til en styrbar klokke og tilbakeføring ved endret
 aldersgruppe. Testen simulerer gjenopptak; den daglige produksjonstriggeren gjenstår.
+Leveranse 2 er påbegynt i #979.
 
 Listen under viser foreslått rekkefølge, ikke tildelte GitHub-numre. Hver leveranse
 skal kunne merges og deployes uten at senere leveranser må være på plass.
@@ -1451,6 +1454,8 @@ samtidighet. Tester av disse punktene skrives i leveranse 7, ikke med in-memory-
 
 API og triggere kommer etter Postgres-repoene. Et endepunkt eller en cron-jobb kjører
 i produksjon og ville feilet ved oppslag i det uferdige repositoryet.
+Unntaket er triggeren for nye journalposter, som er flyttet frem til leveranse 2.
+Den bruker bare tabeller som finnes fra før, og ikke `Under18Repository`.
 
 #### Oppfølgingspunkter før flyten tas i bruk
 
@@ -1471,13 +1476,13 @@ og samtykkevurderinger. Vent lagres i avklaringsbehovshistorikken.
 | Rekkefølge | Leveranse | Lagring | Avhengigheter | Omfang og kontroll |
 | --- | --- | --- | --- | --- |
 | 1 | Aldersovergangen etter #975, implementert i #978. | In-memory | #975. | Testen bruker en styrbar klokke. Informasjonskravet på søknadssteget melder `ENDRET` når aldersgruppen endres, slik at flyten føres tilbake dit. Testen sjekker at gammelt samtykkesvar ikke gjenbrukes og at saken ikke opprettes før søker har svart på nytt. Den simulerer den eksterne triggeren som legger inn prosesseringsjobben. |
-| 2 | Registrer mottakshistorikk for samtykkekandidater. | In-memory | 1. | Gjenbruk eksisterende mottaksdata der de dekker behovet. Ellers lagres første relevante hendelse med status `MOTTATT`, tema og hendelsestidspunkt. Dedupliser journalposter, og ikke opprett nye behandlinger i denne leveransen. |
+| 2 | Registrer mottakshistorikk for samtykkekandidater og ta behandlingen av vent ved nye journalposter. | Eksisterende `INNKOMMENDE_JOURNALPOST`, ingen migrering | 1. | `InnkommendeJournalpostRepository.finnMottakshistorikk` henter journalposter på personens identer. `Under18Samtykkekandidater` velger dem som er mottatt etter at `AVKLAR_UNDER18_SAMTYKKE` ble opprettet, unntatt hovedjournalposten. Når vurderingsjobben evaluerer en journalpost med kjent person, legger den inn jobben `under18.nyJournalpost` for hver åpen under-18-behandling på personen. Jobben tar behandlingen av `VENT_PA_UNDER18_SAMTYKKE` bare når journalposten er mottatt etter at venten sist ble opprettet, og legger da inn prosesseringsjobb. Ingen nye behandlinger opprettes. Kjente begrensninger: rader der SAF oppgir aktør-ID som `BRUKER_ID`, blir ikke funnet med folkeregisteridentene, og journalposter som ignoreres fordi de allerede er journalført, gir ingen trigger. |
 | 3 | Journalfør søknadene på generell sak og oppdater kandidater. | In-memory | 2. | Journalfør første og senere søknader før manuell avklaring. Legg til `Under18JournalposterInformasjonskrav`. Nye kandidater skal ikke tolkes automatisk som samtykke. Test nye og gjentatte hendelser, flere samtykkerunder og at dokumenter fra tidligere runder ikke tar behandlingen av vent på nytt. |
 | 4 | Opprett Kelvin-sak og knytt journalpostene. | In-memory | 3. | Fullfør `OpprettUnder18SakSteg` og lagre uforanderlige koblinger. Test at gjentatt kjøring ikke gjentar Dokarkiv-kall som allerede er bekreftet. Rollback og samtidighet testes i leveranse 7. |
 | 5 | Opprett en ordinær dokumentbehandling per søknad. | In-memory for under-18-data, Postgres for eksisterende `BEHANDLING` og grunnlag | 4. | Opprett eller gjenbruk `DokumentHåndtering`, saksgrunnlag og jobb. Bruk ny journalpost-ID i dokumentbehandlingen og opplysninger fra originalen ved validering og overlevering. Dokumentbehandlingene skal kjøre uavhengig. |
 | 6 | Registrer bekreftet overlevering. | In-memory | 5. | Lagre bekreftet overlevering etter vellykket kall, slik at under-18-behandlingen kan vise status for hver søknad. |
 | 7 | Skriv Postgres-repoene og migreringen. | Postgres | 1–6 og #972. | Oppdater #972 med alle under-18-tabellene i én migrering, med primærnøkkel på hver tabell. Registrer implementasjonene i `PostgresRepositoryRegistry` og fjern in-memory-registreringen fra `WithDependencies`. Kjør repo-testene med `TestDataSource`. Test rollback, retry og samtidighet ved saksopprettelse og opprettelse av dokumentbehandlinger, og stans for manuell feilsøking når utfallet av et Dokarkiv-kall ikke kan fastslås. |
-| 8 | Bygg lesemodell/API og produksjonstriggere. | Postgres | 7. | API-et viser kilde og ny journalpost, dokumentbehandlingenes referanser, status, behov, vent og feil. GET skal ikke endre behandling eller historikk. Frontend inngår ikke. Den daglige aldersjobben finner aktive behandlinger før saksopprettelse, opphever automatisk og relevant manuell vent, og legger inn prosesseringsjobb idempotent. Nye relevante journalposter tar bare behandlingen av automatisk vent. Ingen av triggerne registrerer samtykke eller oppretter Kelvin-sak. API og triggere kan deles i to PR-er. |
+| 8 | Bygg lesemodell/API og produksjonstriggere. | Postgres | 7. | API-et viser kilde og ny journalpost, dokumentbehandlingenes referanser, status, behov, vent og feil. GET skal ikke endre behandling eller historikk. Frontend inngår ikke. Den daglige aldersjobben finner aktive behandlinger før saksopprettelse, opphever automatisk og relevant manuell vent, og legger inn prosesseringsjobb idempotent. Triggeren for nye journalposter er levert i leveranse 2. Ingen av triggerne registrerer samtykke eller oppretter Kelvin-sak. API og triggere kan deles i to PR-er. |
 | 9 | Koble mottaksrutingen bak en avslått feature toggle. | Postgres | 7 og 8. | Finn eller opprett under-18-behandling bare for aktuelle papirsøknader. Eksisterende behandlinger skal fortsatt kunne få kandidater når togglen er av. Test åpen Journalføring, duplikater, ukjent person, ulik jobbrekkefølge og samtidighet. Aktivering er en egen beslutning. |
 
 Før aktivering må konsumentene støtte behandlingstype, steggrupper og behovskoder.

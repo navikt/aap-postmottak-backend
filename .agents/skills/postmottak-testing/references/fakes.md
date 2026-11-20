@@ -27,7 +27,10 @@ Everything here lives in `lib-test/src/main/kotlin/no/nav/aap/postmottak/test/` 
 
 ## Test data builders
 
-`TestPersoner.leggTil { }` (`modell/TestPerson.kt`) returns a `TestPerson` aged 19 with a generated valid fnr:
+`TestPersoner.leggTil { }` (`modell/TestPerson.kt`) returns a `TestPerson` aged 19 with a generated valid fnr.
+`TestPerson()` builds the same person without registering it in the fakes; use it when only identer are needed.
+`genererIdent(fødselsdato)` gives a valid fnr for a fødselsdato. Do not invent random fødselsnumre.
+
 
 | Field | Effect |
 | --- | --- |
