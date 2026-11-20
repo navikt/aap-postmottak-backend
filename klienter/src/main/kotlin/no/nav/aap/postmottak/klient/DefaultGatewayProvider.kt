@@ -43,5 +43,6 @@ fun defaultGatewayProvider(utvidelser: GatewayRegistry.() -> Unit = {}) = create
     register<DoksikkerhetsnettGatewayImpl>()
     register<EREGKlient>()
     register<DokarkivGatewayKlient>()
+    register<SystemKlokke>()
     utvidelser()
 }

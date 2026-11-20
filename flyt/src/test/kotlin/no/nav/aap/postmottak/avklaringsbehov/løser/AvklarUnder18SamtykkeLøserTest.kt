@@ -6,6 +6,7 @@ import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SamtykkeLøsning
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.klient.SystemKlokke
 import no.nav.aap.postmottak.klient.createGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
@@ -26,7 +27,7 @@ class AvklarUnder18SamtykkeLøserTest {
             .register<InMemoryUnder18Repository>()
             .register<InMemoryAvklaringsbehovRepository>()
             .provider(MockConnection().toDBConnection()),
-        createGatewayProvider {}
+        createGatewayProvider { register<SystemKlokke>() }
     )
 
     @ParameterizedTest

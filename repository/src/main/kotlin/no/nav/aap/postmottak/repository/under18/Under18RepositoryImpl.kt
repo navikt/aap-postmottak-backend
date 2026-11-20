@@ -4,6 +4,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.under18.Under18Aldersgruppe
 import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.under18.Under18SamtykkeVurdering
 import no.nav.aap.postmottak.under18.Under18Søknadsavklaring
@@ -25,6 +26,12 @@ class Under18RepositoryImpl : Under18Repository {
     }
 
     override fun hentFødselsdato(behandlingId: BehandlingId): LocalDate? = TODO()
+
+    override fun lagreAldersgruppe(behandlingId: BehandlingId, aldersgruppe: Under18Aldersgruppe) {
+        TODO()
+    }
+
+    override fun hentAldersgruppe(behandlingId: BehandlingId): Under18Aldersgruppe? = TODO()
 
     override fun lagreSøknadsavklaring(behandlingId: BehandlingId, avklaring: Under18Søknadsavklaring) {
         TODO()
