@@ -147,10 +147,7 @@ class AvklaringsbehovOrkestrator(
     }
 
     fun taAvVentPgaGosys(behandlingId: BehandlingId) {
-        taAvVent(behandlingId, Definisjon.VENT_PA_GOSYS, "Ny oppdatering på journalpost.")
-    }
-
-    fun taAvVent(behandlingId: BehandlingId, vent: Definisjon, begrunnelse: String) {
+        val vent = Definisjon.VENT_PA_GOSYS
         log.info("Tar av vent $vent for behandling $behandlingId")
         val behandling = behandlingRepository.hent(behandlingId)
         val avklaringsbehovene = avklaringsbehovRepository.hentAvklaringsbehovene(behandlingId)
@@ -159,7 +156,7 @@ class AvklaringsbehovOrkestrator(
         if (avklaringsbehovene.hentVentepunkter().map { it.definisjon }.contains(vent)) {
             avklaringsbehovene.løsAvklaringsbehov(
                 definisjon = vent,
-                begrunnelse = begrunnelse,
+                begrunnelse = "Ny oppdatering på journalpost.",
                 endretAv = SYSTEMBRUKER.ident,
             )
         }

@@ -79,7 +79,6 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVSLUTTET
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.OPPRETTET
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.postmottak.gateway.Klokke
-import no.nav.aap.postmottak.under18.Under18NyJournalpostJobbUtfører
 import no.nav.aap.postmottak.under18.Under18Samtykkekandidater
 import no.nav.aap.postmottak.under18.Under18Søknadssituasjon
 import no.nav.aap.postmottak.test.modell.TestKelvinSak
@@ -482,7 +481,12 @@ class Flyttest : WithDependencies {
             .verifiserErPåVent { assertThat(it).containsExactly(Definisjon.VENT_PA_UNDER18_SAMTYKKE) }
         dataSource.transaction { connection ->
             FlytJobbRepository(connection).leggTil(
-                Under18NyJournalpostJobbUtfører.jobbInput(hentBehandling(behandling.id), nyJournalpostId)
+                JobbInput(ProsesserBehandlingJobbUtfører)
+                    .forBehandling(
+                        sakID = behandling.journalpostId.referanse,
+                        behandlingId = behandling.id.id
+                    )
+                    .medCallId()
             )
         }
         util.ventPåSvar(behandling.journalpostId.referanse, behandling.id.id)
