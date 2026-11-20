@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.under18
 
+import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
+
 enum class Under18Søknadssituasjon {
     SØKER_FOR_UNG,
     SØKER_FYLT_18,
@@ -14,8 +16,8 @@ data class Under18Søknadsavklaring(
     val søkerVilFortsette: Boolean,
 ) {
     init {
-        require(situasjon != Under18Søknadssituasjon.SØKER_FOR_UNG || !søkerVilFortsette) {
-            "En søker som er for ung, kan ikke fortsette søknaden"
+        if (situasjon == Under18Søknadssituasjon.SØKER_FOR_UNG && søkerVilFortsette) {
+            throw UgyldigForespørselException("En søker som er for ung, kan ikke fortsette søknaden")
         }
     }
 
