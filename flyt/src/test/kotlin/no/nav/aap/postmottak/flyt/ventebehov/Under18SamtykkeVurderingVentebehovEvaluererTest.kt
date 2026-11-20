@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.flyt.ventebehov
 
-import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.avklaringsbehov.løser.ÅrsakTilSettPåVent
@@ -11,7 +10,6 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.test.MockConnection
 import no.nav.aap.postmottak.test.fakes.InMemoryAvklaringsbehovRepository
 import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
 import no.nav.aap.postmottak.under18.Under18SamtykkeVurdering
@@ -22,9 +20,7 @@ import java.util.UUID
 
 class Under18SamtykkeVurderingVentebehovEvaluererTest {
     private val service = VentebehovEvaluererServiceImpl(
-        RepositoryRegistry()
-            .register<InMemoryUnder18Repository>()
-            .provider(MockConnection().toDBConnection())
+        listOf(Under18SamtykkeVurderingVentebehovEvaluerer(InMemoryUnder18Repository))
     )
 
     @Test
