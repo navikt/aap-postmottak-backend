@@ -6,23 +6,10 @@ import com.papsign.ktor.openapigen.route.apiRouting
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.JobbInput
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
-import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.FakeUnleash
-import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.postgresql.PostgreSQLContainer
 import java.time.Duration
@@ -53,88 +40,7 @@ fun main() {
         apiRouting {
             simulerJournalpostHendelseApi(datasource, postgresRepositoryRegistry, gatewayProvider)
         }
-
-        datasource.transaction {
-            opprettBehandlingAvklarTeam(it)
-            opprettBehandlingFinnSak(it)
-            opprettBehandlingKategoriser(it)
-            opprettBehandlingDigitaliser(it)
-            opprettBehandlingPapirSøknadKategoriser(it)
-        }
-
     }.start(wait = true)
-}
-
-private fun opprettBehandlingAvklarTeam(connection: DBConnection) {
-    val journalpostId = TestJournalposter.leggTil {
-        journalførendeEnhet = "4260"
-    }.journalpostId()
-
-    val behandlingId = BehandlingRepositoryImpl(connection)
-        .opprettBehandling(journalpostId, TypeBehandling.Fordeling)
-    FlytJobbRepository(connection).leggTil(
-        JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(journalpostId.referanse, behandlingId.id)
-            .medCallId()
-    )
-}
-
-private fun opprettBehandlingFinnSak(connection: DBConnection) {
-    val behandlingRepository = BehandlingRepositoryImpl(connection)
-    val journalpostId = JournalpostId(2)
-    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
-    FlytJobbRepository(connection).leggTil(
-        JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
-    )
-
-}
-
-private fun opprettBehandlingKategoriser(connection: DBConnection) {
-    val behandlingRepository = BehandlingRepositoryImpl(connection)
-    val journalpostId = JournalpostId(3)
-
-    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
-    SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
-    FlytJobbRepository(connection).leggTil(
-        JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
-    )
-
-}
-
-private fun opprettBehandlingDigitaliser(connection: DBConnection) {
-    val behandlingRepository = BehandlingRepositoryImpl(connection)
-    val journalpostId = JournalpostId(4)
-    val behandlingId =
-        behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
-    SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
-
-    println("Gå til http://localhost:3000/postmottak/${behandlingRepository.hent(behandlingId).referanse.referanse}/")
-    FlytJobbRepository(connection).leggTil(
-        JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
-    )
-
-}
-
-private fun opprettBehandlingPapirSøknadKategoriser(connection: DBConnection) {
-    val behandlingRepository = BehandlingRepositoryImpl(connection)
-    val journalpostId = TestJournalposter.leggTil {
-        papirsøknad()
-    }.journalpostId()
-
-    val behandlingId = behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-    AvklarTemaRepositoryImpl(connection).lagreTemaAvklaring(behandlingId, true, Tema.AAP)
-    SaksnummerRepositoryImpl(connection).lagreSakVurdering(behandlingId, Saksvurdering("1010"))
-    FlytJobbRepository(connection).leggTil(
-        JobbInput(ProsesserBehandlingJobbUtfører)
-            .forBehandling(journalpostId.referanse, behandlingId.id).medCallId()
-    )
-
 }
 
 private fun initDbConfig(): DbConfig {
