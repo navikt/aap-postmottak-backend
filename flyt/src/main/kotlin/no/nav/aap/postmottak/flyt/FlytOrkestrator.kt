@@ -10,6 +10,8 @@ import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlag
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlagImpl
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.StegOrkestrator
+import no.nav.aap.postmottak.flyt.ventebehov.VentebehovEvaluererService
+import no.nav.aap.postmottak.flyt.ventebehov.VentebehovEvaluererServiceImpl
 import no.nav.aap.postmottak.hendelse.avløp.BehandlingHendelseServiceImpl
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -36,7 +38,8 @@ class FlytOrkestrator(
     private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val behandlingRepository: BehandlingRepository,
     private val behandlingHendelseService: BehandlingHendelseServiceImpl,
-    private val stegOrkestrator: StegOrkestrator
+    private val stegOrkestrator: StegOrkestrator,
+    private val ventebehovEvaluererService: VentebehovEvaluererService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -51,7 +54,8 @@ class FlytOrkestrator(
             repositoryProvider.provide(),
             repositoryProvider.provide()
         ),
-        stegOrkestrator = StegOrkestrator(repositoryProvider, gatewayProvider)
+        stegOrkestrator = StegOrkestrator(repositoryProvider, gatewayProvider),
+        ventebehovEvaluererService = VentebehovEvaluererServiceImpl(repositoryProvider),
     )
 
     fun opprettKontekst(behandlingId: BehandlingId): FlytKontekst {
@@ -79,14 +83,13 @@ class FlytOrkestrator(
 
         behandlingFlyt.forberedFlyt(behandling.aktivtSteg())
 
-        // fjerner av ventepunkt med utløpt frist
+        // fjerner ventepunkt med utløpt frist eller som er løst av noe annet, se SpesifikkVentebehovEvaluerer
         if (avklaringsbehovene.erSattPåVent()) {
-            val behov = avklaringsbehovene.hentVentepunkterMedUtløptFrist()
-            behov.forEach { avklaringsbehovene.løsAvklaringsbehov(it.definisjon, "", SYSTEMBRUKER.ident) }
+            val behov = ventebehovEvaluererService.løsVentebehov(kontekst, avklaringsbehovene)
 
             // Hvis ikke fortsatt på vent
             if (!avklaringsbehovene.erSattPåVent()) {
-                // Behandlingen er tatt av vent pga frist og flyten flyttes tilbake til steget hvor den sto på vent
+                // Behandlingen er tatt av vent og flyten flyttes tilbake til steget hvor den sto på vent
                 val tilbakeflyt = behandlingFlyt.tilbakeflyt(behov)
                 if (!tilbakeflyt.erTom()) {
                     log.info(
