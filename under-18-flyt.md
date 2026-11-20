@@ -819,8 +819,8 @@ eller gjenåpnes for spørsmålet om videre søknad. En tidligere henleggelsesbe
 må ikke brukes som svar. Dermed står ikke en gammel oppgave åpen samtidig.
 Fordi søknadssteget kommer før samtykkesteget, må den daglige gjenopptakelsen
 og flyten sørge for tilbakeføring til søknadssteget ved fylte 18 år, også når
-samtykkesteget har et åpent behov. Fødselsdatoinformasjonskravet melder endringen,
-og flyten går tilbake til søknadssteget. Flyttesten for PR 6b dekker dette.
+samtykkesteget har et åpent behov. Tilbakeføringen må fange opp aldersovergangen
+selv om fødselsdatoen er uendret. Dette er ikke implementert eller testet ennå.
 Etter saksopprettelse skal fødselsdagen ikke endre dokumentbehandlingenes vent eller behov.
 En ny aldersvurdering må kunne avbryte et utdatert henleggelses- eller samtykkebehov.
 En tidligere bekreftelse må ikke føre til henleggelse hvis søkeren nå har passert aldersgrensen.
@@ -1443,6 +1443,19 @@ derfor ikke kjøres med produksjonsrepositoryet ennå.
 Før Postgres-implementasjonen i #972 tas i bruk, må den også lagre fødselsdato
 og søknadsavklaringen (situasjon og svar).
 
+#### Oppfølgingspunkter før flyten tas i bruk
+
+- [Samtykkedokumenter](https://github.com/navikt/aap-postmottak-backend/pull/975#discussion_r4642728314):
+  Valider før lagring at hver oppgitt journalpost finnes og tilhører søkeren,
+  også ved identbytte. Avvis ugyldige referanser uten å lagre vurderingen.
+  Listen kan fortsatt være tom. Test gyldige, ukjente og andre personers journalposter.
+- [Overgangen til 18 år](https://github.com/navikt/aap-postmottak-backend/pull/975#discussion_r4642623497):
+  Sørg for gjenopptak og tilbakeføring til søknadssteget når søker fyller 18 år,
+  selv om fødselsdatoen er uendret. Avslutt relevant vent og avbryt det gamle
+  samtykkebehovet, uten å opprette sak før saksbehandler har registrert svaret.
+  Test overgangen fra samtykkesteget med automatisk og manuell vent og uten vent.
+  Den daglige aldersjobben er planlagt i PR 10.
+
 Nummereringen beholdes, slik at tidligere henvisninger fortsatt stemmer.
 PR 4a er lagt til, PR 6 er delt i a, b og c, og PR 12 er delt i a og b.
 PR 9a beholdes for overleveringsbekreftelse, mens PR 9b om koordinering utgår.
@@ -1458,7 +1471,7 @@ De delene skal ikke implementeres.
 | 4 | Åpen [#972](https://github.com/navikt/aap-postmottak-backend/pull/972): lagring for søknadskoblinger og samtykkevurderinger med aktivt grunnlag. | Ingen av PR 1–3. | PR-en erstatter dummy-repositoryet med vedvarende lagring og inneholder den første migrasjonen. Utvid migrasjonen med `UNDER18_PERSONOPPLYSNING`, én rad per behandling, ikke en kolonne i `PERSON`. Fjern ventetidspunkt fra vurderingen og migrasjonen; vent lagres i avklaringsbehovshistorikken. Test historikk, aktiv vurdering, unik søknadskobling og fødselsdato per behandling. Feltet for dokumentbehandlingens ID kommer i PR 8. Ingen nye digitaliseringstabeller, heller ikke senere. |
 | 4a | Implementert lokalt: kjørbart skjelett for `Under18Flyt` med søknadsavklaring, samtykkeavklaring og sakssteget. | Ingen av PR 4–12 for et skjelett uten `Under18Repository`. | Motortesten verifiserer at uferdig avklaring feiler tydelig, og kontrakttesten de to manuelle definisjonene og samtykkeventen. Uferdige steg skal ikke returnere `Fullført` for arbeid som ikke er utført. Ingen ny migrasjon eller inngang som oppretter reelle under-18-behandlinger. |
 | 6a | Implementert lokalt med in-memory-repo: samtykke, henleggelse og bekreftelse på videre søknad: kontrakter, løsninger, løsere og beslutningslogikk. | PR 4 og 4a. | Test aldersgrensene og lagring av samtykke, henleggelse og søkerens svar. Et nei lagres som bekreftet henleggelse. Bruk eksisterende lagring for situasjon og svar uten å forveksle tidligere henleggelse med svar etter fylte 18 år; avklar hvis dette ikke er mulig. Ingen ny migrasjon eller opprettelse av reelle under-18-behandlinger. |
-| 6b | Implementert lokalt med in-memory-repo: tidlig avklaringsløp i søknads- og samtykkestegene, inkludert samtykkevent, henleggelse og tilbakeføring ved fylte 18 år. | PR 4, 4a og 6a. | Hvert steg oppdaterer sitt eget manuelle avklaringsbehov. Løseren lagrer vurderingen og oppretter vent i samme transaksjon når samtykke mangler. Ved positiv vurdering avslutter evaluatoren venten når prosesseringsjobben kjører. Når fødselsdatoen endres, oppdager informasjonskravet dette og flyten går tilbake til søknadssteget. Flyttesten simulerer den eksterne triggeren ved å avslutte venten, avbryte det gamle samtykkebehovet og legge inn en prosesseringsjobb. Den kontrollerer at et gammelt svar ikke godtas. Produksjonstriggeren og den daglige aldersjobben kommer i PR 10, etter at vedvarende lagring er på plass. Test at bekreftet henleggelse avslutter behandlingen uten sak. Andre uferdige veier stopper før saksopprettelse. Ingen ny migrasjon. |
+| 6b | Implementert lokalt med in-memory-repo: tidlig avklaringsløp i søknads- og samtykkestegene, inkludert samtykkevent og henleggelse. Tilbakeføring ved fylte 18 år gjenstår. | PR 4, 4a og 6a. | Hvert steg oppdaterer sitt eget manuelle avklaringsbehov. Løseren lagrer vurderingen og oppretter vent i samme transaksjon når samtykke mangler. Ved positiv vurdering avslutter evaluatoren venten når prosesseringsjobben kjører. Informasjonskravet oppdager endret fødselsdato, men ikke at søker fyller 18 år med uendret fødselsdato. Flyttesten flytter ventefristen uten å endre alderen og tester ny samtykkeavklaring, ikke aldersovergangen. Produksjonstriggeren og den daglige aldersjobben kommer i PR 10, etter at vedvarende lagring er på plass. Test at bekreftet henleggelse avslutter behandlingen uten sak. Andre uferdige veier stopper før saksopprettelse. Ingen ny migrasjon. |
 | 5 | Lagring og oppslag av første relevante mottakshendelse, med deduplisering. Gjenbruk eksisterende lagring hvis den dekker behovet. | PR 4 for repositoryet. Planlagt etter PR 4a og 6b. | Bruk erfaringene fra avklaringsløpet til å velge lagring før eventuell migrasjon. Bevar opprinnelig status og hendelsestidspunkt, og hindre at samme dokument tar behandlingen av vent flere ganger. Ingen Kafka-kall eller ny jobbtype ennå. |
 | 6c | Journalføring på generell sak og `Under18JournalposterInformasjonskrav`, koblet til avklaringsløpet. | PR 4, 5 og 6b. | Journalfør søknadene før manuell avklaring. Før søker fyller 18 år, skal nye kandidater oppheve automatisk vent, men ikke manuell vent. Test dette, flere samtykkerunder og at gamle dokumenter ikke tar behandlingen av vent på nytt. Ingen Kafka-inngang ennå. |
 | 7 | Saksopprettelse, tilknytningslagring og fullføring av `OpprettUnder18SakSteg`, med gjenfinning etter avbrutte kall. | PR 2, 3, 4 og 4a. | Migrasjon med unik `(behandling_id, kilde_journalpost_id)` for fullførte koblinger. Registrer forsøket varig før skrivekallet, og velg transaksjonsgrenser og låsing. Test krasj, rollback og samtidighet; et uklart utfall skal ikke utløse nytt skrivekall. Saksnummeret stenger innsamlingen, ikke hele behandlingen. |
