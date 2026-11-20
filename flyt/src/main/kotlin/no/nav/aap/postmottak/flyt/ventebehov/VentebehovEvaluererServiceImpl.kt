@@ -5,13 +5,17 @@ import no.nav.aap.postmottak.SYSTEMBRUKER
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehov
 import no.nav.aap.postmottak.avklaringsbehov.Avklaringsbehovene
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.under18.Under18SamtykkeVentebehovEvaluerer
 
 class VentebehovEvaluererServiceImpl(
     private val evaluerere: List<SpesifikkVentebehovEvaluerer>,
 ) : VentebehovEvaluererService {
 
     constructor(repositoryProvider: RepositoryProvider) : this(
-        evaluerere = listOf(Under18SamtykkeVurderingVentebehovEvaluerer(repositoryProvider.provide()))
+        evaluerere = listOf(
+            Under18SamtykkeVurderingVentebehovEvaluerer(repositoryProvider.provide()),
+            Under18SamtykkeVentebehovEvaluerer(repositoryProvider),
+        )
     )
 
     private val fristEvaluerer = FristUtløptVentebehovEvaluerer

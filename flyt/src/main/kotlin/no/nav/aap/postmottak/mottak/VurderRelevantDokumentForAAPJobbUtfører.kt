@@ -29,7 +29,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
-import no.nav.aap.postmottak.under18.Under18NyJournalpostJobbUtfører
 import org.slf4j.LoggerFactory
 
 class VurderRelevantDokumentForAAPJobbUtfører(
@@ -146,7 +145,16 @@ class VurderRelevantDokumentForAAPJobbUtfører(
         behandlingRepository.hentBehandlingerForPerson(person)
             .filter { it.typeBehandling == TypeBehandling.Under18 && !it.status().erAvsluttet() }
             .filter { it.journalpostId != journalpostId }
-            .forEach { flytJobbRepository.leggTil(Under18NyJournalpostJobbUtfører.jobbInput(it, journalpostId)) }
+            .forEach { behandling ->
+                flytJobbRepository.leggTil(
+                    JobbInput(ProsesserBehandlingJobbUtfører)
+                        .forBehandling(
+                            sakID = behandling.journalpostId.referanse,
+                            behandlingId = behandling.id.id
+                        )
+                        .medCallId()
+                )
+            }
     }
 
     private fun hentEnhet(safJournalpost: SafJournalpost): NavEnhet? {

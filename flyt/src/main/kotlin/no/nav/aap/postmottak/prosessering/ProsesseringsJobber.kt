@@ -10,7 +10,6 @@ import no.nav.aap.motor.JobbSpesifikasjon
 import no.nav.aap.postmottak.mottak.VurderRelevantDokumentForAAPJobbUtfører
 import no.nav.aap.postmottak.redigitalisering.RedigitaliseringBehandlingJobbUtfører
 import no.nav.aap.postmottak.redigitalisering.RedigitaliseringKopierJobbUtfører
-import no.nav.aap.postmottak.under18.Under18NyJournalpostJobbUtfører
 
 object ProsesseringsJobber {
 
@@ -29,7 +28,6 @@ object ProsesseringsJobber {
             RedigitaliseringKopierJobbUtfører,
             RedigitaliseringBehandlingJobbUtfører,
             VurderRelevantDokumentForAAPJobbUtfører,
-            Under18NyJournalpostJobbUtfører,
         )
     }
 }
