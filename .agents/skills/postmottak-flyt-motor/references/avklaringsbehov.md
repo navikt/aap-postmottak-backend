@@ -63,7 +63,7 @@ For AVKLAR_TEMA: "needs vurdering" is false for ugyldig, already JOURNALFOERT, t
    4. Enqueue `ProsesserBehandlingJobbUtfører`.
 5. Bump versjon, commit, respond `202 Accepted`. The frontend polls `GET /api/behandling/{ref}/flyt` (prosessering status `JOBBER`/`FEILET`/`FERDIG` based on pending jobs).
 
-A løser that throws (most validation is `require`) rolls everything back.
+A løser that throws rolls everything back. Invalid input must throw `UgyldigForespørselException`, which `StatusPagesConfigHelper` returns as 400 with its message; anything else, including `IllegalArgumentException` from `require`, becomes 500 "En ukjent feil oppsto". Older løsere (`AvklarTemaLøser`, `AvklarSakLøser`) still use `require`; do not copy that.
 
 ## Ventepunkter
 

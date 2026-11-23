@@ -44,7 +44,7 @@ Paths: `flyt/src/main/kotlin/no/nav/aap/postmottak/` unless stated otherwise. Ea
    }
    ```
    Jackson registration is automatic (`utledSubtypes()` in `App.kt`).
-3. Løser in package `avklaringsbehov.løser` implementing the sealed `AvklaringsbehovsLøser<MittBehovLøsning>`, with `forBehov()` and `companion object : LøserKonstruktør<...>`. Store a vurdering and return `LøsningsResultat(begrunnelse)`. Add the class to the expected set in `AvklaringsbehovsLøserTest`.
+3. Løser in package `avklaringsbehov.løser` implementing the sealed `AvklaringsbehovsLøser<MittBehovLøsning>`, with `forBehov()` and `companion object : LøserKonstruktør<...>`. Validate the løsning first and throw `UgyldigForespørselException` (HTTP 400, message shown to the saksbehandler) for invalid input, never `require` or an `init` block in the løsning (that becomes a 500 with "En ukjent feil oppsto"). Then store a vurdering and return `LøsningsResultat(begrunnelse)`. Add the class to the expected set in `AvklaringsbehovsLøserTest`.
 4. The step creates the behov and reads the vurdering on the next run.
 5. Add a read endpoint (`api/.../faktagrunnlag/...`) if the frontend needs grunnlag. `openapi.json` is generated in CI (`./gradlew :app:genererOpenApiJson`); do not edit it by hand.
 6. Coordinate releases: `Definisjon` is serialised in `DokumentflytStoppetHendelse`, so aap-oppgave and aap-statistikk must accept the new code (new kontrakt version) before it can appear; the frontend (aap-saksbehandling) needs a UI.

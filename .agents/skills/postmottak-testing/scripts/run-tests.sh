@@ -12,8 +12,8 @@
 #
 # Environment:
 #   MAX_WORKERS  Gradle --max-workers (default 2). Also caps parallel test JVMs, and therefore containers.
-#   RERUN        1 (default) passes --rerun so Gradle cannot skip the test task as UP-TO-DATE/FROM-CACHE.
-#                Set RERUN=0 to allow Gradle's up-to-date check and build cache.
+#   RERUN        0 (default) trusts Gradle's up-to-date check and build cache.
+#                Set RERUN=1 to pass --rerun and force the test task to run.
 #
 # The full Gradle log is written to a temp file (path is printed). JUnit XML is in <module>/build/test-results/test/
 # and only contains the classes from the LAST run of that module's test task.
@@ -37,7 +37,7 @@ fi
 
 log="$(mktemp "${TMPDIR:-/tmp}/postmottak-test-${module}-XXXXXX")"
 args=(":${module}:test")
-if [[ "${RERUN:-1}" == "1" ]]; then
+if [[ "${RERUN:-0}" == "1" ]]; then
   args+=(--rerun)
 fi
 args+=(--console=plain "--max-workers=${MAX_WORKERS:-2}")
@@ -99,7 +99,11 @@ fi
 
 if [[ $passed -eq 0 && $failed -eq 0 && $status -eq 0 ]]; then
   echo
-  echo "Warning: no tests reported. Check that the filter matches (fully qualified class name, or a '*' prefix)."
+  if grep -qE "^> Task :${module}:test (UP-TO-DATE|FROM-CACHE)" "$log"; then
+    grep -E "^> Task :${module}:test (UP-TO-DATE|FROM-CACHE)" "$log"
+  else
+    echo "Warning: no tests reported. Check that the filter matches (fully qualified class name, or a '*' prefix)."
+  fi
 fi
 
 exit $status

@@ -34,15 +34,16 @@ motor picks the job → new DB transaction → ProsesserBehandlingJobbUtfører.u
 commit. On exception: commit everything up to the last savepoint, mark the job failed, retry later.
 ```
 
-## The three flyter
+## The flyter
 
 | TypeBehandling | Steps (`StegType`) | Informasjonskrav (refreshed in OPPDATER_FAKTAGRUNNLAG) |
 | --- | --- | --- |
 | `Fordeling` | START_BEHANDLING → AVKLAR_FORDELING → AVKLAR_FORDELING_VIDERESEND → IVERKSETTES | AVKLAR_FORDELING: `JournalpostInformasjonskrav` |
 | `Journalføring` | START_BEHANDLING → AVKLAR_TEMA → AVKLAR_SAK → SETT_FAGSAK → ENDELIG_JOURNALFØRING → VIDERESEND → IVERKSETTES | AVKLAR_TEMA: `JournalpostInformasjonskrav`, `SaksnummerInfoKrav` |
 | `DokumentHåndtering` | START_BEHANDLING → DIGITALISER_DOKUMENT → OVERLEVER_TIL_FAGSYSTEM → IVERKSETTES | none |
+| `Under18` | START_BEHANDLING → AVKLAR_UNDER18 → AVKLAR_UNDER18_SAMTYKKE → OPPRETT_UNDER18_SAK → IVERKSETTES | AVKLAR_UNDER18: `JournalpostInformasjonskrav`, `Under18FødselsdatoInformasjonskrav` |
 
-Defined in `flyt/.../forretningsflyt/behandlingstyper/` and mapped in `flyt/.../flyt/BehandlingType.kt` (`utledType`). `IVERKSETTES` is `AvsluttBehandlingSteg` (a no-op). The business intent of each flyt is in the `postmottak-dokumentflyt` skill.
+Defined in `flyt/.../forretningsflyt/behandlingstyper/` and mapped in `flyt/.../flyt/BehandlingType.kt` (`utledType`). `IVERKSETTES` is `AvsluttBehandlingSteg` (a no-op). The Under18 flyt is not ready for production: the registered `Under18RepositoryImpl` has `TODO()` for its under-18 methods; tests use `InMemoryUnder18Repository`. The business intent of the existing flyter is in the `postmottak-dokumentflyt` skill.
 
 ## Rules that are not obvious from reading one file
 
@@ -54,7 +55,7 @@ Defined in `flyt/.../forretningsflyt/behandlingstyper/` and mapped in `flyt/.../
 6. **Each step is constructed five times per pass** (`stegKonstruktør.konstruer` once per phase). `konstruer()` and constructors must be cheap and side-effect free.
 7. **Savepoints make failures partially durable.** `StegOrkestrator` sets a savepoint after START and after OPPDATER_FAKTAGRUNNLAG. When a later phase throws, the transaction rolls back to the savepoint and then commits (`DBConnection.rollback` + `autoCommit = true` in komponenter). Earlier steps and the faktagrunnlag refresh of the failing step are persisted, the job retries from the failing step, and it is marked `FEILET` after 3 attempts. Verified.
 8. **External calls inside steps can be repeated** (retries, rewinds, resumes). Use idempotent operations: `...HvisIkkeEksisterer` for Gosys, `finnEllerOpprettSak`, receivers that deduplicate on journalpost.
-9. **Ventepunkter are only closed in these ways:** in `forberedBehandling` by `VentebehovEvaluererService` (`flyt/ventebehov/`, same design as aap-behandlingsflyt) when the frist has expired or a `SpesifikkVentebehovEvaluerer` for that definisjon says it is solved (none exist yet; the evaluator only runs when something enqueues processing, such as cron `GjenopptaBehandlingJobbUtfører` at 07:00 for expired frister), the saksbehandler solves `MANUELT_SATT_PÅ_VENT`, `AvklaringsbehovOrkestrator.taAvVentPgaGosys`, or a step returning `Fullført` while the behandling has *no* non-vente avklaringsbehov at all (in any status). A step finishing does **not** close vent if, for example, `AVKLAR_TEMA` exists. Verified: `VENT_PA_GOSYS` stays open after the journalpost tema changes away from AAP.
+9. **Ventepunkter are only closed in these ways:** in `forberedBehandling` by `VentebehovEvaluererService` (`flyt/ventebehov/`, same design as aap-behandlingsflyt) when the frist has expired or a `SpesifikkVentebehovEvaluerer` for that definisjon says it is solved. `Under18SamtykkeVurderingVentebehovEvaluerer` closes samtykkevent when the active vurdering says both parents consented. Evaluators only run when something enqueues processing, such as a løsning or cron `GjenopptaBehandlingJobbUtfører` at 07:00 for expired frister. Other paths are the saksbehandler solving `MANUELT_SATT_PÅ_VENT`, `AvklaringsbehovOrkestrator.taAvVentPgaGosys`, or a step returning `Fullført` while the behandling has *no* non-vente avklaringsbehov at all (in any status). A step finishing does **not** close vent if, for example, `AVKLAR_TEMA` exists. Verified: `VENT_PA_GOSYS` stays open after the journalpost tema changes away from AAP.
 10. **`Avklaringsbehovene.avbrytForSteg` ignores status.** `DigitaliserDokumentSteg` calls it when a vurdering exists, so a `DIGITALISER_DOKUMENT` solved by a saksbehandler ends as `AVBRUTT` (history `OPPRETTET, AVSLUTTET, AVBRUTT`). Verified. Use `hvemSomLøste()` (last `AVSLUTTET`) to find who solved it.
 11. **`Status.erAvsluttet()` is true for both `IVERKSETTES` and `AVSLUTTET`.** A behandling is `IVERKSETTES` while in VIDERESEND, AVKLAR_FORDELING_VIDERESEND or IVERKSETTES, and `AVSLUTTET` only after the last step. `hentÅpenJournalføringsbehandling` only matches `OPPRETTET`/`UTREDES`.
 12. **The motor "sakId" is the journalpostId.** `forBehandling(journalpostId, behandlingId)`. Jobs run strictly in order per (sakId, behandlingId, type). A `FEILET` job blocks later jobs of the same type in that group, and blocks saksbehandler actions on the behandling (`BehandlingUnderProsesseringException`).
@@ -78,7 +79,7 @@ Defined in `flyt/.../forretningsflyt/behandlingstyper/` and mapped in `flyt/.../
 
 - Read the reference for the area first; most "bugs" here are intended or load-bearing.
 - `BehandlingFlyt` is synced from aap-behandlingsflyt (KDoc says so). Keep diffs small to ease future syncs.
-- Run the targeted unit tests and **one or two** relevant `Flyttest` methods, not the whole suite (see `postmottak-testing`).
+- While iterating, run targeted unit tests and **one or two** relevant `Flyttest` methods. Run the full suite before finishing (see `postmottak-testing`).
 - Use `../postmottak-testing/scripts/flyt-trace.sh` to read what the engine did instead of reading raw logs.
 
 ## References (read when relevant)

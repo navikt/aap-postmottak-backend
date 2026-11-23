@@ -24,10 +24,10 @@ import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.util.concurrent.atomic.AtomicLong
 
 
 class AvklarTemaStegTest {
@@ -48,17 +48,12 @@ class AvklarTemaStegTest {
             unleashGateway = unleashGateway,
         )
 
-    val behandlingId = BehandlingId(10)
+    val behandlingId = BehandlingId(nesteBehandlingId.getAndIncrement())
     val kontekst = FlytKontekst(
         behandlingId = behandlingId,
         behandlingType = TypeBehandling.DokumentHåndtering,
         journalpostId = JournalpostId(1)
     )
-
-    @BeforeEach
-    fun before() {
-        InMemoryAvklaringsbehovRepository.clearMemory()
-    }
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
@@ -203,5 +198,9 @@ class AvklarTemaStegTest {
         avklarTemaSteg.utfør(kontekst)
 
         assertThat(InMemoryAvklaringsbehovRepository.hent(behandlingId)).isEmpty()
+    }
+
+    companion object {
+        private val nesteBehandlingId = AtomicLong(10)
     }
 }

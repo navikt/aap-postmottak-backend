@@ -74,8 +74,8 @@ API calls never run steps: they store a decision and enqueue `flyt.prosesserBeha
 
 - Prerequisites: JDK 25 toolchain and Docker for Testcontainers (Postgres, Kafka). With Colima, export the variables listed in `README.md`.
 - Compile check (fast): `./gradlew :flyt:compileTestKotlin`, or `./gradlew assemble`.
-- **Do not run `./gradlew test` or `./gradlew build` to check your work.** Every module runs in parallel with `cores / 2` test JVMs, each starting containers. That is slow and times out in sandboxes. Gradle's build cache can also skip test tasks silently.
-- Run narrow test sets with the script, which forces `--rerun`, caps workers and prints a compact summary:
+- **Always run the full test suite with `./gradlew test` before saying a task is done.** Run it once at the end, not while iterating. It runs every module in parallel with `cores / 2` test JVMs, and each JVM starts its own containers. Expect several minutes, so give the command a long timeout or run it in the background. Tests in unchanged modules may come from Gradle's build cache, which is fine. Narrow test runs have missed failures in other test classes that construct the same steps or løsere.
+- While iterating, run narrow test sets with the script. It caps workers and prints a compact summary. Trust Gradle's up-to-date check and build cache; do not force `--rerun`:
   ```bash
   .agents/skills/postmottak-testing/scripts/run-tests.sh flyt 'no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarSakStegTest'
   .agents/skills/postmottak-testing/scripts/run-tests.sh flyt 'no.nav.aap.postmottak.flyt.Flyttest.kjører en manuell søknad igjennom hele flyten'
@@ -95,7 +95,9 @@ API calls never run steps: they store a decision and enqueue `flyt.prosesserBeha
   - jobs: registered in `flyt/.../prosessering/ProsesseringsJobber.kt`. Never rename a job `type`; rows with the old type must still parse;
   - avklaringsbehov løsninger: added to `utledSubtypes()` in `flyt/.../avklaringsbehov/løsning/AvklaringsbehovLøsning.kt`.
   Step-by-step recipes, including what happens to behandlinger already in flight: `postmottak-flyt-motor/references/recipes.md`.
+- Each repository owns its own tables. Do not have multiple repositories read or write the same table; add new data to a table owned by the repository responsible for it.
 - Flyway: add a new `V1.<next>__beskrivelse.sql` migration, using the next version after the latest migration in the repository; never edit an applied migration. **Every table needs a primary key**: all tables are published for Datastream, and Postgres rejects `UPDATE`/`DELETE` on a published table without one. Tests do not catch this. Prod runs Postgres 16, tests use 18, so avoid newer SQL features.
+- Error handling, as in aap-behandlingsflyt: invalid input from a saksbehandler (in løsere, løsninger and API code) throws `UgyldigForespørselException` from komponenter, which becomes HTTP 400 with the message shown to the user. Do not use `require`/`check` for this: `IllegalArgumentException` becomes a 500 with "En ukjent feil oppsto". Keep `require`/`check`/`error` for internal invariants (developer errors).
 - Personal data (fødselsnummer, names) only goes to the `team-logs` logger (`LoggerFactory.getLogger("team-logs")`), never to the normal log.
 - Style: `.editorconfig` (4 spaces, 120 columns, no wildcard imports), detekt rules in `config/detekt/detekt.yml`. Match the surrounding code; most code has no comments.
 - Do not commit or push unless the user explicitly asks for it.
