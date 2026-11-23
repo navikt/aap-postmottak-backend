@@ -79,6 +79,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVSLUTTET
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.OPPRETTET
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.postmottak.gateway.Klokke
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.under18.Under18Samtykkekandidater
 import no.nav.aap.postmottak.under18.Under18Søknadssituasjon
 import no.nav.aap.postmottak.test.modell.TestKelvinSak
@@ -449,26 +450,31 @@ class Flyttest : WithDependencies {
     @Test
     fun `under18 - ny journalpost på søkeren tar behandlingen av samtykkevent én gang`() {
         val behandling = opprettUnder18Behandling(fødselsdato = LocalDate.now().minusYears(18).plusDays(7))
+
+        // Setter behandlingen på vent etter at saksbehandler har svart at samtykke ikke har kommet
         behandling
             .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
             .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = false))
             .verifiserErPåVent { assertThat(it).containsExactly(Definisjon.VENT_PA_UNDER18_SAMTYKKE) }
-        val person = dataSource.transaction(readOnly = true) { connection ->
-            repositoryRegistry.provider(connection).provide<JournalpostRepository>()
-                .hentHvisEksisterer(behandling.journalpostId)!!.person
-        }
+
+        val person = personForBehandling(behandling)
+
         val nyJournalpostId = TestJournalposter.leggTil {
             this.person = TestPersoner.hentPerson(person.identer().first().identifikator)
         }.journalpostId()
 
+        // Ny journalpost
         leggJournalpostPåKafka { journalpostId = nyJournalpostId.referanse }
 
+        // Er tatt av vent
         hentBehandling(behandling.id)
             .verifiserIkkePåVent()
             .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+
         val kandidater = dataSource.transaction(readOnly = true) { connection ->
             Under18Samtykkekandidater.konstruer(repositoryRegistry.provider(connection)).hent(behandling)
         }
+
         assertThat(kandidater).extracting<JournalpostId> { it.journalpostId }.containsExactly(nyJournalpostId)
         prøv {
             assertThat(alleBehandlingerForJournalpost(nyJournalpostId))
@@ -494,6 +500,7 @@ class Flyttest : WithDependencies {
         hentBehandling(behandling.id)
             .verifiserErPåVent { assertThat(it).containsExactly(Definisjon.VENT_PA_UNDER18_SAMTYKKE) }
     }
+
 
     @Test
     fun fordel() {
@@ -1393,6 +1400,11 @@ class Flyttest : WithDependencies {
         val behandling = hentBehandling(behandlingId)
         assertThat(behandling.status()).isEqualTo(Status.UTREDES)
         assertThat(behandling.aktivtSteg()).isEqualTo(StegType.OPPRETT_UNDER18_SAK)
+    }
+
+    private fun personForBehandling(behandling: Behandling): Person = dataSource.transaction(readOnly = true) { connection ->
+        repositoryRegistry.provider(connection).provide<JournalpostRepository>()
+            .hentHvisEksisterer(behandling.journalpostId)!!.person
     }
 
     private fun settFristTilIdag(behandlingId: BehandlingId, definisjon: Definisjon) {

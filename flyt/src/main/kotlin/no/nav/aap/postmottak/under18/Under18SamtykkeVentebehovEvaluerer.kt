@@ -19,6 +19,10 @@ class Under18SamtykkeVentebehovEvaluerer(
     override fun definisjon() = Definisjon.VENT_PA_UNDER18_SAMTYKKE
 
     override fun ansesSomLøst(kontekst: FlytKontekst, avklaringsbehov: Avklaringsbehov): Boolean {
+        /**
+         * Anses som løst om det har kommet journalposter på denne personen etter sist gang
+         * behandlingen ble satt på vent.
+         */
         val ventSatt = avklaringsbehov.historikk
             .filter { it.status == Status.OPPRETTET }
             .maxOf { it.tidsstempel }
