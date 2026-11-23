@@ -58,7 +58,7 @@ internal class JournalpostRepositoryImplTest {
             assertThat(hentetJournalpost).usingRecursiveComparison().isEqualTo(journalpost)
             assertThat(hentetJournalpost?.dokumenter?.size).isGreaterThan(0)
             assertThat(hentetJournalpost?.erSøknad()).isTrue()
-            assertThat(hentetJournalpost?.erDigital()).isTrue()
+            assertThat(hentetJournalpost?.harStrukturertData()).isTrue()
         }
     }
 

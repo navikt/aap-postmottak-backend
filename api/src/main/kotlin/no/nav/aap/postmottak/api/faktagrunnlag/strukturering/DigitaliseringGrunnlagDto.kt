@@ -10,8 +10,19 @@ data class DigitaliseringvurderingDto(
     val søknadsdato: LocalDate?
 )
 
+data class JournalpostMetadata(
+    val kategori: InnsendingType?,
+    val brevkode: String?,
+    /**
+     * Ikke alle digitale dokumenter har strukturert data
+     */
+    val harStrukturertData: Boolean,
+    val erPapir: Boolean
+)
+
 data class DigitaliseringGrunnlagDto(
     val klagebehandlinger: List<Klagebehandling>,
     val erPapir: Boolean,
+    val journalpostMetadata: JournalpostMetadata,
     val vurdering: DigitaliseringvurderingDto?
 )
