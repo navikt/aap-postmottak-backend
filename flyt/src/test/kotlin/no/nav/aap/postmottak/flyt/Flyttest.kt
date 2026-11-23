@@ -69,7 +69,16 @@ import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SamtykkeLøsning
+import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SøknadLøsning
+import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVSLUTTET
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.OPPRETTET
+import no.nav.aap.postmottak.test.modell.TestPerson
+import no.nav.aap.postmottak.gateway.Klokke
+import no.nav.aap.postmottak.under18.Under18Søknadssituasjon
 import no.nav.aap.postmottak.test.modell.TestKelvinSak
 import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
@@ -107,6 +116,13 @@ object TemaFlytUnleash : UnleashGateway by FakeUnleash {
         if (featureToggle == PostmottakFeature.PostmottakVelgTema) velgTema else FakeUnleash.isEnabled(featureToggle)
 }
 
+object TestKlokke : Klokke {
+    @Volatile
+    var dato: LocalDate = LocalDate.now()
+
+    override fun dagensDato(): LocalDate = dato
+}
+
 @Fakes
 @Execution(ExecutionMode.SAME_THREAD)
 class Flyttest : WithDependencies {
@@ -116,6 +132,7 @@ class Flyttest : WithDependencies {
 
         private val gatewayProvider = defaultGatewayProvider {
             register<TemaFlytUnleash>()
+            register<TestKlokke>()
         }
         private lateinit var hendelsesMottak: TestHendelsesMottak
         private lateinit var motor: Motor
@@ -217,7 +234,7 @@ class Flyttest : WithDependencies {
                     r RECORD;
                 BEGIN
                     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT LIKE 'flyway_%') LOOP
-                        EXECUTE 'TRUNCATE TABLE public.' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE';
+                        EXECUTE 'TRUNCATE TABLE public.' || quote_ident(r.tablename) || ' CASCADE';
                     END LOOP;
                 END;
                 $$;
@@ -278,38 +295,153 @@ class Flyttest : WithDependencies {
     }
 
     @Test
-    fun `under18-flyten feiler eksplisitt i første uferdige steg`() {
-        val journalpostId = TestJournalposter.leggTil { }.journalpostId()
-        val behandlingId = dataSource.transaction { connection ->
-            repositoryRegistry.provider(connection).provide<BehandlingRepository>()
-                .opprettBehandling(journalpostId, TypeBehandling.Under18)
-        }
+    fun `under18 - for ung søker gir henleggelse etter bekreftelse`() {
+        val behandling = opprettUnder18Behandling(fødselsdato = LocalDate.now().minusYears(17))
 
-        triggProsesserBehandling(journalpostId, behandlingId)
+        behandling
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+            .løsAvklaringsBehov(
+                AvklarUnder18SøknadLøsning(
+                    situasjon = Under18Søknadssituasjon.SØKER_FOR_UNG,
+                    søkerVilFortsette = false
+                )
+            )
 
-        prøv {
-            val jobbStatuser = dataSource.transaction(readOnly = true) { connection ->
-                connection.queryList(
-                    """
-                    SELECT status
-                    FROM JOBB
-                    WHERE behandling_id = ?
-                        AND type = ?
-                    """.trimIndent()
-                ) {
-                    setParams {
-                        setLong(1, behandlingId.id)
-                        setString(2, ProsesserBehandlingJobbUtfører.type)
-                    }
-                    setRowMapper { it.getString("status") }
-                }
+        prøv { assertThat(hentBehandling(behandling.id).status()).isEqualTo(Status.AVSLUTTET) }
+        assertThat(hentAvklaringsbehov(behandling)).isEmpty()
+    }
+
+    @Test
+    fun `under18 - søker som har fylt 18 år og ikke vil fortsette, gir henleggelse`() {
+        val behandling = opprettUnder18Behandling(fødselsdato = LocalDate.now().minusYears(18).minusDays(1))
+
+        behandling
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+            .løsAvklaringsBehov(
+                AvklarUnder18SøknadLøsning(
+                    situasjon = Under18Søknadssituasjon.SØKER_FOR_UNG,
+                    søkerVilFortsette = false
+                )
+            )
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+            .also { assertThat(it.status()).isEqualTo(Status.UTREDES) }
+            .løsAvklaringsBehov(
+                AvklarUnder18SøknadLøsning(
+                    situasjon = Under18Søknadssituasjon.SØKER_FYLT_18,
+                    søkerVilFortsette = false
+                )
+            )
+
+        prøv { assertThat(hentBehandling(behandling.id).status()).isEqualTo(Status.AVSLUTTET) }
+    }
+
+    @Test
+    fun `under18 - søker som har fylt 18 år og vil fortsette, går til saksopprettelse uten samtykke`() {
+        val behandling = opprettUnder18Behandling(fødselsdato = LocalDate.now().minusYears(18).minusDays(1))
+
+        behandling
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+            .løsAvklaringsBehov(
+                AvklarUnder18SøknadLøsning(
+                    situasjon = Under18Søknadssituasjon.SØKER_FYLT_18,
+                    søkerVilFortsette = true
+                )
+            )
+
+        verifiserStoppetIOpprettUnder18Sak(behandling.id)
+        assertThat(hentAvklaringsbehov(behandling)).isEmpty()
+    }
+
+    @Test
+    fun `under18 - 18-årsdagen krever ny søknadsavklaring før sak opprettes`() {
+        val startDato = LocalDate.now()
+        val fødselsdato = startDato.minusYears(18).plusDays(7)
+        TestKlokke.dato = startDato
+        try {
+            val behandling = opprettUnder18Behandling(fødselsdato)
+
+            behandling
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+                .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = false))
+                .verifiserErPåVent { assertThat(it).containsExactly(Definisjon.VENT_PA_UNDER18_SAMTYKKE) }
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+
+            val vent = dataSource.transaction(readOnly = true) { connection ->
+                hentAvklaringsbehov(behandling.id, connection).hentVentepunkter().single()
             }
-            assertThat(jobbStatuser).contains("FEILET")
-        }
+            assertThat(vent.frist()).isEqualTo(fødselsdato.plusYears(18))
 
-        val behandling = hentBehandling(behandlingId)
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
-        assertThat(behandling.aktivtSteg()).isEqualTo(StegType.AVKLAR_UNDER18)
+            settFristTilIdag(behandling.id, Definisjon.VENT_PA_UNDER18_SAMTYKKE)
+            TestKlokke.dato = fødselsdato.plusYears(18)
+            triggProsesserBehandling(behandling.journalpostId, behandling.id)
+
+            assertThat(
+                InMemoryUnder18Repository.hentAktivSamtykkevurdering(behandling.id)?.beggeForeldreSamtykket
+            ).isFalse()
+            hentBehandling(behandling.id)
+                .also { assertThat(it.aktivtSteg()).isEqualTo(StegType.AVKLAR_UNDER18) }
+                .verifiserIkkePåVent()
+                .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+                .løsAvklaringsBehov(
+                    AvklarUnder18SøknadLøsning(
+                        situasjon = Under18Søknadssituasjon.SØKER_FYLT_18,
+                        søkerVilFortsette = true,
+                    )
+                )
+
+            verifiserStoppetIOpprettUnder18Sak(behandling.id)
+        } finally {
+            TestKlokke.dato = LocalDate.now()
+        }
+    }
+
+    @Test
+    fun `under18 - manglende samtykke gir vent til 18-årsdagen og deretter ny samtykkeavklaring`() {
+        val fødselsdato = LocalDate.now().minusYears(18).plusWeeks(1)
+        val behandling = opprettUnder18Behandling(fødselsdato)
+
+        behandling
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+            .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = false))
+            .verifiserErPåVent { assertThat(it).containsExactly(Definisjon.VENT_PA_UNDER18_SAMTYKKE) }
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+
+        val vent = dataSource.transaction(readOnly = true) { connection ->
+            hentAvklaringsbehov(behandling.id, connection).hentVentepunkter().single()
+        }
+        assertThat(vent.frist()).isEqualTo(fødselsdato.plusYears(18))
+
+        settFristTilIdag(behandling.id, Definisjon.VENT_PA_UNDER18_SAMTYKKE)
+        triggProsesserBehandling(behandling.journalpostId, behandling.id)
+
+        hentBehandling(behandling.id)
+            .verifiserIkkePåVent()
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+            .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = false))
+            .verifiserErPåVent { assertThat(it).containsExactly(Definisjon.VENT_PA_UNDER18_SAMTYKKE) }
+
+        triggProsesserBehandling(behandling.journalpostId, behandling.id)
+        val ventHistorikk = dataSource.transaction(readOnly = true) { connection ->
+            hentAvklaringsbehov(behandling.id, connection)
+                .hentBehovForDefinisjon(Definisjon.VENT_PA_UNDER18_SAMTYKKE)!!.historikk
+        }
+        assertThat(ventHistorikk.count { it.status == OPPRETTET })
+            .isEqualTo(2)
+
+        hentBehandling(behandling.id)
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+            .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = true))
+            .verifiserIkkePåVent()
+
+        val avsluttetVentHistorikk = dataSource.transaction(readOnly = true) { connection ->
+            hentAvklaringsbehov(behandling.id, connection)
+                .hentBehovForDefinisjon(Definisjon.VENT_PA_UNDER18_SAMTYKKE)!!.historikk
+        }
+        assertThat(avsluttetVentHistorikk.map { it.status })
+            .containsExactly(OPPRETTET, AVSLUTTET, OPPRETTET, AVSLUTTET)
+        assertThat(avsluttetVentHistorikk.last().endretAv).isEqualTo(SYSTEMBRUKER.ident)
+
+        verifiserStoppetIOpprettUnder18Sak(behandling.id)
     }
 
     @Test
@@ -1172,6 +1304,63 @@ class Flyttest : WithDependencies {
     private fun hentAvklaringsbehov(behandling: Behandling): List<Avklaringsbehov> {
         return dataSource.transaction(readOnly = true) { connection ->
             hentAvklaringsbehov(behandling.id, connection).åpne()
+        }
+    }
+
+    private fun opprettUnder18Behandling(fødselsdato: LocalDate): Behandling {
+        val person = TestPersoner.leggTil(TestPerson(fødselsdato = Fødselsdato(fødselsdato)))
+        val journalpostId = TestJournalposter.leggTil { this.person = person }.journalpostId()
+        val behandlingId = dataSource.transaction { connection ->
+            repositoryRegistry.provider(connection).provide<BehandlingRepository>()
+                .opprettBehandling(journalpostId, TypeBehandling.Under18)
+        }
+        triggProsesserBehandling(journalpostId, behandlingId)
+        return hentBehandling(behandlingId)
+    }
+
+    // OpprettUnder18SakSteg er ikke implementert ennå og feiler når behandlingen ikke er henlagt.
+    private fun verifiserStoppetIOpprettUnder18Sak(behandlingId: BehandlingId) {
+        prøv {
+            val jobbStatuser = dataSource.transaction(readOnly = true) { connection ->
+                connection.queryList(
+                    """
+                    SELECT status
+                    FROM JOBB
+                    WHERE behandling_id = ?
+                        AND type = ?
+                    """.trimIndent()
+                ) {
+                    setParams {
+                        setLong(1, behandlingId.id)
+                        setString(2, ProsesserBehandlingJobbUtfører.type)
+                    }
+                    setRowMapper { it.getString("status") }
+                }
+            }
+            assertThat(jobbStatuser).contains("FEILET")
+        }
+        val behandling = hentBehandling(behandlingId)
+        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
+        assertThat(behandling.aktivtSteg()).isEqualTo(StegType.OPPRETT_UNDER18_SAK)
+    }
+
+    private fun settFristTilIdag(behandlingId: BehandlingId, definisjon: Definisjon) {
+        dataSource.transaction { connection ->
+            connection.execute(
+                """
+                UPDATE AVKLARINGSBEHOV_ENDRING
+                SET frist = CURRENT_DATE
+                WHERE frist IS NOT NULL
+                    AND avklaringsbehov_id IN (
+                        SELECT id FROM AVKLARINGSBEHOV WHERE behandling_id = ? AND definisjon = ?
+                    )
+                """.trimIndent()
+            ) {
+                setParams {
+                    setLong(1, behandlingId.id)
+                    setString(2, definisjon.kode.name)
+                }
+            }
         }
     }
 

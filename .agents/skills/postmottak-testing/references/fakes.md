@@ -63,7 +63,7 @@ Snarveier: `TestJournalposter.digitalSøknad()`, `.papirsøknad()`, `.legeerklæ
 | `fakeGatewayProvider(unleash)` | registrerer `FakeArenaoppslagGateway`, `FakeJournalpostGateway` og en Unleash-fake. `FakeJournalpostGateway.hentJournalpost` er `TODO()` |
 | `FakeArenaoppslagGateway` | historikk bare for ident `09876543210`. Faste data for maksdato |
 | `FakeStatistikkGateway` | registrerer hendelser, men `konstruer()` lager en ny instans hver gang, så du kan ikke lese dem tilbake |
-| `InMemoryAvklaringsbehovRepository` (object) | `AvklaringsbehovRepository` i minnet. Kall `clearMemory()` mellom testene |
+| `InMemoryAvklaringsbehovRepository`, `InMemoryUnder18Repository` (objects) | repositorier i minnet med global tilstand. Ikke kall `clearMemory()`. Bruk unike id-er per test |
 | `MockConnection().toDBConnection()` | en `DBConnection` der JDBC-kall kaster exception. Bare til å konstruere repositorier du ikke vil kalle |
 | `FødselsnummerGenerator`, `AzureTokenGen` | gyldig fnr for en fødselsdato. Signerte testtokens |
 | Testlokale: `TemaFlytUnleash` (`Flyttest`), `FakeUnleashGateway` (`ArenaOppgaveFlytTest`), `JoarkTemavalgUnleash` (`JoarkKafkaHandlerTest`), `BehandlingsflytGatewayMock` (`AvklaringsbehovsLøserTest`, alt `TODO()`) | eksempler på overstyringer per test |

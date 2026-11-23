@@ -5,7 +5,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 class FantAvklaringsbehov(private val avklaringsbehov: Definisjon) : StegResultat {
 
     init {
-        require(!avklaringsbehov.erVentebehov() ) { "Inneholder ventebehov, disse bruk Stegresultat FantVentebehov:: $avklaringsbehov" }
+        require(!avklaringsbehov.erVentebehov()) { "Forventer et manuelt avklaringsbehov, fikk ventebehov: $avklaringsbehov" }
     }
 
     override fun transisjon(): Transisjon {

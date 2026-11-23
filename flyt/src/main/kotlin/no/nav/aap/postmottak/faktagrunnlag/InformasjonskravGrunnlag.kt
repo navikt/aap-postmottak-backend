@@ -5,7 +5,7 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 
 interface InformasjonskravGrunnlag {
     /**
-     * @param kravkonstruktører En liste med [Informasjonskrav] som skal oppdateres.
+     * @param kravkonstruktører En liste med [Informasjonskrav] som oppdateres sekvensielt i oppgitt rekkefølge.
      * @param kontekst Den gjeldende flytkonteksten.
      * @return En liste over informasjonskrav som har endret seg siden forrige kall.
      */

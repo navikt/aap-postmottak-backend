@@ -9,6 +9,8 @@ public const val DIGITALISER_DOKUMENT_KODE: String = "1338"
 public const val AVKLAR_TEMA_KODE: String = "1339"
 public const val AVKLAR_SAKSNUMMER_KODE: String = "1340"
 public const val AVKLAR_OVERLEVERING_KODE: String = "1341"
+public const val AVKLAR_UNDER18_SØKNAD_KODE: String = "1344"
+public const val AVKLAR_UNDER18_SAMTYKKE_KODE: String = "1345"
 @Deprecated("Manuell fordeling er fjernet. Fordeling skjer alltid automatisk; koden finnes bare i historiske data.")
 public const val AVKLAR_FORDELING_KODE: String = "1343"
 

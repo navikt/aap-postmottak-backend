@@ -12,8 +12,8 @@
 #
 # Miljø:
 #   MAX_WORKERS  Gradle --max-workers (standard 2). Begrenser også parallelle test-JVM-er og dermed containere.
-#   RERUN        1 (standard) sender --rerun, slik at Gradle ikke kan hoppe over testtasken som UP-TO-DATE/FROM-CACHE.
-#                Sett RERUN=0 for å tillate Gradles up-to-date-sjekk og build-cache.
+#   RERUN        0 (standard) bruker Gradles up-to-date-sjekk og build-cache.
+#                Sett RERUN=1 for å sende --rerun og tvinge testtasken til å kjøre.
 #
 # Hele Gradle-loggen skrives til en midlertidig fil (stien skrives ut). JUnit-XML ligger i <modul>/build/test-results/test/
 # og inneholder bare klassene fra SISTE kjøring av modulens testtask.
@@ -37,7 +37,7 @@ fi
 
 log="$(mktemp "${TMPDIR:-/tmp}/postmottak-test-${module}-XXXXXX")"
 args=(":${module}:test")
-if [[ "${RERUN:-1}" == "1" ]]; then
+if [[ "${RERUN:-0}" == "1" ]]; then
   args+=(--rerun)
 fi
 args+=(--console=plain "--max-workers=${MAX_WORKERS:-2}")
@@ -99,7 +99,11 @@ fi
 
 if [[ $passed -eq 0 && $failed -eq 0 && $status -eq 0 ]]; then
   echo
-  echo "Advarsel: ingen tester rapportert. Sjekk at filteret treffer (fullt kvalifisert klassenavn, eller prefiks med '*')."
+  if grep -qE "^> Task :${module}:test (UP-TO-DATE|FROM-CACHE)" "$log"; then
+    grep -E "^> Task :${module}:test (UP-TO-DATE|FROM-CACHE)" "$log"
+  else
+    echo "Advarsel: ingen tester rapportert. Sjekk at filteret treffer (fullt kvalifisert klassenavn, eller prefiks med '*')."
+  fi
 fi
 
 exit $status

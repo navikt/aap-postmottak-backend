@@ -24,7 +24,7 @@ hva som helst (Kafka, API, et annet steg, cron)
 motoren plukker jobben → ny DB-transaksjon → ProsesserBehandlingJobbUtfører.utfør
   ├─ TaSkriveLåsRepository.lås(behandlingId)          SELECT versjon ... FOR UPDATE
   ├─ FlytOrkestrator.forberedOgProsesserBehandling
-  │    forberedBehandling   utløp av ventepunkter → tilbakefør til tidligste åpne behov → oppdater informasjonskrav
+  │    forberedBehandling   løs ventepunkter (frist eller evaluerer) → tilbakefør til tidligste åpne behov → oppdater informasjonskrav
   │                         for alle TIDLIGERE steg → tilbakefør hvis oppdateringen tilsier det
   │    prosesserBehandling  for steg i flyten, fra og med behandling.aktivtSteg():
   │                           StegOrkestrator.utfør(steg): START → OPPDATER_FAKTAGRUNNLAG → UTFØRER → AVKLARINGSPUNKT → AVSLUTTER
@@ -34,15 +34,16 @@ motoren plukker jobben → ny DB-transaksjon → ProsesserBehandlingJobbUtfører
 commit. Ved exception: commit alt fram til siste savepoint, marker jobben som feilet, prøv på nytt senere.
 ```
 
-## De tre flytene
+## Flytene
 
 | TypeBehandling | Steg (`StegType`) | Informasjonskrav (oppdateres i OPPDATER_FAKTAGRUNNLAG) |
 | --- | --- | --- |
 | `Fordeling` | START_BEHANDLING → AVKLAR_FORDELING → AVKLAR_FORDELING_VIDERESEND → IVERKSETTES | AVKLAR_FORDELING: `JournalpostInformasjonskrav` |
 | `Journalføring` | START_BEHANDLING → AVKLAR_TEMA → AVKLAR_SAK → SETT_FAGSAK → ENDELIG_JOURNALFØRING → VIDERESEND → IVERKSETTES | AVKLAR_TEMA: `JournalpostInformasjonskrav`, `SaksnummerInfoKrav` |
 | `DokumentHåndtering` | START_BEHANDLING → DIGITALISER_DOKUMENT → OVERLEVER_TIL_FAGSYSTEM → IVERKSETTES | ingen |
+| `Under18` | START_BEHANDLING → AVKLAR_UNDER18 → AVKLAR_UNDER18_SAMTYKKE → OPPRETT_UNDER18_SAK → IVERKSETTES | AVKLAR_UNDER18: `JournalpostInformasjonskrav`, `Under18FødselsdatoInformasjonskrav` |
 
-Definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `flyt/.../flyt/BehandlingType.kt` (`utledType`). `IVERKSETTES` er `AvsluttBehandlingSteg` (gjør ingenting). Det forretningsmessige formålet med hver flyt står i skillen `postmottak-dokumentflyt`.
+Definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `flyt/.../flyt/BehandlingType.kt` (`utledType`). `IVERKSETTES` er `AvsluttBehandlingSteg` (gjør ingenting). Under18-flyten er ikke klar for produksjon: den registrerte `Under18RepositoryImpl` har `TODO()` i metodene for under 18, og testene bruker `InMemoryUnder18Repository`. Det forretningsmessige formålet med de eksisterende flytene står i skillen `postmottak-dokumentflyt`.
 
 ## Regler som ikke er åpenbare når du leser én fil
 
@@ -54,7 +55,7 @@ Definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `flyt/.../fl
 6. **Hvert steg konstrueres fem ganger per gjennomkjøring** (`stegKonstruktør.konstruer` én gang per fase). `konstruer()` og konstruktører må være billige og uten sideeffekter.
 7. **Savepoints gjør at feil delvis består.** `StegOrkestrator` setter et savepoint etter START og etter OPPDATER_FAKTAGRUNNLAG. Når en senere fase kaster exception, rulles transaksjonen tilbake til savepointet og committes deretter (`DBConnection.rollback` + `autoCommit = true` i komponenter). Tidligere steg og faktagrunnlag-oppdateringen til steget som feiler, lagres. Jobben prøver på nytt fra steget som feilet, og markeres `FEILET` etter 3 forsøk. Verifisert.
 8. **Eksterne kall i steg kan gjentas** (retries, tilbakeføringer, gjenopptakelser). Bruk idempotente operasjoner: `...HvisIkkeEksisterer` for Gosys, `finnEllerOpprettSak` og mottakere som dedupliserer på journalpost.
-9. **Ventepunkter lukkes bare på disse måtene:** fristen utløper (`forberedBehandling` eller cron `GjenopptaBehandlingJobbUtfører` kl. 07:00), saksbehandler løser `MANUELT_SATT_PÅ_VENT`, `AvklaringsbehovOrkestrator.taAvVentPgaGosys`, eller et steg returnerer `Fullført` mens behandlingen *ikke* har noe avklaringsbehov som ikke er vent (uansett status). Et steg som fullføres, lukker **ikke** vent hvis for eksempel `AVKLAR_TEMA` finnes. Verifisert: `VENT_PA_GOSYS` blir stående åpent etter at journalpostens tema er endret bort fra AAP.
+9. **Ventepunkter lukkes bare på disse måtene:** i `forberedBehandling` gjennom `VentebehovEvaluererService` (`flyt/ventebehov/`, samme utforming som i aap-behandlingsflyt) når fristen har utløpt eller en `SpesifikkVentebehovEvaluerer` for definisjonen sier at behovet er løst. `Under18SamtykkeVurderingVentebehovEvaluerer` lukker samtykkevent når den aktive vurderingen sier at begge foreldrene har samtykket. Evaluererne kjører bare når noe legger prosessering i køen, for eksempel en løsning eller cron `GjenopptaBehandlingJobbUtfører` kl. 07:00 for utløpte frister. Andre måter er at saksbehandler løser `MANUELT_SATT_PÅ_VENT`, `AvklaringsbehovOrkestrator.taAvVentPgaGosys`, eller at et steg returnerer `Fullført` mens behandlingen *ikke* har noe avklaringsbehov som ikke er vent (uansett status). Et steg som fullføres, lukker **ikke** vent hvis for eksempel `AVKLAR_TEMA` finnes. Verifisert: `VENT_PA_GOSYS` blir stående åpent etter at journalpostens tema er endret bort fra AAP.
 10. **`Avklaringsbehovene.avbrytForSteg` ignorerer status.** `DigitaliserDokumentSteg` kaller den når det finnes en vurdering, så en `DIGITALISER_DOKUMENT` som saksbehandler har løst, ender som `AVBRUTT` (historikk `OPPRETTET, AVSLUTTET, AVBRUTT`). Verifisert. Bruk `hvemSomLøste()` (siste `AVSLUTTET`) for å finne hvem som løste den.
 11. **`Status.erAvsluttet()` er sann for både `IVERKSETTES` og `AVSLUTTET`.** En behandling er `IVERKSETTES` mens den er i VIDERESEND, AVKLAR_FORDELING_VIDERESEND eller IVERKSETTES, og `AVSLUTTET` først etter siste steg. `hentÅpenJournalføringsbehandling` matcher bare `OPPRETTET`/`UTREDES`.
 12. **Motorens «sakId» er journalpostId.** `forBehandling(journalpostId, behandlingId)`. Jobber kjører strengt i rekkefølge per (sakId, behandlingId, type). En `FEILET` jobb blokkerer senere jobber av samme type i den gruppa, og blokkerer saksbehandlerhandlinger på behandlingen (`BehandlingUnderProsesseringException`).
@@ -78,7 +79,7 @@ Definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `flyt/.../fl
 
 - Les referansen for området først. De fleste «bugene» her er tilsiktede eller bærende.
 - `BehandlingFlyt` er synkronisert fra aap-behandlingsflyt (KDoc sier det). Hold diffene små, så det er enklere å synkronisere senere.
-- Kjør de målrettede enhetstestene og **én eller to** relevante `Flyttest`-metoder, ikke hele suiten (se `postmottak-testing`).
+- Mens du itererer, kjør målrettede enhetstester og **én eller to** relevante `Flyttest`-metoder. Kjør hele suiten før du avslutter (se `postmottak-testing`).
 - Bruk `../postmottak-testing/scripts/flyt-trace.sh` for å lese hva motoren gjorde, i stedet for å lese rå logger.
 
 ## Referanser (les ved behov)

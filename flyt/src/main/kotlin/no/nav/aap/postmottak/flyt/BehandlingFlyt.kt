@@ -232,7 +232,17 @@ class BehandlingFlytBuilder {
         if (StegType.UDEFINERT == steg.type()) {
             throw IllegalStateException("[Utviklerfeil] StegType UDEFINERT er ugyldig å legge til i flyten")
         }
-        this.flyt.add(BehandlingFlyt.Behandlingsflytsteg(steg, informasjonskrav, oppdaterFaktagrunnlag))
+        val informasjonskravliste = informasjonskrav.toList()
+        val tidligereInformasjonskrav = mutableSetOf<Informasjonskravkonstruktør>()
+        for (informasjonskravkonstruktør in informasjonskravliste) {
+            val manglendeInformasjonskrav = informasjonskravkonstruktør.avhengigheter - tidligereInformasjonskrav
+            require(manglendeInformasjonskrav.isEmpty()) {
+                "Informasjonskrav $informasjonskravkonstruktør i steg ${steg.type()} krever at " +
+                    "$manglendeInformasjonskrav kommer først i samme liste over informasjonskrav"
+            }
+            tidligereInformasjonskrav.add(informasjonskravkonstruktør)
+        }
+        this.flyt.add(BehandlingFlyt.Behandlingsflytsteg(steg, informasjonskravliste, oppdaterFaktagrunnlag))
         kunRelevantVedÅrsakerHvisSattEllersIkke.forEach { endring ->
             this.endringTilSteg[endring] = steg.type()
         }

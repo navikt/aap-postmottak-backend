@@ -12,9 +12,10 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
+import no.nav.aap.postmottak.klient.SystemKlokke
 import no.nav.aap.postmottak.klient.createGatewayProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
+import no.nav.aap.WithDependencies
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -29,10 +30,11 @@ class AvklaringsbehovsLøserTest {
         val løsningSubtypes = utledSubtypes.map {
             (it.companionObjectInstance as LøserKonstruktør<*>)
                 .konstruer(
-                    postgresRepositoryRegistry.provider(MockConnection().toDBConnection()),
+                    WithDependencies.repositoryRegistry.provider(MockConnection().toDBConnection()),
                     createGatewayProvider {
                         register<BehandlingsflytGatewayMock>()
                         register<FakeUnleash>()
+                        register<SystemKlokke>()
                     })
                 .forBehov()
         }.toSet()
@@ -46,6 +48,8 @@ class AvklaringsbehovsLøserTest {
             AvklarOverleveringLøser::class,
             AvklarSakLøser::class,
             AvklarTemaLøser::class,
+            AvklarUnder18SamtykkeLøser::class,
+            AvklarUnder18SøknadLøser::class,
             DigitaliserDokumentLøser::class,
             SattPåVentLøser::class,
         )

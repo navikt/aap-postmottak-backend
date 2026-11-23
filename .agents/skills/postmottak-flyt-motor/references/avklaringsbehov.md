@@ -63,7 +63,7 @@ For AVKLAR_TEMA er «trenger vurdering» false for ugyldig, allerede JOURNALFOER
    4. Legg `ProsesserBehandlingJobbUtfører` i køen.
 5. Øk versjon, commit, svar `202 Accepted`. Frontend poller `GET /api/behandling/{ref}/flyt` (prosesseringsstatus `JOBBER`/`FEILET`/`FERDIG` basert på ventende jobber).
 
-En løser som kaster exception (det meste av valideringen er `require`), ruller alt tilbake.
+En løser som kaster exception, ruller alt tilbake. Ugyldig input må gi `UgyldigForespørselException`, som `StatusPagesConfigHelper` returnerer som 400 med meldingen fra unntaket. Alt annet, inkludert `IllegalArgumentException` fra `require`, blir 500 «En ukjent feil oppsto». Eldre løsere (`AvklarTemaLøser`, `AvklarSakLøser`) bruker fortsatt `require`. Ikke kopier det mønsteret.
 
 ## Ventepunkter
 
@@ -75,7 +75,8 @@ En løser som kaster exception (det meste av valideringen er `require`), ruller 
 | Fjernes av | løsning `SattPåVentLøsning` (behovstype 9001), eller frist | `taAvVentPgaGosys` (AvklarTemaLøser med AAP eller med toggelen på; Kafka AAP-hendelse for en journalpost med åpen Journalføring-behandling), eller frist |
 
 Felles regler:
-- Utløp av frist: cron `GjenopptaBehandlingJobbUtfører` (07:00) legger prosessering i køen for `UTREDES`-behandlinger der behovet har siste endring `OPPRETTET` med `frist <= i dag`. `FlytOrkestrator` løser deretter utløpte ventepunkter som SYSTEMBRUKER og tilbakefører til steget deres.
+- Utløp av frist: cron `GjenopptaBehandlingJobbUtfører` (07:00) legger prosessering i køen for `UTREDES`-behandlinger der behovet har siste endring `OPPRETTET` med `frist <= i dag`. `FlytOrkestrator.forberedBehandling` løser deretter utløpte ventepunkter som SYSTEMBRUKER gjennom `VentebehovEvaluererService` og tilbakefører til steget deres.
+- Hendelsesbasert oppheving av vent: legg til en `SpesifikkVentebehovEvaluerer` (i `flyt/ventebehov/`, i listen i `RepositoryProvider`-konstruktøren til `VentebehovEvaluererServiceImpl`, uten refleksjon) som sier når et ventepunkt er løst, for eksempel når et dokument er mottatt etter at vent ble satt. Den kjører bare under prosessering, så det som produserer hendelsen, må også legge `ProsesserBehandlingJobbUtfører` i køen. Alle evaluerere konstrueres ved hver prosessering av en behandling på vent. Bruk bare repositorier som er registrert i produksjon.
 - Et steg som returnerer `Fullført`, lukker åpne ventepunkter **bare hvis behandlingen ikke har noe avklaringsbehov som ikke er vent, uansett status**. **Verifisert konsekvens:** etter at Gosys flytter journalposten til et annet tema, blir AVKLAR_TEMA `AVBRUTT`, men `VENT_PA_GOSYS` står åpent til fristen, så Journalføring-behandlingen venter opptil to uker før den blir ferdig.
 - `AVKLARINGSPUNKT` stopper på et åpent ventepunkt i gjeldende steg på lik linje med alle andre behov.
 - Å være på vent endrer ikke behandlingsstatus.
