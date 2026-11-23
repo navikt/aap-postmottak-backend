@@ -1,82 +1,82 @@
-# Journalføring flyt: step by step
+# Journalføring-flyt: steg for steg
 
-Code: `flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/`. Steps run in this order and every step re-checks the state, because steps re-run after resumes and rewinds (see `postmottak-flyt-motor`).
+Kode: `flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/`. Stegene kjører i denne rekkefølgen, og hvert steg sjekker tilstanden på nytt, fordi steg kjøres om igjen etter gjenopptak og tilbakespoling (se `postmottak-flyt-motor`).
 
-"Ugyldig" = journalpost status `AVBRUTT`, `FEILREGISTRERT` or `UTGAAR`: every step then returns `Fullført` and the behandling ends without touching Joark.
+"Ugyldig" = journalpoststatus `AVBRUTT`, `FEILREGISTRERT` eller `UTGAAR`: da returnerer hvert steg `Fullført`, og behandlingen avsluttes uten å røre Joark.
 
-## Journalpost refresh
+## Oppfriskning av journalpost
 
-`JournalpostInformasjonskrav` runs in the OPPDATER_FAKTAGRUNNLAG phase of AVKLAR_TEMA and on every resume after it. It reads SAF and appends a new `JOURNALPOST` row when anything differs (rows are per journalpostId and shared by all behandlinger of that journalpost). For a journalpost whose bruker is an orgnr it requires status `JOURNALFOERT` and otherwise throws. `SaksnummerInfoKrav` stores a fresh snapshot of the person's Kelvin saker (behandlingsflyt `finnSaker`) when it differs.
+`JournalpostInformasjonskrav` kjører i fasen OPPDATER_FAKTAGRUNNLAG i AVKLAR_TEMA og ved hvert gjenopptak etter det. Den leser SAF og legger til en ny `JOURNALPOST`-rad når noe er annerledes (radene er per journalpostId og deles av alle behandlinger av den journalposten). For en journalpost der bruker er et orgnr krever den status `JOURNALFOERT` og kaster ellers unntak. `SaksnummerInfoKrav` lagrer et nytt snapshot av personens Kelvin-saker (behandlingsflyt `finnSaker`) når det er annerledes.
 
 ## AVKLAR_TEMA (`AvklarTemaSteg`)
 
-First `AvklaringsbehovService` opens, keeps or cancels AVKLAR_TEMA (table in `postmottak-flyt-motor/references/avklaringsbehov.md`). Then, first matching row:
+Først åpner, beholder eller kansellerer `AvklaringsbehovService` AVKLAR_TEMA (tabell i `postmottak-flyt-motor/references/avklaringsbehov.md`). Deretter gjelder første rad som passer:
 
-| Situation | Result |
+| Situasjon | Resultat |
 | --- | --- |
 | ugyldig | `Fullført` |
-| Joark status `JOURNALFOERT` (done elsewhere) | `Fullført`, no vurdering stored |
-| no vurdering, Joark tema ≠ AAP | store `(skalTilAap=false, UKJENT)` |
-| no vurdering, digital legeerklæring | store `(true, AAP)` if the person has a Kelvin sak that is not `TRUKKET`, else `(false, OPP)` |
-| no vurdering, digital søknad, digital meldekort, or klage with `AutomatiskKlageJournalforing` | store `(true, AAP)` |
-| no vurdering, anything else | `Fullført`; AVKLAR_TEMA is open, so the flyt stops |
-| vurdering UKJENT, Joark tema still AAP (waiting for Gosys) | create a Gosys "endre tema" oppgave if none exists (fallback enhet `0393` when NORG has no arbeidsfordeling) |
-| vurdering UKJENT, Joark tema no longer AAP (Gosys done) | ferdigstill the journalpost's open Gosys AAP oppgaver |
+| Joark-status `JOURNALFOERT` (gjort andre steder) | `Fullført`, ingen vurdering lagres |
+| ingen vurdering, Joark-tema ≠ AAP | lagre `(skalTilAap=false, UKJENT)` |
+| ingen vurdering, digital legeerklæring | lagre `(true, AAP)` hvis personen har en Kelvin-sak som ikke er `TRUKKET`, ellers `(false, OPP)` |
+| ingen vurdering, digital søknad, digitalt meldekort, eller klage med `AutomatiskKlageJournalforing` | lagre `(true, AAP)` |
+| ingen vurdering, alt annet | `Fullført`; AVKLAR_TEMA er åpent, så flyten stopper |
+| vurdering UKJENT, Joark-tema fortsatt AAP (venter på Gosys) | opprett en Gosys-oppgave for å endre tema hvis det ikke finnes en (reserveenhet `0393` når NORG ikke har noen arbeidsfordeling) |
+| vurdering UKJENT, Joark-tema ikke lenger AAP (Gosys ferdig) | ferdigstill journalpostens åpne Gosys AAP-oppgaver |
 
-Løsning `AvklarTemaLøsning(skalTilAap, tema?)` → `AvklarTemaLøser`: `tema` is only allowed with toggle `PostmottakVelgTema` and must agree with `skalTilAap`. Without `tema` the vurdering is AAP or UKJENT. Tema ≠ AAP with the toggle off puts the behandling on `VENT_PA_GOSYS` (+2 weeks); otherwise any Gosys-vent is removed.
+Løsning `AvklarTemaLøsning(skalTilAap, tema?)` → `AvklarTemaLøser`: `tema` er bare tillatt med toggle `PostmottakVelgTema` og må stemme med `skalTilAap`. Uten `tema` er vurderingen AAP eller UKJENT. Tema ≠ AAP med toggle av setter behandlingen på `VENT_PA_GOSYS` (+2 uker). Ellers fjernes all Gosys-vent.
 
 ## AVKLAR_SAK (`AvklarSakSteg`)
 
-Tema = the vurdering, or Joark's tema if there is none. First matching row:
+Tema = vurderingen, eller Joarks tema hvis det ikke finnes noen vurdering. Første rad som passer gjelder:
 
-| Situation | Result |
+| Situasjon | Resultat |
 | --- | --- |
 | ugyldig | `Fullført` |
-| `JOURNALFOERT` on a fagsystem other than KELVIN | `Fullført` |
-| tema not AAP/OPP | `Fullført` |
-| tema OPP | store generell sak |
-| `JOURNALFOERT` on KELVIN | store that saksnummer |
-| digital søknad, digital meldekort, or digital legeerklæring when `tillaterAutomatiskBehandlingAvLegeerklæring()` | behandlingsflyt `finnEllerOpprettSak(ident, mottattDato)`, store it |
-| klage with `AutomatiskKlageJournalforing` and exactly one Kelvin sak | store that sak |
-| a saksvurdering exists (from the løsning) | `Fullført` |
-| otherwise | `FantAvklaringsbehov(AVKLAR_SAK)` |
+| `JOURNALFOERT` på et annet fagsystem enn KELVIN | `Fullført` |
+| tema ikke AAP/OPP | `Fullført` |
+| tema OPP | lagre generell sak |
+| `JOURNALFOERT` på KELVIN | lagre det saksnummeret |
+| digital søknad, digitalt meldekort, eller digital legeerklæring når `tillaterAutomatiskBehandlingAvLegeerklæring()` | behandlingsflyt `finnEllerOpprettSak(ident, mottattDato)`, lagre resultatet |
+| klage med `AutomatiskKlageJournalforing` og nøyaktig én Kelvin-sak | lagre den saken |
+| en saksvurdering finnes (fra løsningen) | `Fullført` |
+| ellers | `FantAvklaringsbehov(AVKLAR_SAK)` |
 
-The automatic rows come before the "vurdering exists" check, so `finnEllerOpprettSak` is called and a new vurdering stored on every re-run.
+De automatiske radene kommer før sjekken «vurdering finnes», så `finnEllerOpprettSak` kalles og en ny vurdering lagres ved hver ny kjøring.
 
-Løsning `AvklarSaksnummerLøsning` → `AvklarSakLøser`: either an existing `saksnummer`, `førPåGenerellSak`, or `opprettNySak`. `opprettNySak` fails with `AvslagException` if a Kelvin sak has avslag, and is only allowed for søknad (or brevkode "Ukjent"); it calls `finnEllerOpprettSak` inside the API request and stores `opprettetNy = true`. The løsning can also set `journalposttittel`, `avsenderMottaker` and `dokumenter` (titles), which SETT_FAGSAK writes to Joark. `Saksvurdering`'s `init` validates the combination.
+Løsning `AvklarSaksnummerLøsning` → `AvklarSakLøser`: enten et eksisterende `saksnummer`, `førPåGenerellSak` eller `opprettNySak`. `opprettNySak` feiler med `AvslagException` hvis en Kelvin-sak har avslag, og er bare tillatt for søknad (eller brevkode "Ukjent"). Den kaller `finnEllerOpprettSak` inne i API-forespørselen og lagrer `opprettetNy = true`. Løsningen kan også sette `journalposttittel`, `avsenderMottaker` og `dokumenter` (titler), som SETT_FAGSAK skriver til Joark. `Saksvurdering`s `init` validerer kombinasjonen.
 
 ## SETT_FAGSAK (`SettFagsakSteg`)
 
-| Situation | Result |
+| Situasjon | Resultat |
 | --- | --- |
-| ugyldig or `JOURNALFOERT` | `Fullført` |
-| tema vurdering UKJENT | `Fullført`, nothing changed in Joark |
-| tema not AAP/OPP | dokarkiv `endreTema` (only if Joark still says AAP), `Nav-User-Id` = who solved AVKLAR_TEMA |
-| generell sak | dokarkiv oppdater: generell sak, tema, title, avsender, dokument titles |
-| fagsak | dokarkiv oppdater: Kelvin sak (fagsystem KELVIN), bruker = aktiv ident, tema AAP, title, avsender, dokument titles |
+| ugyldig eller `JOURNALFOERT` | `Fullført` |
+| tema-vurdering UKJENT | `Fullført`, ingenting endres i Joark |
+| tema ikke AAP/OPP | dokarkiv `endreTema` (bare hvis Joark fortsatt sier AAP), `Nav-User-Id` = den som løste AVKLAR_TEMA |
+| generell sak | dokarkiv oppdater: generell sak, tema, tittel, avsender, dokumenttitler |
+| fagsak | dokarkiv oppdater: Kelvin-sak (fagsystem KELVIN), bruker = aktiv ident, tema AAP, tittel, avsender, dokumenttitler |
 
-`Nav-User-Id` = who solved AVKLAR_SAK. The avsenderMottaker from the vurdering is ignored for digital kanaler. Without one, `JournalføringService` uses the bruker as avsender when SAF has no avsender id; an orgnr avsender is checked in EREG and becomes `UTL_ORG` (name required) if not found.
+`Nav-User-Id` = den som løste AVKLAR_SAK. Avsender/mottaker fra vurderingen ignoreres for digitale kanaler. Uten den bruker `JournalføringService` brukeren som avsender når SAF ikke har noen avsender-id. En orgnr-avsender slås opp i EREG og blir `UTL_ORG` (navn kreves) hvis den ikke finnes.
 
 ## ENDELIG_JOURNALFØRING (`JournalføringSteg`)
 
-ugyldig, already `JOURNALFOERT`, or tema not AAP/OPP → `Fullført`. Otherwise dokarkiv `ferdigstill` with journalførende enhet `9999` (maskinell), `Nav-User-Id` = who solved AVKLAR_SAK.
+ugyldig, allerede `JOURNALFOERT`, eller tema ikke AAP/OPP → `Fullført`. Ellers dokarkiv `ferdigstill` med journalførende enhet `9999` (maskinell), `Nav-User-Id` = den som løste AVKLAR_SAK.
 
 ## VIDERESEND (`VideresendSteg`)
 
-| Situation | Result |
+| Situasjon | Resultat |
 | --- | --- |
 | ugyldig | `Fullført` |
-| `JOURNALFOERT` on a fagsystem other than KELVIN | `Fullført` |
-| tema vurdering `skalTilAap == false`, or generell sak | `Fullført` |
-| otherwise | create a `DokumentHåndtering` behandling, copy vurderinger with `GrunnlagKopierer`, enqueue its processing |
+| `JOURNALFOERT` på et annet fagsystem enn KELVIN | `Fullført` |
+| tema-vurdering `skalTilAap == false`, eller generell sak | `Fullført` |
+| ellers | opprett en `DokumentHåndtering`-behandling, kopier vurderinger med `GrunnlagKopierer`, legg prosesseringen i kø |
 
-## Tema scenarios
+## Temascenarioer
 
-| Scenario | What happens |
+| Scenario | Hva som skjer |
 | --- | --- |
-| Normal AAP document | tema AAP → sak → Joark oppdater + ferdigstill → DokumentHåndtering |
-| "Not AAP", toggle `PostmottakVelgTema` **off** | vurdering UKJENT + `VENT_PA_GOSYS`; AVKLAR_TEMA reopens and the behandling waits at AVKLAR_TEMA, with a Gosys "endre tema" oppgave. When Gosys moves the journalpost to another tema, the next run cancels AVKLAR_TEMA and closes the Gosys AAP oppgaver, **but the vent stays until frist** (verified); the remaining steps then finish without touching Joark. If the journalpost instead comes back as AAP, Kafka removes the vent and the saksbehandler answers AVKLAR_TEMA again. |
-| "Not AAP", toggle **on** | the saksbehandler picks the tema; no vent. SETT_FAGSAK changes the tema in Joark; UKJENT changes nothing; OPP is journalført on generell sak. |
-| Journalpost returns to AAP after a finished behandling | AAP-retur in the Kafka handler creates a new Journalføring behandling (see `mottak.md`). |
-| Journalført elsewhere while waiting | Steps short-circuit. On a Kelvin sak, AVKLAR_SAK stores that saksnummer and VIDERESEND still creates DokumentHåndtering; on another fagsystem the behandling just ends. |
-| Journalpost becomes ugyldig | All steps return `Fullført`, open AVKLAR_TEMA is cancelled, the behandling ends. |
+| Vanlig AAP-dokument | tema AAP → sak → Joark oppdater + ferdigstill → DokumentHåndtering |
+| «Ikke AAP», toggle `PostmottakVelgTema` **av** | vurdering UKJENT + `VENT_PA_GOSYS`; AVKLAR_TEMA åpnes igjen og behandlingen venter ved AVKLAR_TEMA, med en Gosys-oppgave for å endre tema. Når Gosys flytter journalposten til et annet tema, kansellerer neste kjøring AVKLAR_TEMA og lukker Gosys AAP-oppgavene, **men ventingen blir stående til fristen** (verifisert). De resterende stegene fullføres så uten å røre Joark. Kommer journalposten i stedet tilbake som AAP, fjerner Kafka ventingen, og saksbehandleren svarer på AVKLAR_TEMA igjen. |
+| «Ikke AAP», toggle **på** | saksbehandleren velger tema; ingen venting. SETT_FAGSAK endrer tema i Joark; UKJENT endrer ingenting; OPP journalføres på generell sak. |
+| Journalposten kommer tilbake til AAP etter en ferdig behandling | AAP-retur i Kafka-handleren oppretter en ny Journalføring-behandling (se `mottak.md`). |
+| Journalført andre steder mens den venter | Stegene kortslutter. På en Kelvin-sak lagrer AVKLAR_SAK det saksnummeret, og VIDERESEND oppretter fortsatt DokumentHåndtering. På et annet fagsystem avsluttes behandlingen bare. |
+| Journalposten blir ugyldig | Alle steg returnerer `Fullført`, åpent AVKLAR_TEMA kanselleres, og behandlingen avsluttes. |

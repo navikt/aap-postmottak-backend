@@ -1,51 +1,51 @@
-# Mottak: from Kafka event to Fordeling behandling
+# Mottak: fra Kafka-event til Fordeling-behandling
 
-Code: `flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/`.
+Kode: `flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/`.
 
-## Kafka topology (`KafkaStreams.kt`, `JoarkKafkaHandler`)
+## Kafka-topologi (`KafkaStreams.kt`, `JoarkKafkaHandler`)
 
-- Topic `teamdokumenthandtering.aapen-dok-journalfoering` (Avro `JournalfoeringHendelseRecord`), consumed with Kafka Streams, exactly-once, application id `${KAFKA_STREAMS_APPLICATION_ID}-v2`. Event documentation: Confluence "Joarkhendelser".
-- Filters, in order: `journalpostStatus == "MOTTATT"`, then `mottaksKanal != "EESSI"`. Events for already journalført journalposts never reach postmottak, so postmottak learns about journalføring done elsewhere only by reading SAF (`JournalpostInformasjonskrav`) when a behandling is processed.
-- `split()` branches, the first match wins; records matching neither are dropped:
+- Topic `teamdokumenthandtering.aapen-dok-journalfoering` (Avro `JournalfoeringHendelseRecord`), konsumert med Kafka Streams, exactly-once, application id `${KAFKA_STREAMS_APPLICATION_ID}-v2`. Eventdokumentasjon: Confluence "Joarkhendelser".
+- Filtre, i rekkefølge: `journalpostStatus == "MOTTATT"`, deretter `mottaksKanal != "EESSI"`. Events for journalposter som allerede er journalført, når aldri postmottak. Postmottak får derfor bare vite om journalføring gjort andre steder ved å lese SAF (`JournalpostInformasjonskrav`) når en behandling prosesseres.
+- `split()` grener, første treff vinner. Records som ikke treffer noen av dem, forkastes:
   1. `erTemaEndretFraAAP` (`temaGammelt == AAP && temaNytt != AAP`) → `håndterTemaendring`
   2. `erTemaAAP` (`temaNytt == AAP`) → `nyJournalpost`
-- Locally (`NAIS_CLUSTER_NAME=LOCAL`) a `NoopStream` is used instead; TestApp offers `POST /test/simulerJournalpostHendelse` to push a record through the real topology with a `TopologyTestDriver`.
+- Lokalt (`NAIS_CLUSTER_NAME=LOCAL`) brukes en `NoopStream` i stedet. TestApp har `POST /test/simulerJournalpostHendelse`, som sender en record gjennom den ekte topologien med en `TopologyTestDriver`.
 
 ### håndterTemaendring
 
-One transaction: if `hentÅpenJournalføringsbehandling(journalpostId)` (type Journalføring, status OPPRETTET or UTREDES) exists, enqueue `ProsesserBehandlingJobbUtfører`. Nothing else: the processing notices the new tema through SAF. It does **not** take the behandling off Gosys-vent (see `postmottak-flyt-motor/references/avklaringsbehov.md`).
+Én transaksjon: hvis `hentÅpenJournalføringsbehandling(journalpostId)` (type Journalføring, status OPPRETTET eller UTREDES) finnes, legges `ProsesserBehandlingJobbUtfører` i kø. Ingenting annet: prosesseringen oppdager det nye temaet via SAF. Den tar **ikke** behandlingen av Gosys-vent (se `postmottak-flyt-motor/references/avklaringsbehov.md`).
 
 ### nyJournalpost
 
-1. Read-only transaction: find an open Journalføring behandling.
-2. Found → transaction: `AvklaringsbehovOrkestrator.taAvVentPgaGosys` (solves `VENT_PA_GOSYS` if open and emits a hendelse) + enqueue processing.
-3. Not found → `opprettFordelingRegelJobb`:
-   - **AAP-retur:** `temaGammelt` is non-blank and not AAP, the latest behandling (highest id) is a Journalføring with status AVSLUTTET, and its tema vurdering is not AAP/OPP. Then SAF is read; if the journalpost is still tema AAP and `MOTTATT`, a new Journalføring behandling is created and processed directly (no Fordeling, no new innkommende journalpost). If not, the event is ignored.
-   - Otherwise enqueue `VurderRelevantDokumentForAAPJobbUtfører` with `forSak(journalpostId)` and parameter `journalpostId`.
+1. Skrivebeskyttet transaksjon: finn en åpen Journalføring-behandling.
+2. Funnet → transaksjon: `AvklaringsbehovOrkestrator.taAvVentPgaGosys` (løser `VENT_PA_GOSYS` hvis det er åpent, og sender en hendelse) + legg prosessering i kø.
+3. Ikke funnet → `opprettFordelingRegelJobb`:
+   - **AAP-retur:** `temaGammelt` er ikke tomt og ikke AAP, den nyeste behandlingen (høyeste id) er en Journalføring med status AVSLUTTET, og tema-vurderingen er ikke AAP/OPP. Da leses SAF. Hvis journalposten fortsatt har tema AAP og status `MOTTATT`, opprettes en ny Journalføring-behandling som prosesseres direkte (ingen Fordeling, ingen ny innkommende journalpost). Ellers ignoreres eventet.
+   - Ellers legges `VurderRelevantDokumentForAAPJobbUtfører` i kø med `forSak(journalpostId)` og parameteren `journalpostId`.
 
-Joark sends several events per journalpost. Repeated events are harmless: the job is idempotent and open behandlinger are only re-processed.
+Joark sender flere events per journalpost. Gjentatte events er harmløse: jobben er idempotent, og åpne behandlinger prosesseres bare på nytt.
 
-### Failure behaviour
+### Oppførsel ved feil
 
-Exceptions in the handler are not caught. `ProcessingExceptionHandler` answers `SHUTDOWN_CLIENT`, the stream enters `ERROR`, `/actuator/live` returns 503 and the pod is restarted; the record is consumed again after restart. Keep this code free of slow or flaky calls (only the AAP-retur branch calls SAF).
+Unntak i handleren fanges ikke. `ProcessingExceptionHandler` svarer `SHUTDOWN_CLIENT`, streamen går i `ERROR`, `/actuator/live` returnerer 503 og poden restartes. Recorden konsumeres på nytt etter restart. Hold denne koden fri for trege eller ustabile kall (bare AAP-retur-grenen kaller SAF).
 
 ## VurderRelevantDokumentForAAPJobbUtfører (`vurderdokument.innkommende`)
 
-Runs once per journalpost (no-op if `innkommende_journalpost` already has the journalpost).
+Kjører én gang per journalpost (gjør ingenting hvis `innkommende_journalpost` allerede har journalposten).
 
-| SAF journalpost | Recorded status / årsak | Action |
+| SAF-journalpost | Registrert status / årsak | Handling |
 | --- | --- | --- |
-| `JOURNALFOERT` | `IGNORERT` / `ALLEREDE_JOURNALFØRT` | none |
-| `UTGAAR` | `IGNORERT` / `UTGÅTT` | none |
-| `bruker` missing or without id | `GOSYS_FDR` / `MANGLER_IDENT` | Gosys fordelingsoppgave (if none exists) |
-| `bruker.type == ORGNR` | `GOSYS_FDR` / `ORGNR` | Gosys fordelingsoppgave with orgnr |
-| otherwise | `EVALUERT` | PDL lookup and person upsert, enhet via `Enhetsutreder`, then create the **Fordeling** behandling and enqueue processing (`forBehandling(journalpostId, behandlingId)`) |
+| `JOURNALFOERT` | `IGNORERT` / `ALLEREDE_JOURNALFØRT` | ingen |
+| `UTGAAR` | `IGNORERT` / `UTGÅTT` | ingen |
+| `bruker` mangler eller mangler id | `GOSYS_FDR` / `MANGLER_IDENT` | Gosys-fordelingsoppgave (hvis det ikke finnes en) |
+| `bruker.type == ORGNR` | `GOSYS_FDR` / `ORGNR` | Gosys-fordelingsoppgave med orgnr |
+| ellers | `EVALUERT` | PDL-oppslag og person-upsert, enhet via `Enhetsutreder`, deretter opprettes **Fordeling**-behandlingen og prosessering legges i kø (`forBehandling(journalpostId, behandlingId)`) |
 
-The recorded row (`InnkommendeJournalpost`) holds brevkode and behandlingstema of the hoveddokument, `enhet`, `brukerId` (not for orgnr) and later the `regelresultat` (written by `AvklarFordelingSteg`). Metric `journalpost{brevkode}` is incremented.
+Den registrerte raden (`InnkommendeJournalpost`) inneholder brevkode og behandlingstema for hoveddokumentet, `enhet`, `brukerId` (ikke for orgnr) og senere `regelresultat` (skrevet av `AvklarFordelingSteg`). Metrikken `journalpost{brevkode}` økes.
 
-- "Hoveddokument" here is `SafJournalpost.hoveddokument()` = the dokument with the lowest `dokumentInfoId` (string compare). Elsewhere (`Journalpost.hoveddokument`) it is the first dokument in the list. They usually agree, but not by construction.
-- `InnkommendeJournalpostStatus.VIDERSENDT_TIL_KELVIN`, `VIDERESENDT_TIL_ARENA` and `GOSYS_JFR` are deprecated values kept for old rows.
+- «Hoveddokument» er her `SafJournalpost.hoveddokument()` = dokumentet med lavest `dokumentInfoId` (strengsammenligning). Andre steder (`Journalpost.hoveddokument`) er det første dokument i lista. De er vanligvis enige, men det er ikke garantert av konstruksjonen.
+- `InnkommendeJournalpostStatus.VIDERSENDT_TIL_KELVIN`, `VIDERESENDT_TIL_ARENA` og `GOSYS_JFR` er utfasede verdier som beholdes for gamle rader.
 
 ## Enhet (`fordeler/Enhetsutreder.kt`)
 
-`finnJournalføringsenhet(journalpost)`: the journalpost's `journalførendeEnhet` if set, not `9999` and active in NORG; otherwise NORG arbeidsfordeling from PDL geografisk tilknytning and adressebeskyttelse, NOM egen ansatt, behandlingstema (default `ab0014`) and the behandlingstype of the brevkode (klage, utland, EØS). The enhet is used for Arena oppgaver and Gosys journalføringsoppgaver. A `null` enhet sends Arena-routed documents to manual journalføring.
+`finnJournalføringsenhet(journalpost)`: journalpostens `journalførendeEnhet` hvis den er satt, ikke er `9999` og er aktiv i NORG. Ellers brukes NORG-arbeidsfordeling ut fra PDL-geografisk tilknytning og adressebeskyttelse, NOM egen ansatt, behandlingstema (standard `ab0014`) og behandlingstypen til brevkoden (klage, utland, EØS). Enheten brukes til Arena-oppgaver og Gosys-journalføringsoppgaver. En `null`-enhet sender dokumenter som er rutet til Arena, til manuell journalføring.

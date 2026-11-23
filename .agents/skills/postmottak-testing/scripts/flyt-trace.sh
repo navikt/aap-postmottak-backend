@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Extracts a compact flyt-engine trace (jobs, steps, avklaringsbehov, rewinds, errors) from test output.
-# Flyt-test reports are large (Flyttest XML is ~1 MB); use this instead of reading them.
+# Trekker ut et kompakt spor av flyt-motoren (jobber, steg, avklaringsbehov, tilbakerullinger, feil) fra testutdata.
+# Rapporter fra flyt-tester er store (Flyttest-XML er ~1 MB). Bruk dette i stedet for å lese dem.
 #
-# Usage:
-#   flyt-trace.sh <module | report.xml | gradle-log-file> [extra ERE filter]
+# Bruk:
+#   flyt-trace.sh <modul | rapport.xml | gradle-loggfil> [ekstra ERE-filter]
 #
-# Examples:
-#   flyt-trace.sh flyt                           # all JUnit XML reports from the last :flyt:test run
-#   flyt-trace.sh flyt '\[b=2\]'                 # only lines for behandlingId 2
+# Eksempler:
+#   flyt-trace.sh flyt                           # alle JUnit XML-rapporter fra siste :flyt:test-kjøring
+#   flyt-trace.sh flyt '\[b=2\]'                 # bare linjer for behandlingId 2
 #   flyt-trace.sh flyt/build/test-results/test/TEST-no.nav.aap.postmottak.flyt.Flyttest.xml
-#   flyt-trace.sh /tmp/postmottak-test-flyt-abc123   # log written by run-tests.sh (stdout is only there with -i)
+#   flyt-trace.sh /tmp/postmottak-test-flyt-abc123   # logg skrevet av run-tests.sh (stdout ligger bare der med -i)
 #
-# Output format: <time> [b=<behandlingId>|b=-] <Logger>: <message>   (INFO level omitted, WARN/ERROR kept)
-# The JUnit XML holds output for a whole test class (not per test). Run a single test method for a clean trace.
+# Utdataformat: <tid> [b=<behandlingId>|b=-] <Logger>: <melding>   (INFO-nivå utelatt, WARN/ERROR beholdt)
+# JUnit-XML inneholder utdata for en hel testklasse (ikke per test). Kjør én testmetode for et rent spor.
 #
-# Environment: TRACE_WIDTH (default 220) truncates each line.
+# Miljø: TRACE_WIDTH (standard 220) kutter hver linje.
 set -uo pipefail
 
 if [[ $# -lt 1 ]]; then
@@ -36,7 +36,7 @@ elif [[ -d "$root/$source_arg/build/test-results/test" ]]; then
 fi
 
 if [[ ${#files[@]} -eq 0 ]]; then
-  echo "Found no log/report for '$source_arg'. Give a file, or a module that has build/test-results/test/TEST-*.xml." >&2
+  echo "Fant ingen logg/rapport for '$source_arg'. Oppgi en fil, eller en modul som har build/test-results/test/TEST-*.xml." >&2
   exit 2
 fi
 

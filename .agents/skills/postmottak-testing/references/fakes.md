@@ -1,75 +1,75 @@
-# Fakes and test data catalog
+# Fakes og testdatakatalog
 
-Everything here lives in `lib-test/src/main/kotlin/no/nav/aap/postmottak/test/` unless noted. Fake state is global JVM state that is never cleared: create fresh data per test through the builders.
+Alt her ligger i `lib-test/src/main/kotlin/no/nav/aap/postmottak/test/` med mindre noe annet er oppgitt. Fake-tilstand er global JVM-tilstand som aldri tømmes: opprett ferske data per test gjennom byggerne.
 
-## Fake HTTP servers (`FakeServers.kt`, started by `@Fakes`)
+## Fake HTTP-servere (`FakeServers.kt`, startes av `@Fakes`)
 
-`@Fakes` (`FakesExtension`) starts one Netty server per system on a random port and sets the matching `INTEGRASJON_*` system properties, `NAIS_CLUSTER_NAME=LOCAL` and token endpoints. Use them through the real clients: `defaultGatewayProvider { register<FakeUnleash>() }`.
+`@Fakes` (`FakesExtension`) starter én Netty-server per system på en tilfeldig port og setter de tilhørende systemegenskapene `INTEGRASJON_*`, `NAIS_CLUSTER_NAME=LOCAL` og token-endepunkter. Bruk dem gjennom de ekte klientene: `defaultGatewayProvider { register<FakeUnleash>() }`.
 
-| System | Behaviour | Steer it with |
+| System | Oppførsel | Styr den med |
 | --- | --- | --- |
-| Texas (tokens) | `/token` issues an Azure-style JWT (azp `postmottak`, or `INTEGRASJON_POSTMOTTAK_AZP`); `/token/exchange` issues an OBO token keeping `NAVident`; `/introspect` says active | nothing |
-| SAF GraphQL (`fakes/Saf.kt`) | `journalpost(id)` built from `TestJournalposter`; an unknown id gets a default `TestJournalPost` (digital legeerklæring). `DATO_REGISTRERT` is always 2020-12-01T10:00. `saker` returns an empty list. | `TestJournalposter.leggTil { }` |
-| SAF REST | `hentdokument`: the `digitalSøknad` JSON for JSON variants, otherwise `sample.pdf` | `digitalSøknad = SøknadV0(...)` on the builder |
-| dokarkiv (Joark) | PUT journalpost (accepts an oppdater request, or an endre-tema request with only `tema`), PATCH ferdigstill. Nothing is recorded. | nothing |
-| aap-behandlingsflyt (`fakes/BehandlingsflytFake.kt`) | `finnEllerOpprett`: the person's first Kelvin sak, else a random new one. `ekstern/finn`: the registered person's `kelvinsaker` (empty if none); an **unregistered ident gets one random sak**. `hendelse/send`: 204. `finnBehandlingerAvType`: two klagebehandlinger | `TestPersoner.leggTil { kelvinSak = TestKelvinSak(...) }` |
-| aap-oppgave, aap-statistikk | accept everything | nothing |
-| tilgang | always grants access | nothing |
-| Gosys oppgave API (`fakes/GosysoppgaveFake.kt`) | GET returns one oppgave only if the journalpost has `harEksisterendeGosysOppgave`; POST throws `ShouldNotBeCalledException` in that case; PATCH ok | `harEksisterendeGosysOppgave = true` |
-| aap-arenaoppslag (`fakes/ArenaoppslagFake.kt`) | historikk and signifikant historikk = `TestPerson.harHistorikkIArena`; maksdato and siste utbetaling from `TestPerson.arenaSak` (404 if none) | `harHistorikkIArena`, `arenaSak = TestArenaSak(...)` |
-| aap-fss-proxy (Arena WS) | `nyesteaktivesak`: `"1234"` if `harAktivSakIArena`, else 204 (also drives `harAktivSak`); `opprettoppgave`: appends the request to `FssOppgaver.oppgaver[ident]` and returns sak `SAK-5678`; kjøreliste: sak `"1234"` | `aktivSakIArena`; assert on `FssOppgaver.oppgaver` |
-| PDL | identer: the requested ident (+ an AKTORID that the client filters out); fødselsdato is **always 1990-01-01**; geografisk tilknytning kommune 3207, ugradert | nothing |
-| NOM (skjermet) | `TestPerson.erSkjermet`; **404 for unknown persons**, which makes the client throw | `skjermet = true` |
-| NORG2 | arbeidsfordeling always enhet `"superNav!"`; active enheter only `"9999"`, so every journalførende enhet counts as inactive | nothing |
-| veilarbarena | oppfølgingsenhet `"9999"` | nothing |
-| EREG | empty response | nothing |
-| Unleash server | **every** `PostmottakFeature` enabled (only used if `FakeUnleash` is not registered) | register `FakeUnleash` or your own |
+| Texas (tokens) | `/token` utsteder en JWT i Azure-stil (azp `postmottak`, eller `INTEGRASJON_POSTMOTTAK_AZP`). `/token/exchange` utsteder et OBO-token som beholder `NAVident`. `/introspect` sier aktiv | ingenting |
+| SAF GraphQL (`fakes/Saf.kt`) | `journalpost(id)` bygget fra `TestJournalposter`. En ukjent id får en standard `TestJournalPost` (digital legeerklæring). `DATO_REGISTRERT` er alltid 2020-12-01T10:00. `saker` returnerer en tom liste. | `TestJournalposter.leggTil { }` |
+| SAF REST | `hentdokument`: JSON-en `digitalSøknad` for JSON-varianter, ellers `sample.pdf` | `digitalSøknad = SøknadV0(...)` på byggeren |
+| dokarkiv (Joark) | PUT journalpost (godtar en oppdater-request, eller en endre-tema-request med bare `tema`), PATCH ferdigstill. Ingenting registreres. | ingenting |
+| aap-behandlingsflyt (`fakes/BehandlingsflytFake.kt`) | `finnEllerOpprett`: personens første Kelvin-sak, ellers en tilfeldig ny. `ekstern/finn`: den registrerte personens `kelvinsaker` (tom hvis ingen). **En uregistrert ident får én tilfeldig sak**. `hendelse/send`: 204. `finnBehandlingerAvType`: to klagebehandlinger | `TestPersoner.leggTil { kelvinSak = TestKelvinSak(...) }` |
+| aap-oppgave, aap-statistikk | godtar alt | ingenting |
+| tilgang | gir alltid tilgang | ingenting |
+| Gosys oppgave-API (`fakes/GosysoppgaveFake.kt`) | GET returnerer én oppgave bare hvis journalposten har `harEksisterendeGosysOppgave`. POST kaster `ShouldNotBeCalledException` i så fall. PATCH ok | `harEksisterendeGosysOppgave = true` |
+| aap-arenaoppslag (`fakes/ArenaoppslagFake.kt`) | historikk og signifikant historikk = `TestPerson.harHistorikkIArena`. Maksdato og siste utbetaling fra `TestPerson.arenaSak` (404 hvis ingen) | `harHistorikkIArena`, `arenaSak = TestArenaSak(...)` |
+| aap-fss-proxy (Arena WS) | `nyesteaktivesak`: `"1234"` hvis `harAktivSakIArena`, ellers 204 (styrer også `harAktivSak`). `opprettoppgave`: legger requesten til i `FssOppgaver.oppgaver[ident]` og returnerer sak `SAK-5678`. Kjøreliste: sak `"1234"` | `aktivSakIArena`, assert på `FssOppgaver.oppgaver` |
+| PDL | identer: den forespurte identen (+ en AKTORID som klienten filtrerer bort). Fødselsdato er **alltid 1990-01-01**. Geografisk tilknytning kommune 3207, ugradert | ingenting |
+| NOM (skjermet) | `TestPerson.erSkjermet`. **404 for ukjente personer**, som får klienten til å kaste exception | `skjermet = true` |
+| NORG2 | arbeidsfordeling alltid enhet `"superNav!"`. Aktive enheter bare `"9999"`, så hver journalførende enhet regnes som inaktiv | ingenting |
+| veilarbarena | oppfølgingsenhet `"9999"` | ingenting |
+| EREG | tomt svar | ingenting |
+| Unleash-server | **alle** `PostmottakFeature` påslått (brukes bare hvis `FakeUnleash` ikke er registrert) | registrer `FakeUnleash` eller din egen |
 
-## Test data builders
+## Byggere for testdata
 
-`TestPersoner.leggTil { }` (`modell/TestPerson.kt`) returns a `TestPerson` aged 19 with a generated valid fnr:
+`TestPersoner.leggTil { }` (`modell/TestPerson.kt`) returnerer en `TestPerson` på 19 år med et generert gyldig fnr:
 
-| Field | Effect |
+| Felt | Effekt |
 | --- | --- |
-| `kelvinSak = TestKelvinSak(saksnummer, periode, resultat, harRettNåEllerIFramtiden)` | the person's Kelvin sak in the behandlingsflyt fake (`null` = no sak) |
-| `aktivSakIArena` | fss-proxy reports an active Arena sak |
-| `harHistorikkIArena` | arenaoppslag reports (significant) history → `ArenaHistorikkRegel` false → Arena |
-| `arenaSak = TestArenaSak(...)` | latest Arena sak and vedtak for kant-til-kant (`ArenaService.harOppbruktRettighet`, via `ArenaoppslagFake`) |
-| `skjermet` | NOM says egen ansatt |
+| `kelvinSak = TestKelvinSak(saksnummer, periode, resultat, harRettNåEllerIFramtiden)` | personens Kelvin-sak i behandlingsflyt-faken (`null` = ingen sak) |
+| `aktivSakIArena` | fss-proxy melder en aktiv Arena-sak |
+| `harHistorikkIArena` | arenaoppslag melder (signifikant) historikk → `ArenaHistorikkRegel` false → Arena |
+| `arenaSak = TestArenaSak(...)` | siste Arena-sak og vedtak for kant-til-kant (`ArenaService.harOppbruktRettighet`, via `ArenaoppslagFake`) |
+| `skjermet` | NOM sier egen ansatt |
 
-`TestJournalposter.leggTil { }` (`fakes/FakeKonstanter.kt`) returns a `TestJournalPost` registered for the SAF, Gosys and REST fakes:
+`TestJournalposter.leggTil { }` (`fakes/FakeKonstanter.kt`) returnerer en `TestJournalPost` registrert for SAF-, Gosys- og REST-fakene:
 
-| Field / helper | Default / effect |
+| Felt / hjelper | Standard / effekt |
 | --- | --- |
-| `person` or `fnr` | otherwise a new `TestPerson` is created; `fnr` also registers a person |
+| `person` eller `fnr` | ellers opprettes en ny `TestPerson`. `fnr` registrerer også en person |
 | `brevkode` | `LEGEERKLÆRING` |
-| `kanal` | `NAV_NO`; `SKAN_*` makes the default dokument a PDF (papir) |
+| `kanal` | `NAV_NO`. `SKAN_*` gjør standarddokumentet til en PDF (papir) |
 | `tema`, `status` | `"AAP"`, `MOTTATT` |
-| `fagsak = JournalpostSak(...)` | Joark sak (e.g. already journalført on another fagsystem) |
-| `journalførendeEnhet`, `harEksisterendeGosysOppgave`, `avsenderMottaker` (default none), `dokumenter` | as named |
-| `digitalSøknad()` | brevkode SØKNAD, JSON original dokument, `SøknadV0` content |
-| `papirsøknad()` | kanal `SKAN_NETS`, SØKNAD, PDF dokumenter (søknad + vedlegg) |
-| `legeerklæring()` | kanal `SKAN_NETS` but a JSON original variant, so it counts as digital |
-| `medUtenlandskOrgnr(orgnr)` | bruker type ORGNR, no avsender |
-| `journalpostId` | random; set it to overwrite an existing fake journalpost (e.g. to change tema mid-test) |
+| `fagsak = JournalpostSak(...)` | Joark-sak (for eksempel allerede journalført på et annet fagsystem) |
+| `journalførendeEnhet`, `harEksisterendeGosysOppgave`, `avsenderMottaker` (standard ingen), `dokumenter` | som navnet sier |
+| `digitalSøknad()` | brevkode SØKNAD, originaldokument i JSON, innhold `SøknadV0` |
+| `papirsøknad()` | kanal `SKAN_NETS`, SØKNAD, PDF-dokumenter (søknad + vedlegg) |
+| `legeerklæring()` | kanal `SKAN_NETS`, men en JSON-originalvariant, så den regnes som digital |
+| `medUtenlandskOrgnr(orgnr)` | brukertype ORGNR, ingen avsender |
+| `journalpostId` | tilfeldig. Sett den for å overskrive en eksisterende fake-journalpost (for eksempel for å endre tema midt i en test) |
 
-Shortcuts: `TestJournalposter.digitalSøknad()`, `.papirsøknad()`, `.legeerklæring()`. `TestJournalPost.tilJournalpost()` converts to the domain `Journalpost` for unit tests; note its mottatt dato is *today*, unlike SAF's fixed 2020-12-01. `hoveddokument(brevkode, tittel)` and `vedlegg(tittel)` build explicit dokumenter.
+Snarveier: `TestJournalposter.digitalSøknad()`, `.papirsøknad()`, `.legeerklæring()`. `TestJournalPost.tilJournalpost()` konverterer til domenets `Journalpost` for enhetstester. Merk at mottatt-datoen er *i dag*, i motsetning til SAFs faste 2020-12-01. `hoveddokument(brevkode, tittel)` og `vedlegg(tittel)` bygger eksplisitte dokumenter.
 
-## In-code fakes and helpers
+## Fakes og hjelpere i koden
 
-| Fake | Notes |
+| Fake | Merknader |
 | --- | --- |
-| `FakeUnleash` (object) | `AutomatiskKlageJournalforing` on, `KantTilKantV1` off, `PostmottakVelgTema` off, `DummyFeature` throws. Override one toggle with `object X : UnleashGateway by FakeUnleash { override fun isEnabled(...) }` |
-| `fakeGatewayProvider(unleash)` | registers `FakeArenaoppslagGateway`, `FakeJournalpostGateway` and an Unleash fake. `FakeJournalpostGateway.hentJournalpost` is `TODO()` |
-| `FakeArenaoppslagGateway` | history only for ident `09876543210`; fixed maksdato data |
-| `FakeStatistikkGateway` | records hendelser, but `konstruer()` makes a new instance each time, so you cannot read them back |
-| `InMemoryAvklaringsbehovRepository`, `InMemoryUnder18Repository` (objects) | in-memory repositories with global state. Do not call `clearMemory()`; use unique ids per test |
-| `MockConnection().toDBConnection()` | a `DBConnection` whose JDBC calls throw; only for constructing repositories you will not call |
-| `FødselsnummerGenerator`, `AzureTokenGen` | valid fnr for a birth date; signed test tokens |
-| Test-local: `TemaFlytUnleash` (`Flyttest`), `FakeUnleashGateway` (`ArenaOppgaveFlytTest`), `JoarkTemavalgUnleash` (`JoarkKafkaHandlerTest`), `BehandlingsflytGatewayMock` (`AvklaringsbehovsLøserTest`, all `TODO()`) | examples of per-test overrides |
+| `FakeUnleash` (object) | `AutomatiskKlageJournalforing` på, `KantTilKantV1` av, `PostmottakVelgTema` av, `DummyFeature` kaster exception. Overstyr én toggle med `object X : UnleashGateway by FakeUnleash { override fun isEnabled(...) }` |
+| `fakeGatewayProvider(unleash)` | registrerer `FakeArenaoppslagGateway`, `FakeJournalpostGateway` og en Unleash-fake. `FakeJournalpostGateway.hentJournalpost` er `TODO()` |
+| `FakeArenaoppslagGateway` | historikk bare for ident `09876543210`. Faste data for maksdato |
+| `FakeStatistikkGateway` | registrerer hendelser, men `konstruer()` lager en ny instans hver gang, så du kan ikke lese dem tilbake |
+| `InMemoryAvklaringsbehovRepository`, `InMemoryUnder18Repository` (objects) | repositorier i minnet med global tilstand. Ikke kall `clearMemory()`. Bruk unike id-er per test |
+| `MockConnection().toDBConnection()` | en `DBConnection` der JDBC-kall kaster exception. Bare til å konstruere repositorier du ikke vil kalle |
+| `FødselsnummerGenerator`, `AzureTokenGen` | gyldig fnr for en fødselsdato. Signerte testtokens |
+| Testlokale: `TemaFlytUnleash` (`Flyttest`), `FakeUnleashGateway` (`ArenaOppgaveFlytTest`), `JoarkTemavalgUnleash` (`JoarkKafkaHandlerTest`), `BehandlingsflytGatewayMock` (`AvklaringsbehovsLøserTest`, alt `TODO()`) | eksempler på overstyringer per test |
 
-## Adding a fake
+## Legge til en fake
 
-- HTTP: add the route to the matching `Application.xFake()` (or a new server plus system property in `FakeServers.setProperties`). Drive answers from fields on `TestJournalPost`/`TestPerson` instead of global switches, so tests stay independent.
-- Interface level: implement the gateway with `companion object : Factory<X> { override fun konstruer() = instance }` (keep one instance if tests must inspect it) or as a Kotlin `object`, and register it with `register<X>()`.
-- Put fakes needed by more than one module in `lib-test`.
+- HTTP: legg ruten til den tilhørende `Application.xFake()` (eller en ny server pluss systemegenskap i `FakeServers.setProperties`). La svarene styres av felt på `TestJournalPost`/`TestPerson` i stedet for globale brytere, slik at testene forblir uavhengige.
+- Grensesnittnivå: implementer gatewayen med `companion object : Factory<X> { override fun konstruer() = instance }` (behold én instans hvis testene må inspisere den) eller som et Kotlin-`object`, og registrer den med `register<X>()`.
+- Legg fakes som trengs av mer enn én modul i `lib-test`.

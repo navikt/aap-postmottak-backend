@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Runs a narrow set of tests and prints a compact summary, so agents never need to read the full Gradle log.
+# Kjører et smalt sett med tester og skriver ut en kompakt oppsummering, slik at agenter slipper å lese hele Gradle-loggen.
 #
-# Usage:
-#   run-tests.sh <module> [test-filter ...]
+# Bruk:
+#   run-tests.sh <modul> [testfilter ...]
 #
-# Examples:
+# Eksempler:
 #   run-tests.sh flyt 'no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarSakStegTest'
 #   run-tests.sh flyt 'no.nav.aap.postmottak.flyt.Flyttest.kjører en manuell søknad igjennom hele flyten'
 #   run-tests.sh repository '*JournalpostRepositoryImplTest'
 #   run-tests.sh flyt '*AvklarSakStegTest' '*AvklarTemaStegTest'
 #
-# Environment:
-#   MAX_WORKERS  Gradle --max-workers (default 2). Also caps parallel test JVMs, and therefore containers.
-#   RERUN        0 (default) trusts Gradle's up-to-date check and build cache.
-#                Set RERUN=1 to pass --rerun and force the test task to run.
+# Miljø:
+#   MAX_WORKERS  Gradle --max-workers (standard 2). Begrenser også parallelle test-JVM-er og dermed containere.
+#   RERUN        0 (standard) bruker Gradles up-to-date-sjekk og build-cache.
+#                Sett RERUN=1 for å sende --rerun og tvinge testtasken til å kjøre.
 #
-# The full Gradle log is written to a temp file (path is printed). JUnit XML is in <module>/build/test-results/test/
-# and only contains the classes from the LAST run of that module's test task.
+# Hele Gradle-loggen skrives til en midlertidig fil (stien skrives ut). JUnit-XML ligger i <modul>/build/test-results/test/
+# og inneholder bare klassene fra SISTE kjøring av modulens testtask.
 set -uo pipefail
 
 if [[ $# -lt 1 ]]; then
@@ -31,7 +31,7 @@ root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$root" || exit 2
 
 if [[ ! -d "$module/src/test" ]]; then
-  echo "No test sources for module '$module' (expected $module/src/test)." >&2
+  echo "Ingen testkilder for modulen '$module' (forventet $module/src/test)." >&2
   exit 2
 fi
 
@@ -50,19 +50,19 @@ start=$(date +%s)
 status=$?
 end=$(date +%s)
 
-# Test event lines look like "ClassName > testName() PASSED". Task lines ("> Task :x:test FAILED") must not count.
+# Testhendelseslinjer ser slik ut: "ClassName > testName() PASSED". Task-linjer ("> Task :x:test FAILED") skal ikke telles.
 test_lines() { grep -E " > .* $1\$" "$log" | grep -v '^> Task'; }
 passed=$(test_lines PASSED | grep -c .)
 failed=$(test_lines FAILED | grep -c .)
 skipped=$(test_lines SKIPPED | grep -c .)
 
-echo "Module: $module | exit=$status | time=$((end - start))s | passed=$passed failed=$failed skipped=$skipped"
-echo "Full log: $log"
+echo "Modul: $module | exit=$status | time=$((end - start))s | passed=$passed failed=$failed skipped=$skipped"
+echo "Full logg: $log"
 
 if [[ $failed -gt 0 ]]; then
   echo
-  echo "Failed tests:"
-  # The FAILED line plus Gradle's indented exception summary lines that follow it.
+  echo "Feilede tester:"
+  # FAILED-linjen pluss Gradles innrykkede oppsummeringslinjer for exception som følger etter den.
   awk '
     / > .* FAILED$/ && !/^> Task/ { print; grab = 1; n = 0; next }
     grab && /^    [^ ]/ && n < 5 { print; n++; next }
@@ -72,7 +72,7 @@ if [[ $failed -gt 0 ]]; then
   report_dir="$module/build/test-results/test"
   if [[ -d "$report_dir" ]]; then
     echo
-    echo "Failure messages from JUnit XML (truncated):"
+    echo "Feilmeldinger fra JUnit-XML (avkortet):"
     for file in "$report_dir"/TEST-*.xml; do
       [[ -e "$file" ]] || continue
       awk '
@@ -93,7 +93,7 @@ fi
 
 if [[ $status -ne 0 && $failed -eq 0 ]]; then
   echo
-  echo "Build failed without test failures (compilation, no matching tests, Docker, ...). Excerpt:"
+  echo "Bygget feilet uten testfeil (kompilering, ingen treff på tester, Docker, ...). Utdrag:"
   grep -E '^e: |error:|No tests found|What went wrong|Could not|Exception' "$log" | head -30
 fi
 
@@ -102,7 +102,7 @@ if [[ $passed -eq 0 && $failed -eq 0 && $status -eq 0 ]]; then
   if grep -qE "^> Task :${module}:test (UP-TO-DATE|FROM-CACHE)" "$log"; then
     grep -E "^> Task :${module}:test (UP-TO-DATE|FROM-CACHE)" "$log"
   else
-    echo "Warning: no tests reported. Check that the filter matches (fully qualified class name, or a '*' prefix)."
+    echo "Advarsel: ingen tester rapportert. Sjekk at filteret treffer (fullt kvalifisert klassenavn, eller prefiks med '*')."
   fi
 fi
 

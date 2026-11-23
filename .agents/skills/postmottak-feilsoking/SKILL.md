@@ -1,54 +1,54 @@
 ---
 name: postmottak-feilsoking
-description: Investigate why a journalpost or behandling in aap-postmottak-backend is stuck, failed, on vent or ended up in the wrong place, in dev or prod. Covers the drift and motor APIs, log fields, an investigation playbook, and verified read-only SQL for behandlinger, steg history, avklaringsbehov, jobs, fordeling and vurderinger. Load for support questions, incidents and "where is document X" questions.
+description: Undersøk hvorfor en journalpost eller behandling i aap-postmottak-backend står fast, har feilet, er på vent eller har havnet feil sted, i dev eller prod. Dekker drift- og motor-API-ene, loggfelt, en feilsøkingsguide og verifiserte lesende SQL-spørringer for behandlinger, steghistorikk, avklaringsbehov, jobber, fordeling og vurderinger. Bruk ved supportspørsmål, hendelser og spørsmål av typen «hvor er dokument X».
 ---
 
-# Troubleshooting postmottak
+# Feilsøking i postmottak
 
-If the user or the code contradicts this skill, warn the user and ask whether the skill and/or `AGENTS.md` should be updated. See `AGENTS.md` → "When the user contradicts this documentation".
+Hvis brukeren eller koden motsier denne skillen, varsle brukeren og spør om skillen og/eller `AGENTS.md` skal oppdateres. Se `AGENTS.md` → "When the user contradicts this documentation".
 
-Background on what *should* happen: `postmottak-dokumentflyt` (business flow) and `postmottak-flyt-motor` (engine semantics).
+Bakgrunn om hva som *skal* skje: `postmottak-dokumentflyt` (forretningsflyten) og `postmottak-flyt-motor` (hvordan motoren fungerer).
 
-## Sources, cheapest first
+## Kilder, de billigste først
 
-1. **Drift API** (Azure AD; role `AAP_DRIFT_LES` for reading, DRIFTE for actions):
-   - `GET /api/drift/journalpost/{journalpostId}/info`: innkommende status, brevkode, tema, regelresultat, Joark status, kanal, saksnummer, and every behandling with steg, status and avklaringsbehov history. Fødselsnummer is stripped from the response.
-   - `POST /api/drift/person/journalposter/søk` with `{ "ident": "..." }`: innkommende journalposter for a person.
-   - `POST /api/drift/behandling/{referanse}/prosesser`: enqueue processing. Safe to repeat (each call queues one more processing run, and steps are written to tolerate re-runs), but it queues behind a `FEILET` job for the same behandling.
-   - `POST /api/drift/journalpost/{journalpostId}/kopier-journalpost`: copy a journalpost in Joark (tema AAP only).
-2. **Motor API** (prod: Team AAP role): `GET /drift/api/jobb/feilende`, `GET /drift/api/jobb/planlagte-jobber`, `GET /drift/api/jobb/sisteKjørte`, `GET /drift/api/jobb/rekjor/{jobbId}`, `GET /drift/api/jobb/avbryt/{jobbId}`, `GET /drift/api/jobb/rekjorAlleFeilede`, `POST /drift/api/jobb/{jobbId}/kjor` (run a `KLAR` job now). `rekjor` and `avbryt` only act on `FEILET` jobs.
-3. **Frontend flyt view**: `GET /api/behandling/{referanse}/flyt` returns `prosessering.status` (`JOBBER`, `FEILET`, `FERDIG`) and the error text of a failed job.
-4. **Logs** (Loki/Elastic): MDC fields `journalpostId`, `behandlingReferanse`, `behandlingId`, `sakId` (= journalpostId), `jobbType`, `callId`. Job failures are logged as `Feil under prosessering av jobb :: [type] ... <ExceptionClass>. Se secure logs.`; the stack trace is only in team-logs (secure) and in `jobb_historikk.feilmelding` (SQL "Jobs"). The engine's own lines are listed in `postmottak-testing/scripts/flyt-trace.sh` (`Behandler steg`, `Stopper opp ved`, `Tilbakeført`, ...).
-5. **SQL** (read-only): `references/sql.md`. Avoid selecting fødselsnummer unless needed, and never paste them into tickets or chats.
+1. **Drift-API** (Azure AD; rollen `AAP_DRIFT_LES` for lesing, DRIFTE for handlinger):
+   - `GET /api/drift/journalpost/{journalpostId}/info`: innkommende status, brevkode, tema, regelresultat, Joark-status, kanal, saksnummer og alle behandlinger med steg, status og historikk for avklaringsbehov. Fødselsnummer er fjernet fra svaret.
+   - `POST /api/drift/person/journalposter/søk` med `{ "ident": "..." }`: innkommende journalposter for en person.
+   - `POST /api/drift/behandling/{referanse}/prosesser`: legger behandlingen i kø for prosessering. Trygt å gjenta (hvert kall legger inn en ny prosessering, og stegene er skrevet slik at de tåler å kjøres flere ganger), men kallet havner bak en `FEILET` jobb for samme behandling.
+   - `POST /api/drift/journalpost/{journalpostId}/kopier-journalpost`: kopierer en journalpost i Joark (bare tema AAP).
+2. **Motor-API** (prod: rollen Team AAP): `GET /drift/api/jobb/feilende`, `GET /drift/api/jobb/planlagte-jobber`, `GET /drift/api/jobb/sisteKjørte`, `GET /drift/api/jobb/rekjor/{jobbId}`, `GET /drift/api/jobb/avbryt/{jobbId}`, `GET /drift/api/jobb/rekjorAlleFeilede`, `POST /drift/api/jobb/{jobbId}/kjor` (kjør en `KLAR` jobb nå). `rekjor` og `avbryt` virker bare på `FEILET` jobber.
+3. **Flyt-visningen i frontend**: `GET /api/behandling/{referanse}/flyt` returnerer `prosessering.status` (`JOBBER`, `FEILET`, `FERDIG`) og feilteksten fra en feilet jobb.
+4. **Logger** (Loki/Elastic): MDC-feltene `journalpostId`, `behandlingReferanse`, `behandlingId`, `sakId` (= journalpostId), `jobbType` og `callId`. Jobbfeil logges som `Feil under prosessering av jobb :: [type] ... <ExceptionClass>. Se secure logs.`. Stacktracen finnes bare i team-logs (secure) og i `jobb_historikk.feilmelding` (SQL «Jobber»). Motorens egne logglinjer er listet i `postmottak-testing/scripts/flyt-trace.sh` (`Behandler steg`, `Stopper opp ved`, `Tilbakeført`, ...).
+5. **SQL** (lesetilgang): `references/sql.md`. Ikke hent ut fødselsnummer med mindre du må, og lim dem aldri inn i saker eller chatter.
 
-## Playbook: "where is journalpost X / why did it not reach Kelvin?"
+## Feilsøkingsguide: «hvor er journalpost X / hvorfor kom den ikke til Kelvin?»
 
-| Observation | Meaning | Next step |
+| Observasjon | Betydning | Neste steg |
 | --- | --- | --- |
-| No innkommende journalpost and no behandling | The Kafka event was filtered (status not `MOTTATT`, kanal EESSI, tema not AAP), or the `vurderdokument.innkommende` job has not succeeded | SQL "Jobs" for the journalpost. Otherwise check Joark status, tema and kanal in SAF. Repeated pod restarts with stream errors mean the Kafka handler throws. `JoarkAvstemmer` creates a Gosys FDR oppgave for MOTTATT AAP journalposter without regelresultat after 5 days. |
-| Innkommende `IGNORERT` (`ALLEREDE_JOURNALFØRT` / `UTGÅTT`) | By design | none |
-| Innkommende `GOSYS_FDR` (`MANGLER_IDENT` / `ORGNR`) | By design: a Gosys fordelingsoppgave was created | Handled in Gosys |
-| `EVALUERT`, Fordeling behandling `AVSLUTTET`, regelresultat ARENA | Routed to Arena | Check `arena.*` jobs (SQL "Jobs"). Fallbacks end in a Gosys JFR/FDR oppgave. |
-| Søknad expected in Kelvin (kant-til-kant) but went to Arena | Toggle `KantTilKantV1` off, or `ArenaService.harOppbruktRettighet` did not return `HarBruktOppForlengelsen`/`VedtattAtIkkeForlenges`. Maksdato 12 weeks or more after mottatt dato gives `IkkeRelevantSøknad` (12 weeks is temporary for MVP kant-til-kant, back to 26 in part 2). | Log "Evaluering av fordeling Kelvin/arena" (`oppbruktRettighetResultat`, `featureToggleTilstand`) and "er 'kant-i-kant'" (tilstand flags) for the journalpostId; metric `postmottak_kant_i_kant_oppbrukt_rettighet` |
-| Journalføring open with AVKLAR_TEMA or AVKLAR_SAK open | Waiting for a saksbehandler | none |
-| Journalføring open with `VENT_PA_GOSYS` / `MANUELT_SATT_PÅ_VENT` open | On vent until frist (cron 07:00), løsning or Gosys/Kafka event | SQL "På vent". After a tema change away from AAP the Gosys-vent stays until frist (known behaviour). |
-| A job `FEILET` | Processing stopped. A failed `flyt.prosesserBehandling` also blocks saksbehandler actions (`BehandlingUnderProsesseringException`). | Read the latest `feilmelding` (SQL "Jobs"). Fix the cause, then re-run the job (motor API) or wait for `retryFeilede` (07, 12, 15, 20). `POST .../prosesser` does not help: the new job queues behind the failed one (SQL "Jobs blocked by a failed job"). |
-| DokumentHåndtering open at DIGITALISER_DOKUMENT / AVKLAR_OVERLEVERING | Waiting for a saksbehandler | none |
-| DokumentHåndtering `AVSLUTTET` | Sent to behandlingsflyt if the overlevering vurdering says so | SQL "Active vurderinger"; then look in aap-behandlingsflyt |
-| Behandling not avsluttet, no open behov, no `KLAR`/`FEILET` job | Stuck (should not happen) | SQL "Stuck behandlinger", then `POST /api/drift/behandling/{ref}/prosesser` |
+| Ingen innkommende journalpost og ingen behandling | Kafka-eventet ble filtrert bort (status er ikke `MOTTATT`, kanal EESSI, tema er ikke AAP), eller jobben `vurderdokument.innkommende` har ikke gått bra | SQL «Jobber» for journalposten. Ellers sjekk Joark-status, tema og kanal i SAF. Gjentatte pod-restarter med stream-feil betyr at Kafka-handleren kaster exception. `JoarkAvstemmer` oppretter en Gosys FDR-oppgave for MOTTATT AAP-journalposter uten regelresultat etter 5 dager. |
+| Innkommende `IGNORERT` (`ALLEREDE_JOURNALFØRT` / `UTGÅTT`) | Som tilsiktet | Ingen |
+| Innkommende `GOSYS_FDR` (`MANGLER_IDENT` / `ORGNR`) | Som tilsiktet: det ble opprettet en fordelingsoppgave i Gosys | Håndteres i Gosys |
+| `EVALUERT`, Fordeling-behandling `AVSLUTTET`, regelresultat ARENA | Rutet til Arena | Sjekk `arena.*`-jobbene (SQL «Jobber»). Fallbackene ender i en Gosys JFR/FDR-oppgave. |
+| Søknad forventet i Kelvin (kant-til-kant), men havnet i Arena | Toggelen `KantTilKantV1` er av, eller `ArenaService.harOppbruktRettighet` ga ikke `HarBruktOppForlengelsen`/`VedtattAtIkkeForlenges`. Maksdato 12 uker eller mer etter mottatt dato gir `IkkeRelevantSøknad` (12 uker er midlertidig for MVP av kant-til-kant, tilbake til 26 i del 2). | Loggene «Evaluering av fordeling Kelvin/arena» (`oppbruktRettighetResultat`, `featureToggleTilstand`) og «er 'kant-i-kant'» (tilstandsflagg) for journalpostId, og metrikken `postmottak_kant_i_kant_oppbrukt_rettighet` |
+| Journalføring åpen med AVKLAR_TEMA eller AVKLAR_SAK åpen | Venter på en saksbehandler | Ingen |
+| Journalføring åpen med `VENT_PA_GOSYS` / `MANUELT_SATT_PÅ_VENT` åpen | På vent til fristen (cron 07:00), en løsning eller et Gosys-/Kafka-event | SQL «På vent». Etter temabytte bort fra AAP blir Gosys-venten stående til fristen (kjent oppførsel). |
+| En jobb er `FEILET` | Prosesseringen har stoppet. En feilet `flyt.prosesserBehandling` blokkerer også handlinger fra saksbehandler (`BehandlingUnderProsesseringException`). | Les siste `feilmelding` (SQL «Jobber»). Fiks årsaken, kjør deretter jobben på nytt (motor-API) eller vent på `retryFeilede` (07, 12, 15, 20). `POST .../prosesser` hjelper ikke: den nye jobben havner bak den feilede (SQL «Jobber blokkert av en feilet jobb»). |
+| DokumentHåndtering åpen ved DIGITALISER_DOKUMENT / AVKLAR_OVERLEVERING | Venter på en saksbehandler | Ingen |
+| DokumentHåndtering `AVSLUTTET` | Sendt til behandlingsflyt hvis overleveringsvurderingen sier det | SQL «Aktive vurderinger», og se deretter i aap-behandlingsflyt |
+| Behandling er ikke avsluttet, ingen åpne behov og ingen `KLAR`/`FEILET` jobb | Står fast (skal ikke skje) | SQL «Fastlåste behandlinger», deretter `POST /api/drift/behandling/{ref}/prosesser` |
 
-Facts that explain many tickets:
-- `T` in compact steg history shows that a steg was rewound, not why. Expired ventepunkter and open avklaringsbehov in earlier steg can also cause a rewind. The log line `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'` identifies a rewind caused by an informasjonskrav returning `ENDRET`. Before November 2026 this happened on almost every resume in Journalføring because of an inverted check; that older history can show `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`. Repeated newer log lines of this kind point to an informasjonskrav that reports `ENDRET` every time.
-- A saksbehandler-solved DIGITALISER_DOKUMENT shows status `AVBRUTT`; look for an `AVSLUTTET` endring in its history.
-- Steps are re-run after rewinds and retries, so repeated calls to Joark, Gosys or behandlingsflyt for the same journalpost are expected.
-- `IVERKSETTES` behandling status means "in the last steps", not "done". `AVSLUTTET` is done.
-- The regelresultat's `system_navn` is the rule outcome. For journalposter with a Fordeling behandling, the decision that was acted on is `avklar_fordeling_vurdering.fagsystem` (`vurdert_av` `Kelvin` = automatic, a NAV ident = manual).
+Fakta som forklarer mange henvendelser:
+- `T` i den kompakte steghistorikken viser at et steg ble rullet tilbake, ikke hvorfor. Utløpte ventepunkter og åpne avklaringsbehov i tidligere steg kan også gi tilbakerulling. Logglinja `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'` viser at et informasjonskrav som ga `ENDRET` forårsaket tilbakerullingen. Før november 2026 skjedde dette ved nesten hver gjenopptakelse i Journalføring på grunn av en snudd sjekk. Eldre historikk kan derfor vise `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`. Gjentatte nyere logglinjer av denne typen tyder på et informasjonskrav som melder `ENDRET` hver gang.
+- En DIGITALISER_DOKUMENT som saksbehandler har løst, vises med status `AVBRUTT`. Se etter en `AVSLUTTET` endring i historikken.
+- Stegene kjøres på nytt etter tilbakerullinger og retry-forsøk, så gjentatte kall til Joark, Gosys eller behandlingsflyt for samme journalpost er forventet.
+- Behandlingsstatusen `IVERKSETTES` betyr «i de siste stegene», ikke «ferdig». `AVSLUTTET` er ferdig.
+- `system_navn` i regelresultatet er utfallet av reglene. For journalposter med en Fordeling-behandling er beslutningen som ble fulgt `avklar_fordeling_vurdering.fagsystem` (`vurdert_av` `Kelvin` = automatisk, en Nav-ident = manuelt).
 
-## Codes
+## Koder
 
-Avklaringsbehov `definisjon` column: `1338` DIGITALISER_DOKUMENT, `1339` AVKLAR_TEMA, `1340` AVKLAR_SAK, `1341` AVKLAR_OVERLEVERING, `1342` VENT_PA_GOSYS, `1343` AVKLAR_FORDELING (removed, historical data only), `9001` MANUELT_SATT_PÅ_VENT. Job types: `postmottak-flyt-motor/references/motor-jobs-transactions.md`.
+Kolonnen `definisjon` for avklaringsbehov: `1338` DIGITALISER_DOKUMENT, `1339` AVKLAR_TEMA, `1340` AVKLAR_SAK, `1341` AVKLAR_OVERLEVERING, `1342` VENT_PA_GOSYS, `1343` AVKLAR_FORDELING (fjernet, bare historiske data), `9001` MANUELT_SATT_PÅ_VENT. Jobbtyper: `postmottak-flyt-motor/references/motor-jobs-transactions.md`.
 
-## References
+## Referanser
 
-- `references/sql.md`: verified read-only queries: journalpost overview, compact steg history, avklaringsbehov, jobs with errors, fordeling rules, vurderinger, Kelvin saker, person search, på vent, stuck behandlinger, failed and blocked jobs, queue and intake health.
-- `RUNBOOK.md` (repo root, Norwegian): operational recipes written by the team.
+- `references/sql.md`: verifiserte lesende spørringer: journalpostoversikt, kompakt steghistorikk, avklaringsbehov, jobber med feil, fordelingsregler, vurderinger, Kelvin-saker, personsøk, på vent, fastlåste behandlinger, feilede og blokkerte jobber, kø og inntak.
+- `RUNBOOK.md` (repo-roten, norsk): driftsoppskrifter skrevet av teamet.

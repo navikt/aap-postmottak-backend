@@ -1,97 +1,97 @@
-# Avklaringsbehov: definitions, lifecycle, løsning flow, ventepunkter
+# Avklaringsbehov: definisjoner, livssyklus, løsningsflyt, ventepunkter
 
-Paths are under `flyt/src/main/kotlin/no/nav/aap/postmottak/` unless stated otherwise. **Verified** means confirmed by a test run.
+Stier ligger under `flyt/src/main/kotlin/no/nav/aap/postmottak/` med mindre noe annet er oppgitt. **Verifisert** betyr bekreftet ved en testkjøring.
 
-## Definitions
+## Definisjoner
 
-`kontrakt/.../avklaringsbehov/Definisjon.kt` (published contract, consumed by the frontend and other apps). Codes are duplicated as `const val *_KODE` and `enum AvklaringsbehovKode` in `AvklaringsbehovKode.kt`; keep them in sync.
+`kontrakt/.../avklaringsbehov/Definisjon.kt` (publisert kontrakt, brukt av frontend og andre apper). Kodene er duplisert som `const val *_KODE` og `enum AvklaringsbehovKode` i `AvklaringsbehovKode.kt`. Hold dem synkronisert.
 
-| Definisjon | Kode | Type | Løses i steg | Created by | Løsning → Løser |
+| Definisjon | Kode | Type | Løses i steg | Opprettes av | Løsning → Løser |
 | --- | --- | --- | --- | --- | --- |
-| AVKLAR_FORDELING (deprecated, removed; historical data only) | 1343 | MANUELT_PÅKREVD | AVKLAR_FORDELING | never raised | none (løsning and løser removed) |
+| AVKLAR_FORDELING (utfaset og fjernet, bare historiske data) | 1343 | MANUELT_PÅKREVD | AVKLAR_FORDELING | reises aldri | ingen (løsning og løser er fjernet) |
 | AVKLAR_TEMA | 1339 | MANUELT_PÅKREVD | AVKLAR_TEMA | `AvklarTemaSteg` via `AvklaringsbehovService` | `AvklarTemaLøsning` → `AvklarTemaLøser` |
-| AVKLAR_SAK | 1340 | MANUELT_PÅKREVD | AVKLAR_SAK | `AvklarSakSteg` returns `FantAvklaringsbehov` | `AvklarSaksnummerLøsning` → `AvklarSakLøser` |
+| AVKLAR_SAK | 1340 | MANUELT_PÅKREVD | AVKLAR_SAK | `AvklarSakSteg` returnerer `FantAvklaringsbehov` | `AvklarSaksnummerLøsning` → `AvklarSakLøser` |
 | DIGITALISER_DOKUMENT | 1338 | MANUELT_PÅKREVD | DIGITALISER_DOKUMENT | `DigitaliserDokumentSteg` | `DigitaliserDokumentLøsning` → `DigitaliserDokumentLøser` |
 | AVKLAR_OVERLEVERING | 1341 | MANUELT_PÅKREVD | OVERLEVER_TIL_FAGSYSTEM | `OverleverTilFagsystemSteg` | `AvklarOverleveringLøsning` → `AvklarOverleveringLøser` |
-| MANUELT_SATT_PÅ_VENT | 9001 | VENTEPUNKT, default frist 3 weeks | UDEFINERT = the steg it was set in | API `sett-på-vent` | `SattPåVentLøsning` → `SattPåVentLøser` (no-op, "Tatt av vent") |
-| VENT_PA_GOSYS | 1342 | VENTEPUNKT, default frist 5 days, but set with +2 weeks | AVKLAR_TEMA | `AvklarTemaLøser` → `AvklaringsbehovOrkestrator.settBehandlingPåVentForTemaEndring` | none: cannot be solved through the API |
+| MANUELT_SATT_PÅ_VENT | 9001 | VENTEPUNKT, standardfrist 3 uker | UDEFINERT = steget den ble satt i | API `sett-på-vent` | `SattPåVentLøsning` → `SattPåVentLøser` (gjør ingenting, «Tatt av vent») |
+| VENT_PA_GOSYS | 1342 | VENTEPUNKT, standardfrist 5 dager, men satt med +2 uker | AVKLAR_TEMA | `AvklarTemaLøser` → `AvklaringsbehovOrkestrator.settBehandlingPåVentForTemaEndring` | ingen: kan ikke løses via API-et |
 
-All are solved by role `SAKSBEHANDLER_NASJONAL`, none require two-step approval. Code `1337` exists in `AvklaringsbehovKode` but has no definisjon (legacy).
+Alle løses av rollen `SAKSBEHANDLER_NASJONAL`, og ingen krever totrinnsgodkjenning. Koden `1337` finnes i `AvklaringsbehovKode`, men har ingen definisjon (legacy).
 
-## Statuses and storage
+## Statuser og lagring
 
-- `AVKLARINGSBEHOV`: one row per (behandling, definisjon) (unique index), with `funnet_i_steg`.
-- `AVKLARINGSBEHOV_ENDRING`: append-only history (status, begrunnelse, frist, venteårsak, opprettet_av, tid). Current status = the latest endring by timestamp.
-- Open: `OPPRETTET` (and the unused `SENDT_TILBAKE_FRA_BESLUTTER`). Closed: `AVSLUTTET` (solved) or `AVBRUTT` (cancelled).
-- `Avklaringsbehovene` (from `AvklaringsbehovRepository.hentAvklaringsbehovene`) reads the database on **every** call (`alle()`, `åpne()` ...) and returns new objects. Change state only through its methods, which persist (`leggTil`, `løsAvklaringsbehov`, `avbrytForSteg`, ...).
+- `AVKLARINGSBEHOV`: én rad per (behandling, definisjon) (unik indeks), med `funnet_i_steg`.
+- `AVKLARINGSBEHOV_ENDRING`: historikk som bare utvides (status, begrunnelse, frist, venteårsak, opprettet_av, tid). Gjeldende status = siste endring etter tidsstempel.
+- Åpen: `OPPRETTET` (og den ubrukte `SENDT_TILBAKE_FRA_BESLUTTER`). Lukket: `AVSLUTTET` (løst) eller `AVBRUTT` (kansellert).
+- `Avklaringsbehovene` (fra `AvklaringsbehovRepository.hentAvklaringsbehovene`) leser databasen ved **hvert** kall (`alle()`, `åpne()` ...) og returnerer nye objekter. Endre tilstand bare gjennom metodene, som lagrer (`leggTil`, `løsAvklaringsbehov`, `avbrytForSteg`, ...).
 
-State transitions:
+Tilstandsoverganger:
 
-| From → to | Caused by |
+| Fra → til | Forårsaket av |
 | --- | --- |
-| none → OPPRETTET | `leggTil`: a step returned `FantAvklaringsbehov`, `AvklaringsbehovService`, or sett-på-vent |
-| OPPRETTET → AVSLUTTET | `løsAvklaringsbehov`: API løsning, expired frist, `taAvVentPgaGosys`, the vent-closing rule below; `internalAvslutt` from `AvklaringsbehovService` |
-| OPPRETTET or AVSLUTTET → AVBRUTT | `avbrytForSteg` (ignores status), `internalAvbryt` from `AvklaringsbehovService` |
-| AVSLUTTET or AVBRUTT → OPPRETTET | `leggTil` reopens (for ventepunkter it also updates `funnet_i_steg`) |
+| ingen → OPPRETTET | `leggTil`: et steg returnerte `FantAvklaringsbehov`, `AvklaringsbehovService` eller sett-på-vent |
+| OPPRETTET → AVSLUTTET | `løsAvklaringsbehov`: API-løsning, utløpt frist, `taAvVentPgaGosys`, regelen for lukking av vent under; `internalAvslutt` fra `AvklaringsbehovService` |
+| OPPRETTET eller AVSLUTTET → AVBRUTT | `avbrytForSteg` (ignorerer status), `internalAvbryt` fra `AvklaringsbehovService` |
+| AVSLUTTET eller AVBRUTT → OPPRETTET | `leggTil` gjenåpner (for ventepunkter oppdaterer den også `funnet_i_steg`) |
 
-## How steps create behov
+## Hvordan steg oppretter behov
 
-**Explicit (most steps):** `return FantAvklaringsbehov(Definisjon.X)`. `StegOrkestrator` calls `leggTil(X, currentSteg)`: create if missing, reopen if closed, ignore if already open. The step must return `Fullført` once a vurdering exists, or it will reopen the behov forever.
+**Eksplisitt (de fleste steg):** `return FantAvklaringsbehov(Definisjon.X)`. `StegOrkestrator` kaller `leggTil(X, gjeldendeSteg)`: opprett hvis det mangler, gjenåpne hvis lukket, ignorer hvis allerede åpent. Steget må returnere `Fullført` så snart en vurdering finnes, ellers gjenåpner det behovet i det uendelige.
 
-**Declarative (`AvklarTemaSteg` only):** `AvklaringsbehovService.oppdaterAvklaringsbehov(def, vedtakBehøverVurdering, erTilstrekkeligVurdert, kontekst)` sets the desired state, then the step returns `Fullført`; AVKLARINGSPUNKT stops if the behov is open.
+**Deklarativt (bare `AvklarTemaSteg`):** `AvklaringsbehovService.oppdaterAvklaringsbehov(def, vedtakBehøverVurdering, erTilstrekkeligVurdert, kontekst)` setter ønsket tilstand, deretter returnerer steget `Fullført`. AVKLARINGSPUNKT stopper hvis behovet er åpent.
 
-| needs vurdering? | current state | sufficiently vurdert? | Result |
+| trenger vurdering? | gjeldende tilstand | tilstrekkelig vurdert? | Resultat |
 | --- | --- | --- | --- |
-| yes | none, `AVBRUTT`, or never solved | (not asked) | OPPRETTET (create/reopen) |
-| yes | solved before and now `AVSLUTTET` | yes | unchanged |
-| yes | solved before, now `OPPRETTET` | yes | `AVSLUTTET` (`internalAvslutt`) |
-| yes | solved before | no | reopen → OPPRETTET |
-| no | none or `AVBRUTT` | (not asked) | unchanged |
-| no | `OPPRETTET`/`AVSLUTTET` | (not asked) | `AVBRUTT` |
+| ja | ingen, `AVBRUTT` eller aldri løst | (ikke spurt) | OPPRETTET (opprett/gjenåpne) |
+| ja | løst tidligere og nå `AVSLUTTET` | ja | uendret |
+| ja | løst tidligere, nå `OPPRETTET` | ja | `AVSLUTTET` (`internalAvslutt`) |
+| ja | løst tidligere | nei | gjenåpne → OPPRETTET |
+| nei | ingen eller `AVBRUTT` | (ikke spurt) | uendret |
+| nei | `OPPRETTET`/`AVSLUTTET` | (ikke spurt) | `AVBRUTT` |
 
-For AVKLAR_TEMA: "needs vurdering" is false for ugyldig, already JOURNALFOERT, tema ≠ AAP, digital søknad/legeerklæring/meldekort and automatic klage. "Sufficiently vurdert" is `false` only when the vurdering is UKJENT while Joark still says AAP and the `PostmottakVelgTema` toggle is off; this is why AVKLAR_TEMA reopens after "skal ikke til AAP" (**verified**).
+For AVKLAR_TEMA er «trenger vurdering» false for ugyldig, allerede JOURNALFOERT, tema ≠ AAP, digital søknad/legeerklæring/meldekort og automatisk klage. «Tilstrekkelig vurdert» er bare `false` når vurderingen er UKJENT mens Joark fortsatt sier AAP og toggelen `PostmottakVelgTema` er av. Derfor gjenåpnes AVKLAR_TEMA etter «skal ikke til AAP» (**verifisert**).
 
-## The løsning flow, end to end
+## Løsningsflyten fra ende til ende
 
-1. `POST /api/behandling/løs-behov` with `{ referanse, behandlingVersjon, behov: { behovstype: "1339", ... } }` (`api/.../flyt/AvklaringsbehovApi.kt`). `behovstype` selects the `AvklaringsbehovLøsning` subtype through `@JsonTypeName`; subtypes are registered in `App.kt` with `registerSubtypes(utledSubtypes())`. Authorization: operasjon SAKSBEHANDLE on the journalpost, role from `definisjon.løsesAv`.
-2. In one transaction: lock the behandling row, then `BehandlingTilstandValidator`: status ≠ AVSLUTTET, `behandlingVersjon` matches (`OutdatedBehandlingException`), and no `flyt.prosesserBehandling` job in `KLAR` **or `FEILET`** for the behandling (`BehandlingUnderProsesseringException`).
-3. `AvklaringsbehovHendelseHåndterer` → `ValiderBehandlingTilstand`: the behov must exist on the behandling (any status), and its steg must not be after the current steg.
+1. `POST /api/behandling/løs-behov` med `{ referanse, behandlingVersjon, behov: { behovstype: "1339", ... } }` (`api/.../flyt/AvklaringsbehovApi.kt`). `behovstype` velger subtypen av `AvklaringsbehovLøsning` gjennom `@JsonTypeName`. Subtypene registreres i `App.kt` med `registerSubtypes(utledSubtypes())`. Autorisasjon: operasjon SAKSBEHANDLE på journalposten, rolle fra `definisjon.løsesAv`.
+2. I én transaksjon: lås behandlingsraden, deretter `BehandlingTilstandValidator`: status ≠ AVSLUTTET, `behandlingVersjon` stemmer (`OutdatedBehandlingException`), og ingen `flyt.prosesserBehandling`-jobb i `KLAR` **eller `FEILET`** for behandlingen (`BehandlingUnderProsesseringException`).
+3. `AvklaringsbehovHendelseHåndterer` → `ValiderBehandlingTilstand`: behovet må finnes på behandlingen (uansett status), og steget må ikke ligge etter det gjeldende steget.
 4. `AvklaringsbehovOrkestrator.løsAvklaringsbehovOgFortsettProsessering`:
-   1. `flytOrkestrator.forberedLøsingAvBehov(def)`: rewind to the steg where the behov is solved (no hendelse emitted), then require the cursor to be exactly there. Re-solving an earlier behov (e.g. AVKLAR_TEMA while at AVKLAR_SAK) is therefore allowed and rewinds the behandling.
-   2. `løsning.løs(...)` → løser stores the vurdering (may call other systems, e.g. behandlingsflyt).
+   1. `flytOrkestrator.forberedLøsingAvBehov(def)`: tilbakefør til steget der behovet løses (ingen hendelse sendes), og krev deretter at markøren står nøyaktig der. Å løse et tidligere behov på nytt (for eksempel AVKLAR_TEMA mens vi står i AVKLAR_SAK) er derfor tillatt og tilbakefører behandlingen.
+   2. `løsning.løs(...)` → løseren lagrer vurderingen (kan kalle andre systemer, for eksempel behandlingsflyt).
    3. `avklaringsbehovene.løsAvklaringsbehov(def, begrunnelse, bruker)` → `AVSLUTTET`.
-   4. Enqueue `ProsesserBehandlingJobbUtfører`.
-5. Bump versjon, commit, respond `202 Accepted`. The frontend polls `GET /api/behandling/{ref}/flyt` (prosessering status `JOBBER`/`FEILET`/`FERDIG` based on pending jobs).
+   4. Legg `ProsesserBehandlingJobbUtfører` i køen.
+5. Øk versjon, commit, svar `202 Accepted`. Frontend poller `GET /api/behandling/{ref}/flyt` (prosesseringsstatus `JOBBER`/`FEILET`/`FERDIG` basert på ventende jobber).
 
-A løser that throws rolls everything back. Invalid input must throw `UgyldigForespørselException`, which `StatusPagesConfigHelper` returns as 400 with its message; anything else, including `IllegalArgumentException` from `require`, becomes 500 "En ukjent feil oppsto". Older løsere (`AvklarTemaLøser`, `AvklarSakLøser`) still use `require`; do not copy that.
+En løser som kaster exception, ruller alt tilbake. Ugyldig input må gi `UgyldigForespørselException`, som `StatusPagesConfigHelper` returnerer som 400 med meldingen fra unntaket. Alt annet, inkludert `IllegalArgumentException` fra `require`, blir 500 «En ukjent feil oppsto». Eldre løsere (`AvklarTemaLøser`, `AvklarSakLøser`) bruker fortsatt `require`. Ikke kopier det mønsteret.
 
 ## Ventepunkter
 
 | | MANUELT_SATT_PÅ_VENT | VENT_PA_GOSYS |
 | --- | --- | --- |
-| Set by | `POST /api/behandling/{ref}/sett-på-vent` → `settBehandlingPåVent` (frist from request, else +3 weeks) | `AvklarTemaLøser` when tema ≠ AAP and `PostmottakVelgTema` is off (frist +2 weeks, grunn `VENTER_PÅ_BEHANDLING_I_GOSYS`) |
-| Belongs to steg | the behandling's current steg (`funnet_i_steg`) | AVKLAR_TEMA |
-| Starts processing? | no (only a hendelse) | no; the løsning job does, and stops again at AVKLAR_TEMA |
-| Removed by | løsning `SattPåVentLøsning` (behovstype 9001), or frist | `taAvVentPgaGosys` (AvklarTemaLøser with AAP or with the toggle on; Kafka AAP event for a journalpost with an open Journalføring behandling), or frist |
+| Settes av | `POST /api/behandling/{ref}/sett-på-vent` → `settBehandlingPåVent` (frist fra forespørselen, ellers +3 uker) | `AvklarTemaLøser` når tema ≠ AAP og `PostmottakVelgTema` er av (frist +2 uker, grunn `VENTER_PÅ_BEHANDLING_I_GOSYS`) |
+| Hører til steg | behandlingens gjeldende steg (`funnet_i_steg`) | AVKLAR_TEMA |
+| Starter prosessering? | nei (bare en hendelse) | nei; løsningsjobben gjør det, og stopper igjen ved AVKLAR_TEMA |
+| Fjernes av | løsning `SattPåVentLøsning` (behovstype 9001), eller frist | `taAvVentPgaGosys` (AvklarTemaLøser med AAP eller med toggelen på; Kafka AAP-hendelse for en journalpost med åpen Journalføring-behandling), eller frist |
 
-Common rules:
-- Frist expiry: cron `GjenopptaBehandlingJobbUtfører` (07:00) enqueues processing for `UTREDES` behandlinger whose behov has a latest endring `OPPRETTET` with `frist <= today`. `FlytOrkestrator.forberedBehandling` then solves expired ventepunkter as SYSTEMBRUKER through `VentebehovEvaluererService` and rewinds to their steg.
-- Event-based lifting: add a `SpesifikkVentebehovEvaluerer` (in `flyt/ventebehov/`, added to the list in `VentebehovEvaluererServiceImpl`'s `RepositoryProvider` constructor; no reflection) that says when a ventepunkt is solved, for example a document received after the vent was set. It only runs during processing, so whatever produces the event must also enqueue `ProsesserBehandlingJobbUtfører`. All evaluators are constructed for every processing of a behandling på vent; use only repositories registered in production.
-- A step returning `Fullført` closes open ventepunkter **only if the behandling has no non-vente avklaringsbehov in any status**. **Verified consequence:** after Gosys moves the journalpost to another tema, AVKLAR_TEMA becomes `AVBRUTT`, but `VENT_PA_GOSYS` stays open until frist, so the Journalføring behandling waits up to two weeks before it finishes.
-- `AVKLARINGSPUNKT` stops on an open ventepunkt in the current steg just like on any other behov.
-- Being på vent does not change the behandling status.
-- Only three `ÅrsakTilSettPåVent` values work end to end: `VENTER_PÅ_OPPLYSNINGER`, `VENTER_PÅ_SVAR_FRA_BRUKER`, `VENTER_PÅ_BEHANDLING_I_GOSYS`. The API and the kontrakt accept six, but `BehandlingHendelseServiceImpl` throws `error("Skal ikke kunne skje")` for the others when building the hendelse, which fails the request. Update that mapping when adding or enabling a reason.
+Felles regler:
+- Utløp av frist: cron `GjenopptaBehandlingJobbUtfører` (07:00) legger prosessering i køen for `UTREDES`-behandlinger der behovet har siste endring `OPPRETTET` med `frist <= i dag`. `FlytOrkestrator.forberedBehandling` løser deretter utløpte ventepunkter som SYSTEMBRUKER gjennom `VentebehovEvaluererService` og tilbakefører til steget deres.
+- Hendelsesbasert oppheving av vent: legg til en `SpesifikkVentebehovEvaluerer` (i `flyt/ventebehov/`, i listen i `RepositoryProvider`-konstruktøren til `VentebehovEvaluererServiceImpl`, uten refleksjon) som sier når et ventepunkt er løst, for eksempel når et dokument er mottatt etter at vent ble satt. Den kjører bare under prosessering, så det som produserer hendelsen, må også legge `ProsesserBehandlingJobbUtfører` i køen. Alle evaluerere konstrueres ved hver prosessering av en behandling på vent. Bruk bare repositorier som er registrert i produksjon.
+- Et steg som returnerer `Fullført`, lukker åpne ventepunkter **bare hvis behandlingen ikke har noe avklaringsbehov som ikke er vent, uansett status**. **Verifisert konsekvens:** etter at Gosys flytter journalposten til et annet tema, blir AVKLAR_TEMA `AVBRUTT`, men `VENT_PA_GOSYS` står åpent til fristen, så Journalføring-behandlingen venter opptil to uker før den blir ferdig.
+- `AVKLARINGSPUNKT` stopper på et åpent ventepunkt i gjeldende steg på lik linje med alle andre behov.
+- Å være på vent endrer ikke behandlingsstatus.
+- Bare tre `ÅrsakTilSettPåVent`-verdier fungerer fra ende til ende: `VENTER_PÅ_OPPLYSNINGER`, `VENTER_PÅ_SVAR_FRA_BRUKER`, `VENTER_PÅ_BEHANDLING_I_GOSYS`. API-et og kontrakten godtar seks, men `BehandlingHendelseServiceImpl` kaster `error("Skal ikke kunne skje")` for de andre når den bygger hendelsen, og det får forespørselen til å feile. Oppdater den mappingen når du legger til eller aktiverer en årsak.
 
-## Outgoing hendelse (`DokumentflytStoppetHendelse`)
+## Utgående hendelse (`DokumentflytStoppetHendelse`)
 
-`BehandlingHendelseServiceImpl.stoppet` enqueues `StoppetHendelseJobbUtfører` (`flyt.hendelse`), which sends it to aap-oppgave (`OppgaveGateway.varsleHendelse`, creates and closes Kelvin oppgaver) and aap-statistikk. Emitted when processing stops or ends, on every rewind from `forberedBehandling`, on sett-på-vent, and on every `AvklarTemaLøser` run. Consumers must therefore tolerate repeated hendelser with the same state.
+`BehandlingHendelseServiceImpl.stoppet` legger `StoppetHendelseJobbUtfører` (`flyt.hendelse`) i køen. Den sender hendelsen til aap-oppgave (`OppgaveGateway.varsleHendelse`, oppretter og lukker Kelvin-oppgaver) og aap-statistikk. Den sendes når prosesseringen stopper eller avsluttes, ved hver tilbakeføring fra `forberedBehandling`, ved sett-på-vent og ved hver kjøring av `AvklarTemaLøser`. Mottakerne må derfor tåle gjentatte hendelser med samme tilstand.
 
-- `aktivtAvklaringsbehov`: first non-vente behov (sorted by flyt order of `funnetISteg`) that is open in the current steg.
-- `avklaringsbehov`: all behov with their full history.
-- If neither a journalpost nor any behov exists for the behandling, nothing is sent (warn log). If behov exist but no journalpost, it throws.
+- `aktivtAvklaringsbehov`: første behov som ikke er vent (sortert etter flytrekkefølgen til `funnetISteg`) og som er åpent i gjeldende steg.
+- `avklaringsbehov`: alle behov med full historikk.
+- Hvis det verken finnes en journalpost eller noen behov for behandlingen, sendes ingenting (warn-logg). Hvis det finnes behov, men ingen journalpost, kastes en exception.
 
-## Other things that surprise people
+## Andre ting som overrasker
 
-- `avbrytForSteg(steg)` cancels **every** non-vente behov of that steg regardless of status. `DigitaliserDokumentSteg` calls it whenever a vurdering exists, so a saksbehandler-solved DIGITALISER_DOKUMENT ends as `AVBRUTT` (**verified**: history `OPPRETTET, AVSLUTTET, AVBRUTT`). `OverleverTilFagsystemSteg` cancels DIGITALISER_DOKUMENT (not its own steg) for ugyldige journalposter.
-- `hvemSomLøste(def)` returns the `endretAv` of the latest `AVSLUTTET` endring. `SettFagsakSteg` and `JournalføringSteg` send it to Joark as `Nav-User-Id` (who journalførte).
-- `leggTil` on an existing open behov is a no-op (logs "Forsøkte å legge til et avklaringsbehov som allerede eksisterte").
+- `avbrytForSteg(steg)` kansellerer **hvert** behov i det steget som ikke er vent, uansett status. `DigitaliserDokumentSteg` kaller den hver gang det finnes en vurdering, så en DIGITALISER_DOKUMENT som saksbehandler har løst, ender som `AVBRUTT` (**verifisert**: historikk `OPPRETTET, AVSLUTTET, AVBRUTT`). `OverleverTilFagsystemSteg` kansellerer DIGITALISER_DOKUMENT (ikke sitt eget steg) for ugyldige journalposter.
+- `hvemSomLøste(def)` returnerer `endretAv` fra siste `AVSLUTTET`-endring. `SettFagsakSteg` og `JournalføringSteg` sender den til Joark som `Nav-User-Id` (hvem som journalførte).
+- `leggTil` på et eksisterende åpent behov gjør ingenting (logger «Forsøkte å legge til et avklaringsbehov som allerede eksisterte»).

@@ -1,64 +1,64 @@
-# DokumentHåndtering flyt: digitalisering and overlevering to Kelvin
+# DokumentHåndtering-flyt: digitalisering og overlevering til Kelvin
 
-Code: `flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/dokumentflyt/`. Created by `VideresendSteg` after journalføring on a Kelvin sak, with the Journalføring behandling's vurderinger copied by `GrunnlagKopierer` (in practice the tema vurdering, the saksvurdering and the Kelvin saker snapshot). This flyt has **no informasjonskrav**: it reads the journalpost stored by the earlier behandling and fails in DIGITALISER_DOKUMENT if none exists (verified).
+Kode: `flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/dokumentflyt/`. Opprettes av `VideresendSteg` etter journalføring på en Kelvin-sak, med vurderingene fra Journalføring-behandlingen kopiert av `GrunnlagKopierer` (i praksis tema-vurderingen, saksvurderingen og snapshotet av Kelvin-saker). Denne flyten har **ingen informasjonskrav**: den leser journalposten som den tidligere behandlingen lagret, og feiler i DIGITALISER_DOKUMENT hvis ingen finnes (verifisert).
 
 ## DIGITALISER_DOKUMENT (`DigitaliserDokumentSteg`)
 
-Goal: a `Digitaliseringsvurdering` = kategori (`InnsendingType`) + structured JSON (`strukturertDokument`) + optional søknadsdato.
+Mål: en `Digitaliseringsvurdering` = kategori (`InnsendingType`) + strukturert JSON (`strukturertDokument`) + valgfri søknadsdato.
 
-| Situation (first match) | Result |
+| Situasjon (første treff) | Resultat |
 | --- | --- |
-| a vurdering exists | `avbrytForSteg(DIGITALISER_DOKUMENT)` then `Fullført`. This also turns a behov solved by a saksbehandler into `AVBRUTT` (verified). |
-| ugyldig | cancel the behov, `Fullført` |
-| digital søknad or digital meldekort | fetch the original JSON from SAF, parse it, store the vurdering |
-| digital legeerklæring and `tillaterAutomatiskBehandlingAvLegeerklæring()` | store kategori LEGEERKLÆRING without content |
-| klage with `AutomatiskKlageJournalforing`, a saksvurdering exists and it was not newly created | store KLAGE with `KlageV0(kravMottatt = mottattDato)` |
-| otherwise | `FantAvklaringsbehov(DIGITALISER_DOKUMENT)` |
+| en vurdering finnes | `avbrytForSteg(DIGITALISER_DOKUMENT)`, deretter `Fullført`. Dette gjør også et behov som en saksbehandler har løst, til `AVBRUTT` (verifisert). |
+| ugyldig | kanseller behovet, `Fullført` |
+| digital søknad eller digitalt meldekort | hent original-JSON fra SAF, parse den, lagre vurderingen |
+| digital legeerklæring og `tillaterAutomatiskBehandlingAvLegeerklæring()` | lagre kategori LEGEERKLÆRING uten innhold |
+| klage med `AutomatiskKlageJournalforing`, en saksvurdering finnes og saken er ikke nyopprettet | lagre KLAGE med `KlageV0(kravMottatt = mottattDato)` |
+| ellers | `FantAvklaringsbehov(DIGITALISER_DOKUMENT)` |
 
-- Kategori for the automatic path comes from the hoveddokument brevkode (`BrevkoderHelper.mapTilInnsendingType`: søknad, legeerklæring, meldekort and meldekort-korrigering, klage). An unmapped brevkode or a parse error (`DeserializationException`, `IllegalArgumentException`) falls back to the manual behov.
-- `Journalpost.finnOriginal()` takes the first dokument with an ORIGINAL variant, not necessarily the hoveddokument (there is a TODO about this).
-- An earlier avslag on the person's Kelvin sak only produces a warning log here.
+- Kategorien for det automatiske løpet kommer fra brevkoden til hoveddokumentet (`BrevkoderHelper.mapTilInnsendingType`: søknad, legeerklæring, meldekort og meldekort-korrigering, klage). En brevkode uten mapping eller en parsefeil (`DeserializationException`, `IllegalArgumentException`) faller tilbake til det manuelle behovet.
+- `Journalpost.finnOriginal()` tar det første dokumentet med en ORIGINAL-variant, ikke nødvendigvis hoveddokumentet (det er en TODO om dette).
+- Et tidligere avslag på personens Kelvin-sak gir bare en advarsel i loggen her.
 
 Løsning `DigitaliserDokumentLøsning(kategori, strukturertDokument, søknadsdato)` → `DigitaliserDokumentLøser`:
-- `søknadsdato` is required for SØKNAD and MELDEKORT and forbidden for other kategorier; it cannot be after the journalpost's mottatt dato.
-- KLAGE requires a saksvurdering that was not newly created.
-- `strukturertDokument` is parsed with `DokumentTilMeldingParser` (`gateway/BehandlingsflytGateway.kt`) and stored re-serialised, with `digitalisertManueltGjennomPostmottak = true`.
+- `søknadsdato` er påkrevd for SØKNAD og MELDEKORT og forbudt for andre kategorier. Den kan ikke ligge etter journalpostens mottattdato.
+- KLAGE krever en saksvurdering som ikke er nyopprettet.
+- `strukturertDokument` parses med `DokumentTilMeldingParser` (`gateway/BehandlingsflytGateway.kt`) og lagres serialisert på nytt, med `digitalisertManueltGjennomPostmottak = true`.
 
-| InnsendingType | Melding class | Document required |
+| InnsendingType | Melding-klasse | Dokument påkrevd |
 | --- | --- | --- |
-| SØKNAD | `SøknadV0` | yes |
-| MELDEKORT | `MeldekortV0` | no |
-| ANNET_RELEVANT_DOKUMENT | `AnnetRelevantDokument` (V0/V1) | yes |
-| LEGEERKLÆRING | `LegeerklæringV0` | no |
-| NY_ÅRSAK_TIL_BEHANDLING | `NyÅrsakTilBehandlingV0` | yes |
-| KLAGE | `KlageV0` | yes |
-| other types | none | |
+| SØKNAD | `SøknadV0` | ja |
+| MELDEKORT | `MeldekortV0` | nei |
+| ANNET_RELEVANT_DOKUMENT | `AnnetRelevantDokument` (V0/V1) | ja |
+| LEGEERKLÆRING | `LegeerklæringV0` | nei |
+| NY_ÅRSAK_TIL_BEHANDLING | `NyÅrsakTilBehandlingV0` | ja |
+| KLAGE | `KlageV0` | ja |
+| andre typer | ingen | |
 
-The Melding classes come from `no.nav.aap.behandlingsflyt:kontrakt` (version in `gradle/libs.versions.toml`); their JSON shape is owned by aap-behandlingsflyt.
+Melding-klassene kommer fra `no.nav.aap.behandlingsflyt:kontrakt` (versjon i `gradle/libs.versions.toml`). JSON-formen eies av aap-behandlingsflyt.
 
 ## OVERLEVER_TIL_FAGSYSTEM (`OverleverTilFagsystemSteg`)
 
-Goal: decide whether Kelvin should receive the document, and send it.
+Mål: avgjøre om Kelvin skal motta dokumentet, og sende det.
 
-| Situation | Result |
+| Situasjon | Resultat |
 | --- | --- |
-| ugyldig | cancels the DIGITALISER_DOKUMENT behov (not its own), `Fullført` |
-| no overlevering vurdering and kategori SØKNAD, MELDEKORT, KLAGE, or LEGEERKLÆRING when automatic legeerklæring is allowed | automatic vurdering: send, except a MELDEKORT without structured document (already registered manually in Kelvin) |
-| still no vurdering | `FantAvklaringsbehov(AVKLAR_OVERLEVERING)` |
-| vurdering says send | `BehandlingsflytGateway.sendHendelse(...)`, then `Fullført` |
-| vurdering says do not send | `Fullført` |
+| ugyldig | kansellerer DIGITALISER_DOKUMENT-behovet (ikke sitt eget), `Fullført` |
+| ingen overleveringsvurdering og kategori SØKNAD, MELDEKORT, KLAGE, eller LEGEERKLÆRING når automatisk legeerklæring er tillatt | automatisk vurdering: send, unntatt MELDEKORT uten strukturert dokument (allerede registrert manuelt i Kelvin) |
+| fortsatt ingen vurdering | `FantAvklaringsbehov(AVKLAR_OVERLEVERING)` |
+| vurderingen sier send | `BehandlingsflytGateway.sendHendelse(...)`, deretter `Fullført` |
+| vurderingen sier ikke send | `Fullført` |
 
-Løsning `AvklarOverleveringLøsning(skalOverleveres, begrunnelse?)` → `AvklarOverleveringLøser` stores it.
+Løsning `AvklarOverleveringLøsning(skalOverleveres, begrunnelse?)` → `AvklarOverleveringLøser` lagrer den.
 
-`sendHendelse` arguments:
-- `saksnummer` from the saksvurdering (required, `!!`),
-- `mottattDato` = søknadsdato (start of day) if set, else the journalpost's `mottattTid`, else its mottatt dato,
-- `innsendingstype` = kategori, `kanal` = papir for `SKAN_*` kanaler, otherwise digital,
-- `melding` from `utledMelding`: LEGEERKLÆRING → `LegeerklæringV0(beskrivelse = begrunnelse)`; otherwise the parsed structured document, with the overlevering begrunnelse filled into an empty begrunnelse or beskrivelse (`AnnetRelevantDokumentV0` is upgraded to V1 for this),
-- `digitalisertIPostmottak` = whether it was digitised manually.
+Argumenter til `sendHendelse`:
+- `saksnummer` fra saksvurderingen (påkrevd, `!!`),
+- `mottattDato` = søknadsdato (start på dagen) hvis satt, ellers journalpostens `mottattTid`, ellers dens mottattdato,
+- `innsendingstype` = kategori, `kanal` = papir for `SKAN_*`-kanaler, ellers digital,
+- `melding` fra `utledMelding`: LEGEERKLÆRING → `LegeerklæringV0(beskrivelse = begrunnelse)`. Ellers det parsede strukturerte dokumentet, med overleveringsbegrunnelsen fylt inn i en tom begrunnelse eller beskrivelse (`AnnetRelevantDokumentV0` oppgraderes til V1 for dette),
+- `digitalisertIPostmottak` = om det ble digitalisert manuelt.
 
-aap-behandlingsflyt receives an `Innsending` with referanse type JOURNALPOST and the journalpostId. The call can be repeated on retry, so the receiver must tolerate duplicates.
+aap-behandlingsflyt mottar en `Innsending` med referansetype JOURNALPOST og journalpostId. Kallet kan gjentas ved retry, så mottakeren må tåle duplikater.
 
-## Frontend visibility
+## Synlighet i frontend
 
-`DynamiskStegGruppeVisningService`: the DIGITALISER group is hidden for digital søknad, legeerklæring and meldekort (`DigitaliserVisningUtleder`); OVERLEVER_TIL_FAGSYSTEM is always shown because its group is marked obligatory (its utleder is never consulted).
+`DynamiskStegGruppeVisningService`: DIGITALISER-gruppen er skjult for digital søknad, legeerklæring og meldekort (`DigitaliserVisningUtleder`). OVERLEVER_TIL_FAGSYSTEM vises alltid fordi gruppen er markert som obligatorisk (utlederen konsulteres aldri).

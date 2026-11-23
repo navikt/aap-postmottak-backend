@@ -1,26 +1,26 @@
-# Read-only SQL for troubleshooting
+# Lesende SQL for feilsøking
 
-Every block below was executed against the migrated schema with data from full flyt tests, including a failed job, a blocked job, a stuck behandling and a behandling på vent. Column names are the real ones (`repository/src/main/resources/flyway/`), and only Postgres 16 features are used (prod runs 16). Use the APIs in `../SKILL.md` for changes, never SQL.
+Hver blokk under er kjørt mot det migrerte skjemaet med data fra fulle flyt-tester, blant annet en feilet jobb, en blokkert jobb, en behandling som står fast og en behandling på vent. Kolonnenavnene er de reelle (`repository/src/main/resources/flyway/`), og bare Postgres 16-funksjoner er brukt (prod kjører 16). Bruk API-ene i `../SKILL.md` til endringer, aldri SQL.
 
-## Before you start
+## Før du starter
 
-- Connect with your personal user: `nais cloudsql psql --team aap --environment <dev-gcp|prod-gcp> --reason "<ticket>" postmottak-backend` (one-time setup: doc.nais.io → CloudSQL → Personal database access). Prod access is logged.
-- Personal users may have **write** privileges here (V1.1 grants ALL to `cloudsqliamuser`). Start every session with the block below.
-- Placeholders use psql variables, so blocks run unchanged after `\set journalpost_id 453912345`, `\set behandling_id 123`, `\set fnr 12345678901` (used as `:'fnr'`) and `\set referanse <uuid>` (used as `:'referanse'`). In other clients, replace them with literals.
-- Timestamps are stored as Oslo local time without time zone. Set the session time zone before comparing with `now()`.
-- `jobb.sak_id` **is the journalpostId** for every journalpost-related job. FERDIG jobs older than 30 days are moved to `jobb_arkiv`/`jobb_historikk_arkiv` nightly (motor cron `jobber.arkiverFerdigstilte`).
-- Avoid selecting fødselsnummer, names and free-text columns unless you need them, and never paste them into tickets or chat. `begrunnelse` and `kommentar` are free text.
+- Koble til med din personlige bruker: `nais cloudsql psql --team aap --environment <dev-gcp|prod-gcp> --reason "<ticket>" postmottak-backend` (engangsoppsett: doc.nais.io → CloudSQL → Personal database access). Tilgang til prod logges.
+- Personlige brukere kan ha **skrivetilgang** her (V1.1 gir ALL til `cloudsqliamuser`). Start hver økt med blokken under.
+- Plassholderne bruker psql-variabler, så blokkene kjører uendret etter `\set journalpost_id 453912345`, `\set behandling_id 123`, `\set fnr 12345678901` (brukes som `:'fnr'`) og `\set referanse <uuid>` (brukes som `:'referanse'`). I andre klienter erstatter du dem med litteraler.
+- Tidsstempler lagres som lokal Oslo-tid uten tidssone. Sett tidssonen for økta før du sammenligner med `now()`.
+- `jobb.sak_id` **er journalpostId** for alle journalpostrelaterte jobber. FERDIG-jobber som er eldre enn 30 dager, flyttes hver natt til `jobb_arkiv`/`jobb_historikk_arkiv` (motor-cron `jobber.arkiverFerdigstilte`).
+- Ikke hent ut fødselsnummer, navn og fritekstkolonner med mindre du trenger dem, og lim dem aldri inn i saker eller chat. `begrunnelse` og `kommentar` er fritekst.
 
 ```sql
 set default_transaction_read_only = on;
 set time zone 'Europe/Oslo';
 ```
 
-## One journalpost
+## Én journalpost
 
-### Overview: intake, routing and behandlinger
+### Oversikt: inntak, ruting og behandlinger
 
-One row per behandling. If every column is null, postmottak has not accepted the journalpost: the Kafka handler filtered the event, or the `vurderdokument.innkommende` job has not succeeded (see Jobs). A journalpost can have several behandlinger of the same type (for example a new Journalføring when it returns to tema AAP).
+Én rad per behandling. Hvis alle kolonnene er null, har ikke postmottak godtatt journalposten: Kafka-handleren filtrerte bort eventet, eller jobben `vurderdokument.innkommende` har ikke gått bra (se Jobber). En journalpost kan ha flere behandlinger av samme type (for eksempel en ny Journalføring når den kommer tilbake til tema AAP).
 
 ```sql
 select ij.status as innkommende_status, ij.aarsak_til_status, ij.brevkode, ij.behandlingstema, ij.enhet,
@@ -35,7 +35,7 @@ left join steg_historikk sh on sh.behandling_id = b.id and sh.aktiv
 order by b.id;
 ```
 
-From a behandlingReferanse (logs, frontend URL):
+Fra en behandlingReferanse (logger, frontend-URL):
 
 ```sql
 select id as behandling_id, journalpost_id, type, status, opprettet_tid
@@ -43,14 +43,14 @@ from behandling
 where referanse = :'referanse';
 ```
 
-### Steg history, compact
+### Steghistorikk, kompakt
 
-One line per behandling, oldest first. Each entry is `STEG:phases (time of first row)`. Consecutive rows for the same steg are merged, and each row is one letter: S=START, O=OPPDATER_FAKTAGRUNNLAG, U=UTFØRER, A=AVKLARINGSPUNKT, X=AVSLUTTER, T=TILBAKEFØRT.
+Én linje per behandling, eldste først. Hver oppføring er `STEG:faser (tidspunkt for første rad)`. Etterfølgende rader for samme steg slås sammen, og hver rad er én bokstav: S=START, O=OPPDATER_FAKTAGRUNNLAG, U=UTFØRER, A=AVKLARINGSPUNKT, X=AVSLUTTER, T=TILBAKEFØRT.
 
-- `SOUAX`: a normal pass. Every pass logs A, also when nothing stops.
-- Last entry ends with `SOUA`: waiting at this steg for an open avklaringsbehov. `SOUASOUAX`: stopped, resumed later and completed.
-- `T`: rewound. One T row is logged for every steg on the way back, including the target, so the informasjonskrav rewind in Journalføring looks like `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`.
-- Last entry ends with `SO`, repeated once per attempt (`SOSOSO`): the step's own code threw. Repeated `S`: refreshing faktagrunnlag threw. Rows from failed attempts survive because of savepoints (`postmottak-flyt-motor/references/motor-jobs-transactions.md`). The error itself is in the Jobs query.
+- `SOUAX`: en vanlig gjennomkjøring. Hver gjennomkjøring logger A, også når ingenting stopper.
+- Siste oppføring slutter på `SOUA`: venter ved dette steget på et åpent avklaringsbehov. `SOUASOUAX`: stoppet, gjenopptatt senere og fullført.
+- `T`: rullet tilbake. Én T-rad logges for hvert steg på veien tilbake, også målsteget, så tilbakerullingen for informasjonskrav i Journalføring ser slik ut: `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`.
+- Siste oppføring slutter på `SO`, gjentatt én gang per forsøk (`SOSOSO`): stegets egen kode kastet exception. Gjentatt `S`: oppdatering av faktagrunnlag kastet exception. Rader fra mislykkede forsøk overlever på grunn av savepoints (`postmottak-flyt-motor/references/motor-jobs-transactions.md`). Selve feilen står i spørringen for jobber.
 
 ```sql
 with h as (
@@ -78,7 +78,7 @@ group by b.id, b.type, b.status
 order by b.id;
 ```
 
-### Steg history, every row (one behandling)
+### Steghistorikk, hver rad (én behandling)
 
 ```sql
 select id, steg, status, aktiv, opprettet_tid
@@ -87,9 +87,9 @@ where behandling_id = :behandling_id
 order by opprettet_tid, id;
 ```
 
-### Avklaringsbehov: current state
+### Avklaringsbehov: nåværende tilstand
 
-Status is the latest endring. Open means `OPPRETTET` (or `SENDT_TILBAKE_FRA_BESLUTTER`, unused here). A solved DIGITALISER_DOKUMENT may show `AVBRUTT`, see `../SKILL.md`.
+Status er siste endring. Åpen betyr `OPPRETTET` (eller `SENDT_TILBAKE_FRA_BESLUTTER`, ubrukt her). En løst DIGITALISER_DOKUMENT kan vises som `AVBRUTT`, se `../SKILL.md`.
 
 ```sql
 select b.id as behandling_id, b.type, a.id as avklaringsbehov_id,
@@ -114,7 +114,7 @@ where b.journalpost_id = :journalpost_id
 order by b.id, a.id;
 ```
 
-### Avklaringsbehov: full history (one behandling)
+### Avklaringsbehov: full historikk (én behandling)
 
 ```sql
 select a.definisjon, e.status, e.opprettet_tid, e.opprettet_av, e.frist, e.venteaarsak,
@@ -127,9 +127,9 @@ where a.behandling_id = :behandling_id
 order by e.opprettet_tid, e.id;
 ```
 
-### Jobs
+### Jobber
 
-All jobs for the journalpost, oldest first, with the number of failed attempts and the latest error. `feil` is the first line of the stored stack trace and `rot_aarsak` the last `Caused by:` line (the same as `feil` when there is none). Expect many `flyt.hendelse` jobs: one per stop, rewind and sett-på-vent. `jobb_historikk` statuses: `KLAR` (created or re-run), `PLUKKET` (attempt started), `FERDIG`, `FEILET` (attempt failed), `AVBRUTT`.
+Alle jobber for journalposten, eldste først, med antall mislykkede forsøk og siste feil. `feil` er første linje i den lagrede stacktracen, og `rot_aarsak` er siste `Caused by:`-linje (samme som `feil` hvis det ikke finnes noen). Forvent mange `flyt.hendelse`-jobber: én per stopp, tilbakerulling og sett-på-vent. Statuser i `jobb_historikk`: `KLAR` (opprettet eller kjørt på nytt), `PLUKKET` (forsøk startet), `FERDIG`, `FEILET` (forsøk mislyktes), `AVBRUTT`.
 
 ```sql
 select j.id, j.type, j.status, j.behandling_id, j.opprettet_tid, j.neste_kjoring,
@@ -149,7 +149,7 @@ where j.sak_id = :journalpost_id
 order by j.id;
 ```
 
-Archived jobs (only `FERDIG`, older than 30 days). `jobb_arkiv` has no index on `sak_id`, so this scans the table; run it only when the query above lacks old jobs.
+Arkiverte jobber (bare `FERDIG`, eldre enn 30 dager). `jobb_arkiv` har ingen indeks på `sak_id`, så spørringen skanner hele tabellen. Kjør den bare når spørringen over mangler gamle jobber.
 
 ```sql
 select id, type, status, behandling_id, opprettet_tid, neste_kjoring
@@ -158,9 +158,9 @@ where sak_id = :journalpost_id
 order by id;
 ```
 
-### Fordeling: rule results and manual decision
+### Fordeling: regelresultater og manuell beslutning
 
-How the rules combine is described in `postmottak-dokumentflyt/references/fordeling-og-arena.md`. `system_navn` is the rule outcome; for journalposts with a Fordeling behandling, the decision that was acted on is `avklar_fordeling_vurdering.fagsystem` (next query, `fordeling` rows).
+Hvordan reglene kombineres, står i `postmottak-dokumentflyt/references/fordeling-og-arena.md`. `system_navn` er utfallet av reglene. For journalposter med en Fordeling-behandling er beslutningen som ble fulgt `avklar_fordeling_vurdering.fagsystem` (neste spørring, `fordeling`-radene).
 
 ```sql
 select rr.system_navn, rr.opprettet_tid, re.regel_navn, re.resultat
@@ -171,9 +171,9 @@ where ij.journalpost_id = :journalpost_id
 order by re.regel_navn;
 ```
 
-### Active vurderinger
+### Aktive vurderinger
 
-The saved decisions of all behandlinger for the journalpost (`aktiv` grunnlag rows). A DokumentHåndtering behandling starts with copies of the Journalføring's tema and sak vurderinger (same `tid`). `vurdert_av` is a NAV ident or `Kelvin` (system). `strukturert_dokument` (the digitised form) is left out on purpose: it contains personal data.
+De lagrede beslutningene fra alle behandlinger for journalposten (`aktiv` grunnlagsrader). En DokumentHåndtering-behandling starter med kopier av tema- og saksvurderingene fra Journalføring (samme `tid`). `vurdert_av` er en Nav-ident eller `Kelvin` (systemet). `strukturert_dokument` (det digitaliserte skjemaet) er med vilje utelatt fordi det inneholder personopplysninger.
 
 ```sql
 select b.id as behandling_id, b.type, 'tema' as vurdering, t.tidsstempel as tid,
@@ -214,9 +214,9 @@ where b.journalpost_id = :journalpost_id
 order by behandling_id, tid;
 ```
 
-### Kelvin saker seen by AVKLAR_SAK (one behandling)
+### Kelvin-saker sett av AVKLAR_SAK (én behandling)
 
-The latest snapshot of the person's saker in behandlingsflyt, which drives automatic sak selection and the "avslag på tidligere behandling" checks. Use the Journalføring behandling's id (DokumentHåndtering gets a copy). `SaksnummerInfoKrav` stores a new snapshot only when the result differs from the previous one, so `innhentet` is the time of the last change. No rows: no saker were found, or the behandling never refreshed this faktagrunnlag. `periode` is a `daterange` printed with an exclusive end: `[2025-01-01,2026-01-01)` ends 2025-12-31.
+Siste øyeblikksbilde av personens saker i behandlingsflyt. Det styrer automatisk saksvalg og sjekkene for «avslag på tidligere behandling». Bruk id-en til Journalføring-behandlingen (DokumentHåndtering får en kopi). `SaksnummerInfoKrav` lagrer et nytt øyeblikksbilde bare når resultatet er forskjellig fra det forrige, så `innhentet` er tidspunktet for siste endring. Ingen rader: det ble ikke funnet noen saker, eller behandlingen har aldri oppdatert dette faktagrunnlaget. `periode` er en `daterange` som skrives ut med eksklusiv slutt: `[2025-01-01,2026-01-01)` slutter 2025-12-31.
 
 ```sql
 select s.saksnummer, s.periode, s.avslag, s.resultatkode, s.finnes_aapen_behandling,
@@ -230,9 +230,9 @@ where i.id = (select id from innhentede_saker_for_behandling
 order by s.saksnummer;
 ```
 
-### Stored journalpost and documents
+### Lagret journalpost og dokumenter
 
-The latest journalpost snapshot postmottak saved (one row per document variant). Joark may have changed since; SAF is the source of truth.
+Siste journalpost-øyeblikksbilde postmottak har lagret (én rad per dokumentvariant). Joark kan ha endret seg siden. SAF er sannhetskilden.
 
 ```sql
 select j.status, j.tema, j.behandlingstema, j.kanal, j.saksnummer, j.fagsystem, j.journalforende_enhet,
@@ -246,9 +246,9 @@ left join dokument d on d.journalpost_id = j.id
 order by d.dokument_info_id, d.variantformat;
 ```
 
-## One person
+## Én person
 
-Journalposter for a person. `innkommende_journalpost.bruker_id` is the Joark bruker (fødselsnummer or aktør-ID), `person_ident` holds the PDL identer of persons postmottak has looked up. Search with the aktør-ID too if the fødselsnummer gives nothing.
+Journalposter for en person. `innkommende_journalpost.bruker_id` er Joark-brukeren (fødselsnummer eller aktør-ID), og `person_ident` inneholder PDL-identene til personer postmottak har slått opp. Søk også med aktør-ID hvis fødselsnummeret ikke gir treff.
 
 ```sql
 with jp as (
@@ -269,11 +269,11 @@ left join regelsett_resultat rr on rr.innkommende_journalpost = ij.id
 order by ij.opprettet_tid desc nulls last, jp.journalpost_id;
 ```
 
-## Across all journalposter
+## På tvers av journalposter
 
 ### På vent
 
-Open vent-behov (`9001` MANUELT_SATT_PÅ_VENT, `1342` VENT_PA_GOSYS). Add `and b.journalpost_id = :journalpost_id` for one journalpost. `batch.gjenopptaBehandlinger` (daily 07:00) resumes behandlinger with status `UTREDES` whose open behov has `frist <= today`; `skulle_vaert_gjenopptatt` rows are overdue.
+Åpne vent-behov (`9001` MANUELT_SATT_PÅ_VENT, `1342` VENT_PA_GOSYS). Legg til `and b.journalpost_id = :journalpost_id` for én journalpost. `batch.gjenopptaBehandlinger` (daglig 07:00) gjenopptar behandlinger med status `UTREDES` der det åpne behovet har `frist <= today`. Rader med `skulle_vaert_gjenopptatt` er forfalt.
 
 ```sql
 select b.id as behandling_id, b.journalpost_id, b.type, b.status as behandling_status,
@@ -293,9 +293,9 @@ where a.definisjon in ('9001', '1342')
 order by siste.frist, b.id;
 ```
 
-### Stuck behandlinger
+### Fastlåste behandlinger
 
-Not `AVSLUTTET`, no open avklaringsbehov and no `KLAR`/`FEILET` job: nothing will move them. `siste_jobb_status` tells why: `AVBRUTT` means someone cancelled the job, `FERDIG` means the flyt returned without finishing (a bug). Fix by enqueuing processing (`POST /api/drift/behandling/{referanse}/prosesser`).
+Ikke `AVSLUTTET`, ingen åpne avklaringsbehov og ingen `KLAR`/`FEILET` jobb: ingenting vil flytte dem. `siste_jobb_status` forklarer hvorfor: `AVBRUTT` betyr at noen avbrøt jobben, `FERDIG` betyr at flyten returnerte uten å fullføre (en bug). Løs det ved å legge behandlingen i kø for prosessering (`POST /api/drift/behandling/{referanse}/prosesser`).
 
 ```sql
 with stuck as materialized (
@@ -331,9 +331,9 @@ left join lateral (
 order by s.opprettet_tid;
 ```
 
-### Failed jobs
+### Feilede jobber
 
-Per type, then one row per job with its latest error.
+Per type, deretter én rad per jobb med siste feil.
 
 ```sql
 select type, count(*) as antall, min(opprettet_tid) as eldste, max(opprettet_tid) as nyeste
@@ -360,9 +360,9 @@ where j.status = 'FEILET'
 order by j.type, j.opprettet_tid;
 ```
 
-### Jobs blocked by a failed job
+### Jobber blokkert av en feilet jobb
 
-The motor runs jobs with the same `(sak_id, behandling_id, type)` in order, so a `FEILET` job blocks newer `KLAR` jobs of its group. This is why `POST .../prosesser` seems to do nothing while a `flyt.prosesserBehandling` job for the behandling is `FEILET`: re-run or cancel the failed job instead.
+Motoren kjører jobber med samme `(sak_id, behandling_id, type)` i rekkefølge, så en `FEILET` jobb blokkerer nyere `KLAR` jobber i gruppen. Derfor ser det ut som `POST .../prosesser` ikke gjør noe når en `flyt.prosesserBehandling`-jobb for behandlingen er `FEILET`: kjør den feilede jobben på nytt eller avbryt den i stedet.
 
 ```sql
 select k.id, k.type, k.sak_id as journalpost_id, k.behandling_id, k.opprettet_tid, f.id as blokkert_av_jobb
@@ -376,9 +376,9 @@ where k.status = 'KLAR'
 order by k.opprettet_tid;
 ```
 
-### Queue and intake health
+### Kø og inntak
 
-Overdue `KLAR` jobs per type. A growing number means the motor is not picking jobs (pods down, database problems) or the jobs are blocked (previous query). Cron jobs are always `KLAR` with a future `neste_kjoring` and do not show up here.
+Forfalte `KLAR` jobber per type. Et økende antall betyr at motoren ikke plukker jobber (pods nede, databaseproblemer) eller at jobbene er blokkert (forrige spørring). Cron-jobber er alltid `KLAR` med en `neste_kjoring` i framtida og vises ikke her.
 
 ```sql
 select type, count(*) as antall, min(neste_kjoring) as eldste_neste_kjoring
@@ -388,7 +388,7 @@ group by type
 order by antall desc;
 ```
 
-Open behandlinger per active steg, to see where work is piling up.
+Åpne behandlinger per aktivt steg, for å se hvor arbeid hoper seg opp.
 
 ```sql
 select b.type, sh.steg, sh.status, count(*) as antall, min(sh.opprettet_tid) as eldste
@@ -399,7 +399,7 @@ group by b.type, sh.steg, sh.status
 order by b.type, antall desc;
 ```
 
-Journalposter accepted per hour, last 24 hours. A gap during working hours suggests the Kafka stream has stopped (check `/actuator/live` restarts and stream errors in the logs).
+Journalposter godtatt per time, siste 24 timer. Et opphold i arbeidstida tyder på at Kafka-streamen har stoppet (sjekk restarter på `/actuator/live` og stream-feil i loggene).
 
 ```sql
 select date_trunc('hour', opprettet_tid) as time, status, count(*) as antall
