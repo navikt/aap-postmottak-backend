@@ -1,89 +1,89 @@
 ---
 name: postmottak-flyt-motor
-description: How the engine of aap-postmottak-backend really works - the job "motor" (Motor, JobbInput, ProsesserBehandlingJobbUtfører, retries, savepoints) and the flyt state machine (FlytOrkestrator, StegOrkestrator, BehandlingFlyt, StegStatus, avklaringsbehov, ventepunkter, tilbakeføring). Load before changing or debugging steps, flyter, avklaringsbehov, løsere, jobs or informasjonskrav, or when a behandling ends up in an unexpected steg, status or vent.
+description: Hvordan motoren i aap-postmottak-backend faktisk fungerer - jobbmotoren (Motor, JobbInput, ProsesserBehandlingJobbUtfører, retries, savepoints) og flyt-tilstandsmaskinen (FlytOrkestrator, StegOrkestrator, BehandlingFlyt, StegStatus, avklaringsbehov, ventepunkter, tilbakeføring). Last før du endrer eller feilsøker steg, flyter, avklaringsbehov, løsere, jobber eller informasjonskrav, eller når en behandling havner i uventet steg, status eller vent.
 ---
 
-# Postmottak: flyt engine and motor
+# Postmottak: flytmotor og jobbmotor
 
-If the user or the code contradicts this skill, warn the user and ask whether the skill and/or `AGENTS.md` should be updated. See `AGENTS.md` → "When the user contradicts this documentation".
+Hvis brukeren eller koden motsier denne skillen, si fra til brukeren og spør om skillen og/eller `AGENTS.md` skal oppdateres. Se `AGENTS.md` → "When the user contradicts this documentation".
 
-Two different engines that are easy to mix up:
+To ulike motorer som lett blandes sammen:
 
-| Term | What it is | Where |
+| Begrep | Hva det er | Hvor |
 | --- | --- | --- |
-| **motor** | Generic job engine from aap-komponenter (`no.nav.aap.motor`). Polls the `JOBB` table, runs one `JobbUtfører` per DB transaction, retries, runs cron jobs. | Library. Postmottak jobs are registered in `flyt/.../prosessering/ProsesseringsJobber.kt`. |
-| **flyt** (flytmotor) | Postmottak's state machine that moves one `Behandling` through the steps of its flyt. | `flyt/.../postmottak/flyt/` (`FlytOrkestrator`, `BehandlingFlyt`), `flyt/.../flyt/steg/` (`StegOrkestrator`). |
+| **motor** | Generisk jobbmotor fra aap-komponenter (`no.nav.aap.motor`). Poller `JOBB`-tabellen, kjører én `JobbUtfører` per DB-transaksjon, prøver på nytt og kjører cron-jobber. | Bibliotek. Postmottak-jobbene registreres i `flyt/.../prosessering/ProsesseringsJobber.kt`. |
+| **flyt** (flytmotor) | Postmottaks tilstandsmaskin som flytter én `Behandling` gjennom stegene i flyten sin. | `flyt/.../postmottak/flyt/` (`FlytOrkestrator`, `BehandlingFlyt`), `flyt/.../flyt/steg/` (`StegOrkestrator`). |
 
-The flyt engine executes steps **only** inside the motor job `ProsesserBehandlingJobbUtfører` (type `flyt.prosesserBehandling`). API calls never run steps: they record a decision and enqueue that job.
+Flytmotoren kjører steg **bare** i motor-jobben `ProsesserBehandlingJobbUtfører` (type `flyt.prosesserBehandling`). API-kall kjører aldri steg: de lagrer en beslutning og legger jobben i køen.
 
-## Mental model
+## Mental modell
 
 ```
-anything (Kafka, API, another step, cron)
+hva som helst (Kafka, API, et annet steg, cron)
   └─ FlytJobbRepository.leggTil(JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(journalpostId, behandlingId))
-motor picks the job → new DB transaction → ProsesserBehandlingJobbUtfører.utfør
+motoren plukker jobben → ny DB-transaksjon → ProsesserBehandlingJobbUtfører.utfør
   ├─ TaSkriveLåsRepository.lås(behandlingId)          SELECT versjon ... FOR UPDATE
   ├─ FlytOrkestrator.forberedOgProsesserBehandling
-  │    forberedBehandling   expire ventepunkter → rewind to earliest open behov → refresh informasjonskrav
-  │                         of all EARLIER steps → rewind if the refresh says so
-  │    prosesserBehandling  for steg in flyt starting at behandling.aktivtSteg():
+  │    forberedBehandling   utløp av ventepunkter → tilbakefør til tidligste åpne behov → oppdater informasjonskrav
+  │                         for alle TIDLIGERE steg → tilbakefør hvis oppdateringen tilsier det
+  │    prosesserBehandling  for steg i flyten, fra og med behandling.aktivtSteg():
   │                           StegOrkestrator.utfør(steg): START → OPPDATER_FAKTAGRUNNLAG → UTFØRER → AVKLARINGSPUNKT → AVSLUTTER
-  │                           AVKLARINGSPUNKT finds an open avklaringsbehov for this steg → stop, emit hendelse, return
-  │                         after the last steg: status AVSLUTTET, emit hendelse
+  │                           AVKLARINGSPUNKT finner et åpent avklaringsbehov for dette steget → stopp, send hendelse, returner
+  │                         etter siste steg: status AVSLUTTET, send hendelse
   └─ verifiserSkrivelås                               versjon = versjon + 1
-commit. On exception: commit everything up to the last savepoint, mark the job failed, retry later.
+commit. Ved exception: commit alt fram til siste savepoint, marker jobben som feilet, prøv på nytt senere.
 ```
 
-## The three flyter
+## De tre flytene
 
-| TypeBehandling | Steps (`StegType`) | Informasjonskrav (refreshed in OPPDATER_FAKTAGRUNNLAG) |
+| TypeBehandling | Steg (`StegType`) | Informasjonskrav (oppdateres i OPPDATER_FAKTAGRUNNLAG) |
 | --- | --- | --- |
 | `Fordeling` | START_BEHANDLING → AVKLAR_FORDELING → AVKLAR_FORDELING_VIDERESEND → IVERKSETTES | AVKLAR_FORDELING: `JournalpostInformasjonskrav` |
 | `Journalføring` | START_BEHANDLING → AVKLAR_TEMA → AVKLAR_SAK → SETT_FAGSAK → ENDELIG_JOURNALFØRING → VIDERESEND → IVERKSETTES | AVKLAR_TEMA: `JournalpostInformasjonskrav`, `SaksnummerInfoKrav` |
-| `DokumentHåndtering` | START_BEHANDLING → DIGITALISER_DOKUMENT → OVERLEVER_TIL_FAGSYSTEM → IVERKSETTES | none |
+| `DokumentHåndtering` | START_BEHANDLING → DIGITALISER_DOKUMENT → OVERLEVER_TIL_FAGSYSTEM → IVERKSETTES | ingen |
 
-Defined in `flyt/.../forretningsflyt/behandlingstyper/` and mapped in `flyt/.../flyt/BehandlingType.kt` (`utledType`). `IVERKSETTES` is `AvsluttBehandlingSteg` (a no-op). The business intent of each flyt is in the `postmottak-dokumentflyt` skill.
+Definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `flyt/.../flyt/BehandlingType.kt` (`utledType`). `IVERKSETTES` er `AvsluttBehandlingSteg` (gjør ingenting). Det forretningsmessige formålet med hver flyt står i skillen `postmottak-dokumentflyt`.
 
-## Rules that are not obvious from reading one file
+## Regler som ikke er åpenbare når du leser én fil
 
-1. **A step never stops the flyt itself.** `utfør()` returns `Fullført` or `FantAvklaringsbehov`. The engine registers the behov in UTFØRER and stops in the next phase, AVKLARINGSPUNKT, if an *open* behov belongs to this steg. `FunnetAvklaringsbehov.kanFortsette()` is `true`; only `Stopp` (from AVKLARINGSPUNKT) is `false`.
-2. **`utfør()` runs again from START every time the job resumes.** A steg that raised a behov is executed at least twice: once to discover the need, once after the løser stored the answer. Every step must start with "is there already a vurdering? then `Fullført`". This is also why steps must tolerate re-execution after rewinds and retries.
-3. **Løsere store the answer, steps act on it.** `AvklaringsbehovLøsning.løs()` → `*Løser` writes a vurdering in the API transaction. The step reads it on the next run. Side effects towards other systems belong in steps, with a few exceptions (`AvklarSakLøser` calls behandlingsflyt `finnEllerOpprettSak`, `AvklarTemaLøser` sets or removes Gosys-vent).
-4. **An informasjonskrav-driven rewind happens when an informasjonskrav of an earlier steg returns `ENDRET`.** `InformasjonskravGrunnlagImpl` returns the changed informasjonskrav, and `FlytOrkestrator.forberedBehandling` rewinds to the earliest steg that owns one (same semantics as aap-behandlingsflyt). The log line is `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'`. A rewind can also happen for other reasons, such as an expired ventepunkt or an open avklaringsbehov in an earlier steg. An informasjonskrav that wrongly reports `ENDRET` (for example because the stored and fetched data never compare equal) causes an informasjonskrav-driven rewind on every resume. Before November 2026 the result was inverted (`filterNot`), so old steg history in Journalføring often shows `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`.
-5. **Rewinding (tilbakeføring) runs no step code.** It only logs `TILBAKEFØRT` rows for each step on the way back and moves the cursor. Vurderinger are kept. It also emits a `DokumentflytStoppetHendelse` even though processing continues right after.
-6. **Each step is constructed five times per pass** (`stegKonstruktør.konstruer` once per phase). `konstruer()` and constructors must be cheap and side-effect free.
-7. **Savepoints make failures partially durable.** `StegOrkestrator` sets a savepoint after START and after OPPDATER_FAKTAGRUNNLAG. When a later phase throws, the transaction rolls back to the savepoint and then commits (`DBConnection.rollback` + `autoCommit = true` in komponenter). Earlier steps and the faktagrunnlag refresh of the failing step are persisted, the job retries from the failing step, and it is marked `FEILET` after 3 attempts. Verified.
-8. **External calls inside steps can be repeated** (retries, rewinds, resumes). Use idempotent operations: `...HvisIkkeEksisterer` for Gosys, `finnEllerOpprettSak`, receivers that deduplicate on journalpost.
-9. **Ventepunkter are only closed in these ways:** frist expired (`forberedBehandling` or cron `GjenopptaBehandlingJobbUtfører` at 07:00), the saksbehandler solves `MANUELT_SATT_PÅ_VENT`, `AvklaringsbehovOrkestrator.taAvVentPgaGosys`, or a step returning `Fullført` while the behandling has *no* non-vente avklaringsbehov at all (in any status). A step finishing does **not** close vent if, for example, `AVKLAR_TEMA` exists. Verified: `VENT_PA_GOSYS` stays open after the journalpost tema changes away from AAP.
-10. **`Avklaringsbehovene.avbrytForSteg` ignores status.** `DigitaliserDokumentSteg` calls it when a vurdering exists, so a `DIGITALISER_DOKUMENT` solved by a saksbehandler ends as `AVBRUTT` (history `OPPRETTET, AVSLUTTET, AVBRUTT`). Verified. Use `hvemSomLøste()` (last `AVSLUTTET`) to find who solved it.
-11. **`Status.erAvsluttet()` is true for both `IVERKSETTES` and `AVSLUTTET`.** A behandling is `IVERKSETTES` while in VIDERESEND, AVKLAR_FORDELING_VIDERESEND or IVERKSETTES, and `AVSLUTTET` only after the last step. `hentÅpenJournalføringsbehandling` only matches `OPPRETTET`/`UTREDES`.
-12. **The motor "sakId" is the journalpostId.** `forBehandling(journalpostId, behandlingId)`. Jobs run strictly in order per (sakId, behandlingId, type). A `FEILET` job blocks later jobs of the same type in that group, and blocks saksbehandler actions on the behandling (`BehandlingUnderProsesseringException`).
-13. **Data scope:** journalpost data is stored per journalpostId and shared by all behandlinger of that journalpost. Vurderinger are per behandling and copied Journalføring → DokumentHåndtering by `GrunnlagKopierer` (only repositories that override `kopier`). Fordeling → Journalføring copies nothing. Dokumentflyt has no informasjonskrav and fails if no journalpost has been stored by an earlier behandling. Verified.
+1. **Et steg stopper aldri flyten selv.** `utfør()` returnerer `Fullført` eller `FantAvklaringsbehov`. Motoren registrerer behovet i UTFØRER og stopper i neste fase, AVKLARINGSPUNKT, hvis et *åpent* behov hører til dette steget. `FunnetAvklaringsbehov.kanFortsette()` er `true`; bare `Stopp` (fra AVKLARINGSPUNKT) er `false`.
+2. **`utfør()` kjører på nytt fra START hver gang jobben gjenopptas.** Et steg som har reist et behov, kjøres minst to ganger: én gang for å oppdage behovet og én gang etter at løseren har lagret svaret. Alle steg må starte med «finnes det allerede en vurdering? Da returnerer vi `Fullført`». Det er også derfor steg må tåle å kjøres om igjen etter tilbakeføringer og retries.
+3. **Løsere lagrer svaret, steg handler på det.** `AvklaringsbehovLøsning.løs()` → `*Løser` skriver en vurdering i API-transaksjonen. Steget leser den ved neste kjøring. Sideeffekter mot andre systemer hører hjemme i steg, med noen få unntak (`AvklarSakLøser` kaller behandlingsflyt `finnEllerOpprettSak`, `AvklarTemaLøser` setter eller fjerner Gosys-vent).
+4. **En informasjonskrav-drevet tilbakeføring skjer når et informasjonskrav i et tidligere steg returnerer `ENDRET`.** `InformasjonskravGrunnlagImpl` returnerer de endrede informasjonskravene, og `FlytOrkestrator.forberedBehandling` tilbakefører til det tidligste steget som eier ett av dem (samme semantikk som aap-behandlingsflyt). Loggmeldingen er `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'`. En tilbakeføring kan også skje av andre grunner, for eksempel et utløpt ventepunkt eller et åpent avklaringsbehov i et tidligere steg. Et informasjonskrav som feilaktig melder `ENDRET` (for eksempel fordi lagrede og hentede data aldri er like) gir en informasjonskrav-drevet tilbakeføring ved hver gjenopptakelse. Før november 2026 var resultatet snudd (`filterNot`), så gammel steghistorikk i Journalføring viser ofte `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`.
+5. **Tilbakeføring kjører ingen stegkode.** Den logger bare `TILBAKEFØRT`-rader for hvert steg på veien tilbake og flytter markøren. Vurderinger beholdes. Den sender også en `DokumentflytStoppetHendelse`, selv om prosesseringen fortsetter rett etterpå.
+6. **Hvert steg konstrueres fem ganger per gjennomkjøring** (`stegKonstruktør.konstruer` én gang per fase). `konstruer()` og konstruktører må være billige og uten sideeffekter.
+7. **Savepoints gjør at feil delvis består.** `StegOrkestrator` setter et savepoint etter START og etter OPPDATER_FAKTAGRUNNLAG. Når en senere fase kaster exception, rulles transaksjonen tilbake til savepointet og committes deretter (`DBConnection.rollback` + `autoCommit = true` i komponenter). Tidligere steg og faktagrunnlag-oppdateringen til steget som feiler, lagres. Jobben prøver på nytt fra steget som feilet, og markeres `FEILET` etter 3 forsøk. Verifisert.
+8. **Eksterne kall i steg kan gjentas** (retries, tilbakeføringer, gjenopptakelser). Bruk idempotente operasjoner: `...HvisIkkeEksisterer` for Gosys, `finnEllerOpprettSak` og mottakere som dedupliserer på journalpost.
+9. **Ventepunkter lukkes bare på disse måtene:** fristen utløper (`forberedBehandling` eller cron `GjenopptaBehandlingJobbUtfører` kl. 07:00), saksbehandler løser `MANUELT_SATT_PÅ_VENT`, `AvklaringsbehovOrkestrator.taAvVentPgaGosys`, eller et steg returnerer `Fullført` mens behandlingen *ikke* har noe avklaringsbehov som ikke er vent (uansett status). Et steg som fullføres, lukker **ikke** vent hvis for eksempel `AVKLAR_TEMA` finnes. Verifisert: `VENT_PA_GOSYS` blir stående åpent etter at journalpostens tema er endret bort fra AAP.
+10. **`Avklaringsbehovene.avbrytForSteg` ignorerer status.** `DigitaliserDokumentSteg` kaller den når det finnes en vurdering, så en `DIGITALISER_DOKUMENT` som saksbehandler har løst, ender som `AVBRUTT` (historikk `OPPRETTET, AVSLUTTET, AVBRUTT`). Verifisert. Bruk `hvemSomLøste()` (siste `AVSLUTTET`) for å finne hvem som løste den.
+11. **`Status.erAvsluttet()` er sann for både `IVERKSETTES` og `AVSLUTTET`.** En behandling er `IVERKSETTES` mens den er i VIDERESEND, AVKLAR_FORDELING_VIDERESEND eller IVERKSETTES, og `AVSLUTTET` først etter siste steg. `hentÅpenJournalføringsbehandling` matcher bare `OPPRETTET`/`UTREDES`.
+12. **Motorens «sakId» er journalpostId.** `forBehandling(journalpostId, behandlingId)`. Jobber kjører strengt i rekkefølge per (sakId, behandlingId, type). En `FEILET` jobb blokkerer senere jobber av samme type i den gruppa, og blokkerer saksbehandlerhandlinger på behandlingen (`BehandlingUnderProsesseringException`).
+13. **Dataomfang:** journalpostdata lagres per journalpostId og deles av alle behandlinger for den journalposten. Vurderinger er per behandling og kopieres Journalføring → DokumentHåndtering av `GrunnlagKopierer` (bare repositories som overstyrer `kopier`). Fordeling → Journalføring kopierer ingenting. Dokumentflyt har ingen informasjonskrav og feiler hvis ingen journalpost er lagret av en tidligere behandling. Verifisert.
 
-## Where things are
+## Hvor ting ligger
 
-| Concern | File (under `flyt/src/main/kotlin/no/nav/aap/postmottak/`) |
+| Tema | Fil (under `flyt/src/main/kotlin/no/nav/aap/postmottak/`) |
 | --- | --- |
-| Job entry point | `prosessering/ProsesserBehandlingJobbUtfører.kt` |
-| Flyt loop, rewinds | `flyt/FlytOrkestrator.kt`, `flyt/BehandlingFlyt.kt` |
-| Step phases, savepoints | `flyt/steg/StegOrkestrator.kt`, `journalpostogbehandling/flyt/StegStatus.kt` |
-| Step results | `flyt/steg/{Fullført,FantAvklaringsbehov,Transisjon}.kt` |
-| Avklaringsbehov model | `avklaringsbehov/{Avklaringsbehovene,Avklaringsbehov,AvklaringsbehovService}.kt`, `kontrakt/.../avklaringsbehov/Definisjon.kt` |
-| Solving behov (API side) | `avklaringsbehov/AvklaringsbehovOrkestrator.kt`, `avklaringsbehov/løsning/*`, `avklaringsbehov/løser/*` |
-| Behandling, status, steg history | `journalpostogbehandling/behandling/{Behandling,StegTilstand}.kt`, `repository/.../BehandlingRepositoryImpl.kt` |
-| Job registry | `prosessering/ProsesseringsJobber.kt` |
-| Outgoing hendelse to oppgave/statistikk | `hendelse/avløp/BehandlingHendelseServiceImpl.kt` → `prosessering/StoppetHendelseJobbUtfører.kt` |
+| Inngangspunkt for jobb | `prosessering/ProsesserBehandlingJobbUtfører.kt` |
+| Flyt-løkke, tilbakeføringer | `flyt/FlytOrkestrator.kt`, `flyt/BehandlingFlyt.kt` |
+| Stegfaser, savepoints | `flyt/steg/StegOrkestrator.kt`, `journalpostogbehandling/flyt/StegStatus.kt` |
+| Stegresultater | `flyt/steg/{Fullført,FantAvklaringsbehov,Transisjon}.kt` |
+| Avklaringsbehov-modell | `avklaringsbehov/{Avklaringsbehovene,Avklaringsbehov,AvklaringsbehovService}.kt`, `kontrakt/.../avklaringsbehov/Definisjon.kt` |
+| Løse behov (API-siden) | `avklaringsbehov/AvklaringsbehovOrkestrator.kt`, `avklaringsbehov/løsning/*`, `avklaringsbehov/løser/*` |
+| Behandling, status, steghistorikk | `journalpostogbehandling/behandling/{Behandling,StegTilstand}.kt`, `repository/.../BehandlingRepositoryImpl.kt` |
+| Jobbregister | `prosessering/ProsesseringsJobber.kt` |
+| Utgående hendelse til oppgave/statistikk | `hendelse/avløp/BehandlingHendelseServiceImpl.kt` → `prosessering/StoppetHendelseJobbUtfører.kt` |
 
-## Before you change engine code
+## Før du endrer motorkode
 
-- Read the reference for the area first; most "bugs" here are intended or load-bearing.
-- `BehandlingFlyt` is synced from aap-behandlingsflyt (KDoc says so). Keep diffs small to ease future syncs.
-- Run the targeted unit tests and **one or two** relevant `Flyttest` methods, not the whole suite (see `postmottak-testing`).
-- Use `../postmottak-testing/scripts/flyt-trace.sh` to read what the engine did instead of reading raw logs.
+- Les referansen for området først. De fleste «bugene» her er tilsiktede eller bærende.
+- `BehandlingFlyt` er synkronisert fra aap-behandlingsflyt (KDoc sier det). Hold diffene små, så det er enklere å synkronisere senere.
+- Kjør de målrettede enhetstestene og **én eller to** relevante `Flyttest`-metoder, ikke hele suiten (se `postmottak-testing`).
+- Bruk `../postmottak-testing/scripts/flyt-trace.sh` for å lese hva motoren gjorde, i stedet for å lese rå logger.
 
-## References (read when relevant)
+## Referanser (les ved behov)
 
-- `references/engine-walkthrough.md`: annotated algorithm for FlytOrkestrator, StegOrkestrator and BehandlingFlyt, all job triggers, status and steg_historikk, an annotated real trace.
-- `references/avklaringsbehov.md`: all definisjoner, lifecycle, the two ways steps create behov, the løsning flow end to end, ventepunkter, validations.
-- `references/motor-jobs-transactions.md`: motor semantics, exclusivity groups, retries and re-runs, savepoints, locks, cron jobs, idempotency.
-- `references/recipes.md`: how to add a step, avklaringsbehov, informasjonskrav, vurdering repository, flyt, job or gateway, and what to watch for with in-flight behandlinger.
+- `references/engine-walkthrough.md`: kommentert algoritme for FlytOrkestrator, StegOrkestrator og BehandlingFlyt, alle jobbtriggere, status og steg_historikk, en kommentert reell trace.
+- `references/avklaringsbehov.md`: alle definisjoner, livssyklus, de to måtene steg oppretter behov på, løsningsflyten fra ende til ende, ventepunkter, valideringer.
+- `references/motor-jobs-transactions.md`: motorsemantikk, eksklusivitetsgrupper, retries og omkjøringer, savepoints, låser, cron-jobber, idempotens.
+- `references/recipes.md`: hvordan du legger til steg, avklaringsbehov, informasjonskrav, vurderingsrepository, flyt, jobb eller gateway, og hva du må passe på for behandlinger som er under arbeid.

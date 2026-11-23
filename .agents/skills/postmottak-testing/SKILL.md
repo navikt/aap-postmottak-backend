@@ -1,88 +1,88 @@
 ---
 name: postmottak-testing
-description: How to write, run and debug tests in aap-postmottak-backend - fakes over mocks (lib-test FakeServers, TestJournalposter, TestPersoner, FakeUnleash, TestDataSource), which test type to pick (pure, step/løser, repository, klient, Kafka topology, motor job, Flyttest), running narrow test sets without sandbox timeouts, and reading large flyt-test output cheaply with the bundled scripts. Load before writing, changing, running or debugging any test.
+description: Hvordan skrive, kjøre og feilsøke tester i aap-postmottak-backend - fakes framfor mocks (lib-test FakeServers, TestJournalposter, TestPersoner, FakeUnleash, TestDataSource), hvilken testtype du velger (ren, steg/løser, repository, klient, Kafka-topologi, motorjobb, Flyttest), hvordan du kjører smale testsett uten sandbox-timeouts, og hvordan du leser store flyt-testutdata billig med de medfølgende skriptene. Bruk før du skriver, endrer, kjører eller feilsøker en test.
 ---
 
-# Testing in postmottak
+# Testing i postmottak
 
-If the user or the code contradicts this skill, warn the user and ask whether the skill and/or `AGENTS.md` should be updated. See `AGENTS.md` → "When the user contradicts this documentation".
+Hvis brukeren eller koden motsier denne skillen, varsle brukeren og spør om skillen og/eller `AGENTS.md` skal oppdateres. Se `AGENTS.md` → "When the user contradicts this documentation".
 
-## Principles
+## Prinsipper
 
-1. **Prefer fakes over mocks.** A fake is a working implementation with controllable state:
-   - External HTTP systems: annotate the class with `@Fakes` (starts local fake servers, see `references/fakes.md`) and use the real clients through `defaultGatewayProvider { register<FakeUnleash>() }`. Control their answers with `TestJournalposter` and `TestPersoner`.
-   - Gateways at interface level: small in-code fakes registered with `createGatewayProvider { register<FakeX>() }` (`FakeUnleash`, `FakeArenaoppslagGateway`, `FakeStatistikkGateway`, ...). Registering an implementation replaces any earlier one of the same interface.
-   - Database: real Postgres through `TestDataSource` (komponenter dbtest; each instance is a fresh database cloned from a migrated template) and `postgresRepositoryRegistry.provider(connection)`. `InMemoryAvklaringsbehovRepository` exists for pure engine logic.
-2. **Mocks (mockk) are fine when a fake would not add value:** forcing failures that are hard to produce (e.g. `BadRequestHttpResponsException` from Gosys), proving that something was *not* called when there is no observable state, isolating an irrelevant collaborator, and wiring `JoarkKafkaHandler` into a `TopologyTestDriver`. Many existing step tests are mock-based; keep them working, but write new tests fake-first and assert stored state rather than call counts.
-3. **Go through the real wiring.** Build steps with `MittSteg.konstruer(repositoryProvider, gatewayProvider)` and løsere with `MinLøser.konstruer(...)`, so missing registrations and wrong lookups fail in tests.
-4. **Pick the cheapest test type that proves the behaviour** (table below). Add a `Flyttest` scenario only for behaviour that spans steps, jobs, behandlinger or Kafka.
-5. **Keep testing proportional for dev-only helpers.** Endpoints used only for manual testing in dev or locally do not need full automated coverage. Default to a compile check and manual verification in Swagger; do not add dedicated endpoint tests or exhaustive authentication, validation and error-case coverage unless there is substantial custom logic or the user requests it. Keep environment restrictions and authentication in place. This exception does not reduce testing of shared production clients, gateways or business logic.
-6. **Test the client's contract, not RestClient itself.** Focus on the HTTP method, path, payload, response mapping and client-specific validation or error handling. Do not duplicate RestClient's generic handling of HTTP status codes, headers, tokens or JSON deserialization. Test such behaviour only when the client configures or overrides it.
-   Do not enumerate missing, null and wrong-type variants of ordinary DTO fields just to exercise Jackson. Use typed fixtures to test explicit client validation; avoid repeating the same validation through JSON variants.
+1. **Foretrekk fakes framfor mocks.** En fake er en fungerende implementasjon med styrbar tilstand:
+   - Eksterne HTTP-systemer: annoter klassen med `@Fakes` (starter lokale fake-servere, se `references/fakes.md`) og bruk de ekte klientene via `defaultGatewayProvider { register<FakeUnleash>() }`. Styr svarene deres med `TestJournalposter` og `TestPersoner`.
+   - Gatewayer på grensesnittnivå: små fakes i koden, registrert med `createGatewayProvider { register<FakeX>() }` (`FakeUnleash`, `FakeArenaoppslagGateway`, `FakeStatistikkGateway`, ...). Å registrere en implementasjon erstatter alle tidligere implementasjoner av samme grensesnitt.
+   - Database: ekte Postgres gjennom `TestDataSource` (komponenter dbtest; hver instans er en fersk database klonet fra en migrert mal) og `postgresRepositoryRegistry.provider(connection)`. `InMemoryAvklaringsbehovRepository` finnes for ren motorlogikk.
+2. **Mocks (mockk) er greit når en fake ikke gir verdi:** å framtvinge feil som er vanskelige å produsere (for eksempel `BadRequestHttpResponsException` fra Gosys), å bevise at noe *ikke* ble kalt når det ikke finnes observerbar tilstand, å isolere en irrelevant samarbeidspartner og å koble `JoarkKafkaHandler` inn i en `TopologyTestDriver`. Mange eksisterende stegtester er mock-baserte. La dem fortsette å virke, men skriv nye tester fake-først og asserter på lagret tilstand, ikke på antall kall.
+3. **Gå gjennom den ekte wiringen.** Bygg steg med `MittSteg.konstruer(repositoryProvider, gatewayProvider)` og løsere med `MinLøser.konstruer(...)`, slik at manglende registreringer og feil oppslag feiler i testene.
+4. **Velg den billigste testtypen som beviser oppførselen** (tabellen under). Legg til et `Flyttest`-scenario bare for oppførsel som går på tvers av steg, jobber, behandlinger eller Kafka.
+5. **Hold testingen proporsjonal for hjelpeverktøy som bare brukes i dev.** Endepunkter som bare brukes til manuell testing i dev eller lokalt, trenger ikke full automatisk dekning. Bruk som utgangspunkt en kompileringssjekk og manuell verifisering i Swagger. Ikke legg til egne endepunkttester eller omfattende dekning av autentisering, validering og feiltilfeller med mindre det finnes betydelig egen logikk eller brukeren ber om det. Behold miljøbegrensninger og autentisering. Unntaket reduserer ikke testingen av delte produksjonsklienter, gatewayer eller forretningslogikk.
+6. **Test klientens kontrakt, ikke RestClient selv.** Fokuser på HTTP-metode, sti, payload, mapping av svar og klientspesifikk validering eller feilhåndtering. Ikke dupliser RestClients generelle håndtering av HTTP-statuskoder, headere, tokens eller JSON-deserialisering. Test slik oppførsel bare når klienten konfigurerer eller overstyrer den.
+   Ikke list opp varianter med manglende, null og feil type for vanlige DTO-felt bare for å utøve Jackson. Bruk typede fixtures til å teste eksplisitt klientvalidering, og unngå å gjenta samme validering gjennom JSON-varianter.
 
-## Test types
+## Testtyper
 
-| Type | Proves | Infrastructure | Example |
+| Type | Beviser | Infrastruktur | Eksempel |
 | --- | --- | --- | --- |
-| Pure unit | rules, parsing, domain logic | none | `RegelResultatTest`, `JournalpostTest`, `SaksinfoTest` |
-| Step or løser, fake-first | a step's decisions with real DB and HTTP wiring | `TestDataSource` + `@Fakes` | `forretningsflyt/steg/journalføring/AvklarSakStegMedFakesTest` |
-| Step, mock-based (existing style) | decision tables in isolation | mockk | `AvklarSakStegTest`, `AvklarFordelingStegTest` |
+| Ren enhetstest | regler, parsing, domenelogikk | ingen | `RegelResultatTest`, `JournalpostTest`, `SaksinfoTest` |
+| Steg eller løser, fake-først | et stegs beslutninger med ekte database og HTTP-wiring | `TestDataSource` + `@Fakes` | `forretningsflyt/steg/journalføring/AvklarSakStegMedFakesTest` |
+| Steg, mock-basert (eksisterende stil) | beslutningstabeller isolert | mockk | `AvklarSakStegTest`, `AvklarFordelingStegTest` |
 | Repository | SQL, grunnlag/aktiv, `kopier` | `TestDataSource` | `repository/src/test/...`, `SaksnummerRepositoryImplTest` |
-| Klient | HTTP clients against fakes | `@Fakes` | `klienter/src/test/...` |
-| Kafka topology | `JoarkKafkaHandler` filtering and branching | `TopologyTestDriver`, no broker | `JoarkKafkaHandlerTest` |
-| Motor job chain | job sequences, fallbacks | `TestDataSource` + `Motor` + `@Fakes` | `fordeler/arena/ArenaOppgaveFlytTest` |
-| Flyt, end to end in-process | journeys across behandlinger, avklaringsbehov, vent, Kafka | Postgres + Kafka containers + `Motor` + `@Fakes` | `flyt/Flyttest` |
+| Klient | HTTP-klienter mot fakes | `@Fakes` | `klienter/src/test/...` |
+| Kafka-topologi | filtrering og forgrening i `JoarkKafkaHandler` | `TopologyTestDriver`, ingen broker | `JoarkKafkaHandlerTest` |
+| Motorjobbkjede | jobbsekvenser, fallbacks | `TestDataSource` + `Motor` + `@Fakes` | `fordeler/arena/ArenaOppgaveFlytTest` |
+| Flyt, ende til ende i samme prosess | forløp på tvers av behandlinger, avklaringsbehov, vent og Kafka | Postgres- og Kafka-containere + `Motor` + `@Fakes` | `flyt/Flyttest` |
 
-Templates for each type: `references/test-templates.md`. What every fake returns: `references/fakes.md`.
+Maler for hver type: `references/test-templates.md`. Hva hver fake returnerer: `references/fakes.md`.
 
-## Running tests without timeouts
+## Kjøre tester uten timeouts
 
-Prerequisites: Docker for Testcontainers (Postgres 18; Kafka `apache/kafka-native` for `Flyttest`). With Colima, export the three `TESTCONTAINERS_*`/`DOCKER_HOST` variables from the README. Gradle uses a JDK 25 toolchain.
+Forutsetninger: Docker for Testcontainers (Postgres 18, Kafka `apache/kafka-native` for `Flyttest`). Med Colima eksporterer du de tre variablene `TESTCONTAINERS_*`/`DOCKER_HOST` fra README. Gradle bruker en JDK 25-toolchain.
 
-- **Do not run the whole suite to "check".** `./gradlew test` or `build` runs all modules in parallel (`org.gradle.parallel=true`) and each module's tests in `cores / 2` JVM forks, each starting its own containers. In a sandbox this is slow and can time out.
-- Use the bundled script; it forces `--rerun` (otherwise Gradle's up-to-date check and build cache can skip the task and you see zero tests), caps `--max-workers=2`, keeps the full log in a temp file and prints a short summary with failure messages:
+- **Ikke kjør hele suiten for å «sjekke».** `./gradlew test` eller `build` kjører alle moduler parallelt (`org.gradle.parallel=true`), og testene i hver modul kjører i `cores / 2` JVM-forks som hver starter sine egne containere. I en sandbox er dette tregt og kan gi timeout.
+- Bruk det medfølgende skriptet. Det tvinger `--rerun` (ellers kan Gradles up-to-date-sjekk og build-cache hoppe over tasken, og du ser null tester), begrenser til `--max-workers=2`, lagrer hele loggen i en midlertidig fil og skriver ut en kort oppsummering med feilmeldinger:
   ```bash
   .agents/skills/postmottak-testing/scripts/run-tests.sh flyt 'no.nav.aap.postmottak.forretningsflyt.steg.journalføring.AvklarSakStegTest'
   .agents/skills/postmottak-testing/scripts/run-tests.sh flyt 'no.nav.aap.postmottak.flyt.Flyttest.kjører en manuell søknad igjennom hele flyten'
   .agents/skills/postmottak-testing/scripts/run-tests.sh repository '*JournalpostRepositoryImplTest'
   ```
-  Filters: fully qualified class, class + method name (spaces allowed, no parameters for parameterized tests), or `*Suffix`.
-- **Flyt tests: one method at a time while iterating**, the class when done. Measured on a laptop: a single `Flyttest` method ≈ 15 s wall clock, the whole class (24 tests) ≈ 40 s, a fake-first step test class ≈ 6–9 s. Never start several flyt-test classes or modules in parallel.
-- Compile only: `./gradlew :flyt:compileTestKotlin`. Lint: `./gradlew detekt` (not part of `check`).
-- Where tests live: engine, steps, løsere, jobs, Kafka in `flyt`; repository implementations in `repository` (a few in `flyt`); clients in `klienter`; app and API in `app`; `kontrakt` has one tiny test.
-- `<module>/build/test-results/test/` only contains the classes of the **last** run.
-- `app`'s `ApiTest` writes `openapi.json` in the repo root (gitignored) as a side effect.
+  Filtre: fullt kvalifisert klasse, klasse + metodenavn (mellomrom er tillatt, ingen parametere for parametriserte tester) eller `*Suffiks`.
+- **Flyt-tester: én metode om gangen mens du itererer**, hele klassen når du er ferdig. Målt på en bærbar PC: en enkelt `Flyttest`-metode ≈ 15 s klokketid, hele klassen (24 tester) ≈ 40 s, en fake-først steg-testklasse ≈ 6–9 s. Start aldri flere flyt-testklasser eller moduler parallelt.
+- Bare kompilering: `./gradlew :flyt:compileTestKotlin`. Lint: `./gradlew detekt` (ikke en del av `check`).
+- Hvor testene ligger: motor, steg, løsere, jobber og Kafka i `flyt`, repository-implementasjoner i `repository` (noen få i `flyt`), klienter i `klienter`, app og API i `app`, og `kontrakt` har én liten test.
+- `<module>/build/test-results/test/` inneholder bare klassene fra den **siste** kjøringen.
+- `ApiTest` i `app` skriver `openapi.json` i repo-roten (gitignorert) som en bieffekt.
 
-## Reading output cheaply
+## Lese utdata billig
 
-Flyt-test reports are huge (`Flyttest` XML ≈ 1 MB, one stdout block per class). Do not open them. Instead:
+Rapporter fra flyt-tester er enorme (`Flyttest`-XML ≈ 1 MB, én stdout-blokk per klasse). Ikke åpne dem. Gjør i stedet dette:
 
 ```bash
-.agents/skills/postmottak-testing/scripts/flyt-trace.sh flyt                 # engine trace from the last :flyt:test run
-.agents/skills/postmottak-testing/scripts/flyt-trace.sh flyt '\[b=2\]'       # only behandlingId 2
+.agents/skills/postmottak-testing/scripts/flyt-trace.sh flyt                 # motorspor fra siste :flyt:test-kjøring
+.agents/skills/postmottak-testing/scripts/flyt-trace.sh flyt '\[b=2\]'       # bare behandlingId 2
 ```
 
-It keeps job pick/finish/enqueue, steps, results, avklaringsbehov, rewinds, warnings, errors and exception lines (about 10× smaller). The engine semantics behind the lines are in the `postmottak-flyt-motor` skill.
+Skriptet beholder jobb-plukking/-ferdigstilling/-opprettelse, steg, resultater, avklaringsbehov, tilbakerullinger, advarsler, feil og exception-linjer (omtrent 10 ganger mindre). Semantikken bak motorlinjene står i skillen `postmottak-flyt-motor`.
 
-## Pitfalls seen in this repo
+## Fallgruver i dette repoet
 
-1. `TestUtil.ventPåSvar` **never fails**: after `maxTid` it logs "Avbryter venting nå" and returns, and it treats `FEILET` jobs as finished. If a flyt test sees a half-processed behandling, look for `Feil under prosessering av jobb` in the trace before anything else.
-2. Fake state is global and never cleared: `TestJournalposter`, `TestPersoner`, `FssOppgaver` are JVM singletons. Always create new data through the builders (random ids) and never assert on global counts.
-3. Create journalposter through `TestJournalposter.leggTil { }`: it registers the person, and the NOM fake answers 404 for unknown persons. Builder defaults: digital **legeerklæring**, kanal NAV_NO, tema AAP, status MOTTATT, new person, no avsenderMottaker.
-4. `defaultGatewayProvider()` **without** `register<FakeUnleash>()` uses the real Unleash client against the HTTP fake, which reports **every** toggle enabled. `FakeUnleash` instead has `PostmottakVelgTema` off and throws for `DummyFeature`. Toggle overrides in tests are shared objects; reset them in `finally` (see `TemaFlytUnleash` in `Flyttest`).
-5. Tests run as "dev": `Aldersregel` and `SøknadRegel` are inactive, so fordeling differs from prod.
-6. `PrometheusProvider.prometheus` is a global `lateinit`. `@Fakes` and `WithDependencies` set it; plain unit tests that construct clients or some steps must set it themselves.
-7. Every `@Fakes` class starts a fresh set of about 16 fake servers and repoints the system properties. They are never stopped on purpose: clients are lazy singletons that keep the URL they first read.
-8. AssertJ `anySatisfy { }` / `allSatisfy { }` take consumers. A lambda that only computes a Boolean asserts nothing (the last assertion in `Flyttest."Blir satt på vent for etterspørring av informasjon"` is like that). Use `assertThat` inside, or `anyMatch`.
-9. `InMemoryAvklaringsbehovRepository` is a global object: call `clearMemory()` between tests.
-10. Do not run a file write and a Gradle test in the same parallel batch of tool calls; Gradle can start before the file exists.
-11. Dokumentflyt has no informasjonskrav: a `DokumentHåndtering` behandling created directly in a test fails in DIGITALISER_DOKUMENT unless a journalpost has been stored for the journalpostId first (run `JournalpostInformasjonskrav` or a Journalføring behandling).
-12. Fake dates: SAF reports `DATO_REGISTRERT` 2020-12-01, which becomes the journalpost's mottatt dato. Arena maksdato test data is built relative to that date.
-13. `FlytJobbRepository.hentJobberForSak/ForBehandling` parse job types through the motor's global `JobbType` registry, which is filled only when a `Motor` is constructed. In a class without a motor this fails with `Key <type> is missing in the map`, or passes when another class ran first in the same JVM. Query `JOBB` with SQL there (template 4).
-14. `TopologyTestDriver` rejects an empty `bootstrap.servers`: give `StreamsConfig(brokers = "localhost:9092")` a dummy value.
+1. `TestUtil.ventPåSvar` **feiler aldri**: etter `maxTid` logger den «Avbryter venting nå» og returnerer, og den regner `FEILET` jobber som ferdige. Hvis en flyt-test ser en halvprosessert behandling, se først etter `Feil under prosessering av jobb` i sporet.
+2. Fake-tilstand er global og blir aldri tømt: `TestJournalposter`, `TestPersoner` og `FssOppgaver` er JVM-singletons. Opprett alltid nye data gjennom byggerne (tilfeldige id-er), og assert aldri på globale antall.
+3. Opprett journalposter gjennom `TestJournalposter.leggTil { }`: den registrerer personen, og NOM-faken svarer 404 for ukjente personer. Standardverdier i byggeren: digital **legeerklæring**, kanal NAV_NO, tema AAP, status MOTTATT, ny person, ingen avsenderMottaker.
+4. `defaultGatewayProvider()` **uten** `register<FakeUnleash>()` bruker den ekte Unleash-klienten mot HTTP-faken, som melder **alle** toggles som påslått. `FakeUnleash` har derimot `PostmottakVelgTema` av og kaster exception for `DummyFeature`. Toggle-overstyringer i tester er delte objekter. Tilbakestill dem i `finally` (se `TemaFlytUnleash` i `Flyttest`).
+5. Testene kjører som «dev»: `Aldersregel` og `SøknadRegel` er inaktive, så fordelingen er annerledes enn i prod.
+6. `PrometheusProvider.prometheus` er en global `lateinit`. `@Fakes` og `WithDependencies` setter den. Rene enhetstester som konstruerer klienter eller enkelte steg, må sette den selv.
+7. Hver `@Fakes`-klasse starter et nytt sett med omtrent 16 fake-servere og peker systemegenskapene om. De stoppes aldri med vilje: klienter er late singletons som beholder URL-en de først leste.
+8. AssertJ `anySatisfy { }` / `allSatisfy { }` tar consumers. En lambda som bare beregner en Boolean, asserter ingenting (den siste asserten i `Flyttest."Blir satt på vent for etterspørring av informasjon"` er slik). Bruk `assertThat` inni, eller `anyMatch`.
+9. `InMemoryAvklaringsbehovRepository` er et globalt objekt: kall `clearMemory()` mellom testene.
+10. Ikke kjør en filskriving og en Gradle-test i samme parallelle batch av verktøykall. Gradle kan starte før filen finnes.
+11. Dokumentflyt har ikke informasjonskrav: en `DokumentHåndtering`-behandling som opprettes direkte i en test, feiler i DIGITALISER_DOKUMENT med mindre en journalpost er lagret for journalpostId først (kjør `JournalpostInformasjonskrav` eller en Journalføring-behandling).
+12. Fake-datoer: SAF rapporterer `DATO_REGISTRERT` 2020-12-01, som blir journalpostens mottatt-dato. Testdata for maksdato i Arena bygges relativt til den datoen.
+13. `FlytJobbRepository.hentJobberForSak/ForBehandling` parser jobbtyper gjennom motorens globale `JobbType`-register, som bare fylles når en `Motor` konstrueres. I en klasse uten motor feiler dette med `Key <type> is missing in the map`, eller det går bra hvis en annen klasse kjørte først i samme JVM. Hent jobbene fra `JOBB` med SQL der (mal 4).
+14. `TopologyTestDriver` avviser tom `bootstrap.servers`: gi `StreamsConfig(brokers = "localhost:9092")` en dummyverdi.
 
-## References
+## Referanser
 
-- `references/fakes.md`: every fake server and in-code fake, what it returns, and how to steer it.
-- `references/test-templates.md`: copyable templates for each test type, including how to solve avklaringsbehov and send Kafka records in flyt tests.
-- `scripts/run-tests.sh`, `scripts/flyt-trace.sh`: run narrow test sets; extract a compact engine trace.
+- `references/fakes.md`: hver fake-server og fake i koden, hva den returnerer og hvordan du styrer den.
+- `references/test-templates.md`: kopierbare maler for hver testtype, inkludert hvordan du løser avklaringsbehov og sender Kafka-records i flyt-tester.
+- `scripts/run-tests.sh`, `scripts/flyt-trace.sh`: kjør smale testsett og trekk ut et kompakt motorspor.

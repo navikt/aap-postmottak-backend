@@ -1,10 +1,10 @@
-# Test templates
+# Testmaler
 
-Templates 1, 2, 4, 5 and 6 were compiled and run green against this repo (October 2026); template 3 is a skeleton with placeholder names. Copy the imports from the referenced files.
+Mal 1, 2, 4, 5 og 6 er kompilert og kjørt grønt mot dette repoet (oktober 2026). Mal 3 er et skjelett med plassholdernavn. Kopier importene fra filene det henvises til.
 
-## 1. Step test, fake-first (preferred for step logic)
+## 1. Stegtest, fake-først (foretrukket for steglogikk)
 
-Real step wiring, real Postgres, real HTTP clients against fakes. Living example: `flyt/src/test/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/AvklarSakStegMedFakesTest.kt`.
+Ekte stegwiring, ekte Postgres og ekte HTTP-klienter mot fakes. Levende eksempel: `flyt/src/test/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/AvklarSakStegMedFakesTest.kt`.
 
 ```kotlin
 @Fakes
@@ -12,7 +12,7 @@ class MittStegTest {
     private lateinit var dataSource: TestDataSource
     private val gatewayProvider = defaultGatewayProvider { register<FakeUnleash>() }
 
-    @BeforeEach fun setup() { dataSource = TestDataSource() }   // fresh database per test (cloned template)
+    @BeforeEach fun setup() { dataSource = TestDataSource() }   // fersk database per test (klonet fra mal)
     @AfterEach fun tearDown() = dataSource.close()
 
     @Test
@@ -26,7 +26,7 @@ class MittStegTest {
                 .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
             val kontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Journalføring)
 
-            // Seed the journalpost exactly like OPPDATER_FAKTAGRUNNLAG does (reads the SAF fake, upserts the person).
+            // Seed journalposten på samme måte som OPPDATER_FAKTAGRUNNLAG gjør (leser SAF-faken, upserter personen).
             JournalpostInformasjonskrav.konstruer(repositoryProvider, gatewayProvider).oppdater(kontekst)
 
             val resultat = AvklarSakSteg.konstruer(repositoryProvider, gatewayProvider).utfør(kontekst)
@@ -39,11 +39,11 @@ class MittStegTest {
 }
 ```
 
-For "needs manual handling" assert `isInstanceOf(FantAvklaringsbehov::class.java)` and read the definisjon with `(resultat.transisjon() as FunnetAvklaringsbehov).avklaringsbehov()`. To test the re-run after a løsning, store the vurdering (or run the løser, template 2) and call `utfør` again.
+For «trenger manuell behandling» asserter du `isInstanceOf(FantAvklaringsbehov::class.java)` og leser definisjonen med `(resultat.transisjon() as FunnetAvklaringsbehov).avklaringsbehov()`. For å teste ny kjøring etter en løsning lagrer du vurderingen (eller kjører løseren, mal 2) og kaller `utfør` på nytt.
 
-## 2. Løser test, fake-first
+## 2. Løsertest, fake-først
 
-Same setup as template 1, then:
+Samme oppsett som i mal 1, deretter:
 
 ```kotlin
 AvklarSakLøser.konstruer(repositoryProvider, gatewayProvider).løs(
@@ -54,11 +54,11 @@ val vurdering = repositoryProvider.provide<SaksnummerRepository>().hentSakVurder
 assertThat(vurdering?.saksnummer).isEqualTo("S-1")
 ```
 
-Validation in løsere is mostly `require(...)`: test rejected input with `assertThrows<IllegalArgumentException> { ... }` and assert that nothing was stored.
+Validering i løsere er stort sett `require(...)`: test avvist input med `assertThrows<IllegalArgumentException> { ... }` og assert at ingenting ble lagret.
 
-## 3. Repository test
+## 3. Repository-test
 
-Pattern from `repository/src/test/.../BehandlingRepositoryImplTest.kt` and `SaksnummerRepositoryImplTest.kt`:
+Mønster fra `repository/src/test/.../BehandlingRepositoryImplTest.kt` og `SaksnummerRepositoryImplTest.kt`:
 
 ```kotlin
 class MinRepositoryImplTest {
@@ -83,11 +83,11 @@ class MinRepositoryImplTest {
 }
 ```
 
-Cover: save twice (only the last is active), `kopier`, and a behandling without data (`null`).
+Dekk: lagre to ganger (bare den siste er aktiv), `kopier` og en behandling uten data (`null`).
 
-## 4. Kafka topology test against a real database
+## 4. Kafka-topologitest mot en ekte database
 
-Runs the real `JoarkKafkaHandler` topology with a `TopologyTestDriver` (no broker) and real repositories. The existing `JoarkKafkaHandlerTest` does the same with mocked repositories.
+Kjører den ekte `JoarkKafkaHandler`-topologien med en `TopologyTestDriver` (ingen broker) og ekte repositorier. Den eksisterende `JoarkKafkaHandlerTest` gjør det samme med mockede repositorier.
 
 ```kotlin
 @Fakes
@@ -96,7 +96,7 @@ class MinKafkaTest {
     private val gatewayProvider = defaultGatewayProvider { register<FakeUnleash>() }
     private val config = StreamsConfig(
         applicationId = "postmottak-test",
-        brokers = "localhost:9092", // never contacted, but TopologyTestDriver rejects an empty value
+        brokers = "localhost:9092", // blir aldri kontaktet, men TopologyTestDriver avviser tom verdi
         ssl = SslConfig(truststorePath = "", keystorePath = "", credstorePsw = ""),
         schemaRegistry = SchemaRegistryConfig(url = "mock://postmottak-test", user = "", password = ""),
     )
@@ -119,7 +119,7 @@ class MinKafkaTest {
                 }.build())
         }
 
-        // Plain SQL: FlytJobbRepository.hentJobber* only works after a Motor has registered the job types.
+        // Ren SQL: FlytJobbRepository.hentJobber* virker bare etter at en Motor har registrert jobbtypene.
         val jobbtyper = dataSource.transaction { connection ->
             connection.queryList("SELECT type FROM jobb WHERE sak_id = ?") {
                 setParams { setLong(1, journalpostId.referanse) }
@@ -131,11 +131,11 @@ class MinKafkaTest {
 }
 ```
 
-All fields of `JournalfoeringHendelseRecord` without a default must be set before `build()`.
+Alle felt i `JournalfoeringHendelseRecord` uten standardverdi må settes før `build()`.
 
-## 5. Motor job chain (jobs run for real, no Kafka)
+## 5. Motorjobbkjede (jobbene kjører for ekte, ingen Kafka)
 
-Pattern from `fordeler/arena/ArenaOppgaveFlytTest.kt`. One motor and database per class:
+Mønster fra `fordeler/arena/ArenaOppgaveFlytTest.kt`. Én motor og én database per klasse:
 
 ```kotlin
 @Fakes
@@ -169,7 +169,7 @@ class MinJobbkjedeTest : WithDependencies {
                 JobbInput(VurderRelevantDokumentForAAPJobbUtfører).forSak(journalpostId.referanse).medJournalpostId(journalpostId)
             )
         }
-        util.ventPåSvar(journalpostId.referanse, maxTid = 30)   // returns silently on timeout!
+        util.ventPåSvar(journalpostId.referanse, maxTid = 30)   // returnerer stille ved timeout!
 
         val behandlinger = dataSource.transaction { connection ->
             postgresRepositoryRegistry.provider(connection).provide<BehandlingRepository>().hentAlleBehandlingerForJournalpost(journalpostId)
@@ -177,17 +177,17 @@ class MinJobbkjedeTest : WithDependencies {
         assertThat(behandlinger.map { it.typeBehandling }).containsExactlyInAnyOrder(
             TypeBehandling.Fordeling, TypeBehandling.Journalføring, TypeBehandling.DokumentHåndtering)
         assertThat(behandlinger).allSatisfy { assertThat(it.status()).isEqualTo(Status.AVSLUTTET) }
-        // No KLAR or FEILET jobs left for the journalpost (FEILET would otherwise go unnoticed):
+        // Ingen KLAR- eller FEILET-jobber igjen for journalposten (FEILET ville ellers gått ubemerket hen):
         assertThat(dataSource.transaction { FlytJobbRepository(it).hentJobberForSak(journalpostId.referanse) }).isEmpty()
     }
 }
 ```
 
-The database is shared by all tests in the class, so use new journalposts per test (or truncate tables in `@AfterEach` like `Flyttest`).
+Databasen deles av alle testene i klassen, så bruk nye journalposter per test (eller tøm tabellene i `@AfterEach` slik `Flyttest` gjør).
 
-## 6. New Flyttest scenario (spans behandlinger, avklaringsbehov, vent or Kafka)
+## 6. Nytt Flyttest-scenario (går på tvers av behandlinger, avklaringsbehov, vent eller Kafka)
 
-Add a method to `flyt/src/test/kotlin/no/nav/aap/postmottak/flyt/Flyttest.kt` instead of creating a new class: it already has Postgres, Kafka, a motor, a stream and helpers (`leggJournalpostPåKafka`, `triggProsesserBehandling`, `opprettJournalføringsBehandling`, `alleBehandlingerForJournalpost`, `hentBehandling`, `prøv`, and the `Behandling.løsAvklaringsBehov / sjekkÅpentAvklaringsbehov / verifiserErPåVent / verifiserIkkePåVent` extensions). Tables are truncated after each test.
+Legg til en metode i `flyt/src/test/kotlin/no/nav/aap/postmottak/flyt/Flyttest.kt` i stedet for å lage en ny klasse: den har allerede Postgres, Kafka, en motor, en stream og hjelpere (`leggJournalpostPåKafka`, `triggProsesserBehandling`, `opprettJournalføringsBehandling`, `alleBehandlingerForJournalpost`, `hentBehandling`, `prøv`, og extension-funksjonene `Behandling.løsAvklaringsBehov / sjekkÅpentAvklaringsbehov / verifiserErPåVent / verifiserIkkePåVent`). Tabellene tømmes etter hver test.
 
 ```kotlin
 @Test
@@ -200,7 +200,7 @@ fun `papirsøknad går gjennom tema, sak og digitalisering`() {
 
     journalføring
         .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
-        .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))     // solves via AvklaringsbehovHendelseHåndterer, then waits for jobs
+        .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))     // løser via AvklaringsbehovHendelseHåndterer, venter deretter på jobbene
         .løsAvklaringsBehov(AvklarSaksnummerLøsning(saksnummer = "123"))
 
     val dokument = prøv { alleBehandlingerForJournalpost(journalpostId).first { it.typeBehandling == TypeBehandling.DokumentHåndtering } }!!
@@ -208,16 +208,16 @@ fun `papirsøknad går gjennom tema, sak og digitalisering`() {
 }
 ```
 
-Notes:
-- `løsAvklaringsBehov` uses the behandling's current `versjon`; chain on its return value, which is the reloaded behandling.
-- To change a feature toggle for one test, use the `TemaFlytUnleash` pattern (a delegating object with a `@Volatile` field) and reset it in `finally`.
-- To simulate a change in Joark mid-test, call `TestJournalposter.leggTil { journalpostId = <same id>; ... }` again: it overwrites the fake.
-- Run it alone first: `run-tests.sh flyt 'no.nav.aap.postmottak.flyt.Flyttest.<method name>'`, then read `flyt-trace.sh flyt`.
+Merknader:
+- `løsAvklaringsBehov` bruker behandlingens gjeldende `versjon`. Lenk på returverdien, som er den lastede behandlingen på nytt.
+- For å endre en feature toggle i én test bruker du mønsteret `TemaFlytUnleash` (et delegerende objekt med et `@Volatile`-felt) og tilbakestiller det i `finally`.
+- For å simulere en endring i Joark midt i testen kaller du `TestJournalposter.leggTil { journalpostId = <samme id>; ... }` på nytt: det overskriver faken.
+- Kjør den alene først: `run-tests.sh flyt 'no.nav.aap.postmottak.flyt.Flyttest.<metodenavn>'`, og les deretter `flyt-trace.sh flyt`.
 
-## 7. Mock-based tests (existing style, still acceptable)
+## 7. Mock-baserte tester (eksisterende stil, fortsatt akseptabelt)
 
-Most step, løser and job tests construct the class directly with `mockk(relaxed = true)` collaborators (`AvklarSakStegTest`, `VurderRelevantDokumentForAAPJobbUtførerTest`). When extending those files keep their style. Guidelines:
-- Prefer `every { repo.hent...() } returns value` plus assertions on returned results over long chains of `verify(exactly = n)`.
-- Use `withArg { assertThat(...) }` inside `verify` to check stored values.
-- Relaxed mocks return defaults (`false`, empty lists, `null` for nullable types), which can silently take a different branch; stub what the branch depends on.
-- Call `clearAllMocks()` in `@AfterEach` when mocks are shared fields reused across tests with `every`.
+De fleste steg-, løser- og jobbtester konstruerer klassen direkte med `mockk(relaxed = true)`-samarbeidspartnere (`AvklarSakStegTest`, `VurderRelevantDokumentForAAPJobbUtførerTest`). Når du utvider disse filene, behold stilen deres. Retningslinjer:
+- Foretrekk `every { repo.hent...() } returns value` pluss asserts på returnerte resultater framfor lange kjeder av `verify(exactly = n)`.
+- Bruk `withArg { assertThat(...) }` inni `verify` for å sjekke lagrede verdier.
+- Relaxed mocks returnerer standardverdier (`false`, tomme lister, `null` for nullbare typer), som i det stille kan ta en annen gren. Stubb det grenen avhenger av.
+- Kall `clearAllMocks()` i `@AfterEach` når mocks er delte felt som gjenbrukes på tvers av tester med `every`.

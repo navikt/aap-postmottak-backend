@@ -1,12 +1,12 @@
-# Recipes: extending the engine safely
+# Oppskrifter: utvide motoren trygt
 
-Paths: `flyt/src/main/kotlin/no/nav/aap/postmottak/` unless stated otherwise. Each recipe ends with what to test. Deployments are rolling and behandlinger, jobs and steg_historikk rows survive deploys, so always ask "what happens to in-flight behandlinger?".
+Stier: `flyt/src/main/kotlin/no/nav/aap/postmottak/` med mindre noe annet er oppgitt. Hver oppskrift slutter med hva du bør teste. Utrullinger er rullerende, og behandlinger, jobber og steg_historikk-rader overlever utrullinger. Spør derfor alltid «hva skjer med behandlinger som er under arbeid?».
 
-## Add a step to an existing flyt
+## Legg til et steg i en eksisterende flyt
 
-1. If a new `StegType` is needed, add it in `kontrakt/.../steg/StegType.kt` with a `StegGruppe` and the behandling `Status` it implies. The name is persisted (`steg_historikk.steg`, `avklaringsbehov.funnet_i_steg`); renaming needs a migration (precedents: `V1.10`, `V1.11`).
-2. New `StegGruppe` with `skalVises = true` and `obligatoriskVisning = false`: add a `StegGruppeVisningUtleder` implementation in `flyt/flate/visning/` with a single `RepositoryProvider` constructor. `DynamiskStegGruppeVisningService` finds it by reflection; without one, `GET /api/behandling/{ref}/flyt` throws.
-3. Implement the step in `forretningsflyt/steg/<flyt>/`:
+1. Hvis du trenger en ny `StegType`, legg den til i `kontrakt/.../steg/StegType.kt` med en `StegGruppe` og behandlings-`Status` den innebærer. Navnet lagres (`steg_historikk.steg`, `avklaringsbehov.funnet_i_steg`), så et nytt navn krever migrering (presedens: `V1.10`, `V1.11`).
+2. Ny `StegGruppe` med `skalVises = true` og `obligatoriskVisning = false`: legg til en `StegGruppeVisningUtleder`-implementasjon i `flyt/flate/visning/` med én `RepositoryProvider`-konstruktør. `DynamiskStegGruppeVisningService` finner den med refleksjon. Uten en slik implementasjon kaster `GET /api/behandling/{ref}/flyt` exception.
+3. Implementer steget i `forretningsflyt/steg/<flyt>/`:
    ```kotlin
    class MittSteg(private val repo: MinRepository, private val gateway: MinGateway) : BehandlingSteg {
        companion object : FlytSteg {
@@ -16,21 +16,21 @@ Paths: `flyt/src/main/kotlin/no/nav/aap/postmottak/` unless stated otherwise. Ea
        }
 
        override fun utfør(kontekst: FlytKontekst): StegResultat {
-           if (repo.hentVurdering(kontekst.behandlingId) != null) return Fullført   // idempotent re-run
-           // decide automatically, or:
+           if (repo.hentVurdering(kontekst.behandlingId) != null) return Fullført   // idempotent omkjøring
+           // avgjør automatisk, eller:
            return FantAvklaringsbehov(Definisjon.MITT_BEHOV)
        }
    }
    ```
-   `konstruer` runs once per phase (five times per pass): no I/O there.
-4. Insert `.medSteg(steg = MittSteg)` at the right position in `forretningsflyt/behandlingstyper/<Flyt>.kt`.
-5. In-flight behandlinger: those already past the new position never run it (unless rewound). Removing a step breaks behandlinger whose active steg is the removed one (`Steg X finnes ikke i flyten`); move them with a migration (precedent: `V1.37__fjern_kategoriseringssteg.sql`).
-6. Test: step unit test with fakes, and one `Flyttest` scenario through the whole flyt (see `postmottak-testing`).
+   `konstruer` kjører én gang per fase (fem ganger per gjennomkjøring): ingen I/O der.
+4. Sett inn `.medSteg(steg = MittSteg)` på riktig plass i `forretningsflyt/behandlingstyper/<Flyt>.kt`.
+5. Behandlinger under arbeid: de som allerede er forbi den nye plasseringen, kjører aldri steget (med mindre de tilbakeføres). Å fjerne et steg ødelegger behandlinger der det fjernede steget er aktivt (`Steg X finnes ikke i flyten`). Flytt dem med en migrering (presedens: `V1.37__fjern_kategoriseringssteg.sql`).
+6. Test: enhetstest av steget med fakes, og ett `Flyttest`-scenario gjennom hele flyten (se `postmottak-testing`).
 
-## Add an avklaringsbehov
+## Legg til et avklaringsbehov
 
-1. `kontrakt`: add the code to `enum AvklaringsbehovKode` and a `const val MITT_BEHOV_KODE`, then a `Definisjon` entry (`type`, `løsesISteg`, `defaultFrist` for ventepunkter, `løsesAv`). `Definisjon`'s companion validates unique codes and ventepunkt rules when the class loads.
-2. Løsning in package `avklaringsbehov.løsning` (the interface is sealed, so the class must live in that package and module):
+1. `kontrakt`: legg koden til i `enum AvklaringsbehovKode` og en `const val MITT_BEHOV_KODE`, deretter en `Definisjon`-oppføring (`type`, `løsesISteg`, `defaultFrist` for ventepunkter, `løsesAv`). Companion-objektet til `Definisjon` validerer unike koder og ventepunkt-regler når klassen lastes.
+2. Løsning i pakken `avklaringsbehov.løsning` (interfacet er sealed, så klassen må ligge i den pakken og modulen):
    ```kotlin
    @JsonIgnoreProperties(ignoreUnknown = true)
    @JsonTypeName(value = MITT_BEHOV_KODE)
@@ -43,56 +43,56 @@ Paths: `flyt/src/main/kotlin/no/nav/aap/postmottak/` unless stated otherwise. Ea
            MittBehovLøser.konstruer(repositoryProvider, gatewayProvider).løs(kontekst, this)
    }
    ```
-   Jackson registration is automatic (`utledSubtypes()` in `App.kt`).
-3. Løser in package `avklaringsbehov.løser` implementing the sealed `AvklaringsbehovsLøser<MittBehovLøsning>`, with `forBehov()` and `companion object : LøserKonstruktør<...>`. Store a vurdering and return `LøsningsResultat(begrunnelse)`. Add the class to the expected set in `AvklaringsbehovsLøserTest`.
-4. The step creates the behov and reads the vurdering on the next run.
-5. Add a read endpoint (`api/.../faktagrunnlag/...`) if the frontend needs grunnlag. `openapi.json` is generated in CI (`./gradlew :app:genererOpenApiJson`); do not edit it by hand.
-6. Coordinate releases: `Definisjon` is serialised in `DokumentflytStoppetHendelse`, so aap-oppgave and aap-statistikk must accept the new code (new kontrakt version) before it can appear; the frontend (aap-saksbehandling) needs a UI.
-7. Test: løser test, step test, one flyt test that solves the behov.
+   Jackson-registreringen skjer automatisk (`utledSubtypes()` i `App.kt`).
+3. Løser i pakken `avklaringsbehov.løser` som implementerer det sealed `AvklaringsbehovsLøser<MittBehovLøsning>`, med `forBehov()` og `companion object : LøserKonstruktør<...>`. Lagre en vurdering og returner `LøsningsResultat(begrunnelse)`. Legg klassen til i det forventede settet i `AvklaringsbehovsLøserTest`.
+4. Steget oppretter behovet og leser vurderingen ved neste kjøring.
+5. Legg til et lese-endepunkt (`api/.../faktagrunnlag/...`) hvis frontend trenger grunnlag. `openapi.json` genereres i CI (`./gradlew :app:genererOpenApiJson`). Ikke rediger den for hånd.
+6. Koordiner utrullingene: `Definisjon` serialiseres i `DokumentflytStoppetHendelse`, så aap-oppgave og aap-statistikk må godta den nye koden (ny kontraktversjon) før den kan dukke opp. Frontend (aap-saksbehandling) trenger et brukergrensesnitt.
+7. Test: løsertest, stegtest og én flyttest som løser behovet.
 
-## Add an informasjonskrav
+## Legg til et informasjonskrav
 
-1. Implement `Informasjonskrav.oppdater(kontekst): Endret` and a `companion object : Informasjonskravkonstruktør`.
-2. Attach it: `.medSteg(steg = X, informasjonskrav = listOf(MittKrav))`. It then runs in X's OPPDATER_FAKTAGRUNNLAG phase and, on every resume where the cursor is after X, in `forberedBehandling`.
-3. **Rewind semantics:** returning `ENDRET` rewinds every resumed behandling past X to X (see `engine-walkthrough.md` §3). Return `ENDRET` only for changes that require X and later steps to be evaluated again, and make sure stored and fetched data compare equal when nothing has changed. Cover it with a flyt test that resumes after X.
+1. Implementer `Informasjonskrav.oppdater(kontekst): Endret` og et `companion object : Informasjonskravkonstruktør`.
+2. Knytt det til flyten: `.medSteg(steg = X, informasjonskrav = listOf(MittKrav))`. Det kjører da i OPPDATER_FAKTAGRUNNLAG-fasen til X og, ved hver gjenopptakelse der markøren står etter X, i `forberedBehandling`.
+3. **Semantikk for tilbakeføring:** å returnere `ENDRET` tilbakefører hver gjenopptatte behandling forbi X til X (se `engine-walkthrough.md` §3). Returner `ENDRET` bare for endringer som krever at X og senere steg vurderes på nytt, og sørg for at lagrede og hentede data er like når ingenting har endret seg. Dekk det med en flyttest som gjenopptar etter X.
 
-## Add a per-behandling vurdering (grunnlag repository)
+## Legg til en vurdering per behandling (grunnlag-repository)
 
-1. Interface next to the domain code, extending **`no.nav.aap.lookup.repository.Repository`** (the local marker with `kopier`/`slett`), not komponenter's `Repository`.
-2. Implementation in `repository/src/main/kotlin/.../repository/` with `companion object : Factory<Impl>` and the grunnlag pattern used by all vurderinger:
-   - `MIN_VURDERING` (immutable rows) + `MIN_VURDERING_GRUNNLAG(BEHANDLING_ID, MIN_VURDERING_ID, AKTIV)`.
-   - lagre: insert vurdering → `UPDATE ..._GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND AKTIV` → insert active grunnlag.
-   - hent: join on `AKTIV`.
-   - `kopier(fra, til)`: insert grunnlag rows for `til` pointing at the same vurdering ids. Override it if the vurdering must follow Journalføring → DokumentHåndtering (`GrunnlagKopierer` in `VideresendSteg`).
-3. Register in `repository/.../PostgresRepositoryRegistry.kt`. Look it up with `repositoryProvider.provide<Interface>()`; the registry matches only the implementation's direct super-interface.
-4. Flyway migration `repository/src/main/resources/flyway/V1.<next>__<beskrivelse>.sql` (list the folder for the highest number). Every table needs a primary key: prod has a logical-replication publication `FOR ALL TABLES` (datastream, `V1.51`), and Postgres rejects UPDATE/DELETE on published tables without a replica identity. Tests run without that publication and will not catch it.
-5. Test: repository test against `TestDataSource` (lagre, hent, kopier).
+1. Interface ved siden av domenekoden, som utvider **`no.nav.aap.lookup.repository.Repository`** (den lokale markøren med `kopier`/`slett`), ikke komponenters `Repository`.
+2. Implementasjon i `repository/src/main/kotlin/.../repository/` med `companion object : Factory<Impl>` og grunnlag-mønsteret som alle vurderinger bruker:
+   - `MIN_VURDERING` (uforanderlige rader) + `MIN_VURDERING_GRUNNLAG(BEHANDLING_ID, MIN_VURDERING_ID, AKTIV)`.
+   - lagre: sett inn vurdering → `UPDATE ..._GRUNNLAG SET AKTIV = FALSE WHERE BEHANDLING_ID = ? AND AKTIV` → sett inn aktivt grunnlag.
+   - hent: join på `AKTIV`.
+   - `kopier(fra, til)`: sett inn grunnlag-rader for `til` som peker på de samme vurderings-IDene. Overstyr den hvis vurderingen må følge med fra Journalføring → DokumentHåndtering (`GrunnlagKopierer` i `VideresendSteg`).
+3. Registrer i `repository/.../PostgresRepositoryRegistry.kt`. Slå den opp med `repositoryProvider.provide<Interface>()`. Registeret matcher bare implementasjonens direkte superinterface.
+4. Flyway-migrering `repository/src/main/resources/flyway/V1.<neste>__<beskrivelse>.sql` (list mappa for å finne høyeste nummer). Hver tabell trenger en primærnøkkel: prod har en logisk replikeringspublisering `FOR ALL TABLES` (datastream, `V1.51`), og Postgres avviser UPDATE/DELETE på publiserte tabeller uten replica identity. Tester kjører uten den publiseringen og fanger det ikke opp.
+5. Test: repositorytest mot `TestDataSource` (lagre, hent, kopier).
 
-## Add a flyt (TypeBehandling)
+## Legg til en flyt (TypeBehandling)
 
-1. `kontrakt/.../behandling/TypeBehandling.kt` (with an identifikator). Serialised in hendelser, so consumers must know it first.
-2. `object MinFlyt : BehandlingType` in `forretningsflyt/behandlingstyper/`: START_BEHANDLING first, `AvsluttBehandlingSteg` (IVERKSETTES) last by convention.
-3. Map it in `utledType` (`flyt/BehandlingType.kt`; the `when` is exhaustive).
-4. Whoever creates it: `behandlingRepository.opprettBehandling(journalpostId, type)`, optionally `GrunnlagKopierer.overfør`, then enqueue `ProsesserBehandlingJobbUtfører` with `forBehandling(journalpostId, behandlingId)`.
+1. `kontrakt/.../behandling/TypeBehandling.kt` (med en identifikator). Serialiseres i hendelser, så mottakerne må kjenne den først.
+2. `object MinFlyt : BehandlingType` i `forretningsflyt/behandlingstyper/`: START_BEHANDLING først, `AvsluttBehandlingSteg` (IVERKSETTES) sist, etter konvensjon.
+3. Koble den i `utledType` (`flyt/BehandlingType.kt`; `when` er uttømmende).
+4. Den som oppretter den: `behandlingRepository.opprettBehandling(journalpostId, type)`, eventuelt `GrunnlagKopierer.overfør`, deretter legge `ProsesserBehandlingJobbUtfører` i køen med `forBehandling(journalpostId, behandlingId)`.
 
-## Add a job
+## Legg til en jobb
 
-1. `class MinJobbUtfører(...) : JobbUtfører` with `companion object : ProvidersJobbSpesifikasjon { konstruer(repositoryProvider, gatewayProvider); type; navn; beskrivelse; retries?; cron? }`.
-2. Register it in `prosessering/ProsesseringsJobber.alle()`, or the motor cannot parse stored jobs of that type.
-3. Group it: `forBehandling(journalpostId, behandlingId)` or `forSak(journalpostId)` to run in order per journalpost/behandling; nothing for independent or cron jobs.
-4. `type` is persisted: never rename it, and keep a stub after removing the feature. Keep payload classes backward compatible.
-5. Test the utfører directly with fakes; add a motor-based test only if ordering or retries matter.
+1. `class MinJobbUtfører(...) : JobbUtfører` med `companion object : ProvidersJobbSpesifikasjon { konstruer(repositoryProvider, gatewayProvider); type; navn; beskrivelse; retries?; cron? }`.
+2. Registrer den i `prosessering/ProsesseringsJobber.alle()`, ellers kan ikke motoren parse lagrede jobber av den typen.
+3. Grupper den: `forBehandling(journalpostId, behandlingId)` eller `forSak(journalpostId)` for å kjøre i rekkefølge per journalpost/behandling. Ingen av delene for uavhengige jobber eller cron-jobber.
+4. `type` lagres: endre den aldri, og behold en stubb etter at funksjonen er fjernet. Hold payload-klasser bakoverkompatible.
+5. Test utføreren direkte med fakes. Legg til en motorbasert test bare hvis rekkefølge eller retries betyr noe.
 
-## Add an integration (gateway)
+## Legg til en integrasjon (gateway)
 
-1. Interface in `gateway/` (or next to the domain) extending `no.nav.aap.komponenter.gateway.Gateway`.
-2. Implementation in `klienter/` with `companion object : Factory<Impl>` (usually a lazily created singleton) reading `requiredConfigForKey("INTEGRASJON_..._URL")`.
-3. Register in `klienter/.../DefaultGatewayProvider.kt`. Add env vars and outbound access to `.nais/dev-gcp.yaml` and `.nais/prod-gcp.yaml`.
-4. Add a fake (see `postmottak-testing/references/fakes.md`): an HTTP route in `lib-test/.../FakeServers.kt` plus the system property, or an in-code fake. Registering another implementation of the same Gateway interface replaces the earlier one; that is how tests swap in fakes.
+1. Interface i `gateway/` (eller ved siden av domenet) som utvider `no.nav.aap.komponenter.gateway.Gateway`.
+2. Implementasjon i `klienter/` med `companion object : Factory<Impl>` (vanligvis en singleton som opprettes lazy) som leser `requiredConfigForKey("INTEGRASJON_..._URL")`.
+3. Registrer i `klienter/.../DefaultGatewayProvider.kt`. Legg til miljøvariabler og utgående tilgang i `.nais/dev-gcp.yaml` og `.nais/prod-gcp.yaml`.
+4. Legg til en fake (se `postmottak-testing/references/fakes.md`): en HTTP-rute i `lib-test/.../FakeServers.kt` pluss system property, eller en fake i koden. Å registrere en annen implementasjon av samme Gateway-interface erstatter den tidligere. Slik bytter tester inn fakes.
 
-## Add an API endpoint
+## Legg til et API-endepunkt
 
-1. In `api/`, as `fun NormalOpenAPIRoute.mittApi(dataSource, repositoryRegistry, ...)`, registered in `App.kt` inside `apiRouting { }`.
-2. Use `authorizedGet` / `authorizedPost` from the tilgang plugin. For behandling-scoped routes use `JournalpostPathParam("referanse", journalpostIdFraBehandlingResolver(...))`; mutations need `Operasjon.SAKSBEHANDLE`, operations endpoints `DRIFTE` / `DRIFT_LES`. Plain `get`/`post` (with `@Suppress("UnauthorizedGet")`) are only for local/test routes.
-3. Mutating a behandling: take the lock (`TaSkriveLåsRepository.lås`), run `BehandlingTilstandValidator`, mutate, then `verifiserSkrivelås`. Never run steps in the request; enqueue `ProsesserBehandlingJobbUtfører`.
-4. Read-only endpoints: `dataSource.transaction(readOnly = true)`.
+1. I `api/`, som `fun NormalOpenAPIRoute.mittApi(dataSource, repositoryRegistry, ...)`, registrert i `App.kt` inne i `apiRouting { }`.
+2. Bruk `authorizedGet` / `authorizedPost` fra tilgang-pluginen. For ruter med behandlingsomfang bruker du `JournalpostPathParam("referanse", journalpostIdFraBehandlingResolver(...))`. Mutasjoner trenger `Operasjon.SAKSBEHANDLE`, drift-endepunkter `DRIFTE` / `DRIFT_LES`. Vanlig `get`/`post` (med `@Suppress("UnauthorizedGet")`) er bare for lokale ruter og testruter.
+3. Når du muterer en behandling: ta låsen (`TaSkriveLåsRepository.lås`), kjør `BehandlingTilstandValidator`, muter, og kjør deretter `verifiserSkrivelås`. Kjør aldri steg i forespørselen. Legg `ProsesserBehandlingJobbUtfører` i køen.
+4. Endepunkter som bare leser: `dataSource.transaction(readOnly = true)`.

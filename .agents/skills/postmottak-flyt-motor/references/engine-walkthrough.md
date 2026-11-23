@@ -1,21 +1,21 @@
-# Engine walkthrough: FlytOrkestrator, StegOrkestrator, BehandlingFlyt
+# Gjennomgang av motoren: FlytOrkestrator, StegOrkestrator, BehandlingFlyt
 
-All paths are under `flyt/src/main/kotlin/no/nav/aap/postmottak/` unless stated otherwise. Statements marked **verified** were confirmed by running tests and reading the engine trace.
+Alle stier ligger under `flyt/src/main/kotlin/no/nav/aap/postmottak/` med mindre noe annet er oppgitt. Påstander merket **verifisert** er bekreftet ved å kjøre tester og lese motor-tracen.
 
-## 1. Who starts processing
+## 1. Hvem starter prosesseringen
 
-Every execution of steps starts with a `ProsesserBehandlingJobbUtfører` job. These are all production call sites that enqueue it:
+Hver kjøring av steg starter med en `ProsesserBehandlingJobbUtfører`-jobb. Dette er alle kallestedene i produksjon som legger den i køen:
 
-| Call site | When |
+| Kallested | Når |
 | --- | --- |
-| `mottak/VurderRelevantDokumentForAAPJobbUtfører` | New relevant journalpost: creates the `Fordeling` behandling |
-| `forretningsflyt/steg/fordeling/FordelingVideresendSteg` | Fordeling decided KELVIN: creates the `Journalføring` behandling |
-| `forretningsflyt/steg/journalføring/VideresendSteg` | Journalført to a Kelvin sak: creates the `DokumentHåndtering` behandling |
-| `mottak/KafkaStreams.kt` (`JoarkKafkaHandler`) | New AAP event or tema change for a journalpost with an open Journalføring behandling, or AAP-retur (creates a new Journalføring behandling directly, skipping Fordeling) |
-| `avklaringsbehov/AvklaringsbehovOrkestrator.løsAvklaringsbehovOgFortsettProsessering` | After every løsning from the API (`POST /api/behandling/løs-behov`) |
-| `prosessering/GjenopptaBehandlingJobbUtfører` | Cron 07:00: behandlinger in `UTREDES` with an open behov whose frist has passed |
-| `api/.../BehandlingApi` `GET /api/behandling/{ref}/forbered` | Frontend opens an idle behandling (no activity for 15 min, not avsluttet, no pending job) |
-| `api/.../DriftApi` `POST /api/drift/behandling/{ref}/prosesser` | Manual re-trigger by operations |
+| `mottak/VurderRelevantDokumentForAAPJobbUtfører` | Ny relevant journalpost: oppretter `Fordeling`-behandlingen |
+| `forretningsflyt/steg/fordeling/FordelingVideresendSteg` | Fordeling bestemte KELVIN: oppretter `Journalføring`-behandlingen |
+| `forretningsflyt/steg/journalføring/VideresendSteg` | Journalført til en Kelvin-sak: oppretter `DokumentHåndtering`-behandlingen |
+| `mottak/KafkaStreams.kt` (`JoarkKafkaHandler`) | Ny AAP-hendelse eller temaendring for en journalpost med åpen Journalføring-behandling, eller AAP-retur (oppretter en ny Journalføring-behandling direkte, uten Fordeling) |
+| `avklaringsbehov/AvklaringsbehovOrkestrator.løsAvklaringsbehovOgFortsettProsessering` | Etter hver løsning fra API-et (`POST /api/behandling/løs-behov`) |
+| `prosessering/GjenopptaBehandlingJobbUtfører` | Cron 07:00: behandlinger i `UTREDES` med et åpent behov der fristen er passert |
+| `api/.../BehandlingApi` `GET /api/behandling/{ref}/forbered` | Frontend åpner en inaktiv behandling (ingen aktivitet på 15 minutter, ikke avsluttet, ingen ventende jobb) |
+| `api/.../DriftApi` `POST /api/drift/behandling/{ref}/prosesser` | Manuell ny trigging fra drift |
 
 ## 2. ProsesserBehandlingJobbUtfører
 
@@ -26,149 +26,149 @@ kontroller.forberedOgProsesserBehandling(kontekst)
 låsRepository.verifiserSkrivelås(skrivelås)                             // UPDATE ... SET versjon = versjon+1 WHERE versjon = old
 ```
 
-The row lock serialises processing against API mutations (`løs-behov`, `sett-på-vent`, `forbered`) that take the same lock. The versjon bump invalidates any `behandlingVersjon` the frontend holds.
+Radlåsen serialiserer prosesseringen mot API-mutasjoner (`løs-behov`, `sett-på-vent`, `forbered`) som tar den samme låsen. Økningen av versjon ugyldiggjør alle `behandlingVersjon`-verdier frontend sitter med.
 
 ## 3. FlytOrkestrator.forberedBehandling
 
 ```text
-behandling, avklaringsbehovene = load
-avklaringsbehovene.validateTilstand(behandling)          throws UgyldigForespørsel if status == AVSLUTTET
-flyt = utledType(type).flyt(); flyt.forberedFlyt(behandling.aktivtSteg())   cursor := current steg
+behandling, avklaringsbehovene = last
+avklaringsbehovene.validateTilstand(behandling)          kaster UgyldigForespørsel hvis status == AVSLUTTET
+flyt = utledType(type).flyt(); flyt.forberedFlyt(behandling.aktivtSteg())   markør := gjeldende steg
 
-if på vent:                                              any open VENTEPUNKT
-    løs every ventepunkt with frist <= today            as SYSTEMBRUKER
-    if no longer på vent:
-        tilbakefør(flyt.tilbakeflyt(expired))           back to the steg the vent belongs to (no-op if same steg)
+if på vent:                                              et åpent VENTEPUNKT
+    løs hvert ventepunkt med frist <= i dag             som SYSTEMBRUKER
+    if ikke lenger på vent:
+        tilbakefør(flyt.tilbakeflyt(expired))           tilbake til steget ventepunktet hører til (ingen effekt hvis samme steg)
 
-førTilbakeTilTidligsteÅpneAvklaringsbehov               open behov in an EARLIER steg than the current one?
-                                                         log.error("...er dette en bug") and rewind to it
+førTilbakeTilTidligsteÅpneAvklaringsbehov               åpent behov i et TIDLIGERE steg enn det gjeldende?
+                                                         log.error("...er dette en bug") og tilbakefør dit
 
 endret = informasjonskravGrunnlag.oppdaterFaktagrunnlagForKravliste(flyt.alleFaktagrunnlagFørGjeldendeSteg())
 tilbakefør(flyt.tilbakeflytEtterEndringer(endret))
 ```
 
-### The informasjonskrav rewind, precisely
+### Informasjonskrav-tilbakeføringen i detalj
 
-- `alleFaktagrunnlagFørGjeldendeSteg()` returns `(steg, krav)` for every steg strictly before the current one. The `oppdaterFaktagrunnlag` flag is always `true` (builder default, never changed).
-- `InformasjonskravGrunnlagImpl.oppdaterFaktagrunnlagForKravliste` calls `oppdater()` on each and returns the krav whose result was `ENDRET`, as the KDoc on `InformasjonskravGrunnlag` says and as in aap-behandlingsflyt.
-- `tilbakeflytEtterEndringer(list)` picks the earliest steg whose kravliste contains any returned krav (excluding steps with status `OPPRETTET`, i.e. START_BEHANDLING) and rewinds there if it is before the current steg. A rewind logs `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'` and emits an extra `DokumentflytStoppetHendelse`.
-- `JournalpostInformasjonskrav` returns `ENDRET` only when the stored journalpost differs from SAF and the difference in tema or saksnummer is relevant; `SaksnummerInfoKrav` always returns `IKKE_ENDRET`. So a normal Journalføring behandling is not rewound when it resumes. Stored and fetched data must compare equal, otherwise the informasjonskrav reports `ENDRET` on every resume.
-- History: commit `40cf556e7` (2024-09) replaced `harIkkeGjortOppdateringNå` with `oppdater() == ENDRET` but kept `filterNot`, which inverted the meaning until November 2026. In that period, Journalføring was rewound to AVKLAR_TEMA on almost every resume, which old steg history shows as `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`.
-- Even with the "intended" semantics the rewind would usually happen: `JournalpostInformasjonskrav` reports `ENDRET` when Joark's saksnummer/tema differs from the vurdering, which is the normal state until SETT_FAGSAK has run.
-- Fordeling and DokumentHåndtering are not affected: no krav before their manual steps.
+- `alleFaktagrunnlagFørGjeldendeSteg()` returnerer `(steg, krav)` for hvert steg strengt før det gjeldende. Flagget `oppdaterFaktagrunnlag` er alltid `true` (standard i builderen, aldri endret).
+- `InformasjonskravGrunnlagImpl.oppdaterFaktagrunnlagForKravliste` kaller `oppdater()` på hvert krav og returnerer kravene der resultatet var `ENDRET`, slik KDoc på `InformasjonskravGrunnlag` sier og slik det er i aap-behandlingsflyt.
+- `tilbakeflytEtterEndringer(list)` velger det tidligste steget der kravlisten inneholder et av de returnerte kravene (unntatt steg med status `OPPRETTET`, altså START_BEHANDLING), og tilbakefører dit hvis det er før gjeldende steg. En tilbakeføring logger `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'` og sender en ekstra `DokumentflytStoppetHendelse`.
+- `JournalpostInformasjonskrav` returnerer `ENDRET` bare når den lagrede journalposten skiller seg fra SAF og forskjellen i tema eller saksnummer er relevant. `SaksnummerInfoKrav` returnerer alltid `IKKE_ENDRET`. En vanlig Journalføring-behandling tilbakeføres derfor ikke når den gjenopptas. Lagrede og hentede data må være like, ellers melder informasjonskravet `ENDRET` ved hver gjenopptakelse.
+- Historikk: commit `40cf556e7` (2024-09) erstattet `harIkkeGjortOppdateringNå` med `oppdater() == ENDRET`, men beholdt `filterNot`. Det snudde meningen fram til november 2026. I den perioden ble Journalføring tilbakeført til AVKLAR_TEMA ved nesten hver gjenopptakelse, noe gammel steghistorikk viser som `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`.
+- Selv med den «tilsiktede» semantikken ville tilbakeføringen som regel skjedd: `JournalpostInformasjonskrav` melder `ENDRET` når Joarks saksnummer/tema avviker fra vurderingen, som er normaltilstanden fram til SETT_FAGSAK har kjørt.
+- Fordeling og DokumentHåndtering påvirkes ikke: ingen krav før de manuelle stegene.
 
 ### tilbakefør
 
 ```text
-if flyt is empty: return
-steg = tilbakeflyt.aktivtSteg()                 the current steg (first element of the reversed sub-flyt)
+if flyt er tom: return
+steg = tilbakeflyt.aktivtSteg()                 gjeldende steg (første element i den reverserte delflyten)
 loop:
-    stegOrkestrator.utførTilbakefør(steg)      logs StegTilstand(steg, TILBAKEFØRT). No step code runs.
-    steg = tilbakeflyt.neste()                 previous steg; also moves the parent flyt's cursor
+    stegOrkestrator.utførTilbakefør(steg)      logger StegTilstand(steg, TILBAKEFØRT). Ingen stegkode kjører.
+    steg = tilbakeflyt.neste()                 forrige steg; flytter også markøren i foreldreflyten
     if steg == null:
-        loggStopp(); if harHeltStoppet: behandlingHendelseService.stoppet(...)   → flyt.hendelse job
+        loggStopp(); if harHeltStoppet: behandlingHendelseService.stoppet(...)   → flyt.hendelse-jobb
         return
 ```
 
-`harHeltStoppet = false` only when called from `forberedLøsingAvBehov` (API path). From `forberedBehandling` it always emits a hendelse, even though `prosesserBehandling` continues immediately.
+`harHeltStoppet = false` bare når den kalles fra `forberedLøsingAvBehov` (API-stien). Fra `forberedBehandling` sender den alltid en hendelse, selv om `prosesserBehandling` fortsetter umiddelbart.
 
 ## 4. FlytOrkestrator.prosesserBehandling
 
 ```text
-behandling, avklaringsbehovene = load fresh; validateTilstand
-if på vent: løs expired ventepunkter (no rewind here)
-flyt = new flyt; gjeldende = flyt.forberedFlyt(behandling.aktivtSteg())
+behandling, avklaringsbehovene = last på nytt; validateTilstand
+if på vent: løs utløpte ventepunkter (ingen tilbakeføring her)
+flyt = ny flyt; gjeldende = flyt.forberedFlyt(behandling.aktivtSteg())
 loop:
     result = stegOrkestrator.utfør(gjeldende, kontekst, behandling, flyt.faktagrunnlagForGjeldendeSteg())
-    validerPlassering(flyt, åpne behov)        IllegalStateException if an open behov belongs to an earlier steg
-    neste = flyt.neste()                       advances the cursor, even when we are about to stop
+    validerPlassering(flyt, åpne behov)        IllegalStateException hvis et åpent behov hører til et tidligere steg
+    neste = flyt.neste()                       flytter markøren, selv når vi snart stopper
     if !result.kanFortsette() || neste == null:
         if neste == null:
             status = AVSLUTTET
-            check(no open behov)               "Behandlingen er avsluttet, men det finnes åpne avklaringsbehov."
-        behandlingHendelseService.stoppet(fresh behandling)      → StoppetHendelseJobbUtfører (oppgave + statistikk)
+            check(ingen åpne behov)            "Behandlingen er avsluttet, men det finnes åpne avklaringsbehov."
+        behandlingHendelseService.stoppet(ny behandling)      → StoppetHendelseJobbUtfører (oppgave + statistikk)
         return
     gjeldende = neste
 ```
 
-`behandling` is one in-memory object shared with `StegOrkestrator`; `loggStegHistorikk` updates it through `behandling.visit(...)`, so `behandling.aktivtSteg()` stays in sync within the job.
+`behandling` er ett objekt i minnet som deles med `StegOrkestrator`. `loggStegHistorikk` oppdaterer det via `behandling.visit(...)`, så `behandling.aktivtSteg()` er i synk gjennom hele jobben.
 
-## 5. StegOrkestrator.utfør: phases of one steg
+## 5. StegOrkestrator.utfør: fasene i ett steg
 
-`StegStatus.rekkefølge()` = START, OPPDATER_FAKTAGRUNNLAG, UTFØRER, AVKLARINGSPUNKT, AVSLUTTER. For each phase: construct the step (`FlytSteg.konstruer`), run the phase, log a `StegTilstand(steg, phase)` row.
+`StegStatus.rekkefølge()` = START, OPPDATER_FAKTAGRUNNLAG, UTFØRER, AVKLARINGSPUNKT, AVSLUTTER. For hver fase: konstruer steget (`FlytSteg.konstruer`), kjør fasen, logg en `StegTilstand(steg, fase)`-rad.
 
-| Phase | Work | Afterwards |
+| Fase | Arbeid | Etterpå |
 | --- | --- | --- |
-| START | none | row, **savepoint** |
-| OPPDATER_FAKTAGRUNNLAG | `oppdater()` on this steg's own krav. The result is ignored here. | row, **savepoint** |
-| UTFØRER | `steg.utfør(kontekst)`, then handle the transition (below) | row (not written if `utfør` throws) |
-| AVKLARINGSPUNKT | open behov with `skalLøsesISteg(this steg)`? → `Stopp`, return | row |
-| AVSLUTTER | none, return `Fortsett` | row |
+| START | ingen | rad, **savepoint** |
+| OPPDATER_FAKTAGRUNNLAG | `oppdater()` på stegets egne krav. Resultatet ignoreres her. | rad, **savepoint** |
+| UTFØRER | `steg.utfør(kontekst)`, deretter håndtering av overgangen (under) | rad (skrives ikke hvis `utfør` kaster) |
+| AVKLARINGSPUNKT | åpent behov med `skalLøsesISteg(dette steget)`? → `Stopp`, returner | rad |
+| AVSLUTTER | ingen, returnerer `Fortsett` | rad |
 
-Handling of the UTFØRER result:
+Håndtering av resultatet fra UTFØRER:
 
-| Step returned | Transition | Engine action |
+| Steget returnerte | Overgang | Handling i motoren |
 | --- | --- | --- |
-| `Fullført` | `Fortsett` | If the behandling has **no** non-vente avklaringsbehov (any status), løs all open ventepunkter ("Har gått videre til nytt steg"). |
-| `FantAvklaringsbehov(def)` | `FunnetAvklaringsbehov` (`kanFortsette() = true`) | `avklaringsbehovene.leggTil(def, thisSteg)`: create, reopen if closed, ignore if already open. |
-| (none) | `FunnetVentebehov` | Dead branch: no `StegResultat` produces it. `FantAvklaringsbehov` rejects ventepunkt-definisjoner with `require`. |
+| `Fullført` | `Fortsett` | Hvis behandlingen **ikke** har noe avklaringsbehov som ikke er vent (uansett status), løses alle åpne ventepunkter («Har gått videre til nytt steg»). |
+| `FantAvklaringsbehov(def)` | `FunnetAvklaringsbehov` (`kanFortsette() = true`) | `avklaringsbehovene.leggTil(def, dette steget)`: opprett, gjenåpne hvis lukket, ignorer hvis allerede åpent. |
+| (ingen) | `FunnetVentebehov` | Død gren: ingen `StegResultat` produserer den. `FantAvklaringsbehov` avviser ventepunkt-definisjoner med `require`. |
 
-`utførTilbakefør` only logs `TILBAKEFØRT` (status of that steg's `StegType`), with no construction side effects beyond `konstruer`.
+`utførTilbakefør` logger bare `TILBAKEFØRT` (status for det stegets `StegType`), uten andre sideeffekter enn `konstruer`.
 
-### Logging a StegTilstand
+### Logging av en StegTilstand
 
-`StegOrkestrator.loggStegHistorikk` → `behandling.visit(tilstand)` (deactivates previous active entry in memory, updates in-memory status) → `BehandlingRepository.loggBesøktSteg` (`UPDATE steg_historikk SET aktiv = false ...` + insert a new active row; unique index allows one active row per behandling) → `oppdaterBehandlingStatus` if the `StegType.status` differs.
+`StegOrkestrator.loggStegHistorikk` → `behandling.visit(tilstand)` (deaktiverer forrige aktive oppføring i minnet, oppdaterer status i minnet) → `BehandlingRepository.loggBesøktSteg` (`UPDATE steg_historikk SET aktiv = false ...` + innsetting av en ny aktiv rad; den unike indeksen tillater én aktiv rad per behandling) → `oppdaterBehandlingStatus` hvis `StegType.status` er en annen.
 
-Consequences:
-- `Behandling.aktivtSteg()` = steg of the active row; `START_BEHANDLING` if there is no history yet.
-- A stopped behandling has active row `(steg, AVKLARINGSPUNKT)`; a failed one typically `(steg, OPPDATER_FAKTAGRUNNLAG)`.
-- About five rows per steg per pass. Rewinds and resumes multiply this.
+Konsekvenser:
+- `Behandling.aktivtSteg()` = steget i den aktive raden; `START_BEHANDLING` hvis det ikke finnes historikk ennå.
+- En stoppet behandling har aktiv rad `(steg, AVKLARINGSPUNKT)`; en som har feilet, har typisk `(steg, OPPDATER_FAKTAGRUNNLAG)`.
+- Omtrent fem rader per steg per gjennomkjøring. Tilbakeføringer og gjenopptakelser multipliserer dette.
 
-## 6. Behandling status
+## 6. Behandlingsstatus
 
-| StegType | Status while the cursor is there |
+| StegType | Status mens markøren står der |
 | --- | --- |
 | START_BEHANDLING | OPPRETTET |
 | AVKLAR_TEMA, AVKLAR_SAK, SETT_FAGSAK, ENDELIG_JOURNALFØRING, AVKLAR_FORDELING, DIGITALISER_DOKUMENT, OVERLEVER_TIL_FAGSYSTEM | UTREDES |
 | VIDERESEND, AVKLAR_FORDELING_VIDERESEND, IVERKSETTES | IVERKSETTES |
-| after the last steg | AVSLUTTET (set explicitly by FlytOrkestrator) |
+| etter siste steg | AVSLUTTET (settes eksplisitt av FlytOrkestrator) |
 
-`Status.erAvsluttet()` returns true for IVERKSETTES **and** AVSLUTTET (used for frontend read-only and `/forbered`). `ValiderBehandlingTilstand` only blocks AVSLUTTET. Being på vent does not change status.
+`Status.erAvsluttet()` returnerer sann for IVERKSETTES **og** AVSLUTTET (brukes for skrivebeskyttet frontend og `/forbered`). `ValiderBehandlingTilstand` blokkerer bare AVSLUTTET. Å være på vent endrer ikke status.
 
-## 7. BehandlingFlyt internals
+## 7. Internt i BehandlingFlyt
 
-- `BehandlingType.flyt()` builds a **new** `BehandlingFlyt` on every call. It holds an immutable list of `Behandlingsflytsteg(steg, kravliste, oppdaterFaktagrunnlag)` and a **mutable cursor** `aktivtSteg`. Never cache or share an instance.
-- `forberedFlyt(stegType)` sets the cursor (throws `IllegalArgumentException("Steg X finnes ikke i flyten")` for unknown steps: this is what happens to in-flight behandlinger if a step is removed without a migration).
-- `neste()` moves the cursor forward and returns the next `FlytSteg`, or `null` at the end.
-- `tilbakeflyt(...)` / `tilbakeflytEtterEndringer(...)` return a child `BehandlingFlyt` containing `[target .. current]` reversed, with `parent = this`. Calling `neste()` on the child also moves the parent's cursor. A sub-flyt of size ≤ 1 is returned as empty (nothing to do).
-- `erStegFør(a, b)` compares list indices; a steg not in the flyt has index -1 and is "before" everything.
-- `Avklaringsbehov.løsesISteg()` resolves `StegType.UDEFINERT` (MANUELT_SATT_PÅ_VENT) to `funnetISteg`.
-- Leftovers from the behandlingsflyt copy, currently without effect: `ÅrsakTilBehandling` / `kunRelevantVedÅrsakerHvisSattEllersIkke`, frivillige avklaringsbehov (no definisjon is `MANUELT_FRIVILLIG`, so `FrivilligeAvklaringsbehov` adds nothing), `StegType.tekniskSteg` (always false), `kreverToTrinn`, `SENDT_TILBAKE_FRA_BESLUTTER`, `ÅrsakTilRetur`.
+- `BehandlingType.flyt()` bygger en **ny** `BehandlingFlyt` ved hvert kall. Den har en uforanderlig liste med `Behandlingsflytsteg(steg, kravliste, oppdaterFaktagrunnlag)` og en **muterbar markør** `aktivtSteg`. Aldri cache eller del en instans.
+- `forberedFlyt(stegType)` setter markøren (kaster `IllegalArgumentException("Steg X finnes ikke i flyten")` for ukjente steg: det er dette som skjer med behandlinger under arbeid hvis et steg fjernes uten migrering).
+- `neste()` flytter markøren framover og returnerer neste `FlytSteg`, eller `null` på slutten.
+- `tilbakeflyt(...)` / `tilbakeflytEtterEndringer(...)` returnerer en barne-`BehandlingFlyt` som inneholder `[mål .. gjeldende]` reversert, med `parent = this`. Å kalle `neste()` på barnet flytter også markøren til foreldreflyten. En delflyt med størrelse ≤ 1 returneres som tom (ingenting å gjøre).
+- `erStegFør(a, b)` sammenligner listeindekser; et steg som ikke finnes i flyten, har indeks -1 og er «før» alt.
+- `Avklaringsbehov.løsesISteg()` oversetter `StegType.UDEFINERT` (MANUELT_SATT_PÅ_VENT) til `funnetISteg`.
+- Rester fra kopien av behandlingsflyt, uten effekt i dag: `ÅrsakTilBehandling` / `kunRelevantVedÅrsakerHvisSattEllersIkke`, frivillige avklaringsbehov (ingen definisjon er `MANUELT_FRIVILLIG`, så `FrivilligeAvklaringsbehov` legger ikke til noe), `StegType.tekniskSteg` (alltid false), `kreverToTrinn`, `SENDT_TILBAKE_FRA_BESLUTTER`, `ÅrsakTilRetur`.
 
-## 8. Annotated real trace (manual Journalføring, then automatic DokumentHåndtering)
+## 8. Kommentert reell trace (manuell Journalføring, deretter automatisk DokumentHåndtering)
 
-Produced with `postmottak-testing/scripts/flyt-trace.sh` from `Flyttest."Blir satt på vent for etterspørring av informasjon"` (shortened):
+Laget med `postmottak-testing/scripts/flyt-trace.sh` fra `Flyttest."Blir satt på vent for etterspørring av informasjon"` (forkortet):
 
 ```text
-Motor: Plukket jobb [flyt.prosesserBehandling] ... behandlingId = 1            job 1 (test enqueued it)
+Motor: Plukket jobb [flyt.prosesserBehandling] ... behandlingId = 1            jobb 1 (testen la den i køen)
 [b=1] StegOrkestrator: Behandler steg 'START_BEHANDLING'
 [b=1] StegOrkestrator: Behandler steg 'AVKLAR_TEMA'
-[b=1] JournalpostInformasjonskrav: Fant relevante endringer ...                 OPPDATER_FAKTAGRUNNLAG stores the journalpost
-[b=1] Avklaringsbehovene: Legger til avklaringsbehov :: AVKLAR_TEMA             created via AvklaringsbehovService
-[b=1] FlytOrkestrator: Resultat fra steg: Stopp. Aktivt steg: AVKLAR_TEMA.      AVKLARINGSPUNKT stopped
-[b=1] FlytOrkestrator: Neste utledet steg: AVKLAR_SAK.                          cursor moved anyway (harmless)
-[b=1] JobbRepository: Planlagt kjøring av jobb[flyt.hendelse] ...               stoppet-hendelse to oppgave/statistikk
-[b=-] AvklaringsbehovOrkestrator: Forsøker løse avklaringsbehov[AVKLAR_TEMA]   API/test thread: løsning
-[b=-] AvklaringsbehovOrkestrator: Tar av vent for behandling ...                AvklarTemaLøser → taAvVentPgaGosys → extra hendelse
-[b=-] JobbRepository: Planlagt kjøring av jobb[flyt.prosesserBehandling] ...    resume job
-[b=1] StegOrkestrator: Behandler steg 'AVKLAR_TEMA'                             re-runs the steg; vurdering exists now
+[b=1] JournalpostInformasjonskrav: Fant relevante endringer ...                 OPPDATER_FAKTAGRUNNLAG lagrer journalposten
+[b=1] Avklaringsbehovene: Legger til avklaringsbehov :: AVKLAR_TEMA             opprettet via AvklaringsbehovService
+[b=1] FlytOrkestrator: Resultat fra steg: Stopp. Aktivt steg: AVKLAR_TEMA.      AVKLARINGSPUNKT stoppet
+[b=1] FlytOrkestrator: Neste utledet steg: AVKLAR_SAK.                          markøren flyttet likevel (ufarlig)
+[b=1] JobbRepository: Planlagt kjøring av jobb[flyt.hendelse] ...               stoppet-hendelse til oppgave/statistikk
+[b=-] AvklaringsbehovOrkestrator: Forsøker løse avklaringsbehov[AVKLAR_TEMA]   API-/testtråd: løsning
+[b=-] AvklaringsbehovOrkestrator: Tar av vent for behandling ...                AvklarTemaLøser → taAvVentPgaGosys → ekstra hendelse
+[b=-] JobbRepository: Planlagt kjøring av jobb[flyt.prosesserBehandling] ...    jobb for gjenopptakelse
+[b=1] StegOrkestrator: Behandler steg 'AVKLAR_TEMA'                             kjører steget på nytt; vurderingen finnes nå
 [b=1] StegOrkestrator: Behandler steg 'AVKLAR_SAK'
-[b=1] StegOrkestrator: Fant avklaringsbehov: AVKLAR_SAK(kode='1340')            explicit FantAvklaringsbehov
+[b=1] StegOrkestrator: Fant avklaringsbehov: AVKLAR_SAK(kode='1340')            eksplisitt FantAvklaringsbehov
 [b=1] FlytOrkestrator: Stopper opp ved AVKLAR_SAK ...
 [b=-] Avklaringsbehovene: Løser avklaringsbehov[AVKLAR_SAK] ...
-[b=1] FlytOrkestrator: Tilbakeført ... fra 'AVKLAR_SAK' til 'AVKLAR_TEMA'       informasjonskrav rewind (section 3)
+[b=1] FlytOrkestrator: Tilbakeført ... fra 'AVKLAR_SAK' til 'AVKLAR_TEMA'       informasjonskrav-tilbakeføring (avsnitt 3)
 [b=1] StegOrkestrator: Behandler steg 'AVKLAR_TEMA' ... 'AVKLAR_SAK' ... 'SETT_FAGSAK' ... 'ENDELIG_JOURNALFØRING' ... 'VIDERESEND' ... 'IVERKSETTES'
 [b=1] FlytOrkestrator: Behandlingen har nådd slutten, avslutter behandling
-[b=2] StegOrkestrator: Behandler steg 'START_BEHANDLING'                        DokumentHåndtering created by VideresendSteg
+[b=2] StegOrkestrator: Behandler steg 'START_BEHANDLING'                        DokumentHåndtering opprettet av VideresendSteg
 [b=2] StegOrkestrator: Fant avklaringsbehov: DIGITALISER_DOKUMENT(kode='1338')
 ```

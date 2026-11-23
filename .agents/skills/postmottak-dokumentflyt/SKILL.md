@@ -1,112 +1,112 @@
 ---
 name: postmottak-dokumentflyt
-description: Business flow of aap-postmottak-backend - what happens to an incoming AAP journalpost from the Joark Kafka event, through VurderRelevantDokument, the Fordeling, Journalføring and DokumentHåndtering behandlinger, to Kelvin (behandlingsflyt), Arena or Gosys. Explains the intent of each flyt and steg, automatic vs manual decisions per document type, fordeling rules, feature toggles, data scope and the external systems involved. Load when working on business logic or routing, or when explaining why a document ended up where it did.
+description: Forretningsflyten i aap-postmottak-backend - hva som skjer med en innkommende AAP-journalpost fra Joark Kafka-eventet, via VurderRelevantDokument og behandlingene Fordeling, Journalføring og DokumentHåndtering, til Kelvin (behandlingsflyt), Arena eller Gosys. Forklarer hensikten med hver flyt og hvert steg, automatiske og manuelle avgjørelser per dokumenttype, fordelingsregler, feature toggles, dataomfang og eksterne systemer. Last denne når du jobber med forretningslogikk eller ruting, eller når du skal forklare hvorfor et dokument havnet der det gjorde.
 ---
 
-# Postmottak: the journey of a document
+# Postmottak: veien til et dokument
 
-If the user or the code contradicts this skill, warn the user and ask whether the skill and/or `AGENTS.md` should be updated. See `AGENTS.md` → "When the user contradicts this documentation".
+Hvis brukeren eller koden motsier denne skillen, må du advare brukeren og spørre om skillen og/eller `AGENTS.md` skal oppdateres. Se `AGENTS.md` → "When the user contradicts this documentation".
 
-Postmottak receives incoming documents (journalposter in Joark) on tema AAP and gets each one to the right place:
+Postmottak mottar innkommende dokumenter (journalposter i Joark) på tema AAP og sørger for at hvert av dem kommer til riktig sted:
 
-- **Kelvin** (the new AAP system, aap-behandlingsflyt): journalført on a Kelvin sak, digitised into structured data, delivered as a hendelse.
-- **Arena** (the old system): Arena oppgave + automatic journalføring on the Arena sak, or a Gosys journalføringsoppgave.
-- **Gosys**: fordeling or journalføring oppgaver for humans when automation is impossible.
-- **Another tema**, when a saksbehandler decides the document does not belong to AAP.
+- **Kelvin** (det nye AAP-systemet, aap-behandlingsflyt): journalført på en Kelvin-sak, digitalisert til strukturerte data og levert som en hendelse.
+- **Arena** (det gamle systemet): Arena-oppgave og automatisk journalføring på Arena-saken, eller en journalføringsoppgave i Gosys.
+- **Gosys**: fordelings- eller journalføringsoppgaver til mennesker når automatisering ikke er mulig.
+- **Et annet tema**, når en saksbehandler avgjør at dokumentet ikke hører hjemme under AAP.
 
-How the engine executes this (jobs, steps, avklaringsbehov) is in the `postmottak-flyt-motor` skill.
+Hvordan motoren kjører dette (jobber, steg, avklaringsbehov) står i skillen `postmottak-flyt-motor`.
 
-## Vocabulary
+## Begreper
 
-| Term | Meaning |
+| Begrep | Betydning |
 | --- | --- |
-| journalpost | A registered incoming shipment in Joark with one or more dokumenter. Status `MOTTATT` = not yet journalført. |
-| SAF / dokarkiv | Read API (GraphQL + REST for files) / write API for Joark. |
-| brevkode | Form code of a dokument, e.g. `NAV 11-13.05` søknad, `NAV 08-07.08` legeerklæring (`journalpostogbehandling/journalpost/Brevkoder.kt`). The hoveddokument decides the type. |
-| digital vs papir | Digital = original variant is JSON (`Journalpost.erDigital()`). Papir = scanned (kanal `SKAN_*`), PDF only. |
-| fagsak / generell sak | Journalføring on a specific sak in a fagsystem (`KELVIN`, `AO01` = Arena) vs on the person's generic sak (`GENERELL_SAK`). |
-| Kelvin sak | A sak (saksnummer) in aap-behandlingsflyt. |
-| Gosys oppgave | Oppgave in Nav's Oppgave API: `JFR` journalføring, `FDR` fordeling. Different from Kelvin oppgaver (aap-oppgave), which postmottak drives through `DokumentflytStoppetHendelse`. |
-| innkommende journalpost | Postmottak's record that a journalpost was received and evaluated (table `INNKOMMENDE_JOURNALPOST`, once per journalpost), including enhet and regelresultat. |
-| vurdering | A decision stored per behandling (tema, sak, fordeling, digitalisering, overlevering). |
+| journalpost | En registrert innsending i Joark med ett eller flere dokumenter. Status `MOTTATT` = ikke journalført ennå. |
+| SAF / dokarkiv | Lese-API (GraphQL, og REST for filer) / skrive-API for Joark. |
+| brevkode | Skjemakode for et dokument, f.eks. `NAV 11-13.05` søknad, `NAV 08-07.08` legeerklæring (`journalpostogbehandling/journalpost/Brevkoder.kt`). Hoveddokumentet avgjør typen. |
+| digital vs papir | Digital = originalvarianten er JSON (`Journalpost.erDigital()`). Papir = skannet (kanal `SKAN_*`), bare PDF. |
+| fagsak / generell sak | Journalføring på en bestemt sak i et fagsystem (`KELVIN`, `AO01` = Arena) mot journalføring på personens generelle sak (`GENERELL_SAK`). |
+| Kelvin-sak | En sak (saksnummer) i aap-behandlingsflyt. |
+| Gosys-oppgave | Oppgave i Navs Oppgave-API: `JFR` journalføring, `FDR` fordeling. Skiller seg fra Kelvin-oppgaver (aap-oppgave), som postmottak styrer gjennom `DokumentflytStoppetHendelse`. |
+| innkommende journalpost | Postmottaks registrering av at en journalpost er mottatt og vurdert (tabellen `INNKOMMENDE_JOURNALPOST`, én gang per journalpost), med enhet og regelresultat. |
+| vurdering | En avgjørelse som lagres per behandling (tema, sak, fordeling, digitalisering, overlevering). |
 
-## End to end
+## Fra ende til ende
 
 ```text
 Joark ─Kafka topic teamdokumenthandtering.aapen-dok-journalfoering─► JoarkKafkaHandler (mottak/KafkaStreams.kt)
-  keep only journalpostStatus == MOTTATT and mottaksKanal != EESSI
-  ├─ temaGammelt == AAP, temaNytt != AAP : open Journalføring behandling? → enqueue processing
+  behold bare journalpostStatus == MOTTATT og mottaksKanal != EESSI
+  ├─ temaGammelt == AAP, temaNytt != AAP : åpen Journalføring-behandling? → legg prosessering i kø
   └─ temaNytt == AAP
-       ├─ open Journalføring behandling   → take off Gosys-vent, enqueue processing
-       ├─ "AAP-retur" (back from another tema after a finished Journalføring that set a non-AAP tema)
-       │                                  → new Journalføring behandling directly (no Fordeling)
-       └─ otherwise                       → job VurderRelevantDokumentForAAP (forSak(journalpostId))
-VurderRelevantDokumentForAAPJobbUtfører (once per journalpost)
-  ├─ already recorded / JOURNALFOERT / UTGAAR → record IGNORERT, stop
-  ├─ no bruker, or bruker is an orgnr         → Gosys FDR oppgave, record GOSYS_FDR, stop
-  └─ else record EVALUERT (+ enhet)           → Fordeling behandling
+       ├─ åpen Journalføring-behandling   → ta av Gosys-vent, legg prosessering i kø
+       ├─ "AAP-retur" (tilbake fra et annet tema etter en ferdig Journalføring som satte et tema som ikke er AAP)
+       │                                  → ny Journalføring-behandling direkte (uten Fordeling)
+       └─ ellers                          → jobb VurderRelevantDokumentForAAP (forSak(journalpostId))
+VurderRelevantDokumentForAAPJobbUtfører (én gang per journalpost)
+  ├─ allerede registrert / JOURNALFOERT / UTGAAR → registrer IGNORERT, stopp
+  ├─ ingen bruker, eller bruker er et orgnr      → Gosys FDR-oppgave, registrer GOSYS_FDR, stopp
+  └─ ellers registrer EVALUERT (+ enhet)         → Fordeling-behandling
 Fordeling        AVKLAR_FORDELING → AVKLAR_FORDELING_VIDERESEND
-  ├─ KELVIN   → new Journalføring behandling (no vurderinger copied)
-  ├─ ARENA    → ArenaVideresender: Arena jobs or Gosys JFR; legeerklæring → generell sak tema OPP
-  └─ IGNORERT → nothing (old orgnr cases)
+  ├─ KELVIN   → ny Journalføring-behandling (ingen vurderinger kopieres)
+  ├─ ARENA    → ArenaVideresender: Arena-jobber eller Gosys JFR; legeerklæring → generell sak med tema OPP
+  └─ IGNORERT → ingenting (gamle orgnr-saker)
 Journalføring    AVKLAR_TEMA → AVKLAR_SAK → SETT_FAGSAK → ENDELIG_JOURNALFØRING → VIDERESEND
-  ├─ tema not AAP/OPP → tema changed in Joark (or Gosys-vent), finished
-  ├─ OPP or generell sak → journalført on generell sak, finished
-  └─ AAP on a Kelvin sak → new DokumentHåndtering behandling (vurderinger copied)
+  ├─ tema ikke AAP/OPP → tema endret i Joark (eller Gosys-vent), ferdig
+  ├─ OPP eller generell sak → journalført på generell sak, ferdig
+  └─ AAP på en Kelvin-sak → ny DokumentHåndtering-behandling (vurderinger kopiert)
 DokumentHåndtering DIGITALISER_DOKUMENT → OVERLEVER_TIL_FAGSYSTEM
-  └─ behandlingsflyt.sendHendelse(saksnummer, InnsendingType, Melding) → Kelvin takes over
+  └─ behandlingsflyt.sendHendelse(saksnummer, InnsendingType, Melding) → Kelvin tar over
 ```
 
-One journalpost normally has up to three behandlinger: Fordeling → Journalføring → DokumentHåndtering. Each is a separate row in `BEHANDLING` with its own steps, avklaringsbehov and referanse (UUID used by the frontend).
+En journalpost har vanligvis opptil tre behandlinger: Fordeling → Journalføring → DokumentHåndtering. Hver av dem er en egen rad i `BEHANDLING` med egne steg, avklaringsbehov og referanse (UUID som frontend bruker).
 
-A papir søknad through Kafka, as the compact steg-history query in `postmottak-feilsoking/references/sql.md` prints it (verified in a flyt test; S/O/U/A/X are the phases of one pass, T a rewind, an entry ending in A a stop):
+En papirsøknad gjennom Kafka, slik den kompakte steghistorikk-spørringen i `postmottak-feilsoking/references/sql.md` skriver den ut (verifisert i en flyt-test; S/O/U/A/X er fasene i én gjennomkjøring, T er en tilbakespoling, og en oppføring som slutter på A er et stopp):
 
 ```text
 Fordeling           START_BEHANDLING:SOUAX > AVKLAR_FORDELING:SOUAX > AVKLAR_FORDELING_VIDERESEND:SOUAX > IVERKSETTES:SOUAX
 Journalføring       START_BEHANDLING:SOUAX > AVKLAR_TEMA:SOUASOUAX > AVKLAR_SAK:SOUASOUAX
                     > SETT_FAGSAK:SOUAX > ENDELIG_JOURNALFØRING:SOUAX > VIDERESEND:SOUAX > IVERKSETTES:SOUAX
-DokumentHåndtering  START_BEHANDLING:SOUAX > DIGITALISER_DOKUMENT:SOUA        (waiting for a saksbehandler)
+DokumentHåndtering  START_BEHANDLING:SOUAX > DIGITALISER_DOKUMENT:SOUA        (venter på en saksbehandler)
 ```
 
-The Journalføring stopped at AVKLAR_TEMA, resumed after the løsning, stopped at AVKLAR_SAK, and after that løsning was rewound to AVKLAR_TEMA (the informasjonskrav rewind in `postmottak-flyt-motor`) before running to the end. The next behandling is created, with a `flyt.prosesserBehandling` job, by the previous one's videresend step (AVKLAR_FORDELING_VIDERESEND, VIDERESEND).
+Journalføring stoppet ved AVKLAR_TEMA, fortsatte etter løsningen, stoppet ved AVKLAR_SAK og ble etter den løsningen spolt tilbake til AVKLAR_TEMA (tilbakespolingen for informasjonskrav i `postmottak-flyt-motor`) før den kjørte til slutten. Neste behandling opprettes, med en `flyt.prosesserBehandling`-jobb, av videresend-steget i den forrige (AVKLAR_FORDELING_VIDERESEND, VIDERESEND).
 
-## Intent of each flyt
+## Hensikten med hver flyt
 
-| Flyt | Question it answers | Typical manual step |
+| Flyt | Spørsmålet den svarer på | Typisk manuelt steg |
 | --- | --- | --- |
-| Fordeling | Should Kelvin or Arena handle this document? Rule-based (`FordelerRegelService`), stored as `AvklarFordelingVurdering`. | None. With toggle `KantTilKantV1` on, a søknad that is kant-til-kant (rettighet oppbrukt in Arena, maksdato less than 12 weeks away) also goes to Kelvin. The 12 weeks are temporary for MVP kant-til-kant and go back to 26 in part 2. Manual fordeling (AVKLAR_FORDELING) has been removed; fordeling is always automatic. |
-| Journalføring | Make the journalpost correct and final in Joark: confirm tema, choose sak, update and ferdigstill the journalpost, hand over. | AVKLAR_TEMA, AVKLAR_SAK |
-| DokumentHåndtering | Turn the document into data Kelvin understands and deliver it. | DIGITALISER_DOKUMENT (kategori + structured JSON), AVKLAR_OVERLEVERING (send to Kelvin or not) |
+| Fordeling | Skal Kelvin eller Arena behandle dokumentet? Regelbasert (`FordelerRegelService`), lagres som `AvklarFordelingVurdering`. | Ingen. Med toggle `KantTilKantV1` på går også en søknad som er kant-til-kant (rettighet oppbrukt i Arena, maksdato mindre enn 12 uker unna) til Kelvin. De 12 ukene er midlertidige for MVP kant-til-kant og går tilbake til 26 i del 2. Manuell fordeling (AVKLAR_FORDELING) er fjernet. Fordelingen er alltid automatisk. |
+| Journalføring | Gjøre journalposten korrekt og endelig i Joark: bekrefte tema, velge sak, oppdatere og ferdigstille journalposten, og sende videre. | AVKLAR_TEMA, AVKLAR_SAK |
+| DokumentHåndtering | Gjøre dokumentet om til data Kelvin forstår, og levere det. | DIGITALISER_DOKUMENT (kategori + strukturert JSON), AVKLAR_OVERLEVERING (send til Kelvin eller ikke) |
 
-## What is automatic, per document type (Kelvin path)
+## Hva som er automatisk, per dokumenttype (Kelvin-løpet)
 
-| Document | AVKLAR_TEMA | AVKLAR_SAK | DIGITALISER_DOKUMENT | OVERLEVER_TIL_FAGSYSTEM |
+| Dokument | AVKLAR_TEMA | AVKLAR_SAK | DIGITALISER_DOKUMENT | OVERLEVER_TIL_FAGSYSTEM |
 | --- | --- | --- | --- | --- |
-| Digital søknad | auto AAP | auto `finnEllerOpprettSak` | auto: parse `SøknadV0` from SAF | auto, sent |
-| Digital meldekort | auto AAP | auto `finnEllerOpprettSak` | auto: parse `MeldekortV0` | auto; not sent when there is no structured document |
-| Digital legeerklæring | auto: AAP if any Kelvin sak not `TRUKKET`, else OPP (→ generell sak, finished) | auto if `tillaterAutomatiskBehandlingAvLegeerklæring()`, else manual | same condition: auto (no content) or manual | same condition: auto `LegeerklæringV0` or manual |
-| Klage (toggle `AutomatiskKlageJournalforing`) | auto AAP | auto if exactly one Kelvin sak, else manual | auto `KlageV0(kravMottatt)` if the sak was not newly created | auto, sent |
-| Papir søknad and everything else | manual | manual (new sak only for søknad) | manual | auto for kategori SØKNAD, MELDEKORT, KLAGE, allowed LEGEERKLÆRING; otherwise manual |
+| Digital søknad | auto AAP | auto `finnEllerOpprettSak` | auto: parse `SøknadV0` fra SAF | auto, sendt |
+| Digital meldekort | auto AAP | auto `finnEllerOpprettSak` | auto: parse `MeldekortV0` | auto; ikke sendt når det ikke finnes strukturert dokument |
+| Digital legeerklæring | auto: AAP hvis noen Kelvin-sak ikke er `TRUKKET`, ellers OPP (→ generell sak, ferdig) | auto hvis `tillaterAutomatiskBehandlingAvLegeerklæring()`, ellers manuell | samme vilkår: auto (uten innhold) eller manuell | samme vilkår: auto `LegeerklæringV0` eller manuell |
+| Klage (toggle `AutomatiskKlageJournalforing`) | auto AAP | auto hvis nøyaktig én Kelvin-sak, ellers manuell | auto `KlageV0(kravMottatt)` hvis saken ikke er nyopprettet | auto, sendt |
+| Papirsøknad og alt annet | manuell | manuell (ny sak bare for søknad) | manuell | auto for kategori SØKNAD, MELDEKORT, KLAGE og tillatt LEGEERKLÆRING; ellers manuell |
 
-Automatic paths fall back to the manual avklaringsbehov when parsing fails. `tillaterAutomatiskBehandlingAvLegeerklæring()` (`Saksinfo.kt`) is true when the person has no Kelvin sak, any sak has an open behandling, or any sak has `harRettNåEllerIFramtiden`.
+Automatiske løp faller tilbake til det manuelle avklaringsbehovet når parsing feiler. `tillaterAutomatiskBehandlingAvLegeerklæring()` (`Saksinfo.kt`) er sann når personen ikke har noen Kelvin-sak, en sak har en åpen behandling, eller en sak har `harRettNåEllerIFramtiden`.
 
 ## Feature toggles (Unleash, `flyt/.../unleash/FeatureToggle.kt`)
 
-| Toggle | Effect when on | Value in tests (`FakeUnleash`) |
+| Toggle | Effekt når på | Verdi i tester (`FakeUnleash`) |
 | --- | --- | --- |
-| `KantTilKantV1` | Kant-til-kant søknader (rettighet oppbrukt in Arena) go to Kelvin; when off, the result is only logged and counted (see `references/fordeling-og-arena.md`) | off |
-| `AutomatiskKlageJournalforing` | Automatic tema, sak and digitalisering for klage | on |
-| `PostmottakVelgTema` | Saksbehandler picks the actual tema; no Gosys-vent; SETT_FAGSAK changes tema in Joark | off |
-| `DummyFeature` | example only | throws `NotImplementedError` |
+| `KantTilKantV1` | Kant-til-kant-søknader (rettighet oppbrukt i Arena) går til Kelvin. Når av, logges og telles resultatet bare (se `references/fordeling-og-arena.md`) | av |
+| `AutomatiskKlageJournalforing` | Automatisk tema, sak og digitalisering for klage | på |
+| `PostmottakVelgTema` | Saksbehandler velger selve temaet; ingen Gosys-vent; SETT_FAGSAK endrer tema i Joark | av |
+| `DummyFeature` | bare et eksempel | kaster `NotImplementedError` |
 
-## Environment-dependent rules
+## Miljøavhengige regler
 
-`fordeler/regler/Regel.kt` `miljøConfig(prod, dev)`: tests and local runs use the **dev** value. `Aldersregel` (≥ 18 år) and `SøknadRegel` (hoveddokument must be a søknad) are active **only in prod**. So in prod the first document of a person without a Kelvin sak must be a søknad to go to Kelvin; in dev and tests other document types can go to Kelvin too.
+`fordeler/regler/Regel.kt` `miljøConfig(prod, dev)`: tester og lokale kjøringer bruker **dev**-verdien. `Aldersregel` (≥ 18 år) og `SøknadRegel` (hoveddokumentet må være en søknad) er aktive **bare i prod**. I prod må derfor det første dokumentet fra en person uten Kelvin-sak være en søknad for å gå til Kelvin. I dev og tester kan andre dokumenttyper også gå til Kelvin.
 
-## References
+## Referanser
 
-- `references/mottak.md`: Kafka filtering and branching, AAP-retur, `VurderRelevantDokumentForAAPJobbUtfører`, enhet.
-- `references/fordeling-og-arena.md`: the rules and how `Regelresultat.skalTilKelvin()` combines them, manual fordeling, routing, the Arena job chain.
-- `references/journalforing.md`: decision tables for AVKLAR_TEMA, AVKLAR_SAK, SETT_FAGSAK, ENDELIG_JOURNALFØRING, VIDERESEND, and the tema scenarios (Gosys-vent, valgt tema, AAP-retur).
-- `references/dokumenthandtering.md`: DIGITALISER_DOKUMENT and OVERLEVER_TIL_FAGSYSTEM in detail, `InnsendingType` and `Melding` mapping.
-- `references/data-og-integrasjoner.md`: what is stored per journalpost vs per behandling, tables, every external system with its gateway and env var, cron jobs.
+- `references/mottak.md`: Kafka-filtrering og forgreining, AAP-retur, `VurderRelevantDokumentForAAPJobbUtfører`, enhet.
+- `references/fordeling-og-arena.md`: reglene og hvordan `Regelresultat.skalTilKelvin()` kombinerer dem, manuell fordeling, ruting, Arena-jobbkjeden.
+- `references/journalforing.md`: beslutningstabeller for AVKLAR_TEMA, AVKLAR_SAK, SETT_FAGSAK, ENDELIG_JOURNALFØRING og VIDERESEND, og temascenarioene (Gosys-vent, valgt tema, AAP-retur).
+- `references/dokumenthandtering.md`: DIGITALISER_DOKUMENT og OVERLEVER_TIL_FAGSYSTEM i detalj, mapping av `InnsendingType` og `Melding`.
+- `references/data-og-integrasjoner.md`: hva som lagres per journalpost og per behandling, tabeller, hvert eksterne system med gateway og miljøvariabel, cron-jobber.
