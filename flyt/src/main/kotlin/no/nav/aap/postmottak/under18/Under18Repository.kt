@@ -11,6 +11,8 @@ interface Under18Repository : Repository {
 
     fun lagreFødselsdato(behandlingId: BehandlingId, fødselsdato: LocalDate)
     fun hentFødselsdato(behandlingId: BehandlingId): LocalDate?
+    fun lagreAldersgruppe(behandlingId: BehandlingId, aldersgruppe: Under18Aldersgruppe)
+    fun hentAldersgruppe(behandlingId: BehandlingId): Under18Aldersgruppe?
 
     fun lagreSøknadsavklaring(behandlingId: BehandlingId, avklaring: Under18Søknadsavklaring)
     fun hentSøknadsavklaring(behandlingId: BehandlingId): Under18Søknadsavklaring?

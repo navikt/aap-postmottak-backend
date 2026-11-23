@@ -11,13 +11,14 @@ import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.under18.Under18Aldersgruppe
+import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.under18.hentFødselsdatoFor
-import java.time.LocalDate
 
 class AvklarUnder18Steg(
     private val under18Repository: Under18Repository,
     private val avklaringsbehovService: AvklaringsbehovService,
+    private val klokke: Klokke,
 ) : BehandlingSteg {
     companion object : FlytSteg {
         override fun konstruer(
@@ -26,6 +27,7 @@ class AvklarUnder18Steg(
         ): BehandlingSteg = AvklarUnder18Steg(
             repositoryProvider.provide(),
             AvklaringsbehovService(repositoryProvider),
+            gatewayProvider.provide(),
         )
 
         override fun type(): StegType = StegType.AVKLAR_UNDER18
@@ -33,7 +35,7 @@ class AvklarUnder18Steg(
 
     override fun utfør(kontekst: FlytKontekst): StegResultat {
         val fødselsdato = under18Repository.hentFødselsdatoFor(kontekst.behandlingId)
-        val påkrevdSituasjon = Under18Aldersgruppe.vurder(fødselsdato, LocalDate.now()).påkrevdSøknadssituasjon
+        val påkrevdSituasjon = Under18Aldersgruppe.vurder(fødselsdato, klokke.dagensDato()).påkrevdSøknadssituasjon
         val avklaring = under18Repository.hentSøknadsavklaring(kontekst.behandlingId)
 
         avklaringsbehovService.oppdaterAvklaringsbehov(
