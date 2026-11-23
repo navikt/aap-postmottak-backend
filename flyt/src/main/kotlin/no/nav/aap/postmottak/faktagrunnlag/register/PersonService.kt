@@ -3,6 +3,7 @@ package no.nav.aap.postmottak.faktagrunnlag.register
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.PersondataGateway
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 
 class PersonService(private val personRepository: PersonRepository, private val persondataGateway: PersondataGateway) {
@@ -16,13 +17,15 @@ class PersonService(private val personRepository: PersonRepository, private val 
     }
 
     fun finnOgOppdaterPerson(ident: String): Person {
-        val identliste = persondataGateway.hentAlleIdenterForPerson(ident)
+        return finnEllerOpprettPerson(hentIdenter(ident))
+    }
 
-        if (identliste.isEmpty()) {
+    fun hentIdenter(ident: String): List<Ident> = persondataGateway.hentAlleIdenterForPerson(ident)
+
+    fun finnEllerOpprettPerson(identer: List<Ident>): Person {
+        if (identer.isEmpty()) {
             throw IllegalStateException("Fikk ingen treff på ident i PDL")
         }
-        val person = personRepository.finnEllerOpprett(identliste)
-
-        return person
+        return personRepository.finnEllerOpprett(identer)
     }
 }

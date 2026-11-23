@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.repository.RepositoryProvider
 import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
+import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
@@ -189,6 +190,7 @@ class JoarkKafkaHandlerTest {
         every { behandlingRepository.hentÅpenJournalføringsbehandling(any()) } returns null
         val repositoryProvider = mockk<RepositoryProvider>()
         every { repositoryProvider.provide<BehandlingRepository>() } returns behandlingRepository
+        every { repositoryProvider.provide<InformasjonskravRepository>() } returns mockk()
         every { repositoryProvider.provide<FlytJobbRepository>() } returns flytJobbRepository
         every { repositoryProvider.provide<JournalpostRepository>() } returns mockk()
         every { repositoryProvider.provide<AvklaringsbehovRepository>() } returns mockk()

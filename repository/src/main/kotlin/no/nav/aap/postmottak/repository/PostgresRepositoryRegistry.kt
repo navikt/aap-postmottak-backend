@@ -7,6 +7,7 @@ import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositor
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.AvklarTemaRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.DigitaliseringsvurderingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.InformasjonskravRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.OverleveringVurderingRepositoryImpl
 import no.nav.aap.postmottak.repository.faktagrunnlag.SaksnummerRepositoryImpl
 import no.nav.aap.postmottak.repository.fordeler.AvklarFordelingRepositoryImpl
@@ -24,6 +25,7 @@ val postgresRepositoryRegistry = RepositoryRegistry()
         .register<BehandlingRepositoryImpl>()
         .register<AvklarTemaRepositoryImpl>()
         .register<SaksnummerRepositoryImpl>()
+        .register<InformasjonskravRepositoryImpl>()
         .register<DigitaliseringsvurderingRepositoryImpl>()
         .register<JournalpostRepositoryImpl>()
         .register<TaSkriveLåsRepositoryImpl>()

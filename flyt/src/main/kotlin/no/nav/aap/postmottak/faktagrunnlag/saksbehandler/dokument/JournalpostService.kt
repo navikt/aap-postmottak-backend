@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.SafDatoType
 import no.nav.aap.postmottak.gateway.SafJournalpost
+import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.AvsenderMottaker
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
@@ -39,6 +40,15 @@ class JournalpostService(
     }
 
     fun tilJournalpostMedDokumentTitler(safJournalpost: SafJournalpost): Journalpost {
+        return tilJournalpostMedDokumentTitler(safJournalpost, hentIdenter(safJournalpost))
+    }
+
+    fun tilJournalpostMedDokumentTitler(safJournalpost: SafJournalpost, identer: List<Ident>): Journalpost {
+        val person = personService.finnEllerOpprettPerson(identer)
+        return safJournalpost.tilJournalpost(person)
+    }
+
+    fun hentIdenter(safJournalpost: SafJournalpost): List<Ident> {
         requireNotNull(safJournalpost.bruker?.id) {
             "Journalpost ${safJournalpost.journalpostId} har ikke brukerId " +
                     "(brukerType=${safJournalpost.bruker?.type}, journalstatus=${safJournalpost.journalstatus})"
@@ -51,8 +61,7 @@ class JournalpostService(
             )
         }
 
-        val person = personService.finnOgOppdaterPerson(safJournalpost.bruker.id)
-        return safJournalpost.tilJournalpost(person)
+        return personService.hentIdenter(safJournalpost.bruker.id)
     }
 
     fun hentSafJournalpost(journalpostId: JournalpostId): SafJournalpost {

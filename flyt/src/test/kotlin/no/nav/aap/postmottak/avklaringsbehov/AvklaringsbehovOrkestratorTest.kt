@@ -19,6 +19,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.StoppetHendelseJobbUtfører
 import no.nav.aap.postmottak.repository.avklaringsbehov.AvklaringsbehovRepositoryImpl
 import no.nav.aap.postmottak.repository.behandling.BehandlingRepositoryImpl
+import no.nav.aap.postmottak.repository.faktagrunnlag.InformasjonskravRepositoryImpl
 import no.nav.aap.postmottak.repository.journalpost.JournalpostRepositoryImpl
 import no.nav.aap.postmottak.repository.person.PersonRepositoryImpl
 import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
@@ -49,6 +50,7 @@ class AvklaringsbehovOrkestratorTest {
         .register<JournalpostRepositoryImpl>()
         .register<PersonRepositoryImpl>()
         .register<BehandlingRepositoryImpl>()
+        .register<InformasjonskravRepositoryImpl>()
         .register<AvklaringsbehovRepositoryImpl>()
         .register<FlytJobbRepositoryImpl>()
         .register<InMemoryUnder18Repository>()

@@ -5,6 +5,9 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret.IKKE_ENDRET
+import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravInput
+import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravNavn
+import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravRegisterdata
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
@@ -16,11 +19,17 @@ class SaksnummerInfoKrav(
     private val saksnummerRepository: SaksnummerRepository,
     private val behandlingsflytKlient: BehandlingsflytGateway,
     private val journalpostRepository: JournalpostRepository
-) : Informasjonskrav {
+) : Informasjonskrav<SaksnummerInfoKrav.Input, SaksnummerInfoKrav.Registerdata> {
+    data class Input(val ident: Ident) : InformasjonskravInput
+
+    data class Registerdata(val saker: List<Saksinfo>) : InformasjonskravRegisterdata
+
     companion object : Informasjonskravkonstruktør {
+        override val navn = InformasjonskravNavn.SAKSNUMMER
+
         override fun konstruer(
             repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider
-        ): Informasjonskrav {
+        ): SaksnummerInfoKrav {
             return SaksnummerInfoKrav(
                 repositoryProvider.provide(SaksnummerRepository::class),
                 gatewayProvider.provide(BehandlingsflytGateway::class),
@@ -29,14 +38,20 @@ class SaksnummerInfoKrav(
         }
     }
 
-    override fun oppdater(kontekst: FlytKontekst): Informasjonskrav.Endret {
+    override fun klargjør(kontekst: FlytKontekst): Input {
         val journalpost =
             requireNotNull(journalpostRepository.hentHvisEksisterer(kontekst.behandlingId)) { "Forventer journalpost for behandling ${kontekst.behandlingId}" }
 
+        return Input(Ident(journalpost.person.aktivIdent().identifikator))
+    }
 
-        val saker = behandlingsflytKlient.finnSaker(Ident(journalpost.person.aktivIdent().identifikator))
+    override fun hentData(input: Input) = Registerdata(
+        behandlingsflytKlient.finnSaker(input.ident)
             .map { it.tilSaksinfo() }
+    )
 
+    override fun oppdater(input: Input, registerdata: Registerdata, kontekst: FlytKontekst): Informasjonskrav.Endret {
+        val saker = registerdata.saker
         val eksisterendeSaker = saksnummerRepository.hentKelvinSaker(kontekst.behandlingId).toSet()
 
         if (saker.toSet() != eksisterendeSaker) {
