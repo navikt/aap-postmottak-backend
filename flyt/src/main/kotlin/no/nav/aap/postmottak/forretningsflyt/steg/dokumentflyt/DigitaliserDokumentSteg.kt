@@ -3,7 +3,6 @@ package no.nav.aap.postmottak.forretningsflyt.steg.dokumentflyt
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.KlageV0
 import no.nav.aap.komponenter.gateway.GatewayProvider
-import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
@@ -27,7 +26,6 @@ import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
-
 
 class DigitaliserDokumentSteg(
     private val digitaliseringsvurderingRepository: DigitaliseringsvurderingRepository,
@@ -98,20 +96,10 @@ class DigitaliserDokumentSteg(
 
             log.info("Parser dokument for behandling ${kontekst.behandlingId}. Innsendingtype: $innsendingType.")
 
-            val logFeil = { msg: String? ->
-                log.warn("Dokument kunne ikke valideres, oppretter avklaringsbehov for manuell digitalisering. Behandling: ${kontekst.behandlingId}, innsendingtype: $innsendingType, error: $msg")
-            }
-            val validertDokument = try {
-                DokumentTilMeldingParser.parseTilMelding(
+            val validertDokument = DokumentTilMeldingParser.parseTilMelding(
                     dokument,
                     requireNotNull(innsendingType) { "Innsendingtype kan ikke være null." })?.serialiser()
-            } catch (e: DeserializationException) {
-                logFeil(e.message)
-                return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
-            } catch (e: IllegalArgumentException) {
-                logFeil(e.message)
-                return FantAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
-            }
+            
             digitaliseringsvurderingRepository.lagre(
                 kontekst.behandlingId, Digitaliseringsvurdering(
                     kategori = innsendingType,
