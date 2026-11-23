@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.journalpostogbehandling.journalpost
 
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -35,6 +36,15 @@ data class Journalpost(
         }
     }
 
+    val kategori: InnsendingType?
+        get() = when {
+            erSøknad() -> InnsendingType.SØKNAD
+            erLegeerklæring() -> InnsendingType.LEGEERKLÆRING
+            erMeldekort() -> InnsendingType.MELDEKORT
+            erKlage() -> InnsendingType.KLAGE
+            else -> null
+        }
+
     // TODO: Bør ikke denne sjekke hoveddokumentet - ikke bare returere første treff?
     fun finnOriginal(): Dokument? = dokumenter.find { dokument ->
         dokument.varianter.any { variant -> variant.variantformat == Variantformat.ORIGINAL }
@@ -45,25 +55,33 @@ data class Journalpost(
     }
 
     fun erDigitalSøknad(): Boolean {
-        return erSøknad() && erDigital()
+        return erSøknad() && harStrukturertData()
+    }
+
+    fun erLegeerklæring(): Boolean {
+        return dokumenter.any {
+            it.brevkode == Brevkoder.LEGEERKLÆRING.kode
+        }
     }
 
     fun erDigitalLegeerklæring(): Boolean {
-        return dokumenter.any {
-            it.brevkode == Brevkoder.LEGEERKLÆRING.kode
-        } && erDigital()
+        return erLegeerklæring() && harStrukturertData()
+    }
+
+    private fun erMeldekort(): Boolean {
+        val meldekortkoder = listOf(Brevkoder.MELDEKORT.kode, Brevkoder.MELDEKORT_KORRIGERING.kode)
+        return dokumenter.any { it.brevkode in meldekortkoder }
     }
 
     fun erDigitaltMeldekort(): Boolean {
-        val meldekortkoder = listOf(Brevkoder.MELDEKORT.kode, Brevkoder.MELDEKORT_KORRIGERING.kode)
-        return dokumenter.any { it.brevkode in meldekortkoder } && erDigital()
+        return erMeldekort() && harStrukturertData()
     }
 
     fun erKlage(): Boolean {
         return dokumenter.any { it.brevkode == Brevkoder.KLAGE.kode }
     }
 
-    fun erDigital(): Boolean = finnOriginal()?.varianter?.any { it.filtype == Filtype.JSON } ?: false
+    fun harStrukturertData(): Boolean = finnOriginal()?.varianter?.any { it.filtype == Filtype.JSON } ?: false
 
     fun erPapir(): Boolean =
         kanal in listOf(KanalFraKodeverk.SKAN_IM, KanalFraKodeverk.SKAN_PEN, KanalFraKodeverk.SKAN_NETS)

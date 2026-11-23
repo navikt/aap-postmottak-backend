@@ -60,6 +60,12 @@ fun NormalOpenAPIRoute.digitaliseringApi(
                 DigitaliseringGrunnlagDto(
                     klagebehandlinger = klagebehandlinger,
                     erPapir = journalpost.erPapir(),
+                    journalpostMetadata = JournalpostMetadata(
+                        kategori = journalpost.kategori,
+                        brevkode = journalpost.hoveddokumentbrevkode,
+                        harStrukturertData = journalpost.harStrukturertData(),
+                        erPapir = journalpost.erPapir(),
+                    ),
                     vurdering = digitaliseringsvurdering?.let {
                         DigitaliseringvurderingDto(
                             digitaliseringsvurdering.kategori,
