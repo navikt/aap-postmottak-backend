@@ -51,7 +51,8 @@ tilbakefør(flyt.tilbakeflytEtterEndringer(endret))
 ### Informasjonskrav-tilbakeføringen i detalj
 
 - `alleFaktagrunnlagFørGjeldendeSteg()` returnerer `(steg, krav)` for hvert steg strengt før det gjeldende. Flagget `oppdaterFaktagrunnlag` er alltid `true` (standard i builderen, aldri endret).
-- `InformasjonskravGrunnlagImpl.oppdaterFaktagrunnlagForKravliste` kaller `oppdater()` på hvert krav og returnerer kravene der resultatet var `ENDRET`, slik KDoc på `InformasjonskravGrunnlag` sier og slik det er i aap-behandlingsflyt.
+- `InformasjonskravGrunnlagImpl.oppdaterFaktagrunnlagForKravliste` kjører `klargjør(kontekst)` → `hentData(input)` → `oppdater(input, registerdata, kontekst)` sekvensielt for hvert informasjonskrav. Klargjøringen leser databasen, hentingen kaller eksterne systemer, og oppdateringen skriver databasen. Neste informasjonskrav ser dermed oppdateringene fra det forrige. Bare informasjonskrav som returnerte `ENDRET` returneres til motoren, slik KDoc på `InformasjonskravGrunnlag` sier og slik det er i aap-behandlingsflyt.
+- Når hele listen er ferdig, registreres alle kjøringene i `INFORMASJONSKRAV_OPPDATERT` med felles tidspunkt, også de som returnerte `IKKE_ENDRET`. Historikken lagrer navn, journalpostId, behandlingId og input som JSONB, ikke registerdata. Siste kjøring hentes per navn og journalpost, på tvers av behandlinger; ved likt tidspunkt vinner høyeste rad-ID. Historikken brukes ikke til å hoppe over oppdateringer.
 - `tilbakeflytEtterEndringer(list)` velger det tidligste steget der kravlisten inneholder et av de returnerte kravene (unntatt steg med status `OPPRETTET`, altså START_BEHANDLING), og tilbakefører dit hvis det er før gjeldende steg. En tilbakeføring logger `Tilbakeført etter oppdatering av registeropplysninger fra 'X' til 'Y'` og sender en ekstra `DokumentflytStoppetHendelse`.
 - `JournalpostInformasjonskrav` returnerer `ENDRET` bare når den lagrede journalposten skiller seg fra SAF og forskjellen i tema eller saksnummer er relevant. `SaksnummerInfoKrav` returnerer alltid `IKKE_ENDRET`. En vanlig Journalføring-behandling tilbakeføres derfor ikke når den gjenopptas. Lagrede og hentede data må være like, ellers melder informasjonskravet `ENDRET` ved hver gjenopptakelse.
 - Historikk: commit `40cf556e7` (2024-09) erstattet `harIkkeGjortOppdateringNå` med `oppdater() == ENDRET`, men beholdt `filterNot`. Det snudde meningen fram til november 2026. I den perioden ble Journalføring tilbakeført til AVKLAR_TEMA ved nesten hver gjenopptakelse, noe gammel steghistorikk viser som `AVKLAR_SAK:SOUAT > AVKLAR_TEMA:TSOUAX`.
@@ -101,7 +102,7 @@ loop:
 | Fase | Arbeid | Etterpå |
 | --- | --- | --- |
 | START | ingen | rad, **savepoint** |
-| OPPDATER_FAKTAGRUNNLAG | `oppdater()` på stegets egne krav. Resultatet ignoreres her. | rad, **savepoint** |
+| OPPDATER_FAKTAGRUNNLAG | Klargjør, hent og oppdater stegets egne informasjonskrav; registrer kjøringene. Resultatet ignoreres her. | rad, **savepoint** |
 | UTFØRER | `steg.utfør(kontekst)`, deretter håndtering av overgangen (under) | rad (skrives ikke hvis `utfør` kaster) |
 | AVKLARINGSPUNKT | åpent behov med `skalLøsesISteg(dette steget)`? → `Stopp`, returner | rad |
 | AVSLUTTER | ingen, returnerer `Fortsett` | rad |

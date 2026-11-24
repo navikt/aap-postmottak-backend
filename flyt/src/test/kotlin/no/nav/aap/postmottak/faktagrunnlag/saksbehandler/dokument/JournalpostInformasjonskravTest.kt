@@ -47,6 +47,7 @@ class JournalpostInformasjonskravTest {
     private val personService = mockk<PersonService>()
 
     private val person = Person(1, UUID.randomUUID(), listOf(Ident("12345678910")))
+    private val identer = listOf(person.aktivIdent())
 
     private val journalpostService = JournalpostService(journalpostGateway, personService)
 
@@ -78,13 +79,14 @@ class JournalpostInformasjonskravTest {
         val flytKontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Journalføring)
 
         every { journalpostGateway.hentJournalpost(journalpostId) } returns hentet
-        every { personService.finnOgOppdaterPerson(any()) } returns person
+        every { personService.hentIdenter(any()) } returns identer
+        every { personService.finnEllerOpprettPerson(identer) } returns person
         every { journalpostRepository.hentHvisEksisterer(behandlingId) } returns persistert
         every { journalpostRepository.lagre(any()) } just Runs
         every { saksnummerRepository.hentSakVurdering(behandlingId) } returns Saksvurdering("avklart saksnummer")
         every { avklarTemaRepository.hentTemaAvklaring(behandlingId) } returns null
 
-        val actual = journalpostInformasjonskrav.oppdater(flytKontekst)
+        val actual = oppdaterInformasjonskrav(flytKontekst)
         assertThat(actual).isEqualTo(Informasjonskrav.Endret.ENDRET)
     }
 
@@ -99,13 +101,14 @@ class JournalpostInformasjonskravTest {
         val flytKontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Journalføring)
 
         every { journalpostGateway.hentJournalpost(journalpostId) } returns hentet
-        every { personService.finnOgOppdaterPerson(any()) } returns person
+        every { personService.hentIdenter(any()) } returns identer
+        every { personService.finnEllerOpprettPerson(identer) } returns person
         every { journalpostRepository.hentHvisEksisterer(behandlingId) } returns persistert
         every { journalpostRepository.lagre(any()) } just Runs
         every { saksnummerRepository.hentSakVurdering(behandlingId) } returns null
         every { avklarTemaRepository.hentTemaAvklaring(behandlingId) } returns TemaVurdering(true, Tema.AAP)
 
-        val actual = journalpostInformasjonskrav.oppdater(flytKontekst)
+        val actual = oppdaterInformasjonskrav(flytKontekst)
         assertThat(actual).isEqualTo(Informasjonskrav.Endret.ENDRET)
     }
 
@@ -121,13 +124,14 @@ class JournalpostInformasjonskravTest {
         val flytKontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Journalføring)
 
         every { journalpostGateway.hentJournalpost(journalpostId) } returns hentet
-        every { personService.finnOgOppdaterPerson(any()) } returns person
+        every { personService.hentIdenter(any()) } returns identer
+        every { personService.finnEllerOpprettPerson(identer) } returns person
         every { journalpostRepository.hentHvisEksisterer(behandlingId) } returns persistert
         every { journalpostRepository.lagre(any()) } just Runs
         every { saksnummerRepository.hentSakVurdering(behandlingId) } returns saksvurdering
         every { avklarTemaRepository.hentTemaAvklaring(behandlingId) } returns TemaVurdering(true, Tema.AAP)
 
-        val actual = journalpostInformasjonskrav.oppdater(flytKontekst)
+        val actual = oppdaterInformasjonskrav(flytKontekst)
         assertThat(actual).isEqualTo(Informasjonskrav.Endret.IKKE_ENDRET)
     }
 
@@ -148,11 +152,12 @@ class JournalpostInformasjonskravTest {
         val flytKontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Journalføring)
 
         every { journalpostGateway.hentJournalpost(journalpostId) } returns hentet
-        every { personService.finnOgOppdaterPerson(any()) } returns person
+        every { personService.hentIdenter(any()) } returns identer
+        every { personService.finnEllerOpprettPerson(identer) } returns person
         every { journalpostRepository.hentHvisEksisterer(behandlingId) } returns persistert
         every { journalpostRepository.lagre(any()) } just Runs
 
-        val actual = journalpostInformasjonskrav.oppdater(flytKontekst)
+        val actual = oppdaterInformasjonskrav(flytKontekst)
         assertThat(actual).isEqualTo(Informasjonskrav.Endret.IKKE_ENDRET)
     }
 
@@ -173,8 +178,14 @@ class JournalpostInformasjonskravTest {
         every { journalpostRepository.hentHvisEksisterer(behandlingId) } returns genererJournalpost(journalpostId)
 
         assertThrows<IllegalArgumentException> {
-            journalpostInformasjonskrav.oppdater(flytKontekst)
+            oppdaterInformasjonskrav(flytKontekst)
         }
+    }
+
+    private fun oppdaterInformasjonskrav(kontekst: FlytKontekst): Informasjonskrav.Endret {
+        val input = journalpostInformasjonskrav.klargjør(kontekst)
+        val registerdata = journalpostInformasjonskrav.hentData(input)
+        return journalpostInformasjonskrav.oppdater(input, registerdata, kontekst)
     }
 
     private fun genererJournalpost(

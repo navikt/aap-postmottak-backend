@@ -45,6 +45,8 @@ commit. Ved exception: commit alt fram til siste savepoint, marker jobben som fe
 
 Definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `flyt/.../flyt/BehandlingType.kt` (`utledType`). `IVERKSETTES` er `AvsluttBehandlingSteg` (gjør ingenting). Under18-flyten er ikke klar for produksjon: den registrerte `Under18RepositoryImpl` har `TODO()` i metodene for under 18, og testene bruker `InMemoryUnder18Repository`. Det forretningsmessige formålet med de eksisterende flytene står i skillen `postmottak-dokumentflyt`.
 
+Informasjonskrav har typet input og registerdata, med fasene `klargjør` → `hentData` → `oppdater`. Hele livssyklusen kjøres sekvensielt per informasjonskrav for å bevare avhengigheter. Motoren lagrer tidspunkt og **bare input**, ikke registerdata, for hver vellykket kjøring i `INFORMASJONSKRAV_OPPDATERT`, også ved `IKKE_ENDRET`. Siste kjøring hentes per journalpost og stabilt `InformasjonskravNavn`, på tvers av behandlinger. Se oppskriften i `references/recipes.md`; bruk hele ordet «informasjonskrav» i nye navn og tekster.
+
 ## Regler som ikke er åpenbare når du leser én fil
 
 1. **Et steg stopper aldri flyten selv.** `utfør()` returnerer `Fullført` eller `FantAvklaringsbehov`. Motoren registrerer behovet i UTFØRER og stopper i neste fase, AVKLARINGSPUNKT, hvis et *åpent* behov hører til dette steget. `FunnetAvklaringsbehov.kanFortsette()` er `true`; bare `Stopp` (fra AVKLARINGSPUNKT) er `false`.

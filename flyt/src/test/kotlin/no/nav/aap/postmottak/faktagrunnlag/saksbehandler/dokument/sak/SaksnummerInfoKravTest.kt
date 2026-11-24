@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -27,7 +28,9 @@ class SaksnummerInfoKravTest {
 
         every { behandlingsflytKlient.finnSaker(any()) } returns saksnummre
 
-        saksnummerInfoKrav.oppdater(mockk(relaxed = true))
+        val kontekst = mockk<FlytKontekst>(relaxed = true)
+        val input = saksnummerInfoKrav.klargjør(kontekst)
+        saksnummerInfoKrav.oppdater(input, saksnummerInfoKrav.hentData(input), kontekst)
 
         verify(exactly = 1) { sakRepository.lagreKelvinSak(any(), saksnummre.map { it.tilSaksinfo() }) }
     }

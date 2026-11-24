@@ -4,9 +4,11 @@ import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 
 interface Informasjonskravkonstruktør {
+    val navn: InformasjonskravNavn
+
     /** Informasjonskrav som må stå tidligere i samme stegs liste over informasjonskrav. */
     val avhengigheter: Set<Informasjonskravkonstruktør>
         get() = emptySet()
 
-    fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): Informasjonskrav
+    fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider): Informasjonskrav<*, *>
 }
