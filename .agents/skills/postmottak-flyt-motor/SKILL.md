@@ -34,16 +34,9 @@ motoren plukker jobben → ny DB-transaksjon → ProsesserBehandlingJobbUtfører
 commit. Ved exception: commit alt fram til siste savepoint, marker jobben som feilet, prøv på nytt senere.
 ```
 
-## Flytene
+## Flytdefinisjonene
 
-| TypeBehandling | Steg (`StegType`) | Informasjonskrav (oppdateres i OPPDATER_FAKTAGRUNNLAG) |
-| --- | --- | --- |
-| `Fordeling` | START_BEHANDLING → AVKLAR_FORDELING → AVKLAR_FORDELING_VIDERESEND → IVERKSETTES | AVKLAR_FORDELING: `JournalpostInformasjonskrav` |
-| `Journalføring` | START_BEHANDLING → AVKLAR_TEMA → AVKLAR_SAK → SETT_FAGSAK → ENDELIG_JOURNALFØRING → VIDERESEND → IVERKSETTES | AVKLAR_TEMA: `JournalpostInformasjonskrav`, `SaksnummerInfoKrav` |
-| `DokumentHåndtering` | START_BEHANDLING → DIGITALISER_DOKUMENT → OVERLEVER_TIL_FAGSYSTEM → IVERKSETTES | ingen |
-| `Under18` | START_BEHANDLING → AVKLAR_UNDER18 → AVKLAR_UNDER18_SAMTYKKE → OPPRETT_UNDER18_SAK → IVERKSETTES | AVKLAR_UNDER18: `JournalpostInformasjonskrav`, `Under18FødselsdatoInformasjonskrav` |
-
-Definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `flyt/.../flyt/BehandlingType.kt` (`utledType`). `IVERKSETTES` er `AvsluttBehandlingSteg` (gjør ingenting). Under18-flyten er ikke klar for produksjon: den registrerte `Under18RepositoryImpl` har `TODO()` i metodene for under 18, og testene bruker `InMemoryUnder18Repository`. Det forretningsmessige formålet med de eksisterende flytene står i skillen `postmottak-dokumentflyt`.
+Flytene er definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `flyt/.../flyt/BehandlingType.kt` (`utledType`). Les flytdefinisjonen for gjeldende steg, rekkefølge og informasjonskrav. `IVERKSETTES` er `AvsluttBehandlingSteg` (gjør ingenting). Under18-flyten er ikke klar for produksjon: den registrerte `Under18RepositoryImpl` har `TODO()` i metodene for under 18, og testene bruker `InMemoryUnder18Repository`. Det forretningsmessige formålet med flytene står i skillen `postmottak-dokumentflyt`.
 
 Informasjonskrav har typet input og registerdata, med fasene `klargjør` → `hentData` → `oppdater`. Hele livssyklusen kjøres sekvensielt per informasjonskrav for å bevare avhengigheter. Motoren lagrer tidspunkt og **bare input**, ikke registerdata, for hver vellykket kjøring i `INFORMASJONSKRAV_OPPDATERT`, også ved `IKKE_ENDRET`. Siste kjøring hentes per journalpost og stabilt `InformasjonskravNavn`, på tvers av behandlinger. Se oppskriften i `references/recipes.md`; bruk hele ordet «informasjonskrav» i nye navn og tekster.
 

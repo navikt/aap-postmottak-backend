@@ -1,5 +1,7 @@
 package no.nav.aap.postmottak.test.fakes
 
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.under18.Under18Aldersgruppe
@@ -8,11 +10,16 @@ import no.nav.aap.postmottak.under18.Under18SamtykkeVurdering
 import no.nav.aap.postmottak.under18.Under18Søknadsavklaring
 import java.time.LocalDate
 
+object InMemoryUnder18Repository : Under18Repository by IsolertUnder18Repository()
+
 /**
- * Følger ikke transaksjoner: data som er lagret før en rollback, blir liggende. Tilstanden er global,
- * så testene må bruke unike behandlings-ID-er.
+ * Følger ikke transaksjoner. En registrert instans lever så lenge dens RepositoryProvider.
  */
-object InMemoryUnder18Repository : Under18Repository {
+class IsolertUnder18Repository : Under18Repository {
+    companion object : Factory<IsolertUnder18Repository> {
+        override fun konstruer(connection: DBConnection) = IsolertUnder18Repository()
+    }
+
     private val søknader = HashMap<BehandlingId, MutableList<JournalpostId>>()
     private val fødselsdatoer = HashMap<BehandlingId, LocalDate>()
     private val aldersgrupper = HashMap<BehandlingId, Under18Aldersgruppe>()

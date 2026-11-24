@@ -88,7 +88,7 @@ API calls never run steps: they store a decision and enqueue `flyt.prosesserBeha
 
 ## Conventions
 
-- Tests: prefer fakes (`@Fakes`, `TestDataSource`, `TestJournalposter`) over mocks; mocks are fine for forcing hard-to-produce failures. New step tests follow `AvklarSakStegMedFakesTest`. See `postmottak-testing`.
+- Tests: avoid mocking. Prefer in-memory repositories and fakes (`@Fakes`, `TestJournalposter`); use `TestDataSource` where a real repository is needed. Use a mock only when the behavior cannot reasonably be tested with a fake. See `postmottak-testing`.
 - Wiring is by registries; new classes that are not registered fail at runtime, not at compile time:
   - repositories: interface in `flyt`, implementation with `companion object : Factory<...>` in `repository`, registered in `repository/.../PostgresRepositoryRegistry.kt`;
   - gateways: interface in `flyt`, implementation in `klienter`, registered in `klienter/.../DefaultGatewayProvider.kt`, plus a fake in `lib-test`;

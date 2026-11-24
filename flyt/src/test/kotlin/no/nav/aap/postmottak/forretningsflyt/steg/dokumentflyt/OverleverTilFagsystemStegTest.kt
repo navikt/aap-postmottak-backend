@@ -280,7 +280,7 @@ class OverleverTilFagsystemStegTest {
             begrunnelse = null
         )
         val journalpost = TestJournalposter.leggTil { journalpostId = 123 }
-            .tilJournalpost(mottattTid = mottattDato.atStartOfDay())
+            .tilJournalpost(mottattDato = mottattDato, mottattTid = mottattDato.atStartOfDay())
         every { journalpostRepository.hentHvisEksisterer(any<BehandlingId>()) } returns journalpost
 
         val stegresultat = overførTilFagsystemSteg.utfør(kontekst)

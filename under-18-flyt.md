@@ -1,6 +1,6 @@
 # Under-18-flyt: avklaringer og implementeringsplan
 
-Avklart 12. november 2026, med oppdateringer til og med 19. november. Dokumentet samler svarene fra kravavklaringen.
+Avklart 12. november 2026, med oppdateringer til og med 24. november. Dokumentet samler svarene fra kravavklaringen.
 Det beskriver ønsket funksjonalitet, ikke dagens implementering.
 
 Den 18. november ble løsningen endret til å gjenbruke vanlige
@@ -16,11 +16,20 @@ dokumentbehandlingene og jobbene er opprettet. Eget koordineringssteg,
 dokumentbehandlingsvent og gjenopptaksjobber fra dokumentbehandlingene utgår.
 Samtykkevent og den daglige aldersjobben beholdes.
 
+Den 24. november ble journalføringen flyttet ut av under-18-behandlingen.
+Aktuelle papirsøknader går først gjennom Journalføring. Saksbehandler avklarer
+temaet. Ved tema AAP journalfører Journalføring søknaden på generell sak og
+ferdigstiller den. Først etterpå oppretter eller oppdaterer løsningen
+under-18-behandlingen. Den samler fortsatt søknader, avklarer samtykke og
+oppretter Kelvin-sak og dokumentbehandlinger.
+Planen erstatter dermed direkte journalføring i `Under18SøknadsJournalfører`,
+som er fjernet på branchen `under18-mottakshistorikk`.
+
 Utgangspunktet er diagrammet i
 [image-2026-11-11_8-30-51.png](image-2026-11-11_8-30-51.png).
-Diagrammets siste steg korrigeres: søknaden skal først journalføres på generell sak
-med tema AAP, og senere knyttes til Kelvin-saken. Tema settes altså til AAP ved
-første journalføring, ikke ved slutten av flyten.
+Diagrammet må vise at saksbehandler først bekrefter tema AAP i Journalføring.
+Journalføring setter deretter søknaden på generell sak og ferdigstiller den.
+Under-18-behandlingen knytter den ferdigstilte journalposten til Kelvin-saken senere.
 
 ## Omfang og inngang
 
@@ -35,10 +44,17 @@ første journalføring, ikke ved slutten av flyten.
 
 ## Journalføring på generell sak
 
-- Søknadene ferdigstilles automatisk på generell sak med tema AAP før manuell avklaring.
-- Dette gjelder også søknader som skal henlegges fordi søker er for ung.
-- Hvis automatisk journalføring feiler, skal jobben feile.
-  Vi innfører ikke en egen manuell journalføringsoppgave for dette i første versjon.
+- En papirsøknad som kan gå til under-18-flyten, starter i en vanlig
+  Journalføring-behandling, ikke i en under-18-behandling.
+- Saksbehandler bekrefter at temaet er AAP. Først da velger Journalføring
+  automatisk generell sak og ferdigstiller søknaden på tema AAP.
+- Etter vellykket ferdigstilling oppretter eller oppdaterer løsningen
+  under-18-behandlingen. En journalpost med annet tema starter ikke en
+  under-18-behandling.
+- Journalføring bruker dagens retry-regler. Den skal ikke opprette en
+  under-18-behandling hvis ferdigstillingen feiler. Et retry etter vellykket
+  ferdigstilling skal kunne opprette behandlingen uten å journalføre på nytt.
+- Dette gjelder også søknader som senere skal henlegges fordi søker er for ung.
 
 ## Alder og henleggelse
 
@@ -113,12 +129,18 @@ Flere papirsøknader fra samme søker samles i én åpen under-18-behandling fre
 Kelvin-saken er opprettet. Dette gjelder også når behandlingen ikke står på vent,
 for eksempel mens en samtykke- eller henleggelsesoppgave er åpen.
 
-De ekstra søknadene journalføres på generell sak og legges til behandlingen,
-uten separat Fordeling eller Journalføring. Én samtykkevurdering dekker de innsamlede søknadene.
-Etter saksopprettelse og tilknytning får hver søknad sin egen
+Hver søknad går gjennom Journalføring og må få tema AAP før den ferdigstilles på
+generell sak og legges til under-18-behandlingen. Søknader fra samme søker skal
+samles i én åpen under-18-behandling. Én samtykkevurdering dekker de innsamlede
+søknadene. Etter saksopprettelse og tilknytning får hver søknad sin egen
 `DokumentHåndtering`-behandling, som beskrevet nedenfor.
 
 Når Kelvin-saksnummeret foreligger, stenges innsamlingen, og nye søknader følger vanlig flyt.
+En søknad som allerede er i Journalføring når innsamlingen stenges, må likevel
+fullføres trygt. Hvis den allerede er ferdigstilt på generell sak, må løsningen
+enten knytte den til den eksisterende under-18-saken eller sende den gjennom en
+definert ordinær behandling. Den skal ikke bli stående ferdig på generell sak
+uten videre behandling.
 Under-18-behandlingen avsluttes ikke da. Den fullfører tilknytning av de innsamlede
 dokumentene og oppretter dokumentbehandlingene med prosesseringsjobber før den avsluttes.
 Digitalisering og overlevering fortsetter uavhengig i dokumentbehandlingene.
@@ -170,8 +192,9 @@ status eller overlevering. Hver dokumentbehandling håndterer egne oppgaver, ven
 ## Feature toggle og produksjon
 
 Koden til den nye flyten kan legges i produksjon før rutingen aktiveres.
-En feature toggle styrer bare om nye under-18-behandlinger opprettes.
-Vi skal minimere hvor togglen brukes, ikke spre sjekker gjennom stegene.
+En feature toggle styrer om nye mottakshendelser kan velge den spesielle
+Journalføringsruten. Et allerede lagret rutevalg fullføres selv om togglen slås av.
+Sjekk togglen bare når rutingen velges.
 
 Eksisterende under-18-behandlinger fortsetter selv om togglen slås av.
 De mottar fortsatt kandidater og samler nye papirsøknader frem til Kelvin-saken
@@ -212,14 +235,19 @@ Flyten får tre egne forretningssteg:
 
 1. `AvklarUnder18Steg` håndterer alder, henleggelse og spørsmålet om videre søknad
    etter fylte 18 år gjennom `AVKLAR_UNDER18_SØKNAD`. Steget har informasjonskravene
-   `JournalpostInformasjonskrav` og `Under18FødselsdatoInformasjonskrav`, i den rekkefølgen.
-   Fødselsdatoinformasjonskravet deklarerer at det avhenger av journalpostinformasjonskravet.
+   `JournalpostInformasjonskrav`, `Under18FødselsdatoInformasjonskrav` og
+   `Under18JournalposterInformasjonskrav`, i den rekkefølgen.
+   De to under-18-kravene deklarerer at de avhenger av journalpostinformasjonskravet.
    Flytbyggeren kontrollerer at journalpostinformasjonskravet står først i samme liste
    over informasjonskrav. Fødselsdatoinformasjonskravet
    leser den lagrede journalposten, henter fødselsdatoen fra PDL og lagrer den på behandlingen.
-   Stegene gjør ingen gateway-kall og leser fødselsdatoen
-   fra `Under18Repository`. Journalføringsleveransen skal også journalføre nye søknader på generell sak,
-   og får `Under18JournalposterInformasjonskrav` for relevante journalpostopplysninger.
+   Stegene leser fødselsdatoen fra `Under18Repository`.
+   Journalpost- og kandidatkravet oppdaterer journalpostsnapshots for lesing og
+   samtykkeavklaring. Kravet melder `ENDRET` når en ny kandidat kommer til.
+   Endringer i en allerede kjent kandidat lagres, men fører ikke alene behandlingen
+   tilbake. Journalføring skjer ferdig før under-18-behandlingen opprettes.
+   Informasjonskravene ligger ikke på senere steg. Når et krav melder `ENDRET`
+   ved gjenopptak, fører motoren behandlingen tilbake hit.
 2. `AvklarUnder18SamtykkeSteg` håndterer samtykkeavklaringen. Samtykkeløseren
    oppretter automatisk vent når samtykke mangler; steget håndterer ikke vent.
    Ved fylte 18 år før saksopprettelse skal behandlingen tilbake til avklaringen om
@@ -248,10 +276,8 @@ De etterfølgende stegene leser bekreftelsen og aldersvurderingen og returnerer
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#F6F7F9","primaryTextColor":"#23262A","primaryBorderColor":"#5B6169","lineColor":"#5B6169","secondaryColor":"#FBEDED","tertiaryColor":"#F6F7F9","background":"#FFFFFF"}}}%%
 flowchart TD
-    start["StartBehandlingSteg"] --> krav["Informasjonskrav på AVKLAR_UNDER18:<br/>JournalpostInformasjonskrav, så<br/>Under18FødselsdatoInformasjonskrav"]
-    krav -.->|"Journalføringsleveransen"| journal["Journalfør nye søknader på generell sak"]
+    start["StartBehandlingSteg"] --> krav["Informasjonskrav på AVKLAR_UNDER18:<br/>JournalpostInformasjonskrav, så<br/>Under18FødselsdatoInformasjonskrav og<br/>Under18JournalposterInformasjonskrav"]
     krav --> alder{"AvklarUnder18Steg:<br/>aldersgruppe i dag?"}
-    journal -.-> alder
     alder -->|"Under 17 år og 9 måneder"| forUng["AVKLAR_UNDER18_SØKNAD:<br/>bekreft henleggelse"]
     alder -->|"Fylt 18 år"| fortsett["AVKLAR_UNDER18_SØKNAD:<br/>vil søker fortsette?"]
     alder -->|"17 år og 9 måneder til under 18 år"| samtykke{"AvklarUnder18SamtykkeSteg:<br/>AVKLAR_UNDER18_SAMTYKKE"}
@@ -261,7 +287,7 @@ flowchart TD
     samtykke -->|"Begge foreldre samtykker"| sak["OpprettUnder18SakSteg:<br/>opprett sak og knytt journalposter"]
     samtykke -->|"Løseren registrerer at samtykke mangler"| vent["VENT_PA_UNDER18_SAMTYKKE:<br/>tidligste av tre uker og 18-årsdagen"]
     vent -->|"Frist utløpt: behovet åpnes igjen"| samtykke
-    vent -.->|"Ny kandidat"| samtykke
+    vent -->|"Ny kandidat: tilbake via AVKLAR_UNDER18"| alder
     vent -.->|"Fylt 18 år"| alder
     sak -.->|"Saksopprettelse og dokumentbehandling"| dokument["Opprett eller gjenbruk dokumentbehandling<br/>og jobb for hver søknad"]
     dokument -.-> digitaliser["Uavhengige dokumentbehandlinger:<br/>digitaliser og overlever til behandlingsflyt"]
@@ -271,14 +297,14 @@ flowchart TD
     classDef valg fill:#FBEDED,stroke:#C30000,color:#23262A
     classDef planlagt fill:#FFFFFF,stroke:#5B6169,stroke-dasharray:5 5,color:#23262A
     class alder,samtykke,vent,forUng,fortsett valg
-    class journal,dokument,digitaliser planlagt
+    class dokument,digitaliser planlagt
 ```
 
-Heltrukne linjer viser det som er implementert i dag. Stiplede linjer og bokser er planlagt
-i PR-en som står på linjen. `OpprettUnder18SakSteg` feiler fortsatt med vilje når
-behandlingen ikke er henlagt. Søknadsbehovet dekker både henleggelse for en for ung søker
-og spørsmålet om videre søknad etter fylte 18 år. Når søkeren har fylt 18 år, krever
-samtykkesteget ikke samtykke og returnerer `Fullført`.
+Diagrammet viser bare under-18-behandlingen, som starter etter at Journalføring
+har ferdigstilt søknaden på generell sak. `OpprettUnder18SakSteg` feiler fortsatt
+med vilje når behandlingen ikke er henlagt. Søknadsbehovet dekker både henleggelse
+for en for ung søker og spørsmålet om videre søknad etter fylte 18 år. Når søkeren
+har fylt 18 år, krever samtykkesteget ikke samtykke og returnerer `Fullført`.
 
 Diagrammet viser to separate behandlinger, ikke et hopp mellom flyter i samme motorjobb.
 Under-18-behandlingen og dokumentbehandlingen har hver sin prosesseringsjobb og behandlingslås.
@@ -317,123 +343,175 @@ journalposten og dokumentbehandlingen. Detaljene står i
 
 ### Mottak og ruting
 
-Legg rutingen til `Under18MottakService`, som brukes fra
-[VurderRelevantDokumentForAAPJobbUtfører.kt:136-138](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/VurderRelevantDokumentForAAPJobbUtfører.kt#L136-L138)
-før en ny Fordeling-behandling opprettes.
-Behold dagens håndtering av manglende ident, organisasjoner og ugyldige journalposter.
+Del arbeidet i to overganger. Først rutes en mulig under-18-søknad til vanlig
+Journalføring uten å opprette en under-18-behandling. Deretter oppretter eller
+oppdaterer Journalføringsflyten under-18-behandlingen når saksbehandler har
+bekreftet AAP og Journalføring har ferdigstilt søknaden på generell sak.
+Under-18-stegene skal ikke journalføre søknader direkte.
 
-Service-metoden følger denne rekkefølgen for papirsøknader:
+Når togglen `PostmottakUnder18` er på, sjekker
+`VurderRelevantDokumentForAAPJobbUtfører` om en ny papirsøknad skal starte
+Journalføring direkte i stedet for Fordeling. Bruk eksisterende `Journalpost.erPapir()`
+og `Journalpost.erSøknad()`. Kontroller identitet, alder og Kelvin-saker med
+eksisterende tjenester. Manglende fødselsdato gir exception. Personen må ikke ha
+Kelvin-sak når under-18-ruten velges. `Aldersregel` i Fordeling gjelder bare i prod;
+den nye ruten må derfor avgjøres eksplisitt og likt i alle miljøer.
+Når togglen er av, beholdes dagens ruting. Togglen avgjør om en ny mottakshendelse
+kan velge den spesielle Journalføringsruten; den skal ikke stoppe en allerede
+registrert rute fra å fullføre etter at togglen er slått av.
 
-1. Finn personen med eksisterende `PersonService`, som håndterer identer fra PDL.
-2. Sjekk om journalposten allerede tilhører en under-18-behandling.
-   I så fall skal det ikke opprettes en ordinær behandling ved en gjentatt hendelse.
-3. Finn en eksisterende under-18-behandling som fortsatt samler søknader.
-   Legg søknaden til denne uten å sjekke togglen.
-4. Hvis ingen slik behandling finnes: hent aktuell alder og Kelvin-saker.
-   Har personen Kelvin-sak, eller er personen fylt 18 år, brukes vanlig flyt.
-5. Bare når en ny under-18-behandling skal opprettes, sjekkes togglen
-   `PostmottakUnder18`. Er den av, brukes dagens ruting uendret.
-6. Lagre journalpostsnapshot og opprett en vanlig `BEHANDLING` med `type = Under18`.
-   Registrer journalpost-ID-en for den første søknaden på behandlingen.
-   Legg inn en `flyt.prosesserBehandling`-jobb med behandlingens faste hovedjournalpost som `sakId`.
+Registrer første mottak varig i Kafka-inngangen før jobber legges i kø.
+Vurderingsjobben velger Under18-ruten og lagrer markøren sammen med behandlingen
+og prosesseringsjobben i samme transaksjon. Registreringen må skille
+«mottatt, ikke vurdert» fra «vurdert», og ha unik journalpost-ID slik at en
+duplisert Kafka-hendelse eller retry ikke overskriver første mottakstid eller
+oppretter ny behandling. Behold hendelsens relevante tema/status og person-ID.
+En Journalføring-behandling som allerede er åpen, bruker det lagrede rutevalget;
+den skal ikke velge på nytt ut fra dagens toggle eller alder. Vurderingsjobben må
+kunne fortsette en mottaksrad som ennå ikke er vurdert; den må ikke behandle
+raden som ferdig bare fordi den finnes. Mottaksregistreringen eies av et eget
+`JournalpostMottakRepository`; dagens `INNKOMMENDE_JOURNALPOST` endres ikke.
+Repositoriet er in-memory til den samlede migreringen (se
+[Videre leveranser](#videre-leveranser)).
 
-Bruk eksisterende `Journalpost.erPapir()` og `Journalpost.erSøknad()` fremfor nye,
-parallelle definisjoner av papirsøknader. Manglende fødselsdato skal gi exception,
-ikke en antakelse om alder eller overgang til vanlig flyt.
-Alderskontrollen i den nye flyten skal gjelde i alle miljøer.
-Ikke la den arve dagens prod/dev-bryter på fordelingsregelen `Aldersregel`.
+Retry og senere toggle- eller aldersendringer skal ikke sende en journalpost som
+allerede er valgt for under-18-ruten gjennom en annen flyt. Bruk markøren i
+Journalføring til å skille denne søknaden fra vanlig Journalføring:
 
-Nye kandidater må også fanges opp når journalposten har en åpen
-Journalføring-behandling. Dagens
-[KafkaStreams.kt:112-130](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/KafkaStreams.kt#L112-L130)
-sender slike hendelser direkte til denne behandlingen, uten å kjøre vurderingsjobben.
-Det er derfor ikke nok å håndtere nye kandidater bare i vurderingsjobben.
+1. `AVKLAR_TEMA` ber saksbehandler avgjøre om søknaden er på tema AAP.
+2. Ved et annet tema fortsetter dagens Journalføring-løp. Det opprettes ingen
+   under-18-behandling.
+3. Ved tema AAP velger `AvklarSakSteg` automatisk generell sak for en søknad
+   med markøren. Eksisterende `SettFagsakSteg` setter tema AAP og
+   `JournalføringSteg` ferdigstiller journalposten.
+4. Etter vellykket ferdigstilling legger `VideresendSteg` en egen
+   handoff-jobb i kø i samme transaksjon. Jobben kjører etter at Journalføring
+   har status `AVSLUTTET`, og oppretter eller finner under-18-behandlingen,
+   legger til søknaden og legger prosesseringsjobben i samme transaksjon.
+   Kontroller `AVSLUTTET` eksplisitt: `Status.erAvsluttet()` er også sann for
+   `IVERKSETTES`. Handoff-jobben gjenbrukes ved retry; Journalføring kjøres
+   ikke på nytt. `VideresendSteg` kan ikke lenger avslutte alle saker med
+   `generellSak` uten å vurdere markøren.
 
-Kafka-mottaket registrerer mottakshendelsen, finner aktuell under-18-behandling på
-personen og legger inn `ProsesserBehandlingJobbUtfører`.
-Jobben bruker behandlingens faste hovedjournalpost som `sakId`, ikke den nye kandidatens ID.
-Dette gjøres også når journalposten har en åpen Journalføring-behandling.
-Dagens ordinære mottaksgrener fortsetter ved siden av. Nye SAF- og PDL-oppslag for
-kandidatvarsling må ikke blokkere ordinær mottaksbehandling ved en midlertidig feil.
-Kafka-mottaket avslutter ikke samtykkevent og kjører ingen flytsteg.
+Behold dagens håndtering av manglende ident, organisasjoner og ugyldige
+journalposter. Mottaksregistreringen må bevare den første relevante mottakshendelsen, også for
+hendelser som går rett til en allerede åpen Journalføring-behandling.
+Kandidatvarsling for en eksisterende under-18-behandling kjøres uavhengig av om
+journalposten har en åpen Journalføring-behandling. Den vanlige journalføringsjobben
+skal ikke vente på kandidatvarslingen. Hvis under-18-behandlingen ennå ikke finnes,
+blir mottaket likevel liggende varig; den nye behandlingens kandidatoppslag må ta
+med mottak som skjedde etter første søknad og før behandlingen ble opprettet.
+Kafka-mottaket avslutter ikke vent og kjører ingen flytsteg.
 
-For en hittil ukjent journalpost må mottaket finne personen før det kan slå opp
-under-18-behandlingen. Gjenbruk lokal personkobling der den finnes, og nødvendige
-SAF-/PDL-oppslag ellers. Feil i oppslagene må kunne forsøkes på nytt uten at hendelsen
-mistes eller gjentatte hendelser tar behandlingen av vent på nytt.
+Under-18-behandlingen kan bli opprettet etter at andre dokumenter har kommet inn.
+Bruk første søknads mottakstidspunkt som nedre grense for kandidatgrunnlaget.
+Kandidatgrunnlaget må kunne finne dokumenter som kom etter dette tidspunktet,
+også hvis de kom før behandlingen ble opprettet eller før samtykkeoppgaven åpnet.
+Les tidspunktet fra mottaksregistreringen for hovedjournalposten. Bruk mottakshistorikk,
+ikke SAF-status ved senere oppslag, siden Journalføring kan ha endret status til
+`JOURNALFOERT`. Et kandidatdokument som kom inn før en ny samtykkevent, skal ikke
+avslutte den venten selv om vurderingsjobben for dokumentet kjører forsinket.
 
-`Under18JournalposterInformasjonskrav` må oppdatere opplysningene både ved
-`AvklarUnder18Steg` og mens behandlingen står på `AvklarUnder18SamtykkeSteg`.
-Det henter og oppdaterer relevante journalpostopplysninger gjennom eksisterende
-gatewayer og journalpostlagring. Kandidatlisten utledes fra mottakshistorikken
-og perioden med samtykkeavklaring, uten en egen kandidattabell.
-En trigger utenfor flyten bruker kandidatgrunnlaget til å avslutte automatisk samtykkevent
-ved et nytt dokument. Manuell vent beholdes ved nye dokumenter, men oppheves
-sammen med automatisk vent når søker fyller 18 år før Kelvin-saken er opprettet.
-Informasjonskravet oppdaterer opplysninger; stegene oppretter eller avslutter ikke vent.
-Kandidatgrunnlaget må være oppdatert før triggeren vurderer vent. Denne koblingen
-gjenstår i mottaksintegrasjonen.
+Beskytt overgangen etter Journalføring mot parallelle søknader fra samme person.
+Flere Journalføring-behandlinger kan bli ferdige samtidig. `VideresendSteg`
+legger bare handoff-jobben i kø idempotent; jobben kjører utenfor
+Journalføring-behandlingens lås. Handoff-jobben tar en personlås, slår opp
+samlingen på nytt mens låsen holdes, og atomisk oppretter/finner behandlingen,
+legger til søknaden og oppretter prosesseringsjobben.
+Under-18-behandlingens saksopprettelse og stenging av innsamlingen må bruke
+samme personlås mens behandlingslåsen holdes. Handoff-jobben skal ikke ta
+under-18-behandlingslåsen. Dermed serialiseres endringene uten en motsatt
+låserekkefølge som kan gi deadlock.
+Planen må før implementering avklare hva som skjer hvis en Journalføring-behandling
+allerede har ferdigstilt søknaden på generell sak idet samlingen stenges, eller
+hvis en Kelvin-sak oppstår etter det første rutingsvalget. Søknaden må enten
+knyttes til en fortsatt åpen samling og få dokumentbehandling, eller få en
+eksplisitt alternativ håndtering. Den må aldri bli liggende ferdig journalført
+uten videre behandling.
 
-Dagens motor oppdaterer faktagrunnlaget og kjører steget før den stopper på åpne
-avklaringsbehov i `AVKLARINGSPUNKT`. Registrering av informasjonskravet og
-tilbakeføring må sikre at nye søknader blir journalført før ny manuell avklaring,
-også mens behandlingen står på samtykkesteget. Test dette gjennom motoren.
-Gjenbruk eksisterende jobber hvis de gir sikker registrering og retry.
-Del person- og behandlingsoppslag med rutingservicen, og la mottak og prosessering
-tåle at vurderingsjobben og prosesseringsjobben kjører i ulik rekkefølge.
+`Under18JournalposterInformasjonskrav` ligger bare på `AvklarUnder18Steg`.
+Når behandlingen gjenopptas på samtykkesteget, oppdaterer motoren kravene for tidligere steg.
+Melder kravet `ENDRET`, fører motoren behandlingen tilbake til søknadssteget for
+ny alders- og kandidatvurdering. Journalføringen er allerede gjort i den separate
+Journalføring-behandlingen. Flyttesten
+`under18 - ny samtykkekandidat oppdateres og fører tilbake fra samtykkesteget` dekker tilbakeføringen.
 
-Velg transaksjonsgrense og retry-mekanisme i mottaksintegrasjonen. En feil i kandidatsporet skal
-ikke miste hendelsen eller hindre ordinær behandling. Hvis eksisterende jobber ikke
-gir begge garantiene, må mottaksintegrasjonen innføre en egnet jobb. Feil skal ikke skjules ved
-å hoppe over kandidaten.
+Kravet henter kandidatlisten fra `Under18Samtykkekandidater`, som utleder den fra mottakshistorikken
+og perioden fra den første søknadens mottak til Kelvin-saken opprettes, uten en egen
+kandidattabell. Kravet henter kandidatene gjennom `JournalpostService` og lagrer
+journalposter som er nye eller endret i Joark. Det melder `ENDRET` bare når en
+kandidat mangler i kandidatlisten fra forrige kjøring. Forrige liste ligger i input
+som `InformasjonskravRepository` lagret i `INFORMASJONSKRAV_OPPDATERT` (#984) for
+samme behandling. Endringer i kjente kandidater oppdaterer snapshotet, men fører
+ikke alene til tilbakeføring.
+
+En trigger utenfor flyten bruker kandidatgrunnlaget til å avslutte automatisk
+samtykkevent ved et nytt dokument. Manuell vent beholdes ved nye dokumenter, men
+oppheves sammen med automatisk vent når søker fyller 18 år før Kelvin-saken er
+opprettet. Informasjonskravet oppdaterer opplysninger; stegene oppretter eller
+avslutter ikke vent.
+
+`INNKOMMENDE_JOURNALPOST.OPPRETTET_TID` settes når vurderingsjobben kjører,
+og kan derfor være senere enn første Kafka-mottak. Ikke bruk det som
+mottakstidspunkt. Registrer første mottakstid ved Kafka-mottaket, før jobbene
+legges i kø, og bevar det ved duplikater, forsinkelser og retry. Registreringen
+må også bevare rutevalg og status på vurderingen. Kandidatens mottakstid før en
+senere vent skal ikke avslutte den venten.
+Test forsinket vurderingsjobb mot en ny samtykkerunde.
+
+Velg transaksjonsgrense og retry-mekanisme i mottaksintegrasjonen. Feil i
+kandidatsporet skal ikke miste hendelsen eller hindre ordinær behandling.
+Hvis eksisterende jobber ikke gir begge garantiene, må mottaksintegrasjonen
+innføre en egnet jobb. Feil skal ikke skjules ved å hoppe over kandidaten.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#F6F7F9","primaryTextColor":"#23262A","primaryBorderColor":"#5B6169","lineColor":"#5B6169","secondaryColor":"#FBEDED","tertiaryColor":"#F6F7F9","background":"#FFFFFF"}}}%%
 flowchart LR
-    joark["Joark: ny AAP-hendelse<br/>status MOTTATT"] --> kafka["JoarkKafkaHandler"]
-    kafka --> observasjon["Lagre mottakshendelse<br/>og finn personens under-18-behandling"]
-    kafka --> vanlig["Eksisterende mottaksgrener"]
-    observasjon -->|"Aktuell behandling finnes"| trigger["Trigger utenfor flyten:<br/>vurder nye kandidater og avslutt automatisk vent"]
-    trigger --> prosesser["ProsesserBehandlingJobbUtfører"]
-    vanlig --> vurder["VurderRelevantDokumentForAAP"]
-    vurder --> rute{"Papirsøknad til under-18?"}
-    rute -->|"Ja"| samle["Opprett eller legg til i<br/>under-18-behandling"]
-    rute -->|"Nei"| ordinær["Vanlig flyt, uendret"]
-    samle --> prosesser
-    prosesser --> krav["Under18JournalposterInformasjonskrav:<br/>oppdater relevante journalpostopplysninger"]
-    krav --> avklar["Under-18-steg:<br/>avklar søknad og samtykke"]
-    avklar -->|"Avklart"| steg["Videre under-18-steg"]
-    avklar -->|"Fortsatt uavklart eller manuelt på vent"| stopp["Stopp på avklaringsbehov"]
-    avklar -->|"Journalføring"| journalforing["JournalføringService"]
-    journalforing --> dokarkivgateway["DokarkivGateway"]
-    steg -->|"Tilknytning"| dokarkivgateway
-    dokarkivgateway --> dokarkivklient["DokarkivGatewayKlient"]
-    dokarkivklient --> dokarkiv["Dokarkiv"]
-    steg --> behandlingsflytgateway["BehandlingsflytGateway"]
-    behandlingsflytgateway --> behandlingsflyt["Behandlingsflyt"]
-    steg --> opprett["Opprett dokumentbehandling og jobb for hver søknad"]
-    opprett --> dokumentjobb["Egen prosesseringsjobb<br/>for hver dokumentbehandling"]
-    dokumentjobb --> dokumentflyt["Dagens digitalisering og overlevering"]
-    dokumentflyt --> behandlingsflytgateway
-    dokumentflyt --> ferdig["Lagre overleveringstidspunkt<br/>og avslutt dokumentbehandlingen"]
-    steg --> hendelse["Stopp-/slutthendelse<br/>til oppgave og statistikk"]
+    joark["Joark: relevant hendelse<br/>status MOTTATT"] --> kafka["JoarkKafkaHandler"]
+    kafka --> mottak["Lagre første mottakstid<br/>uavhengig av åpen behandling"]
+    mottak --> kandidat["Aktiv Under18-behandling?<br/>Varsle om ny kandidat"]
+    mottak --> rute{"Toggle på og mulig<br/>under-18-papirsøknad?"}
+    rute -->|"Ja"| journalføring["Opprett Journalføring"]
+    rute -->|"Nei"| ordinær["Eksisterende mottaksrute"]
+    journalføring --> tema{"AVKLAR_TEMA"}
+    tema -->|"Ikke AAP"| ordinærJournalføring["Fortsett vanlig Journalføring"]
+    tema -->|"AAP"| generell["Velg generell sak<br/>ferdigstill i Dokarkiv"]
+    generell --> fullført{"Journalført?"}
+    fullført -->|"Nei"| retry["Retry Journalføring<br/>ingen Under18-behandling ennå"]
+    fullført -->|"Ja"| handoff["VideresendSteg legger<br/>handoff-jobb i kø"]
+    handoff --> handoffjobb["Handoff-jobb etter<br/>Journalføring er avsluttet"]
+    handoffjobb --> under18{"Samlingen åpen<br/>under personlås?"}
+    under18 -->|"Ja"| koble["Opprett/finn Under18,<br/>koble søknad og jobb i kø"]
+    under18 -->|"Nei"| sen["Sen handoff:<br/>alternativ må avklares"]
+    koble --> prosesser["ProsesserBehandlingJobbUtfører"]
+    kandidat -->|"Aktiv behandling finnes"| prosesser
+    prosesser --> krav["Under18JournalposterInformasjonskrav<br/>og alder-/samtykkeavklaring"]
+    krav --> sak["Opprett Kelvin-sak,<br/>tilknytninger og dokumentbehandlinger"]
+    sak --> dokument["Uavhengige DokumentHåndtering-behandlinger"]
+    dokument --> ferdig["Digitaliser og overlever"]
     classDef default fill:#F6F7F9,stroke:#5B6169,color:#23262A
     classDef valg fill:#FBEDED,stroke:#C30000,color:#23262A
-    class rute,avklar valg
+    classDef uavklart fill:#FFFFFF,stroke:#5B6169,stroke-dasharray:5 5,color:#23262A
+    class rute,tema,fullført valg
+    class mottak,kandidat,sen uavklart
 ```
 
+Diagrammet skiller mottak, Journalføring og under-18-behandling. Under-18-behandlingen
+blir ikke opprettet før Journalføring har ferdigstilt en papirsøknad med tema AAP.
 Mottakshistorikken må bevare at journalposten hadde status `MOTTATT` da hendelsen kom.
-SAF kan vise `JOURNALFOERT` når informasjonskravet senere kjører, fordi vanlig flyt allerede
-har journalført dokumentet. Dette skal ikke forveksles med å abonnere på hendelser
-som bare har status `JOURNALFOERT`.
+SAF kan vise `JOURNALFOERT` når informasjonskravet senere kjører, fordi Journalføring
+allerede har ferdigstilt dokumentet. Dette skal ikke forveksles med å abonnere på
+hendelser som bare har status `JOURNALFOERT`.
 
 Kandidatlisten utledes fra personens mottakshistorikk og behandlingens
-avklaringsbehovshistorikk. Ta med journalposter som først ble mottatt med tema AAP
-og status `MOTTATT` mens samtykke ble avklart i behandlingen, også under automatisk vent.
-Bruk tidspunktet for mottakshendelsen, ikke når informasjonskravet kjører.
-Gjentatte hendelser skal ikke flytte dette tidspunktet eller gjøre et gammelt dokument
-til en ny kandidat. Oppslaget skal gi én kandidat per journalpost og bruke personens
-identer gjennom eksisterende personhåndtering.
+avklaringsbehovshistorikk. Ta med journalposter med tema AAP og status `MOTTATT`
+som først ble mottatt etter mottakstidspunktet for hovedsøknaden og før
+Kelvin-saken ble opprettet. Dette omfatter dokumenter som kom inn mens den første
+Journalføring-behandlingen var åpen. Bruk tidspunktet for første mottakshendelse,
+ikke tidspunktet da vurderingsjobben eller informasjonskravet kjører.
+Gjentatte hendelser skal ikke flytte dette tidspunktet eller gjøre et gammelt
+dokument til en ny kandidat. Oppslaget skal gi én kandidat per journalpost og
+bruke personens identer gjennom eksisterende personhåndtering.
 Saksbehandlerens valgte samtykkedokumenter lagres fortsatt i samtykkevurderingen,
 uavhengig av den utledede kandidatlisten.
 
@@ -450,8 +528,9 @@ og avklaringsbehovene med historikk for henleggelsesbekreftelse og vent.
 `Under18Grunnlag` er en samlet lesemodell, ikke en ny behandlingstabell.
 
 Nye tabeller bak `Under18Repository` begrenses til fødselsdato, søknadskoblinger,
-tilknytninger, eventuelle tilknytningsforsøk, observasjoner og vurderinger som ikke
-allerede dekkes. Alle får primærnøkkel og refererer til
+tilknytninger, eventuelle tilknytningsforsøk og vurderinger som ikke allerede dekkes.
+Mottakshistorikk eies av eksisterende `InnkommendeJournalpostRepository`.
+Alle nye tabeller får primærnøkkel og refererer til
 eksisterende behandling der dataene er behandlingsspesifikke.
 Eksisterende journalpostsnapshots gjenbrukes. Journalpost-ID-er peker på Joark-ID,
 ikke den interne ID-en til en snapshotrad i `JOURNALPOST`.
@@ -479,7 +558,8 @@ eller starte andre dokumentbehandlinger.
 | `UNDER18_SOKNAD` | Kobler under-18-behandlingen, søknaden og dokumentbehandlingen. Lagrer primærnøkkel, under-18-behandlingens ID, kildejournalpost-ID, valgfri unik `dokumentbehandling_id` og tidspunkt for vellykket overlevering. Ingen kopier av journalpostdata, dokumentbehandlingens status eller vurderinger. |
 | `UNDER18_JOURNALPOST_TILKNYTNING` | Én uforanderlig kobling per behandling og `kildeJournalpostId`, med Kelvin-saksnummer og returnert `nyJournalpostId`. Brukes for både søknader og registrerte samtykkejournalposter. |
 | Tilknytningsforsøk, eventuelt `UNDER18_TILKNYTNINGSFORSOK` | Varig registrering før et Dokarkiv-kall. Lagrer behandling, kildejournalpost, målsak og dokument-ID-ene i forespørselen, slik at et forsøk med ukjent utfall kan gjenfinnes eller stoppes uten et nytt skrivekall. Endelig lagringsform velges i tilknytningsleveransen. |
-| `UNDER18_JOURNALPOST_OBSERVASJON` | Første relevante mottakshendelse per journalpost, med hendelsestidspunkt, tema, status og kobling til person når identiteten er avklart. Brukes til å utlede kandidater og sikre at samme journalpost ikke tar behandlingen av vent flere ganger, uavhengig av ordinær behandling. |
+| `JOURNALPOST_MOTTAK` (eies av `JournalpostMottakRepository`) | Én rad per journalpost med primærnøkkel, unik journalpost-ID, første mottakstid, stigende løpenummer, opprinnelig tema/status, personkobling og eventuell rutemarkør. In-memory til leveranse 8. Dagens `INNKOMMENDE_JOURNALPOST` endres ikke, og `OPPRETTET_TID` brukes ikke som mottakstid. |
+| `UNDER18_VENTERUNDE` | Løpenummeret for siste mottak da samtykkeløseren opprettet vent. Evaluereren avslutter venten bare for kandidater med høyere løpenummer. Eies av `Under18Repository`. Lagres ikke i `AVKLARINGSBEHOV_ENDRING`. |
 | `UNDER18_SAMTYKKEVURDERING` og `UNDER18_SAMTYKKE_GRUNNLAG` | Historiske vurderinger og aktiv vurdering etter repoets grunnlagsmønster. Vurderingen lagrer beslutningen og journalpost-ID-ene som dokumenterer samtykke. Vent lagres i avklaringsbehovshistorikken. |
 | Eksisterende `DIGITALISERINGSAVKLARING` og `DIGITALISERINGSVURDERING_GRUNNLAG` | Dokumentbehandlingens digitaliseringsvurderinger og aktive grunnlag. Gjenbrukes uten nye under-18-tabeller for digitalisering. |
 
@@ -488,9 +568,9 @@ eller starte andre dokumentbehandlinger.
 Diagrammet viser et konkret forslag til kolonner og koblinger.
 Hver tabell har sin egen boks, også grunnlags- og vurderingstabellene.
 `BEHANDLING`, `PERSON`, `DIGITALISERINGSAVKLARING` og
-`DIGITALISERINGSVURDERING_GRUNNLAG` finnes allerede.
-De øvrige tabellene er foreslåtte nye tabeller.
-Den samme `BEHANDLING`-tabellen lagrer både under-18-behandlingen og dokumentbehandlingene.
+`DIGITALISERINGSVURDERING_GRUNNLAG` finnes allerede. De øvrige tabellene,
+også mottakstabellen, er foreslåtte nye tabeller som opprettes i én migrering.
+Den samme `BEHANDLING`-tabellen lagrer Journalføring-, under-18- og dokumentbehandlingene.
 Kolonnenavn og typer er arbeidsforslag, ikke en ferdig migrasjon.
 Registreringen av tilknytningsforsøk er ikke med i diagrammet. Den må lagres varig
 før skrivekallet, enten i en egen tabell eller med en annen løsning i tilknytningsleveransen.
@@ -507,7 +587,7 @@ og har derfor ingen relasjonslinjer til den tabellen.
 erDiagram
     BEHANDLING {
         bigint id PK
-        varchar type "Under18 eller DokumentHåndtering"
+        varchar type "Journalføring, Under18 eller DokumentHåndtering"
         bigint journalpost_id "Fast Joark-ID for hver behandling"
         varchar status
     }
@@ -535,14 +615,21 @@ erDiagram
         bigint ny_journalpost_id "Uforanderlig, returnert Joark-ID"
         timestamp opprettet_tid
     }
-    UNDER18_JOURNALPOST_OBSERVASJON {
-        bigint id PK "Ny tabell bare hvis eksisterende lagring ikke dekker behovet"
-        bigint journalpost_id UK "Joark-ID"
-        bigint person_id FK "Kan være NULL før personen er identifisert"
-        timestamp hendelsestidspunkt "Første relevante mottakshendelse"
-        varchar tema "AAP ved mottak"
-        varchar journalstatus "MOTTATT ved mottak"
-        timestamp opprettet_tid "Tidspunkt for lokal registrering"
+    JOURNALPOST_MOTTAK {
+        bigint id PK
+        bigint journalpost_id UK "Joark-ID, én rad per journalpost"
+        bigint lopenummer UK "Stigende, rekkefølge mellom mottak og vent"
+        bigint person_id FK "NULL til personen er registrert"
+        timestamp mottatt_tid "Første mottak ved Kafka"
+        varchar tema_ved_mottak
+        varchar journalstatus_ved_mottak
+        varchar under18_rute "Valgt rute, kan være NULL"
+    }
+    UNDER18_VENTERUNDE {
+        bigint id PK
+        bigint behandling_id FK
+        bigint siste_mottak_lopenummer "Siste mottak da venten ble opprettet"
+        timestamp opprettet_tid
     }
     UNDER18_SAMTYKKEVURDERING {
         bigint id PK
@@ -571,9 +658,10 @@ erDiagram
     BEHANDLING ||..o{ UNDER18_SOKNAD : "under-18 via behandling_id"
     BEHANDLING |o..o| UNDER18_SOKNAD : "dokumentbehandling via dokumentbehandling_id"
     BEHANDLING ||..o{ UNDER18_JOURNALPOST_TILKNYTNING : "har tilknytninger"
-    PERSON |o..o{ UNDER18_JOURNALPOST_OBSERVASJON : "identifiserer mottak"
     BEHANDLING ||..o{ UNDER18_SAMTYKKE_GRUNNLAG : "har samtykkehistorikk"
     UNDER18_SAMTYKKEVURDERING ||..o{ UNDER18_SAMTYKKE_GRUNNLAG : "pekes på av"
+    PERSON |o..o{ JOURNALPOST_MOTTAK : "mottak for person"
+    BEHANDLING ||..o{ UNDER18_VENTERUNDE : "har venterunder"
     BEHANDLING ||..o{ DIGITALISERINGSVURDERING_GRUNNLAG : "dokumentbehandlingens vurderingshistorikk"
     DIGITALISERINGSAVKLARING ||..o{ DIGITALISERINGSVURDERING_GRUNNLAG : "pekes på av"
 ```
@@ -592,7 +680,8 @@ Følgende unikhetskrav kommer i tillegg til relasjonene i diagrammet:
 - Dokumentbehandlingens ID settes én gang. En ny kjøring bruker samme dokumentbehandling.
   Det skal ikke opprettes en ny fordi en jobb har feilet.
 - Tilknytninger er unike på `(behandling_id, kilde_journalpost_id)`.
-- Mottakshistorikken har én første relevant hendelse per journalpost.
+- Mottakshistorikken har én første relevant hendelse per journalpost. En gjentatt
+  Kafka-hendelse flytter ikke mottakstidspunktet eller endrer rutevalget.
 - Samtykkegrunnlaget har høyst én aktiv rad per behandling.
 - Eksisterende digitaliseringsgrunnlag har høyst én aktiv vurdering per dokumentbehandling,
   som i dagens lagringsmønster.
@@ -616,10 +705,10 @@ ikke vent ved ny kjøring. Motoren tar behandlingen av vent gjennom
 `VentebehovEvaluererService` i `FlytOrkestrator.forberedBehandling`, som i behandlingsflyt.
 Grunnlagstabellene har ingen FK til avklaringsbehov eller endringshistorikken deres.
 Dette hindrer ikke at samme dokument tar behandlingen av vent flere ganger.
-Leveranse 2 håndterer duplikater uten ny tabell: samtykke-evaluatoren regner venten
-som løst bare når en journalpost er mottatt etter at venten sist ble opprettet.
-Mottakshistorikken trenger ingen egen tabell. Den leses fra `INNKOMMENDE_JOURNALPOST`,
-som har én rad per journalpost, `BRUKER_ID` og `OPPRETTET_TID`.
+Mottakshistorikken leses fra `JournalpostMottakRepository`, som har én rad per
+journalpost. Mottakstidspunktet skrives ved Kafka-mottaket.
+`INNKOMMENDE_JOURNALPOST.OPPRETTET_TID` angir når vurderingsjobben lagret raden,
+ikke når Joark-hendelsen først kom inn, og brukes ikke.
 
 Koblingen til Kelvin lagres én gang per behandling og kildejournalpost,
 også når samme journalpost er både søknad og samtykke.
@@ -636,13 +725,13 @@ Det trengs ingen egen tabell for koblingen mellom behandlingene,
 eller et ekstra digitaliseringsgrunnlag for under-18.
 
 Det neste diagrammet skiller lagrede opplysninger fra utledede kandidater og
-lesemodellen. Mottakshistorikk må finnes, men det er fortsatt uavklart om den
-krever en ny tabell eller kan bygge på eksisterende lagring.
+lesemodellen. Mottakshistorikken er en generell mottaksregistrering, ikke en
+under-18-observasjonstabell.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#F6F7F9","primaryTextColor":"#23262A","primaryBorderColor":"#5B6169","lineColor":"#5B6169","secondaryColor":"#FBEDED","tertiaryColor":"#F6F7F9","background":"#FFFFFF"}}}%%
 flowchart LR
-    mottak["Mottakshistorikk<br/>journalpost-ID · person · hendelsestidspunkt<br/>opprinnelig tema og status<br/>lagringsvalg ikke bestemt"]
+    mottak["Varig mottakshistorikk<br/>journalpost-ID · person · mottakstid<br/>opprinnelig tema/status · rutevalg"]
     personopplysninger["Under-18-personopplysninger<br/>fødselsdato per behandling"]
     historikk["Eksisterende avklaringsbehovshistorikk<br/>perioden med samtykkeavklaring"]
     kandidater["Samtykkekandidater<br/>utledet liste, ingen kandidattabell"]
@@ -681,10 +770,11 @@ Nye filer er lenket til [filoversikten](#foreslåtte-nye-filer), siden de ikke f
 | Tabell | SQL-ansvar | Skrives fra, via repository | Leses fra, via repository |
 | --- | --- | --- | --- |
 | `UNDER18_PERSONOPPLYSNING` | [Under18RepositoryImpl.kt](#foreslåtte-nye-filer) | [Under18FødselsdatoInformasjonskrav.kt](#foreslåtte-nye-filer) lagrer fødselsdatoen etter at `JournalpostInformasjonskrav` har lagret journalposten. | `Under18Repository` henter fødselsdatoen for aldersvurdering i under-18-stegene. Alderen regnes ut ved bruk og lagres ikke. |
-| `UNDER18_SOKNAD` | [Under18RepositoryImpl.kt](#foreslåtte-nye-filer) | [Under18MottakService.kt](#foreslåtte-nye-filer) legger til søknadene. [Under18DokumentbehandlingService.kt](#foreslåtte-nye-filer) kobler søknaden til dokumentbehandlingen i samme transaksjon som den opprettes. [OverleverTilFagsystemSteg.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/dokumentflyt/OverleverTilFagsystemSteg.kt) bruker tjenesten til å lagre overleveringstidspunkt etter vellykket sending. | Under-18-steg og informasjonskravet finner søknadene. Sakssteget gjenbruker koblingen ved retry. Dokumentbehandlingstjenesten finner under-18-behandlingen og kildejournalposten ut fra dokumentbehandlingens ID. Lesepunktet viser fremdriften. |
+| `UNDER18_SOKNAD` | [Under18RepositoryImpl.kt](#foreslåtte-nye-filer) | Handoff-jobben legger til søknaden etter ferdigstilt Journalføring. [Under18DokumentbehandlingService.kt](#foreslåtte-nye-filer) kobler søknaden til dokumentbehandlingen i samme transaksjon som den opprettes. [OverleverTilFagsystemSteg.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/dokumentflyt/OverleverTilFagsystemSteg.kt) bruker tjenesten til å lagre overleveringstidspunkt etter vellykket sending. | Under-18-steg og informasjonskravet finner søknadene. Sakssteget gjenbruker koblingen ved retry. Dokumentbehandlingstjenesten finner under-18-behandlingen og kildejournalposten ut fra dokumentbehandlingens ID. Lesepunktet viser fremdriften. |
 | `UNDER18_JOURNALPOST_TILKNYTNING` | [Under18RepositoryImpl.kt](#foreslåtte-nye-filer) | [OpprettUnder18SakSteg.kt](#foreslåtte-nye-filer) lagrer ny journalpost-ID fra dokarkiv eller entydig gjenfinning i SAF. | Samme steg gjenbruker tidligere tilknytninger. Dokumentbehandlingstjenesten leser ny journalpost-ID, kildejournalposten og Kelvin-saken ved oppstart og kontroll av dokumentbehandlingen. |
 | Tilknytningsforsøk | Lagringsform velges i tilknytningsleveransen. | Registreres og committes før Dokarkiv-kallet. | Brukes ved ny kjøring til å skille et nytt kall fra et tidligere forsøk med ukjent utfall. |
-| Mottakshistorikk, eventuelt `UNDER18_JOURNALPOST_OBSERVASJON` | Foreløpig [Under18RepositoryImpl.kt](#foreslåtte-nye-filer). Ved gjenbruk av eksisterende lagring brukes dens repository. | [KafkaStreams.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/KafkaStreams.kt) registrerer første relevante mottakshendelse og koblingen til personen. | [Under18JournalposterInformasjonskrav.kt](#foreslåtte-nye-filer) finner relevante journalposter. Samtykkesteget bruker historikken til å skille nye kandidater fra dokumenter som allerede har tatt behandlingen av vent. Mottaket bruker historikken til å håndtere duplikate hendelser. |
+| `JOURNALPOST_MOTTAK` | `JournalpostMottakRepository` (in-memory til leveranse 8) | `KafkaStreams` registrerer første mottak før den legger jobber i kø. `RegistrerMottakPersonJobbUtfører` knytter mottaket til personen. Vurderingsjobben lagrer rutemarkøren. | `Under18Samtykkekandidater` finner kandidatene via `finnMottakshistorikk`. [Under18JournalposterInformasjonskrav.kt](#foreslåtte-nye-filer) og `Under18SamtykkeVentebehovEvaluerer` bruker kandidatene. |
+| Forrige kjøring av informasjonskrav i eksisterende `INFORMASJONSKRAV_OPPDATERT` (#984) | `InformasjonskravRepositoryImpl` | `InformasjonskravGrunnlagImpl` lagrer input per behandling og krav. | [Under18JournalposterInformasjonskrav.kt](#foreslåtte-nye-filer) leser forrige kandidatliste for å finne nye kandidater. |
 | `UNDER18_SAMTYKKEVURDERING` og `UNDER18_SAMTYKKE_GRUNNLAG` | [Under18RepositoryImpl.kt](#foreslåtte-nye-filer) | [AvklarUnder18SamtykkeLøser.kt](#foreslåtte-nye-filer) lagrer beslutningen og valgte samtykkejournalposter. | Samtykkesteget avgjør om samtykkebehovet er tilstrekkelig avklart. [OpprettUnder18SakSteg.kt](#foreslåtte-nye-filer) leser hvilke samtykkedokumenter som skal tilknyttes. |
 
 [Under18Api.kt](#foreslåtte-nye-filer) leser også disse opplysningene gjennom
@@ -697,7 +787,7 @@ GET-kallet skal ikke oppdatere historikk, grunnlag eller behandlingsversjon.
 
 | Tabell | SQL-ansvar | Skrives fra, via repository | Leses fra, via repository |
 | --- | --- | --- | --- |
-| `BEHANDLING` | [BehandlingRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/behandling/BehandlingRepositoryImpl.kt), samt [TaSkriveLåsRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/lås/TaSkriveLåsRepositoryImpl.kt) for versjon og lås. | Mottaket oppretter under-18-behandlingen. Dokumentbehandlingstjenesten oppretter dokumentbehandlingene. [FlytOrkestrator.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/flyt/FlytOrkestrator.kt) oppdaterer status. [ProsesserBehandlingJobbUtfører.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/prosessering/ProsesserBehandlingJobbUtfører.kt) låser og oppdaterer versjonen for behandlingen jobben gjelder. | Mottaket, flytmotoren, løsere, dokumentbehandlingstjenesten og lesepunktene leser identitet, status, hovedjournalpost og versjon. |
+| `BEHANDLING` | [BehandlingRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/behandling/BehandlingRepositoryImpl.kt), samt [TaSkriveLåsRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/lås/TaSkriveLåsRepositoryImpl.kt) for versjon og lås. | Handoff-jobben oppretter under-18-behandlingen etter vellykket Journalføring. Dokumentbehandlingstjenesten oppretter dokumentbehandlingene. [FlytOrkestrator.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/flyt/FlytOrkestrator.kt) oppdaterer status. [ProsesserBehandlingJobbUtfører.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/prosessering/ProsesserBehandlingJobbUtfører.kt) låser og oppdaterer versjonen for behandlingen jobben gjelder. | Mottaket, flytmotoren, løsere, dokumentbehandlingstjenesten og lesepunktene leser identitet, status, hovedjournalpost og versjon. |
 | `STEG_HISTORIKK` | [BehandlingRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/behandling/BehandlingRepositoryImpl.kt) | [StegOrkestrator.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/flyt/steg/StegOrkestrator.kt) registrerer kjøring og tilbakeføring av steg. | Flytmotoren leser historikken når behandlingen lastes. Mottaket bruker behandlingsoppslaget til å kontrollere om innsamling fortsatt er åpen. |
 | `AVKLARINGSBEHOV` og `AVKLARINGSBEHOV_ENDRING` | [AvklaringsbehovRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/avklaringsbehov/AvklaringsbehovRepositoryImpl.kt) | Motoren og orkestratoren lagrer behov og løsninger som i dag. Samtykkeløseren oppretter samtykkevent. `VentebehovEvaluererService` avslutter venten ved utløpt frist, positiv vurdering eller ny kandidat. Dokumentbehandlingens ordinære steg og løsere håndterer `DIGITALISER_DOKUMENT` og eventuell overleveringsavklaring. Ingen vent i under-18-behandlingen på dokumentbehandlingene. | Hver behandling leser sine egne behov ved prosessering. API-et kan lese dokumentbehandlingens fremdrift gjennom repositoryene. |
 | `PERSON` og `PERSON_IDENT` | [PersonRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/person/PersonRepositoryImpl.kt) | [PersonService.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/faktagrunnlag/register/PersonService.kt) finner/oppretter personen med identer fra PDL. Mottaket og informasjonskravet bruker denne håndteringen. | Person- og behandlingsoppslag i mottaket, og lasting av journalpostsnapshots. |
@@ -752,8 +842,9 @@ på grunnlag av den samme journalposten.
 Det skal ikke gjøres historisk dokumentinnhenting.
 
 Ny migrasjon legges i `repository/src/main/resources/flyway/`.
-Ved denne gjennomgangen er siste versjon `V1.80`, så `V1.81__under18_flyt.sql` er
-et mulig navn. Kontroller neste ledige nummer ved implementering.
+Ved denne gjennomgangen er siste versjon `V1.81` (`informasjonskrav_oppdatert`, #984).
+Alle nye tabeller opprettes i én migrering i leveranse 8, med neste ledige nummer.
+Det lages ingen tidlig migrering for mottaksregistreringen.
 Bruk SQL som fungerer på Postgres 16.
 
 ### Samtykkerunder, vent og alder
@@ -844,17 +935,20 @@ En tidligere bekreftelse må ikke føre til henleggelse hvis søkeren nå har pa
 ### Samtidighet og idempotens
 
 - Bruk person-ID fra `PersonService`, ikke fødselsnummer, for å finne behandlingen som samler søknadene.
-  Hold en databaselås per person ved opprettelse, og gjenta oppslaget på eksisterende behandling.
+  Handoff-jobben og saksopprettelsen bruker samme databaselås per person og gjentar
+  oppslaget på samlingen mens låsen holdes.
 - Ved endring av en eksisterende behandling brukes
   [TaSkriveLåsRepository.kt:7-12](flyt/src/main/kotlin/no/nav/aap/postmottak/journalpostogbehandling/lås/TaSkriveLåsRepository.kt#L7-L12),
   inkludert versjonsoppdatering. Når en ny mottakshendelse gir en kandidat i
   lesemodellen, skal `ProsesserBehandlingJobbUtfører` oppdatere behandlingsversjonen under lås, slik at en åpen
   frontend-visning blir utdatert. Dette krever ingen lagret kandidatkobling.
-- Rutingservicen må kontrollere på nytt om innsamlingen er åpen etter at behandlingslåsen
-  er tatt. Samme lås beskytter saksopprettelsen og avslutningen av innsamlingen.
-  En samtidig ny søknad blir enten med i samlingen eller rutes ordinært etterpå, aldri begge deler.
-- Ikke legg personlås inn i steg som allerede kjøres under behandlingslås.
-  Låsrekkefølgen må være entydig mellom mottak og motor for å unngå deadlock.
+- Handoff-jobben tar personlåsen uten å ta Journalføring- eller
+  under-18-behandlingslåsen. Under-18-steget kan ta samme personlås mens
+  behandlingslåsen holdes for å serialisere saksopprettelse mot innkommende
+  søknader. Ingen kodevei må ta en behandlingslås mens den holder personlåsen;
+  slå opp og kontroller samlingen på nytt etter at personlåsen er tatt.
+  Dermed blir en samtidig søknad enten med i samlingen før den stenges eller
+  behandlet etter den særskilte avklaringen for sen Journalføring-handoff.
 - Behandlingens hovedjournalpost og motorens `sakId` skal være stabile.
   Under-18-behandlingen bruker den første kildejournalposten. Hver dokumentbehandling
   bruker sin nye journalpost-ID. Ingen av disse ID-ene skal byttes underveis.
@@ -866,8 +960,9 @@ En tidligere bekreftelse må ikke føre til henleggelse hvis søkeren nå har pa
   En feilet jobb skal ikke føre til at en ny dokumentbehandling opprettes.
 - Dokumentbehandlingens overleveringssteg lagrer overleveringstidspunktet først etter
   et vellykket HTTP-kall. Dette brukes til visning, ikke til koordinering av andre behandlinger.
-- Hent aktuell status fra SAF før journalføring og tilknytning.
-  Allerede utført operasjon skal kunne gjenkjennes ved retry.
+- Vanlig Journalføring eier journalføring og ferdigstilling. Under-18-flyten
+  journalfører ikke på nytt. Hent aktuell SAF-status før Dokarkiv-tilknytning,
+  og gjenkjenn allerede utført operasjon ved retry.
 - Lagre returnert `nyJournalpostId` og gjenbruk tilknytningen ved senere kjøringer.
   Ved avbrutt dokarkiv-kall eller manglende lokal kobling etter rollback verifiseres
   tilknytningen med et lesekall før operasjonen eventuelt forsøkes på nytt.
@@ -903,12 +998,13 @@ Ved avbrutt kall eller lokal rollback kan steget gjenta kallet med samme input o
 lagre saksnummeret fra svaret. Dette krever ingen egen operasjonsreferanse.
 En sak returnert ved et slikt nytt forsøk er ikke en uventet sak opprettet under vent.
 
-Gjenbruk
+Vanlig Journalføring bruker
 [JournalføringService.kt:98-115](flyt/src/main/kotlin/no/nav/aap/postmottak/gateway/JournalføringService.kt#L98-L115)
 for journalføring på generell sak og
 [ferdigstillJournalpostMaskinelt:136-149](flyt/src/main/kotlin/no/nav/aap/postmottak/gateway/JournalføringService.kt#L136-L149)
-for maskinell ferdigstilling. Tjenesten delegerer HTTP-operasjonene til `DokarkivGateway`.
-Ikke bruk `førJournalpostPåFagsak` til å forsøke å endre fagsak på den ferdigstilte journalposten.
+for ferdigstilling. Under-18-flyten starter først etter at dette er gjort.
+Ikke kall tjenesten på nytt derfra eller bruk `førJournalpostPåFagsak` til å
+forsøke å endre fagsak på den ferdigstilte journalposten.
 
 Legg til `knyttTilAnnenSak(...): JournalpostId` i
 [DokarkivGateway.kt:11](flyt/src/main/kotlin/no/nav/aap/postmottak/gateway/DokarkivGateway.kt#L11).
@@ -1222,12 +1318,16 @@ Filer som bare gjenbrukes, er merket med dette.
 | [GjenopptakRepositoryImpl.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/gjenopptak/GjenopptakRepositoryImpl.kt) og [GjenopptaBehandlingJobbUtfører.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/prosessering/GjenopptaBehandlingJobbUtfører.kt) | Utvid den daglige gjenopptaksjobben til å finne aktive under-18-behandlinger før saksopprettelse der søkeren har fylt 18 år, også uten utløpt ventefrist. Gjenopptaksmekanismen opphever samtykke- og henleggelsesvent utenfor flytstegene og legger inn en prosesseringsjobb. Søknadssteget ber om saksbehandlers avklaring. Vent på dokumentbehandling etter saksopprettelse skal beholdes. |
 | [AvklaringsbehovKode.kt](kontrakt/src/main/kotlin/no/nav/aap/postmottak/kontrakt/avklaringsbehov/AvklaringsbehovKode.kt) og [Definisjon.kt](kontrakt/src/main/kotlin/no/nav/aap/postmottak/kontrakt/avklaringsbehov/Definisjon.kt) | Henleggelse, samtykke, videre søknad etter fylte 18 år og automatisk samtykkevent. Ingen ny digitaliseringskode eller dokumentbehandlingsvent. |
 | [BehandlingType.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/flyt/BehandlingType.kt) | Koble `Under18` til den nye flyten i `utledType`. |
-| [BehandlingRepository.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/journalpostogbehandling/behandling/BehandlingRepository.kt) og [BehandlingRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/behandling/BehandlingRepositoryImpl.kt) | Gjenbruk opprettelse for begge behandlingstypene. Legg til personoppslag for under-18 som også finner nyopprettede behandlinger. Gjenbruk oppslag på dokumentbehandlingens ID og status. |
+| [BehandlingRepository.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/journalpostogbehandling/behandling/BehandlingRepository.kt) og [BehandlingRepositoryImpl.kt](repository/src/main/kotlin/no/nav/aap/postmottak/repository/behandling/BehandlingRepositoryImpl.kt) | Gjenbruk opprettelse for begge behandlingstypene. Legg til personoppslag for under-18 som også finner nyopprettede behandlinger uten `AVKLARINGSPUNKT`. Gjenbruk oppslag på dokumentbehandlingens ID og status. |
+| `InnkommendeJournalpostRepository.kt` og `InnkommendeJournalpostRepositoryImpl.kt` | Registrer første mottak før jobbinnlegging, med unik journalpost-ID, mottakstid, relevant status/tema, person og vurderingsstatus. Lagre og gjenbruk varig rutevalg. Skill «registrert, ikke vurdert» fra ferdig vurdert, og gjør dette idempotent for dupliserte Kafka-hendelser og retry. Avklar om dagens tabell kan støtte hele livssyklusen. |
 | [JournalpostRepository.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/faktagrunnlag/saksbehandler/dokument/JournalpostRepository.kt) | Gjenbruk lagring og oppslag på konkret journalpost-ID for søknadene. Journalpostdata skal ikke kopieres til `UNDER18_SOKNAD`. |
-| [KafkaStreams.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/KafkaStreams.kt) | Registrer mottakshendelsen, finn aktuell under-18-behandling på personen og legg inn `ProsesserBehandlingJobbUtfører`, også i grenen med åpen Journalføring-behandling. Ikke avslutt samtykkevent her. |
-| [VurderRelevantDokumentForAAPJobbUtfører.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/VurderRelevantDokumentForAAPJobbUtfører.kt) | Bruk rutingservicen før Fordeling opprettes. Behold ordinær mottaksregistrering og øvrige grener. |
-| [FeatureToggle.kt](flyt/src/main/kotlin/no/nav/aap/unleash/FeatureToggle.kt) | Definer togglen, og sjekk den bare ved opprettelse av en ny under-18-behandling. |
-| [JournalføringService.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/gateway/JournalføringService.kt) | Gjenbruk beriking, journalføring på generell sak og maskinell ferdigstilling. Ingen nye HTTP-kall her. |
+| [KafkaStreams.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/KafkaStreams.kt) | Bevar mottak før jobbinnlegging i begge grener, også når Journalføring allerede er åpen. Legg kandidatprosesseringsjobb i kø uavhengig av Journalføring, men ikke la den blokkere vanlig Journalføring. Hvis Under18 ikke finnes ennå, skal mottakshistorikken kunne fanges opp ved opprettelsen. Ikke avslutt samtykkevent her. |
+| [VurderRelevantDokumentForAAPJobbUtfører.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/VurderRelevantDokumentForAAPJobbUtfører.kt) | Bruk `Under18MottakService` til å velge og lagre ruting før Fordeling opprettes, og la vurderingsjobben fortsette en mottaksregistrering som ikke er ferdig vurdert. Gjenbruk varig rutevalg ved retry. Behold øvrige grener. |
+| [AvklarSakSteg.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/AvklarSakSteg.kt) | For en journalpost med varig under-18-rutemarkør velg automatisk generell sak etter at `AVKLAR_TEMA` er bekreftet som AAP. Andre tema følger eksisterende Journalføring. |
+| [VideresendSteg.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/VideresendSteg.kt) | Etter vellykket ferdigstilling: for markert AAP-søknad, legg en egen handoff-jobb i kø i samme transaksjon. Ikke opprett/finn Under18 direkte mens Journalføring-behandlingslåsen holdes. Handoff-jobben kontrollerer at status er nøyaktig `AVSLUTTET`; ikke bruk `Status.erAvsluttet()`, som også er sann for `IVERKSETTES`. Behold dagens generelle oppførsel for andre journalposter. Avklar og dekk søknad som blir ferdig etter at innsamlingen er stengt. |
+| [ProsesseringsJobber.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/prosessering/ProsesseringsJobber.kt) | Registrer den nye, idempotente handoff-jobben. Jobbtypen er varig og må ikke omdøpes etter at den er tatt i bruk. |
+| [FeatureToggle.kt](flyt/src/main/kotlin/no/nav/aap/unleash/FeatureToggle.kt) | Definer togglen og sjekk den ved valg av rute for en ny mottakshendelse. En lagret rutemarkør skal kunne fullføres selv om togglen senere slås av. |
+| [JournalføringSteg.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/JournalføringSteg.kt) og [JournalføringService.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/gateway/JournalføringService.kt) | Gjenbruk dagens beriking, journalføring på generell sak og ferdigstilling i den vanlige Journalføring-flyten. Under-18-flyten skal ikke kalle dette på nytt. |
 | [DokarkivGateway.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/gateway/DokarkivGateway.kt) | Har `knyttTilAnnenSak` med returtype `JournalpostId`. |
 | [DokarkivGatewayKlient.kt](klienter/src/main/kotlin/no/nav/aap/postmottak/klient/dokarkiv/DokarkivGatewayKlient.kt) | Har HTTP-operasjonen, request-/response-DTO-er og oversetting av `nyJournalpostId`. |
 | [DefaultGatewayProvider.kt](klienter/src/main/kotlin/no/nav/aap/postmottak/klient/DefaultGatewayProvider.kt) | Gjenbruk eksisterende registrering av `DokarkivGatewayKlient`. Ingen endring er nødvendig. |
@@ -1254,26 +1354,33 @@ flyt/src/main/kotlin/no/nav/aap/postmottak/
   forretningsflyt/steg/under18/AvklarUnder18Steg.kt
   forretningsflyt/steg/under18/AvklarUnder18SamtykkeSteg.kt
   forretningsflyt/steg/under18/OpprettUnder18SakSteg.kt
+  prosessering/Under18JournalførtSøknadJobbUtfører.kt
   under18/Under18Repository.kt
   under18/Under18SamtykkeVurdering.kt
   under18/Under18Grunnlag.kt
   under18/Under18DokumentbehandlingService.kt
-  mottak/Under18MottakService.kt
-  faktagrunnlag/under18/Under18JournalposterInformasjonskrav.kt
+  mottak/Under18MottakService.kt  (rutevalg ved mottak og idempotent handoff)
+  under18/Under18JournalposterInformasjonskrav.kt  (finnes)
+  mottak/JournalpostMottakRepository.kt
+  mottak/RegistrerMottakPersonJobbUtfører.kt  (finnes på branchen)
+  mottak/VarsleUnder18OmMottakJobbUtfører.kt  (finnes på branchen)
+  under18/Under18Samtykkekandidater.kt  (finnes)
+  under18/Under18SamtykkeVentebehovEvaluerer.kt  (finnes)
   under18/Under18FødselsdatoInformasjonskrav.kt
   under18/Under18Aldersgruppe.kt
   under18/Under18Søknadsavklaring.kt
 lib-test/src/main/kotlin/no/nav/aap/postmottak/test/fakes/
   InMemoryUnder18Repository.kt
+  InMemoryJournalpostMottakRepository.kt
   avklaringsbehov/løsning/AvklarUnder18SøknadLøsning.kt
   avklaringsbehov/løsning/AvklarUnder18SamtykkeLøsning.kt
   avklaringsbehov/løser/AvklarUnder18SøknadLøser.kt
   avklaringsbehov/løser/AvklarUnder18SamtykkeLøser.kt
 repository/src/main/kotlin/no/nav/aap/postmottak/
   repository/under18/Under18RepositoryImpl.kt
+  repository/mottak/JournalpostMottakRepositoryImpl.kt  (TODO() til leveranse 8)
 repository/src/main/resources/flyway/
-  V1.81__under18_soknad_og_samtykke.sql  (i #972; UNDER18_PERSONOPPLYSNING gjenstår)
-  V1.<neste>__...  (eventuelle senere migrasjoner)
+  V1.<neste>__under18_flyt.sql  (én migrering i leveranse 8: mottak, rutemarkør, venterunder og Under18-tabellene)
 repository/src/test/kotlin/no/nav/aap/postmottak/repository/under18/
   Under18RepositoryImplTest.kt
 api/src/main/kotlin/no/nav/aap/postmottak/
@@ -1292,25 +1399,27 @@ i `flyt/flate/visning/`. Dette må velges sammen med steggruppene, ikke utelates
 | Testnivå | Viktige tilfeller |
 | --- | --- |
 | Rene tester | Aldersgrensene, exception ved manglende fødselsdato, passering av grensen mens oppgaven er åpen, ventefrist før 18-årsdagen, automatisk oppheving av samtykke- og henleggelsesvent, både automatisk og manuelt satt, ved fylte 18 år, krav om at saksbehandler registrerer søkerens ønske om å fortsette, og stabil søknadssortering. |
-| Repository og lesemodell | Fødselsdato lagres og hentes per behandling. Flere søknadskoblinger per under-18-behandling, historiske samtykkevurderinger, én behandling som samler søknader per person og utledede kandidater uten duplikater. Unik kildejournalpost og unik valgfri dokumentbehandlings-ID. Tilknytninger er uforanderlige per behandling og kildejournalpost. Gjentatt kobling og overleveringsbekreftelse skal bevare opprinnelige verdier. Les dokumentbehandlingens status og vurdering uten å kopiere dem til søknadstabellen. |
-| Mottak og Kafka | Toggle av/på, eksisterende sak, oppslag på person for ukjent journalpost, prosesseringsjobb med behandlingens hovedjournalpost som `sakId`, kandidat med åpen Journalføring-behandling og ulik kjørerekkefølge mellom vurderingsjobb og prosesseringsjobb. |
+| Repository og lesemodell | Fødselsdato lagres og hentes per behandling. Flere søknadskoblinger per under-18-behandling, historiske samtykkevurderinger, én behandling som samler søknader per person og utledede kandidater uten duplikater. Unik kildejournalpost og unik valgfri dokumentbehandlings-ID. Tilknytninger er uforanderlige per behandling og kildejournalpost. Gjentatt kobling og overleveringsbekreftelse skal bevare opprinnelige verdier. Les dokumentbehandlingens status og vurdering uten å kopiere dem til søknadstabellen. Mottaksregistreringen bevarer første mottakstid, opprinnelig tema/status og varig rutevalg; en mottaksregistrert, ikke vurdert rad kan fortsette gjennom vurderingsjobben. |
+| Mottak og Kafka | Toggle av/på, eksisterende sak, oppslag på person for ukjent journalpost, prosesseringsjobb med behandlingens hovedjournalpost som `sakId`, kandidat med åpen Journalføring-behandling og ulik kjørerekkefølge mellom vurderingsjobb og prosesseringsjobb. Dekk også duplisert Kafka-hendelse, forsinket vurderingsjobb, åpen Journalføring-gren, mottak før Under18 opprettes, og at kandidatbehandling ikke blokkerer Journalføring. |
+| Vanlig Journalføring og handoff | Kvalifisert papir-søknad starter vanlig Journalføring uten Under18-behandling. AAP-bekreftelse velger generell sak; annet tema oppretter ikke Under18. Handoff oppretter/finner Under18 først etter ferdigstilling og krever status `AVSLUTTET`, ikke bare `Status.erAvsluttet()`. Retry etter ferdigstilling journalfører ikke på nytt og oppretter ikke duplikat. Vanlig Journalføring uten rutemarkør har uendret oppførsel. Test rutevalg før og etter toggle-endring. |
 | Informasjonskrav, steg og løsere | Oppdatering mens behandlingen står på automatisk eller manuell samtykke-/henleggelsesvent. Nye kandidater tar den av automatisk vent, men gamle dokumenter gjør ikke dette i senere runder. Fødselsdagen tar behandlingen av disse ventetypene før saksopprettelse og oppretter en manuell avklaring om søker vil fortsette. Vent på dokumentbehandling etter saksopprettelse skal være urørt. Kontroller at samme vurdering ikke oppretter vent flere ganger. Dekk godkjent samtykke, tom samtykkeliste, flere samtykkerunder, henleggelse, manuell vent, ja og nei (henleggelse) på spørsmålet om videre søknad og ugyldige journalposter i samtykkelisten. Bruk mottakshendelsens status og tidspunkt selv om SAF senere viser `JOURNALFOERT`. Løs-behov kontrollerer dokumentbehandlingens versjon, og løseren validerer dato mot originalens mottaksdato. |
 | Opprettelse av dokumentbehandling | Riktig ny journalpost, Kelvin-saksgrunnlag, unik søknadskobling og første jobb lagres samlet. Retry, parallelle jobber for under-18-behandlingen og feil midt i transaksjonen skal ikke opprette flere dokumentbehandlinger for samme søknad. Ingen digitaliserings- eller overleveringsvurdering kopieres fra en annen søknad. |
 | Uavhengige dokumentbehandlinger | Alle søknader får dokumentbehandling og jobb uten å vente på de andre. Flere kan ha åpen digitaliseringsoppgave samtidig. Overlevering i ulik rekkefølge er tillatt. Manuell vent eller feilet jobb i én dokumentbehandling blokkerer ikke de andre. Under-18-behandlingen avsluttes etter opprettelse, før dokumentbehandlingene er ferdige. |
 | Retry og transaksjoner | Dokumentbehandlingens jobb tar ikke under-18-behandlingens lås og legger ikke inn en jobb for den ved avslutning. Etter rollback brukes samme nye journalpost-ID ved retry. Lagret overlevering og dokumentbehandlingens status vises separat, uten å styre andre søknader. |
 | Dokarkiv-klient | Riktig `PUT`-endepunkt og request, retur av `JournalpostId` og feil ved manglende ID. Test klientens egen logikk, ikke generell oppførsel i `RestClient` eller Jackson. |
-| Integrasjoner | Journalføring på generell sak, ny journalpost-ID fra tilknytning, samme journalpost som søknad og samtykke og SAF-gjenfinning med riktig sak og komplett dokumentsett. Test krasj før og etter skrivekall, rollback, samtidige forsøk, flere treff og usikkert tomt resultat. Ingen av disse skal føre til et nytt usikkert skrivekall. Bruk ulike datoer og kanaler på original og ny journalpost for å kontrollere at dokumentbehandlingen sender med ny ID og opplysninger fra originalen. |
+| Integrasjoner | Vanlig Journalføring på generell sak fullføres før Under18-handoff. Test også ny journalpost-ID fra tilknytning, samme journalpost som søknad og samtykke og SAF-gjenfinning med riktig sak og komplett dokumentsett. Test krasj før og etter skrivekall, rollback, samtidige forsøk, flere treff og usikkert tomt resultat. Ingen av disse skal føre til et nytt usikkert skrivekall. Bruk ulike datoer og kanaler på original og ny journalpost for å kontrollere at dokumentbehandlingen sender med ny ID og opplysninger fra originalen. |
+| Samtidige Journalføring-løp | To søknader for samme person ferdigstilles samtidig: én Under18-behandling opprettes, begge søknader registreres én gang, og prosesseringsjobber legges inn atomisk. Test også at en sen Journalføring-handoff ikke etterlater en ferdig journalpost uten videre behandling når Kelvin-sak opprettes eller samlingen stenges mellom ruting og handoff. |
 | API, oppgaver og tilgang | Under-18-lesepunktet viser dokumentbehandlingens referanse, status, behov og feil. Dagens digitaliserings-API og løs-behov brukes med dokumentbehandlingens referanse og versjon. Tilgang til under-18-behandlingen gir ikke automatisk tilgang til nye journalposter eller dokumentbehandlinger. Bare dokumentbehandlingen får en manuell digitaliseringsoppgave. |
 | Tidlig flyttest | Kjør skjelettet gjennom motoren med syntetiske data. Test avklaring, samtykkevent, gjenopptakelse og henleggelse før neste migrasjon. Bruk en styrbar klokke for 18-årsdagen; den daglige produksjonsjobben kommer etter at aldersovergangen er testet. Uferdige steg må ikke opprette sak eller avslutte behandlingen som om de var fullført. |
 | Flyttest | Én under-18-behandling med to søknader: vent, samtykke, én Kelvin-sak og tilknytning. Begge dokumentbehandlingene og jobbene opprettes, og under-18-behandlingen avsluttes mens digitalisering gjenstår. Fullfør søknad 2 før søknad 1 og kontroller separat overlevering med riktig ny journalpost-ID. Senere søknader følger vanlig flyt. Test fylte 18 år under automatisk vent, manuell samtykkevent og uten aktiv vent. Fødselsdagsjobben skal ikke opprette sak før saksbehandler har registrert at søker vil fortsette, eller endre dokumentbehandlingenes vent etter saksopprettelse. |
 
 Utvid eksisterende mottaks- og løsertester der de har registreringskontroller.
-Test under-18-stegenes beslutninger med en fake `DokarkivGateway`; ikke legg
-URL- og JSON-asserts i stegtestene. Behold minst én integrasjonstest gjennom den
-registrerte klienten og HTTP-fakene, slik at gateway-registreringen også blir brukt.
-Bruk `@Fakes`, `TestDataSource` og nye testpersoner/journalposter.
-Kjør målrettede tester med repoets testskript, ikke hele `test` eller `build`.
-Behold relevante regresjonstester for vanlig Journalføring og DokumentHåndtering.
+Test under-18-beslutninger med `@Fakes`, `TestDataSource`, repositorier i minnet
+og egne testpersoner/journalposter; foretrekk fakes framfor mocks. Behold minst
+én integrasjonstest gjennom den registrerte klienten og HTTP-fakene, slik at
+gateway-registreringen også blir brukt. Kjør målrettede tester mens du itererer,
+relevante Journalføring-regresjonstester og hele `./gradlew test` før oppgaven
+er ferdig. Kjør `./gradlew detekt` for lint.
 
 #### Verifiser gatewayene i dev med midlertidige API-endepunkter
 
@@ -1356,16 +1465,19 @@ Dev-verifiseringen supplerer, men erstatter ikke, klient-, repository- og flytte
 
 ### Avklaringer og når de trengs
 
-Ingen nye avklaringer blokkerer de første leveransene. Vi kan begynne med
-avgrenset gjenbruk av eksisterende kode, klientstøtte og minimal lagring.
-Forretningsavklaringer gjenstår for enkelte avvik i samhandlingen mellom behandlingene. Eksterne integrasjonsforutsetninger må
-verifiseres før tilknytningssteget ferdigstilles.
+Ingen nye avklaringer blokkerer repository- og klientarbeid. Før ny ruting kan
+fullføres eller aktiveres, må vi avklare sen Journalføring-handoff når
+under-18-samlingen allerede er stengt. Forretningsavklaringer gjenstår også for
+enkelte avvik i samhandlingen mellom behandlingene. Eksterne
+integrasjonsforutsetninger må verifiseres før tilknytningssteget ferdigstilles.
 Forslag til håndtering nedenfor er ikke nye, vedtatte krav.
 
 #### Avklar før den berørte funksjonen ferdigstilles
 
 | Punkt | Hva gjenstår | Når det trengs |
 | --- | --- | --- |
+| Kelvin-sak oppstår etter rutingsvalget | Avklar hva som skjer hvis personen får Kelvin-sak etter at journalposten er markert for Under18, men før `AvklarSakSteg` eller ferdigstilt Journalføring. Rutevalget er varig; det må ikke skifte stille til vanlig fordeling eller fortsette til generell sak uten en definert regel. | Før rutingen tas i bruk. |
+| Ferdig journalført søknad etter at samlingen stenges | Bestem hva som skjer hvis en markert AAP-søknad blir ferdig på generell sak etter at Kelvin-saken er opprettet og Under18-samlingen er stengt. Den må enten kunne knyttes til en fortsatt åpen samling, eller få en definert alternativ behandling/varsling. Ikke anta at ordinær Journalføring kan startes på nytt eller la journalposten bli liggende uten videre behandling. | Før handoff-jobben ferdigstilles og rutingen aktiveres. |
 | Gjenfinning etter avbrutt tilknytning | Bekreft at dokarkiv gjenbruker dokument-ID-ene slik SAF-oppslaget forutsetter. Avklar når resultatet garantert blir synlig, og hvordan vi håndterer at et avbrutt kall fortsatt kan fullføre. Et tomt SAF-resultat er ikke nok til å gjenta skrivekallet. Lagre en varig forsøksregistrering før kallet. | Før tilknytningssteget ferdigstilles. SAF- og Dokarkiv-klientene er på plass. Automatisk nytt skriveforsøk kan utsettes, se nedenfor. |
 | Forutsetninger for tilknytning | Swagger angir feltene, men ikke hvilke som er obligatoriske. Kontroller også tillatte kildestatuser og håndtering av samtykkedokumenter som fortsatt behandles ordinært eller allerede ligger på en annen fagsak. Hvis kontrakten krever venting eller annen journalføring, må forløpet beskrives før vi koder det. | Før tilknytningssteget ferdigstilles. |
 
@@ -1391,10 +1503,10 @@ De krever ikke nye forretningsavklaringer:
 
 | Punkt | Føring og tidspunkt |
 | --- | --- |
-| Lagring av mottakshendelser | Avklar hvilke eksisterende mottaks- og hendelsesdata som kan gjenbrukes, og hvilke felt som mangler, før eventuell migrasjon. `UNDER18_JOURNALPOST_OBSERVASJON` er et arbeidsforslag, ikke et krav om en ny tabell. Kandidater skal uansett utledes, og tidligere dokumenter skal ikke bli nye ved gjentatte hendelser. |
+| Lagring av mottakshendelser | Valgt: eget `JournalpostMottakRepository`, in-memory til leveranse 8. Det registrerer idempotent før vurderingsjobben, bevarer første mottakstid, løpenummer, relevant status/tema, person og valgt rute. `INNKOMMENDE_JOURNALPOST` endres ikke. Kandidater utledes fra historikken; tidligere dokumenter blir ikke nye ved gjentatte hendelser. |
 | Samme dokument tar ikke behandlingen av vent flere ganger | Velg lagringsmekanismen i mottakshistorikken, og fullfør ventelogikken i kandidat- og aldersutløserne. Mottakshistorikk og samtykkerunder må skille nye dokumenter fra dem som allerede har tatt behandlingen av vent, også ved forsinkede jobber og retry. Løseren oppretter vent ved et nytt svar; steget gjør det ikke ved gjentatt prosessering. Dette hindrer ikke at samme dokument avslutter en senere venteperiode. Ingen FK fra grunnlag til avklaringsbehovshistorikken. |
 | Personoppslag fra Kafka | Gjenbruk personhåndteringen og test ukjent journalpost, flere identer, SAF-/PDL-feil og sikker jobbinnlegging. En feil i kandidatvarslingen skal ikke miste kandidaten eller blokkere ordinær behandling. Velg transaksjonsgrense og retry-mekanisme før koblingen innføres. Feil under selve rutingsbeslutningen må fortsatt føre til retry, ikke automatisk ordinær ruting. |
-| Samtidighet | Etabler låsene i repositoryarbeidet og test dem med mottaksintegrasjonen. Test samtidig søknad og saksopprettelse, også når saksopprettelsen lykkes eksternt uten at saksnummeret blir lagret lokalt. Gjenfinning av egen saksopprettelse må ikke forveksles med en uventet ekstern sak eller åpne for videre innsamling. |
+| Samtidighet og låser | Etabler personlåsen og en fast låserekkefølge før mottaksintegrasjonen og handoff-jobben kobles inn. Test to samtidige Journalføring-handoffs, handoff samtidig med saksopprettelse, og ekstern saksopprettelse med lokal rollback. Handoff-jobben skal ikke ta en behandlingslås mens personlåsen holdes. Gjenfinning av egen saksopprettelse må ikke forveksles med en uventet ekstern sak eller åpne for videre innsamling. |
 | Dokumentbehandlinger | Valget er tatt: gjenbruk `DokumentHåndtering`. Opprett dokumentbehandlingene, overfør saksgrunnlag og legg inn jobbene. Bruk opplysninger fra originaljournalposten, og registrer bekreftet overlevering for visning. Ingen koordinering, dokumentbehandlingsvent eller jobb som gjenopptar under-18-behandlingen. Ikke innfør en parallell under-18-digitalisering. |
 | Kontraktsnavn og visning | Velg navn, ledige koder, steggrupper og nødvendig visningsutledning når funksjonen legges til. Alle berørte `when`-uttrykk og registreringer må følge samme endring. Lesepunktets DTO avtales før frontend begynner å bruke det. |
 
@@ -1440,39 +1552,60 @@ Disse punktene skal implementeres og testes, ikke avklares på nytt.
 
 ### Videre leveranser
 
-Status per 20. november 2026: #974 (flytskjelettet) og #976
-(informasjonskravrettingen) er merget. #975 inneholder den in-memory-baserte
-avklaringsflyten, mens #972 inneholder første versjon av Postgres-repoet. Begge
-PR-ene er åpne. #978 legger til en styrbar klokke og tilbakeføring ved endret
-aldersgruppe. Testen simulerer gjenopptak; den daglige produksjonstriggeren gjenstår.
-I #975 avslutter en spesifikk evaluator vent ved positiv samtykkevurdering.
-Leveranse 2 i #979 registrerer også en evaluator for nye kandidater. Mottakstriggeren
-legger inn en prosesseringsjobb; motoren avslutter venten når kandidaten er mottatt
-etter at den aktuelle venten ble opprettet.
+Status per 24. november 2026:
 
-Listen under viser foreslått rekkefølge, ikke tildelte GitHub-numre. Hver leveranse
-skal kunne merges og deployes uten at senere leveranser må være på plass.
-Opprett ikke reelle under-18-behandlinger før hele flyten er ferdig og aktivert.
+- Merget til main: #974 (flytskjelettet), #976 (informasjonskravrettingen), #975 (den
+  in-memory-baserte avklaringsflyten), #978 (styrbar klokke og tilbakeføring ved endret
+  aldersgruppe), #980 (ventebehovsevaluatorer) og #984 (lagring av siste kjøring og input
+  for informasjonskrav).
+- Åpne: #972 med første versjon av Postgres-repoet, og #979 med mottakshistorikk/ventetrigger.
 
-Vi bygger så mye som mulig in-memory før vi skriver migreringer. Leveranse 1–6
-legger til repository-grensesnitt i `flyt` og implementasjoner i
-`InMemoryUnder18Repository` (eller tilsvarende fakes i `lib-test`). Testene
-registrerer dem i `WithDependencies`. Produksjonen registrerer et midlertidig
-`Under18RepositoryImpl` med `TODO()`-metoder, så under-18-flyten kan ikke kjøres
-der før repositoryet er ferdig.
-Slik kan datamodellen endres fritt til flyten er ferdig, og vi skriver én samlet
-migrering i stedet for å rette applied migreringer underveis.
+#### Prinsipp: in-memory først, én migrering til slutt
 
-In-memory-implementasjonene må håndheve de samme reglene som tabellene skal ha:
-unike koblinger, uforanderlige rader og én aktiv vurdering. Det som bare kan testes
-mot Postgres, venter til leveranse 7: transaksjonell rollback, savepoints, låser og
-samtidighet. Tester av disse punktene skrives i leveranse 7, ikke med in-memory-repoet.
+Vi bygger hele forløpet med repositorier i minnet før vi skriver migreringer.
+Alle nye data – mottakshistorikk, rutemarkør, venterunder og Under18-tabellene –
+migreres samlet i leveranse 8. Fram til da gjelder dette:
 
-API og triggere kommer etter Postgres-repoene. Et endepunkt eller en cron-jobb kjører
-i produksjon og ville feilet ved oppslag i det uferdige repositoryet.
-Unntaket er triggeren for nye journalposter, som er flyttet frem til leveranse 2.
-Triggeren og kandidat-evaluatoren bruker eksisterende tabeller. Prosessering av en
-under-18-behandling trenger likevel det uferdige `Under18Repository`.
+- Nye data får egne repository-grensesnitt i `flyt` og in-memory-implementasjoner i
+  `lib-test/.../fakes`. Testene registrerer dem i `WithDependencies`. Produksjonen
+  registrerer midlertidige `*RepositoryImpl` med `TODO()`-metoder.
+- Vi endrer ikke skjemaet i eksisterende tabeller. Nye spørringer mot eksisterende
+  tabeller (for eksempel åpne Under18-behandlinger per person) kan skrives i Postgres
+  med en gang, fordi de ikke krever migrering.
+- Alle nye kodeveier som berører in-memory-repositoriene, ligger bak togglen
+  `PostmottakUnder18`. Togglen sjekkes før repositoriet slås opp, slik at
+  `TODO()`-implementasjonene aldri nås. Togglen må være av i både dev og prod til
+  leveranse 8 er merget, fordi dev også bruker Postgres-registeret.
+- In-memory-implementasjonene håndhever de samme reglene som tabellene skal ha:
+  unik journalpost-ID i mottakshistorikken, uforanderlig første mottakstid,
+  unike koblinger og én aktiv vurdering. Transaksjonell rollback, savepoints,
+  personlås og samtidighet kan bare testes mot Postgres og testes i leveranse 8.
+- Mottakshistorikken eies av et nytt `JournalpostMottakRepository`, ikke av
+  `InnkommendeJournalpostRepository`. Dagens `INNKOMMENDE_JOURNALPOST` beholder sin
+  livssyklus. Den nye tabellen opprettes i leveranse 8.
+- Rekkefølgen mellom mottak og samtykkevent lagres ikke i
+  `AVKLARINGSBEHOV_ENDRING`. Mottakshistorikken gir hvert mottak et stigende
+  løpenummer. Når samtykkeløseren oppretter vent, lagrer den gjeldende løpenummer
+  på venterunden i `Under18Repository`. Evaluereren avslutter venten bare for
+  kandidater med høyere løpenummer.
+
+#### Leveranse 2 i to PR-er
+
+Leveranse 2 deles i to PR-er for å holde diffen liten:
+
+- **2a (#979)**: Kandidater og samtykkevent fra eksisterende data. Mottakshistorikken
+  leses fra `INNKOMMENDE_JOURNALPOST` (ingen migrering), `Under18JournalposterInformasjonskrav`
+  ligger på søknadssteget, `Under18SamtykkeVentebehovEvaluerer` avslutter vent ved nye
+  kandidater, og `VurderRelevantDokumentForAAPJobbUtfører` legger prosessering i kø for
+  åpne Under18-behandlinger på personen. `Under18SøknadsJournalfører` er fjernet, fordi
+  journalføringen skal skje i vanlig Journalføring.
+- **2b (ny PR)**: Flytt mottakshistorikken til `JournalpostMottakRepository` med
+  in-memory-implementasjon og registrering i `KafkaStreams` bak togglen
+  `PostmottakUnder18`. Legg til jobbene `RegistrerMottakPersonJobbUtfører` og
+  `VarsleUnder18OmMottakJobbUtfører`, kandidatvinduet fra første mottak, personsjekken i
+  informasjonskravet, venterundens løpenummer i `Under18Repository` og oppslagene mot
+  eksisterende tabeller i `BehandlingRepositoryImpl` og `JournalpostRepositoryImpl`.
+  Ingen migrering.
 
 #### Oppfølgingspunkter før flyten tas i bruk
 
@@ -1486,24 +1619,32 @@ under-18-behandling trenger likevel det uferdige `Under18Repository`.
   Avbryt det gamle samtykkebehovet, og test overgangen med manuell vent og uten vent.
   Ikke opprett sak før saksbehandler har registrert svaret.
 
-#972 er åpen og oppdateres med hele datamodellen i leveranse 7. Repositoryet må
-lagre fødselsdato, aldersgruppe og søknadsavklaring, i tillegg til søknadskoblinger
-og samtykkevurderinger. Vent lagres i avklaringsbehovshistorikken.
+#972 er åpen og oppdateres med hele datamodellen i leveranse 8. Repositoryet må
+lagre fødselsdato, aldersgruppe, søknadsavklaring, søknadskoblinger,
+samtykkevurderinger og venterunder. Mottakshistorikk og rutemarkør får egen tabell
+i samme migrering.
+
+#### Leveransene
+
+Hver leveranse skal kunne merges og deployes uten at senere leveranser er på plass.
+Opprett ikke reelle under-18-behandlinger før hele flyten er ferdig og aktivert.
 
 | Rekkefølge | Leveranse | Lagring | Avhengigheter | Omfang og kontroll |
 | --- | --- | --- | --- | --- |
-| 1 | Aldersovergangen etter #975, implementert i #978. | In-memory | #975. | Testen bruker en styrbar klokke. Informasjonskravet på søknadssteget melder `ENDRET` når aldersgruppen endres, slik at flyten føres tilbake dit. Testen sjekker at gammelt samtykkesvar ikke gjenbrukes og at saken ikke opprettes før søker har svart på nytt. Den simulerer den eksterne triggeren som legger inn prosesseringsjobben. |
-| 2 | ✅ Registrer mottakshistorikk for samtykkekandidater og ta behandlingen av vent ved nye journalposter. | Eksisterende `INNKOMMENDE_JOURNALPOST`, ingen migrering | 1. | `InnkommendeJournalpostRepository.finnMottakshistorikk` henter journalposter på personens identer. `Under18Samtykkekandidater` velger dem som er mottatt etter at `AVKLAR_UNDER18_SAMTYKKE` ble opprettet, unntatt hovedjournalposten. Når vurderingsjobben evaluerer en journalpost med kjent person, legger den inn `ProsesserBehandlingJobbUtfører` for hver åpen under-18-behandling på personen. `Under18SamtykkeVentebehovEvaluerer`, registrert eksplisitt i `VentebehovEvaluererServiceImpl`, regner `VENT_PA_UNDER18_SAMTYKKE` som løst bare når kandidaten er mottatt etter siste `OPPRETTET`-tidspunkt for venten. Den tidligere spesialjobben `Under18NyJournalpostJobbUtfører` og den generelle `AvklaringsbehovOrkestrator.taAvVent` er fjernet. Ingen nye behandlinger opprettes. Kjente begrensninger: rader der SAF oppgir aktør-ID som `BRUKER_ID`, blir ikke funnet med folkeregisteridentene, og journalposter som ignoreres fordi de allerede er journalført, gir ingen trigger. |
-| 3 | Journalfør søknadene på generell sak og oppdater kandidater. | In-memory | 2. | Journalfør første og senere søknader før manuell avklaring. Legg til `Under18JournalposterInformasjonskrav`. Nye kandidater skal ikke tolkes automatisk som samtykke. Test nye og gjentatte hendelser, flere samtykkerunder og at dokumenter fra tidligere runder ikke tar behandlingen av vent på nytt. |
-| 4 | Opprett Kelvin-sak og knytt journalpostene. | In-memory | 3. | Fullfør `OpprettUnder18SakSteg` og lagre uforanderlige koblinger. Test at gjentatt kjøring ikke gjentar Dokarkiv-kall som allerede er bekreftet. Rollback og samtidighet testes i leveranse 7. |
-| 5 | Opprett en ordinær dokumentbehandling per søknad. | In-memory for under-18-data, Postgres for eksisterende `BEHANDLING` og grunnlag | 4. | Opprett eller gjenbruk `DokumentHåndtering`, saksgrunnlag og jobb. Bruk ny journalpost-ID i dokumentbehandlingen og opplysninger fra originalen ved validering og overlevering. Dokumentbehandlingene skal kjøre uavhengig. |
-| 6 | Registrer bekreftet overlevering. | In-memory | 5. | Lagre bekreftet overlevering etter vellykket kall, slik at under-18-behandlingen kan vise status for hver søknad. |
-| 7 | Skriv Postgres-repoene og migreringen. | Postgres | 1–6 og #972. | Oppdater #972 med alle under-18-tabellene i én migrering, med primærnøkkel på hver tabell. Registrer implementasjonene i `PostgresRepositoryRegistry` og fjern in-memory-registreringen fra `WithDependencies`. Kjør repo-testene med `TestDataSource`. Test rollback, retry og samtidighet ved saksopprettelse og opprettelse av dokumentbehandlinger, og stans for manuell feilsøking når utfallet av et Dokarkiv-kall ikke kan fastslås. |
-| 8 | Bygg lesemodell/API og produksjonstriggere. | Postgres | 7. | API-et viser kilde og ny journalpost, dokumentbehandlingenes referanser, status, behov, vent og feil. GET skal ikke endre behandling eller historikk. Frontend inngår ikke. Den daglige aldersjobben finner aktive behandlinger før saksopprettelse og legger inn prosesseringsjobb idempotent. Automatisk samtykkevent har 18-årsdagen som frist og løses av fristevaluatoren. Relevant manuell vent må løses av en egen evaluator eller av jobben selv; velg dette i leveransen. Triggeren for nye journalposter er levert i leveranse 2. Ingen av triggerne registrerer samtykke eller oppretter Kelvin-sak. API og triggere kan deles i to PR-er. |
-| 9 | Koble mottaksrutingen bak en avslått feature toggle. | Postgres | 7 og 8. | Finn eller opprett under-18-behandling bare for aktuelle papirsøknader. Eksisterende behandlinger skal fortsatt kunne få kandidater når togglen er av. Test åpen Journalføring, duplikater, ukjent person, ulik jobbrekkefølge og samtidighet. Aktivering er en egen beslutning. |
+| 1 | ✅ Aldersovergangen etter #975, merget i #978. | In-memory | #975. | Testen bruker en styrbar klokke. Informasjonskravet på søknadssteget melder `ENDRET` når aldersgruppen endres. Gammelt samtykkesvar gjenbrukes ikke, og saken opprettes ikke før søker har svart på nytt. |
+| 2 | 🚧 Mottakshistorikk og samtykkevent ved nye kandidater. 2a i #979, 2b i ny PR (se over). | In-memory (`JournalpostMottakRepository`, `Under18Repository`) | 1 og #984. | Registrer første mottak i `KafkaStreams` bak togglen, før jobbene legges i kø, med mottakstid, løpenummer, opprinnelig tema/status. `RegistrerMottakPersonJobbUtfører` knytter mottaket til personen; `VarsleUnder18OmMottakJobbUtfører` legger prosessering i kø for åpne Under18-behandlinger, også når en Journalføring er åpen og før første avklaringspunkt. Kandidatvinduet starter ved første søknads mottak. Samtykkeløseren lagrer løpenummeret på venterunden; evaluereren avslutter vent bare for senere mottak. Test duplikat, retry, forsinket varsling mot ny vent, eldre ident og endret person. Ingen migrering. |
+| 3 | Ruting av papirsøknad til vanlig Journalføring. | In-memory (rutemarkør i `JournalpostMottakRepository`) | 2. | Bak togglen avgjør `VurderRelevantDokumentForAAPJobbUtfører` alder, Kelvin-sak og papirsøknad, lagrer rutemarkøren og oppretter Journalføring i stedet for Fordeling. Retry bruker lagret markør, også om togglen eller alderen endres. Feil i rutingsbeslutningen gir retry, ikke ordinær ruting. |
+| 4 | Generell sak og handoff etter Journalføring. | In-memory | 3 og avklaringen om sen handoff. | `AvklarSakSteg` velger generell sak for journalposter med markør. `VideresendSteg` legger en idempotent handoff-jobb i kø i stedet for å avslutte. Jobben krever status `AVSLUTTET` (ikke `Status.erAvsluttet()`), finner eller oppretter Under18, kobler søknaden og legger inn prosesseringsjobb. Test annet tema, toggleendring etter lagret rute, retry etter ferdigstilling og at to søknader fra samme person havner i samme Under18. Personlås og parallelle handoffs testes i leveranse 8. |
+| 5 | Opprett Kelvin-sak og knytt journalpostene. | In-memory | 4. | Fullfør `OpprettUnder18SakSteg` og lagre uforanderlige koblinger. Gjentatt kjøring gjentar ikke bekreftede Dokarkiv-kall. |
+| 6 | Opprett en ordinær dokumentbehandling per søknad. | In-memory for under-18-data, eksisterende tabeller for `BEHANDLING` og grunnlag | 5. | Opprett eller gjenbruk `DokumentHåndtering`, saksgrunnlag og jobb. Bruk ny journalpost-ID og opplysninger fra originalen ved validering og overlevering. |
+| 7 | Registrer bekreftet overlevering. | In-memory | 6. | Lagre bekreftet overlevering etter vellykket kall, slik at status per søknad kan vises. |
+| 8 | Postgres-repoer og én samlet migrering. | Postgres | 1–7 og #972. | Én migrering med mottakshistorikk, rutemarkør, venterunder og Under18-tabellene, med primærnøkkel på hver tabell og SQL som virker på Postgres 16. Registrer implementasjonene i `PostgresRepositoryRegistry` og fjern in-memory-registreringene fra `WithDependencies`. Test repoene med `TestDataSource`, og test rollback, retry, personlås og samtidighet ved handoff, saksopprettelse og dokumentbehandlinger. Stans for manuell feilsøking når utfallet av et Dokarkiv-kall er ukjent. Etter denne leveransen kan togglen slås på i dev. |
+| 9 | Lesemodell/API og produksjonstriggere. | Postgres | 8. | API-et viser kilde og ny journalpost, dokumentbehandlingenes status, behov, vent og feil. GET endrer ikke behandling eller historikk. Den daglige aldersjobben legger inn prosesseringsjobb idempotent. Automatisk samtykkevent har 18-årsdagen som frist. Kan deles i to PR-er. |
+| 10 | Aktiver ny mottaksrute. | Postgres | 2–9. | Togglen slås på i prod som en egen beslutning. Fra og med denne leveransen kjører kandidatvarsling for eksisterende Under18-behandlinger også når togglen slås av igjen. |
 
 Før aktivering må konsumentene støtte behandlingstype, steggrupper og behovskoder.
 Tilganger, feilhåndtering og driftsrutiner må også være på plass. Verifiser de
 midlertidige SAF- og Dokarkiv-endepunktene med syntetiske data, og fjern dem etterpå.
-Togglen skal bare styre opprettelsen av nye under-18-behandlinger. En behandling
-som allerede er opprettet, skal kunne fullføres også når togglen slås av.
+Etter aktivering styrer togglen bare om nye mottakshendelser kan velge Under18-ruten.
+En lagret rutemarkør og en opprettet behandling skal kunne fullføres også når
+togglen slås av.

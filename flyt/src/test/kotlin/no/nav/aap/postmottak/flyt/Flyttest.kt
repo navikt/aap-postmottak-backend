@@ -45,6 +45,7 @@ import no.nav.aap.postmottak.hendelse.mottak.BehandlingSattPåVent
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -499,6 +500,47 @@ class Flyttest : WithDependencies {
 
         hentBehandling(behandling.id)
             .verifiserErPåVent { assertThat(it).containsExactly(Definisjon.VENT_PA_UNDER18_SAMTYKKE) }
+    }
+
+    @Test
+    fun `under18 - ny samtykkekandidat oppdateres og fører tilbake fra samtykkesteget`() {
+        val behandling = opprettUnder18Behandling(
+            fødselsdato = LocalDate.now().minusYears(18).plusDays(7),
+            journalpostStatus = Journalstatus.JOURNALFOERT,
+        ).sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+        val person = personForBehandling(behandling)
+        val kandidatId = TestJournalposter.leggTil {
+            this.person = TestPersoner.hentPerson(person.aktivIdent().identifikator)
+        }.journalpostId()
+
+        dataSource.transaction { connection ->
+            InnkommendeJournalpostRepositoryImpl(connection).lagre(
+                InnkommendeJournalpost(
+                    journalpostId = kandidatId,
+                    brevkode = Brevkoder.LEGEERKLÆRING.kode,
+                    behandlingstema = null,
+                    status = InnkommendeJournalpostStatus.EVALUERT,
+                    brukerId = person.aktivIdent().identifikator,
+                )
+            )
+        }
+
+        triggProsesserBehandling(behandling.journalpostId, behandling.id)
+
+        val oppdatert = hentBehandling(behandling.id)
+        assertThat(oppdatert.aktivtSteg()).isEqualTo(StegType.AVKLAR_UNDER18_SAMTYKKE)
+        assertThat(oppdatert.stegHistorikk().drop(behandling.stegHistorikk().size).map { it.steg() to it.status() })
+            .containsSubsequence(
+                StegType.AVKLAR_UNDER18_SAMTYKKE to StegStatus.TILBAKEFØRT,
+                StegType.AVKLAR_UNDER18 to StegStatus.TILBAKEFØRT,
+                StegType.AVKLAR_UNDER18 to StegStatus.UTFØRER,
+                StegType.AVKLAR_UNDER18_SAMTYKKE to StegStatus.AVKLARINGSPUNKT,
+            )
+        dataSource.transaction(readOnly = true) { connection ->
+            assertThat(repositoryRegistry.provider(connection).provide<JournalpostRepository>()
+                .hentHvisEksisterer(kandidatId)).isNotNull
+        }
+        oppdatert.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
     }
 
 
@@ -1365,9 +1407,15 @@ class Flyttest : WithDependencies {
         }
     }
 
-    private fun opprettUnder18Behandling(fødselsdato: LocalDate): Behandling {
+    private fun opprettUnder18Behandling(
+        fødselsdato: LocalDate,
+        journalpostStatus: Journalstatus = Journalstatus.MOTTATT,
+    ): Behandling {
         val person = TestPersoner.leggTil(TestPerson(fødselsdato = Fødselsdato(fødselsdato)))
-        val journalpostId = TestJournalposter.leggTil { this.person = person }.journalpostId()
+        val journalpostId = TestJournalposter.leggTil {
+            this.person = person
+            status = journalpostStatus
+        }.journalpostId()
         val behandlingId = dataSource.transaction { connection ->
             repositoryRegistry.provider(connection).provide<BehandlingRepository>()
                 .opprettBehandling(journalpostId, TypeBehandling.Under18)
