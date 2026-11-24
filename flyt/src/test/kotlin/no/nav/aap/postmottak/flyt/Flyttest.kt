@@ -503,7 +503,7 @@ class Flyttest : WithDependencies {
     }
 
     @Test
-    fun `under18 - ny samtykkekandidat oppdateres og fører tilbake fra samtykkesteget`() {
+    fun `under18 - ny samtykkekandidat fører tilbake fra samtykkesteget`() {
         val behandling = opprettUnder18Behandling(
             fødselsdato = LocalDate.now().minusYears(18).plusDays(7),
             journalpostStatus = Journalstatus.JOURNALFOERT,
@@ -538,7 +538,7 @@ class Flyttest : WithDependencies {
             )
         dataSource.transaction(readOnly = true) { connection ->
             assertThat(repositoryRegistry.provider(connection).provide<JournalpostRepository>()
-                .hentHvisEksisterer(kandidatId)).isNotNull
+                .hentHvisEksisterer(kandidatId)).isNull()
         }
         oppdatert.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
     }
