@@ -42,7 +42,7 @@ class Under18JournalposterInformasjonskravTest {
     }
 
     @Test
-    fun `lagrer endringer i kjente kandidater uten å melde endring`() {
+    fun `nye kandidater gir endring og kjente kandidater gir uendret resultat`() {
         TestDataSource().use { dataSource ->
             val person = TestPersoner.leggTil {}
             val hovedjournalpost = TestJournalposter.leggTil { this.person = person }
@@ -50,24 +50,23 @@ class Under18JournalposterInformasjonskravTest {
             val andreKandidat = TestJournalposter.leggTil { this.person = person }
             val oppsett = Under18TestOppsett(dataSource, gatewayProvider)
             val kontekst = oppsett.opprettBehandling(hovedjournalpost)
-            oppsett.registrerMottak(førsteKandidat, andreKandidat)
+            oppsett.registrerMottak(førsteKandidat)
 
             assertThat(oppsett.oppdater(kontekst, Under18JournalposterInformasjonskrav)).isEqualTo(ENDRET)
-            dataSource.transaction { connection ->
-                val repository = oppsett.repositoryRegistry.provider(connection).provide<JournalpostRepository>()
-                listOf(førsteKandidat, andreKandidat).forEach { kandidat ->
-                    val lagret = repository.hentHvisEksisterer(kandidat.journalpostId())
-                    assertThat(lagret?.person?.aktivIdent()).isEqualTo(person.aktivIdent())
-                    assertThat(lagret?.mottattTid).isEqualTo(kandidat.mottattTid)
-                }
-            }
+            assertThat(oppsett.oppdater(kontekst, Under18JournalposterInformasjonskrav)).isEqualTo(IKKE_ENDRET)
+
+            oppsett.registrerMottak(andreKandidat)
+            assertThat(oppsett.oppdater(kontekst, Under18JournalposterInformasjonskrav)).isEqualTo(ENDRET)
             assertThat(oppsett.oppdater(kontekst, Under18JournalposterInformasjonskrav)).isEqualTo(IKKE_ENDRET)
 
             TestJournalposter.oppdater(førsteKandidat.copy(tema = "DAG"))
             assertThat(oppsett.oppdater(kontekst, Under18JournalposterInformasjonskrav)).isEqualTo(IKKE_ENDRET)
-            dataSource.transaction { connection ->
+
+            dataSource.transaction(readOnly = true) { connection ->
                 val repository = oppsett.repositoryRegistry.provider(connection).provide<JournalpostRepository>()
-                assertThat(repository.hentHvisEksisterer(førsteKandidat.journalpostId())?.tema).isEqualTo("DAG")
+                listOf(førsteKandidat, andreKandidat).forEach { kandidat ->
+                    assertThat(repository.hentHvisEksisterer(kandidat.journalpostId())).isNull()
+                }
             }
         }
     }
