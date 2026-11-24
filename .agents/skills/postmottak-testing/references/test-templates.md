@@ -1,19 +1,46 @@
 # Testmaler
 
-Mal 1, 2, 4, 5 og 6 er kompilert og kjørt grønt mot dette repoet (oktober 2026). Mal 3 er et skjelett med plassholdernavn. Kopier importene fra filene det henvises til.
+Mal 1 har alle importene. Mal 3 er et skjelett med plassholdernavn. For de andre malene kan du kopiere importene fra mal 1 eller filene det henvises til.
 
 ## 1. Stegtest, fake-først (foretrukket for steglogikk)
 
-Ekte stegwiring, ekte Postgres og ekte HTTP-klienter mot fakes. Et eksempel på samme oppsett for et informasjonskrav er `flyt/src/test/kotlin/no/nav/aap/postmottak/under18/Under18JournalposterInformasjonskravTest.kt`.
+Ekte stegwiring, ekte Postgres og ekte HTTP-klienter mot fakes. Legg filen ved siden av steget, for eksempel `flyt/src/test/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/`. Et eksempel på samme oppsett for et informasjonskrav er `flyt/src/test/kotlin/no/nav/aap/postmottak/under18/Under18JournalposterInformasjonskravTest.kt`.
 
 ```kotlin
+package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
+
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostInformasjonskrav
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.flyt.steg.Fullført
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
+import no.nav.aap.postmottak.klient.defaultGatewayProvider
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
+import no.nav.aap.postmottak.test.FakeUnleash
+import no.nav.aap.postmottak.test.Fakes
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.test.modell.TestKelvinSak
+import no.nav.aap.postmottak.test.modell.TestPersoner
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
 @Fakes
-class MittStegTest {
+class AvklarSakStegMedFakesTest {
     private lateinit var dataSource: TestDataSource
     private val gatewayProvider = defaultGatewayProvider { register<FakeUnleash>() }
 
-    @BeforeEach fun setup() { dataSource = TestDataSource() }   // fersk database per test (klonet fra mal)
-    @AfterEach fun tearDown() = dataSource.close()
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource() // fersk database per test (klonet fra mal)
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
 
     @Test
     fun `digital søknad knyttes automatisk til Kelvin-sak`() {
@@ -27,7 +54,9 @@ class MittStegTest {
             val kontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Journalføring)
 
             // Seed journalposten på samme måte som OPPDATER_FAKTAGRUNNLAG gjør (leser SAF-faken, upserter personen).
-            JournalpostInformasjonskrav.konstruer(repositoryProvider, gatewayProvider).oppdater(kontekst)
+            val informasjonskrav = JournalpostInformasjonskrav.konstruer(repositoryProvider, gatewayProvider)
+            val input = informasjonskrav.klargjør(kontekst)
+            informasjonskrav.oppdater(input, informasjonskrav.hentData(input), kontekst)
 
             val resultat = AvklarSakSteg.konstruer(repositoryProvider, gatewayProvider).utfør(kontekst)
 

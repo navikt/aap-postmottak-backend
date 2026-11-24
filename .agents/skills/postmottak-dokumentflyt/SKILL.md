@@ -74,7 +74,7 @@ Journalføring stoppet ved AVKLAR_TEMA, fortsatte etter løsningen, stoppet ved 
 
 | Flyt | Spørsmålet den svarer på | Typisk manuelt steg |
 | --- | --- | --- |
-| Fordeling | Skal Kelvin eller Arena behandle dokumentet? Regelbasert (`FordelerRegelService`), lagres som `AvklarFordelingVurdering`. | Ingen. Med toggle `KantTilKantV1` på går også en søknad som er kant-til-kant (rettighet oppbrukt i Arena, maksdato mindre enn 12 uker unna) til Kelvin. De 12 ukene er midlertidige for MVP kant-til-kant og går tilbake til 26 i del 2. Manuell fordeling (AVKLAR_FORDELING) er fjernet. Fordelingen er alltid automatisk. |
+| Fordeling | Skal Kelvin eller Arena behandle dokumentet? Regelbasert (`FordelerRegelService`), lagres som `AvklarFordelingVurdering`. | Ingen. Med toggle `KantTilKantV1` på kan kvalifiserte kant-til-kant-søknader gå til Kelvin. Gjeldende vilkår vurderes i `ArenaService.harOppbruktRettighet`. Manuell fordeling (AVKLAR_FORDELING) er fjernet. Fordelingen er alltid automatisk. |
 | Journalføring | Gjøre journalposten korrekt og endelig i Joark: bekrefte tema, velge sak, oppdatere og ferdigstille journalposten, og sende videre. | AVKLAR_TEMA, AVKLAR_SAK |
 | DokumentHåndtering | Gjøre dokumentet om til data Kelvin forstår, og levere det. | DIGITALISER_DOKUMENT (kategori + strukturert JSON), AVKLAR_OVERLEVERING (send til Kelvin eller ikke) |
 
@@ -94,7 +94,7 @@ Automatiske løp faller tilbake til det manuelle avklaringsbehovet når parsing 
 
 | Toggle | Effekt når på | Verdi i tester (`FakeUnleash`) |
 | --- | --- | --- |
-| `KantTilKantV1` | Kant-til-kant-søknader (rettighet oppbrukt i Arena) går til Kelvin. Når av, logges og telles resultatet bare (se `references/fordeling-og-arena.md`) | av |
+| `KantTilKantV1` | Søknader som oppfyller kant-til-kant-vilkårene, går til Kelvin. Når av, logges og telles resultatet bare (se `references/fordeling-og-arena.md`) | av |
 | `AutomatiskKlageJournalforing` | Automatisk tema, sak og digitalisering for klage | på |
 | `PostmottakVelgTema` | Saksbehandler velger selve temaet; ingen Gosys-vent; SETT_FAGSAK endrer tema i Joark | av |
 | `DummyFeature` | bare et eksempel | kaster `NotImplementedError` |

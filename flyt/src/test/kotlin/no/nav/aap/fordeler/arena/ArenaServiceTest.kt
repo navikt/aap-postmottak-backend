@@ -21,6 +21,8 @@ import no.nav.aap.postmottak.klient.createGatewayProvider
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
@@ -31,6 +33,9 @@ private const val TOLERANSE_I_DAGER = 5L
 // Midlertidig 12 uker for MVP kant-til-kant, skal tilbake til 26 uker i del 2
 private const val PERIODE_FØR_MAKSDATO_I_UKER = 12L
 private const val PERIODE_FØR_MAKSDATO_I_DAGER = PERIODE_FØR_MAKSDATO_I_UKER * 7
+// Midlertidig MVP-kriterie for kant-til-kant: vedtaket må løpe etter mottatt dato, og maksdato må være innen 4 uker
+private const val FIRE_UKER_I_DAGER = 4L * 7
+private const val DAGER_FRA_MOTTATT_TIL_MAKSDATO = 14L
 
 class ArenaServiceTest {
 
@@ -40,6 +45,7 @@ class ArenaServiceTest {
 
     private val arenaService = ArenaService(gatewayProvider)
     private val maksdato = LocalDate.of(2026, 12, 12)
+    private val standardMottattDato = maksdato.minusDays(DAGER_FRA_MOTTATT_TIL_MAKSDATO)
 
     @Test
     fun `søker uten en sak i Arena har ikke en kant-i-kant-søknad`() = runBlocking {
@@ -118,7 +124,7 @@ class ArenaServiceTest {
     fun `ny søknad er ikke kant-i-kant når søker allerede har fått innvilget AAP i Arena for en fremtidig periode`(
         dagerTilVedtaketStarter: Long
     ) = runBlocking {
-        val mottattDato = maksdato.minusDays(30)
+        val mottattDato = standardMottattDato
         val sak = sakMedAvslåttForlengelse().let {
             it.copy(
                 sisteVedtak = it.sisteVedtak.copy(
@@ -139,7 +145,7 @@ class ArenaServiceTest {
     fun `et fremtidig AAP-vedtak gjør søknaden uaktuell også når søker har fått innvilget forlengelse`(
         dagerTilMaksdatoForUnntak: Long?
     ) = runBlocking {
-        val mottattDato = maksdato.minusDays(30)
+        val mottattDato = standardMottattDato
         val sak = sakMedInnvilgetForlengelse().let {
             it.copy(
                 sisteVedtak = it.sisteVedtak.copy(
@@ -154,7 +160,7 @@ class ArenaServiceTest {
 
     @Test
     fun `et fremtidig AAP-vedtak gjør søknaden uaktuell selv om forlengelse ikke er vurdert`() = runBlocking {
-        val mottattDato = maksdato.minusDays(30)
+        val mottattDato = standardMottattDato
         val sak = testDataMedSisteSakDetaljer().let {
             it.copy(sisteVedtak = it.sisteVedtak.copy(fra = mottattDato.plusDays(1)))
         }
@@ -170,7 +176,7 @@ class ArenaServiceTest {
     fun `søker kan ha brukt opp forlengelsen når vedtaket starter senest den dagen søknaden mottas`(
         dagerTilVedtaketStarter: Long
     ) = runBlocking {
-        val mottattDato = maksdato.minusDays(30)
+        val mottattDato = standardMottattDato
         val sak = sakMedInnvilgetForlengelse().let {
             it.copy(
                 sisteVedtak = it.sisteVedtak.copy(
@@ -353,7 +359,7 @@ class ArenaServiceTest {
     fun `forlengelsen er ikke brukt opp før unntaksperioden utløper uavhengig av ordinær maksdato`(
         avvikFraOrdinærMaksdato: Long?
     ) = runBlocking {
-        val maksdatoForUnntak = maksdato.plusDays(30)
+        val maksdatoForUnntak = maksdato.plusDays(TOLERANSE_I_DAGER + 2)
         val sak = sakMedInnvilgetForlengelse().let {
             it.copy(
                 sisteVedtak = it.sisteVedtak.copy(
@@ -423,7 +429,7 @@ class ArenaServiceTest {
         true,
         false
     ])
-    fun `innvilget forlengelse regnes ikke som oppbrukt uten sluttdato uavhengig av ordinær maksdato`(
+    fun `innvilget forlengelse uten sluttdato er ikke kant-til-kant uavhengig av ordinær maksdato`(
         harOrdinærMaksdato: Boolean
     ) = runBlocking {
         val sak = sakMedInnvilgetForlengelse().let {
@@ -435,7 +441,7 @@ class ArenaServiceTest {
             )
         }
 
-        assertVurderingAvOppbruktRettighet(sak, VedtattForlenget, skalTilKelvin = false)
+        assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
     }
 
     @Test
@@ -478,7 +484,7 @@ class ArenaServiceTest {
     @ValueSource(longs = [
         -1,
         0,
-        PERIODE_FØR_MAKSDATO_I_DAGER - 1
+        FIRE_UKER_I_DAGER - 1
     ])
     fun `ny søknad nær eller etter effektiv maksdato er kant-i-kant når ordinær kvote er brukt opp og forlengelse er avslått`(
         dagerTilEffektivMaksdato: Long
@@ -486,7 +492,7 @@ class ArenaServiceTest {
         val sak = sakMedAvslåttForlengelse().let {
             it.copy(
                 sisteVedtak = it.sisteVedtak.copy(
-                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato)
+                    maxdatoAap = standardMottattDato.plusDays(dagerTilEffektivMaksdato)
                 )
             )
         }
@@ -498,7 +504,7 @@ class ArenaServiceTest {
     @ValueSource(longs = [
         -1,
         0,
-        PERIODE_FØR_MAKSDATO_I_DAGER - 1
+        FIRE_UKER_I_DAGER - 1
     ])
     fun `ny søknad nær eller etter effektiv maksdato er kant-i-kant når innvilget forlengelse er brukt opp`(
         dagerTilEffektivMaksdato: Long
@@ -506,7 +512,7 @@ class ArenaServiceTest {
         val sak = sakMedInnvilgetForlengelse().let {
             it.copy(
                 sisteVedtak = it.sisteVedtak.copy(
-                    maxdatoAap = maksdato.plusDays(dagerTilEffektivMaksdato)
+                    maxdatoAap = standardMottattDato.plusDays(dagerTilEffektivMaksdato)
                 )
             )
         }
@@ -552,6 +558,100 @@ class ArenaServiceTest {
         assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false)
     }
 
+    // TODO: Midlertidig for MVP kant-til-kant. Slett sammen med erAktuellKantTilKantForMVP i ArenaService.
+    @Nested
+    @DisplayName("MIDLERTIDIG MVP kant-til-kant: vedtaket må løpe ut etter mottatt dato og mindre enn 4 uker fram")
+    inner class MidlertidigMvpKantTilKant {
+
+        @Test
+        fun `søknad er ikke kant-til-kant når vedtaket løp ut før søknaden ble mottatt`() = runBlocking {
+            val sak = sakMedAvslåttForlengelse()
+            val mottattDato = maksdato.plusDays(1)
+
+            assertVurderingAvOppbruktRettighet(
+                sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato
+            )
+        }
+
+        @Test
+        fun `søknad er ikke kant-til-kant når vedtaket løper ut samme dag som søknaden mottas`() = runBlocking {
+            val sak = sakMedAvslåttForlengelse()
+            val mottattDato = maksdato
+
+            assertVurderingAvOppbruktRettighet(
+                sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato
+            )
+        }
+
+        @Test
+        fun `søknad er kant-til-kant når vedtaket løper ut dagen etter at søknaden mottas`() = runBlocking {
+            val sak = sakMedAvslåttForlengelse()
+            val mottattDato = maksdato.minusDays(1)
+
+            assertVurderingAvOppbruktRettighet(
+                sak, VedtattAtIkkeForlenges, skalTilKelvin = true, mottattDato = mottattDato
+            )
+        }
+
+        @Test
+        fun `søknad er kant-til-kant når det er én dag mindre enn 4 uker til maksdato`() = runBlocking {
+            val sak = sakMedAvslåttForlengelse()
+            val mottattDato = maksdato.minusWeeks(4).plusDays(1)
+
+            assertVurderingAvOppbruktRettighet(
+                sak, VedtattAtIkkeForlenges, skalTilKelvin = true, mottattDato = mottattDato
+            )
+        }
+
+        @Test
+        fun `søknad er ikke kant-til-kant når det er nøyaktig 4 uker til maksdato`() = runBlocking {
+            val sak = sakMedAvslåttForlengelse()
+            val mottattDato = maksdato.minusWeeks(4)
+
+            assertVurderingAvOppbruktRettighet(
+                sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato
+            )
+        }
+
+        @Test
+        fun `søknad er ikke kant-til-kant når det er mellom 4 og 12 uker til maksdato`() = runBlocking {
+            val sak = sakMedAvslåttForlengelse()
+            val mottattDato = maksdato.minusWeeks(8)
+
+            assertVurderingAvOppbruktRettighet(
+                sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato
+            )
+        }
+
+        @Test
+        fun `oppbrukt forlengelse er kant-til-kant når det er mindre enn 4 uker til maksdato`() = runBlocking {
+            val sak = sakMedInnvilgetForlengelse()
+            val mottattDato = maksdato.minusWeeks(2)
+
+            assertVurderingAvOppbruktRettighet(
+                sak, HarBruktOppForlengelsen, skalTilKelvin = true, mottattDato = mottattDato
+            )
+        }
+
+        @Test
+        fun `oppbrukt forlengelse er ikke kant-til-kant når vedtaket løp ut før søknaden ble mottatt`() = runBlocking {
+            val sak = sakMedInnvilgetForlengelse()
+            val mottattDato = maksdato.plusDays(1)
+
+            assertVurderingAvOppbruktRettighet(
+                sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato
+            )
+        }
+
+        @Test
+        fun `oppbrukt forlengelse er ikke kant-til-kant når det er 4 uker eller mer til maksdato`() = runBlocking {
+            val sak = sakMedInnvilgetForlengelse()
+            val mottattDato = maksdato.minusWeeks(4)
+
+            assertVurderingAvOppbruktRettighet(sak, IkkeRelevantSøknad, skalTilKelvin = false, mottattDato = mottattDato)
+        }
+    }
+
     @Test
     fun `feil fra Arena-oppslag videreføres`() {
         val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
@@ -571,7 +671,7 @@ class ArenaServiceTest {
         sisteSak: SisteSakDetaljer?,
         forventetResultat: OppbruktRettighetResultat,
         skalTilKelvin: Boolean,
-        mottattDato: LocalDate = maksdato
+        mottattDato: LocalDate = standardMottattDato
     ) {
         val arena = gatewayProvider.provide(ArenaoppslagGateway::class)
         val person = mockk<Person>()

@@ -83,9 +83,15 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val skalIkkeForlenges = sisteSak.unntaksvilkaarIkkeOppfylt()
         val erAlleredeForlenget = sisteSak.unntaksvilkaarOppfylt()
 
+        // Midlertidig MVP-avgrensning for kant-til-kant. Denne filtrerer bort en del saker som kunne gått til Kelvin.
+        val erIkkeAktuellKantTilKantForMVP = !erAktuellKantTilKantForMVP(sisteSak, mottattDato)
+
+
         val harKunOppbrukt = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
+            // Kun for MVP kant-til-kant: filtrerer bort en del saker, men sikrer at aktuelle saker snart skal levere meldekort.
+            erIkkeAktuellKantTilKantForMVP -> IkkeRelevantSøknad
             erAlleredeForlenget -> if (tilDatoErLikMaksdatoForUnntak) {
                 // har fått forlengelse og brukt den helt opp når ytelsen i Arena utløper
                 HarBruktOppForlengelsen
@@ -104,6 +110,7 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val logmsg: StringBuilder = StringBuilder()
         logmsg.append("tilDatoErLikOrdinærMaksdato=${!tilDatoErIkkeLikOrdinærMaksdato}, ")
         logmsg.append("maksdatoErInnenRimeligTid=${!maksdatoErIkkeInnenRimeligTid}, ")
+        logmsg.append("erIkkeAktuellKantTilKantForMVP=${erIkkeAktuellKantTilKantForMVP}, ")
         logmsg.append("vedtatt at ikke forlenges=${skalIkkeForlenges}, ")
         logmsg.append("er forlenget=${erAlleredeForlenget}, ")
         logmsg.append("brukt opp fem år=${tilDatoErLikMaksdatoForUnntak}")
@@ -135,6 +142,17 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         return erDatoerInnenforToleranse(
             sisteSak?.sisteVedtak?.til, sisteSak?.sisteVedtak?.maxdatoUnntak
         )
+    }
+
+    // Midlertidig MVP-kriterium: Vedtakets til-dato må være etter mottaksdatoen,
+    // og maksdato må være før mottaksdatoen pluss fire uker.
+    private fun erAktuellKantTilKantForMVP(sisteSak: SisteSakDetaljer?, mottattDato: LocalDate): Boolean {
+        val tildato = sisteSak?.sisteVedtak?.til ?: return false
+
+        val tildatoErFremITid = tildato.isAfter(mottattDato)
+        val erMindreEnn4UkerTilMaksdato = sisteSak.sisteVedtak.maxdatoAap?.isBefore(mottattDato + Period.ofWeeks(4)) == true
+
+        return tildatoErFremITid && erMindreEnn4UkerTilMaksdato
     }
 
     // Til-dato er ofte noen få dager før maksdato, men skal være innenfor en viss toleranse for å regnes som "like"
