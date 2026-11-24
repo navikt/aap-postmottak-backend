@@ -26,7 +26,7 @@ Hvis brukeren eller koden motsier denne skillen, varsle brukeren og spør om ski
 | Type | Beviser | Infrastruktur | Eksempel |
 | --- | --- | --- | --- |
 | Ren enhetstest | regler, parsing, domenelogikk | ingen | `RegelResultatTest`, `JournalpostTest`, `SaksinfoTest` |
-| Steg eller løser, fake-først | et stegs beslutninger med ekte database og HTTP-wiring | `TestDataSource` + `@Fakes` | `forretningsflyt/steg/journalføring/AvklarSakStegMedFakesTest` |
+| Steg eller løser, fake-først | et stegs beslutninger med ekte database og HTTP-wiring | `TestDataSource` + `@Fakes` | `references/test-templates.md`, mal 1 |
 | Steg, mock-basert (eksisterende stil) | beslutningstabeller isolert | mockk | `AvklarSakStegTest`, `AvklarFordelingStegTest` |
 | Repository | SQL, grunnlag/aktiv, `kopier` | `TestDataSource` | `repository/src/test/...`, `SaksnummerRepositoryImplTest` |
 | Klient | HTTP-klienter mot fakes | `@Fakes` | `klienter/src/test/...` |
