@@ -2,6 +2,7 @@ package no.nav.aap.postmottak.repository.fordeler
 
 import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
+import no.nav.aap.fordeler.Mottakshendelse
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.lookup.repository.Factory
@@ -135,6 +136,25 @@ class InnkommendeJournalpostRepositoryImpl(
             setRowMapper { row ->
                 val journalpostId = JournalpostId(row.getLong("journalpost_id"))
                 innkommendeJournalpostRowMapper(row, journalpostId)
+            }
+        }
+    }
+
+    override fun finnMottakshistorikk(identer: List<Ident>): List<Mottakshendelse> {
+        return connection.queryList(
+            """
+            SELECT journalpost_id, MIN(opprettet_tid) AS mottatt_tid
+            FROM innkommende_journalpost
+            WHERE bruker_id = ANY(?::text[])
+            GROUP BY journalpost_id
+        """.trimIndent()
+        ) {
+            setParams { setArray(1, identer.map { it.identifikator }) }
+            setRowMapper { row ->
+                Mottakshendelse(
+                    journalpostId = JournalpostId(row.getLong("journalpost_id")),
+                    mottattTid = row.getLocalDateTime("mottatt_tid"),
+                )
             }
         }
     }

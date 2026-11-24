@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test
 import java.io.InputStream
 import java.net.InetSocketAddress
 import java.net.URI
+import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
@@ -36,6 +37,7 @@ class DokarkivGatewayKlientTest {
     private val kilde = TestJournalposter.leggTil {
         papirsøknad()
         status = Journalstatus.JOURNALFOERT
+        mottattTid = LocalDateTime.of(2025, 6, 11, 12, 30)
         fagsak = JournalpostSak(sakstype = Sakstype.GENERELL_SAK, fagsaksystem = null)
         dokumenter = listOf(hoveddokument("NAV 11-13.05", "Søknad"), vedlegg("Vedlegg"))
     }
@@ -76,6 +78,8 @@ class DokarkivGatewayKlientTest {
         assertThat(tilknyttetJournalpost.sak?.sakstype).isEqualTo(Sakstype.FAGSAK)
         assertThat(tilknyttetJournalpost.dokumenter.map { it.dokumentInfoId })
             .containsExactlyElementsOf(journalpost.dokumenter.map { it.dokumentInfoId.toString() })
+        assertThat(TestJournalposter.hentJournalpost(nyJournalpostId.referanse)?.mottattTid)
+            .isEqualTo(kilde.mottattTid)
         assertThat(TestJournalposter.hentJournalpost(kilde.journalpostId)).isEqualTo(kilde)
     }
 

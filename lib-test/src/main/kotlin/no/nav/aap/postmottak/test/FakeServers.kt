@@ -282,6 +282,7 @@ class FakeServers : AutoCloseable {
                     journalførendeEnhet = request.journalfoerendeEnhet
                     avsenderMottaker = kilde.avsenderMottaker
                     digitalSøknad = kilde.digitalSøknad
+                    mottattTid = kilde.mottattTid
                 }
                 call.respond(KnyttTilAnnenSakResponse(nyJournalpost.journalpostId))
             }

@@ -9,7 +9,7 @@ Alt her ligger i `lib-test/src/main/kotlin/no/nav/aap/postmottak/test/` med mind
 | System | Oppførsel | Styr den med |
 | --- | --- | --- |
 | Texas (tokens) | `/token` utsteder en JWT i Azure-stil (azp `postmottak`, eller `INTEGRASJON_POSTMOTTAK_AZP`). `/token/exchange` utsteder et OBO-token som beholder `NAVident`. `/introspect` sier aktiv | ingenting |
-| SAF GraphQL (`fakes/Saf.kt`) | `journalpost(id)` bygget fra `TestJournalposter`. En ukjent id får en standard `TestJournalPost` (digital legeerklæring). `DATO_REGISTRERT` er alltid 2020-12-01T10:00. `saker` returnerer en tom liste. | `TestJournalposter.leggTil { }` |
+| SAF GraphQL (`fakes/Saf.kt`) | `journalpost(id)` bygget fra `TestJournalposter`. En ukjent id får en standard `TestJournalPost` (digital legeerklæring). `DATO_REGISTRERT` bruker journalpostens `mottattTid`, med 2020-12-01T10:00 som standard. `saker` returnerer en tom liste. | `TestJournalposter.leggTil { mottattTid = ... }` |
 | SAF REST | `hentdokument`: JSON-en `digitalSøknad` for JSON-varianter, ellers `sample.pdf` | `digitalSøknad = SøknadV0(...)` på byggeren |
 | dokarkiv (Joark) | PUT journalpost (godtar en oppdater-request, eller en endre-tema-request med bare `tema`), PATCH ferdigstill. Ingenting registreres. | ingenting |
 | aap-behandlingsflyt (`fakes/BehandlingsflytFake.kt`) | `finnEllerOpprett`: personens første Kelvin-sak, ellers en tilfeldig ny. `ekstern/finn`: den registrerte personens `kelvinsaker` (tom hvis ingen). **En uregistrert ident får én tilfeldig sak**. `hendelse/send`: 204. `finnBehandlingerAvType`: to klagebehandlinger | `TestPersoner.leggTil { kelvinSak = TestKelvinSak(...) }` |
@@ -27,7 +27,9 @@ Alt her ligger i `lib-test/src/main/kotlin/no/nav/aap/postmottak/test/` med mind
 
 ## Byggere for testdata
 
-`TestPersoner.leggTil { }` (`modell/TestPerson.kt`) returnerer en `TestPerson` på 19 år med et generert gyldig fnr:
+`TestPersoner.leggTil { }` (`modell/TestPerson.kt`) returnerer en `TestPerson` på 19 år med et gyldig fødselsnummer.
+`TestPerson()` oppretter en tilsvarende person uten å registrere den i fakene. Bruk den når testen bare trenger identer.
+`genererIdent(fødselsdato)` gir et gyldig fødselsnummer for en fødselsdato. Ikke finn på tilfeldige fødselsnumre.
 
 | Felt | Effekt |
 | --- | --- |
@@ -47,13 +49,14 @@ Alt her ligger i `lib-test/src/main/kotlin/no/nav/aap/postmottak/test/` med mind
 | `tema`, `status` | `"AAP"`, `MOTTATT` |
 | `fagsak = JournalpostSak(...)` | Joark-sak (for eksempel allerede journalført på et annet fagsystem) |
 | `journalførendeEnhet`, `harEksisterendeGosysOppgave`, `avsenderMottaker` (standard ingen), `dokumenter` | som navnet sier |
+| `mottattTid` | standard 2020-12-01T10:00. Brukes som SAFs `DATO_REGISTRERT` og kan settes per journalpost |
 | `digitalSøknad()` | brevkode SØKNAD, originaldokument i JSON, innhold `SøknadV0` |
 | `papirsøknad()` | kanal `SKAN_NETS`, SØKNAD, PDF-dokumenter (søknad + vedlegg) |
 | `legeerklæring()` | kanal `SKAN_NETS`, men en JSON-originalvariant, så den regnes som digital |
 | `medUtenlandskOrgnr(orgnr)` | brukertype ORGNR, ingen avsender |
 | `journalpostId` | tilfeldig. Sett den for å overskrive en eksisterende fake-journalpost (for eksempel for å endre tema midt i en test) |
 
-Snarveier: `TestJournalposter.digitalSøknad()`, `.papirsøknad()`, `.legeerklæring()`. `TestJournalPost.tilJournalpost()` konverterer til domenets `Journalpost` for enhetstester. Merk at mottatt-datoen er *i dag*, i motsetning til SAFs faste 2020-12-01. `hoveddokument(brevkode, tittel)` og `vedlegg(tittel)` bygger eksplisitte dokumenter.
+Snarveier: `TestJournalposter.digitalSøknad()`, `.papirsøknad()`, `.legeerklæring()`. `TestJournalPost.tilJournalpost()` konverterer til domenets `Journalpost` med samme mottakstidspunkt som SAF. `TestJournalposter.oppdater(journalpost.copy(...))` endrer en eksisterende journalpost. `hoveddokument(brevkode, tittel)` og `vedlegg(tittel)` bygger eksplisitte dokumenter.
 
 ## Fakes og hjelpere i koden
 
@@ -64,6 +67,7 @@ Snarveier: `TestJournalposter.digitalSøknad()`, `.papirsøknad()`, `.legeerklæ
 | `FakeArenaoppslagGateway` | historikk bare for ident `09876543210`. Faste data for maksdato |
 | `FakeStatistikkGateway` | registrerer hendelser, men `konstruer()` lager en ny instans hver gang, så du kan ikke lese dem tilbake |
 | `InMemoryAvklaringsbehovRepository`, `InMemoryUnder18Repository` (objects) | repositorier i minnet med global tilstand. Ikke kall `clearMemory()`. Bruk unike id-er per test |
+| `IsolertUnder18Repository` | separat in-memory-repository per `RepositoryProvider`; tilstanden deles ikke mellom providere |
 | `MockConnection().toDBConnection()` | en `DBConnection` der JDBC-kall kaster exception. Bare til å konstruere repositorier du ikke vil kalle |
 | `FødselsnummerGenerator`, `AzureTokenGen` | gyldig fnr for en fødselsdato. Signerte testtokens |
 | Testlokale: `TemaFlytUnleash` (`Flyttest`), `FakeUnleashGateway` (`ArenaOppgaveFlytTest`), `JoarkTemavalgUnleash` (`JoarkKafkaHandlerTest`), `BehandlingsflytGatewayMock` (`AvklaringsbehovsLøserTest`, alt `TODO()`) | eksempler på overstyringer per test |

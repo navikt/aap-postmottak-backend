@@ -83,15 +83,14 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         val skalIkkeForlenges = sisteSak.unntaksvilkaarIkkeOppfylt()
         val erAlleredeForlenget = sisteSak.unntaksvilkaarOppfylt()
 
-        // TODO: Dette er for MVP kant-til-kant. Denne vil føre til at vi fjerner en del ting som kunne gått til Kelvin
+        // Midlertidig MVP-avgrensning for kant-til-kant. Denne filtrerer bort en del saker som kunne gått til Kelvin.
         val erIkkeAktuellKantTilKantForMVP = !erAktuellKantTilKantForMVP(sisteSak, mottattDato)
 
 
         val harKunOppbrukt = when {
             // Bruker har valgt å sende en ny søknad om AAP og ..
             maksdatoErIkkeInnenRimeligTid -> IkkeRelevantSøknad // har søkt for tidlig
-            // TODO: Kun for MVP kant-til-kant, filtrer bort en del ting som kunne gått til Kelvin.
-            // TODO: men sikrer at vi får en sak som er aktuell sak med kant-til-kant og skal levere meldekort snart
+            // Kun for MVP kant-til-kant: filtrerer bort en del saker, men sikrer at aktuelle saker snart skal levere meldekort.
             erIkkeAktuellKantTilKantForMVP -> IkkeRelevantSøknad
             erAlleredeForlenget -> if (tilDatoErLikMaksdatoForUnntak) {
                 // har fått forlengelse og brukt den helt opp når ytelsen i Arena utløper
@@ -145,9 +144,8 @@ class ArenaService(gatewayProvider: GatewayProvider) {
         )
     }
 
-    // TODO: Midlertidig kritterie for å få en reell kant-til-kant innen for MVP-kritteriene
-    // Altså MÅ saken ha tildato frem i tid (så den faktisk er kant-til-kant)
-    // Men vi ønsker og at den skal være innen 4 uker så første meldekort kommer relativt fort
+    // Midlertidig MVP-kriterium: Vedtakets til-dato må være etter mottaksdatoen,
+    // og maksdato må være før mottaksdatoen pluss fire uker.
     private fun erAktuellKantTilKantForMVP(sisteSak: SisteSakDetaljer?, mottattDato: LocalDate): Boolean {
         val tildato = sisteSak?.sisteVedtak?.til ?: return false
 

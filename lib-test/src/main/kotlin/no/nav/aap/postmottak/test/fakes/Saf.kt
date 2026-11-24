@@ -25,8 +25,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Filtype
-import java.time.LocalDateTime
-import kotlin.random.Random
 
 fun Application.safFake(
     sakerRespons: String = ingenSakerRespons()
@@ -98,9 +96,6 @@ fun Application.safFake(
                     journalpostId = journalpostId.toLong()
                 )
 
-                // Tilfeldig dag i uken som har gått
-                val datoRegistrert = LocalDateTime.now().minusDays(Random.nextLong(0, 7))
-
                 call.respondText(
                     """
                     { "data":
@@ -116,12 +111,12 @@ fun Application.safFake(
                           "tittel": "Søknad om AAP",
                           "journalstatus": "${testJournalpost.status.name}",
                           "journalfoerendeEnhet": ${finnJournalførendeEnhet(testJournalpost)},
-                          "mottattDato": "2021-12-01",
+                          "mottattDato": "${testJournalpost.mottattTid.toLocalDate()}",
                           "tema": "${testJournalpost.tema}",
                           "kanal": "${testJournalpost.kanal.name}",
                           "relevanteDatoer": [
                             {
-                            "dato": "$datoRegistrert",
+                            "dato": "${testJournalpost.mottattTid}",
                             "datotype": "DATO_REGISTRERT"
                             }
                           ], 

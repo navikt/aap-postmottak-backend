@@ -28,7 +28,10 @@ import no.nav.aap.postmottak.test.modell.TestPersoner
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
+
+private val standardMottattTid = LocalDateTime.of(2020, 12, 1, 10, 0)
 
 data class TestJournalPost(
     val journalpostId: Long = Random.nextLong(10_000L, 1_000_000_000L),
@@ -55,6 +58,7 @@ data class TestJournalPost(
     val journalførendeEnhet: String? = null,
     // Om gosys allerede har en åpen oppgave for journalposten
     val harEksisterendeGosysOppgave: Boolean = false,
+    val mottattTid: LocalDateTime = standardMottattTid,
 ) {
     fun medFnr(ident: Ident): TestJournalPost =
         this.copy(
@@ -74,8 +78,8 @@ data class TestJournalPost(
     fun tilJournalpost(
         tittel: String? = null,
         behandlingstema: String? = null,
-        mottattDato: LocalDate = LocalDate.now(),
-        mottattTid: LocalDateTime? = LocalDateTime.now(),
+        mottattDato: LocalDate = this.mottattTid.toLocalDate(),
+        mottattTid: LocalDateTime? = mottattDato.atTime(this.mottattTid.toLocalTime()),
     ): Journalpost {
         return Journalpost(
             journalpostId = this.journalpostId(),
@@ -142,6 +146,7 @@ class TestJournalPostBuilder {
     var digitalSøknad: SøknadV0? = null
     var dokumenter: List<Dokument>? = null
     var avsenderMottaker: AvsenderMottaker? = null
+    var mottattTid: LocalDateTime = standardMottattTid
 
     fun digitalSøknad() {
         brevkode = Brevkoder.SØKNAD
@@ -200,7 +205,7 @@ class TestJournalPostBuilder {
 }
 
 object TestJournalposter {
-    private val fakeJournalposter: MutableMap<Long, TestJournalPost> = mutableMapOf()
+    private val fakeJournalposter = ConcurrentHashMap<Long, TestJournalPost>()
 
     fun leggTil(): TestJournalPost {
         return leggTil { }
@@ -239,7 +244,8 @@ object TestJournalposter {
             journalførendeEnhet = builder.journalførendeEnhet,
             harEksisterendeGosysOppgave = builder.harEksisterendeGosysOppgave,
             avsenderMottaker = builder.avsenderMottaker,
-            brukerType = builder.brukerType.name
+            brukerType = builder.brukerType.name,
+            mottattTid = builder.mottattTid
         ).let {
             if (builder.brukerType != BrukerIdType.ORGNR) {
                 it.medFnr(ident)
@@ -258,6 +264,12 @@ object TestJournalposter {
 
     fun hentJournalpost(journalpostId: Long): TestJournalPost? {
         return fakeJournalposter[journalpostId]
+    }
+
+    fun oppdater(journalpost: TestJournalPost) {
+        checkNotNull(fakeJournalposter.replace(journalpost.journalpostId, journalpost)) {
+            "Journalpost ${journalpost.journalpostId} finnes ikke"
+        }
     }
 
     fun hentTilknyttedeJournalposter(dokumentInfoId: DokumentInfoId): List<SafTilknyttetJournalpost> =

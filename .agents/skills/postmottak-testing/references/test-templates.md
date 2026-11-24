@@ -1,10 +1,10 @@
 # Testmaler
 
-Mal 1 er kjørt grønt i november 2026, mal 2, 4, 5 og 6 i oktober 2026. Mal 3 er et skjelett med plassholdernavn. Mal 1 har alle importene. For de andre kopierer du importene fra mal 1 eller fra filene det henvises til.
+Mal 1 har alle importene. Mal 3 er et skjelett med plassholdernavn. For de andre malene kan du kopiere importene fra mal 1 eller filene det henvises til.
 
 ## 1. Stegtest, fake-først (foretrukket for steglogikk)
 
-Ekte stegwiring, ekte Postgres og ekte HTTP-klienter mot fakes. Malen er komplett med importer og kjørt grønt (november 2026). Legg filen ved siden av steget, for eksempel `flyt/src/test/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/`.
+Ekte stegwiring, ekte Postgres og ekte HTTP-klienter mot fakes. Legg filen ved siden av steget, for eksempel `flyt/src/test/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/`. Et eksempel på samme oppsett for et informasjonskrav er `flyt/src/test/kotlin/no/nav/aap/postmottak/under18/Under18JournalposterInformasjonskravTest.kt`.
 
 ```kotlin
 package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
@@ -243,10 +243,6 @@ Merknader:
 - For å simulere en endring i Joark midt i testen kaller du `TestJournalposter.leggTil { journalpostId = <samme id>; ... }` på nytt: det overskriver faken.
 - Kjør den alene først: `run-tests.sh flyt 'no.nav.aap.postmottak.flyt.Flyttest.<metodenavn>'`, og les deretter `flyt-trace.sh flyt`.
 
-## 7. Mock-baserte tester (eksisterende stil, fortsatt akseptabelt)
+## 7. Eldre mock-baserte tester
 
-De fleste steg-, løser- og jobbtester konstruerer klassen direkte med `mockk(relaxed = true)`-samarbeidspartnere (`AvklarSakStegTest`, `VurderRelevantDokumentForAAPJobbUtførerTest`). Når du utvider disse filene, behold stilen deres. Retningslinjer:
-- Foretrekk `every { repo.hent...() } returns value` pluss asserts på returnerte resultater framfor lange kjeder av `verify(exactly = n)`.
-- Bruk `withArg { assertThat(...) }` inni `verify` for å sjekke lagrede verdier.
-- Relaxed mocks returnerer standardverdier (`false`, tomme lister, `null` for nullbare typer), som i det stille kan ta en annen gren. Stubb det grenen avhenger av.
-- Kall `clearAllMocks()` i `@AfterEach` når mocks er delte felt som gjenbrukes på tvers av tester med `every`.
+Noen eksisterende tester bruker `mockk`. Ikke kopier denne stilen til nye tester: bruk repositorier i minnet, fakes eller ekte repositorier. Mock bare når oppførselen ikke med rimelighet kan testes med en fake.

@@ -5,6 +5,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.postmottak.PrometheusProvider
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostSak
+import no.nav.aap.postmottak.gateway.SafDatoType
 import no.nav.aap.postmottak.gateway.Sak
 import no.nav.aap.postmottak.gateway.Sakstype
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
@@ -17,6 +18,7 @@ import no.nav.aap.postmottak.test.fakes.hoveddokument
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.UUID
 
 
@@ -33,9 +35,26 @@ class SafGraphqlKlientTest {
 
     @Test
     fun hentJournalpost() {
-        val test = gatewayProvider.provide(JournalpostGateway::class).hentJournalpost(JournalpostId(1))
+        val gateway = gatewayProvider.provide(JournalpostGateway::class)
+        val test = gateway.hentJournalpost(JournalpostId(1))
 
         assertThat(test.journalpostId).isEqualTo(1L)
+        assertThat(gateway.hentJournalpost(JournalpostId(1)).relevanteDatoer).isEqualTo(test.relevanteDatoer)
+    }
+
+    @Test
+    fun `registrert mottakstidspunkt er styrbart og stabilt ved gjentatte oppslag`() {
+        val mottatt = LocalDateTime.of(2026, 2, 3, 10, 15, 30)
+        val journalpost = TestJournalposter.leggTil { mottattTid = mottatt }
+        val gateway = gatewayProvider.provide<JournalpostGateway>()
+
+        repeat(2) {
+            val dato = gateway.hentJournalpost(journalpost.journalpostId())
+                .relevanteDatoer.single { it.datotype == SafDatoType.DATO_REGISTRERT }
+            assertThat(dato.dato).isEqualTo(mottatt)
+        }
+        assertThat(journalpost.tilJournalpost().mottattTid).isEqualTo(mottatt)
+        assertThat(journalpost.tilJournalpost().mottattDato).isEqualTo(mottatt.toLocalDate())
     }
 
     @Test

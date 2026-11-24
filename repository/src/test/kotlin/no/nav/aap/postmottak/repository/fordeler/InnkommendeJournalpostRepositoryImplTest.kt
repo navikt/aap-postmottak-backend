@@ -8,6 +8,8 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.modell.TestPerson
+import no.nav.aap.postmottak.test.modell.genererIdent
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import kotlin.random.Random
 
 class InnkommendeJournalpostRepositoryImplTest {
@@ -226,5 +229,35 @@ class InnkommendeJournalpostRepositoryImplTest {
             val innkommendeJournalpostRepository = InnkommendeJournalpostRepositoryImpl(connection)
             innkommendeJournalpostRepository.finn(Ident(brukerId))
         }.single()).isEqualTo(innkommendeJournalpost)
+    }
+
+    @Test
+    fun `finnMottakshistorikk returnerer journalposter for alle identene til personen`() {
+        val historiskIdent = Ident(genererIdent(LocalDate.now().minusYears(19)).identifikator, aktivIdent = false)
+        val person = TestPerson().let { it.copy(identer = it.identer + historiskIdent) }
+        val annenPerson = TestPerson()
+        fun innkommende(id: Long, brukerId: String) = InnkommendeJournalpost(
+            journalpostId = JournalpostId(id),
+            status = InnkommendeJournalpostStatus.EVALUERT,
+            behandlingstema = null,
+            brevkode = null,
+            brukerId = brukerId,
+        )
+
+        dataSource.transaction { connection ->
+            val repository = InnkommendeJournalpostRepositoryImpl(connection)
+            repository.lagre(innkommende(301, person.aktivIdent().identifikator))
+            repository.lagre(innkommende(302, historiskIdent.identifikator))
+            repository.lagre(innkommende(303, annenPerson.aktivIdent().identifikator))
+        }
+
+        val historikk = dataSource.transaction(readOnly = true) { connection ->
+            InnkommendeJournalpostRepositoryImpl(connection)
+                .finnMottakshistorikk(person.identer.toList())
+        }
+
+        assertThat(historikk).extracting<JournalpostId> { it.journalpostId }
+            .containsExactlyInAnyOrder(JournalpostId(301), JournalpostId(302))
+        assertThat(historikk).allSatisfy { assertThat(it.mottattTid).isNotNull() }
     }
 }

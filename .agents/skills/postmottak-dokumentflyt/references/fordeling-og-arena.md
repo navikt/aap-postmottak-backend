@@ -18,16 +18,14 @@ Basert på siste sak og vedtak fra aap-arenaoppslag (`historikkStatusDetalj`). V
 | --- | --- | --- |
 | Ingen sak, eller saken er verken arbeidsavklaring (UA) eller arbeidsutprøving (AU) | `IkkeRelevantSøknad` | nei |
 | Siste vedtak starter etter mottattdato | `IkkeRelevantSøknad` | nei |
-| `maxdatoAap` ≥ mottattdato + 12 uker (søkt for tidlig) | `IkkeRelevantSøknad` | nei |
-| Unntak (11-12) innvilget og vedtakets `til` ≈ `maxdatoUnntak` | `HarBruktOppForlengelsen` | ja |
-| Unntak (11-12) innvilget, ikke ved slutten av det | `VedtattForlenget` | nei |
+| Maksdato eller vedtakets sluttdato oppfyller ikke tidsvilkårene | `IkkeRelevantSøknad` | nei |
+| Unntak etter § 11-12 innvilget og vedtakets `til` ≈ `maxdatoUnntak` | `HarBruktOppForlengelsen` | ja |
+| Unntak etter § 11-12 innvilget, ikke ved slutten av det | `VedtattForlenget` | nei |
 | Vedtakets `til` ikke ≈ `maxdatoOrdinaer` | `IkkeRelevantSøknad` | nei |
-| Unntak (11-12) ikke oppfylt | `VedtattAtIkkeForlenges` | ja |
+| Unntaksvilkårene etter § 11-12 ikke oppfylt | `VedtattAtIkkeForlenges` | ja |
 | alt annet | `IkkeRelevantSøknad` | nei |
 
-«≈» betyr innen 5 dager (`toleranseForLikeDatoer`).
-
-**12-ukersgrensen er midlertidig** (`periodeFørMaksdato`). Den er satt til 12 uker for MVP kant-til-kant, så søknader med mellom 12 og 26 uker igjen til maksdato går til Arena som vanlig. Den går tilbake til 26 uker i del 2 av MVP kant-til-kant. `ArenaServiceTest` har sin egen konstant `PERIODE_FØR_MAKSDATO_I_UKER` som må endres samtidig.
+«≈» betyr at datoene sammenlignes med en toleranse. Gjeldende tidsvilkår og toleranse finnes i `ArenaService`; grensetilfeller testes i `ArenaServiceTest`.
 
 ## Regler (`fordeler/regler/`)
 

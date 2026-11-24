@@ -25,6 +25,7 @@ import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.gateway.originalFiltype
 import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
@@ -113,6 +114,7 @@ class VurderRelevantDokumentForAAPJobbUtfører(
                 log.info("Evaluerer journalpost med ID ${journalpost.journalpostId}. Brevkode: ${journalpost.hoveddokumentbrevkode}. Dokumentet behandles videre i normal flyt.")
                 StatusMedÅrsak(
                     InnkommendeJournalpostStatus.EVALUERT,
+                    person = journalpost.person,
                 )
             }
         }
@@ -136,6 +138,23 @@ class VurderRelevantDokumentForAAPJobbUtfører(
         if (statusMedÅrsakOgRegelresultat.status == InnkommendeJournalpostStatus.EVALUERT) {
             startFordelingsflytForVidereBehandlingAvDokument(journalpostId)
         }
+        statusMedÅrsakOgRegelresultat.person?.let { varsleÅpneUnder18Behandlinger(it, journalpostId) }
+    }
+
+    private fun varsleÅpneUnder18Behandlinger(person: Person, journalpostId: JournalpostId) {
+        behandlingRepository.hentBehandlingerForPerson(person)
+            .filter { it.typeBehandling == TypeBehandling.Under18 && !it.status().erAvsluttet() }
+            .filter { it.journalpostId != journalpostId }
+            .forEach { behandling ->
+                flytJobbRepository.leggTil(
+                    JobbInput(ProsesserBehandlingJobbUtfører)
+                        .forBehandling(
+                            sakID = behandling.journalpostId.referanse,
+                            behandlingId = behandling.id.id
+                        )
+                        .medCallId()
+                )
+            }
     }
 
     private fun hentEnhet(safJournalpost: SafJournalpost): NavEnhet? {
@@ -174,7 +193,8 @@ class VurderRelevantDokumentForAAPJobbUtfører(
 
     data class StatusMedÅrsak(
         val status: InnkommendeJournalpostStatus,
-        val årsak: ÅrsakTilStatus? = null
+        val årsak: ÅrsakTilStatus? = null,
+        val person: Person? = null,
     )
 }
 

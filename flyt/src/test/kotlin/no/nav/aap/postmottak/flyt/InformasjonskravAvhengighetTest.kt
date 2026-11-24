@@ -4,14 +4,15 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
-import no.nav.aap.postmottak.faktagrunnlag.IngenInput
-import no.nav.aap.postmottak.faktagrunnlag.IngenRegisterData
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlagImpl
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravNavn
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravRepository
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskravkonstruktør
+import no.nav.aap.postmottak.faktagrunnlag.IngenInput
+import no.nav.aap.postmottak.faktagrunnlag.IngenRegisterData
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostInformasjonskrav
+import no.nav.aap.postmottak.forretningsflyt.behandlingstyper.Under18Flyt
 import no.nav.aap.postmottak.forretningsflyt.steg.StartBehandlingSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.under18.AvklarUnder18Steg
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
@@ -20,6 +21,7 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.under18.Under18FødselsdatoInformasjonskrav
+import no.nav.aap.postmottak.under18.Under18JournalposterInformasjonskrav
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -29,12 +31,17 @@ class InformasjonskravAvhengighetTest {
     fun `fødselsdatoinformasjonskravet krever journalpostinformasjonskravet først i samme steg`() {
         val ugyldigeInformasjonskravlister = listOf(
             listOf(Under18FødselsdatoInformasjonskrav),
-            listOf(Under18FødselsdatoInformasjonskrav, JournalpostInformasjonskrav)
+            listOf(Under18FødselsdatoInformasjonskrav, JournalpostInformasjonskrav),
+            listOf(Under18JournalposterInformasjonskrav),
+            listOf(Under18JournalposterInformasjonskrav, JournalpostInformasjonskrav),
         )
 
         ugyldigeInformasjonskravlister.forEach { informasjonskravliste ->
             assertThatThrownBy {
-                BehandlingFlytBuilder().medSteg(AvklarUnder18Steg, informasjonskrav = informasjonskravliste)
+                BehandlingFlytBuilder().medSteg(
+                    AvklarUnder18Steg,
+                    informasjonskrav = informasjonskravliste
+                )
             }.isInstanceOf(IllegalArgumentException::class.java)
                 .hasMessageContaining("kommer først i samme liste over informasjonskrav")
         }
@@ -43,11 +50,13 @@ class InformasjonskravAvhengighetTest {
     @Test
     fun `informasjonskrav oppdateres i rekkefølge både i steget og ved gjenopptakelse`() {
         val utførteInformasjonskrav = mutableListOf<InformasjonskravNavn>()
-        val journalpost = TestInformasjonskrav(InformasjonskravNavn.JOURNALPOST, utførteInformasjonskrav)
+        val journalpost =
+            TestInformasjonskrav(InformasjonskravNavn.JOURNALPOST, utførteInformasjonskrav)
         val fødselsdato = TestInformasjonskrav(
             InformasjonskravNavn.UNDER18_FOEDSELSDATO, utførteInformasjonskrav, setOf(journalpost)
         )
-        val informasjonskravliste = mutableListOf<Informasjonskravkonstruktør>(journalpost, fødselsdato)
+        val informasjonskravliste =
+            mutableListOf<Informasjonskravkonstruktør>(journalpost, fødselsdato)
         val flyt = BehandlingFlytBuilder()
             .medSteg(StartBehandlingSteg, informasjonskrav = informasjonskravliste)
             .medSteg(AvklarUnder18Steg)
@@ -67,10 +76,29 @@ class InformasjonskravAvhengighetTest {
 
         utførteInformasjonskrav.clear()
         flyt.forberedFlyt(StegType.AVKLAR_UNDER18)
-        grunnlag.oppdaterFaktagrunnlagForKravliste(flyt.alleFaktagrunnlagFørGjeldendeSteg(), kontekst)
+        grunnlag.oppdaterFaktagrunnlagForKravliste(
+            flyt.alleFaktagrunnlagFørGjeldendeSteg(),
+            kontekst
+        )
         assertThat(utførteInformasjonskrav).containsExactly(
             InformasjonskravNavn.JOURNALPOST, InformasjonskravNavn.UNDER18_FOEDSELSDATO
         )
+    }
+
+    @Test
+    fun `tidligere under18-informasjonskrav oppdateres én gang og endringer fører tilbake fra samtykkesteget`() {
+        val flyt = Under18Flyt.flyt()
+        flyt.forberedFlyt(StegType.AVKLAR_UNDER18_SAMTYKKE)
+
+        val kravSomOppdateres =
+            flyt.alleFaktagrunnlagFørGjeldendeSteg() + flyt.faktagrunnlagForGjeldendeSteg()
+        assertThat(kravSomOppdateres.map { it.second })
+            .containsOnlyOnce(JournalpostInformasjonskrav, Under18JournalposterInformasjonskrav)
+
+        val tilbakeflyt =
+            flyt.tilbakeflytEtterEndringer(listOf(Under18JournalposterInformasjonskrav))
+        assertThat(tilbakeflyt.stegene())
+            .containsExactly(StegType.AVKLAR_UNDER18_SAMTYKKE, StegType.AVKLAR_UNDER18)
     }
 
     private class TestInformasjonskrav(
@@ -78,7 +106,10 @@ class InformasjonskravAvhengighetTest {
         private val utførteInformasjonskrav: MutableList<InformasjonskravNavn>,
         override val avhengigheter: Set<Informasjonskravkonstruktør> = emptySet(),
     ) : Informasjonskravkonstruktør {
-        override fun konstruer(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
+        override fun konstruer(
+            repositoryProvider: RepositoryProvider,
+            gatewayProvider: GatewayProvider
+        ) =
             object : Informasjonskrav<IngenInput, IngenRegisterData> {
                 override fun klargjør(kontekst: FlytKontekst): IngenInput {
                     assertThat(utførteInformasjonskrav).containsAll(avhengigheter.map { it.navn })

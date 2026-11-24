@@ -9,11 +9,11 @@ Hvis brukeren eller koden motsier denne skillen, varsle brukeren og spør om ski
 
 ## Prinsipper
 
-1. **Foretrekk fakes framfor mocks.** En fake er en fungerende implementasjon med styrbar tilstand:
+1. **Unngå mocking. Foretrekk repositorier i minnet og fakes.** En fake er en fungerende implementasjon med styrbar tilstand:
    - Eksterne HTTP-systemer: annoter klassen med `@Fakes` (starter lokale fake-servere, se `references/fakes.md`) og bruk de ekte klientene via `defaultGatewayProvider { register<FakeUnleash>() }`. Styr svarene deres med `TestJournalposter` og `TestPersoner`.
    - Gatewayer på grensesnittnivå: små fakes i koden, registrert med `createGatewayProvider { register<FakeX>() }` (`FakeUnleash`, `FakeArenaoppslagGateway`, `FakeStatistikkGateway`, ...). Å registrere en implementasjon erstatter alle tidligere implementasjoner av samme grensesnitt.
    - Database: ekte Postgres gjennom `TestDataSource` (komponenter dbtest; hver instans er en fersk database klonet fra en migrert mal) og `postgresRepositoryRegistry.provider(connection)`. Repositorier i minnet i `lib-test/.../fakes` (`InMemoryAvklaringsbehovRepository`, `InMemoryUnder18Repository`) finnes for ren motorlogikk og for repositorier som ennå ikke har en Postgres-implementasjon.
-2. **Mocks (mockk) er greit når en fake ikke gir verdi:** å framtvinge feil som er vanskelige å produsere (for eksempel `BadRequestHttpResponsException` fra Gosys), å bevise at noe *ikke* ble kalt når det ikke finnes observerbar tilstand, å isolere en irrelevant samarbeidspartner og å koble `JoarkKafkaHandler` inn i en `TopologyTestDriver`. Mange eksisterende stegtester er mock-baserte. La dem fortsette å virke, men skriv nye tester fake-først og asserter på lagret tilstand, ikke på antall kall.
+2. **Bruk mock bare når oppførselen ikke med rimelighet kan testes med en fake**, for eksempel for å framkalle en feil som er vanskelig å produsere. Ikke bruk mocks bare for å isolere samarbeidspartnere. Asserter på lagret tilstand og resultater framfor antall kall. Eldre mock-baserte tester kan bli stående, men bruk fakes også når du utvider dem.
 3. **Gå gjennom den ekte wiringen.** Bygg steg med `MittSteg.konstruer(repositoryProvider, gatewayProvider)` og løsere med `MinLøser.konstruer(...)`, slik at manglende registreringer og feil oppslag feiler i testene.
 4. **Velg den billigste testtypen som beviser oppførselen** (tabellen under). Legg til et `Flyttest`-scenario bare for oppførsel som går på tvers av steg, jobber, behandlinger eller Kafka.
 5. **Hold testingen proporsjonal for hjelpeverktøy som bare brukes i dev.** Endepunkter som bare brukes til manuell testing i dev eller lokalt, trenger ikke full automatisk dekning. Bruk som utgangspunkt en kompileringssjekk og manuell verifisering i Swagger. Ikke legg til egne endepunkttester eller omfattende dekning av autentisering, validering og feiltilfeller med mindre det finnes betydelig egen logikk eller brukeren ber om det. Behold miljøbegrensninger og autentisering. Unntaket reduserer ikke testingen av delte produksjonsklienter, gatewayer eller forretningslogikk.
@@ -26,8 +26,8 @@ Hvis brukeren eller koden motsier denne skillen, varsle brukeren og spør om ski
 | Type | Beviser | Infrastruktur | Eksempel |
 | --- | --- | --- | --- |
 | Ren enhetstest | regler, parsing, domenelogikk | ingen | `RegelResultatTest`, `JournalpostTest`, `SaksinfoTest` |
-| Steg eller løser, fake-først | et stegs beslutninger med ekte database og HTTP-wiring | `TestDataSource` + `@Fakes` | `references/test-templates.md`, mal 1 |
-| Steg, mock-basert (eksisterende stil) | beslutningstabeller isolert | mockk | `AvklarSakStegTest`, `AvklarFordelingStegTest` |
+| Steg, løser eller tjeneste, fake-først | beslutninger med ekte database og HTTP-wiring | `TestDataSource` + `@Fakes` | `references/test-templates.md`, mal 1; `under18/Under18JournalposterInformasjonskravTest` |
+| Steg, mock-basert (eldre tester) | beslutningstabeller isolert | mockk | `AvklarSakStegTest`, `AvklarFordelingStegTest` |
 | Repository | SQL, grunnlag/aktiv, `kopier` | `TestDataSource` | `repository/src/test/...`, `SaksnummerRepositoryImplTest` |
 | Klient | HTTP-klienter mot fakes | `@Fakes` | `klienter/src/test/...` |
 | Kafka-topologi | filtrering og forgrening i `JoarkKafkaHandler` | `TopologyTestDriver`, ingen broker | `JoarkKafkaHandlerTest` |
@@ -82,7 +82,7 @@ Skriptet beholder jobb-plukking/-ferdigstilling/-opprettelse, steg, resultater, 
 9. Repositorier i minnet er globale objekter og beholder tilstanden gjennom hele JVM-ens levetid. Ikke tøm tilstanden mellom testene. Gi heller hver test egne id-er, slik at testene ikke kan se hverandres data: bygg journalposter med `TestJournalposter.leggTil { }` (tilfeldig `journalpostId`), og bruk id-er som ikke gjenbrukes mellom tester. `Flyttest` tømmer tabellene uten å starte identitetssekvensene på nytt, så `behandlingId`-ene forblir unike på tvers av tester.
 10. Ikke kjør en filskriving og en Gradle-test i samme parallelle batch av verktøykall. Gradle kan starte før filen finnes.
 11. Dokumentflyt har ikke informasjonskrav: en `DokumentHåndtering`-behandling som opprettes direkte i en test, feiler i DIGITALISER_DOKUMENT med mindre en journalpost er lagret for journalpostId først (kjør `JournalpostInformasjonskrav` eller en Journalføring-behandling).
-12. Fake-datoer: SAF rapporterer `DATO_REGISTRERT` 2020-12-01, som blir journalpostens mottatt-dato. Testdata for maksdato i Arena bygges relativt til den datoen.
+12. Fake-datoer: SAF bruker journalpostens `mottattTid` som `DATO_REGISTRERT`. Standard er 2020-12-01 kl. 10:00 og er stabil ved gjentatte oppslag. Sett `mottattTid` på `TestJournalposter.leggTil { }` når datoen har betydning for testen.
 13. `FlytJobbRepository.hentJobberForSak/ForBehandling` parser jobbtyper gjennom motorens globale `JobbType`-register, som bare fylles når en `Motor` konstrueres. I en klasse uten motor feiler dette med `Key <type> is missing in the map`, eller det går bra hvis en annen klasse kjørte først i samme JVM. Hent jobbene fra `JOBB` med SQL der (mal 4).
 14. `TopologyTestDriver` avviser tom `bootstrap.servers`: gi `StreamsConfig(brokers = "localhost:9092")` en dummyverdi.
 

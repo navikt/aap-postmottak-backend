@@ -59,10 +59,9 @@ Dependencies point inwards: `repository`, `klienter` and `api` depend on `flyt`;
 ```text
 Joark Kafka event → JoarkKafkaHandler (filters; Kafka Streams thread, not the motor)
   → job vurderdokument.innkommende → INNKOMMENDE_JOURNALPOST (EVALUERT / IGNORERT / GOSYS_FDR)
-  → Fordeling behandling: Kelvin or Arena (rules; with toggle KantTilKantV1, a søknad whose rettighet is
-      oppbrukt in Arena and maksdato is < 12 weeks away also goes to Kelvin. 12 weeks is temporary for MVP
-      kant-til-kant, back to 26 in part 2. Always automatic, AVKLAR_FORDELING (1343) is deprecated and only
-      exists in historical data)
+  → Fordeling behandling: Kelvin or Arena (rules; toggle KantTilKantV1 can also route qualifying
+      kant-til-kant søknader to Kelvin. See ArenaService for current criteria. Always automatic;
+      AVKLAR_FORDELING is deprecated and only exists in historical data)
       Arena → Arena jobs or a Gosys oppgave
   → Journalføring behandling: AVKLAR_TEMA, AVKLAR_SAK, SETT_FAGSAK, ENDELIG_JOURNALFØRING, VIDERESEND
   → DokumentHåndtering behandling: DIGITALISER_DOKUMENT, OVERLEVER_TIL_FAGSYSTEM → hendelse to behandlingsflyt
@@ -88,7 +87,7 @@ API calls never run steps: they store a decision and enqueue `flyt.prosesserBeha
 
 ## Conventions
 
-- Tests: prefer fakes (`@Fakes`, `TestDataSource`, `TestJournalposter`) over mocks; mocks are fine for forcing hard-to-produce failures. New step tests follow template 1 in `postmottak-testing/references/test-templates.md`. See `postmottak-testing`.
+- Tests: avoid mocking. Prefer in-memory repositories and fakes (`@Fakes`, `TestJournalposter`); use `TestDataSource` where a real repository is needed. Use a mock only when the behavior cannot reasonably be tested with a fake. New step tests follow template 1 in `postmottak-testing/references/test-templates.md`.
 - Wiring is by registries; new classes that are not registered fail at runtime, not at compile time:
   - repositories: interface in `flyt`, implementation with `companion object : Factory<...>` in `repository`, registered in `repository/.../PostgresRepositoryRegistry.kt`;
   - gateways: interface in `flyt`, implementation in `klienter`, registered in `klienter/.../DefaultGatewayProvider.kt`, plus a fake in `lib-test`;
