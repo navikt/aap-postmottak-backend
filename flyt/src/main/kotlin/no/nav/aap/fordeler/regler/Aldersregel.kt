@@ -28,7 +28,7 @@ class Aldersregel(private val unleashGateway: UnleashGateway) : Regel<Aldersrege
             return false
         }
         val alder = Period.between(input.fødselsdato, input.nåDato).years
-        // Digitale søknader er sperret for personer under 18 år og vil derfor aldri mottas her.
+
         return alder >= MIN_ALDER || unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18)
     }
 
