@@ -209,7 +209,6 @@ Vi skal ikke automatisk bruke den uventede saken og fortsette.
 - Når klokkeslett mangler, brukes mottaksdato klokken 00:00.
   Ved like tidspunkt avgjør kildejournalpost-ID-en rekkefølgen.
 - Flere søknader kan vente på digitalisering samtidig og overleveres i ulik rekkefølge.
-- Vellykket HTTP-kall til behandlingsflyt bekrefter overleveringen for den enkelte søknaden.
   Vi trenger ikke vente på at behandlingsflyt har ferdigbehandlet hendelsen.
 - Sorteringen ved opprettelse garanterer ikke kjøre- eller fullføringsrekkefølge.
   Senere søknader i vanlig flyt trenger heller ikke vente på disse.
@@ -344,7 +343,6 @@ erDiagram
         bigint id PK
         bigint behandling_id FK "Under-18-behandlingens ID"
         bigint kilde_journalpost_id UK "Joark-ID"
-        timestamp overlevert_tid "Settes etter vellykket overlevering"
     }
     INNKOMMENDE_JOURNALPOST {
         bigint id PK
@@ -396,7 +394,7 @@ flowchart LR
     historikk["Eksisterende avklaringsbehovshistorikk<br/>perioden med samtykkeavklaring"]
     kandidater["Samtykkekandidater<br/>utledet liste, ingen kandidattabell"]
     samtykke["Lagret samtykkevurdering<br/>saksbehandlerens beslutning<br/>og valgte journalpost-ID-er"]
-    soknader["Søknadskoblinger<br/>opprinnelig journalpost-ID<br/>overlevert_tid"]
+    soknader["Søknadskoblinger<br/>opprinnelig journalpost-ID"]
     dokumentbehandlinger["Dokumentbehandlinger<br/>status · versjon · avklaringsbehov<br/>ordinære digitaliseringsvurderinger"]
     journalposter["Eksisterende journalpostsnapshots<br/>både original og tilknyttet journalpost"]
     behandling["Eksisterende behandlings- og saksgrunnlag<br/>status · vent · Kelvin-saksnummer"]
@@ -439,7 +437,6 @@ sequenceDiagram
     DB->>B: Motoren gjenopptar dokumentbehandlingen
     B->>K: Send søknad med ny journalpost-ID og opplysninger fra originalen
     K-->>B: Vellykket HTTP-svar
-    B->>DB: Lagre overlevert_tid
     B->>DB: Avslutt dokumentbehandlingen uten jobb for under-18-behandlingen
 ```
 
@@ -474,7 +471,7 @@ med begrensningene beskrevet under «Nye journalposter og kandidater til samtykk
 | --- | --- |
 | Eksisterende repositorier | Behandlinger, personer, journalpostsnapshots, saksgrunnlag, avklaringsbehov, digitalisering og jobber. |
 | `InnkommendeJournalpostRepository` | Innkommende journalposter, regelresultater og dagens mottakshistorikk fra vurderingsjobben. Brukes uendret i R1, uten egen rutemarkør. |
-| `Under18Repository` | Person- og aldersopplysninger, søknadsavklaring, søknader, samtykkevurderinger og bekreftet overlevering. |
+| `Under18Repository` | Person- og aldersopplysninger, søknadsavklaring, søknader og samtykkevurderinger. |
 
 Hvert repository eier sine egne tabeller. Nye data får in-memory-implementasjoner i
 `lib-test` sammen med koden som skriver og bruker dem. Eksisterende Postgres-tabeller
@@ -513,7 +510,6 @@ M1, M2 og M3 utgår etter forenklingen av kandidatoversikten og automatisk vekki
 | J1 | `AvklarSakSteg` velger generell sak og registrerer Under18-valget midlertidig i `Under18Repository`. Etter ferdigstilling finner eller oppretter `VideresendSteg` Under18, kobler søknaden og legger vanlig prosessering i kø. | R1, #989, #988 og avklaringene nedenfor | Ingen Under18 før aktivering eller ved feilet ferdigstilling. To søknader kan dele behandling. Retry gir ingen duplikater. Ny Kelvin-sak før kobling krever manuell oppfølging. |
 | S1 | Opprett Kelvin-saken i `OpprettUnder18SakSteg`. Knytt journalpostene til saken og opprett én vanlig dokumentbehandling med saksgrunnlag, snapshot og jobb per søknad i neste steg. | J1 | Digitalisering og overlevering bruker den tilknyttede journalposten. Ved retry gjenbrukes saken, bekreftede tilknytninger og dokumentbehandlinger. |
 | L1 | Koble Under18-lesemodellen til et GET-API som viser søknader, nye journalposter, dokumentbehandlinger, status, behov, vent og feil. | S1 | Riktige koblinger og fremdrift etter overgangen til Under18 og digitalisering; stabil historikk og behandlingsversjon ved GET. |
-| O1 | Lagre bekreftet overlevering etter vellykket kall og vis tidspunktet i API-et fra L1. | L1 | Vellykket sending vises som bekreftet; overleveringsvurdering og feilet sending vises med sine faktiske tilstander. |
 | A1 | Registrer en daglig aldersjobb med oppslag og ventelogikk som gjenopptar aktive Under18-behandlinger ved fylte 18 år før saksopprettelse. | #978 | Styrbar klokke, idempotent jobbinnlegging, opphevet automatisk/manuell vent og nytt søknadssvar før saksopprettelse. |
 | PG | Lag Flyway-migrasjonen for alle nye Under18-tabeller, inkludert samlinger og søknadskoblinger fra J1. Implementer Postgres-lagringen i `Under18Repository`. Videreutvikle #972 med datamodellen fra forløpene over. | Alle PR-ene over | Samme forløp mot Postgres, restart, rollback, savepoints og samtidighet. |
 
@@ -678,24 +674,29 @@ Test at steget gjenbruker en synlig tilknytning også når svaret fra Dokarkiv g
 Hvis en tilknytning ennå ikke er synlig i SAF, kan et nytt kall lage en duplikat.
 Avklar leseforsinkelsen før aktivering. PG tester restart og rollback etter at Dokarkiv har svart.
 
-### Dokumentbehandling og tilgang: S1, L1 og O1
+### Dokumentbehandling og tilgang: S1 og L1
 
 S1 sorterer søknadene etter mottakstid på originalen. Deretter bruker hver
 dokumentbehandling den tilknyttede journalposten som sitt vanlige grunnlag for
 digitalisering, datovalidering og overlevering. Verken dokumentflyten eller
 digitaliserings-API-et trenger å vite at søknaden kom fra Under18.
 
-Kontroller tilgang til hver journalpost og dokumentbehandling som vises.
+`GET /api/behandling/{referanse}/grunnlag/under18` leser Under18-behandlingen uten å
+gjenoppta den. Oppslaget i SAF oppretter ingen tilknytning. Når tilknytningen eller
+dokumentbehandlingen mangler, viser API-et søknaden uten den manglende koblingen.
+API-et kontrollerer lesetilgang til hver journalpost som vises, også dokumentbehandlingens
+hovedjournalpost. Mangler saksbehandler tilgang til én av dem, returnerer hele forespørselen
+HTTP 403 uten å identifisere journalposten.
 Digitalisering bruker dokumentbehandlingens egen referanse og versjon. Tilgang til
 Under18-behandlingen alene gir ikke tilgang til de andre dokumentene eller behandlingene.
-O1 viser overleveringen som bekreftet etter et vellykket HTTP-kall, ikke bare fordi
-dokumentbehandlingen er avsluttet.
+L1 viser fremdriften i hver dokumentbehandling. Statusen `AVSLUTTET` betyr at
+postmottak er ferdig med behandlingen, ikke at Kelvin har mottatt dokumentet.
 
 Test at originalens mottakstid avgjør rekkefølgen, og at dokumentbehandlingen bruker
 den tilknyttede journalposten. Test manglende kobling og
 tilgang til den konkrete journalposten, og avvis en utdatert behandlingsversjon.
-Test to dokumentbehandlinger som fullføres i motsatt rekkefølge, en feilet
-dokumentbehandling som ikke blokkerer den andre og avslutning uten bekreftet overlevering.
+Test at to dokumentbehandlinger kan fullføres i motsatt rekkefølge, og at en feil
+i den ene ikke blokkerer den andre.
 
 ### Aldersovergang: A1
 

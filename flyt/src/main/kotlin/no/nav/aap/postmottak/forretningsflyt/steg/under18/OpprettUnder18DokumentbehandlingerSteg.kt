@@ -17,15 +17,14 @@ import no.nav.aap.postmottak.gateway.Fagsystem
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.MASKINELL_JOURNALFØRING_ENHET
-import no.nav.aap.postmottak.gateway.Sakstype
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.under18.Under18Repository
+import no.nav.aap.postmottak.under18.finnPåKelvinSak
 
 class OpprettUnder18DokumentbehandlingerSteg(
     private val under18Repository: Under18Repository,
@@ -82,17 +81,8 @@ class OpprettUnder18DokumentbehandlingerSteg(
 
     private fun finnEllerKnyttTil(kilde: Journalpost, saksnummer: String): Journalpost {
         val dokumentIder = kilde.dokumenter.map { it.dokumentInfoId.dokumentInfoId }.toSet()
-        val kandidater = saf.hentTilknyttedeJournalposter(kilde.hoveddokument.dokumentInfoId)
-            .filterNot { it.journalpostId.toLong() == kilde.journalpostId.referanse }
-            .filter {
-                val sak = checkNotNull(it.sak) { "SAF mangler sak for tilknyttet journalpost ${it.journalpostId}" }
-                sak.sakstype == Sakstype.FAGSAK && sak.fagsaksystem == Fagsystem.KELVIN.name && sak.fagsakId == saksnummer
-            }
-        check(kandidater.all { it.dokumenter.map { dok -> dok.dokumentInfoId }.toSet() == dokumentIder }) {
-            "Uventet dokumentsett på Kelvin-saken for ${kilde.journalpostId}"
-        }
-        check(kandidater.size <= 1) { "Flere tilknytninger til Kelvin-saken for ${kilde.journalpostId}" }
-        val nyId = kandidater.singleOrNull()?.let { JournalpostId(it.journalpostId.toLong()) }
+        val nyId = saf.hentTilknyttedeJournalposter(kilde.hoveddokument.dokumentInfoId)
+            .finnPåKelvinSak(kilde.journalpostId, dokumentIder, saksnummer)
             ?: dokarkiv.knyttTilAnnenSak(kilde, saksnummer, MASKINELL_JOURNALFØRING_ENHET)
         check(nyId != kilde.journalpostId) { "Dokarkiv returnerte kildejournalposten ved tilknytning" }
         val ny = journalpostService.hentJournalpost(nyId)
