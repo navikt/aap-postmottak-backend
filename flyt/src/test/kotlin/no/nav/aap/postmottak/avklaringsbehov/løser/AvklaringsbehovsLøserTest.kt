@@ -12,17 +12,22 @@ import no.nav.aap.postmottak.gateway.BehandlingsflytSaksInfoTilPostmottak
 import no.nav.aap.postmottak.gateway.Klagebehandling
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
-import no.nav.aap.postmottak.klient.SystemKlokke
-import no.nav.aap.postmottak.klient.createGatewayProvider
+import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.WithDependencies
+import no.nav.aap.postmottak.test.Fakes
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.reflect.full.companionObjectInstance
 
+@Fakes
 class AvklaringsbehovsLøserTest {
+    private val gatewayProvider = defaultGatewayProvider {
+        register<BehandlingsflytGatewayMock>()
+        register<FakeUnleash>()
+    }
 
     @Test
     fun `alle subtyper skal ha unik verdi`() {
@@ -31,11 +36,7 @@ class AvklaringsbehovsLøserTest {
             (it.companionObjectInstance as LøserKonstruktør<*>)
                 .konstruer(
                     WithDependencies.repositoryRegistry.provider(MockConnection().toDBConnection()),
-                    createGatewayProvider {
-                        register<BehandlingsflytGatewayMock>()
-                        register<FakeUnleash>()
-                        register<SystemKlokke>()
-                    })
+                    gatewayProvider)
                 .forBehov()
         }.toSet()
 
