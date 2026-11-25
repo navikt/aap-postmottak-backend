@@ -1,6 +1,6 @@
 # Under-18-flyt: avklaringer og implementeringsplan
 
-Avklart 12. november 2026, med oppdateringer til og med 24. november.
+Avklart 12. november 2026, med oppdateringer til og med 25. november.
 Dokumentet samler kravavklaringene og viser ønsket funksjonalitet, status og planen videre.
 
 Den 18. november ble løsningen endret til å gjenbruke vanlige
@@ -30,6 +30,12 @@ et hjelpemiddel, ikke en komplett mottaksoversikt. Tidlig Kafka-registrering,
 mottaksrekkefølge og et separat mottaks-/varslingsspor utgår, sammen med M1–M3.
 Vi oppretter ingen `JOURNALPOST_MOTTAK`-tabell.
 
+Den 25. november ble inngangen endret til å bruke vanlig Fordeling.
+`PostmottakUnder18` styrer aldersunntaket i `Aldersregel`, ikke vurderingsjobben.
+Direkte opprettelse av Journalføring fra vurderingsjobben og en egen rutemarkør utgår.
+Den samme togglen skal dekke all under-18-funksjonalitet. Når den er av,
+skal det ikke opprettes Under18-behandlinger, heller ikke etter et tidligere fordelingsvalg.
+
 Utgangspunktet er diagrammet i
 [image-2026-11-11_8-30-51.png](image-2026-11-11_8-30-51.png).
 Diagrammet må vise at saksbehandler først bekrefter tema AAP i Journalføring.
@@ -42,7 +48,9 @@ Under-18-behandlingen knytter den ferdigstilte journalposten til Kelvin-saken se
 - Flyten gjelder bare papirsøknader. Digitale søknader er sperret for personer under 18 år.
 - Brevkode er tilstrekkelig for å identifisere en søknad.
 - Alder vurderes på tidspunktet vi behandler dokumentet, ikke på søknadsdato eller mottaksdato.
-- Manglende fødselsdato er en feilsituasjon. Kast exception og la jobben feile.
+- I under-18-løpet er manglende fødselsdato en feilsituasjon. Kast exception og la jobben feile.
+  Den vanlige aldersregelen i Fordeling beholder dagens `false`-resultat ved manglende fødselsdato,
+  uansett toggle. Den skal ikke stoppe ordinær dokumentfordeling med en ny exception.
 - Har søker allerede en Kelvin-sak ved mottak, følger søknaden vanlig flyt.
   Dette gjelder også søkere under 17 år og 9 måneder.
 - Leveransen omfatter backend og nødvendige kontrakter. Frontend inngår ikke.
@@ -50,9 +58,11 @@ Under-18-behandlingen knytter den ferdigstilte journalposten til Kelvin-saken se
 ## Journalføring på generell sak
 
 - En papirsøknad som kan gå til under-18-flyten, starter i en vanlig
-  Journalføring-behandling, ikke i en under-18-behandling.
+  Fordeling-behandling. Når fordelingsreglene velger Kelvin, opprettes vanlig
+  Journalføring, ikke en under-18-behandling.
 - Saksbehandler bekrefter at temaet er AAP. Først da velger Journalføring
-  automatisk generell sak og ferdigstiller søknaden på tema AAP.
+  generell sak for en aktuell under-18-papirsøknad uten Kelvin-sak, dersom
+  `PostmottakUnder18` fortsatt er på, og ferdigstiller søknaden på tema AAP.
 - Etter vellykket ferdigstilling oppretter eller oppdaterer løsningen
   under-18-behandlingen. En journalpost med annet tema starter ikke en
   under-18-behandling.
@@ -210,14 +220,24 @@ status eller overlevering. Hver dokumentbehandling håndterer egne oppgaver, ven
 
 ## Feature toggle og produksjon
 
-Koden til den nye flyten kan legges i produksjon før rutingen aktiveres.
-En feature toggle styrer om nye mottakshendelser kan velge den spesielle
-Journalføringsruten. Et allerede lagret rutevalg fullføres selv om togglen slås av.
-Sjekk togglen bare når rutingen velges.
+Koden kan legges i produksjon før funksjonaliteten aktiveres.
+`PostmottakUnder18` er av i dev og prod frem til hele forløpet er klart.
+Den samme togglen dekker aldersunntaket, overgangen fra Journalføring og
+under-18-funksjonaliteten. Dette er ikke bare en toggle for nye mottakshendelser.
 
-Eksisterende under-18-behandlinger fortsetter selv om togglen slås av.
-De mottar fortsatt kandidater og samler nye papirsøknader frem til Kelvin-saken
-er opprettet.
+I Fordeling styrer togglen aldersunntaket i `Aldersregel`. Andre fordelingsregler
+gjelder fortsatt. I Journalføring kontrolleres togglen igjen før valg av generell
+sak for under-18-løpet og før handoff oppretter en Under18-behandling.
+Et lagret fordelingsresultat er ikke tillatelse til å opprette Under18 med togglen av.
+Kontroller også togglen ved innganger til under-18-spesifikke jobber og operasjoner.
+
+Det er ikke opprettet Under18-behandlinger i produksjon ennå.
+Planen har derfor ikke noe unntak for eksisterende behandlinger eller samlinger:
+med togglen av skal det ikke opprettes nye Under18-behandlinger eller kjøres
+under-18-spesifikk funksjonalitet.
+Hvis togglen slås av etter ferdigstilling på generell sak, må handoff bevares for
+trygg videreføring. Den skal ikke fullføres uten videre behandling eller opprette
+en Under18-behandling mens togglen er av.
 
 ## Diagrammer
 
@@ -265,22 +285,25 @@ flowchart LR
     kafka --> åpen{"Åpen Journalføring?"}
     åpen -->|"Ja"| gjenoppta["Gjenoppta eksisterende Journalføring<br/>ingen egen kandidatvarsling"]
     åpen -->|"Nei"| vurder["Vurderingsjobben registrerer<br/>INNKOMMENDE_JOURNALPOST"]
-    vurder --> kandidat["Dagens kandidatvarsling<br/>til aktive Under18-behandlinger"]
-    vurder --> rute{"Toggle på og mulig<br/>under-18-papirsøknad?"}
-    rute -->|"Ja"| journalføring["Opprett Journalføring"]
-    rute -->|"Nei"| ordinær["Eksisterende mottaksrute"]
+    vurder --> fordeling["Vanlig Fordeling:<br/>Aldersregel bruker PostmottakUnder18"]
+    fordeling --> system{"Fordelingsreglene velger Kelvin?"}
+    system -->|"Ja"| journalføring["Opprett vanlig Journalføring"]
+    system -->|"Nei"| ordinær["Dagens Arena-/Gosys-løp"]
     journalføring --> tema{"AVKLAR_TEMA"}
     tema -->|"Ikke AAP"| ordinærJournalføring["Fortsett vanlig Journalføring"]
-    tema -->|"AAP"| generell["Velg generell sak<br/>ferdigstill i Dokarkiv"]
+    tema -->|"AAP"| under18valg{"Toggle på og aktuell papirsøknad?<br/>Søker under 18 uten Kelvin-sak<br/>eller papirsøknad til åpen samling"}
+    under18valg -->|"Nei"| ordinærJournalføring
+    under18valg -->|"Ja"| generell["Velg generell sak<br/>ferdigstill i Dokarkiv"]
     generell --> fullført{"Journalført?"}
     fullført -->|"Nei"| retry["Retry Journalføring<br/>ingen Under18-behandling ennå"]
     fullført -->|"Ja"| handoff["VideresendSteg legger<br/>handoff-jobb i kø"]
     handoff --> handoffjobb["Handoff-jobb etter<br/>Journalføring er avsluttet"]
-    handoffjobb --> under18{"Samlingen åpen<br/>under personlås?"}
+    handoffjobb --> toggle{"PostmottakUnder18 fortsatt på?"}
+    toggle -->|"Nei"| behold["Bevar handoff for trygg videreføring<br/>ingen ny Under18-behandling"]
+    toggle -->|"Ja"| under18{"Samlingen åpen<br/>under personlås?"}
     under18 -->|"Ja"| koble["Opprett/finn Under18,<br/>koble søknad og jobb i kø"]
     under18 -->|"Nei"| sen["Sen handoff:<br/>alternativ må avklares"]
     koble --> prosesser["ProsesserBehandlingJobbUtfører"]
-    kandidat -->|"Aktiv behandling finnes"| prosesser
     prosesser --> krav["Under18JournalposterInformasjonskrav<br/>og alder-/samtykkeavklaring"]
     krav --> sak["Opprett Kelvin-sak,<br/>tilknytninger og dokumentbehandlinger"]
     sak --> dokument["Uavhengige DokumentHåndtering-behandlinger"]
@@ -288,15 +311,15 @@ flowchart LR
     classDef default fill:#F6F7F9,stroke:#5B6169,color:#23262A
     classDef valg fill:#FBEDED,stroke:#C30000,color:#23262A
     classDef uavklart fill:#FFFFFF,stroke:#5B6169,stroke-dasharray:5 5,color:#23262A
-    class åpen,rute,tema,fullført valg
-    class sen uavklart
+    class åpen,system,tema,under18valg,fullført,toggle valg
+    class sen,behold uavklart
 ```
 
 ### Datamodellen
 
 Kolonner og tabeller er forslag. PK er primærnøkkel, FK fremmednøkkel og UK unik nøkkel.
 `INNKOMMENDE_JOURNALPOST` beholder dagens mottakshistorikk fra vurderingsjobben.
-Bare rutemarkøren legges til der i R1.
+R1 legger ikke til en egen rutemarkør eller nye mottaksfelter.
 Diagrammet viser ikke alle eksisterende kolonner i denne tabellen.
 
 ```mermaid
@@ -335,7 +358,6 @@ erDiagram
         varchar status "Dagens evalueringsstatus"
         varchar bruker_id "Eksisterende personident"
         timestamp opprettet_tid "Registrering i vurderingsjobben"
-        varchar under18_rute "Valgt rute, kan være NULL"
     }
     UNDER18_SAMTYKKEVURDERING {
         bigint id PK
@@ -447,6 +469,8 @@ sequenceDiagram
 | ✅ Merget | Lagring av siste vellykkede kjøring og input for informasjonskrav. | #984 |
 | ✅ Merget | Kandidatoppdatering på søknadssteget, tilbakeføring ved nye kandidater og samtykkevent som vekkes av vurderingsjobben. | #979 |
 | ✅ Merget | Styrbare, stabile mottaksdatoer i SAF-fakes og tester av kandidatforløpet. | #979 |
+| ✅ Merget | V1: Kontroll av kandidatens aktuelle personkobling i SAF mot søkerens identer fra PDL, inkludert historisk ident. Ugyldig personkobling gir eksplisitt feil. | #989 |
+| ✅ Merget | V2: Validering av samtykkereferanser før lagring. Ukjente journalposter og ugyldig personkobling gir `UgyldigForespørselException`; aktiv vurdering og vent bevares ved avvisning. Tom liste og gyldige referanser utenfor kandidatlisten godtas. | #988 |
 
 I #979 utledes mottakshistorikken fra vurderingsjobbens registrering, og kandidatvinduet
 starter når samtykkeavklaringen opprettes. Dette beholdes i første versjon,
@@ -457,7 +481,7 @@ med begrensningene beskrevet under «Nye journalposter og kandidater til samtykk
 | Repository | Data og bruk |
 | --- | --- |
 | Eksisterende repositorier | Behandlinger, personer, journalpostsnapshots, saksgrunnlag, avklaringsbehov, digitalisering og jobber. |
-| `InnkommendeJournalpostRepository` | Innkommende journalposter, regelresultater og dagens mottakshistorikk fra vurderingsjobben. Utvides bare med rutemarkør i R1. |
+| `InnkommendeJournalpostRepository` | Innkommende journalposter, regelresultater og dagens mottakshistorikk fra vurderingsjobben. Brukes uendret i R1, uten egen rutemarkør. |
 | `Under18Repository` | Person- og aldersopplysninger, søknadsavklaring, søknader, samtykkevurderinger, tilknytninger, dokumentbehandlingskoblinger og bekreftet overlevering. |
 
 Hvert repository eier sine egne tabeller. Nye data får in-memory-implementasjoner i
@@ -467,12 +491,14 @@ gjenbrukes gjennom sine repositorier. Nye oppslag innføres sammen med forløpet
 For kandidatoppslag gjenbruker vi dagens `INNKOMMENDE_JOURNALPOST`, personidenter
 og registreringstid. Vi innfører ikke tidlig mottaksregistrering, en ny mottatt-status,
 mottaksrekkefølge, personkobling eller venterundetabell.
-Rutemarkøren i R1 er uavhengig av kandidatoppslaget.
+R1 endrer ikke mottaksregistreringen eller kandidatoppslaget.
 
 Informasjonskravene ligger på `AvklarUnder18Steg`. `JournalpostInformasjonskrav`
 oppdaterer hovedjournalposten. `Under18JournalposterInformasjonskrav` melder `ENDRET`
 ved nye kandidater, også når en annen behandling allerede har lagret dem. Forrige
 kandidatliste ligger i input som allerede lagres av `InformasjonskravRepository`.
+Kravet validerer nå alle kandidaters aktuelle personkobling uten å lagre kandidatjournalpostene.
+Kandidat- og samtykkeløsertestene bruker in-memory-repositorier og SAF-/PDL-fakes, uten ekte database.
 
 Hver PR testes gjennom den aktuelle Kafka-topologien, motoren, løseren eller API-et,
 med ekte registreringer og fakes. Et eksisterende manuelt avklaringsbehov kan være
@@ -485,30 +511,112 @@ verifiserer transaksjoner, rollback og samtidighet i Postgres før aktivering.
 ## Neste PR-er
 
 ID-ene er arbeidsnavn. Avhengighetene angir hva som må være merget først.
-V1 er neste PR. V2, R1 og A1 kan utvikles uavhengig av V1 og resten av journalføringsløpet.
+V1 og V2 er merget i henholdsvis #989 og #988. R1 er under review i #990.
+A1 kan utvikles uavhengig av resten av journalføringsløpet.
 M1, M2 og M3 utgår etter forenklingen av kandidatoversikten og automatisk vekking.
 
 | PR | Funksjonell leveranse | Avhenger av | Kontroll |
 | --- | --- | --- | --- |
-| V1 | Kontroller at en hentet kandidat fortsatt tilhører søkeren før den inngår i samtykkeavklaringen. | #979 | Endret person gir eksplisitt feil; samme søker med historisk ident godtas. |
-| V2 | Valider samtykkereferansene i løseren før vurderingen lagres. Ugyldige referanser gir `UgyldigForespørselException`. | #979 | Gyldige, ukjente og andre personers journalposter, historisk ident og tom liste. Aktiv vurdering bevares ved avvisning. |
-| R1 | Rut aktuelle papirsøknader til Journalføring og lagre rutemarkøren som vurderingsjobben bruker ved retry. Bevar dagens kandidatregistrering og varsling også for denne ruten. | #979 | Kvalifisert søknad stopper ved `AVKLAR_TEMA`; øvrige dokumenter følger dagens løp. Retry bruker lagret rute ved endret alder. Rutingsfeil gir retry. Kandidatvarsling beholdes. |
-| J1 | Velg generell sak for markerte søknader. `VideresendSteg` legger handoff-jobben i kø; jobben krever `AVSLUTTET`, finner eller oppretter Under18, kobler søknaden og starter prosessering. | R1, V1, V2 og avklaringene nedenfor | AAP til generell sak og deretter Under18, annet tema, flere søknader i samme samling og retry med samme kobling. |
+| R1 | Innfør `PostmottakUnder18`, av i dev og prod, og la togglen styre aldersunntaket i `Aldersregel`. Behold vanlig Fordeling og vurderingsjobben uendret. Øvrige fordelingsregler avgjør fortsatt Kelvin eller Arena. Ingen egen rutemarkør eller Under18-behandling opprettes i R1. | #979 | Med togglen av beholdes dagens aldersregel. Med togglen på kan en aktuell under-18-papirsøknad gå via vanlig Fordeling til Journalføring og stoppe ved `AVKLAR_TEMA`. Andre regler, mottaksregistrering og kandidatvarsling bevares. |
+| J1 | Etter bekreftet tema AAP velger Journalføring generell sak for en aktuell under-18-papirsøknad uten Kelvin-sak eller til en åpen samling, bare når togglen er på. `VideresendSteg` legger handoff-jobben i kø; jobben krever `AVSLUTTET`, kontrollerer togglen på nytt, finner eller oppretter Under18, kobler søknaden og starter prosessering. | R1, #989, #988 og avklaringene nedenfor | AAP til generell sak og deretter Under18, annet tema, flere søknader i samme samling og retry med samme kobling. Togglen av hindrer opprettelse, også etter ferdigstilling på generell sak. |
 | S1 | Fullfør `OpprettUnder18SakSteg`: Kelvin-sak, journalposttilknytninger og én vanlig dokumentbehandling med saksgrunnlag, snapshot og jobb per søknad. | J1 | Digitalisering og overlevering med ny journalpost-ID og originalens opplysninger; gjenbruk av sak, bekreftede tilknytninger og dokumentbehandlinger ved retry. |
 | L1 | Koble Under18-lesemodellen til et GET-API som viser søknader, nye journalposter, dokumentbehandlinger, status, behov, vent og feil. | S1 | Riktige koblinger og fremdrift etter handoff og digitalisering; stabil historikk og behandlingsversjon ved GET. |
 | O1 | Lagre bekreftet overlevering etter vellykket kall og vis tidspunktet i API-et fra L1. | L1 | Vellykket sending vises som bekreftet; overleveringsvurdering og feilet sending vises med sine faktiske tilstander. |
 | A1 | Registrer en daglig aldersjobb med oppslag og ventelogikk som gjenopptar aktive Under18-behandlinger ved fylte 18 år før saksopprettelse. | #978 | Styrbar klokke, idempotent jobbinnlegging, opphevet automatisk/manuell vent og nytt søknadssvar før saksopprettelse. |
-| PG | Implementer Postgres-lagring for de nye dataene og samle alle nye tabeller og kolonner i én migrering. Videreutvikle #972 med datamodellen fra forløpene over. | Alle PR-ene over | Samme forløp mot Postgres, restart, rollback, savepoints, personlås, samtidighet og videreføring med togglen av. |
+| PG | Implementer Postgres-lagring for de nye dataene og samle alle nye tabeller og kolonner i én migrering. Videreutvikle #972 med datamodellen fra forløpene over. | Alle PR-ene over | Samme forløp mot Postgres, restart, rollback, savepoints, personlås og samtidighet. Togglen av hindrer Under18-opprettelse, og ufullført handoff bevares. |
 
 Kandidatoppslag og varsling beholder dagens løsning fra #979.
-R1 innfører rutemarkøren uten å endre når mottakshistorikken registreres.
+R1 endrer aldersregelen uten å endre når mottakshistorikken registreres.
 
 S1 holder saksopprettelse, tilknytning og dokumentbehandling samlet, slik at sakssteget
 fullføres med en fungerende videre behandling for hver søknad.
 
 ## Detaljer og tester for kommende PR-er
 
-### Kandidater og rutevalg: V1, V2 og R1
+### Aldersunntak i Fordeling: R1
+
+R1 innfører `PostmottakUnder18` og kobler den til `Aldersregel`.
+Med togglen av gjelder dagens alderskrav. Med togglen på passerer personer under 18
+aldersregelen når fødselsdatoen er kjent. Manglende fødselsdato gir fortsatt `false`,
+slik at et dokument til en eksisterende Kelvin-sak kan fordeles etter de vanlige overstyringene.
+
+Digitale søknader er sperret for personer under 18 år før de når postmottak.
+Vi bygger på denne forutsetningen og legger ikke til en egen papir-/digitalsjekk i aldersregelen.
+`SøknadRegel` og de øvrige fordelingsreglene gjelder fortsatt i prod.
+Under-18-flyten gjelder fortsatt bare papirsøknader.
+
+Vurderingsjobben oppretter fortsatt Fordeling som i dag.
+Fordeling velger Kelvin eller Arena med det eksisterende regelsettet.
+Ved Kelvin oppretter dagens videresending en vanlig Journalføring-behandling.
+Papirsøknaden stopper ved saksbehandlerens temaavklaring.
+Valg av generell sak og opprettelse av Under18 etter tema AAP kommer i J1.
+R1 oppretter ingen Under18-behandling eller Kelvin-sak.
+
+#### Hva R1 gjør
+
+Diagrammet viser vanlig Fordeling, med det nye aldersunntaket markert.
+Vurderingsjobben, Journalføringsflyten og mottaksregistreringen brukes uendret i R1.
+
+```mermaid
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#F6F7F9","primaryTextColor":"#23262A","primaryBorderColor":"#5B6169","lineColor":"#5B6169","secondaryColor":"#FBEDED","tertiaryColor":"#F6F7F9","background":"#FFFFFF"}}}%%
+flowchart TD
+    vurder["Uendret vurderingsjobb"] --> fordeling["Opprett vanlig Fordeling<br/>og prosesseringsjobb"]
+    fordeling --> alder["Aldersregel:<br/>alder minst 18 eller PostmottakUnder18 på<br/>manglende fødselsdato gir fortsatt false"]
+    alder --> regler["Øvrige fordelingsregler gjelder fortsatt"]
+    regler --> system{"Samlet vurdering:<br/>Kelvin eller Arena?"}
+    system -->|"Arena"| arena["Dagens Arena-/Gosys-løp"]
+    system -->|"Kelvin"| journalføring["Dagens videresending:<br/>opprett vanlig Journalføring"]
+    journalføring --> tema["AVKLAR_TEMA:<br/>saksbehandler må bekrefte tema"]
+    tema --> stopp["R1 stopper her"]
+    stopp -.-> j1{"J1: tema AAP, aktuell papirsøknad,<br/>søker under 18 uten Kelvin-sak<br/>og PostmottakUnder18 på?"}
+    j1 -.->|"Nei"| vanlig["Vanlig Journalføring"]
+    j1 -.->|"Ja"| generell["Generell sak og ferdigstilling"]
+    generell -.-> handoff{"Handoff: toggle fortsatt på?"}
+    handoff -.->|"Ja"| under18["Opprett eller oppdater Under18"]
+    handoff -.->|"Nei"| behold["Ingen ny Under18-behandling<br/>bevar handoff for trygg videreføring"]
+    classDef default fill:#F6F7F9,stroke:#5B6169,color:#23262A
+    classDef valg fill:#FBEDED,stroke:#C30000,color:#23262A
+    classDef senere fill:#FFFFFF,stroke:#5B6169,stroke-dasharray:5 5,color:#23262A
+    class alder,system valg
+    class j1,vanlig,generell,handoff,under18,behold senere
+```
+
+Et eksisterende fordelingsresultat gjenbrukes som i dag.
+Det erstatter ikke togglekontrollen før Under18-opprettelse i J1.
+`Aldersregel` er aktiv i prod, men ikke i dev eller test. Testene må derfor
+dekke regelen direkte, ikke bare stole på en flyttest med dev-regler.
+Togglen aktiveres ikke i dev eller prod før hele forløpet, inkludert J1 og PG, er klart.
+
+#### Filer og tester i R1
+
+Unleash-avhengigheten kobles i regelens eksisterende `medDataInnhenting`.
+Fødselsdato hentes med dagens gateway. `RegelInput` og `AvklarFordelingSteg`
+endres ikke, og R1 trenger ingen nye papir-/digitalfelter.
+
+| Fil | Endring |
+| --- | --- |
+| [FeatureToggle.kt](flyt/src/main/kotlin/no/nav/aap/unleash/FeatureToggle.kt) | Legg `PostmottakUnder18` til i `PostmottakFeature`. Opprett tilsvarende toggle i Unleash, avslått i dev og prod. |
+| [Aldersregel.kt](flyt/src/main/kotlin/no/nav/aap/fordeler/regler/Aldersregel.kt) | La togglen styre aldersunntaket. Behold `false` ved manglende fødselsdato, uansett toggle. Kommenter forutsetningen om at digitale søknader under 18 er sperret. Koble Unleash i `medDataInnhenting`. |
+| [FakeUnleash.kt](lib-test/src/main/kotlin/no/nav/aap/postmottak/test/FakeUnleash.kt) | Støtt den nye enum-verdien i begge `isEnabled`-variantene. Standardverdien er av; rutingstestene styrer togglen eksplisitt. |
+| [AldersregelTest.kt](flyt/src/test/kotlin/no/nav/aap/fordeler/regler/AldersregelTest.kt) | Test på/av, alder under og fra 18 år og `false` ved manglende fødselsdato med togglen både på og av. Nye tilfeller bruker styrbare fakes. |
+| [AvklarFordelingStegTest.kt](flyt/src/test/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/fordeling/AvklarFordelingStegTest.kt) | Kjør eksisterende tester for øvrige regler og lagrede fordelingsresultater. Ingen testinput endres i R1. |
+| [Flyttest.kt](flyt/src/test/kotlin/no/nav/aap/postmottak/flyt/Flyttest.kt) | Verifiser vanlig mottak → Fordeling → Journalføring med stopp ved `AVKLAR_TEMA`. Denne testen erstatter ikke direkte testing av den prod-aktive aldersregelen. |
+
+[VurderRelevantDokumentForAAPJobbUtfører.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/VurderRelevantDokumentForAAPJobbUtfører.kt),
+[KafkaStreams.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/mottak/KafkaStreams.kt),
+jobbenes type-strenger og
+[ProsesseringsJobber.kt](flyt/src/main/kotlin/no/nav/aap/postmottak/prosessering/ProsesseringsJobber.kt) trenger ingen
+endring: vi bruker samme vurderingsjobb og samme prosesseringsjobb som i dag.
+Ingen endring i [kontrakt](kontrakt/), stegrekkefølge eller
+[AvklarTemaSteg](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/AvklarTemaSteg.kt)
+er planlagt i R1.
+[AvklarSakSteg](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/AvklarSakSteg.kt)
+og [VideresendSteg](flyt/src/main/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/VideresendSteg.kt)
+røres først i J1.
+
+R1 krever ingen ny rutemarkør, mottaksmodell, repository-metode eller migrering.
+Eksisterende lagring av regelresultatet beholdes. PG gjelder fortsatt varig
+lagring av under-18-dataene som brukes i de senere leveransene.
 
 Behold vurderingsjobbens registreringstid som grunnlag for kandidater og
 automatisk vekking. Vi garanterer ikke komplett kandidatoversikt eller rekkefølge
@@ -516,16 +624,16 @@ mellom faktisk dokumentmottak og opprettelse av vent. Et forsinket dokument kan
 vekke en nyere vent. Hendelser med allerede åpen Journalføring følger dagens løp
 uten et eget kandidatspor.
 
-V1 kontrollerer at en kandidat fortsatt tilhører søkeren. V2 validerer
+V1 (#989) kontrollerer allerede at en kandidat fortsatt tilhører søkeren. V2 (#988) validerer
 samtykkereferanser uavhengig av om de står i kandidatlisten. Historiske identer
 godtas når de tilhører samme person.
 
-R1 gjenbruker lagret rute ved retry og toggle-endring. Den nye ruten må bevare
-dagens kandidatregistrering og varsling. PG sikrer at rutevalg, behandling og
-jobb lagres atomisk.
+Kandidatregistrering og varsling fra vurderingsjobben endres ikke i R1.
+Under-18-spesifikk bruk må følge samme toggle som resten av funksjonaliteten.
 
-Test gyldige og ugyldige samtykkereferanser, inkludert gyldige referanser utenfor
-kandidatlisten. Behold tester for duplikater, kandidatvarsling og utløpt ventefrist.
+Behold de eksisterende testene for kandidatvalidering og gyldige og ugyldige
+samtykkereferanser, inkludert gyldige referanser utenfor kandidatlisten.
+Behold også tester for duplikater, kandidatvarsling og utløpt ventefrist.
 Tester av forsinkede jobber skal tillate at registrering etter en ny vent vekker den.
 
 ### Handoff og dataintegritet: J1, S1 og PG
@@ -620,7 +728,8 @@ personopplysningene faktisk er fjernet.
 
 | Situasjon | Avklaring |
 | --- | --- |
-| Kelvin-sak oppstår etter rutingsvalget | Avklar videre håndtering før `AvklarSakSteg` eller ferdigstilt Journalføring. Rutevalget er varig. |
+| Kelvin-sak oppstår etter Fordeling | Kontroller aktuell sakssituasjon i Journalføring før valg av generell sak. Fordelingsresultatet avgjør ikke alene om en Under18-behandling skal opprettes. |
+| Togglen slås av etter valg av generell sak | Ingen Under18-behandling skal opprettes. Bevar ufullført handoff og avklar hvordan den gjenopptas uten å miste en ferdigstilt søknad. |
 | Ferdig journalført søknad etter at samlingen stenges | Bestem videre behandling eller varsling før handoff-jobben ferdigstilles. |
 | Gjenfinning etter avbrutt tilknytning | Bekreft gjenbruk av dokument-ID-er, når resultatet er synlig i SAF og hvordan et kall som fortsatt kan fullføre, håndteres. Lagre forsøket før kallet. |
 | Forutsetninger for tilknytning | Avklar obligatoriske felt, tillatte kildestatuser og håndtering av samtykkedokumenter som behandles ordinært eller ligger på en annen fagsak. |
@@ -637,11 +746,14 @@ Personlås og fast låserekkefølge sikrer handoff og saksopprettelse.
 Test parallelle handoffs, handoff mot saksopprettelse og videreføring av dagens
 kandidatregistrering og ventefrister.
 
-Under utviklingen er `PostmottakUnder18` på i testoppsettet og av i dev og prod.
+R1 definerer `PostmottakUnder18`. Testene dekker både påslått og avslått toggle.
+Den nye rutingen er av i dev og prod frem til forløpet er klart for aktivering.
 Inngangene kontrollerer togglen før bruk av produksjonsstubene.
-PG tilpasser videreføringen av lagrede ruter og eksisterende behandlinger ved avslått toggle.
+PG verifiserer at togglen av hindrer Under18-opprettelse og under-18-spesifikke operasjoner.
+Ufullført handoff skal bevares uten å opprette en behandling mens togglen er av.
 
 Etter PG prøves hele forløpet med syntetiske dokumenter i dev.
 Prod aktiveres når forretningsavklaringene, konsumentstøtten, tilgangene og driftsrutinene
-er på plass. Etter aktivering styrer togglen nye rutevalg, mens eksisterende Under18-behandlinger
-fortsetter å motta kandidater og fullføres gjennom Journalføring, handoff og overlevering.
+er på plass. Etter aktivering styrer samme toggle aldersunntaket i Fordeling og
+under-18-funksjonaliteten i Journalføring, handoff og Under18. Et tidligere
+fordelingsresultat gir ikke noe unntak fra togglekontrollen.

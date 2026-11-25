@@ -11,6 +11,7 @@ enum class PostmottakFeature : FeatureToggle {
     AutomatiskKlageJournalforing,
     PostmottakVelgTema,
     KantTilKantV1,
+    PostmottakUnder18,
     ;
 
     override fun key(): String = name
