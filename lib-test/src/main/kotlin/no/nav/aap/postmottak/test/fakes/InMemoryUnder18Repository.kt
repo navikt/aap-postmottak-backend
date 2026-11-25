@@ -4,11 +4,11 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.lookup.repository.Factory
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.under18.Under18Aldersgruppe
+import no.nav.aap.postmottak.under18.Under18Aldersgrunnlag
 import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.under18.Under18SamtykkeVurdering
 import no.nav.aap.postmottak.under18.Under18Søknadsavklaring
-import java.time.LocalDate
+import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
 
 object InMemoryUnder18Repository : Under18Repository by IsolertUnder18Repository()
 
@@ -20,12 +20,12 @@ class IsolertUnder18Repository : Under18Repository {
         override fun konstruer(connection: DBConnection) = IsolertUnder18Repository()
     }
 
-    private val søknader = HashMap<BehandlingId, MutableList<JournalpostId>>()
-    private val fødselsdatoer = HashMap<BehandlingId, LocalDate>()
-    private val aldersgrupper = HashMap<BehandlingId, Under18Aldersgruppe>()
+    private val søknadsgrunnlag = HashMap<BehandlingId, Under18Søknadsgrunnlag>()
+    private val aldersgrunnlag = HashMap<BehandlingId, Under18Aldersgrunnlag>()
     private val søknadsavklaringer = HashMap<BehandlingId, Under18Søknadsavklaring>()
     private val samtykkevurderinger = HashMap<BehandlingId, MutableList<Under18SamtykkeVurdering>>()
     private val lock = Any()
+
     private val under18Journalføringer = mutableSetOf<BehandlingId>()
 
     override fun registrerUnder18Journalføring(behandlingId: BehandlingId) {
@@ -35,51 +35,46 @@ class IsolertUnder18Repository : Under18Repository {
     override fun erUnder18Journalføring(behandlingId: BehandlingId): Boolean =
         synchronized(lock) { behandlingId in under18Journalføringer }
 
-    private val behandlingForNyeSøknaderPerPerson = mutableMapOf<Long, BehandlingId>()
-
-    private val behandlingerStengtForNyeSøknader = mutableSetOf<BehandlingId>()
-
-    override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? = synchronized(lock) { behandlingForNyeSøknaderPerPerson[personId] }
-
-    override fun registrerBehandlingForNyeSøknader(personId: Long, behandlingId: BehandlingId) {
-        synchronized(lock) { check(behandlingForNyeSøknaderPerPerson.putIfAbsent(personId, behandlingId) == null) }
-    }
-
-    override fun stengForNyeSøknader(behandlingId: BehandlingId) {
-        synchronized(lock) {
-            behandlingForNyeSøknaderPerPerson.values.remove(behandlingId)
-            behandlingerStengtForNyeSøknader.add(behandlingId)
-        }
+    override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? = synchronized(lock) {
+        søknadsgrunnlag.entries.singleOrNull { it.value.personId == personId && it.value.tarImotNyeSøknader }?.key
     }
 
     override fun hentBehandlingForSøknad(journalpostId: JournalpostId): BehandlingId? =
-        synchronized(lock) { søknader.entries.singleOrNull { journalpostId in it.value }?.key }
+        synchronized(lock) { søknadsgrunnlag.entries.singleOrNull { journalpostId in it.value.søknader }?.key }
 
-    override fun lagreSøknad(behandlingId: BehandlingId, journalpostId: JournalpostId) {
+    override fun lagreSøknadsgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Søknadsgrunnlag) {
         synchronized(lock) {
-            check(behandlingId !in behandlingerStengtForNyeSøknader) { "Under18-behandling $behandlingId tar ikke imot nye søknader." }
-            val liste = søknader.getOrPut(behandlingId) { mutableListOf() }
-            require(hentBehandlingForSøknad(journalpostId) == null) { "Søknad $journalpostId er allerede lagret" }
-            liste.add(journalpostId)
+            val tidligere = søknadsgrunnlag[behandlingId]
+            if (tidligere != null) {
+                check(tidligere.personId == grunnlag.personId) { "Kan ikke bytte person på $behandlingId" }
+                check(tidligere.tarImotNyeSøknader || tidligere == grunnlag) { "$behandlingId er stengt for nye søknader" }
+                check(grunnlag.søknader.take(tidligere.søknader.size) == tidligere.søknader) {
+                    "Lagrede søknader på $behandlingId kan ikke erstattes"
+                }
+            }
+            if (grunnlag.tarImotNyeSøknader) {
+                val åpenBehandling = finnBehandlingForNyeSøknader(grunnlag.personId)
+                check(åpenBehandling == null || åpenBehandling == behandlingId) {
+                    "Personen har allerede en behandling for nye søknader"
+                }
+            }
+            grunnlag.søknader.forEach {
+                val eier = hentBehandlingForSøknad(it)
+                check(eier == null || eier == behandlingId) { "Søknad $it tilhører allerede en annen behandling" }
+            }
+            søknadsgrunnlag[behandlingId] = grunnlag.copy(søknader = grunnlag.søknader.toList())
         }
     }
 
-    override fun hentSøknader(behandlingId: BehandlingId): List<JournalpostId> =
-        synchronized(lock) { søknader[behandlingId].orEmpty().toList() }
+    override fun hentSøknadsgrunnlag(behandlingId: BehandlingId): Under18Søknadsgrunnlag =
+        synchronized(lock) { søknadsgrunnlag.getValue(behandlingId).let { it.copy(søknader = it.søknader.toList()) } }
 
-    override fun lagreFødselsdato(behandlingId: BehandlingId, fødselsdato: LocalDate) {
-        synchronized(lock) { fødselsdatoer[behandlingId] = fødselsdato }
+    override fun lagreAldersgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Aldersgrunnlag) {
+        synchronized(lock) { aldersgrunnlag[behandlingId] = grunnlag }
     }
 
-    override fun hentFødselsdato(behandlingId: BehandlingId): LocalDate? =
-        synchronized(lock) { fødselsdatoer[behandlingId] }
-
-    override fun lagreAldersgruppe(behandlingId: BehandlingId, aldersgruppe: Under18Aldersgruppe) {
-        synchronized(lock) { aldersgrupper[behandlingId] = aldersgruppe }
-    }
-
-    override fun hentAldersgruppe(behandlingId: BehandlingId): Under18Aldersgruppe? =
-        synchronized(lock) { aldersgrupper[behandlingId] }
+    override fun hentAldersgrunnlag(behandlingId: BehandlingId): Under18Aldersgrunnlag? =
+        synchronized(lock) { aldersgrunnlag[behandlingId] }
 
     override fun lagreSøknadsavklaring(behandlingId: BehandlingId, avklaring: Under18Søknadsavklaring) {
         synchronized(lock) { søknadsavklaringer[behandlingId] = avklaring }
@@ -92,7 +87,7 @@ class IsolertUnder18Repository : Under18Repository {
         synchronized(lock) { samtykkevurderinger.getOrPut(behandlingId) { mutableListOf() }.add(vurdering) }
     }
 
-    override fun hentSamtykkevurderinger(behandlingId: BehandlingId): List<Under18SamtykkeVurdering> =
+    fun hentSamtykkevurderinger(behandlingId: BehandlingId): List<Under18SamtykkeVurdering> =
         synchronized(lock) { samtykkevurderinger[behandlingId].orEmpty().toList() }
 
     override fun hentAktivSamtykkevurdering(behandlingId: BehandlingId): Under18SamtykkeVurdering? =

@@ -85,10 +85,14 @@ class Under18Journalføring(
         check(behandlingsflytGateway.finnSaker(person.aktivIdent()).isEmpty()) {
             "Kelvin-sak er opprettet etter valg av generell sak for $journalpostId. Krever manuell oppfølging."
         }
-        val behandling = under18Repository.finnBehandlingForNyeSøknader(person.id)
-            ?: behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Under18)
-                .also { under18Repository.registrerBehandlingForNyeSøknader(person.id, it) }
-        under18Repository.lagreSøknad(behandling, journalpostId)
+        val åpenBehandling = under18Repository.finnBehandlingForNyeSøknader(person.id)
+        val behandling = åpenBehandling ?: behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Under18)
+        val grunnlag = if (åpenBehandling == null) {
+            Under18Søknadsgrunnlag(person.id, listOf(journalpostId))
+        } else {
+            under18Repository.hentSøknadsgrunnlag(åpenBehandling).leggTilSøknad(journalpostId)
+        }
+        under18Repository.lagreSøknadsgrunnlag(behandling, grunnlag)
         val hovedjournalpost = behandlingRepository.hent(behandling).journalpostId
         flytJobbRepository.leggTil(
             JobbInput(ProsesserBehandlingJobbUtfører).forBehandling(hovedjournalpost.referanse, behandling.id)
