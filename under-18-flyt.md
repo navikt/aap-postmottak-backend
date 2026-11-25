@@ -233,10 +233,11 @@ Fordeling bruker togglen for aldersunntaket. Journalføring bruker samme toggle 
 `AvklarSakSteg` velger generell sak for en Under18-søknad. Før aktivering velges ikke
 dette løpet, heller ikke når et tidligere fordelingsresultat sender dokumentet til Kelvin.
 
-`AvklarSakSteg` lagrer bare vanlig generell sak. Etter ferdigstilling i Joark bruker
-`VideresendSteg` samme regel: bekreftet tema AAP, papirsøknad, ingen Kelvin-sak og enten
-søker under 18 eller en åpen Under18-samling. Generell sak alene starter ikke Under18.
-Vi bruker alderen når steget kjører, uten å lagre `Under18Valg` eller en kopi av samlingen.
+`AvklarSakSteg` registrerer i `Under18Repository` hvilken Journalføring som valgte
+Under18. `Saksvurdering` inneholder fortsatt bare vanlig generell sak. Ved et nytt forsøk
+følger `VideresendSteg` det registrerte valget uten å vurdere alderen på nytt.
+Har søknaden fått en Kelvin-sak før kobling, feiler jobben for manuell oppfølging.
+En manuelt valgt generell sak starter ikke Under18.
 De påfølgende Under18-jobbene trenger ingen egen togglekontroll.
 Vi planlegger ikke for stopp, vent eller omkjøring som følge av deaktivering.
 
@@ -298,7 +299,7 @@ flowchart LR
     generell --> fullført{"Journalført?"}
     fullført -->|"Nei"| retry["Retry Journalføring<br/>ingen Under18-behandling ennå"]
     fullført -->|"Ja"| videresend["VideresendSteg"]
-    videresend --> aktuell{"Samme Under18-vilkår oppfylt?"}
+    videresend --> aktuell{"Valgte Journalføring Under18?"}
     aktuell -->|"Nei"| ordinærSlutt["Avslutt vanlig Journalføring"]
     aktuell -->|"Ja"| under18{"Kelvin-sak opprettet i mellomtiden?"}
     under18 -->|"Nei"| koble["Finn eller opprett Under18,<br/>koble søknad og legg vanlig prosessering i kø"]
@@ -518,7 +519,7 @@ M1, M2 og M3 utgår etter forenklingen av kandidatoversikten og automatisk vekki
 | PR | Funksjonell leveranse | Avhenger av | Kontroll |
 | --- | --- | --- | --- |
 | R1 | Innfør `PostmottakUnder18`, av i dev og prod, og la togglen styre aldersunntaket i `Aldersregel`. Behold vanlig Fordeling og vurderingsjobben uendret. Øvrige fordelingsregler avgjør fortsatt Kelvin eller Arena. Ingen egen rutemarkør eller Under18-behandling opprettes i R1. | #979 | Med togglen av beholdes dagens aldersregel. Med togglen på kan en aktuell under-18-papirsøknad gå via vanlig Fordeling til Journalføring og stoppe ved `AVKLAR_TEMA`. Andre regler, mottaksregistrering og kandidatvarsling bevares. |
-| J1 | `AvklarSakSteg` velger generell sak for aktuelle Under18-søknader. Etter ferdigstilling bruker `VideresendSteg` samme regel, finner eller oppretter Under18, kobler søknaden og legger vanlig prosessering i kø. `Under18Repository` eier samlingen og søknadskoblingen. `Saksvurdering` endres ikke. | R1, #989, #988 og avklaringene nedenfor | Ingen Under18 før aktivering eller ved feilet ferdigstilling. To søknader kan dele behandling. Retry gir ingen duplikater. Ny Kelvin-sak før kobling krever manuell oppfølging. |
+| J1 | `AvklarSakSteg` registrerer hvilke Journalføringer som skal videre til Under18 og velger generell sak. Etter ferdigstilling finner eller oppretter `VideresendSteg` Under18, kobler søknaden og legger vanlig prosessering i kø. `Saksvurdering` endres ikke. | R1, #989, #988 og avklaringene nedenfor | Ingen Under18 før aktivering eller ved feilet ferdigstilling. To søknader kan dele behandling. Retry gir ingen duplikater. Ny Kelvin-sak før kobling krever manuell oppfølging. |
 | S1 | Fullfør `OpprettUnder18SakSteg`: Kelvin-sak, journalposttilknytninger og én vanlig dokumentbehandling med saksgrunnlag, snapshot og jobb per søknad. | J1 | Digitalisering og overlevering med ny journalpost-ID og originalens opplysninger; gjenbruk av sak, bekreftede tilknytninger og dokumentbehandlinger ved retry. |
 | L1 | Koble Under18-lesemodellen til et GET-API som viser søknader, nye journalposter, dokumentbehandlinger, status, behov, vent og feil. | S1 | Riktige koblinger og fremdrift etter overgangen til Under18 og digitalisering; stabil historikk og behandlingsversjon ved GET. |
 | O1 | Lagre bekreftet overlevering etter vellykket kall og vis tidspunktet i API-et fra L1. | L1 | Vellykket sending vises som bekreftet; overleveringsvurdering og feilet sending vises med sine faktiske tilstander. |
@@ -571,7 +572,7 @@ flowchart TD
     stopp -.-> j1{"J1: tema AAP, aktuell papirsøknad,<br/>søker under 18 uten Kelvin-sak<br/>og PostmottakUnder18 på?"}
     j1 -.->|"Nei"| vanlig["Vanlig Journalføring"]
     j1 -.->|"Ja"| generell["Generell sak og ferdigstilling"]
-    generell -.-> videresend["VideresendSteg bruker samme Under18-regel"]
+    generell -.-> videresend["VideresendSteg følger registrert valg av Under18"]
     videresend -.-> under18["Finn eller opprett Under18<br/>koble søknad og legg vanlig prosessering i kø"]
     classDef default fill:#F6F7F9,stroke:#5B6169,color:#23262A
     classDef valg fill:#FBEDED,stroke:#C30000,color:#23262A
@@ -744,6 +745,7 @@ Ved uklart utfall fra tilknytningen feiler jobben og utfallet avklares før nytt
 
 J1 bruker bare in-memory-lagring for de nye Under18-dataene. Flyway-migrasjonen
 kommer i siste steg (PG), sammen med Postgres-implementasjonen. Da må vi lagre
+ID-en til Journalføringen som valgte Under18 i samme transaksjon som saksvalget,
 hvilken Under18-behandling som samler søknadene for en person, om samlingen er åpen,
 og hvilken behandling hver kildejournalpost tilhører. Tillat høyst én åpen samling
 per person og én kobling per kildejournalpost. `Saksvurdering` trenger ingen nye felt.

@@ -112,7 +112,10 @@ class AvklarSakSteg(
             Fullført
         } else if (saksnummerVurdering != null) {
             Fullført
-        } else if (under18Journalføring.erAktuell(journalpost, temavurdering, eksisterendeKelvinSaker.isNotEmpty())) {
+        } else if (under18Journalføring.velgUnder18HvisAktuell(
+                kontekst.behandlingId, journalpost, temavurdering, eksisterendeKelvinSaker.isNotEmpty()
+            )
+        ) {
             avklarGenerellSakMaskinelt(kontekst.behandlingId)
             Fullført
         } else {

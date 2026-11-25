@@ -12,6 +12,7 @@ import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.gateway.Sakstype
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -43,21 +44,35 @@ class Under18Journalføring(
         )
     }
 
-    fun erAktuell(journalpost: Journalpost, tema: TemaVurdering?, harKelvinSak: Boolean): Boolean {
-        if (harKelvinSak || tema?.tema != Tema.AAP || !tema.skalTilAap || journalpost.hoveddokumentbrevkode != Brevkoder.SØKNAD.kode) return false
-
-        if (!unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18)) return false
+    fun velgUnder18HvisAktuell(
+        behandlingId: BehandlingId, journalpost: Journalpost, tema: TemaVurdering?, harKelvinSak: Boolean
+    ): Boolean {
+        val erPapirsøknad = journalpost.erPapir() && journalpost.hoveddokumentbrevkode == Brevkoder.SØKNAD.kode
+        val bekreftetAap = tema?.tema == Tema.AAP && tema.skalTilAap
+        if (!erPapirsøknad || harKelvinSak || !bekreftetAap ||
+            !unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18)
+        ) return false
 
         val person = journalpost.person
-        if (under18Repository.finnBehandlingForNyeSøknader(person.id) != null) return true
+        val skalTilUnder18 = under18Repository.finnBehandlingForNyeSøknader(person.id) != null || erUnder18(journalpost)
+        if (skalTilUnder18) under18Repository.registrerUnder18Journalføring(behandlingId)
+        return skalTilUnder18
+    }
+
+    private fun erUnder18(journalpost: Journalpost): Boolean {
+        val person = journalpost.person
         val fødselsdato = checkNotNull(persondataGateway.hentFødselsdato(person.aktivIdent().identifikator)) {
             "Mangler fødselsdato ved vurdering av papirsøknad ${journalpost.journalpostId}"
         }
         return klokke.dagensDato().isBefore(fødselsdato.plusYears(18))
     }
 
-    fun videresend(journalpost: Journalpost) {
+    fun videresendHvisValgt(behandlingId: BehandlingId, journalpost: Journalpost) {
+        if (!unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18) ||
+            !under18Repository.erUnder18Journalføring(behandlingId)
+        ) return
         val journalpostId = journalpost.journalpostId
+        if (under18Repository.hentBehandlingForSøknad(journalpostId) != null) return
         val saf = journalpostService.hentSafJournalpost(journalpostId)
         check(saf.journalstatus == Journalstatus.JOURNALFOERT && saf.tema == Tema.AAP.name && saf.sak?.sakstype == Sakstype.GENERELL_SAK) {
             "Journalpost $journalpostId er ikke ferdigstilt på generell sak med tema AAP."
@@ -67,7 +82,6 @@ class Under18Journalføring(
         }
 
         val person = journalpost.person
-        if (under18Repository.hentBehandlingForSøknad(journalpostId) != null) return
         check(behandlingsflytGateway.finnSaker(person.aktivIdent()).isEmpty()) {
             "Kelvin-sak er opprettet etter valg av generell sak for $journalpostId. Krever manuell oppfølging."
         }

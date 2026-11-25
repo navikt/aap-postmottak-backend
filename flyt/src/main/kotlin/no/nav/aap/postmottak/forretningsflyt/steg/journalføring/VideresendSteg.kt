@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -69,18 +70,22 @@ class VideresendSteg(
         val avklarTemaVurdering =
             avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
-        if (saksnummervurdering?.generellSak == true) {
-            if (under18Journalføring.erAktuell(
-                    journalpost, avklarTemaVurdering, saksnummerRepository.hentKelvinSaker(kontekst.behandlingId).isNotEmpty()
-                )) {
-                under18Journalføring.videresend(journalpost)
+        when {
+            saksnummervurdering?.generellSak == true -> {
+                if (avklarTemaVurdering?.tema == Tema.AAP && avklarTemaVurdering.skalTilAap) {
+                    under18Journalføring.videresendHvisValgt(kontekst.behandlingId, journalpost)
+                }
             }
-            return Fullført
+            erJournalførtPåAnnetFagsystem(journalpost) -> log.info("Journalpost er journalført på annet fagsystem - videresender ikke")
+            avklarTemaVurdering?.skalTilAap != false -> {
+                requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
+                opprettDokumentbehandling(kontekst)
+            }
         }
+        return Fullført
+    }
 
-        if (erJournalførtPåAnnetFagsystem(journalpost) || avklarTemaVurdering?.skalTilAap == false) return Fullført
-        requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
-
+    private fun opprettDokumentbehandling(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         val dokumentbehandlingId =
@@ -92,8 +97,6 @@ class VideresendSteg(
             JobbInput(ProsesserBehandlingJobbUtfører)
                 .forBehandling(behandling.journalpostId.referanse, dokumentbehandlingId.id).medCallId()
         )
-
-        return Fullført
     }
 
     private fun erJournalførtPåAnnetFagsystem(journalpost: Journalpost): Boolean {

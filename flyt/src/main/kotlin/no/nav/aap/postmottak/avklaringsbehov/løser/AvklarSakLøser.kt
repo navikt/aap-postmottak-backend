@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.avklaringsbehov.løser
 
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovKontekst
 import no.nav.aap.postmottak.avklaringsbehov.AvslagException
@@ -62,9 +63,9 @@ class AvklarSakLøser(
 
     private fun avklarFagSakMaskinelt(behandlingId: BehandlingId, løsning: AvklarSaksnummerLøsning) {
         val journalpost = journalpostRepository.hentHvisEksisterer(behandlingId)
-            ?: error("Fant ikke journalpost for behandling $behandlingId")
-        require(journalpost.hoveddokumentbrevkode == "Ukjent" || journalpost.erSøknad()) {
-            "Det skal kun være mulig å opprette ny sak for søknad"
+            ?: throw UgyldigForespørselException("Fant ikke journalpost for behandling $behandlingId")
+        if (journalpost.hoveddokumentbrevkode != "Ukjent" && !journalpost.erSøknad()) {
+            throw UgyldigForespørselException("Det skal kun være mulig å opprette ny sak for søknad")
         }
 
         val saksnummer = behandlingsflytGateway.finnEllerOpprettSak(
