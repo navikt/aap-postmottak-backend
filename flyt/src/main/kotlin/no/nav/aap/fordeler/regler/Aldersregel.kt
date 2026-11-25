@@ -3,18 +3,23 @@ package no.nav.aap.fordeler.regler
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.gateway.PersondataGateway
+import no.nav.aap.unleash.PostmottakFeature
+import no.nav.aap.unleash.UnleashGateway
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.Period
 
-class Aldersregel : Regel<AldersregelInput> {
+class Aldersregel(private val unleashGateway: UnleashGateway) : Regel<AldersregelInput> {
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object : RegelFactory<AldersregelInput> {
         override val erAktiv = miljøConfig(prod = true, dev = false)
         const val MIN_ALDER = 18
         override fun medDataInnhenting(repositoryProvider: RepositoryProvider, gatewayProvider: GatewayProvider) =
-            RegelMedInputgenerator(Aldersregel(), AldersregelInputGenerator(gatewayProvider))
+            RegelMedInputgenerator(
+                Aldersregel(gatewayProvider.provide()),
+                AldersregelInputGenerator(gatewayProvider)
+            )
     }
 
     override fun vurder(input: AldersregelInput): Boolean {
@@ -23,7 +28,8 @@ class Aldersregel : Regel<AldersregelInput> {
             return false
         }
         val alder = Period.between(input.fødselsdato, input.nåDato).years
-        return alder >= MIN_ALDER
+
+        return alder >= MIN_ALDER || unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18)
     }
 
     override fun regelNavn(): String {
@@ -42,5 +48,6 @@ class AldersregelInputGenerator(private val gatewayProvider: GatewayProvider) : 
 }
 
 data class AldersregelInput(
-    val fødselsdato: LocalDate?, val nåDato: LocalDate
+    val fødselsdato: LocalDate?,
+    val nåDato: LocalDate
 )

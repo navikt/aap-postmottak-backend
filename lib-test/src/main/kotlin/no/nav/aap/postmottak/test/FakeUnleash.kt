@@ -14,6 +14,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.AutomatiskKlageJournalforing -> true
             PostmottakFeature.PostmottakVelgTema -> false
             PostmottakFeature.KantTilKantV1 -> false
+            PostmottakFeature.PostmottakUnder18 -> false
         }
     }
 
@@ -25,6 +26,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.AutomatiskKlageJournalforing -> true
             PostmottakFeature.PostmottakVelgTema -> false
             PostmottakFeature.KantTilKantV1 -> false
+            PostmottakFeature.PostmottakUnder18 -> false
         }
 
     }
