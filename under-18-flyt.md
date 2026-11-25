@@ -24,6 +24,12 @@ under-18-behandlingen. Den samler fortsatt søknader, avklarer samtykke og
 oppretter Kelvin-sak og dokumentbehandlinger.
 Planen erstatter dermed forslaget om direkte journalføring i `Under18SøknadsJournalfører`.
 
+Den 24. november ble også kandidatoversikten forenklet. Vi beholder dagens
+registrering i `INNKOMMENDE_JOURNALPOST` fra vurderingsjobben. Kandidatlisten er
+et hjelpemiddel, ikke en komplett mottaksoversikt. Tidlig Kafka-registrering,
+mottaksrekkefølge og et separat mottaks-/varslingsspor utgår, sammen med M1–M3.
+Vi oppretter ingen `JOURNALPOST_MOTTAK`-tabell.
+
 Utgangspunktet er diagrammet i
 [image-2026-11-11_8-30-51.png](image-2026-11-11_8-30-51.png).
 Diagrammet må vise at saksbehandler først bekrefter tema AAP i Journalføring.
@@ -108,19 +114,33 @@ Nye journalposter kan fortsatt vises som kandidater mens behandlingen står på 
 
 ## Nye journalposter og kandidater til samtykke
 
-- En ny journalpost på samme søker med tema AAP og status `MOTTATT` skal ta
-  under-18-behandlingen av automatisk samtykkevent. Manuelt satt vent beholdes,
-  med mindre søker har fylt 18 år før Kelvin-saken er opprettet. Fødselsdagen
-  opphever da samtykkevent og manuell vent i denne delen av flyten.
-- Journalposten vises som en kandidat til samtykke. Kandidatlisten utledes fra
-  mottakshistorikken, uten en egen kandidattabell. Vi tolker ikke kandidaten automatisk som samtykke.
+- Kandidatlisten utledes fra vurderingsjobbens registreringer i
+  `INNKOMMENDE_JOURNALPOST`, uten en egen kandidattabell. Vinduet starter når
+  samtykkeavklaringen opprettes. Vi bruker registreringstidspunktet, ikke første
+  Kafka-mottak eller Joarks mottaksdato.
+- Automatisk vekking bygger på dagens varsling fra vurderingsjobben og er ikke
+  garantert for alle nye dokumenter. En kandidat registrert etter at venten ble
+  opprettet, kan ta behandlingen av automatisk samtykkevent.
+- En forsinket vurderingsjobb kan derfor vekke en nyere vent selv om dokumentet
+  kom tidligere. Dokumenter med allerede åpen Journalføring trenger ikke vises
+  som nye kandidater eller vekke behandlingen.
+- Manuelt satt vent beholdes, med mindre søker har fylt 18 år før Kelvin-saken
+  er opprettet. Fødselsdagen opphever da samtykkevent og manuell vent i denne delen av flyten.
+- Kandidatlisten er et hjelpemiddel og trenger ikke inneholde alle mottatte dokumenter.
+  Saksbehandler kan registrere samtykkereferanser også utenfor kandidatlisten.
+  Vi tolker ikke en kandidat automatisk som samtykke.
 - Saksbehandler må vurdere om journalposten inneholder nødvendig samtykke.
   Hvis ikke, kan behandlingen settes på vent igjen.
 - Det er tilstrekkelig å håndtere nye hendelser. Vi trenger ikke hente inn historiske dokumenter.
-- Gjentatte hendelser for samme journalpost skal ikke ta behandlingen av vent på nytt.
+- Gjentatte hendelser for en allerede registrert journalpost gir ikke en ny
+  registreringstid og skal ikke ta behandlingen av vent på nytt.
 - Hendelser om andre temaer eller bare status `JOURNALFOERT` trenger ikke ta behandlingen av vent.
-- Andre dokumenttyper enn søknader følger vanlig flyt i tillegg til å vises som kandidater
-  og ta under-18-behandlingen av automatisk samtykkevent.
+- Andre dokumenttyper enn søknader følger vanlig flyt. De kan også vises som
+  kandidater og vekke behandlingen gjennom vurderingsjobben.
+
+Samtykkekravet er uendret: saksbehandler må bekrefte begge foreldrenes samtykke.
+Hvis et dokument ikke utløser automatisk vekking, kommer oppgaven tilbake ved
+utløpt automatisk ventefrist. Manuell vent følger fortsatt sin egen frist.
 
 ## Flere søknader i samme under-18-behandling
 
@@ -242,9 +262,11 @@ Mottak, Journalføring og Under18 er separate forløp.
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#F6F7F9","primaryTextColor":"#23262A","primaryBorderColor":"#5B6169","lineColor":"#5B6169","secondaryColor":"#FBEDED","tertiaryColor":"#F6F7F9","background":"#FFFFFF"}}}%%
 flowchart LR
     joark["Joark: relevant hendelse<br/>status MOTTATT"] --> kafka["JoarkKafkaHandler"]
-    kafka --> mottak["Lagre første mottakstid<br/>uavhengig av åpen behandling"]
-    mottak --> kandidat["Aktiv Under18-behandling?<br/>Varsle om ny kandidat"]
-    mottak --> rute{"Toggle på og mulig<br/>under-18-papirsøknad?"}
+    kafka --> åpen{"Åpen Journalføring?"}
+    åpen -->|"Ja"| gjenoppta["Gjenoppta eksisterende Journalføring<br/>ingen egen kandidatvarsling"]
+    åpen -->|"Nei"| vurder["Vurderingsjobben registrerer<br/>INNKOMMENDE_JOURNALPOST"]
+    vurder --> kandidat["Dagens kandidatvarsling<br/>til aktive Under18-behandlinger"]
+    vurder --> rute{"Toggle på og mulig<br/>under-18-papirsøknad?"}
     rute -->|"Ja"| journalføring["Opprett Journalføring"]
     rute -->|"Nei"| ordinær["Eksisterende mottaksrute"]
     journalføring --> tema{"AVKLAR_TEMA"}
@@ -266,13 +288,16 @@ flowchart LR
     classDef default fill:#F6F7F9,stroke:#5B6169,color:#23262A
     classDef valg fill:#FBEDED,stroke:#C30000,color:#23262A
     classDef uavklart fill:#FFFFFF,stroke:#5B6169,stroke-dasharray:5 5,color:#23262A
-    class rute,tema,fullført valg
-    class mottak,kandidat,sen uavklart
+    class åpen,rute,tema,fullført valg
+    class sen uavklart
 ```
 
 ### Datamodellen
 
 Kolonner og tabeller er forslag. PK er primærnøkkel, FK fremmednøkkel og UK unik nøkkel.
+`INNKOMMENDE_JOURNALPOST` beholder dagens mottakshistorikk fra vurderingsjobben.
+Bare rutemarkøren legges til der i R1.
+Diagrammet viser ikke alle eksisterende kolonner i denne tabellen.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#FBEDED","primaryTextColor":"#23262A","primaryBorderColor":"#C30000","lineColor":"#5B6169","tertiaryColor":"#F6F7F9","attributeBackgroundColorOdd":"#F6F7F9","attributeBackgroundColorEven":"#FFFFFF","background":"#FFFFFF"}}}%%
@@ -282,9 +307,6 @@ erDiagram
         varchar type "Journalføring, Under18 eller DokumentHåndtering"
         bigint journalpost_id "Fast Joark-ID for hver behandling"
         varchar status
-    }
-    PERSON {
-        bigint id PK
     }
     UNDER18_PERSONOPPLYSNING {
         bigint id PK
@@ -307,21 +329,13 @@ erDiagram
         bigint ny_journalpost_id "Uforanderlig, returnert Joark-ID"
         timestamp opprettet_tid
     }
-    JOURNALPOST_MOTTAK {
+    INNKOMMENDE_JOURNALPOST {
         bigint id PK
         bigint journalpost_id UK "Joark-ID, én rad per journalpost"
-        bigint lopenummer UK "Stigende, rekkefølge mellom mottak og vent"
-        bigint person_id FK "NULL til personen er registrert"
-        timestamp mottatt_tid "Første mottak ved Kafka"
-        varchar tema_ved_mottak
-        varchar journalstatus_ved_mottak
+        varchar status "Dagens evalueringsstatus"
+        varchar bruker_id "Eksisterende personident"
+        timestamp opprettet_tid "Registrering i vurderingsjobben"
         varchar under18_rute "Valgt rute, kan være NULL"
-    }
-    UNDER18_VENTERUNDE {
-        bigint id PK
-        bigint behandling_id FK
-        bigint siste_mottak_lopenummer "Siste mottak da venten ble opprettet"
-        timestamp opprettet_tid
     }
     UNDER18_SAMTYKKEVURDERING {
         bigint id PK
@@ -352,8 +366,6 @@ erDiagram
     BEHANDLING ||..o{ UNDER18_JOURNALPOST_TILKNYTNING : "har tilknytninger"
     BEHANDLING ||..o{ UNDER18_SAMTYKKE_GRUNNLAG : "har samtykkehistorikk"
     UNDER18_SAMTYKKEVURDERING ||..o{ UNDER18_SAMTYKKE_GRUNNLAG : "pekes på av"
-    PERSON |o..o{ JOURNALPOST_MOTTAK : "mottak for person"
-    BEHANDLING ||..o{ UNDER18_VENTERUNDE : "har venterunder"
     BEHANDLING ||..o{ DIGITALISERINGSVURDERING_GRUNNLAG : "dokumentbehandlingens vurderingshistorikk"
     DIGITALISERINGSAVKLARING ||..o{ DIGITALISERINGSVURDERING_GRUNNLAG : "pekes på av"
 ```
@@ -365,7 +377,7 @@ Diagrammet skiller lagrede opplysninger, utledede kandidater og lesemodellen.
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#F6F7F9","primaryTextColor":"#23262A","primaryBorderColor":"#5B6169","lineColor":"#5B6169","secondaryColor":"#FBEDED","tertiaryColor":"#F6F7F9","background":"#FFFFFF"}}}%%
 flowchart LR
-    mottak["Varig mottakshistorikk<br/>journalpost-ID · person · mottakstid<br/>opprinnelig tema/status · rutevalg"]
+    mottak["Eksisterende INNKOMMENDE_JOURNALPOST<br/>journalpost-ID · bruker-ID<br/>vurderingsjobbens registreringstid"]
     personopplysninger["Under-18-personopplysninger<br/>fødselsdato per behandling"]
     historikk["Eksisterende avklaringsbehovshistorikk<br/>perioden med samtykkeavklaring"]
     kandidater["Samtykkekandidater<br/>utledet liste, ingen kandidattabell"]
@@ -386,10 +398,8 @@ flowchart LR
     behandling -.-> grunnlag
     classDef lagret fill:#F6F7F9,stroke:#5B6169,color:#23262A
     classDef utledet fill:#FBEDED,stroke:#C30000,color:#23262A,stroke-dasharray:5 5
-    classDef uavklart fill:#F6F7F9,stroke:#5B6169,color:#23262A,stroke-dasharray:5 5
-    class personopplysninger,historikk,samtykke,soknader,dokumentbehandlinger,journalposter,behandling lagret
+    class mottak,personopplysninger,historikk,samtykke,soknader,dokumentbehandlinger,journalposter,behandling lagret
     class kandidater,grunnlag utledet
-    class mottak uavklart
 ```
 
 ### Dokumentbehandlingene
@@ -408,7 +418,7 @@ sequenceDiagram
         F->>DB: Opprett eller gjenbruk dokumentbehandling, kobling, saksgrunnlag og jobb
     end
     F->>DB: Avslutt under-18-behandlingen
-    Note over DB,B: Hver dokumentbehandling kjører uavhengig; fullføringsrekkefølgen er fri
+    Note over DB,B: Hver dokumentbehandling kjører uavhengig.<br/>Fullføringsrekkefølgen er fri.
     DB->>B: Motoren kjører den enkelte dokumentbehandlingens jobb
     B-->>S: Be om digitalisering med dokumentbehandlingens referanse
     S->>DB: Dagens løs-behov lagrer vurderingen på dokumentbehandlingen
@@ -439,20 +449,25 @@ sequenceDiagram
 | ✅ Merget | Styrbare, stabile mottaksdatoer i SAF-fakes og tester av kandidatforløpet. | #979 |
 
 I #979 utledes mottakshistorikken fra vurderingsjobbens registrering, og kandidatvinduet
-starter når samtykkeavklaringen opprettes. M1 bruker første Kafka-mottak og starter
-kandidatvinduet ved hovedsøknadens første mottak. M2 bruker mottaksrekkefølge ved avslutning av vent.
+starter når samtykkeavklaringen opprettes. Dette beholdes i første versjon,
+med begrensningene beskrevet under «Nye journalposter og kandidater til samtykke».
 
 ## Lagring og testing
 
 | Repository | Data og bruk |
 | --- | --- |
 | Eksisterende repositorier | Behandlinger, personer, journalpostsnapshots, saksgrunnlag, avklaringsbehov, digitalisering og jobber. |
-| `InnkommendeJournalpostRepository` | Innkommende journalposter og regelresultater. Utvides med første mottakstid, opprinnelig tema/status, mottaksrekkefølge, personkobling og rutemarkør for mottak, kandidatoppslag, vent og ruting. |
-| `Under18Repository` | Person- og aldersopplysninger, søknadsavklaring, søknader, samtykkevurderinger, venterunder, tilknytninger, dokumentbehandlingskoblinger og bekreftet overlevering. |
+| `InnkommendeJournalpostRepository` | Innkommende journalposter, regelresultater og dagens mottakshistorikk fra vurderingsjobben. Utvides bare med rutemarkør i R1. |
+| `Under18Repository` | Person- og aldersopplysninger, søknadsavklaring, søknader, samtykkevurderinger, tilknytninger, dokumentbehandlingskoblinger og bekreftet overlevering. |
 
 Hvert repository eier sine egne tabeller. Nye data får in-memory-implementasjoner i
 `lib-test` sammen med koden som skriver og bruker dem. Eksisterende Postgres-tabeller
 gjenbrukes gjennom sine repositorier. Nye oppslag innføres sammen med forløpet som trenger dem.
+
+For kandidatoppslag gjenbruker vi dagens `INNKOMMENDE_JOURNALPOST`, personidenter
+og registreringstid. Vi innfører ikke tidlig mottaksregistrering, en ny mottatt-status,
+mottaksrekkefølge, personkobling eller venterundetabell.
+Rutemarkøren i R1 er uavhengig av kandidatoppslaget.
 
 Informasjonskravene ligger på `AvklarUnder18Steg`. `JournalpostInformasjonskrav`
 oppdaterer hovedjournalposten. `Under18JournalposterInformasjonskrav` melder `ENDRET`
@@ -470,44 +485,48 @@ verifiserer transaksjoner, rollback og samtidighet i Postgres før aktivering.
 ## Neste PR-er
 
 ID-ene er arbeidsnavn. Avhengighetene angir hva som må være merget først.
-M1 er neste PR; V1, V2 og A1 kan utvikles uavhengig av resten av journalføringsløpet.
+V1 er neste PR. V2, R1 og A1 kan utvikles uavhengig av V1 og resten av journalføringsløpet.
+M1, M2 og M3 utgår etter forenklingen av kandidatoversikten og automatisk vekking.
 
 | PR | Funksjonell leveranse | Avhenger av | Kontroll |
 | --- | --- | --- | --- |
-| M1 | Utvid `InnkommendeJournalpostRepository` med in-memory-lagring av første Kafka-mottak og bruk det i `Under18Samtykkekandidater`. Skill mellom mottatt og evaluert journalpost. Kandidatvinduet starter ved hovedsøknadens første mottak. | #979 | Kandidat mottatt før Under18 opprettes, forsinket vurderingsjobb, vurdering etter registrert mottak og duplikater med uendret første mottakstid. |
-| M2 | Legg til mottaksrekkefølge og venterunde. Samtykkeløseren lagrer grensen; evaluereren avslutter vent ved et senere mottak. | M1 | Flere samtykkerunder, forsinket varsling, retry og bevart manuell vent. |
-| M3 | Koble mottak til person og varsle Under18 via `RegistrerMottakPersonJobbUtfører` og `VarsleUnder18OmMottakJobbUtfører`. Kandidatoppslaget bruker den nye personkoblingen. | M1, M2 | Åpen Journalføring, Under18 før første avklaringspunkt, historisk ident og SAF-/PDL-feil med retry mens vanlig Journalføring fortsetter. |
 | V1 | Kontroller at en hentet kandidat fortsatt tilhører søkeren før den inngår i samtykkeavklaringen. | #979 | Endret person gir eksplisitt feil; samme søker med historisk ident godtas. |
 | V2 | Valider samtykkereferansene i løseren før vurderingen lagres. Ugyldige referanser gir `UgyldigForespørselException`. | #979 | Gyldige, ukjente og andre personers journalposter, historisk ident og tom liste. Aktiv vurdering bevares ved avvisning. |
-| R1 | Rut aktuelle papirsøknader til Journalføring og lagre rutemarkøren som vurderingsjobben bruker ved retry. | M3 | Kvalifisert søknad stopper ved `AVKLAR_TEMA`; øvrige dokumenter følger dagens løp. Retry bruker lagret rute ved endret alder. Rutingsfeil gir retry. |
+| R1 | Rut aktuelle papirsøknader til Journalføring og lagre rutemarkøren som vurderingsjobben bruker ved retry. Bevar dagens kandidatregistrering og varsling også for denne ruten. | #979 | Kvalifisert søknad stopper ved `AVKLAR_TEMA`; øvrige dokumenter følger dagens løp. Retry bruker lagret rute ved endret alder. Rutingsfeil gir retry. Kandidatvarsling beholdes. |
 | J1 | Velg generell sak for markerte søknader. `VideresendSteg` legger handoff-jobben i kø; jobben krever `AVSLUTTET`, finner eller oppretter Under18, kobler søknaden og starter prosessering. | R1, V1, V2 og avklaringene nedenfor | AAP til generell sak og deretter Under18, annet tema, flere søknader i samme samling og retry med samme kobling. |
 | S1 | Fullfør `OpprettUnder18SakSteg`: Kelvin-sak, journalposttilknytninger og én vanlig dokumentbehandling med saksgrunnlag, snapshot og jobb per søknad. | J1 | Digitalisering og overlevering med ny journalpost-ID og originalens opplysninger; gjenbruk av sak, bekreftede tilknytninger og dokumentbehandlinger ved retry. |
 | L1 | Koble Under18-lesemodellen til et GET-API som viser søknader, nye journalposter, dokumentbehandlinger, status, behov, vent og feil. | S1 | Riktige koblinger og fremdrift etter handoff og digitalisering; stabil historikk og behandlingsversjon ved GET. |
 | O1 | Lagre bekreftet overlevering etter vellykket kall og vis tidspunktet i API-et fra L1. | L1 | Vellykket sending vises som bekreftet; overleveringsvurdering og feilet sending vises med sine faktiske tilstander. |
-| A1 | Registrer en daglig aldersjobb med oppslag og ventelogikk som gjenopptar aktive Under18-behandlinger ved fylte 18 år før saksopprettelse. | #978, M2 | Styrbar klokke, idempotent jobbinnlegging, opphevet automatisk/manuell vent og nytt søknadssvar før saksopprettelse. |
+| A1 | Registrer en daglig aldersjobb med oppslag og ventelogikk som gjenopptar aktive Under18-behandlinger ved fylte 18 år før saksopprettelse. | #978 | Styrbar klokke, idempotent jobbinnlegging, opphevet automatisk/manuell vent og nytt søknadssvar før saksopprettelse. |
 | PG | Implementer Postgres-lagring for de nye dataene og samle alle nye tabeller og kolonner i én migrering. Videreutvikle #972 med datamodellen fra forløpene over. | Alle PR-ene over | Samme forløp mot Postgres, restart, rollback, savepoints, personlås, samtidighet og videreføring med togglen av. |
 
-M1 bruker dagens personkobling og varsling fra vurderingsjobben. M3 flytter dette til
-det uavhengige mottaksforløpet og håndterer også dokumenter med allerede åpen Journalføring.
-Feltene for mottaksrekkefølge, personkobling og rutemarkør innføres når henholdsvis
-M2, M3 og R1 bruker dem.
+Kandidatoppslag og varsling beholder dagens løsning fra #979.
+R1 innfører rutemarkøren uten å endre når mottakshistorikken registreres.
 
 S1 holder saksopprettelse, tilknytning og dokumentbehandling samlet, slik at sakssteget
 fullføres med en fungerende videre behandling for hver søknad.
 
 ## Detaljer og tester for kommende PR-er
 
-### Mottak og rutevalg: M1–R1
+### Kandidater og rutevalg: V1, V2 og R1
 
-Registrer første relevante Kafka-mottak før jobber legges i kø, også når en
-Journalføring allerede er åpen. Skillet mellom mottak og evaluering må bevare
-vurderingsjobbens behandling av nye journalposter. Behold første tidspunkt, tema og status ved duplikater.
-Kandidatvurderingen bruker mottakshendelsen selv om SAF senere viser `JOURNALFOERT`.
-M3 varsler Under18 uavhengig av ordinær Journalføring. R1 gjenbruker lagret rute ved
-retry og toggle-endring; PG sikrer at rutevalg, behandling og jobb lagres atomisk.
+Behold vurderingsjobbens registreringstid som grunnlag for kandidater og
+automatisk vekking. Vi garanterer ikke komplett kandidatoversikt eller rekkefølge
+mellom faktisk dokumentmottak og opprettelse av vent. Et forsinket dokument kan
+vekke en nyere vent. Hendelser med allerede åpen Journalføring følger dagens løp
+uten et eget kandidatspor.
 
-Test forsinket vurderingsjobb, dupliserte hendelser og SAF-/PDL-feil i kandidatsporet
-mens vanlig Journalføring fortsetter.
+V1 kontrollerer at en kandidat fortsatt tilhører søkeren. V2 validerer
+samtykkereferanser uavhengig av om de står i kandidatlisten. Historiske identer
+godtas når de tilhører samme person.
+
+R1 gjenbruker lagret rute ved retry og toggle-endring. Den nye ruten må bevare
+dagens kandidatregistrering og varsling. PG sikrer at rutevalg, behandling og
+jobb lagres atomisk.
+
+Test gyldige og ugyldige samtykkereferanser, inkludert gyldige referanser utenfor
+kandidatlisten. Behold tester for duplikater, kandidatvarsling og utløpt ventefrist.
+Tester av forsinkede jobber skal tillate at registrering etter en ny vent vekker den.
 
 ### Handoff og dataintegritet: J1, S1 og PG
 
@@ -615,7 +634,8 @@ PG oppretter alle nye tabeller med primærnøkler og SQL for Postgres 16 i én F
 Produksjonsimplementasjonene registreres i `PostgresRepositoryRegistry`, og
 integrasjonstestene bruker dem. Enhetstestene beholder in-memory-repositoriene.
 Personlås og fast låserekkefølge sikrer handoff og saksopprettelse.
-Test parallelle handoffs, handoff mot saksopprettelse og mottak mot ny samtykkevent.
+Test parallelle handoffs, handoff mot saksopprettelse og videreføring av dagens
+kandidatregistrering og ventefrister.
 
 Under utviklingen er `PostmottakUnder18` på i testoppsettet og av i dev og prod.
 Inngangene kontrollerer togglen før bruk av produksjonsstubene.
