@@ -6,6 +6,7 @@ import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
@@ -19,18 +20,20 @@ class VideresendStegTest {
 
     val videresendSteg =
         VideresendSteg(
-            saksnummerRepository,
-            avklarTemaRepository,
-            mockk(),
-            journalpostRepository,
-            flytJobbRepository,
-            mockk()
+            saksnummerRepository = saksnummerRepository,
+            avklarTemaRepository = avklarTemaRepository,
+            behandlingRepository = mockk(),
+            journalpostRepository = journalpostRepository,
+            flytJobbRepository = flytJobbRepository,
+            kopierer = mockk(),
+            under18Journalføring = mockk(relaxed = true)
         )
 
     @Test
     fun `Journalposter som er journalført på generell sak skal ikke videresendes`() {
         every { avklarTemaRepository.hentTemaAvklaring(any()) } returns TemaVurdering(true, Tema.AAP)
-        every { saksnummerRepository.hentSakVurdering(any())?.generellSak } returns true
+        every { saksnummerRepository.hentKelvinSaker(any()) } returns emptyList()
+        every { saksnummerRepository.hentSakVurdering(any()) } returns Saksvurdering(generellSak = true)
 
         videresendSteg.utfør(mockk(relaxed = true))
 

@@ -22,6 +22,9 @@ Stier: `flyt/src/main/kotlin/no/nav/aap/postmottak/` med mindre noe annet er opp
        }
    }
    ```
+   La konstruktøren til både steget og tjenestene det bruker ta inn de konkrete avhengighetene.
+   Slå opp repositorier og gatewayer i `companion object` sin `konstruer`, og bygg tjenester med deres egen `konstruer`.
+   Ikke send `RepositoryProvider` eller `GatewayProvider` til konstruktøren for å gjøre oppslag i forretningslogikken.
    `konstruer` kjører én gang per fase (fem ganger per gjennomkjøring): ingen I/O der.
 4. Sett inn `.medSteg(steg = MittSteg)` på riktig plass i `forretningsflyt/behandlingstyper/<Flyt>.kt`.
 5. Behandlinger under arbeid: de som allerede er forbi den nye plasseringen, kjører aldri steget (med mindre de tilbakeføres). Å fjerne et steg ødelegger behandlinger der det fjernede steget er aktivt (`Steg X finnes ikke i flyten`). Flytt dem med en migrering (presedens: `V1.37__fjern_kategoriseringssteg.sql`).

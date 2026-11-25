@@ -20,6 +20,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.under18.Under18Journalføring
 import org.slf4j.LoggerFactory
 
 class VideresendSteg(
@@ -28,7 +29,8 @@ class VideresendSteg(
     private val behandlingRepository: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
     private val flytJobbRepository: FlytJobbRepository,
-    private val kopierer: GrunnlagKopierer
+    private val kopierer: GrunnlagKopierer,
+    private val under18Journalføring: Under18Journalføring,
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -43,7 +45,8 @@ class VideresendSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                GrunnlagKopierer(repositoryProvider)
+                GrunnlagKopierer(repositoryProvider),
+                Under18Journalføring.konstruer(repositoryProvider, gatewayProvider)
             )
         }
 
@@ -62,26 +65,21 @@ class VideresendSteg(
             return Fullført
         }
 
-        if (erJournalførtPåAnnetFagsystem(journalpost)) {
-            log.info("Journalpost er journalført på annet fagsystem - videresender ikke")
-            return Fullført
-        }
-
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val avklarTemaVurdering =
             avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
-        val skalFullføreTidlig = avklarTemaVurdering?.skalTilAap == false || saksnummervurdering?.generellSak == true
-
-        if (skalFullføreTidlig) {
+        if (saksnummervurdering?.generellSak == true) {
+            if (under18Journalføring.erAktuell(
+                    journalpost, avklarTemaVurdering, saksnummerRepository.hentKelvinSaker(kontekst.behandlingId).isNotEmpty()
+                )) {
+                under18Journalføring.videresend(journalpost)
+            }
             return Fullført
         }
 
+        if (erJournalførtPåAnnetFagsystem(journalpost) || avklarTemaVurdering?.skalTilAap == false) return Fullført
         requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
-
-        if (saksnummervurdering.generellSak) {
-            return Fullført
-        }
 
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
 

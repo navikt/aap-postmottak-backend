@@ -26,11 +26,31 @@ class IsolertUnder18Repository : Under18Repository {
     private val søknadsavklaringer = HashMap<BehandlingId, Under18Søknadsavklaring>()
     private val samtykkevurderinger = HashMap<BehandlingId, MutableList<Under18SamtykkeVurdering>>()
     private val lock = Any()
+    private val behandlingForNyeSøknaderPerPerson = mutableMapOf<Long, BehandlingId>()
+
+    private val behandlingerStengtForNyeSøknader = mutableSetOf<BehandlingId>()
+
+    override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? = synchronized(lock) { behandlingForNyeSøknaderPerPerson[personId] }
+
+    override fun registrerBehandlingForNyeSøknader(personId: Long, behandlingId: BehandlingId) {
+        synchronized(lock) { check(behandlingForNyeSøknaderPerPerson.putIfAbsent(personId, behandlingId) == null) }
+    }
+
+    override fun stengForNyeSøknader(behandlingId: BehandlingId) {
+        synchronized(lock) {
+            behandlingForNyeSøknaderPerPerson.values.remove(behandlingId)
+            behandlingerStengtForNyeSøknader.add(behandlingId)
+        }
+    }
+
+    override fun hentBehandlingForSøknad(journalpostId: JournalpostId): BehandlingId? =
+        synchronized(lock) { søknader.entries.singleOrNull { journalpostId in it.value }?.key }
 
     override fun lagreSøknad(behandlingId: BehandlingId, journalpostId: JournalpostId) {
         synchronized(lock) {
+            check(behandlingId !in behandlingerStengtForNyeSøknader) { "Under18-behandling $behandlingId tar ikke imot nye søknader." }
             val liste = søknader.getOrPut(behandlingId) { mutableListOf() }
-            require(journalpostId !in liste) { "Søknad $journalpostId er allerede lagret på behandling $behandlingId" }
+            require(hentBehandlingForSøknad(journalpostId) == null) { "Søknad $journalpostId er allerede lagret" }
             liste.add(journalpostId)
         }
     }

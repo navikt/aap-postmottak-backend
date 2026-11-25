@@ -6,6 +6,10 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
 
 interface Under18Repository : Repository {
+    fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId?
+    fun registrerBehandlingForNyeSøknader(personId: Long, behandlingId: BehandlingId)
+    fun stengForNyeSøknader(behandlingId: BehandlingId)
+    fun hentBehandlingForSøknad(journalpostId: JournalpostId): BehandlingId?
     fun lagreSøknad(behandlingId: BehandlingId, journalpostId: JournalpostId)
     fun hentSøknader(behandlingId: BehandlingId): List<JournalpostId>
 

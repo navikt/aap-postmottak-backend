@@ -116,8 +116,15 @@ object TemaFlytUnleash : UnleashGateway by FakeUnleash {
     @Volatile
     var velgTema = false
 
+    @Volatile
+    var under18 = false
+
     override fun isEnabled(featureToggle: FeatureToggle): Boolean =
-        if (featureToggle == PostmottakFeature.PostmottakVelgTema) velgTema else FakeUnleash.isEnabled(featureToggle)
+        when (featureToggle) {
+            PostmottakFeature.PostmottakVelgTema -> velgTema
+            PostmottakFeature.PostmottakUnder18 -> under18
+            else -> FakeUnleash.isEnabled(featureToggle)
+        }
 }
 
 object TestKlokke : Klokke {
@@ -295,6 +302,32 @@ class Flyttest : WithDependencies {
 
         prøv {
             assertThat(hentAvklaringsbehov(behandling)).isEmpty()
+        }
+    }
+
+    @Test
+    fun `papirsøknader fra samme søker journalføres og kobles til samme Under18-behandling`() {
+        val søker = TestPersoner.leggTil(TestPerson(fødselsdato = Fødselsdato(TestKlokke.dato.minusYears(17))))
+        TemaFlytUnleash.under18 = true
+        try {
+            val søknader = List(2) {
+                val id = TestJournalposter.leggTil { person = søker; papirsøknad() }.journalpostId()
+                val behandling = opprettJournalføringsBehandling(id)
+                triggProsesserBehandling(id, behandling)
+                hentBehandling(behandling)
+                    .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
+                    .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+                prøv { assertThat(hentBehandling(behandling).status()).isEqualTo(Status.AVSLUTTET) }
+                assertThat(TestJournalposter.hentJournalpost(id.referanse)?.status).isEqualTo(Journalstatus.JOURNALFOERT)
+                id
+            }
+            val under18 = alleBehandlingerForJournalpost(søknader.first()).single { it.typeBehandling == TypeBehandling.Under18 }
+            util.ventPåSvar(under18.journalpostId.referanse, under18.id.id)
+            under18.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+            assertThat(InMemoryUnder18Repository.hentSøknader(under18.id)).containsExactlyElementsOf(søknader)
+            assertThat(alleBehandlingerForJournalpost(søknader.last())).noneMatch { it.typeBehandling == TypeBehandling.Under18 }
+        } finally {
+            TemaFlytUnleash.under18 = false
         }
     }
 

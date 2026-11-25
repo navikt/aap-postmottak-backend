@@ -36,6 +36,7 @@ class OpprettUnder18SakSteg(
         )
         val avklaring = under18Repository.hentSøknadsavklaring(kontekst.behandlingId)
         if (avklaring?.erHenlagt(aldersgruppe) == true) {
+            under18Repository.stengForNyeSøknader(kontekst.behandlingId)
             return Fullført
         }
 

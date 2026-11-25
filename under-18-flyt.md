@@ -33,8 +33,13 @@ Vi oppretter ingen `JOURNALPOST_MOTTAK`-tabell.
 Den 25. november ble inngangen endret til å bruke vanlig Fordeling.
 `PostmottakUnder18` styrer aldersunntaket i `Aldersregel`, ikke vurderingsjobben.
 Direkte opprettelse av Journalføring fra vurderingsjobben og en egen rutemarkør utgår.
-Den samme togglen skal dekke all under-18-funksjonalitet. Når den er av,
-skal det ikke opprettes Under18-behandlinger, heller ikke etter et tidligere fordelingsvalg.
+Togglen brukes til engangsaktivering. Før aktivering følger dokumentene vanlig flyt,
+og postmottak oppretter ingen Under18-behandlinger. Etter aktivering blir togglen stående på.
+
+Den 25. november ble også den egne overleveringsjobben fjernet fra J1.
+`VideresendSteg` finner eller oppretter Under18 etter vellykket ferdigstilling i Joark,
+kobler søknaden og legger vanlig prosessering i kø.
+Journalføring-behandlingen trenger ikke ha status `AVSLUTTET` før dette skjer.
 
 Utgangspunktet er diagrammet i
 [image-2026-11-11_8-30-51.png](image-2026-11-11_8-30-51.png).
@@ -62,10 +67,13 @@ Under-18-behandlingen knytter den ferdigstilte journalposten til Kelvin-saken se
   Journalføring, ikke en under-18-behandling.
 - Saksbehandler bekrefter at temaet er AAP. Først da velger Journalføring
   generell sak for en aktuell under-18-papirsøknad uten Kelvin-sak, dersom
-  `PostmottakUnder18` fortsatt er på, og ferdigstiller søknaden på tema AAP.
-- Etter vellykket ferdigstilling oppretter eller oppdaterer løsningen
-  under-18-behandlingen. En journalpost med annet tema starter ikke en
-  under-18-behandling.
+  `PostmottakUnder18` er på, og ferdigstiller søknaden på tema AAP.
+- Etter vellykket ferdigstilling finner eller oppretter `VideresendSteg`
+  under-18-behandlingen, kobler søknaden og legger en vanlig
+  `ProsesserBehandlingJobbUtfører` i kø. Vi bruker samme mønster som for
+  DokumentHåndtering, uten en egen overleveringsjobb. Journalposten skal være
+  ferdigstilt i Joark, men Journalføring-behandlingen trenger ikke ha status
+  `AVSLUTTET`. En journalpost med annet tema starter ikke en under-18-behandling.
 - Journalføring bruker dagens retry-regler. Den skal ikke opprette en
   under-18-behandling hvis ferdigstillingen feiler. Et retry etter vellykket
   ferdigstilling skal kunne opprette behandlingen uten å journalføre på nytt.
@@ -166,10 +174,8 @@ søknadene. Etter saksopprettelse og tilknytning får hver søknad sin egen
 
 Når Kelvin-saksnummeret foreligger, stenges innsamlingen, og nye søknader følger vanlig flyt.
 En søknad som allerede er i Journalføring når innsamlingen stenges, må likevel
-fullføres trygt. Hvis den allerede er ferdigstilt på generell sak, må løsningen
-enten knytte den til den eksisterende under-18-saken eller sende den gjennom en
-definert ordinær behandling. Den skal ikke bli stående ferdig på generell sak
-uten videre behandling.
+følges opp. Hvis den allerede er ferdigstilt på generell sak, feiler `VideresendSteg`
+med en tydelig driftsfeil for manuell oppfølging. Steget oppretter ikke en ny samling.
 Under-18-behandlingen avsluttes ikke da. Den fullfører tilknytning av de innsamlede
 dokumentene og oppretter dokumentbehandlingene med prosesseringsjobber før den avsluttes.
 Digitalisering og overlevering fortsetter uavhengig i dokumentbehandlingene.
@@ -220,24 +226,19 @@ status eller overlevering. Hver dokumentbehandling håndterer egne oppgaver, ven
 
 ## Feature toggle og produksjon
 
-Koden kan legges i produksjon før funksjonaliteten aktiveres.
-`PostmottakUnder18` er av i dev og prod frem til hele forløpet er klart.
-Den samme togglen dekker aldersunntaket, overgangen fra Journalføring og
-under-18-funksjonaliteten. Dette er ikke bare en toggle for nye mottakshendelser.
+`PostmottakUnder18` er av i hvert miljø til hele forløpet er klart. Vi slår den på én gang
+per miljø og forutsetter at den ikke slås av igjen.
 
-I Fordeling styrer togglen aldersunntaket i `Aldersregel`. Andre fordelingsregler
-gjelder fortsatt. I Journalføring kontrolleres togglen igjen før valg av generell
-sak for under-18-løpet og før handoff oppretter en Under18-behandling.
-Et lagret fordelingsresultat er ikke tillatelse til å opprette Under18 med togglen av.
-Kontroller også togglen ved innganger til under-18-spesifikke jobber og operasjoner.
+Fordeling bruker togglen for aldersunntaket. Journalføring bruker samme toggle når
+`AvklarSakSteg` velger generell sak for en Under18-søknad. Før aktivering velges ikke
+dette løpet, heller ikke når et tidligere fordelingsresultat sender dokumentet til Kelvin.
 
-Det er ikke opprettet Under18-behandlinger i produksjon ennå.
-Planen har derfor ikke noe unntak for eksisterende behandlinger eller samlinger:
-med togglen av skal det ikke opprettes nye Under18-behandlinger eller kjøres
-under-18-spesifikk funksjonalitet.
-Hvis togglen slås av etter ferdigstilling på generell sak, må handoff bevares for
-trygg videreføring. Den skal ikke fullføres uten videre behandling eller opprette
-en Under18-behandling mens togglen er av.
+`AvklarSakSteg` lagrer bare vanlig generell sak. Etter ferdigstilling i Joark bruker
+`VideresendSteg` samme regel: bekreftet tema AAP, papirsøknad, ingen Kelvin-sak og enten
+søker under 18 eller en åpen Under18-samling. Generell sak alene starter ikke Under18.
+Vi bruker alderen når steget kjører, uten å lagre `Under18Valg` eller en kopi av samlingen.
+De påfølgende Under18-jobbene trenger ingen egen togglekontroll.
+Vi planlegger ikke for stopp, vent eller omkjøring som følge av deaktivering.
 
 ## Diagrammer
 
@@ -296,13 +297,12 @@ flowchart LR
     under18valg -->|"Ja"| generell["Velg generell sak<br/>ferdigstill i Dokarkiv"]
     generell --> fullført{"Journalført?"}
     fullført -->|"Nei"| retry["Retry Journalføring<br/>ingen Under18-behandling ennå"]
-    fullført -->|"Ja"| handoff["VideresendSteg legger<br/>handoff-jobb i kø"]
-    handoff --> handoffjobb["Handoff-jobb etter<br/>Journalføring er avsluttet"]
-    handoffjobb --> toggle{"PostmottakUnder18 fortsatt på?"}
-    toggle -->|"Nei"| behold["Bevar handoff for trygg videreføring<br/>ingen ny Under18-behandling"]
-    toggle -->|"Ja"| under18{"Samlingen åpen<br/>under personlås?"}
-    under18 -->|"Ja"| koble["Opprett/finn Under18,<br/>koble søknad og jobb i kø"]
-    under18 -->|"Nei"| sen["Sen handoff:<br/>alternativ må avklares"]
+    fullført -->|"Ja"| videresend["VideresendSteg"]
+    videresend --> aktuell{"Samme Under18-vilkår oppfylt?"}
+    aktuell -->|"Nei"| ordinærSlutt["Avslutt vanlig Journalføring"]
+    aktuell -->|"Ja"| under18{"Kelvin-sak opprettet i mellomtiden?"}
+    under18 -->|"Nei"| koble["Finn eller opprett Under18,<br/>koble søknad og legg vanlig prosessering i kø"]
+    under18 -->|"Ja"| sen["Jobben feiler<br/>manuell oppfølging"]
     koble --> prosesser["ProsesserBehandlingJobbUtfører"]
     prosesser --> krav["Under18JournalposterInformasjonskrav<br/>og alder-/samtykkeavklaring"]
     krav --> sak["Opprett Kelvin-sak,<br/>tilknytninger og dokumentbehandlinger"]
@@ -311,8 +311,8 @@ flowchart LR
     classDef default fill:#F6F7F9,stroke:#5B6169,color:#23262A
     classDef valg fill:#FBEDED,stroke:#C30000,color:#23262A
     classDef uavklart fill:#FFFFFF,stroke:#5B6169,stroke-dasharray:5 5,color:#23262A
-    class åpen,system,tema,under18valg,fullført,toggle valg
-    class sen,behold uavklart
+    class åpen,system,tema,under18valg,fullført,under18 valg
+    class sen uavklart
 ```
 
 ### Datamodellen
@@ -518,12 +518,12 @@ M1, M2 og M3 utgår etter forenklingen av kandidatoversikten og automatisk vekki
 | PR | Funksjonell leveranse | Avhenger av | Kontroll |
 | --- | --- | --- | --- |
 | R1 | Innfør `PostmottakUnder18`, av i dev og prod, og la togglen styre aldersunntaket i `Aldersregel`. Behold vanlig Fordeling og vurderingsjobben uendret. Øvrige fordelingsregler avgjør fortsatt Kelvin eller Arena. Ingen egen rutemarkør eller Under18-behandling opprettes i R1. | #979 | Med togglen av beholdes dagens aldersregel. Med togglen på kan en aktuell under-18-papirsøknad gå via vanlig Fordeling til Journalføring og stoppe ved `AVKLAR_TEMA`. Andre regler, mottaksregistrering og kandidatvarsling bevares. |
-| J1 | Etter bekreftet tema AAP velger Journalføring generell sak for en aktuell under-18-papirsøknad uten Kelvin-sak eller til en åpen samling, bare når togglen er på. `VideresendSteg` legger handoff-jobben i kø; jobben krever `AVSLUTTET`, kontrollerer togglen på nytt, finner eller oppretter Under18, kobler søknaden og starter prosessering. | R1, #989, #988 og avklaringene nedenfor | AAP til generell sak og deretter Under18, annet tema, flere søknader i samme samling og retry med samme kobling. Togglen av hindrer opprettelse, også etter ferdigstilling på generell sak. |
+| J1 | `AvklarSakSteg` velger generell sak for aktuelle Under18-søknader. Etter ferdigstilling bruker `VideresendSteg` samme regel, finner eller oppretter Under18, kobler søknaden og legger vanlig prosessering i kø. `Under18Repository` eier samlingen og søknadskoblingen. `Saksvurdering` endres ikke. | R1, #989, #988 og avklaringene nedenfor | Ingen Under18 før aktivering eller ved feilet ferdigstilling. To søknader kan dele behandling. Retry gir ingen duplikater. Ny Kelvin-sak før kobling krever manuell oppfølging. |
 | S1 | Fullfør `OpprettUnder18SakSteg`: Kelvin-sak, journalposttilknytninger og én vanlig dokumentbehandling med saksgrunnlag, snapshot og jobb per søknad. | J1 | Digitalisering og overlevering med ny journalpost-ID og originalens opplysninger; gjenbruk av sak, bekreftede tilknytninger og dokumentbehandlinger ved retry. |
-| L1 | Koble Under18-lesemodellen til et GET-API som viser søknader, nye journalposter, dokumentbehandlinger, status, behov, vent og feil. | S1 | Riktige koblinger og fremdrift etter handoff og digitalisering; stabil historikk og behandlingsversjon ved GET. |
+| L1 | Koble Under18-lesemodellen til et GET-API som viser søknader, nye journalposter, dokumentbehandlinger, status, behov, vent og feil. | S1 | Riktige koblinger og fremdrift etter overgangen til Under18 og digitalisering; stabil historikk og behandlingsversjon ved GET. |
 | O1 | Lagre bekreftet overlevering etter vellykket kall og vis tidspunktet i API-et fra L1. | L1 | Vellykket sending vises som bekreftet; overleveringsvurdering og feilet sending vises med sine faktiske tilstander. |
 | A1 | Registrer en daglig aldersjobb med oppslag og ventelogikk som gjenopptar aktive Under18-behandlinger ved fylte 18 år før saksopprettelse. | #978 | Styrbar klokke, idempotent jobbinnlegging, opphevet automatisk/manuell vent og nytt søknadssvar før saksopprettelse. |
-| PG | Implementer Postgres-lagring for de nye dataene og samle alle nye tabeller og kolonner i én migrering. Videreutvikle #972 med datamodellen fra forløpene over. | Alle PR-ene over | Samme forløp mot Postgres, restart, rollback, savepoints, personlås og samtidighet. Togglen av hindrer Under18-opprettelse, og ufullført handoff bevares. |
+| PG | Lag Flyway-migrasjonen for alle nye Under18-tabeller, inkludert samlinger og søknadskoblinger fra J1. Implementer Postgres-lagringen i `Under18Repository`. Videreutvikle #972 med datamodellen fra forløpene over. | Alle PR-ene over | Samme forløp mot Postgres, restart, rollback, savepoints og samtidighet. |
 
 Kandidatoppslag og varsling beholder dagens løsning fra #979.
 R1 endrer aldersregelen uten å endre når mottakshistorikken registreres.
@@ -571,18 +571,17 @@ flowchart TD
     stopp -.-> j1{"J1: tema AAP, aktuell papirsøknad,<br/>søker under 18 uten Kelvin-sak<br/>og PostmottakUnder18 på?"}
     j1 -.->|"Nei"| vanlig["Vanlig Journalføring"]
     j1 -.->|"Ja"| generell["Generell sak og ferdigstilling"]
-    generell -.-> handoff{"Handoff: toggle fortsatt på?"}
-    handoff -.->|"Ja"| under18["Opprett eller oppdater Under18"]
-    handoff -.->|"Nei"| behold["Ingen ny Under18-behandling<br/>bevar handoff for trygg videreføring"]
+    generell -.-> videresend["VideresendSteg bruker samme Under18-regel"]
+    videresend -.-> under18["Finn eller opprett Under18<br/>koble søknad og legg vanlig prosessering i kø"]
     classDef default fill:#F6F7F9,stroke:#5B6169,color:#23262A
     classDef valg fill:#FBEDED,stroke:#C30000,color:#23262A
     classDef senere fill:#FFFFFF,stroke:#5B6169,stroke-dasharray:5 5,color:#23262A
     class alder,system valg
-    class j1,vanlig,generell,handoff,under18,behold senere
+    class j1,vanlig,generell,videresend,under18 senere
 ```
 
 Et eksisterende fordelingsresultat gjenbrukes som i dag.
-Det erstatter ikke togglekontrollen før Under18-opprettelse i J1.
+Det erstatter ikke togglekontrollen ved valg av generell sak for Under18 i J1.
 `Aldersregel` er aktiv i prod, men ikke i dev eller test. Testene må derfor
 dekke regelen direkte, ikke bare stole på en flyttest med dev-regler.
 Togglen aktiveres ikke i dev eller prod før hele forløpet, inkludert J1 og PG, er klart.
@@ -629,19 +628,23 @@ samtykkereferanser uavhengig av om de står i kandidatlisten. Historiske identer
 godtas når de tilhører samme person.
 
 Kandidatregistrering og varsling fra vurderingsjobben endres ikke i R1.
-Under-18-spesifikk bruk må følge samme toggle som resten av funksjonaliteten.
+Kandidatene brukes først når det finnes en Under18-behandling.
 
 Behold de eksisterende testene for kandidatvalidering og gyldige og ugyldige
 samtykkereferanser, inkludert gyldige referanser utenfor kandidatlisten.
 Behold også tester for duplikater, kandidatvarsling og utløpt ventefrist.
 Tester av forsinkede jobber skal tillate at registrering etter en ny vent vekker den.
 
-### Handoff og dataintegritet: J1, S1 og PG
+### Overgang til Under18 og dataintegritet: J1, S1 og PG
 
-Handoff og saksopprettelse bruker samme lås for intern person-ID og slår opp
-samlingen på nytt under låsen. Handoff tar personlåsen uten Journalføring- eller
-Under18-behandlingslås. Under18-sakssteget kan ta personlåsen mens det holder
-behandlingslåsen. Ingen kodevei tar behandlingslås mens den holder personlåsen.
+Vi forventer rundt 200 behandlinger i året og bruker ingen egen personlås.
+`VideresendSteg` gjenbruker en åpen samling. Hvis to jobber forsøker å opprette
+hver sin, skal en unik indeks i PG avvise det andre forsøket slik at motoren kan prøve igjen.
+Når vi kobler søknaden, sjekker vi at samlingen er åpen. Denne sjekken ser
+allerede committede endringer; den får ikke en samtidig henleggelse til å vente.
+`VideresendSteg` registrerer søknaden og legger prosessering i kø; det kjører ikke
+Under18-flyten direkte. Den vanlige prosesseringsjobben tar Under18-behandlingslåsen
+når den kjører.
 
 En Under18-behandling kan samle flere søknader, men hver kildejournalpost registreres
 bare én gang og tilhører én slik behandling. Hver søknad har høyst én dokumentbehandling,
@@ -655,13 +658,14 @@ journalposten som hovedjournalpost.
 S1 oppretter dokumentbehandlingen med søknadskobling, Kelvin-saksgrunnlag,
 SAF-snapshot av den nye journalposten og første jobb. Dokumentflyten har ingen
 informasjonskrav som henter snapshotet. PG sikrer at disse lagres i én transaksjon,
-og at rollback ikke etterlater en delvis opprettet dokumentbehandling. PG lagrer
-også handoffens behandling, søknadskobling og prosesseringsjobb i én transaksjon.
+og at rollback ikke etterlater en delvis opprettet dokumentbehandling. PG sikrer
+at `VideresendSteg` lagrer Under18-behandlingen, søknadskoblingen og den vanlige
+prosesseringsjobben i én transaksjon.
 Bruk lagret Kelvin-sak ved retry. Et gjentatt `finnEllerOpprettSak`-kall med samme
 input skal kunne gjenfinne flytens egen sak uten å regne den som en uventet ekstern sak.
 
-Test parallelle handoffs, handoff samtidig med saksopprettelse og retry av
-saksopprettelse. Test rollback og låserekkefølgen mot Postgres i PG.
+Test parallelle overganger fra Journalføring, overgang samtidig med saksopprettelse
+og retry av begge operasjoner. Test rollback mot Postgres i PG.
 
 ### Dokarkiv og ukjent utfall: S1 og PG
 
@@ -729,8 +733,7 @@ personopplysningene faktisk er fjernet.
 | Situasjon | Avklaring |
 | --- | --- |
 | Kelvin-sak oppstår etter Fordeling | Kontroller aktuell sakssituasjon i Journalføring før valg av generell sak. Fordelingsresultatet avgjør ikke alene om en Under18-behandling skal opprettes. |
-| Togglen slås av etter valg av generell sak | Ingen Under18-behandling skal opprettes. Bevar ufullført handoff og avklar hvordan den gjenopptas uten å miste en ferdigstilt søknad. |
-| Ferdig journalført søknad etter at samlingen stenges | Bestem videre behandling eller varsling før handoff-jobben ferdigstilles. |
+| Samlingen stenges mellom oppslag og kobling | Hvis stengingen er synlig når søknaden kobles, feiler jobben med beskjed om manuell oppfølging. Vi lagrer ikke hvilken samling Journalføring så ved valg av generell sak. |
 | Gjenfinning etter avbrutt tilknytning | Bekreft gjenbruk av dokument-ID-er, når resultatet er synlig i SAF og hvordan et kall som fortsatt kan fullføre, håndteres. Lagre forsøket før kallet. |
 | Forutsetninger for tilknytning | Avklar obligatoriske felt, tillatte kildestatuser og håndtering av samtykkedokumenter som behandles ordinært eller ligger på en annen fagsak. |
 
@@ -739,21 +742,22 @@ Ved uklart utfall fra tilknytningen feiler jobben og utfallet avklares før nytt
 
 ## Postgres og aktivering
 
-PG oppretter alle nye tabeller med primærnøkler og SQL for Postgres 16 i én Flyway-migrering.
+J1 bruker bare in-memory-lagring for de nye Under18-dataene. Flyway-migrasjonen
+kommer i siste steg (PG), sammen med Postgres-implementasjonen. Da må vi lagre
+hvilken Under18-behandling som samler søknadene for en person, om samlingen er åpen,
+og hvilken behandling hver kildejournalpost tilhører. Tillat høyst én åpen samling
+per person og én kobling per kildejournalpost. `Saksvurdering` trenger ingen nye felt.
+Alle nye tabeller får primærnøkler og bruker SQL som støttes av Postgres 16.
 Produksjonsimplementasjonene registreres i `PostgresRepositoryRegistry`, og
 integrasjonstestene bruker dem. Enhetstestene beholder in-memory-repositoriene.
-Personlås og fast låserekkefølge sikrer handoff og saksopprettelse.
-Test parallelle handoffs, handoff mot saksopprettelse og videreføring av dagens
+Test parallelle overganger fra Journalføring, overgang samtidig med saksopprettelse og videreføring av dagens
 kandidatregistrering og ventefrister.
 
 R1 definerer `PostmottakUnder18`. Testene dekker både påslått og avslått toggle.
 Den nye rutingen er av i dev og prod frem til forløpet er klart for aktivering.
-Inngangene kontrollerer togglen før bruk av produksjonsstubene.
-PG verifiserer at togglen av hindrer Under18-opprettelse og under-18-spesifikke operasjoner.
-Ufullført handoff skal bevares uten å opprette en behandling mens togglen er av.
+Før aktivering verifiserer vi at en aktuell papirsøknad følger vanlig flyt uten
+å opprette en Under18-behandling.
 
 Etter PG prøves hele forløpet med syntetiske dokumenter i dev.
 Prod aktiveres når forretningsavklaringene, konsumentstøtten, tilgangene og driftsrutinene
-er på plass. Etter aktivering styrer samme toggle aldersunntaket i Fordeling og
-under-18-funksjonaliteten i Journalføring, handoff og Under18. Et tidligere
-fordelingsresultat gir ikke noe unntak fra togglekontrollen.
+er på plass. Deretter blir togglen stående på.
