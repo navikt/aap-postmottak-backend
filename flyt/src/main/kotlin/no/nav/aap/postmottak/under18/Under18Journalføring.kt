@@ -44,8 +44,7 @@ class Under18Journalføring(
     }
 
     fun erAktuell(journalpost: Journalpost, tema: TemaVurdering?, harKelvinSak: Boolean): Boolean {
-        if (harKelvinSak || tema?.tema != Tema.AAP || !tema.skalTilAap) return false
-        if (journalpost.hoveddokumentbrevkode != Brevkoder.SØKNAD.kode) return false
+        if (harKelvinSak || tema?.tema != Tema.AAP || !tema.skalTilAap || journalpost.hoveddokumentbrevkode != Brevkoder.SØKNAD.kode) return false
 
         if (!unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18)) return false
 
