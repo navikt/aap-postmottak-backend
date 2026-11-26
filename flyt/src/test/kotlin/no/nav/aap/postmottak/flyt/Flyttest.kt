@@ -71,7 +71,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
+import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.fakes.vedlegg
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
@@ -329,7 +329,10 @@ class Flyttest : WithDependencies {
             val under18 = alleBehandlingerForJournalpost(søknader.first()).single { it.typeBehandling == TypeBehandling.Under18 }
             util.ventPåSvar(under18.journalpostId.referanse, under18.id.id)
             under18.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
-            assertThat(InMemoryUnder18Repository.hentSøknadsgrunnlag(under18.id).søknader).containsExactlyElementsOf(søknader)
+            val grunnlag = dataSource.transaction(readOnly = true) {
+                repositoryRegistry.provider(it).provide<Under18Repository>().hentSøknadsgrunnlag(under18.id)
+            }
+            assertThat(grunnlag.søknader).containsExactlyElementsOf(søknader)
             assertThat(alleBehandlingerForJournalpost(søknader.last())).noneMatch { it.typeBehandling == TypeBehandling.Under18 }
         } finally {
             TemaFlytUnleash.under18 = false
@@ -418,9 +421,10 @@ class Flyttest : WithDependencies {
             TestKlokke.dato = fødselsdato.plusYears(18)
             triggProsesserBehandling(behandling.journalpostId, behandling.id)
 
-            assertThat(
-                InMemoryUnder18Repository.hentAktivSamtykkevurdering(behandling.id)?.beggeForeldreSamtykket
-            ).isFalse()
+            val samtykke = dataSource.transaction(readOnly = true) {
+                repositoryRegistry.provider(it).provide<Under18Repository>().hentAktivSamtykkevurdering(behandling.id)
+            }
+            assertThat(samtykke?.beggeForeldreSamtykket).isFalse()
             hentBehandling(behandling.id)
                 .also { assertThat(it.aktivtSteg()).isEqualTo(StegType.AVKLAR_UNDER18) }
                 .verifiserIkkePåVent()
@@ -1464,7 +1468,7 @@ class Flyttest : WithDependencies {
             val repositories = repositoryRegistry.provider(connection)
             val id = repositories.provide<BehandlingRepository>().opprettBehandling(journalpostId, TypeBehandling.Under18)
             val personId = repositories.provide<PersonRepository>().finnEllerOpprett(person.identer.toList()).id
-            InMemoryUnder18Repository.lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(personId, listOf(journalpostId)))
+            repositories.provide<Under18Repository>().lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(personId, listOf(journalpostId)))
             id
         }
         triggProsesserBehandling(journalpostId, behandlingId)

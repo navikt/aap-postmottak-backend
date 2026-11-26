@@ -12,7 +12,7 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurder
 import no.nav.aap.postmottak.gateway.DokarkivGateway
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
-import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
+import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.test.fakes.vedlegg
 import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
@@ -83,7 +83,7 @@ class ApiTest {
         }
 
         // Starter server
-        private val registre = postgresRepositoryRegistry.register<InMemoryUnder18Repository>()
+        private val registre = postgresRepositoryRegistry
         private val gateways = defaultGatewayProvider()
         private val server = embeddedServer(Netty, port = 0) {
             server(dbConfig = dbConfig, registre, gateways)
@@ -118,8 +118,9 @@ class ApiTest {
                 val behandlinger = provider.provide<BehandlingRepository>()
                 val id = behandlinger.opprettBehandling(kilde.journalpostId, TypeBehandling.Under18)
                 val person = provider.provide<PersonRepository>().finnEllerOpprett(kilde.person.identer())
-                InMemoryUnder18Repository.lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(person.id, listOf(kilde.journalpostId)))
-                InMemoryUnder18Repository.lagreSamtykkevurdering(id, Under18SamtykkeVurdering(true, listOf(samtykke)))
+                val repository = provider.provide<Under18Repository>()
+                repository.lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(person.id, listOf(kilde.journalpostId)))
+                repository.lagreSamtykkevurdering(id, Under18SamtykkeVurdering(true, listOf(samtykke)))
                 provider.provide<SaksnummerRepository>().lagreSakVurdering(id, Saksvurdering(sak))
                 behandlinger.hent(id)
             }

@@ -26,15 +26,6 @@ class IsolertUnder18Repository : Under18Repository {
     private val samtykkevurderinger = HashMap<BehandlingId, MutableList<Under18SamtykkeVurdering>>()
     private val lock = Any()
 
-    private val under18Journalføringer = mutableSetOf<BehandlingId>()
-
-    override fun registrerUnder18Journalføring(behandlingId: BehandlingId) {
-        synchronized(lock) { under18Journalføringer.add(behandlingId) }
-    }
-
-    override fun erUnder18Journalføring(behandlingId: BehandlingId): Boolean =
-        synchronized(lock) { behandlingId in under18Journalføringer }
-
     override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? = synchronized(lock) {
         søknadsgrunnlag.entries.singleOrNull { it.value.personId == personId && it.value.tarImotNyeSøknader }?.key
     }

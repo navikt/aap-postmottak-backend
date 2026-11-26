@@ -12,7 +12,6 @@ import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.gateway.Sakstype
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -44,8 +43,8 @@ class Under18Journalføring(
         )
     }
 
-    fun velgUnder18HvisAktuell(
-        behandlingId: BehandlingId, journalpost: Journalpost, tema: TemaVurdering?, harKelvinSak: Boolean
+    fun skalTilUnder18(
+        journalpost: Journalpost, tema: TemaVurdering?, harKelvinSak: Boolean
     ): Boolean {
         val erPapirsøknad = journalpost.erPapir() && journalpost.hoveddokumentbrevkode == Brevkoder.SØKNAD.kode
         val bekreftetAap = tema?.tema == Tema.AAP && tema.skalTilAap
@@ -54,9 +53,7 @@ class Under18Journalføring(
         ) return false
 
         val person = journalpost.person
-        val skalTilUnder18 = under18Repository.finnBehandlingForNyeSøknader(person.id) != null || erUnder18(journalpost)
-        if (skalTilUnder18) under18Repository.registrerUnder18Journalføring(behandlingId)
-        return skalTilUnder18
+        return under18Repository.finnBehandlingForNyeSøknader(person.id) != null || erUnder18(journalpost)
     }
 
     private fun erUnder18(journalpost: Journalpost): Boolean {
@@ -67,10 +64,8 @@ class Under18Journalføring(
         return klokke.dagensDato().isBefore(fødselsdato.plusYears(18))
     }
 
-    fun videresendHvisValgt(behandlingId: BehandlingId, journalpost: Journalpost) {
-        if (!unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18) ||
-            !under18Repository.erUnder18Journalføring(behandlingId)
-        ) return
+    fun videresend(journalpost: Journalpost) {
+        if (!unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18)) return
         val journalpostId = journalpost.journalpostId
         if (under18Repository.hentBehandlingForSøknad(journalpostId) != null) return
         val saf = journalpostService.hentSafJournalpost(journalpostId)
