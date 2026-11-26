@@ -80,7 +80,7 @@ spec:
     inbound:
       rules:
         - application: saksbehandling
-        - application: saksbehandling-lokal # For lokal utvikling. IKKE kopier denne til prod-gcp.yaml
+        - application: localauth # For lokal utvikling. IKKE kopier denne til prod-gcp.yaml
         - application: paw-patrol
         - application: azure-token-generator
           namespace: nais
