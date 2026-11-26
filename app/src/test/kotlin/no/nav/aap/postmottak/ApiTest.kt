@@ -6,6 +6,7 @@ import io.ktor.server.netty.Netty
 import kotlinx.coroutines.runBlocking
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.gateway.DokarkivGateway
@@ -116,7 +117,8 @@ class ApiTest {
                 val provider = registre.provider(it)
                 val behandlinger = provider.provide<BehandlingRepository>()
                 val id = behandlinger.opprettBehandling(kilde.journalpostId, TypeBehandling.Under18)
-                InMemoryUnder18Repository.lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(kilde.person.id, listOf(kilde.journalpostId)))
+                val person = provider.provide<PersonRepository>().finnEllerOpprett(kilde.person.identer())
+                InMemoryUnder18Repository.lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(person.id, listOf(kilde.journalpostId)))
                 InMemoryUnder18Repository.lagreSamtykkevurdering(id, Under18SamtykkeVurdering(true, listOf(samtykke)))
                 provider.provide<SaksnummerRepository>().lagreSakVurdering(id, Saksvurdering(sak))
                 behandlinger.hent(id)
