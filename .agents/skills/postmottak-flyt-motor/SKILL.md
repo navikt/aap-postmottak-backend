@@ -72,6 +72,7 @@ Informasjonskrav har typet input og registerdata, med fasene `klargjør` → `he
 
 ## Før du endrer motorkode
 
+- For steg og tjenester: la konstruktøren vise hvilke repositorier, gatewayer og tjenester klassen trenger. Bruk `RepositoryProvider` og `GatewayProvider` i `companion object` sin `konstruer`, ikke som felt i klassen. Se `OpprettUnder18SakSteg`.
 - Les referansen for området først. De fleste «bugene» her er tilsiktede eller bærende.
 - `BehandlingFlyt` er synkronisert fra aap-behandlingsflyt (KDoc sier det). Hold diffene små, så det er enklere å synkronisere senere.
 - Mens du itererer, kjør målrettede enhetstester og **én eller to** relevante `Flyttest`-metoder. Kjør hele suiten før du avslutter (se `postmottak-testing`).

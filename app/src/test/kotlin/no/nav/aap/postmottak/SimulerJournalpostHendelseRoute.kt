@@ -6,7 +6,9 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.HttpStatusCode
 import no.nav.aap.komponenter.gateway.GatewayProvider
+import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.repository.RepositoryRegistry
+import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.mottak.JOARK_TOPIC
@@ -17,10 +19,13 @@ import no.nav.aap.postmottak.mottak.kafka.config.SslConfig
 import no.nav.aap.postmottak.mottak.kafka.config.StreamsConfig
 import no.nav.aap.postmottak.test.fakes.TestJournalPost
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.test.modell.TestPerson
+import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TopologyTestDriver
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -62,6 +67,7 @@ data class SimulerJournalpostHendelseRequest(
     // Fødselsnummeret journalposten skal knyttes til. Dersom denne ikke settes opprettes det
     // automatisk en ny testperson (se TestJournalposter.leggTil). Brukes ikke ved scenario UTENLANDSK_ORGNR.
     val fnr: String? = null,
+    val fødselsdato: LocalDate? = null,
     val tema: String = "AAP",
     val temaGammelt: String? = null,
     val journalpostStatus: String = "MOTTATT",
@@ -92,6 +98,15 @@ private fun registrerTestJournalpost(request: SimulerJournalpostHendelseRequest)
     return TestJournalposter.leggTil {
         journalpostId = request.journalpostId
         fnr = request.fnr
+        request.fødselsdato?.let { dato ->
+            if (fnr != null || request.scenario == SimulertJournalpostScenario.UTENLANDSK_ORGNR) {
+                throw UgyldigForespørselException("Fødselsdato kan bare velges for en ny testperson.")
+            }
+            if (dato.isAfter(LocalDate.now())) {
+                throw UgyldigForespørselException("Fødselsdato kan ikke være i fremtiden.")
+            }
+            person = TestPersoner.leggTil(TestPerson(fødselsdato = Fødselsdato(dato)))
+        }
         tema = request.tema
         status = Journalstatus.valueOf(request.journalpostStatus)
         when (request.scenario) {
@@ -113,7 +128,7 @@ private fun simulerJournalpostHendelse(
 ) {
     val config = StreamsConfig(
         applicationId = "postmottak-simuler-lokalt",
-        brokers = "",
+        brokers = "localhost:9092",
         ssl = SslConfig(truststorePath = "", keystorePath = "", credstorePsw = ""),
         schemaRegistry = SchemaRegistryConfig(url = "mock://postmottak-testapp", user = "", password = ""),
     )
