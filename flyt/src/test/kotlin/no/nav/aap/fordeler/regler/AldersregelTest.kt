@@ -13,7 +13,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 
 class AldersregelTest {
-    private val regel = Aldersregel(FakeUnleash)
+    private val regel = Aldersregel(Under18Avslått)
 
     @Test
     fun `Ingen øvre grense for alder til Kelvin`() {
@@ -43,7 +43,7 @@ class AldersregelTest {
             LocalDate.of(2026, 2, 15)
         )
 
-        assertThat(Aldersregel(Under18AktivertForAldersregelTest).vurder(input)).isTrue()
+        assertThat(Aldersregel(FakeUnleash).vurder(input)).isTrue()
     }
 
     @Test
@@ -53,20 +53,20 @@ class AldersregelTest {
             LocalDate.of(2026, 2, 15)
         )
 
-        assertThat(Aldersregel(Under18AktivertForAldersregelTest).vurder(input)).isTrue()
+        assertThat(Aldersregel(FakeUnleash).vurder(input)).isTrue()
     }
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
     fun `manglende fødselsdato gir false uansett toggle`(under18: Boolean) {
-        val regel = Aldersregel(if (under18) Under18AktivertForAldersregelTest else FakeUnleash)
+        val regel = Aldersregel(if (under18) FakeUnleash else Under18Avslått)
         val input = AldersregelInput(null, LocalDate.of(2026, 2, 15))
 
         assertThat(regel.vurder(input)).isFalse()
     }
 }
 
-object Under18AktivertForAldersregelTest : UnleashGateway by FakeUnleash {
+private object Under18Avslått : UnleashGateway by FakeUnleash {
     override fun isEnabled(featureToggle: FeatureToggle): Boolean =
-        featureToggle == PostmottakFeature.PostmottakUnder18 || FakeUnleash.isEnabled(featureToggle)
+        featureToggle != PostmottakFeature.PostmottakUnder18 && FakeUnleash.isEnabled(featureToggle)
 }

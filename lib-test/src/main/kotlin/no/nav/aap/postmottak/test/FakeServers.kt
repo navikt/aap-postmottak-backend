@@ -295,7 +295,11 @@ class FakeServers : AutoCloseable {
             put("/rest/journalpostapi/v1/journalpost/{journalpostId}") {
                 val request = call.receive<JsonNode>()
                 if (request.has("sak")) {
-                    DefaultJsonMapper.fromJson<OppdaterJournalpostRequest>(request.toString())
+                    val endring = DefaultJsonMapper.fromJson<OppdaterJournalpostRequest>(request.toString())
+                    val id = requireNotNull(call.parameters["journalpostId"]).toLong()
+                    TestJournalposter.hentJournalpost(id)?.let {
+                        TestJournalposter.oppdater(it.copy(fagsak = endring.sak, tema = endring.tema))
+                    }
                 } else {
                     require(request.fieldNames().asSequence().toSet() == setOf("tema"))
                     DefaultJsonMapper.fromJson<EndreTemaRequest>(request.toString())
@@ -304,6 +308,10 @@ class FakeServers : AutoCloseable {
             }
             patch("/rest/journalpostapi/v1/journalpost/{journalpostId}/ferdigstill") {
                 call.receive<FerdigstillRequest>()
+                val id = requireNotNull(call.parameters["journalpostId"]).toLong()
+                TestJournalposter.hentJournalpost(id)?.let {
+                    TestJournalposter.oppdater(it.copy(status = Journalstatus.JOURNALFOERT))
+                }
                 call.respondText(ContentType.Text.Plain) {
                     "I'm just a string"
                 }

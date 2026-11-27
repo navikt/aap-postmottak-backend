@@ -53,7 +53,7 @@ public enum class Definisjon(
     ),
     AVKLAR_UNDER18_SØKNAD(
         kode = AvklaringsbehovKode.`1344`,
-        type = BehovType.MANUELT_PÅKREVD,
+        type = BehovType.MANUELT_FRIVILLIG,
         løsesISteg = StegType.AVKLAR_UNDER18
     ),
     AVKLAR_UNDER18_SAMTYKKE(

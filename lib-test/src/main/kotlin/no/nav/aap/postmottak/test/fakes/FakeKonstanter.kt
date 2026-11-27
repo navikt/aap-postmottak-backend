@@ -29,9 +29,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
 
 private val standardMottattTid = LocalDateTime.of(2020, 12, 1, 10, 0)
+private val nestePapirdokumentId = AtomicLong(10_000_000_000L)
 
 data class TestJournalPost(
     val journalpostId: Long = Random.nextLong(10_000L, 1_000_000_000L),
@@ -180,8 +182,22 @@ class TestJournalPostBuilder {
     fun papirsøknad() {
         kanal = KanalFraKodeverk.SKAN_NETS
         digitalSøknad = null
-        dokumenter = null
         brevkode = Brevkoder.SØKNAD
+        dokumenter = listOf(vedlegg("Søknad").copy(brevkode = brevkode.kode), vedlegg("Vedlegg")).map {
+            it.copy(dokumentInfoId = DokumentInfoId(nestePapirdokumentId.getAndIncrement().toString()))
+        }
+    }
+
+    fun annetRelevantPapirdokument() {
+        kanal = KanalFraKodeverk.SKAN_NETS
+        brevkode = Brevkoder.ANNEN
+        digitalSøknad = null
+        dokumenter = listOf(
+            vedlegg("Annet relevant dokument").copy(
+                dokumentInfoId = DokumentInfoId(nestePapirdokumentId.getAndIncrement().toString()),
+                brevkode = brevkode.kode
+            )
+        )
     }
 
     fun legeerklæring() {
