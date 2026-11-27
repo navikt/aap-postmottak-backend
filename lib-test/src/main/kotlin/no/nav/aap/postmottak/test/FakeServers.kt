@@ -569,17 +569,18 @@ class FakeServers : AutoCloseable {
 
     private fun genererHentIdenterRespons(body: String): String {
         val ident = finnIdentIBody(body)
+        val person = TestPersoner.hentPerson(ident)
         return """
             { "data":
             {"hentIdenter": {
                     "identer": [
                         {
-                            "ident": "$ident",
+                            "ident": "${person?.aktivIdent()?.identifikator ?: ident}",
                             "historisk": false,
                             "gruppe": "FOLKEREGISTERIDENT"
                         },
                         {
-                            "ident": "1234567898",
+                            "ident": "${person?.aktørId ?: "1234567898"}",
                             "historisk": false,
                             "gruppe": "AKTORID"
                         }

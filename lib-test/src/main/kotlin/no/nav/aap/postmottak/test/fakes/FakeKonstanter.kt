@@ -247,9 +247,11 @@ object TestJournalposter {
             brukerType = builder.brukerType.name,
             mottattTid = builder.mottattTid
         ).let {
-            if (builder.brukerType != BrukerIdType.ORGNR) {
-                it.medFnr(ident)
-            } else it.copy(brukerId = ident.identifikator)
+            when (builder.brukerType) {
+                BrukerIdType.FNR -> it.medFnr(ident)
+                BrukerIdType.AKTOERID -> it.medFnr(ident).copy(brukerId = requireNotNull(TestPersoner.hentPerson(ident.identifikator)).aktørId)
+                BrukerIdType.ORGNR -> it.copy(brukerId = ident.identifikator)
+            }
         }
         fakeJournalposter[journalpost.journalpostId] = journalpost
 
