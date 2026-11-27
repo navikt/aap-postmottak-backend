@@ -21,7 +21,11 @@ interface Under18Repository : Repository {
     fun hentAktivSamtykkevurdering(behandlingId: BehandlingId): Under18SamtykkeVurdering?
 }
 
-data class Under18Aldersgrunnlag(val fødselsdato: LocalDate, val aldersgruppe: Under18Aldersgruppe)
+data class Under18Aldersgrunnlag(
+    val fødselsdato: LocalDate,
+    val aldersgruppe: Under18Aldersgruppe,
+)
 
-fun Under18Repository.hentFødselsdatoFor(behandlingId: BehandlingId): LocalDate =
-    checkNotNull(hentAldersgrunnlag(behandlingId)) { "Fødselsdato er ikke lagret for behandling $behandlingId" }.fødselsdato
+fun Under18Repository.krevAldersgrunnlag(behandlingId: BehandlingId): Under18Aldersgrunnlag =
+    checkNotNull(hentAldersgrunnlag(behandlingId)) { "Fødselsdato er ikke lagret for behandling $behandlingId" }
+

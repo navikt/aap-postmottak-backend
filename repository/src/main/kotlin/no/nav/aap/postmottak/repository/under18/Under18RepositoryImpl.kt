@@ -16,49 +16,166 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
     }
 
     override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? =
-        connection.queryFirstOrNull("SELECT behandling_id FROM under18_samling WHERE person_id = ? AND tar_imot") {
+        connection.queryFirstOrNull("SELECT behandling_id FROM under18_aapen_samling WHERE person_id = ?") {
             setParams { setLong(1, personId) }
             setRowMapper { BehandlingId(it.getLong("behandling_id")) }
         }
 
     override fun hentBehandlingForSøknad(journalpostId: JournalpostId): BehandlingId? =
-        connection.queryFirstOrNull("SELECT behandling_id FROM under18_soknad WHERE journalpost_id = ?") {
+        connection.queryFirstOrNull("SELECT behandling_id FROM under18_soknadstilknytning WHERE journalpost_id = ?") {
             setParams { setLong(1, journalpostId.referanse) }
             setRowMapper { BehandlingId(it.getLong("behandling_id")) }
         }
 
     override fun lagreSøknadsgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Søknadsgrunnlag) {
-        // Lås samlingen før vi leser søknadene. En samtidig utvidelse eller stenging må ikke overskrives.
-        val finnes = connection.queryFirstOrNull("SELECT behandling_id FROM under18_samling WHERE behandling_id = ? FOR UPDATE") {
+        val samling = Samlingslagring(connection, behandlingId)
+        val tidligere = if (samling.låsHvisFinnes()) hentSøknadsgrunnlag(behandlingId) else null
+        if (tidligere == grunnlag) return
+        tidligere?.validerEndringTil(grunnlag, behandlingId)
+
+        val samlingId = samling.lagre(grunnlag)
+        erstattGrunnlag(behandlingId, "under18_samlingsgrunnlag", "samling_id", samlingId)
+        samling.oppdaterÅpenSamling(tidligere, grunnlag)
+        samling.knyttTilSøknader(grunnlag.søknader - tidligere?.søknader.orEmpty())
+    }
+
+    override fun hentSøknadsgrunnlag(behandlingId: BehandlingId): Under18Søknadsgrunnlag =
+        checkNotNull(connection.queryFirstOrNull("""
+            SELECT s.person_id, s.tar_imot, s.journalpost_ider FROM under18_samlingsgrunnlag g
+            JOIN under18_samling s ON s.id = g.samling_id WHERE g.behandling_id = ? AND g.aktiv
+        """.trimIndent()) {
             setParams { setLong(1, behandlingId.id) }
-            setRowMapper { it.getLong("behandling_id") }
-        } != null
-        val nyeSøknader = if (finnes) {
-            val tidligere = hentSøknadsgrunnlag(behandlingId)
-            if (tidligere == grunnlag) return
-            check(tidligere.tarImotNyeSøknader) { "$behandlingId er stengt for nye søknader" }
-            check(tidligere.personId == grunnlag.personId) { "Kan ikke bytte person på $behandlingId" }
-            check(grunnlag.søknader.containsAll(tidligere.søknader)) {
-                "Lagrede søknader på $behandlingId kan ikke erstattes"
+            setRowMapper {
+                Under18Søknadsgrunnlag(
+                    personId = it.getLong("person_id"),
+                    søknader = it.getArray("journalpost_ider", Long::class).mapTo(mutableSetOf(), ::JournalpostId),
+                    tarImotNyeSøknader = it.getBoolean("tar_imot"),
+                )
             }
-            if (!grunnlag.tarImotNyeSøknader) {
-                connection.execute("UPDATE under18_samling SET tar_imot = FALSE WHERE behandling_id = ?") {
-                    setParams { setLong(1, behandlingId.id) }
-                }
+        }) { "Mangler søknadsgrunnlag for $behandlingId" }
+
+    override fun lagreAldersgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Aldersgrunnlag) {
+        if (hentAldersgrunnlag(behandlingId) == grunnlag) return
+        val id = connection.executeReturnKey("INSERT INTO under18_aldersvurdering (fodselsdato, aldersgruppe) VALUES (?, ?)") {
+            setParams {
+                setLocalDate(1, grunnlag.fødselsdato)
+                setEnumName(2, grunnlag.aldersgruppe)
             }
-            grunnlag.søknader - tidligere.søknader
-        } else {
-            connection.execute("INSERT INTO under18_samling (behandling_id, person_id, tar_imot) VALUES (?, ?, ?)") {
-                setParams {
-                    setLong(1, behandlingId.id)
-                    setLong(2, grunnlag.personId)
-                    setBoolean(3, grunnlag.tarImotNyeSøknader)
-                }
-            }
-            grunnlag.søknader
         }
+        erstattGrunnlag(behandlingId, "under18_aldersgrunnlag", "aldersvurdering_id", id)
+    }
+
+    override fun hentAldersgrunnlag(behandlingId: BehandlingId): Under18Aldersgrunnlag? =
+        connection.queryFirstOrNull("""
+            SELECT fodselsdato, aldersgruppe
+            FROM under18_aldersgrunnlag g JOIN under18_aldersvurdering v ON v.id = g.aldersvurdering_id
+            WHERE g.behandling_id = ? AND g.aktiv
+        """.trimIndent()) {
+            setParams { setLong(1, behandlingId.id) }
+            setRowMapper {
+                Under18Aldersgrunnlag(it.getLocalDate("fodselsdato"), it.getEnum("aldersgruppe"))
+            }
+        }
+
+    override fun lagreSøknadsavklaring(behandlingId: BehandlingId, avklaring: Under18Søknadsavklaring) {
+        val id = connection.executeReturnKey("""
+            INSERT INTO under18_soknadsavklaring (situasjon, vil_fortsette, fylt_17_aar_og_9_maaneder)
+            VALUES (?, ?, ?)
+        """.trimIndent()) {
+            setParams {
+                setEnumName(1, avklaring.situasjon)
+                setBoolean(2, avklaring.søkerVilFortsette)
+                setBoolean(3, avklaring.fylt17ÅrOg9Måneder)
+            }
+        }
+        erstattGrunnlag(behandlingId, "under18_soknadsavklaring_grunnlag", "soknadsavklaring_id", id)
+    }
+
+    override fun hentSøknadsavklaring(behandlingId: BehandlingId): Under18Søknadsavklaring? =
+        connection.queryFirstOrNull("""
+            SELECT situasjon, vil_fortsette, fylt_17_aar_og_9_maaneder
+            FROM under18_soknadsavklaring_grunnlag g JOIN under18_soknadsavklaring v ON v.id = g.soknadsavklaring_id
+            WHERE g.behandling_id = ? AND g.aktiv
+        """.trimIndent()) {
+            setParams { setLong(1, behandlingId.id) }
+            setRowMapper {
+                Under18Søknadsavklaring(
+                    it.getEnumOrNull("situasjon"), it.getBooleanOrNull("vil_fortsette"), it.getBooleanOrNull("fylt_17_aar_og_9_maaneder")
+                )
+            }
+        }
+
+    override fun lagreSamtykkevurdering(behandlingId: BehandlingId, vurdering: Under18SamtykkeVurdering) {
+        val id = connection.executeReturnKey("""
+            INSERT INTO under18_samtykkevurdering (begge_foreldre_samtykket, journalpost_ider)
+            VALUES (?, ?)
+        """.trimIndent()) {
+            setParams {
+                setBoolean(1, vurdering.beggeForeldreSamtykket)
+                setLongArray(2, vurdering.samtykkeJournalpostIder.map { it.referanse })
+            }
+        }
+        erstattGrunnlag(behandlingId, "under18_samtykkegrunnlag", "samtykkevurdering_id", id)
+    }
+
+    override fun hentAktivSamtykkevurdering(behandlingId: BehandlingId): Under18SamtykkeVurdering? =
+        connection.queryFirstOrNull("""
+            SELECT begge_foreldre_samtykket, journalpost_ider FROM under18_samtykkegrunnlag g
+            JOIN under18_samtykkevurdering v ON v.id = g.samtykkevurdering_id WHERE g.behandling_id = ? AND g.aktiv
+        """.trimIndent()) {
+            setParams { setLong(1, behandlingId.id) }
+            setRowMapper {
+                Under18SamtykkeVurdering(it.getBoolean("begge_foreldre_samtykket"), it.getArray("journalpost_ider", Long::class).map(::JournalpostId))
+            }
+        }
+
+    private fun erstattGrunnlag(behandlingId: BehandlingId, tabell: String, vurderingskolonne: String, vurderingId: Long) {
+        connection.execute("UPDATE $tabell SET aktiv = FALSE WHERE behandling_id = ? AND aktiv") {
+            setParams { setLong(1, behandlingId.id) }
+        }
+        connection.execute("INSERT INTO $tabell (behandling_id, $vurderingskolonne) VALUES (?, ?)") {
+            setParams {
+                setLong(1, behandlingId.id)
+                setLong(2, vurderingId)
+            }
+        }
+    }
+}
+
+private class Samlingslagring(private val connection: DBConnection, private val behandlingId: BehandlingId) {
+    // Lås alltid første versjon, også etter at en annen transaksjon har erstattet den aktive.
+    fun låsHvisFinnes(): Boolean = connection.queryFirstOrNull(
+        "SELECT id FROM under18_samlingsgrunnlag WHERE behandling_id = ? ORDER BY id LIMIT 1 FOR UPDATE"
+    ) {
+        setParams { setLong(1, behandlingId.id) }
+        setRowMapper { it.getLong("id") }
+    } != null
+
+    fun lagre(grunnlag: Under18Søknadsgrunnlag): Long = connection.executeReturnKey(
+        "INSERT INTO under18_samling (person_id, tar_imot, journalpost_ider) VALUES (?, ?, ?)"
+    ) {
+        setParams {
+            setLong(1, grunnlag.personId)
+            setBoolean(2, grunnlag.tarImotNyeSøknader)
+            setLongArray(3, grunnlag.søknader.map { it.referanse })
+        }
+    }
+
+    fun oppdaterÅpenSamling(tidligere: Under18Søknadsgrunnlag?, grunnlag: Under18Søknadsgrunnlag) {
+        if (tidligere == null && grunnlag.tarImotNyeSøknader) {
+            connection.execute("INSERT INTO under18_aapen_samling (person_id, behandling_id) VALUES (?, ?)") {
+                setParams { setLong(1, grunnlag.personId); setLong(2, behandlingId.id) }
+            }
+        } else if (tidligere != null && !grunnlag.tarImotNyeSøknader) {
+            connection.execute("DELETE FROM under18_aapen_samling WHERE behandling_id = ?") {
+                setParams { setLong(1, behandlingId.id) }
+            }
+        }
+    }
+
+    fun knyttTilSøknader(nyeSøknader: Set<JournalpostId>) {
         connection.executeBatch(
-            "INSERT INTO under18_soknad (behandling_id, journalpost_id) VALUES (?, ?)",
+            "INSERT INTO under18_soknadstilknytning (behandling_id, journalpost_id) VALUES (?, ?)",
             nyeSøknader.toList()
         ) {
             setParams { journalpostId ->
@@ -67,80 +184,4 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
             }
         }
     }
-
-    override fun hentSøknadsgrunnlag(behandlingId: BehandlingId): Under18Søknadsgrunnlag =
-        checkNotNull(connection.queryFirstOrNull("""
-            SELECT person_id, tar_imot, ARRAY(
-                SELECT journalpost_id FROM under18_soknad WHERE behandling_id = s.behandling_id
-            ) AS soknader FROM under18_samling s WHERE behandling_id = ?
-        """.trimIndent()) {
-            setParams { setLong(1, behandlingId.id) }
-            setRowMapper {
-                Under18Søknadsgrunnlag(
-                    personId = it.getLong("person_id"),
-                    søknader = it.getArray("soknader", Long::class).mapTo(mutableSetOf(), ::JournalpostId),
-                    tarImotNyeSøknader = it.getBoolean("tar_imot"),
-                )
-            }
-        }) { "Mangler søknadsgrunnlag for $behandlingId" }
-
-    override fun lagreAldersgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Aldersgrunnlag) {
-        connection.execute("""
-            INSERT INTO under18_aldersgrunnlag (behandling_id, fodselsdato, aldersgruppe) VALUES (?, ?, ?)
-            ON CONFLICT (behandling_id) DO UPDATE SET fodselsdato = EXCLUDED.fodselsdato, aldersgruppe = EXCLUDED.aldersgruppe
-        """.trimIndent()) {
-            setParams {
-                setLong(1, behandlingId.id)
-                setLocalDate(2, grunnlag.fødselsdato)
-                setEnumName(3, grunnlag.aldersgruppe)
-            }
-        }
-    }
-
-    override fun hentAldersgrunnlag(behandlingId: BehandlingId): Under18Aldersgrunnlag? =
-        connection.queryFirstOrNull("SELECT fodselsdato, aldersgruppe FROM under18_aldersgrunnlag WHERE behandling_id = ?") {
-            setParams { setLong(1, behandlingId.id) }
-            setRowMapper { Under18Aldersgrunnlag(it.getLocalDate("fodselsdato"), it.getEnum("aldersgruppe")) }
-        }
-
-    override fun lagreSøknadsavklaring(behandlingId: BehandlingId, avklaring: Under18Søknadsavklaring) {
-        connection.execute("INSERT INTO under18_soknadsavklaring (behandling_id, situasjon, vil_fortsette) VALUES (?, ?, ?)") {
-            setParams {
-                setLong(1, behandlingId.id)
-                setEnumName(2, avklaring.situasjon)
-                setBoolean(3, avklaring.søkerVilFortsette)
-            }
-        }
-    }
-
-    override fun hentSøknadsavklaring(behandlingId: BehandlingId): Under18Søknadsavklaring? =
-        connection.queryFirstOrNull("SELECT situasjon, vil_fortsette FROM under18_soknadsavklaring WHERE behandling_id = ? ORDER BY id DESC LIMIT 1") {
-            setParams { setLong(1, behandlingId.id) }
-            setRowMapper { Under18Søknadsavklaring(it.getEnum("situasjon"), it.getBoolean("vil_fortsette")) }
-        }
-
-    override fun lagreSamtykkevurdering(behandlingId: BehandlingId, vurdering: Under18SamtykkeVurdering) {
-        connection.execute("""
-            INSERT INTO under18_samtykkevurdering (behandling_id, begge_foreldre_samtykket, journalpost_ider)
-            VALUES (?, ?, ?)
-        """.trimIndent()) {
-            setParams {
-                setLong(1, behandlingId.id)
-                setBoolean(2, vurdering.beggeForeldreSamtykket)
-                setLongArray(3, vurdering.samtykkeJournalpostIder.map { it.referanse })
-            }
-        }
-    }
-
-    override fun hentAktivSamtykkevurdering(behandlingId: BehandlingId): Under18SamtykkeVurdering? =
-        connection.queryFirstOrNull("""
-            SELECT begge_foreldre_samtykket, journalpost_ider FROM under18_samtykkevurdering
-            WHERE behandling_id = ? ORDER BY id DESC LIMIT 1
-        """.trimIndent()) {
-            setParams { setLong(1, behandlingId.id) }
-            setRowMapper {
-                Under18SamtykkeVurdering(it.getBoolean("begge_foreldre_samtykket"), it.getArray("journalpost_ider", Long::class).map(::JournalpostId))
-            }
-        }
-
 }

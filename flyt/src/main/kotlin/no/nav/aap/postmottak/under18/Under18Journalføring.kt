@@ -77,14 +77,13 @@ class Under18Journalføring(
             "Journalpost $journalpostId tilhører ikke lenger søkeren."
         }
 
-        val person = journalpost.person
-        check(behandlingsflytGateway.finnSaker(person.aktivIdent()).isEmpty()) {
+        check(behandlingsflytGateway.finnSaker(journalpost.person.aktivIdent()).isEmpty()) {
             "Kelvin-sak er opprettet etter valg av generell sak for $journalpostId. Krever manuell oppfølging."
         }
-        val åpenBehandling = under18Repository.finnBehandlingForNyeSøknader(person.id)
+        val åpenBehandling = under18Repository.finnBehandlingForNyeSøknader(journalpost.person.id)
         val behandling = åpenBehandling ?: behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Under18)
         val grunnlag = if (åpenBehandling == null) {
-            Under18Søknadsgrunnlag(person.id, setOf(journalpostId))
+            Under18Søknadsgrunnlag(journalpost.person.id, setOf(journalpostId))
         } else {
             under18Repository.hentSøknadsgrunnlag(åpenBehandling).leggTilSøknad(journalpostId)
         }

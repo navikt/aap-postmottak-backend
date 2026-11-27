@@ -8,7 +8,9 @@ internal data class SafRequest(val query: String, val variables: Variables) {
     data class Variables(
         val journalpostId: String? = null,
         val fnr: String? = null,
-        val dokumentInfoId: String? = null
+        val dokumentInfoId: String? = null,
+        val foerste: Int? = null,
+        val etter: String? = null
     )
 
     companion object {
@@ -22,12 +24,51 @@ internal data class SafRequest(val query: String, val variables: Variables) {
             variables = Variables(fnr = fnr)
         )
 
+        fun hentAapJournalposter(fnr: String, foerste: Int, etter: String?) = SafRequest(
+            query = dokumentoversiktBruker.asQuery(),
+            variables = Variables(fnr = fnr, foerste = foerste, etter = etter)
+        )
+
         fun hentTilknyttedeJournalposter(dokumentInfoId: DokumentInfoId) = SafRequest(
             query = tilknyttedeJournalposter.asQuery(),
             variables = Variables(dokumentInfoId = dokumentInfoId.dokumentInfoId)
         )
     }
 }
+
+private val dokumentoversiktBruker = $$"""
+    query($fnr: String!, $foerste: Int!, $etter: String) {
+        dokumentoversiktBruker(
+            brukerId: {id: $fnr, type: FNR},
+            tema: [AAP],
+            journalstatuser: [],
+            foerste: $foerste,
+            etter: $etter
+        ) {
+            journalposter {
+                journalpostId
+                tittel
+                datoOpprettet
+                tema
+                skjerming
+                dokumenter {
+                    dokumentInfoId
+                    tittel
+                    skjerming
+                    dokumentvarianter {
+                        variantformat
+                        saksbehandlerHarTilgang
+                        skjerming
+                    }
+                }
+            }
+            sideInfo {
+                sluttpeker
+                finnesNesteSide
+            }
+        }
+    }
+""".trimIndent()
 
 private val tilknyttedeJournalposter = $$"""
     query($dokumentInfoId: String!) {

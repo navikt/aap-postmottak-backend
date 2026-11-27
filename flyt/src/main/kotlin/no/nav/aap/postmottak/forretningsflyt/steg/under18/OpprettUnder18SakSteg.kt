@@ -11,7 +11,6 @@ import no.nav.aap.postmottak.flyt.steg.Fullført
 import no.nav.aap.postmottak.flyt.steg.StegResultat
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
-import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.kontrakt.steg.StegType
@@ -19,11 +18,10 @@ import no.nav.aap.postmottak.under18.Under18Aldersgruppe
 import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.under18.Under18Søknadsavklaring
 import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
-import no.nav.aap.postmottak.under18.hentFødselsdatoFor
+import no.nav.aap.postmottak.under18.krevAldersgrunnlag
 
 class OpprettUnder18SakSteg(
     private val under18Repository: Under18Repository,
-    private val klokke: Klokke,
     private val saker: SaksnummerRepository,
     private val kelvin: BehandlingsflytGateway,
     private val journalpostService: JournalpostService,
@@ -34,7 +32,6 @@ class OpprettUnder18SakSteg(
             gatewayProvider: GatewayProvider
         ): BehandlingSteg = OpprettUnder18SakSteg(
             under18Repository = repositoryProvider.provide(),
-            klokke = gatewayProvider.provide(),
             saker = repositoryProvider.provide(),
             kelvin = gatewayProvider.provide(),
             journalpostService = JournalpostService.konstruer(repositoryProvider, gatewayProvider),
@@ -49,7 +46,7 @@ class OpprettUnder18SakSteg(
             checkNotNull(it.saksnummer)
             return Fullført
         }
-        val aldersgruppe = Under18Aldersgruppe.vurder(under18Repository.hentFødselsdatoFor(id), klokke.dagensDato())
+        val aldersgruppe = under18Repository.krevAldersgrunnlag(id).aldersgruppe
         val avklaring = under18Repository.hentSøknadsavklaring(id)
         val søknadsgrunnlag = under18Repository.hentSøknadsgrunnlag(id)
         val erHenlagt = avklaring?.erHenlagt(aldersgruppe) == true

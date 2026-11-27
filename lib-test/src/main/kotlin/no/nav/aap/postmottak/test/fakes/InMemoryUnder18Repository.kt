@@ -23,7 +23,7 @@ class IsolertUnder18Repository : Under18Repository {
     private val søknadsgrunnlag = HashMap<BehandlingId, Under18Søknadsgrunnlag>()
     private val aldersgrunnlag = HashMap<BehandlingId, Under18Aldersgrunnlag>()
     private val søknadsavklaringer = HashMap<BehandlingId, Under18Søknadsavklaring>()
-    private val samtykkevurderinger = HashMap<BehandlingId, MutableList<Under18SamtykkeVurdering>>()
+    private val samtykkevurderinger = HashMap<BehandlingId, Under18SamtykkeVurdering>()
     private val lock = Any()
 
     override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? = synchronized(lock) {
@@ -36,13 +36,8 @@ class IsolertUnder18Repository : Under18Repository {
     override fun lagreSøknadsgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Søknadsgrunnlag) {
         synchronized(lock) {
             val tidligere = søknadsgrunnlag[behandlingId]
-            if (tidligere != null) {
-                check(tidligere.personId == grunnlag.personId) { "Kan ikke bytte person på $behandlingId" }
-                check(tidligere.tarImotNyeSøknader || tidligere == grunnlag) { "$behandlingId er stengt for nye søknader" }
-                check(grunnlag.søknader.containsAll(tidligere.søknader)) {
-                    "Lagrede søknader på $behandlingId kan ikke erstattes"
-                }
-            }
+            if (tidligere == grunnlag) return
+            tidligere?.validerEndringTil(grunnlag, behandlingId)
             if (grunnlag.tarImotNyeSøknader) {
                 val åpenBehandling = finnBehandlingForNyeSøknader(grunnlag.personId)
                 check(åpenBehandling == null || åpenBehandling == behandlingId) {
@@ -75,12 +70,9 @@ class IsolertUnder18Repository : Under18Repository {
         synchronized(lock) { søknadsavklaringer[behandlingId] }
 
     override fun lagreSamtykkevurdering(behandlingId: BehandlingId, vurdering: Under18SamtykkeVurdering) {
-        synchronized(lock) { samtykkevurderinger.getOrPut(behandlingId) { mutableListOf() }.add(vurdering) }
+        synchronized(lock) { samtykkevurderinger[behandlingId] = vurdering }
     }
 
-    fun hentSamtykkevurderinger(behandlingId: BehandlingId): List<Under18SamtykkeVurdering> =
-        synchronized(lock) { samtykkevurderinger[behandlingId].orEmpty().toList() }
-
     override fun hentAktivSamtykkevurdering(behandlingId: BehandlingId): Under18SamtykkeVurdering? =
-        synchronized(lock) { samtykkevurderinger[behandlingId]?.lastOrNull() }
+        synchronized(lock) { samtykkevurderinger[behandlingId] }
 }

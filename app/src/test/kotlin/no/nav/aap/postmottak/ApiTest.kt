@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.Saksvurdering
 import no.nav.aap.postmottak.gateway.DokarkivGateway
@@ -45,6 +46,8 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import java.time.LocalDateTime
 import java.nio.charset.StandardCharsets
 import kotlin.test.fail
 
@@ -159,6 +162,77 @@ class ApiTest {
                 } finally {
                     FakeServers.journalposterUtenLesetilgang.remove(skjermet.referanse)
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `journalpostlisten henter personens AAP-journalposter fra SAF med paginering og metadataautorisasjon`() {
+        val kilde = TestJournalposter.leggTil { mottattTid = LocalDateTime.of(2026, 1, 1, 12, 0) }
+        val annen = TestJournalposter.leggTil {
+            fnr = kilde.brukerId
+            mottattTid = LocalDateTime.of(2026, 2, 1, 12, 0)
+            dokumenter = listOf(vedlegg("Ettersendt legeerklæring"))
+        }
+        TestJournalposter.leggTil { fnr = kilde.brukerId; tema = "DAG" }
+        val annenPerson = TestJournalposter.leggTil {}
+        initDatasource(dbConfig, SimpleMeterRegistry()).use { db ->
+            val behandling = db.transaction {
+                val repositories = registre.provider(it)
+                val journalpost = kilde.tilJournalpost()
+                val person = repositories.provide<PersonRepository>().finnEllerOpprett(journalpost.person.identer())
+                repositories.provide<JournalpostRepository>().lagre(journalpost.copy(person = person))
+                val behandlinger = repositories.provide<BehandlingRepository>()
+                behandlinger.hent(behandlinger.opprettBehandling(kilde.journalpostId(), TypeBehandling.Journalføring))
+            }
+            val uri = "http://localhost:$port/api/behandling/${behandling.referanse.referanse}/journalposter"
+            val http = HttpClient.newHttpClient()
+            fun hent(query: String = "", ident: String = "Journalpostleser"): HttpResponse<String> =
+                http.send(
+                    HttpRequest.newBuilder(URI(uri + query))
+                        .header("Authorization", "Bearer ${FakeServers.saksbehandlerToken(ident)}").GET().build(),
+                    HttpResponse.BodyHandlers.ofString()
+                )
+
+            val første = hent("?foerste=1")
+            assertEquals(200, første.statusCode(), første.body())
+            val side = ObjectMapper().readTree(første.body())
+            val journalpost = side.required("journalposter").single()
+            assertEquals(annen.journalpostId.toString(), journalpost.required("journalpostId").asText())
+            assertEquals("AAP", journalpost.required("tema").asText())
+            assertEquals("2026-02-01T12:00:00", journalpost.required("dato").asText())
+            assertEquals("Ettersendt legeerklæring", journalpost.required("dokumenter").single().required("tittel").asText())
+            assertTrue(side.required("finnesNesteSide").booleanValue())
+            assertFalse(første.body().contains(annenPerson.journalpostId.toString()))
+
+            val neste = hent("?foerste=1&etter=${side.required("sluttpeker").asText()}")
+            assertEquals(200, neste.statusCode(), neste.body())
+            val nesteSide = ObjectMapper().readTree(neste.body())
+            assertEquals(kilde.journalpostId.toString(), nesteSide.required("journalposter").single().required("journalpostId").asText())
+            assertFalse(nesteSide.required("finnesNesteSide").booleanValue())
+            assertEquals(400, hent("?foerste=0").statusCode())
+            assertEquals(400, hent("?foerste=101").statusCode())
+            assertEquals(400, hent("?etter=").statusCode())
+
+            FakeServers.journalposterUtenLesetilgang.add(annen.journalpostId)
+            try {
+                val begrenset = hent("?foerste=1", "BegrensetOversikt${annen.journalpostId}")
+                assertEquals(200, begrenset.statusCode(), begrenset.body())
+                val skjermetSide = ObjectMapper().readTree(begrenset.body())
+                assertEquals(0, skjermetSide.required("journalposter").size())
+                assertTrue(skjermetSide.required("finnesNesteSide").booleanValue())
+                assertFalse(begrenset.body().contains("Ettersendt legeerklæring"))
+                assertFalse(begrenset.body().contains(annen.journalpostId.toString()))
+            } finally {
+                FakeServers.journalposterUtenLesetilgang.remove(annen.journalpostId)
+            }
+            FakeServers.journalposterUtenLesetilgang.add(kilde.journalpostId)
+            try {
+                val avvist = hent(ident = "IngenBehandlingstilgang${kilde.journalpostId}")
+                assertEquals(403, avvist.statusCode(), avvist.body())
+                assertFalse(avvist.body().contains("Ettersendt legeerklæring"))
+            } finally {
+                FakeServers.journalposterUtenLesetilgang.remove(kilde.journalpostId)
             }
         }
     }

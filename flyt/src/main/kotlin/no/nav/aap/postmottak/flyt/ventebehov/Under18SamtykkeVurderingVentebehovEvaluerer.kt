@@ -11,5 +11,6 @@ class Under18SamtykkeVurderingVentebehovEvaluerer(
     override fun definisjon(): Definisjon = Definisjon.VENT_PA_UNDER18_SAMTYKKE
 
     override fun ansesSomLøst(kontekst: FlytKontekst, avklaringsbehov: Avklaringsbehov): Boolean =
-        under18Repository.hentAktivSamtykkevurdering(kontekst.behandlingId)?.beggeForeldreSamtykket == true
+        under18Repository.hentSøknadsavklaring(kontekst.behandlingId)?.fylt17ÅrOg9Måneder == false ||
+            under18Repository.hentAktivSamtykkevurdering(kontekst.behandlingId)?.beggeForeldreSamtykket == true
 }

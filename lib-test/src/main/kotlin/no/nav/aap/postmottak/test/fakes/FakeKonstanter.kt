@@ -188,6 +188,18 @@ class TestJournalPostBuilder {
         }
     }
 
+    fun annetRelevantPapirdokument() {
+        kanal = KanalFraKodeverk.SKAN_NETS
+        brevkode = Brevkoder.ANNEN
+        digitalSøknad = null
+        dokumenter = listOf(
+            vedlegg("Annet relevant dokument").copy(
+                dokumentInfoId = DokumentInfoId(nestePapirdokumentId.getAndIncrement().toString()),
+                brevkode = brevkode.kode
+            )
+        )
+    }
+
     fun legeerklæring() {
         kanal = KanalFraKodeverk.SKAN_NETS
         digitalSøknad = null
@@ -270,6 +282,14 @@ object TestJournalposter {
 
     fun hentJournalpost(journalpostId: Long): TestJournalPost? {
         return fakeJournalposter[journalpostId]
+    }
+
+    fun hentJournalposter(fnr: String): List<TestJournalPost> {
+        val person = TestPersoner.hentPerson(fnr)
+        return fakeJournalposter.values.filter { journalpost ->
+            journalpost.brukerId == fnr || journalpost.brukerId == person?.aktørId ||
+                person?.identer?.any { it.identifikator == journalpost.brukerId } == true
+        }
     }
 
     fun oppdater(journalpost: TestJournalPost) {

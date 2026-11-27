@@ -22,6 +22,13 @@ interface JournalpostGateway : Gateway {
 interface JournalpostOboGateway : Gateway {
     fun hentJournalpost(journalpostId: JournalpostId, currentToken: OidcToken): SafJournalpost
     fun hentSaker(fnr: String, currentToken: OidcToken): List<SafSak>
+    fun hentAapJournalposter(
+        fnr: String,
+        foerste: Int,
+        etter: String?,
+        currentToken: OidcToken
+    ): SafDokumentoversikt
+
     fun hentTilknyttedeJournalposter(
         dokumentInfoId: DokumentInfoId,
         currentToken: OidcToken

@@ -45,6 +45,8 @@ enum class SimulertJournalpostScenario {
     // Tilsvarer TestJournalPostBuilder.papirsøknad().
     PAPIRSØKNAD,
 
+    ANNET_RELEVANT_DOKUMENT,
+
     // Tilsvarer TestJournalPostBuilder.medUtenlandskOrgnr(). NB: Kelvin krever at journalposter med
     // orgnr som bruker allerede er journalført (se JournalpostInformasjonskrav), så journalpostStatus
     // må settes til JOURNALFOERT for at behandlingen skal gå gjennom flyten uten feil.
@@ -114,6 +116,7 @@ private fun registrerTestJournalpost(request: SimulerJournalpostHendelseRequest)
             SimulertJournalpostScenario.LEGEERKLÆRING -> Unit
             SimulertJournalpostScenario.DIGITAL_SØKNAD -> digitalSøknad()
             SimulertJournalpostScenario.PAPIRSØKNAD -> papirsøknad()
+            SimulertJournalpostScenario.ANNET_RELEVANT_DOKUMENT -> annetRelevantPapirdokument()
             SimulertJournalpostScenario.UTENLANDSK_ORGNR -> medUtenlandskOrgnr()
         }
     }

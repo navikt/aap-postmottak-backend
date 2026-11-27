@@ -2,38 +2,73 @@ ALTER TABLE saksnummer_avklaring ADD COLUMN under18 BOOLEAN NOT NULL DEFAULT FAL
     CHECK (NOT under18 OR generell_sak);
 
 CREATE TABLE under18_samling (
-    behandling_id BIGINT PRIMARY KEY REFERENCES behandling,
+    id BIGSERIAL PRIMARY KEY,
     person_id BIGINT NOT NULL REFERENCES person,
-    tar_imot BOOLEAN NOT NULL
+    tar_imot BOOLEAN NOT NULL,
+    journalpost_ider BIGINT[] NOT NULL
 );
-CREATE UNIQUE INDEX under18_en_aapen_samling ON under18_samling (person_id) WHERE tar_imot;
 
-CREATE TABLE under18_soknad (
+CREATE TABLE under18_samlingsgrunnlag (
+    id BIGSERIAL PRIMARY KEY,
+    behandling_id BIGINT NOT NULL REFERENCES behandling,
+    samling_id BIGINT NOT NULL REFERENCES under18_samling,
+    opprettet_tid TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    aktiv BOOLEAN NOT NULL DEFAULT TRUE
+);
+CREATE UNIQUE INDEX under18_aktiv_samling ON under18_samlingsgrunnlag (behandling_id) WHERE aktiv;
+CREATE INDEX under18_samling_historikk ON under18_samlingsgrunnlag (behandling_id, id);
+
+-- Reserverer personen mens samlingen tar imot nye søknader. Historikken ligger i samlingsgrunnlaget.
+CREATE TABLE under18_aapen_samling (
+    person_id BIGINT PRIMARY KEY REFERENCES person,
+    behandling_id BIGINT NOT NULL UNIQUE REFERENCES behandling
+);
+
+CREATE TABLE under18_soknadstilknytning (
     journalpost_id BIGINT PRIMARY KEY,
-    behandling_id BIGINT NOT NULL REFERENCES under18_samling
+    behandling_id BIGINT NOT NULL REFERENCES behandling
 );
-CREATE INDEX under18_soknad_behandling ON under18_soknad (behandling_id);
+CREATE INDEX under18_soknadstilknytning_behandling ON under18_soknadstilknytning (behandling_id);
 
-CREATE TABLE under18_aldersgrunnlag (
-    behandling_id BIGINT PRIMARY KEY REFERENCES behandling,
+CREATE TABLE under18_aldersvurdering (
+    id BIGSERIAL PRIMARY KEY,
     fodselsdato DATE NOT NULL,
     aldersgruppe TEXT NOT NULL
 );
+CREATE TABLE under18_aldersgrunnlag (
+    id BIGSERIAL PRIMARY KEY,
+    behandling_id BIGINT NOT NULL REFERENCES behandling,
+    aldersvurdering_id BIGINT NOT NULL REFERENCES under18_aldersvurdering,
+    aktiv BOOLEAN NOT NULL DEFAULT TRUE,
+    opprettet_tid TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX under18_aktivt_aldersgrunnlag ON under18_aldersgrunnlag (behandling_id) WHERE aktiv;
 
 CREATE TABLE under18_soknadsavklaring (
     id BIGSERIAL PRIMARY KEY,
+    situasjon TEXT,
+    vil_fortsette BOOLEAN,
+    fylt_17_aar_og_9_maaneder BOOLEAN
+);
+CREATE TABLE under18_soknadsavklaring_grunnlag (
+    id BIGSERIAL PRIMARY KEY,
     behandling_id BIGINT NOT NULL REFERENCES behandling,
-    situasjon TEXT NOT NULL,
-    vil_fortsette BOOLEAN NOT NULL,
+    soknadsavklaring_id BIGINT NOT NULL REFERENCES under18_soknadsavklaring,
+    aktiv BOOLEAN NOT NULL DEFAULT TRUE,
     opprettet_tid TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX under18_soknadsavklaring_behandling ON under18_soknadsavklaring (behandling_id, id);
+CREATE UNIQUE INDEX under18_aktiv_soknadsavklaring ON under18_soknadsavklaring_grunnlag (behandling_id) WHERE aktiv;
 
 CREATE TABLE under18_samtykkevurdering (
     id BIGSERIAL PRIMARY KEY,
-    behandling_id BIGINT NOT NULL REFERENCES behandling,
     begge_foreldre_samtykket BOOLEAN NOT NULL,
-    journalpost_ider BIGINT[] NOT NULL,
+    journalpost_ider BIGINT[] NOT NULL
+);
+CREATE TABLE under18_samtykkegrunnlag (
+    id BIGSERIAL PRIMARY KEY,
+    behandling_id BIGINT NOT NULL REFERENCES behandling,
+    samtykkevurdering_id BIGINT NOT NULL REFERENCES under18_samtykkevurdering,
+    aktiv BOOLEAN NOT NULL DEFAULT TRUE,
     opprettet_tid TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX under18_samtykkevurdering_behandling ON under18_samtykkevurdering (behandling_id, id);
+CREATE UNIQUE INDEX under18_aktiv_samtykkevurdering ON under18_samtykkegrunnlag (behandling_id) WHERE aktiv;

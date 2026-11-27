@@ -492,6 +492,25 @@ class Flyttest : WithDependencies {
     }
 
     @Test
+    fun `under18 - saksbehandlers alderssvar endrer hvilken avklaring som kreves`() {
+        val behandling = opprettUnder18Behandling(LocalDate.now().minusYears(18).plusWeeks(1))
+
+        behandling.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+            .løsAvklaringsBehov(AvklarUnder18SøknadLøsning(fylt17ÅrOg9Måneder = false))
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+        val avklaring = dataSource.transaction(readOnly = true) {
+            repositoryRegistry.provider(it).provide<Under18Repository>().hentSøknadsavklaring(behandling.id)
+        }
+        assertThat(avklaring?.fylt17ÅrOg9Måneder).isEqualTo(false)
+
+        hentBehandling(behandling.id)
+            .løsAvklaringsBehov(AvklarUnder18SøknadLøsning(fylt17ÅrOg9Måneder = true))
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+            .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = true))
+        verifiserDokumentbehandlingOpprettet(behandling)
+    }
+
+    @Test
     fun `under18 - lagrer samtykkereferansene men knytter bare søknaden til Kelvin-saken`() {
         val behandling = opprettUnder18Behandling(LocalDate.now().minusYears(18).plusWeeks(1))
         val søker = personForBehandling(behandling)

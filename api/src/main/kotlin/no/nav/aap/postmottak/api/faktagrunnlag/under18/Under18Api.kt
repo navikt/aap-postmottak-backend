@@ -59,7 +59,7 @@ fun NormalOpenAPIRoute.under18Api(
                         val repositories = repositoryRegistry.provider(connection)
                         val behandlinger = repositories.provide<BehandlingRepository>().hentAlleBehandlingerForJournalpost(nyId)
                             .filter { it.typeBehandling == TypeBehandling.DokumentHåndtering }
-                        check(behandlinger.size <= 1) { "Flere dokumentbehandlinger for tilknyttet journalpost" }
+                        check(behandlinger.size <= 1) { "Flere dokumentbehandlinger for tilknyttet journalpost $nyId" }
                         behandlinger.singleOrNull()?.let { repositories.behandlingDto(it) }
                     }
                 }

@@ -58,8 +58,9 @@ class Under18FødselsdatoInformasjonskrav(
 
     override fun oppdater(input: Input, registerdata: Registerdata, kontekst: FlytKontekst): Informasjonskrav.Endret {
         val fødselsdato = registerdata.fødselsdato
-        val grunnlag = Under18Aldersgrunnlag(fødselsdato, Under18Aldersgruppe.vurder(fødselsdato, input.vurderingsdato))
         val tidligere = under18Repository.hentAldersgrunnlag(kontekst.behandlingId)
+        val svar = under18Repository.hentSøknadsavklaring(kontekst.behandlingId)?.fylt17ÅrOg9Måneder
+        val grunnlag = Under18Aldersgrunnlag(fødselsdato, Under18Aldersgruppe.vurder(fødselsdato, input.vurderingsdato, svar))
         if (grunnlag == tidligere) return IKKE_ENDRET
         under18Repository.lagreAldersgrunnlag(kontekst.behandlingId, grunnlag)
         return if (tidligere == null) IKKE_ENDRET else ENDRET

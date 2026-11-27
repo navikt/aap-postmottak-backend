@@ -350,7 +350,7 @@ erDiagram
         date fødselsdato
         timestamp opprettet_tid
     }
-    UNDER18_SOKNAD {
+    UNDER18_SOKNADSTILKNYTNING {
         bigint id PK
         bigint behandling_id FK "Under-18-behandlingens ID"
         bigint kilde_journalpost_id UK "Joark-ID"
@@ -386,7 +386,7 @@ erDiagram
     }
 
     BEHANDLING ||--|| UNDER18_PERSONOPPLYSNING : "har fødselsdato"
-    BEHANDLING ||..o{ UNDER18_SOKNAD : "under-18 via behandling_id"
+    BEHANDLING ||..o{ UNDER18_SOKNADSTILKNYTNING : "under-18 via behandling_id"
     BEHANDLING ||..o{ UNDER18_SAMTYKKE_GRUNNLAG : "har samtykkehistorikk"
     UNDER18_SAMTYKKEVURDERING ||..o{ UNDER18_SAMTYKKE_GRUNNLAG : "pekes på av"
     BEHANDLING ||..o{ DIGITALISERINGSVURDERING_GRUNNLAG : "dokumentbehandlingens vurderingshistorikk"

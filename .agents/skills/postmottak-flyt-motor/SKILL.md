@@ -40,6 +40,8 @@ Flytene er definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `
 
 Informasjonskrav har typet input og registerdata, med fasene `klargjør` → `hentData` → `oppdater`. Hele livssyklusen kjøres sekvensielt per informasjonskrav for å bevare avhengigheter. Motoren lagrer tidspunkt og **bare input**, ikke registerdata, for hver vellykket kjøring i `INFORMASJONSKRAV_OPPDATERT`, også ved `IKKE_ENDRET`. Siste kjøring hentes per journalpost og stabilt `InformasjonskravNavn`, på tvers av behandlinger. Se oppskriften i `references/recipes.md`; bruk hele ordet «informasjonskrav» i nye navn og tekster.
 
+**Løsere og informasjonskrav skal aldri skrive til samme tabell.** Løseren lagrer saksbehandlerens svar i vurderingstabellen. Informasjonskravet kan lese svaret når det beregner grunnlaget, men bare informasjonskravet skriver til sin grunnlagstabell. Skillet gjelder også når samme repository håndterer begge tabellene.
+
 ## Regler som ikke er åpenbare når du leser én fil
 
 1. **Et steg stopper aldri flyten selv.** `utfør()` returnerer `Fullført` eller `FantAvklaringsbehov`. Motoren registrerer behovet i UTFØRER og stopper i neste fase, AVKLARINGSPUNKT, hvis et *åpent* behov hører til dette steget. `FunnetAvklaringsbehov.kanFortsette()` er `true`; bare `Stopp` (fra AVKLARINGSPUNKT) er `false`.

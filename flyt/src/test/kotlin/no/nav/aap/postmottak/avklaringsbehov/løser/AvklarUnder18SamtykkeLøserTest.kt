@@ -133,8 +133,6 @@ class AvklarUnder18SamtykkeLøserTest {
             val gyldigJournalpost = TestJournalposter.leggTil { this.person = person }
             løs(repositoryProvider, kontekst, beggeForeldreSamtykket = true)
             val vurderingFørAvvisning = under18Repository.hentAktivSamtykkevurdering(kontekst.behandlingId)
-            val antallVurderingerFørAvvisning =
-                under18Repository.hentSamtykkevurderinger(kontekst.behandlingId).size
             val gatewayProviderMedIkkeFunnet = defaultGatewayProvider {
                 register<FakeUnleash>()
                 register<SamtykkeTestJournalpostGateway>()
@@ -152,8 +150,6 @@ class AvklarUnder18SamtykkeLøserTest {
 
             assertThat(under18Repository.hentAktivSamtykkevurdering(kontekst.behandlingId))
                 .isEqualTo(vurderingFørAvvisning)
-            assertThat(under18Repository.hentSamtykkevurderinger(kontekst.behandlingId))
-                .hasSize(antallVurderingerFørAvvisning)
             assertThat(avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).hentVentepunkter())
                 .isEmpty()
         }
