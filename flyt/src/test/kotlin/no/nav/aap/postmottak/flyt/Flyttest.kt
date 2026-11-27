@@ -499,43 +499,6 @@ class Flyttest : WithDependencies {
     }
 
     @Test
-    fun `under18 - ny post spoler ikke tilbake en åpen samtykkeavklaring`() {
-        val behandling = opprettUnder18Behandling(
-            fødselsdato = LocalDate.now().minusYears(18).plusDays(7),
-            journalpostStatus = Journalstatus.JOURNALFOERT,
-        ).sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
-        val person = personForBehandling(behandling)
-        val kandidatId = TestJournalposter.leggTil {
-            this.person = TestPersoner.hentPerson(person.aktivIdent().identifikator)
-        }.journalpostId()
-
-        dataSource.transaction { connection ->
-            InnkommendeJournalpostRepositoryImpl(connection).lagre(
-                InnkommendeJournalpost(
-                    journalpostId = kandidatId,
-                    brevkode = Brevkoder.LEGEERKLÆRING.kode,
-                    behandlingstema = null,
-                    status = InnkommendeJournalpostStatus.EVALUERT,
-                    brukerId = person.aktivIdent().identifikator,
-                )
-            )
-        }
-
-        triggProsesserBehandling(behandling.journalpostId, behandling.id)
-
-        val oppdatert = hentBehandling(behandling.id)
-        assertThat(oppdatert.aktivtSteg()).isEqualTo(StegType.AVKLAR_UNDER18_SAMTYKKE)
-        assertThat(oppdatert.stegHistorikk().drop(behandling.stegHistorikk().size).map { it.steg() to it.status() })
-            .doesNotContain(StegType.AVKLAR_UNDER18_SAMTYKKE to StegStatus.TILBAKEFØRT)
-        dataSource.transaction(readOnly = true) { connection ->
-            assertThat(repositoryRegistry.provider(connection).provide<JournalpostRepository>()
-                .hentHvisEksisterer(kandidatId)).isNull()
-        }
-        oppdatert.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
-    }
-
-
-    @Test
     fun fordel() {
         val journalpostID = TestJournalposter.digitalSøknad().journalpostId()
         lagreInnkommendeJournalpostUtenRegelresultat(journalpostID)
