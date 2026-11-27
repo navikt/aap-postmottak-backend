@@ -8,6 +8,7 @@ import no.nav.aap.postmottak.faktagrunnlag.GrunnlagKopierer
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.AvklarTemaRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
 import no.nav.aap.postmottak.flyt.steg.BehandlingSteg
 import no.nav.aap.postmottak.flyt.steg.FlytSteg
 import no.nav.aap.postmottak.flyt.steg.Fullført
@@ -20,6 +21,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
+import no.nav.aap.postmottak.under18.Under18Journalføring
 import org.slf4j.LoggerFactory
 
 class VideresendSteg(
@@ -28,7 +30,8 @@ class VideresendSteg(
     private val behandlingRepository: BehandlingRepository,
     private val journalpostRepository: JournalpostRepository,
     private val flytJobbRepository: FlytJobbRepository,
-    private val kopierer: GrunnlagKopierer
+    private val kopierer: GrunnlagKopierer,
+    private val under18Journalføring: Under18Journalføring,
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -43,7 +46,8 @@ class VideresendSteg(
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
                 repositoryProvider.provide(),
-                GrunnlagKopierer(repositoryProvider)
+                GrunnlagKopierer(repositoryProvider),
+                Under18Journalføring.konstruer(repositoryProvider, gatewayProvider)
             )
         }
 
@@ -62,27 +66,26 @@ class VideresendSteg(
             return Fullført
         }
 
-        if (erJournalførtPåAnnetFagsystem(journalpost)) {
-            log.info("Journalpost er journalført på annet fagsystem - videresender ikke")
-            return Fullført
-        }
-
         val saksnummervurdering = saksnummerRepository.hentSakVurdering(kontekst.behandlingId)
         val avklarTemaVurdering =
             avklarTemaRepository.hentTemaAvklaring(kontekst.behandlingId)
 
-        val skalFullføreTidlig = avklarTemaVurdering?.skalTilAap == false || saksnummervurdering?.generellSak == true
-
-        if (skalFullføreTidlig) {
-            return Fullført
+        when {
+            saksnummervurdering?.generellSak == true -> {
+                if (saksnummervurdering.under18 && avklarTemaVurdering?.tema == Tema.AAP && avklarTemaVurdering.skalTilAap) {
+                    under18Journalføring.videresend(journalpost)
+                }
+            }
+            erJournalførtPåAnnetFagsystem(journalpost) -> log.info("Journalpost er journalført på annet fagsystem - videresender ikke")
+            avklarTemaVurdering?.skalTilAap != false -> {
+                requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
+                opprettDokumentbehandling(kontekst)
+            }
         }
+        return Fullført
+    }
 
-        requireNotNull(saksnummervurdering) { "Saksnummer skal være avklart før VideresendSteg" }
-
-        if (saksnummervurdering.generellSak) {
-            return Fullført
-        }
-
+    private fun opprettDokumentbehandling(kontekst: FlytKontekst) {
         val behandling = behandlingRepository.hent(kontekst.behandlingId)
 
         val dokumentbehandlingId =
@@ -94,8 +97,6 @@ class VideresendSteg(
             JobbInput(ProsesserBehandlingJobbUtfører)
                 .forBehandling(behandling.journalpostId.referanse, dokumentbehandlingId.id).medCallId()
         )
-
-        return Fullført
     }
 
     private fun erJournalførtPåAnnetFagsystem(journalpost: Journalpost): Boolean {

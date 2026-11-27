@@ -48,8 +48,6 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingReposi
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
-import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
-import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -87,6 +85,8 @@ import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
+import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
+import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
 import no.nav.aap.postmottak.under18.Under18Søknadssituasjon
 import no.nav.aap.postmottak.test.modell.TestKelvinSak
 import no.nav.aap.postmottak.test.modell.TestPersoner
@@ -307,6 +307,35 @@ class Flyttest : WithDependencies {
 
         prøv {
             assertThat(hentAvklaringsbehov(behandling)).isEmpty()
+        }
+    }
+
+    @Test
+    fun `papirsøknader fra samme søker journalføres og kobles til samme Under18-behandling`() {
+        val søker = TestPersoner.leggTil(TestPerson(fødselsdato = Fødselsdato(TestKlokke.dato.minusYears(17))))
+        TemaFlytUnleash.under18 = true
+        try {
+            val søknader = List(2) {
+                val id = TestJournalposter.leggTil { person = søker; papirsøknad() }.journalpostId()
+                val behandling = opprettJournalføringsBehandling(id)
+                triggProsesserBehandling(id, behandling)
+                hentBehandling(behandling)
+                    .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_TEMA)
+                    .løsAvklaringsBehov(AvklarTemaLøsning(skalTilAap = true))
+                prøv { assertThat(hentBehandling(behandling).status()).isEqualTo(Status.AVSLUTTET) }
+                assertThat(TestJournalposter.hentJournalpost(id.referanse)?.status).isEqualTo(Journalstatus.JOURNALFOERT)
+                id
+            }
+            val under18 = alleBehandlingerForJournalpost(søknader.first()).single { it.typeBehandling == TypeBehandling.Under18 }
+            util.ventPåSvar(under18.journalpostId.referanse, under18.id.id)
+            under18.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+            val grunnlag = dataSource.transaction(readOnly = true) {
+                repositoryRegistry.provider(it).provide<Under18Repository>().hentSøknadsgrunnlag(under18.id)
+            }
+            assertThat(grunnlag.søknader).containsExactlyInAnyOrderElementsOf(søknader)
+            assertThat(alleBehandlingerForJournalpost(søknader.last())).noneMatch { it.typeBehandling == TypeBehandling.Under18 }
+        } finally {
+            TemaFlytUnleash.under18 = false
         }
     }
 
