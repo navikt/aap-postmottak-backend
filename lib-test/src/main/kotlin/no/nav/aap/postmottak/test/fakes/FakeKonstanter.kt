@@ -266,6 +266,14 @@ object TestJournalposter {
         return fakeJournalposter[journalpostId]
     }
 
+    fun hentJournalposter(fnr: String): List<TestJournalPost> {
+        val person = TestPersoner.hentPerson(fnr)
+        return fakeJournalposter.values.filter { journalpost ->
+            journalpost.brukerId == fnr || journalpost.brukerId == person?.aktørId ||
+                person?.identer?.any { it.identifikator == journalpost.brukerId } == true
+        }
+    }
+
     fun oppdater(journalpost: TestJournalPost) {
         checkNotNull(fakeJournalposter.replace(journalpost.journalpostId, journalpost)) {
             "Journalpost ${journalpost.journalpostId} finnes ikke"

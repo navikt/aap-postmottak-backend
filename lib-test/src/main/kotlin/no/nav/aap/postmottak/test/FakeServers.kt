@@ -50,6 +50,12 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class FakeServers : AutoCloseable {
+    companion object {
+        val journalposterUtenLesetilgang = java.util.concurrent.ConcurrentHashMap.newKeySet<Long>()
+
+        fun saksbehandlerToken(navIdent: String): String =
+            AzureTokenGen("postmottak", "postmottak").generate(isApp = false, navIdent = navIdent)
+    }
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     private val texas = embeddedServer(Netty, port = 0) { texasFakes() }
@@ -391,8 +397,8 @@ class FakeServers : AutoCloseable {
         }
         routing {
             post("/tilgang/journalpost") {
-                call.receive<JournalpostTilgangRequest>()
-                call.respond(TilgangResponse(true))
+                val request = call.receive<JournalpostTilgangRequest>()
+                call.respond(TilgangResponse(request.journalpostId !in journalposterUtenLesetilgang))
             }
             post("/tilgang/person") {
                 call.receive<PersonTilgangRequest>()

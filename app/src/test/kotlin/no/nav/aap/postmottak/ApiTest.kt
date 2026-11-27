@@ -4,6 +4,14 @@ import io.ktor.server.engine.ConnectorType
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.runBlocking
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -25,6 +33,10 @@ import java.io.BufferedWriter
 import java.io.FileWriter
 import java.io.InputStream
 import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import kotlin.test.assertEquals
 import java.nio.charset.StandardCharsets
 import kotlin.test.fail
 
@@ -63,8 +75,10 @@ class ApiTest {
         }
 
         // Starter server
+        private val registre = postgresRepositoryRegistry
+        private val gateways = defaultGatewayProvider()
         private val server = embeddedServer(Netty, port = 0) {
-            server(dbConfig = dbConfig, postgresRepositoryRegistry, defaultGatewayProvider())
+            server(dbConfig = dbConfig, registre, gateways)
         }
 
         @JvmStatic
@@ -80,6 +94,45 @@ class ApiTest {
         fun afterAll() {
             server.stop()
             postgres.close()
+        }
+    }
+
+    @Test
+    fun `journalpostlisten krever behandlingstilgang og viser bare journalposter med lesetilgang`() {
+        val kilde = TestJournalposter.leggTil {}
+        val annen = TestJournalposter.leggTil { fnr = kilde.brukerId }
+        initDatasource(dbConfig, SimpleMeterRegistry()).use { db ->
+            val behandling = db.transaction {
+                val repositories = registre.provider(it)
+                val journalpost = kilde.tilJournalpost()
+                val person = repositories.provide<PersonRepository>().finnEllerOpprett(journalpost.person.identer())
+                repositories.provide<JournalpostRepository>().lagre(journalpost.copy(person = person))
+                val behandlinger = repositories.provide<BehandlingRepository>()
+                behandlinger.hent(behandlinger.opprettBehandling(kilde.journalpostId(), TypeBehandling.Journalføring))
+            }
+            val uri = "http://localhost:$port/api/behandling/${behandling.referanse.referanse}/journalposter"
+            val http = HttpClient.newHttpClient()
+            fun hent(ident: String): HttpResponse<String> =
+                http.send(
+                    HttpRequest.newBuilder(URI(uri))
+                        .header("Authorization", "Bearer ${FakeServers.saksbehandlerToken(ident)}").GET().build(),
+                    HttpResponse.BodyHandlers.ofString()
+                )
+
+            FakeServers.journalposterUtenLesetilgang.add(annen.journalpostId)
+            try {
+                val begrenset = hent("BegrensetOversikt${annen.journalpostId}")
+                assertEquals(200, begrenset.statusCode(), begrenset.body())
+                val synlig = ObjectMapper().readTree(begrenset.body()).required("journalposter").single()
+                assertEquals(kilde.journalpostId.toString(), synlig.required("journalpostId").asText())
+
+                FakeServers.journalposterUtenLesetilgang.add(kilde.journalpostId)
+                val avvist = hent("IngenBehandlingstilgang${kilde.journalpostId}")
+                assertEquals(403, avvist.statusCode(), avvist.body())
+            } finally {
+                FakeServers.journalposterUtenLesetilgang.remove(annen.journalpostId)
+                FakeServers.journalposterUtenLesetilgang.remove(kilde.journalpostId)
+            }
         }
     }
 

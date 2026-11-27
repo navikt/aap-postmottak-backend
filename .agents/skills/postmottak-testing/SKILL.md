@@ -21,6 +21,7 @@ Hvis brukeren eller koden motsier denne skillen, varsle brukeren og spør om ski
    Ikke list opp varianter med manglende, null og feil type for vanlige DTO-felt bare for å utøve Jackson. Bruk typede fixtures til å teste eksplisitt klientvalidering, og unngå å gjenta samme validering gjennom JSON-varianter.
 7. **Test egen logikk, ikke transaksjonsgarantier.** For informasjonskrav: test at både `ENDRET` og `IKKE_ENDRET` registreres med input uten registerdata, at siste kjøring finnes på tvers av behandlinger, og at avhengigheter er oppdatert før neste `klargjør`. Ikke legg til en egen test for at en feilet oppdatering ikke lagrer vellykket kjøring; dette håndteres av transaksjonen.
 8. **Navngi tester etter det de sjekker.** Beskriv scenarioet og forventet resultat, ikke handlinger testen ikke utfører.
+   Skriv norske ord med æ, ø og å i kode, testnavn og testdata: `første` og `forhåndsvisning`. Behold eksterne feltnavn når en kontrakt krever en annen skrivemåte.
 
 ## Testtyper
 
