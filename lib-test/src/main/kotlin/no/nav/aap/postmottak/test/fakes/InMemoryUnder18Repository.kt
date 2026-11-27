@@ -39,7 +39,7 @@ class IsolertUnder18Repository : Under18Repository {
             if (tidligere != null) {
                 check(tidligere.personId == grunnlag.personId) { "Kan ikke bytte person på $behandlingId" }
                 check(tidligere.tarImotNyeSøknader || tidligere == grunnlag) { "$behandlingId er stengt for nye søknader" }
-                check(grunnlag.søknader.take(tidligere.søknader.size) == tidligere.søknader) {
+                check(grunnlag.søknader.containsAll(tidligere.søknader)) {
                     "Lagrede søknader på $behandlingId kan ikke erstattes"
                 }
             }
@@ -53,12 +53,12 @@ class IsolertUnder18Repository : Under18Repository {
                 val eier = hentBehandlingForSøknad(it)
                 check(eier == null || eier == behandlingId) { "Søknad $it tilhører allerede en annen behandling" }
             }
-            søknadsgrunnlag[behandlingId] = grunnlag.copy(søknader = grunnlag.søknader.toList())
+            søknadsgrunnlag[behandlingId] = grunnlag.copy(søknader = grunnlag.søknader.toSet())
         }
     }
 
     override fun hentSøknadsgrunnlag(behandlingId: BehandlingId): Under18Søknadsgrunnlag =
-        synchronized(lock) { søknadsgrunnlag.getValue(behandlingId).let { it.copy(søknader = it.søknader.toList()) } }
+        synchronized(lock) { søknadsgrunnlag.getValue(behandlingId).let { it.copy(søknader = it.søknader.toSet()) } }
 
     override fun lagreAldersgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Aldersgrunnlag) {
         synchronized(lock) { aldersgrunnlag[behandlingId] = grunnlag }

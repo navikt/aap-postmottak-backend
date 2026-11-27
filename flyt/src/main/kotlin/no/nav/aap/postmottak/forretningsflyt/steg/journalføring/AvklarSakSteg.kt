@@ -112,9 +112,8 @@ class AvklarSakSteg(
             Fullført
         } else if (saksnummerVurdering != null) {
             Fullført
-        } else if (under18Journalføring.skalTilUnder18(
-                journalpost, temavurdering, eksisterendeKelvinSaker.isNotEmpty()
-            )
+        } else if (temavurdering?.skalTilAap == true && temavurdering.tema == Tema.AAP &&
+            under18Journalføring.under18VedBekreftetAap(journalpost, eksisterendeKelvinSaker.isNotEmpty()) != null
         ) {
             saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(generellSak = true, under18 = true))
             Fullført

@@ -25,7 +25,6 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.under18.Under18Repository
-import no.nav.aap.postmottak.under18.Under18Samtykkekandidater
 import no.nav.aap.postmottak.under18.finnPåKelvinSak
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.JournalpostPathParam
@@ -83,8 +82,7 @@ private fun RepositoryProvider.hentUnder18Grunnlag(req: BehandlingsreferansePath
         under18.hentAldersgrunnlag(id),
         under18.hentSøknadsavklaring(id),
         under18.hentAktivSamtykkevurdering(id),
-        Under18Samtykkekandidater.konstruer(this).hent(behandling),
-        under18.hentSøknadsgrunnlag(id).søknader.map { Under18SøknadDto(it, null, null) },
+        under18.hentSøknadsgrunnlag(id).søknader.sortedBy { it.referanse }.map { Under18SøknadDto(it, null, null) },
     )
 }
 
@@ -105,7 +103,7 @@ private suspend fun Under18Grunnlag.medDokumentbehandlinger(
     kanLese: suspend (JournalpostId) -> Boolean,
     hentDokumentbehandling: (JournalpostId) -> Under18BehandlingDto?,
 ): Under18Grunnlag? {
-    val journalposter = søknader.map { it.journalpostId } + samtykkekandidater.map { it.journalpostId } +
+    val journalposter = søknader.map { it.journalpostId } +
         samtykkevurdering?.samtykkeJournalpostIder.orEmpty()
     if (!journalposter.distinct().all { kanLese(it) }) return null
     val sak = saksnummer ?: return this

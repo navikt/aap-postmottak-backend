@@ -119,7 +119,7 @@ class ApiTest {
                 val id = behandlinger.opprettBehandling(kilde.journalpostId, TypeBehandling.Under18)
                 val person = provider.provide<PersonRepository>().finnEllerOpprett(kilde.person.identer())
                 val repository = provider.provide<Under18Repository>()
-                repository.lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(person.id, listOf(kilde.journalpostId)))
+                repository.lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(person.id, setOf(kilde.journalpostId)))
                 repository.lagreSamtykkevurdering(id, Under18SamtykkeVurdering(true, listOf(samtykke)))
                 provider.provide<SaksnummerRepository>().lagreSakVurdering(id, Saksvurdering(sak))
                 behandlinger.hent(id)

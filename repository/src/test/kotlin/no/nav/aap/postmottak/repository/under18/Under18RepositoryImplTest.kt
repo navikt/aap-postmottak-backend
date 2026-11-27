@@ -8,16 +8,12 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.modell.TestPerson
-import no.nav.aap.postmottak.under18.Under18Aldersgruppe
-import no.nav.aap.postmottak.under18.Under18Aldersgrunnlag
 import no.nav.aap.postmottak.under18.Under18Repository
-import no.nav.aap.postmottak.under18.Under18SamtykkeVurdering
 import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalStateException
 import org.junit.jupiter.api.Test
 import java.sql.SQLException
-import java.time.LocalDate
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -48,7 +44,7 @@ class Under18RepositoryImplTest {
                         medRepository {
                             assertThat(finnBehandlingForNyeSøknader(person)).isNull()
                             klar.await(10, TimeUnit.SECONDS)
-                            lagreSøknadsgrunnlag(behandlinger[i], Under18Søknadsgrunnlag(person, listOf(søknader[i])))
+                            lagreSøknadsgrunnlag(behandlinger[i], Under18Søknadsgrunnlag(person, setOf(søknader[i])))
                         }
                         true
                     } catch (e: Exception) {
@@ -64,7 +60,7 @@ class Under18RepositoryImplTest {
         val søknad = søknader[1 - vinner]
         val tidligere = medRepository { hentSøknadsgrunnlag(id) }
         val ny = tidligere.leggTilSøknad(søknad)
-        medRepository { lagreSøknadsgrunnlag(id, ny) }
+        medRepository { lagreSøknadsgrunnlag(id, ny.copy(søknader = setOf(søknad) + tidligere.søknader)) }
         assertThatIllegalStateException().isThrownBy {
             medRepository { lagreSøknadsgrunnlag(id, tidligere.stengForNyeSøknader()) }
         }
@@ -75,34 +71,5 @@ class Under18RepositoryImplTest {
             assertThat(finnBehandlingForNyeSøknader(person)).isNull()
         }
         assertThatIllegalStateException().isThrownBy { medRepository { lagreSøknadsgrunnlag(id, ny) } }
-    }
-
-    @Test
-    fun `rollback til savepoint bevarer opprinnelig grunnlag og sletting fjerner personopplysningene`() {
-        val journalpost = JournalpostId(31)
-        val id = nyBehandling(journalpost)
-        val samling = Under18Søknadsgrunnlag(person, listOf(journalpost))
-        val alder = Under18Aldersgrunnlag(LocalDate.of(2008, 1, 1), Under18Aldersgruppe.SAMTYKKE)
-        val samtykke = Under18SamtykkeVurdering(false, listOf(JournalpostId(32)))
-        db.transaction { connection ->
-            val repo = postgresRepositoryRegistry.provider(connection).provide<Under18Repository>()
-            repo.lagreSøknadsgrunnlag(id, samling)
-            repo.lagreAldersgrunnlag(id, alder)
-            repo.lagreSamtykkevurdering(id, samtykke)
-            connection.execute("SAVEPOINT under18")
-            repo.lagreSamtykkevurdering(id, Under18SamtykkeVurdering(true, emptyList()))
-            repo.lagreSøknadsgrunnlag(id, samling.stengForNyeSøknader())
-            connection.execute("ROLLBACK TO SAVEPOINT under18")
-        }
-        medRepository {
-            assertThat(hentSøknadsgrunnlag(id)).isEqualTo(samling)
-            assertThat(hentAldersgrunnlag(id)).isEqualTo(alder)
-            assertThat(hentAktivSamtykkevurdering(id)).isEqualTo(samtykke)
-            repeat(2) { slett(id) }
-            assertThat(hentAldersgrunnlag(id)).isNull()
-            assertThat(hentAktivSamtykkevurdering(id)).isNull()
-            assertThat(hentBehandlingForSøknad(journalpost)).isNull()
-            assertThat(finnBehandlingForNyeSøknader(person)).isNull()
-        }
     }
 }

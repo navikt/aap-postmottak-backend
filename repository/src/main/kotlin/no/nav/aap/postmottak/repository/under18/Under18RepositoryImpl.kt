@@ -33,12 +33,12 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
             setParams { setLong(1, behandlingId.id) }
             setRowMapper { it.getLong("behandling_id") }
         } != null
-        val antallLagret = if (finnes) {
+        val nyeSøknader = if (finnes) {
             val tidligere = hentSøknadsgrunnlag(behandlingId)
             if (tidligere == grunnlag) return
             check(tidligere.tarImotNyeSøknader) { "$behandlingId er stengt for nye søknader" }
             check(tidligere.personId == grunnlag.personId) { "Kan ikke bytte person på $behandlingId" }
-            check(grunnlag.søknader.take(tidligere.søknader.size) == tidligere.søknader) {
+            check(grunnlag.søknader.containsAll(tidligere.søknader)) {
                 "Lagrede søknader på $behandlingId kan ikke erstattes"
             }
             if (!grunnlag.tarImotNyeSøknader) {
@@ -46,7 +46,7 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
                     setParams { setLong(1, behandlingId.id) }
                 }
             }
-            tidligere.søknader.size
+            grunnlag.søknader - tidligere.søknader
         } else {
             connection.execute("INSERT INTO under18_samling (behandling_id, person_id, tar_imot) VALUES (?, ?, ?)") {
                 setParams {
@@ -55,16 +55,15 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
                     setBoolean(3, grunnlag.tarImotNyeSøknader)
                 }
             }
-            0
+            grunnlag.søknader
         }
         connection.executeBatch(
-            "INSERT INTO under18_soknad (behandling_id, posisjon, journalpost_id) VALUES (?, ?, ?)",
-            grunnlag.søknader.withIndex().drop(antallLagret)
+            "INSERT INTO under18_soknad (behandling_id, journalpost_id) VALUES (?, ?)",
+            nyeSøknader.toList()
         ) {
-            setParams { (posisjon, journalpostId) ->
+            setParams { journalpostId ->
                 setLong(1, behandlingId.id)
-                setInt(2, posisjon)
-                setLong(3, journalpostId.referanse)
+                setLong(2, journalpostId.referanse)
             }
         }
     }
@@ -72,12 +71,16 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
     override fun hentSøknadsgrunnlag(behandlingId: BehandlingId): Under18Søknadsgrunnlag =
         checkNotNull(connection.queryFirstOrNull("""
             SELECT person_id, tar_imot, ARRAY(
-                SELECT journalpost_id FROM under18_soknad WHERE behandling_id = s.behandling_id ORDER BY posisjon
+                SELECT journalpost_id FROM under18_soknad WHERE behandling_id = s.behandling_id
             ) AS soknader FROM under18_samling s WHERE behandling_id = ?
         """.trimIndent()) {
             setParams { setLong(1, behandlingId.id) }
             setRowMapper {
-                Under18Søknadsgrunnlag(it.getLong("person_id"), it.getArray("soknader", Long::class).map(::JournalpostId), it.getBoolean("tar_imot"))
+                Under18Søknadsgrunnlag(
+                    personId = it.getLong("person_id"),
+                    søknader = it.getArray("soknader", Long::class).mapTo(mutableSetOf(), ::JournalpostId),
+                    tarImotNyeSøknader = it.getBoolean("tar_imot"),
+                )
             }
         }) { "Mangler søknadsgrunnlag for $behandlingId" }
 
@@ -140,9 +143,4 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
             }
         }
 
-    override fun slett(behandlingId: BehandlingId) {
-        for (tabell in listOf("under18_aldersgrunnlag", "under18_soknadsavklaring", "under18_samtykkevurdering", "under18_samling")) {
-            connection.execute("DELETE FROM $tabell WHERE behandling_id = ?") { setParams { setLong(1, behandlingId.id) } }
-        }
-    }
 }

@@ -137,7 +137,7 @@ internal fun Application.server(
                 flytApi(dataSource, repositoryRegistry, gatewayProvider)
                 avklaringsbehovApi(dataSource, repositoryRegistry, gatewayProvider)
                 dokumentApi(dataSource, repositoryRegistry, gatewayProvider)
-                avklarTemaApi(dataSource, repositoryRegistry)
+                avklarTemaApi(dataSource, repositoryRegistry, gatewayProvider)
                 finnSakApi(dataSource, repositoryRegistry)
                 digitaliseringApi(dataSource, repositoryRegistry, gatewayProvider)
                 under18Api(dataSource, repositoryRegistry, gatewayProvider)

@@ -63,19 +63,16 @@ class OpprettUnder18DokumentbehandlingerSteg(
             return Fullført
         }
         val søknader = under18Repository.hentSøknadsgrunnlag(kontekst.behandlingId).søknader
-        val samtykker = under18Repository.hentAktivSamtykkevurdering(kontekst.behandlingId)
-            ?.samtykkeJournalpostIder.orEmpty()
         check(kontekst.journalpostId in søknader) { "Hovedsøknaden mangler på Under18-behandlingen" }
-        val kilder = (søknader + samtykker).distinct().associateWith(journalpostService::hentJournalpost)
+        val kilder = søknader.associateWith(journalpostService::hentJournalpost)
         val personId = kilder.getValue(kontekst.journalpostId).person.id
         check(kilder.values.all { it.person.id == personId && !it.erUgyldig() }) {
             "Journalpostene må være gyldige og tilhøre søkeren"
         }
-        check(søknader.all { kilder.getValue(it).status == Journalstatus.JOURNALFOERT }) { "Søknaden er ikke ferdigstilt" }
-        val tilknyttede = kilder.mapValues { (_, kilde) -> finnEllerKnyttTil(kilde, sak) }
-        søknader.map(kilder::getValue).sortedWith(compareBy(
+        check(kilder.values.all { it.status == Journalstatus.JOURNALFOERT }) { "Søknaden er ikke ferdigstilt" }
+        kilder.values.sortedWith(compareBy(
             { it.mottattTid ?: it.mottattDato.atStartOfDay() }, { it.journalpostId.referanse }
-        )).forEach { kilde -> opprettDokumentbehandling(tilknyttede.getValue(kilde.journalpostId), sak) }
+        )).forEach { kilde -> opprettDokumentbehandling(finnEllerKnyttTil(kilde, sak), sak) }
         return Fullført
     }
 

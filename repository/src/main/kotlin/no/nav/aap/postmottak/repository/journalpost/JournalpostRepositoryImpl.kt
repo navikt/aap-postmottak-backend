@@ -163,7 +163,7 @@ class JournalpostRepositoryImpl(private val connection: DBConnection) : Journalp
 
     private fun hentDokumenter(journalpostId: Long): List<Dokument> {
         val query = """
-            SELECT * FROM DOKUMENT WHERE JOURNALPOST_ID = ?
+            SELECT * FROM DOKUMENT WHERE JOURNALPOST_ID = ? ORDER BY ID
         """.trimIndent()
         return connection.queryList(query) {
             setParams {
