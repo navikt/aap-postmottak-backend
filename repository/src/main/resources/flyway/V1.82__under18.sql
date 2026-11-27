@@ -4,7 +4,6 @@ ALTER TABLE saksnummer_avklaring ADD COLUMN under18 BOOLEAN NOT NULL DEFAULT FAL
 CREATE TABLE under18_samling (
     id BIGSERIAL PRIMARY KEY,
     person_id BIGINT NOT NULL REFERENCES person,
-    tar_imot BOOLEAN NOT NULL,
     journalpost_ider BIGINT[] NOT NULL
 );
 
@@ -17,12 +16,6 @@ CREATE TABLE under18_samlingsgrunnlag (
 );
 CREATE UNIQUE INDEX under18_aktiv_samling ON under18_samlingsgrunnlag (behandling_id) WHERE aktiv;
 CREATE INDEX under18_samling_historikk ON under18_samlingsgrunnlag (behandling_id, id);
-
--- Reserverer personen mens samlingen tar imot nye søknader. Historikken ligger i samlingsgrunnlaget.
-CREATE TABLE under18_aapen_samling (
-    person_id BIGINT PRIMARY KEY REFERENCES person,
-    behandling_id BIGINT NOT NULL UNIQUE REFERENCES behandling
-);
 
 CREATE TABLE under18_soknadstilknytning (
     journalpost_id BIGINT PRIMARY KEY,

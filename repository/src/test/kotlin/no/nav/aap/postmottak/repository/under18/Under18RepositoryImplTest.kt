@@ -3,11 +3,14 @@ package no.nav.aap.postmottak.repository.under18
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
+import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.modell.TestPerson
+import no.nav.aap.postmottak.test.fakes.TestJournalposter
 import no.nav.aap.postmottak.under18.Under18Aldersgruppe
 import no.nav.aap.postmottak.under18.Under18Aldersgrunnlag
 import no.nav.aap.postmottak.under18.Under18Repository
@@ -15,18 +18,10 @@ import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalStateException
 import org.junit.jupiter.api.Test
-import java.sql.SQLException
 import java.time.LocalDate
-import java.util.concurrent.CyclicBarrier
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 class Under18RepositoryImplTest {
     private val db = TestDataSource()
-    private val person = db.transaction {
-        postgresRepositoryRegistry.provider(it).provide<PersonRepository>().finnEllerOpprett(TestPerson().identer.toList()).id
-    }
-
     private fun nyBehandling(journalpost: JournalpostId) = db.transaction {
         postgresRepositoryRegistry.provider(it).provide<BehandlingRepository>().opprettBehandling(journalpost, TypeBehandling.Under18)
     }
@@ -59,45 +54,44 @@ class Under18RepositoryImplTest {
     }
 
     @Test
-    fun `en samtidig journalføring må gjenbruke samlingen som vant`() {
-        val søknader = listOf(JournalpostId(90), JournalpostId(20))
-        val behandlinger = søknader.map(::nyBehandling)
-        val klar = CyclicBarrier(2)
-        val vinnere = Executors.newFixedThreadPool(2).use { pool ->
-            søknader.indices.map { i ->
-                pool.submit<Boolean> {
-                    try {
-                        medRepository {
-                            assertThat(finnBehandlingForNyeSøknader(person)).isNull()
-                            klar.await(10, TimeUnit.SECONDS)
-                            lagreSøknadsgrunnlag(behandlinger[i], Under18Søknadsgrunnlag(person, setOf(søknader[i])))
-                        }
-                        true
-                    } catch (e: Exception) {
-                        check(generateSequence<Throwable>(e) { it.cause }.filterIsInstance<SQLException>().any { it.sqlState == "23505" }) { e }
-                        false
-                    }
-                }
-            }.map { it.get(15, TimeUnit.SECONDS) }
+    fun `en ny versjon beholder søknader og tilknytninger fra forrige grunnlag`() {
+        val første = JournalpostId(90)
+        val id = nyBehandling(første)
+        val person = db.transaction {
+            postgresRepositoryRegistry.provider(it).provide<PersonRepository>().finnEllerOpprett(TestPerson().identer.toList())
         }
-        assertThat(vinnere).containsExactlyInAnyOrder(true, false)
-        val vinner = vinnere.indexOf(true)
-        val id = behandlinger[vinner]
-        val søknad = søknader[1 - vinner]
-        val tidligere = medRepository { hentSøknadsgrunnlag(id) }
-        val ny = tidligere.leggTilSøknad(søknad)
-        medRepository { lagreSøknadsgrunnlag(id, ny.copy(søknader = setOf(søknad) + tidligere.søknader)) }
-        assertThatIllegalStateException().isThrownBy {
-            medRepository { lagreSøknadsgrunnlag(id, tidligere.stengForNyeSøknader()) }
-        }
+        val tidligere = Under18Søknadsgrunnlag(person.id, setOf(første))
+        val ny = tidligere.leggTilSøknad(JournalpostId(20))
         medRepository {
-            assertThat(hentBehandlingForSøknad(søknad)).isEqualTo(id)
+            lagreSøknadsgrunnlag(id, tidligere)
+            lagreSøknadsgrunnlag(id, ny)
             assertThat(hentSøknadsgrunnlag(id)).isEqualTo(ny)
-            lagreSøknadsgrunnlag(id, ny.stengForNyeSøknader())
-            assertThat(finnBehandlingForNyeSøknader(person)).isNull()
-            assertThat(hentSøknadsgrunnlag(id)).isEqualTo(ny.stengForNyeSøknader())
-            assertThat(hentBehandlingForSøknad(søknad)).isEqualTo(id)
+            ny.søknader.forEach { assertThat(hentBehandlingForSøknad(it)).isEqualTo(id) }
         }
-        assertThatIllegalStateException().isThrownBy { medRepository { lagreSøknadsgrunnlag(id, ny) } }
+        assertThatIllegalStateException().isThrownBy { medRepository { lagreSøknadsgrunnlag(id, tidligere) } }
+    }
+
+    @Test
+    fun `status avgjør hvilken Under18-behandling som kan ta imot neste søknad`() {
+        db.transaction {
+            val provider = postgresRepositoryRegistry.provider(it)
+            val behandlinger = provider.provide<BehandlingRepository>()
+            val person = provider.provide<PersonRepository>().finnEllerOpprett(TestPerson().identer.toList())
+            fun ny() = TestJournalposter.leggTil {}.tilJournalpost().copy(person = person).let { journalpost ->
+                provider.provide<JournalpostRepository>().lagre(journalpost)
+                behandlinger.opprettBehandling(journalpost.journalpostId, TypeBehandling.Under18)
+            }
+            val id = ny()
+            behandlinger.oppdaterBehandlingStatus(id, Status.UTREDES)
+            assertThat(behandlinger.hentÅpenUnder18Behandling(person.id)).isEqualTo(id)
+            behandlinger.oppdaterBehandlingStatus(id, Status.IVERKSETTES)
+            assertThat(behandlinger.hentÅpenUnder18Behandling(person.id)).isNull()
+            behandlinger.oppdaterBehandlingStatus(id, Status.AVSLUTTET)
+            val neste = ny()
+            assertThat(behandlinger.hentÅpenUnder18Behandling(person.id, forOppdatering = true)).isEqualTo(neste)
+            ny()
+            assertThatIllegalStateException().isThrownBy { behandlinger.hentÅpenUnder18Behandling(person.id) }
+                .withMessageContaining("flere åpne Under18-behandlinger")
+        }
     }
 }

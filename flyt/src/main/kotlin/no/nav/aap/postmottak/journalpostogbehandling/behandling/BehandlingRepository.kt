@@ -10,6 +10,8 @@ interface BehandlingRepository : Repository {
 
     fun opprettBehandling(journalpostId: JournalpostId, typeBehandling: TypeBehandling): BehandlingId
 
+    fun hentÅpenUnder18Behandling(personId: Long, forOppdatering: Boolean = false): BehandlingId?
+
     fun hent(behandlingId: BehandlingId): Behandling
 
     fun hent(referanse: Behandlingsreferanse): Behandling

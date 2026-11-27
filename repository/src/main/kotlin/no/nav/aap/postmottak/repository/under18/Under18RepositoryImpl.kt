@@ -15,12 +15,6 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
         override fun konstruer(connection: DBConnection) = Under18RepositoryImpl(connection)
     }
 
-    override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? =
-        connection.queryFirstOrNull("SELECT behandling_id FROM under18_aapen_samling WHERE person_id = ?") {
-            setParams { setLong(1, personId) }
-            setRowMapper { BehandlingId(it.getLong("behandling_id")) }
-        }
-
     override fun hentBehandlingForSøknad(journalpostId: JournalpostId): BehandlingId? =
         connection.queryFirstOrNull("SELECT behandling_id FROM under18_soknadstilknytning WHERE journalpost_id = ?") {
             setParams { setLong(1, journalpostId.referanse) }
@@ -35,13 +29,12 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
 
         val samlingId = samling.lagre(grunnlag)
         erstattGrunnlag(behandlingId, "under18_samlingsgrunnlag", "samling_id", samlingId)
-        samling.oppdaterÅpenSamling(tidligere, grunnlag)
         samling.knyttTilSøknader(grunnlag.søknader - tidligere?.søknader.orEmpty())
     }
 
     override fun hentSøknadsgrunnlag(behandlingId: BehandlingId): Under18Søknadsgrunnlag =
         checkNotNull(connection.queryFirstOrNull("""
-            SELECT s.person_id, s.tar_imot, s.journalpost_ider FROM under18_samlingsgrunnlag g
+            SELECT s.person_id, s.journalpost_ider FROM under18_samlingsgrunnlag g
             JOIN under18_samling s ON s.id = g.samling_id WHERE g.behandling_id = ? AND g.aktiv
         """.trimIndent()) {
             setParams { setLong(1, behandlingId.id) }
@@ -49,7 +42,6 @@ class Under18RepositoryImpl(private val connection: DBConnection) : Under18Repos
                 Under18Søknadsgrunnlag(
                     personId = it.getLong("person_id"),
                     søknader = it.getArray("journalpost_ider", Long::class).mapTo(mutableSetOf(), ::JournalpostId),
-                    tarImotNyeSøknader = it.getBoolean("tar_imot"),
                 )
             }
         }) { "Mangler søknadsgrunnlag for $behandlingId" }
@@ -152,24 +144,11 @@ private class Samlingslagring(private val connection: DBConnection, private val 
     } != null
 
     fun lagre(grunnlag: Under18Søknadsgrunnlag): Long = connection.executeReturnKey(
-        "INSERT INTO under18_samling (person_id, tar_imot, journalpost_ider) VALUES (?, ?, ?)"
+        "INSERT INTO under18_samling (person_id, journalpost_ider) VALUES (?, ?)"
     ) {
         setParams {
             setLong(1, grunnlag.personId)
-            setBoolean(2, grunnlag.tarImotNyeSøknader)
-            setLongArray(3, grunnlag.søknader.map { it.referanse })
-        }
-    }
-
-    fun oppdaterÅpenSamling(tidligere: Under18Søknadsgrunnlag?, grunnlag: Under18Søknadsgrunnlag) {
-        if (tidligere == null && grunnlag.tarImotNyeSøknader) {
-            connection.execute("INSERT INTO under18_aapen_samling (person_id, behandling_id) VALUES (?, ?)") {
-                setParams { setLong(1, grunnlag.personId); setLong(2, behandlingId.id) }
-            }
-        } else if (tidligere != null && !grunnlag.tarImotNyeSøknader) {
-            connection.execute("DELETE FROM under18_aapen_samling WHERE behandling_id = ?") {
-                setParams { setLong(1, behandlingId.id) }
-            }
+            setLongArray(2, grunnlag.søknader.map { it.referanse })
         }
     }
 
