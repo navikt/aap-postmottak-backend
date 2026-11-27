@@ -40,6 +40,8 @@ Flytene er definert i `flyt/.../forretningsflyt/behandlingstyper/` og koblet i `
 
 Informasjonskrav har typet input og registerdata, med fasene `klargjør` → `hentData` → `oppdater`. Hele livssyklusen kjøres sekvensielt per informasjonskrav for å bevare avhengigheter. Motoren lagrer tidspunkt og **bare input**, ikke registerdata, for hver vellykket kjøring i `INFORMASJONSKRAV_OPPDATERT`, også ved `IKKE_ENDRET`. Siste kjøring hentes per journalpost og stabilt `InformasjonskravNavn`, på tvers av behandlinger. Se oppskriften i `references/recipes.md`; bruk hele ordet «informasjonskrav» i nye navn og tekster.
 
+**Løsere og informasjonskrav skal aldri skrive til samme tabell.** Løseren lagrer saksbehandlerens svar i vurderingstabellen. Informasjonskravet kan lese svaret når det beregner grunnlaget, men bare informasjonskravet skriver til sin grunnlagstabell. Skillet gjelder også når samme repository håndterer begge tabellene.
+
 ## Regler som ikke er åpenbare når du leser én fil
 
 1. **Et steg stopper aldri flyten selv.** `utfør()` returnerer `Fullført` eller `FantAvklaringsbehov`. Motoren registrerer behovet i UTFØRER og stopper i neste fase, AVKLARINGSPUNKT, hvis et *åpent* behov hører til dette steget. `FunnetAvklaringsbehov.kanFortsette()` er `true`; bare `Stopp` (fra AVKLARINGSPUNKT) er `false`.
@@ -72,6 +74,7 @@ Informasjonskrav har typet input og registerdata, med fasene `klargjør` → `he
 
 ## Før du endrer motorkode
 
+- For steg og tjenester: la konstruktøren vise hvilke repositorier, gatewayer og tjenester klassen trenger. Bruk `RepositoryProvider` og `GatewayProvider` i `companion object` sin `konstruer`, ikke som felt i klassen. Se `OpprettUnder18SakSteg`.
 - Les referansen for området først. De fleste «bugene» her er tilsiktede eller bærende.
 - `BehandlingFlyt` er synkronisert fra aap-behandlingsflyt (KDoc sier det). Hold diffene små, så det er enklere å synkronisere senere.
 - Mens du itererer, kjør målrettede enhetstester og **én eller to** relevante `Flyttest`-metoder. Kjør hele suiten før du avslutter (se `postmottak-testing`).

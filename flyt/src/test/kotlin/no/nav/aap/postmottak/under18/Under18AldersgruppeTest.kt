@@ -15,5 +15,13 @@ class Under18AldersgruppeTest {
         assertThat(vurder(LocalDate.of(2026, 5, 31))).isEqualTo(Under18Aldersgruppe.FYLT_18)
     }
 
+    @Test
+    fun `saksbehandlers svar gjelder bare grensen på 17 år og 9 måneder`() {
+        assertThat(Under18Aldersgruppe.vurder(fødselsdato, fødselsdato.plusYears(17), true))
+            .isEqualTo(Under18Aldersgruppe.SAMTYKKE)
+        assertThat(Under18Aldersgruppe.vurder(fødselsdato, fødselsdato.plusYears(18), false))
+            .isEqualTo(Under18Aldersgruppe.FYLT_18)
+    }
+
     private fun vurder(dato: LocalDate) = Under18Aldersgruppe.vurder(fødselsdato, dato)
 }

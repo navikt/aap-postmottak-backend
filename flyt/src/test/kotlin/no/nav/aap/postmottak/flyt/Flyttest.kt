@@ -47,6 +47,9 @@ import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.StegStatus
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
+import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
+import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
@@ -71,8 +74,10 @@ import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRep
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
+import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.test.fakes.vedlegg
+import no.nav.aap.postmottak.gateway.Sakstype
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SamtykkeLøsning
 import no.nav.aap.postmottak.avklaringsbehov.løsning.AvklarUnder18SøknadLøsning
 import no.nav.aap.postmottak.faktagrunnlag.register.personopplysninger.Fødselsdato
@@ -116,8 +121,15 @@ object TemaFlytUnleash : UnleashGateway by FakeUnleash {
     @Volatile
     var velgTema = false
 
+    @Volatile
+    var under18 = false
+
     override fun isEnabled(featureToggle: FeatureToggle): Boolean =
-        if (featureToggle == PostmottakFeature.PostmottakVelgTema) velgTema else FakeUnleash.isEnabled(featureToggle)
+        when (featureToggle) {
+            PostmottakFeature.PostmottakVelgTema -> velgTema
+            PostmottakFeature.PostmottakUnder18 -> under18
+            else -> FakeUnleash.isEnabled(featureToggle)
+        }
 }
 
 object TestKlokke : Klokke {
@@ -313,6 +325,7 @@ class Flyttest : WithDependencies {
 
         prøv { assertThat(hentBehandling(behandling.id).status()).isEqualTo(Status.AVSLUTTET) }
         assertThat(hentAvklaringsbehov(behandling)).isEmpty()
+        assertThat(dokumentbehandlingerForSøknad(behandling.journalpostId)).isEmpty()
     }
 
     @Test
@@ -352,7 +365,7 @@ class Flyttest : WithDependencies {
                 )
             )
 
-        verifiserStoppetIOpprettUnder18Sak(behandling.id)
+        verifiserDokumentbehandlingOpprettet(behandling)
         assertThat(hentAvklaringsbehov(behandling)).isEmpty()
     }
 
@@ -379,9 +392,10 @@ class Flyttest : WithDependencies {
             TestKlokke.dato = fødselsdato.plusYears(18)
             triggProsesserBehandling(behandling.journalpostId, behandling.id)
 
-            assertThat(
-                InMemoryUnder18Repository.hentAktivSamtykkevurdering(behandling.id)?.beggeForeldreSamtykket
-            ).isFalse()
+            val samtykke = dataSource.transaction(readOnly = true) {
+                repositoryRegistry.provider(it).provide<Under18Repository>().hentAktivSamtykkevurdering(behandling.id)
+            }
+            assertThat(samtykke?.beggeForeldreSamtykket).isFalse()
             hentBehandling(behandling.id)
                 .also { assertThat(it.aktivtSteg()).isEqualTo(StegType.AVKLAR_UNDER18) }
                 .verifiserIkkePåVent()
@@ -393,7 +407,7 @@ class Flyttest : WithDependencies {
                     )
                 )
 
-            verifiserStoppetIOpprettUnder18Sak(behandling.id)
+            verifiserDokumentbehandlingOpprettet(behandling)
         } finally {
             TestKlokke.dato = LocalDate.now()
         }
@@ -445,7 +459,47 @@ class Flyttest : WithDependencies {
             .containsExactly(OPPRETTET, AVSLUTTET, OPPRETTET, AVSLUTTET)
         assertThat(avsluttetVentHistorikk.last().endretAv).isEqualTo(SYSTEMBRUKER.ident)
 
-        verifiserStoppetIOpprettUnder18Sak(behandling.id)
+        verifiserDokumentbehandlingOpprettet(behandling)
+    }
+
+    @Test
+    fun `under18 - saksbehandlers alderssvar endrer hvilken avklaring som kreves`() {
+        val behandling = opprettUnder18Behandling(LocalDate.now().minusYears(18).plusWeeks(1))
+
+        behandling.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+            .løsAvklaringsBehov(AvklarUnder18SøknadLøsning(fylt17ÅrOg9Måneder = false))
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SØKNAD)
+        val avklaring = dataSource.transaction(readOnly = true) {
+            repositoryRegistry.provider(it).provide<Under18Repository>().hentSøknadsavklaring(behandling.id)
+        }
+        assertThat(avklaring?.fylt17ÅrOg9Måneder).isEqualTo(false)
+
+        hentBehandling(behandling.id)
+            .løsAvklaringsBehov(AvklarUnder18SøknadLøsning(fylt17ÅrOg9Måneder = true))
+            .sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+            .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(beggeForeldreSamtykket = true))
+        verifiserDokumentbehandlingOpprettet(behandling)
+    }
+
+    @Test
+    fun `under18 - lagrer samtykkereferansene men knytter bare søknaden til Kelvin-saken`() {
+        val behandling = opprettUnder18Behandling(LocalDate.now().minusYears(18).plusWeeks(1))
+        val søker = personForBehandling(behandling)
+        val samtykke = TestJournalposter.leggTil {
+            fnr = søker.aktivIdent().identifikator
+            dokumenter = listOf(vedlegg("Samtykke").copy(dokumentInfoId = DokumentInfoId("53001801")))
+        }.tilJournalpost()
+        val referanser = listOf(behandling.journalpostId, samtykke.journalpostId)
+        behandling.sjekkÅpentAvklaringsbehov(Definisjon.AVKLAR_UNDER18_SAMTYKKE)
+            .løsAvklaringsBehov(AvklarUnder18SamtykkeLøsning(true, referanser.map { it.referanse }))
+
+        verifiserDokumentbehandlingOpprettet(behandling)
+        val vurdering = dataSource.transaction(readOnly = true) {
+            repositoryRegistry.provider(it).provide<Under18Repository>().hentAktivSamtykkevurdering(behandling.id)
+        }
+        assertThat(vurdering?.samtykkeJournalpostIder).isEqualTo(referanser)
+        assertThat(TestJournalposter.hentTilknyttedeJournalposter(samtykke.hoveddokument.dokumentInfoId))
+            .extracting<String> { it.journalpostId }.containsExactly(samtykke.journalpostId.toString())
     }
 
     @Test
@@ -1409,45 +1463,39 @@ class Flyttest : WithDependencies {
 
     private fun opprettUnder18Behandling(
         fødselsdato: LocalDate,
-        journalpostStatus: Journalstatus = Journalstatus.MOTTATT,
+        journalpostStatus: Journalstatus = Journalstatus.JOURNALFOERT,
     ): Behandling {
         val person = TestPersoner.leggTil(TestPerson(fødselsdato = Fødselsdato(fødselsdato)))
         val journalpostId = TestJournalposter.leggTil {
             this.person = person
+            papirsøknad()
+            fagsak = JournalpostSak(Sakstype.GENERELL_SAK, fagsaksystem = null)
             status = journalpostStatus
         }.journalpostId()
         val behandlingId = dataSource.transaction { connection ->
-            repositoryRegistry.provider(connection).provide<BehandlingRepository>()
-                .opprettBehandling(journalpostId, TypeBehandling.Under18)
+            val repositories = repositoryRegistry.provider(connection)
+            val id = repositories.provide<BehandlingRepository>().opprettBehandling(journalpostId, TypeBehandling.Under18)
+            val personId = repositories.provide<PersonRepository>().finnEllerOpprett(person.identer.toList()).id
+            repositories.provide<Under18Repository>().lagreSøknadsgrunnlag(id, Under18Søknadsgrunnlag(personId, setOf(journalpostId)))
+            id
         }
         triggProsesserBehandling(journalpostId, behandlingId)
         return hentBehandling(behandlingId)
     }
 
-    // OpprettUnder18SakSteg er ikke implementert ennå og feiler når behandlingen ikke er henlagt.
-    private fun verifiserStoppetIOpprettUnder18Sak(behandlingId: BehandlingId) {
-        prøv {
-            val jobbStatuser = dataSource.transaction(readOnly = true) { connection ->
-                connection.queryList(
-                    """
-                    SELECT status
-                    FROM JOBB
-                    WHERE behandling_id = ?
-                        AND type = ?
-                    """.trimIndent()
-                ) {
-                    setParams {
-                        setLong(1, behandlingId.id)
-                        setString(2, ProsesserBehandlingJobbUtfører.type)
-                    }
-                    setRowMapper { it.getString("status") }
-                }
-            }
-            assertThat(jobbStatuser).contains("FEILET")
-        }
-        val behandling = hentBehandling(behandlingId)
-        assertThat(behandling.status()).isEqualTo(Status.UTREDES)
-        assertThat(behandling.aktivtSteg()).isEqualTo(StegType.OPPRETT_UNDER18_SAK)
+    private fun verifiserDokumentbehandlingOpprettet(behandling: Behandling) {
+        prøv { assertThat(hentBehandling(behandling.id).status()).isEqualTo(Status.AVSLUTTET) }
+        val dokumentbehandling = dokumentbehandlingerForSøknad(behandling.journalpostId).single()
+        assertThat(dokumentbehandling.journalpostId).isNotEqualTo(behandling.journalpostId)
+        util.ventPåSvar(dokumentbehandling.journalpostId.referanse, dokumentbehandling.id.id)
+        dokumentbehandling.sjekkÅpentAvklaringsbehov(Definisjon.DIGITALISER_DOKUMENT)
+    }
+
+    private fun dokumentbehandlingerForSøknad(journalpostId: JournalpostId): List<Behandling> {
+        val søknad = checkNotNull(TestJournalposter.hentJournalpost(journalpostId.referanse)).tilJournalpost()
+        return TestJournalposter.hentTilknyttedeJournalposter(søknad.hoveddokument.dokumentInfoId)
+            .flatMap { alleBehandlingerForJournalpost(JournalpostId(it.journalpostId.toLong())) }
+            .filter { it.typeBehandling == TypeBehandling.DokumentHåndtering }
     }
 
     private fun personForBehandling(behandling: Behandling): Person = dataSource.transaction(readOnly = true) { connection ->

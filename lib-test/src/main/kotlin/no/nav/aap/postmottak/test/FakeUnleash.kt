@@ -14,7 +14,7 @@ object FakeUnleash : UnleashGateway {
             PostmottakFeature.AutomatiskKlageJournalforing -> true
             PostmottakFeature.PostmottakVelgTema -> false
             PostmottakFeature.KantTilKantV1 -> false
-            PostmottakFeature.PostmottakUnder18 -> false
+            PostmottakFeature.PostmottakUnder18 -> true
         }
     }
 
@@ -23,10 +23,7 @@ object FakeUnleash : UnleashGateway {
 
         return when (featureToggle) {
             PostmottakFeature.DummyFeature -> isRolledOutFor(userId)
-            PostmottakFeature.AutomatiskKlageJournalforing -> true
-            PostmottakFeature.PostmottakVelgTema -> false
-            PostmottakFeature.KantTilKantV1 -> false
-            PostmottakFeature.PostmottakUnder18 -> false
+            else -> isEnabled(featureToggle)
         }
 
     }

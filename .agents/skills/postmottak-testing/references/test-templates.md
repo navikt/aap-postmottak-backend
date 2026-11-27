@@ -1,70 +1,18 @@
 # Testmaler
 
-Mal 1 har alle importene. Mal 3 er et skjelett med plassholdernavn. For de andre malene kan du kopiere importene fra mal 1 eller filene det henvises til.
+## 1. Stegtest uten database eller mocks
 
-## 1. Stegtest, fake-først (foretrukket for steglogikk)
-
-Ekte stegwiring, ekte Postgres og ekte HTTP-klienter mot fakes. Legg filen ved siden av steget, for eksempel `flyt/src/test/kotlin/no/nav/aap/postmottak/forretningsflyt/steg/journalføring/`. Et eksempel på samme oppsett for et informasjonskrav er `flyt/src/test/kotlin/no/nav/aap/postmottak/under18/Under18JournalposterInformasjonskravTest.kt`.
+Test `utfør` på selve steget. Gjenbruk et repository i minnet fra `lib-test`, eller lag en liten implementasjon som lagrer det steget trenger. Gi steget en fake gateway med et fast svar. Eksemplet bruker plassholdernavn:
 
 ```kotlin
-package no.nav.aap.postmottak.forretningsflyt.steg.journalføring
+@Test
+fun `lagrer bare én vurdering når steget kjører på nytt`() {
+    val repo = VurderingerIMinnet()
+    val steg = MittSteg(repo, FakeGateway(svar = godkjent))
 
-import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.TestDataSource
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostInformasjonskrav
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.sak.SaksnummerRepository
-import no.nav.aap.postmottak.flyt.steg.Fullført
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
-import no.nav.aap.postmottak.klient.defaultGatewayProvider
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
-import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
-import no.nav.aap.postmottak.test.FakeUnleash
-import no.nav.aap.postmottak.test.Fakes
-import no.nav.aap.postmottak.test.fakes.TestJournalposter
-import no.nav.aap.postmottak.test.modell.TestKelvinSak
-import no.nav.aap.postmottak.test.modell.TestPersoner
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+    repeat(2) { assertThat(steg.utfør(kontekst)).isEqualTo(Fullført) }
 
-@Fakes
-class AvklarSakStegMedFakesTest {
-    private lateinit var dataSource: TestDataSource
-    private val gatewayProvider = defaultGatewayProvider { register<FakeUnleash>() }
-
-    @BeforeEach
-    fun setup() {
-        dataSource = TestDataSource() // fersk database per test (klonet fra mal)
-    }
-
-    @AfterEach
-    fun tearDown() = dataSource.close()
-
-    @Test
-    fun `digital søknad knyttes automatisk til Kelvin-sak`() {
-        val person = TestPersoner.leggTil { kelvinSak = TestKelvinSak(saksnummer = "S-123") }
-        val journalpostId = TestJournalposter.leggTil { this.person = person; digitalSøknad() }.journalpostId()
-
-        dataSource.transaction { connection ->
-            val repositoryProvider = postgresRepositoryRegistry.provider(connection)
-            val behandlingId = repositoryProvider.provide<BehandlingRepository>()
-                .opprettBehandling(journalpostId, TypeBehandling.Journalføring)
-            val kontekst = FlytKontekst(journalpostId, behandlingId, TypeBehandling.Journalføring)
-
-            // Seed journalposten på samme måte som OPPDATER_FAKTAGRUNNLAG gjør (leser SAF-faken, upserter personen).
-            val informasjonskrav = JournalpostInformasjonskrav.konstruer(repositoryProvider, gatewayProvider)
-            val input = informasjonskrav.klargjør(kontekst)
-            informasjonskrav.oppdater(input, informasjonskrav.hentData(input), kontekst)
-
-            val resultat = AvklarSakSteg.konstruer(repositoryProvider, gatewayProvider).utfør(kontekst)
-
-            assertThat(resultat).isEqualTo(Fullført)
-            assertThat(repositoryProvider.provide<SaksnummerRepository>().hentSakVurdering(behandlingId)?.saksnummer)
-                .isEqualTo("S-123")
-        }
-    }
+    assertThat(repo.hentVurderinger(kontekst.behandlingId)).containsExactly(godkjent)
 }
 ```
 
@@ -72,7 +20,7 @@ For «trenger manuell behandling» asserter du `isInstanceOf(FantAvklaringsbehov
 
 ## 2. Løsertest, fake-først
 
-Samme oppsett som i mal 1, deretter:
+Registrer testavhengighetene for løseren og sjekk hva den lagrer:
 
 ```kotlin
 AvklarSakLøser.konstruer(repositoryProvider, gatewayProvider).løs(

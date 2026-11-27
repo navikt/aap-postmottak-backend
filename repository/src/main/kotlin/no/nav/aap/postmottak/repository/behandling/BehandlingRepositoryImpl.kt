@@ -18,6 +18,7 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import org.intellij.lang.annotations.Language
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -43,6 +44,24 @@ class BehandlingRepositoryImpl(private val connection: DBConnection) : Behandlin
         }
 
         return BehandlingId(behandlingId)
+    }
+
+    override fun hentÅpenUnder18Behandling(personId: Long, forOppdatering: Boolean): BehandlingId? {
+        val lås = if (forOppdatering) "FOR UPDATE OF b" else ""
+        val åpne = connection.queryList("""
+            SELECT b.id FROM behandling b
+            WHERE b.journalpost_id IN (SELECT journalpost_id FROM journalpost WHERE person_id = ?)
+                AND b.type = 'Under18' AND b.status IN ('OPPRETTET', 'UTREDES') $lås
+        """.trimIndent()) {
+            setParams { setLong(1, personId) }
+            setRowMapper { BehandlingId(it.getLong("id")) }
+        }
+        if (åpne.size > 1) {
+            val melding = "Fant flere åpne Under18-behandlinger for samme person: $åpne"
+            LoggerFactory.getLogger(javaClass).error(melding)
+            error(melding)
+        }
+        return åpne.singleOrNull()
     }
 
     private data class StegTilstandIntenal(

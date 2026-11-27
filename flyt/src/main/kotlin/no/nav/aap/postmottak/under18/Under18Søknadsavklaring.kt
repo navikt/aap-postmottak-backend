@@ -12,15 +12,22 @@ enum class Under18Søknadssituasjon {
  * for en for ung søker fra svaret på om en søker som har fylt 18 år, vil fortsette.
  */
 data class Under18Søknadsavklaring(
-    val situasjon: Under18Søknadssituasjon,
-    val søkerVilFortsette: Boolean,
+    val situasjon: Under18Søknadssituasjon?,
+    val søkerVilFortsette: Boolean?,
+    val fylt17ÅrOg9Måneder: Boolean? = null,
 ) {
     init {
-        if (situasjon == Under18Søknadssituasjon.SØKER_FOR_UNG && søkerVilFortsette) {
+        if (situasjon == null && (søkerVilFortsette != null || fylt17ÅrOg9Måneder == null)) {
+            throw UgyldigForespørselException("Oppgi hvilken søknadssituasjon som er avklart.")
+        }
+        if (situasjon != null && søkerVilFortsette == null) {
+            throw UgyldigForespørselException("Oppgi om søknaden skal fortsette.")
+        }
+        if (situasjon == Under18Søknadssituasjon.SØKER_FOR_UNG && søkerVilFortsette == true) {
             throw UgyldigForespørselException("En søker som er for ung, kan ikke fortsette søknaden")
         }
     }
 
     fun erHenlagt(aldersgruppe: Under18Aldersgruppe): Boolean =
-        situasjon == aldersgruppe.påkrevdSøknadssituasjon && !søkerVilFortsette
+        situasjon == aldersgruppe.påkrevdSøknadssituasjon && søkerVilFortsette == false
 }
