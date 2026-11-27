@@ -1,57 +1,46 @@
 package no.nav.aap.postmottak.under18
 
-import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.komponenter.repository.RepositoryRegistry
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
 import no.nav.aap.fordeler.InnkommendeJournalpost
-import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
-import no.nav.aap.fordeler.Mottakshendelse
+import no.nav.aap.komponenter.repository.RepositoryRegistry
 import no.nav.aap.lookup.repository.RepositoryProvider
 import no.nav.aap.postmottak.faktagrunnlag.Informasjonskrav.Endret
 import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravGrunnlagImpl
-import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravInput
-import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravNavn
-import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravOppdatert
-import no.nav.aap.postmottak.faktagrunnlag.InformasjonskravRepository
-import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandling
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.Behandlingsreferanse
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingsreferansePathParam
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
-import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.klient.defaultGatewayProvider
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.test.FakeUnleash
 import no.nav.aap.postmottak.test.Fakes
 import no.nav.aap.postmottak.test.MockConnection
 import no.nav.aap.postmottak.test.fakes.InMemoryAvklaringsbehovRepository
 import no.nav.aap.postmottak.test.fakes.TestJournalPost
 import no.nav.aap.postmottak.test.fakes.TestJournalposter
+import no.nav.aap.postmottak.test.inmemoryrepo.InMemoryBehandlingRepository
+import no.nav.aap.postmottak.test.inmemoryrepo.InMemoryIdSequence
+import no.nav.aap.postmottak.test.inmemoryrepo.InMemoryInformasjonskravRepository
+import no.nav.aap.postmottak.test.inmemoryrepo.InMemoryInnkommendeJournalpostRepository
+import no.nav.aap.postmottak.test.inmemoryrepo.InMemoryJournalpostRepository
+import no.nav.aap.postmottak.test.inmemoryrepo.InMemoryPersonRepository
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.aap.postmottak.test.modell.genererIdent
-import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
-import no.nav.aap.postmottak.kontrakt.behandling.Status
-import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
-import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import no.nav.aap.postmottak.kontrakt.steg.StegType
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.StegTilstand
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.atomic.AtomicLong
 
 @Fakes
 class Under18JournalposterInformasjonskravTest {
@@ -235,192 +224,4 @@ class Under18JournalposterInformasjonskravTest {
             assertThat(input.identer).containsExactlyInAnyOrderElementsOf(hovedperson.identer())
             krav.hentData(input)
         }
-}
-
-internal object InMemoryIdSequence {
-    private val behandlingIds = AtomicLong(1_000_000)
-    private val personIds = AtomicLong(1_000_000)
-
-    fun nesteBehandlingId() = behandlingIds.incrementAndGet()
-    fun nestePersonId() = personIds.incrementAndGet()
-}
-
-internal object InMemoryBehandlingRepository : BehandlingRepository {
-    private val behandlinger = ConcurrentHashMap<BehandlingId, Behandling>()
-
-    fun lagre(behandling: Behandling) {
-        behandlinger[behandling.id] = behandling
-    }
-
-    override fun opprettBehandling(
-        journalpostId: JournalpostId,
-        typeBehandling: TypeBehandling,
-    ): BehandlingId = error("Ikke implementert i test-repositoriet")
-
-    override fun hent(behandlingId: BehandlingId) =
-        checkNotNull(behandlinger[behandlingId]) { "Fant ikke behandling $behandlingId" }
-
-    override fun hent(referanse: Behandlingsreferanse) =
-        behandlinger.values.single { it.referanse.referanse == referanse.referanse }
-
-    override fun hentSisteBehandling(journalpostId: JournalpostId) =
-        behandlinger.values.filter { it.journalpostId == journalpostId }.maxOrNull()
-            ?: error("Fant ikke behandling for journalpost $journalpostId")
-
-    override fun hentAlleBehandlingerForJournalpost(journalpostId: JournalpostId) =
-        behandlinger.values.filter { it.journalpostId == journalpostId }
-
-    override fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling? = null
-
-    override fun hentÅpenUnder18Behandling(personId: Long, forOppdatering: Boolean): BehandlingId? =
-        error("Ikke implementert i test-repositoriet")
-
-    override fun hentBehandlingerForPerson(person: Person): List<Behandling> = emptyList()
-
-    override fun markerSavepoint() = Unit
-
-    override fun oppdaterBehandlingStatus(behandlingId: BehandlingId, status: Status) = Unit
-
-    override fun loggBesøktSteg(
-        behandlingId: BehandlingId,
-        tilstand: StegTilstand,
-    ) = Unit
-}
-
-internal object InMemoryInformasjonskravRepository : InformasjonskravRepository {
-    private val oppdateringer = ConcurrentHashMap<JournalpostId, CopyOnWriteArrayList<InformasjonskravOppdatert>>()
-
-    override fun hentOppdateringer(
-        journalpostId: JournalpostId,
-        informasjonskrav: List<InformasjonskravNavn>,
-    ): List<InformasjonskravOppdatert> =
-        oppdateringer[journalpostId].orEmpty()
-            .filter { it.navn in informasjonskrav }
-            .groupBy { it.navn }
-            .values
-            .mapNotNull { it.maxByOrNull(InformasjonskravOppdatert::oppdatert) }
-
-    override fun registrerOppdateringer(
-        journalpostId: JournalpostId,
-        behandlingId: BehandlingId,
-        informasjonskrav: Map<InformasjonskravNavn, InformasjonskravInput>,
-        oppdatert: Instant,
-    ) {
-        val lagrede = oppdateringer.computeIfAbsent(journalpostId) { CopyOnWriteArrayList() }
-        informasjonskrav.forEach { (navn, input) ->
-            lagrede += InformasjonskravOppdatert(
-                behandlingId = behandlingId,
-                navn = navn,
-                oppdatert = oppdatert,
-                forrigeInput = DefaultJsonMapper.toJson(input),
-            )
-        }
-    }
-}
-
-internal object InMemoryJournalpostRepository : JournalpostRepository {
-    private val journalposter = ConcurrentHashMap<JournalpostId, Journalpost>()
-
-    override fun lagre(journalpost: Journalpost) {
-        journalposter[journalpost.journalpostId] = journalpost
-    }
-
-    override fun hentHvisEksisterer(behandlingId: BehandlingId) =
-        journalposter[InMemoryBehandlingRepository.hent(behandlingId).journalpostId]
-
-    override fun hentHvisEksisterer(behandlingsreferanse: Behandlingsreferanse) =
-        journalposter[InMemoryBehandlingRepository.hent(behandlingsreferanse).journalpostId]
-
-    override fun hentHvisEksisterer(journalpostId: JournalpostId) = journalposter[journalpostId]
-}
-
-internal object InMemoryPersonRepository : PersonRepository {
-    private val persons = ConcurrentHashMap<Long, Person>()
-
-    fun lagre(person: Person): Person {
-        persons[person.id] = person
-        return person
-    }
-
-    override fun finnEllerOpprett(identer: List<Ident>): Person {
-        val eksisterende = persons.values.filter { person -> identer.any(person::er) }.distinctBy { it.identifikator }
-        check(eksisterende.size <= 1) { "Identene tilhører flere personer" }
-        val person = eksisterende.singleOrNull()
-            ?: Person(InMemoryIdSequence.nestePersonId(), UUID.randomUUID(), identer)
-        val oppdatert = Person(
-            id = person.id,
-            identifikator = person.identifikator,
-            identer = (person.identer() + identer).distinct(),
-        )
-        return lagre(oppdatert)
-    }
-
-    override fun oppdater(person: Person, identer: List<Ident>) {
-        lagre(
-            Person(
-                id = person.id,
-                identifikator = person.identifikator,
-                identer = (person.identer() + identer).distinct(),
-            )
-        )
-    }
-
-    override fun hent(identifikator: UUID) =
-        persons.values.single { it.identifikator == identifikator }
-
-    override fun hent(personId: Long) =
-        checkNotNull(persons[personId]) { "Fant ikke person $personId" }
-
-    override fun finn(ident: Ident) = persons.values.singleOrNull { it.er(ident) }
-}
-
-internal object InMemoryInnkommendeJournalpostRepository : InnkommendeJournalpostRepository {
-    private data class Mottak(
-        val journalpost: InnkommendeJournalpost,
-        val id: Long,
-        val mottattTid: LocalDateTime,
-    )
-
-    private val mottak = ConcurrentHashMap<JournalpostId, Mottak>()
-    private val ids = AtomicLong()
-
-    override fun eksisterer(journalpostId: JournalpostId) = mottak.containsKey(journalpostId)
-
-    override fun hent(journalpostId: JournalpostId) =
-        checkNotNull(mottak[journalpostId]) { "Fant ikke innkommende journalpost $journalpostId" }.journalpost
-
-    override fun hentId(journalpostId: JournalpostId) =
-        checkNotNull(mottak[journalpostId]) { "Fant ikke innkommende journalpost $journalpostId" }.id
-
-    override fun hentHvisEksisterer(journalpostId: JournalpostId) = mottak[journalpostId]?.journalpost
-
-    override fun finn(ident: Ident) =
-        mottak.values.filter { it.journalpost.brukerId == ident.identifikator }.map { it.journalpost }
-
-    override fun finnMottakshistorikk(identer: List<Ident>): List<Mottakshendelse> {
-        val identifikatorer = identer.mapTo(HashSet()) { it.identifikator }
-        return mottak.values
-            .filter { it.journalpost.brukerId in identifikatorer }
-            .map { Mottakshendelse(it.journalpost.journalpostId, it.mottattTid) }
-            .sortedBy { it.mottattTid }
-    }
-
-    override fun lagre(innkommendeJournalpost: InnkommendeJournalpost): Long {
-        val id = ids.incrementAndGet()
-        mottak[innkommendeJournalpost.journalpostId] = Mottak(
-            journalpost = innkommendeJournalpost,
-            id = id,
-            mottattTid = LocalDateTime.now().plusSeconds(1),
-        )
-        return id
-    }
-
-    override fun update(innkommendeJournalpost: InnkommendeJournalpost) {
-        val forrige = mottak[innkommendeJournalpost.journalpostId]
-        mottak[innkommendeJournalpost.journalpostId] = Mottak(
-            journalpost = innkommendeJournalpost,
-            id = forrige?.id ?: ids.incrementAndGet(),
-            mottattTid = forrige?.mottattTid ?: LocalDateTime.now().plusSeconds(1),
-        )
-    }
 }
