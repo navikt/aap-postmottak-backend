@@ -29,7 +29,7 @@ import javax.sql.DataSource
 
 data class JournalposterParams(
     @param:PathParam("Behandlingsreferanse. Listen omfatter bare personens AAP-journalposter.") val referanse: UUID,
-    @param:QueryParam("Antall journalposter, fra 1 til 100. Standard er 20.") val foerste: Int? = null,
+    @param:QueryParam("Antall journalposter, fra 1 til 100. Standard er 20.") val antall: Int? = null,
     @param:QueryParam("Sluttpeker fra forrige side i SAF.") val etter: String? = null
 )
 
@@ -55,7 +55,7 @@ data class JournalpostOversiktDto(
 data class JournalpostDokumentDto(
     val dokumentInfoId: String,
     val tittel: String?,
-    val kanForhaandsvises: Boolean
+    val kanForhåndsvises: Boolean
 )
 
 fun NormalOpenAPIRoute.journalposterApi(
@@ -72,9 +72,9 @@ fun NormalOpenAPIRoute.journalposterApi(
             ),
             DefaultAuditLogConfig.fraBehandlingPathParam("referanse", dataSource, repositoryRegistry)
         ) { req ->
-            val foerste = req.foerste ?: 20
-            if (foerste !in 1..100 || req.etter?.isBlank() == true) {
-                throw UgyldigForespørselException("foerste må være mellom 1 og 100, og etter kan ikke være tom.")
+            val antall = req.antall ?: 20
+            if (antall !in 1..100 || req.etter?.isBlank() == true) {
+                throw UgyldigForespørselException("antall må være mellom 1 og 100, og etter kan ikke være tom.")
             }
             val fnr = dataSource.transaction(readOnly = true) { connection ->
                 repositoryRegistry.provider(connection).provide<JournalpostRepository>()
@@ -84,7 +84,7 @@ fun NormalOpenAPIRoute.journalposterApi(
             }
             val brukerToken = token()
             val oversikt = gatewayProvider.provide<JournalpostOboGateway>()
-                .hentAapJournalposter(fnr, foerste, req.etter, brukerToken)
+                .hentAapJournalposter(fnr, antall, req.etter, brukerToken)
             respond(oversikt.tilRespons { journalpostId ->
                 TilgangGateway.harTilgangTilJournalpost(
                     JournalpostTilgangRequest(
@@ -112,7 +112,7 @@ internal suspend fun SafDokumentoversikt.tilRespons(
                 JournalpostDokumentDto(
                     dokumentInfoId = dokument.dokumentInfoId,
                     tittel = dokument.tittel,
-                    kanForhaandsvises = dokument.dokumentvarianter.any {
+                    kanForhåndsvises = dokument.dokumentvarianter.any {
                         it.variantformat == SafVariantformat.ARKIV && it.saksbehandlerHarTilgang && it.skjerming == null
                     }
                 )

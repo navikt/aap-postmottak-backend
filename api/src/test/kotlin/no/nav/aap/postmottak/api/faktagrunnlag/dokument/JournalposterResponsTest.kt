@@ -45,7 +45,7 @@ class JournalposterResponsTest {
     }
 
     @Test
-    fun `forhaandsvisning krever en tilgjengelig uskjermet ARKIV-variant og skjermede dokumenter utelates`() = runBlocking<Unit> {
+    fun `forhåndsvisning krever en tilgjengelig uskjermet ARKIV-variant og skjermede dokumenter utelates`() = runBlocking<Unit> {
         val dokumenter = listOf(
             dokument,
             dokument.copy(dokumentInfoId = "457", dokumentvarianter = listOf(arkiv.copy(saksbehandlerHarTilgang = false))),
@@ -61,7 +61,7 @@ class JournalposterResponsTest {
 
         assertThat(respons.journalposter.single().dokumenter.map { it.dokumentInfoId })
             .containsExactly("456", "457", "458", "459", "460")
-        assertThat(respons.journalposter.single().dokumenter.map { it.kanForhaandsvises })
+        assertThat(respons.journalposter.single().dokumenter.map { it.kanForhåndsvises })
             .containsExactly(true, false, false, false, false)
     }
 }
