@@ -34,6 +34,7 @@ import no.nav.aap.postmottak.AppConfig.stansArbeidTimeout
 import no.nav.aap.postmottak.api.auditlog.auditlogApi
 import no.nav.aap.postmottak.api.drift.driftApi
 import no.nav.aap.postmottak.api.faktagrunnlag.dokument.dokumentApi
+import no.nav.aap.postmottak.api.faktagrunnlag.dokument.journalposterApi
 import no.nav.aap.postmottak.api.faktagrunnlag.overlevering.overleveringApi
 import no.nav.aap.postmottak.api.faktagrunnlag.sak.finnSakApi
 import no.nav.aap.postmottak.api.faktagrunnlag.strukturering.digitaliseringApi
@@ -136,6 +137,7 @@ internal fun Application.server(
                 flytApi(dataSource, repositoryRegistry, gatewayProvider)
                 avklaringsbehovApi(dataSource, repositoryRegistry, gatewayProvider)
                 dokumentApi(dataSource, repositoryRegistry, gatewayProvider)
+                journalposterApi(dataSource, repositoryRegistry, gatewayProvider)
                 avklarTemaApi(dataSource, repositoryRegistry)
                 finnSakApi(dataSource, repositoryRegistry)
                 digitaliseringApi(dataSource, repositoryRegistry, gatewayProvider)
