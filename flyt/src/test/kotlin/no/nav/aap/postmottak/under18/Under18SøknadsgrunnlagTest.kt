@@ -23,15 +23,9 @@ class Under18SøknadsgrunnlagTest {
     }
 
     @Test
-    fun `et gammelt grunnlag kan ikke åpne en stengt behandling eller flytte søknaden`() {
+    fun `en registrert søknad kan ikke flyttes til en annen behandling`() {
         repository.lagreSøknadsgrunnlag(id, grunnlag)
-        repository.lagreSøknadsgrunnlag(id, grunnlag.stengForNyeSøknader())
-
-        assertThatIllegalStateException().isThrownBy {
-            repository.lagreSøknadsgrunnlag(id, grunnlag.leggTilSøknad(JournalpostId(101)))
-        }
         assertThatIllegalStateException().isThrownBy { repository.lagreSøknadsgrunnlag(BehandlingId(2), grunnlag) }
-        assertThat(repository.finnBehandlingForNyeSøknader(grunnlag.personId)).isNull()
         assertThat(repository.hentBehandlingForSøknad(søknad)).isEqualTo(id)
     }
 

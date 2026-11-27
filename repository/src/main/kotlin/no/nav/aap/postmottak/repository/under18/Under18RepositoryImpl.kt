@@ -15,7 +15,6 @@ class Under18RepositoryImpl : Under18Repository {
         override fun konstruer(connection: DBConnection): Under18RepositoryImpl = Under18RepositoryImpl()
     }
 
-    override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? = TODO()
     override fun hentBehandlingForSøknad(journalpostId: JournalpostId): BehandlingId? = TODO()
 
     override fun lagreSøknadsgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Søknadsgrunnlag): Unit = TODO()

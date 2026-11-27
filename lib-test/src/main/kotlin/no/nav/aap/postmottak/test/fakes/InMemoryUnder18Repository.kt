@@ -26,10 +26,6 @@ class IsolertUnder18Repository : Under18Repository {
     private val samtykkevurderinger = HashMap<BehandlingId, Under18SamtykkeVurdering>()
     private val lock = Any()
 
-    override fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId? = synchronized(lock) {
-        søknadsgrunnlag.entries.singleOrNull { it.value.personId == personId && it.value.tarImotNyeSøknader }?.key
-    }
-
     override fun hentBehandlingForSøknad(journalpostId: JournalpostId): BehandlingId? =
         synchronized(lock) { søknadsgrunnlag.entries.singleOrNull { journalpostId in it.value.søknader }?.key }
 
@@ -38,12 +34,6 @@ class IsolertUnder18Repository : Under18Repository {
             val tidligere = søknadsgrunnlag[behandlingId]
             if (tidligere == grunnlag) return
             tidligere?.validerEndringTil(grunnlag, behandlingId)
-            if (grunnlag.tarImotNyeSøknader) {
-                val åpenBehandling = finnBehandlingForNyeSøknader(grunnlag.personId)
-                check(åpenBehandling == null || åpenBehandling == behandlingId) {
-                    "Personen har allerede en behandling for nye søknader"
-                }
-            }
             grunnlag.søknader.forEach {
                 val eier = hentBehandlingForSøknad(it)
                 check(eier == null || eier == behandlingId) { "Søknad $it tilhører allerede en annen behandling" }

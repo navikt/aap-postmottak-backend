@@ -48,15 +48,11 @@ class OpprettUnder18SakSteg(
         }
         val aldersgruppe = under18Repository.krevAldersgrunnlag(id).aldersgruppe
         val avklaring = under18Repository.hentSøknadsavklaring(id)
-        val søknadsgrunnlag = under18Repository.hentSøknadsgrunnlag(id)
         val erHenlagt = avklaring?.erHenlagt(aldersgruppe) == true
         if (!erHenlagt) {
             sjekkAvklaringForSaksopprettelse(id, aldersgruppe, avklaring)
-            val saksnummer = opprettKelvinSak(kontekst, søknadsgrunnlag)
+            val saksnummer = opprettKelvinSak(kontekst, under18Repository.hentSøknadsgrunnlag(id))
             saker.lagreSakVurdering(id, Saksvurdering(saksnummer))
-        }
-        if (søknadsgrunnlag.tarImotNyeSøknader) {
-            under18Repository.lagreSøknadsgrunnlag(id, søknadsgrunnlag.stengForNyeSøknader())
         }
         return Fullført
     }

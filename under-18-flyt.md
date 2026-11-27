@@ -181,11 +181,11 @@ samles i én åpen under-18-behandling. Én samtykkevurdering dekker de innsamle
 søknadene. Etter saksopprettelse og tilknytning får hver søknad sin egen
 `DokumentHåndtering`-behandling, som beskrevet nedenfor.
 
-Når Kelvin-saksnummeret foreligger, stenges innsamlingen, og nye søknader følger vanlig flyt.
-En søknad som allerede er i Journalføring når innsamlingen stenges, må likevel
-følges opp. Hvis den allerede er ferdigstilt på generell sak, feiler `VideresendSteg`
-med en tydelig driftsfeil for manuell oppfølging. Steget oppretter ikke en ny samling.
-Under-18-behandlingen avsluttes ikke da. Den fullfører tilknytning av de innsamlede
+Behandlingsstatusen avgjør om søknaden kan legges til: `OPPRETTET` og `UTREDES` er åpne statuser.
+Etter henleggelse kan en ny søknad starte en ny under-18-behandling. Finnes det allerede en
+Kelvin-sak, følger søknaden vanlig journalføring. Hvis Kelvin-saken oppstår etter at søknaden
+er journalført på generell sak, feiler `VideresendSteg` og krever manuell oppfølging.
+Under-18-behandlingen fullfører tilknytning av de innsamlede
 dokumentene og oppretter dokumentbehandlingene med prosesseringsjobber før den avsluttes.
 Digitalisering og overlevering fortsetter uavhengig i dokumentbehandlingene.
 
@@ -633,10 +633,9 @@ Tester av forsinkede jobber skal tillate at registrering etter en ny vent vekker
 ### Overgang til Under18 og dataintegritet: J1, S1 og PG
 
 Vi forventer rundt 200 behandlinger i året og bruker ingen egen personlås.
-`VideresendSteg` gjenbruker en åpen samling. Hvis to jobber forsøker å opprette
-hver sin, skal en unik indeks i PG avvise det andre forsøket slik at motoren kan prøve igjen.
-Når vi kobler søknaden, sjekker vi at samlingen er åpen. Denne sjekken ser
-allerede committede endringer; den får ikke en samtidig henleggelse til å vente.
+`VideresendSteg` gjenbruker en åpen behandling. Hvis to jobber oppretter hver sin,
+logger vi en feil når oppslaget finner begge. Vi velger ikke vilkårlig mellom dem.
+Ved tilknytning låser vi behandlingen slik at statusen ikke endres mens vi legger til søknaden.
 `VideresendSteg` registrerer søknaden og legger prosessering i kø; det kjører ikke
 Under18-flyten direkte. Den vanlige prosesseringsjobben tar Under18-behandlingslåsen
 når den kjører.
@@ -729,7 +728,7 @@ personopplysningene faktisk er fjernet.
 | Situasjon | Avklaring |
 | --- | --- |
 | Kelvin-sak oppstår etter Fordeling | Kontroller aktuell sakssituasjon i Journalføring før valg av generell sak. Fordelingsresultatet avgjør ikke alene om en Under18-behandling skal opprettes. |
-| Samlingen stenges mellom oppslag og kobling | Hvis stengingen er synlig når søknaden kobles, feiler jobben med beskjed om manuell oppfølging. Vi lagrer ikke hvilken samling Journalføring så ved valg av generell sak. |
+| Behandlingen avsluttes mellom oppslag og kobling | Videresend sjekker status på nytt. Uten Kelvin-sak kan søknaden starte en ny behandling. |
 | Gjenfinning av tilknytning | Bekreft gjenbruk av dokument-ID-er og når tilknytningen er synlig i SAF. |
 | Forutsetninger for tilknytning | Avklar obligatoriske felt og tillatte kildestatuser for søknader. Separate samtykkejournalposter skal ikke knyttes til saken. |
 
@@ -748,9 +747,8 @@ saksvurderingen. Da fjerner vi `registrerUnder18Journalføring` og `erUnder18Jou
 uten å lage en egen tabell for valget. Test at valget overlever en ny kjøring etter
 18-årsdagen, og at eksisterende vurderinger og manuelt valgt generell sak ikke starter Under18.
 
-Under18-tabellene skal vise hvilken behandling som samler søknadene for en person, om samlingen er åpen,
-og hvilken behandling hver kildejournalpost tilhører. Tillat høyst én åpen samling
-per person og én kobling per kildejournalpost.
+Under18-tabellene viser hvilke søknader som tilhører behandlingen. Hver kildejournalpost
+kan bare kobles til én behandling. Åpen status leses fra `behandling`.
 Alle nye tabeller får primærnøkler og bruker SQL som støttes av Postgres 16.
 Produksjonsimplementasjonene registreres i `PostgresRepositoryRegistry`, og
 integrasjonstestene bruker dem. Enhetstestene beholder in-memory-repositoriene.

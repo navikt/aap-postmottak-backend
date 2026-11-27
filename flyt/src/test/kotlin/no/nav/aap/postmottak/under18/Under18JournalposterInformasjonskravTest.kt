@@ -272,6 +272,9 @@ internal object InMemoryBehandlingRepository : BehandlingRepository {
 
     override fun hentÅpenJournalføringsbehandling(journalpostId: JournalpostId): Behandling? = null
 
+    override fun hentÅpenUnder18Behandling(personId: Long, forOppdatering: Boolean): BehandlingId? =
+        error("Ikke implementert i test-repositoriet")
+
     override fun hentBehandlingerForPerson(person: Person): List<Behandling> = emptyList()
 
     override fun markerSavepoint() = Unit
