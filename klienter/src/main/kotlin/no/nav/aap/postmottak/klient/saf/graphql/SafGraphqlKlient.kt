@@ -47,10 +47,10 @@ class SafGraphqlOboClient : JournalpostOboGateway {
 
     override fun hentAapJournalposter(
         fnr: String,
-        foerste: Int,
+        antall: Int,
         etter: String?,
         currentToken: OidcToken
-    ): SafDokumentoversikt = safGraphqlKlient.hentAapJournalposterInternal(fnr, foerste, etter, currentToken)
+    ): SafDokumentoversikt = safGraphqlKlient.hentAapJournalposterInternal(fnr, antall, etter, currentToken)
 
     override fun hentTilknyttedeJournalposter(
         dokumentInfoId: DokumentInfoId,
@@ -116,11 +116,11 @@ class SafGraphqlKlient(
 
     fun hentAapJournalposterInternal(
         fnr: String,
-        foerste: Int,
+        antall: Int,
         etter: String?,
         currentToken: OidcToken
     ): SafDokumentoversikt {
-        val response = graphqlQuery(SafRequest.hentAapJournalposter(fnr, foerste, etter), currentToken)
+        val response = graphqlQuery(SafRequest.hentAapJournalposter(fnr, antall, etter), currentToken)
         check(response.extensions?.warnings.isNullOrEmpty()) {
             "SAF returnerte advarsler ved oppslag av journalpostoversikt"
         }

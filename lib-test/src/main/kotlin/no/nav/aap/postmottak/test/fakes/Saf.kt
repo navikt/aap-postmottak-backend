@@ -86,12 +86,12 @@ fun Application.safFake(
             if (body.contains("dokumentoversiktBruker")) {
                 val request = DefaultJsonMapper.objectMapper().readTree(body)
                 val variables = request.required("variables")
-                val foerste = variables.required("foerste").intValue()
+                val antall = variables.required("antall").intValue()
                 val offset = variables["etter"]?.takeUnless { it.isNull }?.asText()?.toInt() ?: 0
                 val journalposter = TestJournalposter.hentJournalposter(variables.required("fnr").asText())
                     .filter { it.tema == "AAP" }
                     .sortedWith(compareByDescending<TestJournalPost> { it.mottattTid }.thenByDescending { it.journalpostId })
-                val side = journalposter.drop(offset).take(foerste)
+                val side = journalposter.drop(offset).take(antall)
                 val neste = offset + side.size
                 call.respond(mapOf("data" to mapOf(
                     "dokumentoversiktBruker" to SafDokumentoversikt(
