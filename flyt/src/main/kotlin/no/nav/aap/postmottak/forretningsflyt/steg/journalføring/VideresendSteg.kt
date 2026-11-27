@@ -72,8 +72,8 @@ class VideresendSteg(
 
         when {
             saksnummervurdering?.generellSak == true -> {
-                if (avklarTemaVurdering?.tema == Tema.AAP && avklarTemaVurdering.skalTilAap) {
-                    under18Journalføring.videresendHvisValgt(kontekst.behandlingId, journalpost)
+                if (saksnummervurdering.under18 && avklarTemaVurdering?.tema == Tema.AAP && avklarTemaVurdering.skalTilAap) {
+                    under18Journalføring.videresend(journalpost)
                 }
             }
             erJournalførtPåAnnetFagsystem(journalpost) -> log.info("Journalpost er journalført på annet fagsystem - videresender ikke")

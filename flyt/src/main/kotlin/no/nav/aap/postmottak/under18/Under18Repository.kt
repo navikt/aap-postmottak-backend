@@ -6,8 +6,6 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.time.LocalDate
 
 interface Under18Repository : Repository {
-    fun registrerUnder18Journalføring(behandlingId: BehandlingId)
-    fun erUnder18Journalføring(behandlingId: BehandlingId): Boolean
     fun finnBehandlingForNyeSøknader(personId: Long): BehandlingId?
     fun hentBehandlingForSøknad(journalpostId: JournalpostId): BehandlingId?
     fun lagreSøknadsgrunnlag(behandlingId: BehandlingId, grunnlag: Under18Søknadsgrunnlag)

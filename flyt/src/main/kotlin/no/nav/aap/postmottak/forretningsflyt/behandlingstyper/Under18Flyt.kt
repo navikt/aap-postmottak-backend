@@ -11,7 +11,6 @@ import no.nav.aap.postmottak.forretningsflyt.steg.under18.AvklarUnder18Steg
 import no.nav.aap.postmottak.forretningsflyt.steg.under18.OpprettUnder18DokumentbehandlingerSteg
 import no.nav.aap.postmottak.forretningsflyt.steg.under18.OpprettUnder18SakSteg
 import no.nav.aap.postmottak.under18.Under18FødselsdatoInformasjonskrav
-import no.nav.aap.postmottak.under18.Under18JournalposterInformasjonskrav
 
 object Under18Flyt : BehandlingType {
     override fun flyt(): BehandlingFlyt = BehandlingFlytBuilder()
@@ -21,7 +20,6 @@ object Under18Flyt : BehandlingType {
             informasjonskrav = listOf(
                 JournalpostInformasjonskrav,
                 Under18FødselsdatoInformasjonskrav,
-                Under18JournalposterInformasjonskrav,
             )
         )
         .medSteg(steg = AvklarUnder18SamtykkeSteg)

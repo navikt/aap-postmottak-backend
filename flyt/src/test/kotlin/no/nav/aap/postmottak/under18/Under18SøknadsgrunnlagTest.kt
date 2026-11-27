@@ -11,7 +11,7 @@ class Under18SøknadsgrunnlagTest {
     private val repository = IsolertUnder18Repository()
     private val id = BehandlingId(1)
     private val søknad = JournalpostId(100)
-    private val grunnlag = Under18Søknadsgrunnlag(1, listOf(søknad))
+    private val grunnlag = Under18Søknadsgrunnlag(1, setOf(søknad))
 
     @Test
     fun `et gammelt grunnlag kan ikke åpne en stengt behandling eller flytte søknaden`() {

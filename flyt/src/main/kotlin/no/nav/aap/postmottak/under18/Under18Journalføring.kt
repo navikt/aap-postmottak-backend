@@ -6,13 +6,11 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.Tema
-import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.tema.TemaVurdering
 import no.nav.aap.postmottak.gateway.BehandlingsflytGateway
 import no.nav.aap.postmottak.gateway.Journalstatus
 import no.nav.aap.postmottak.gateway.Klokke
 import no.nav.aap.postmottak.gateway.PersondataGateway
 import no.nav.aap.postmottak.gateway.Sakstype
-import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
@@ -20,6 +18,8 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.unleash.PostmottakFeature
 import no.nav.aap.unleash.UnleashGateway
+
+enum class Under18VedBekreftetAap { OPPRETT, LEGG_TIL }
 
 class Under18Journalføring(
     private val under18Repository: Under18Repository,
@@ -44,19 +44,17 @@ class Under18Journalføring(
         )
     }
 
-    fun velgUnder18HvisAktuell(
-        behandlingId: BehandlingId, journalpost: Journalpost, tema: TemaVurdering?, harKelvinSak: Boolean
-    ): Boolean {
+    fun under18VedBekreftetAap(journalpost: Journalpost, harKelvinSak: Boolean): Under18VedBekreftetAap? {
         val erPapirsøknad = journalpost.erPapir() && journalpost.hoveddokumentbrevkode == Brevkoder.SØKNAD.kode
-        val bekreftetAap = tema?.tema == Tema.AAP && tema.skalTilAap
-        if (!erPapirsøknad || harKelvinSak || !bekreftetAap ||
+        if (!erPapirsøknad || harKelvinSak || journalpost.erUgyldig() || journalpost.status == Journalstatus.JOURNALFOERT ||
             !unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18)
-        ) return false
+        ) return null
 
-        val person = journalpost.person
-        val skalTilUnder18 = under18Repository.finnBehandlingForNyeSøknader(person.id) != null || erUnder18(journalpost)
-        if (skalTilUnder18) under18Repository.registrerUnder18Journalføring(behandlingId)
-        return skalTilUnder18
+        return when {
+            under18Repository.finnBehandlingForNyeSøknader(journalpost.person.id) != null -> Under18VedBekreftetAap.LEGG_TIL
+            erUnder18(journalpost) -> Under18VedBekreftetAap.OPPRETT
+            else -> null
+        }
     }
 
     private fun erUnder18(journalpost: Journalpost): Boolean {
@@ -67,10 +65,8 @@ class Under18Journalføring(
         return klokke.dagensDato().isBefore(fødselsdato.plusYears(18))
     }
 
-    fun videresendHvisValgt(behandlingId: BehandlingId, journalpost: Journalpost) {
-        if (!unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18) ||
-            !under18Repository.erUnder18Journalføring(behandlingId)
-        ) return
+    fun videresend(journalpost: Journalpost) {
+        if (!unleashGateway.isEnabled(PostmottakFeature.PostmottakUnder18)) return
         val journalpostId = journalpost.journalpostId
         if (under18Repository.hentBehandlingForSøknad(journalpostId) != null) return
         val saf = journalpostService.hentSafJournalpost(journalpostId)
@@ -88,7 +84,7 @@ class Under18Journalføring(
         val åpenBehandling = under18Repository.finnBehandlingForNyeSøknader(person.id)
         val behandling = åpenBehandling ?: behandlingRepository.opprettBehandling(journalpostId, TypeBehandling.Under18)
         val grunnlag = if (åpenBehandling == null) {
-            Under18Søknadsgrunnlag(person.id, listOf(journalpostId))
+            Under18Søknadsgrunnlag(person.id, setOf(journalpostId))
         } else {
             under18Repository.hentSøknadsgrunnlag(åpenBehandling).leggTilSøknad(journalpostId)
         }

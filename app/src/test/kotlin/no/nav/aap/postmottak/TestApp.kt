@@ -10,7 +10,6 @@ import no.nav.aap.postmottak.klient.defaultGatewayProvider
 import no.nav.aap.postmottak.repository.postgresRepositoryRegistry
 import no.nav.aap.postmottak.test.FakeServers
 import no.nav.aap.postmottak.test.FakeUnleash
-import no.nav.aap.postmottak.test.fakes.InMemoryUnder18Repository
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.postgresql.PostgreSQLContainer
 import java.time.Duration
@@ -22,7 +21,7 @@ fun main() {
     FakeServers().start()
 
     val gatewayProvider = defaultGatewayProvider(registrerUnleash = { register<FakeUnleash>() })
-    val repositories = postgresRepositoryRegistry.register<InMemoryUnder18Repository>()
+    val repositories = postgresRepositoryRegistry
 
     // Starter server
     embeddedServer(Netty, port = 8070) {

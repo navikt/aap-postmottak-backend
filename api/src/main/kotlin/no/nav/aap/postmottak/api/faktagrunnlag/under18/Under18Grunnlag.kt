@@ -1,6 +1,5 @@
 package no.nav.aap.postmottak.api.faktagrunnlag.under18
 
-import no.nav.aap.fordeler.Mottakshendelse
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.behandling.Status
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
@@ -17,7 +16,6 @@ data class Under18Grunnlag(
     val aldersgrunnlag: Under18Aldersgrunnlag?,
     val søknadsavklaring: Under18Søknadsavklaring?,
     val samtykkevurdering: Under18SamtykkeVurdering?,
-    val samtykkekandidater: List<Mottakshendelse>,
     val søknader: List<Under18SøknadDto>,
 )
 
