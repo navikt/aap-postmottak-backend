@@ -21,7 +21,6 @@ import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.postmottak.under18.Under18FødselsdatoInformasjonskrav
-import no.nav.aap.postmottak.under18.Under18JournalposterInformasjonskrav
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -32,8 +31,6 @@ class InformasjonskravAvhengighetTest {
         val ugyldigeInformasjonskravlister = listOf(
             listOf(Under18FødselsdatoInformasjonskrav),
             listOf(Under18FødselsdatoInformasjonskrav, JournalpostInformasjonskrav),
-            listOf(Under18JournalposterInformasjonskrav),
-            listOf(Under18JournalposterInformasjonskrav, JournalpostInformasjonskrav),
         )
 
         ugyldigeInformasjonskravlister.forEach { informasjonskravliste ->
@@ -93,10 +90,10 @@ class InformasjonskravAvhengighetTest {
         val kravSomOppdateres =
             flyt.alleFaktagrunnlagFørGjeldendeSteg() + flyt.faktagrunnlagForGjeldendeSteg()
         assertThat(kravSomOppdateres.map { it.second })
-            .containsOnlyOnce(JournalpostInformasjonskrav, Under18JournalposterInformasjonskrav)
+            .containsOnlyOnce(JournalpostInformasjonskrav, Under18FødselsdatoInformasjonskrav)
 
         val tilbakeflyt =
-            flyt.tilbakeflytEtterEndringer(listOf(Under18JournalposterInformasjonskrav))
+            flyt.tilbakeflytEtterEndringer(listOf(Under18FødselsdatoInformasjonskrav))
         assertThat(tilbakeflyt.stegene())
             .containsExactly(StegType.AVKLAR_UNDER18_SAMTYKKE, StegType.AVKLAR_UNDER18)
     }
