@@ -44,7 +44,7 @@ class OpprettUnder18DokumentbehandlingerStegTest {
                 val behandlingId = repositories.provide<BehandlingRepository>()
                     .opprettBehandling(kilde.journalpostId, TypeBehandling.Under18)
                 val under18 = repositories.provide<Under18Repository>()
-                under18.lagreSøknadsgrunnlag(behandlingId, Under18Søknadsgrunnlag(kilde.person.id, listOf(kilde.journalpostId)))
+                under18.lagreSøknadsgrunnlag(behandlingId, Under18Søknadsgrunnlag(kilde.person.id, setOf(kilde.journalpostId)))
                 repositories.provide<SaksnummerRepository>().lagreSakVurdering(behandlingId, Saksvurdering(sak))
                 val steg = OpprettUnder18DokumentbehandlingerSteg.konstruer(repositories, gateways)
                 val kontekst = FlytKontekst(kilde.journalpostId, behandlingId, TypeBehandling.Under18)
