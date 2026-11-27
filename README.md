@@ -13,7 +13,12 @@ For macOS og Linux anbefaler vi Colima. Det kan være nødvendig med et par tilp
 - `export DOCKER_HOST=unix://$TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE`
 - `export TESTCONTAINERS_RYUK_DISABLED=true`
 
-Ved lokal kjøring mot aap-saksbehandling, så finnes det genererte test oppgaver på http://localhost:3000/postmottak/ 
+Ved lokal kjøring mot aap-saksbehandling, så finnes det genererte test oppgaver på http://localhost:3000/postmottak/
+
+Kjør TestApp enten i IntelliJ direkte eller via
+```
+./gradlew :app:runTestApp
+```
 
 ### Kjøre lokalt mot dev-gcp
 

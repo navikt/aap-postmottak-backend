@@ -10,6 +10,7 @@ data class Saksvurdering(
     val journalposttittel: String? = null,
     val avsenderMottaker: AvsenderMottakerDto? = null,
     val dokumenter: List<ForenkletDokument>? = null,
+    val under18: Boolean = false,
 ) {
     init {
         require(!saksnummer.isNullOrEmpty() || generellSak) { "Sak må oppgis" }

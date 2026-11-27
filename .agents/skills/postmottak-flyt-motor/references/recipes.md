@@ -22,6 +22,9 @@ Stier: `flyt/src/main/kotlin/no/nav/aap/postmottak/` med mindre noe annet er opp
        }
    }
    ```
+   La konstruktøren til både steget og tjenestene det bruker ta inn de konkrete avhengighetene.
+   Slå opp repositorier og gatewayer i `companion object` sin `konstruer`, og bygg tjenester med deres egen `konstruer`.
+   Ikke send `RepositoryProvider` eller `GatewayProvider` til konstruktøren for å gjøre oppslag i forretningslogikken.
    `konstruer` kjører én gang per fase (fem ganger per gjennomkjøring): ingen I/O der.
 4. Sett inn `.medSteg(steg = MittSteg)` på riktig plass i `forretningsflyt/behandlingstyper/<Flyt>.kt`.
 5. Behandlinger under arbeid: de som allerede er forbi den nye plasseringen, kjører aldri steget (med mindre de tilbakeføres). Å fjerne et steg ødelegger behandlinger der det fjernede steget er aktivt (`Steg X finnes ikke i flyten`). Flytt dem med en migrering (presedens: `V1.37__fjern_kategoriseringssteg.sql`).
@@ -48,9 +51,11 @@ Stier: `flyt/src/main/kotlin/no/nav/aap/postmottak/` med mindre noe annet er opp
 4. Steget oppretter behovet og leser vurderingen ved neste kjøring.
 5. Legg til et lese-endepunkt (`api/.../faktagrunnlag/...`) hvis frontend trenger grunnlag. `openapi.json` genereres i CI (`./gradlew :app:genererOpenApiJson`). Ikke rediger den for hånd.
 6. Koordiner utrullingene: `Definisjon` serialiseres i `DokumentflytStoppetHendelse`, så aap-oppgave og aap-statistikk må godta den nye koden (ny kontraktversjon) før den kan dukke opp. Frontend (aap-saksbehandling) trenger et brukergrensesnitt.
-7. Test: løsertest, stegtest og én flyttest som løser behovet.
+7. Test løseren og steget hver for seg. Kall `utfør` med repositorier i minnet og fakes, uten mocks eller database (se `postmottak-testing`, mal 1). En flyttest som løser behovet på tvers av steg, kan bruke ekte Postgres.
 
 ## Legg til et informasjonskrav
+
+Hold saksbehandlerens svar og resultatet fra informasjonskravet i separate tabeller. For eksempel lagrer `AvklarUnder18SøknadLøser` alderssvaret i `under18_soknadsavklaring`. `Under18FødselsdatoInformasjonskrav` leser svaret og er alene om å skrive til `under18_aldersgrunnlag`.
 
 1. Implementer `Informasjonskrav<Input, Registerdata>`. Input implementerer `InformasjonskravInput`, registerdata implementerer `InformasjonskravRegisterdata`. Bruk `IngenInput` eller `IngenRegisterData` når en fase ikke trenger data. `klargjør(kontekst)` leser input fra databasen, `hentData(input)` henter eksterne opplysninger uten databasetilgang, og `oppdater(input, registerdata, kontekst): Endret` oppdaterer databasen uten eksterne kall.
 2. Legg til et stabilt navn i `InformasjonskravNavn` og et `companion object : Informasjonskravkonstruktør` med `navn` og eventuelle `avhengigheter`. Ikke gi lagrede navn nye verdier. Injiser repositories i konstruktøren. `InformasjonskravGrunnlagImpl` er et avtalt unntak: historikkrepositoryet slås opp én gang i en `private val` i klassen, ikke i metodene.

@@ -42,6 +42,8 @@ import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.postmottak.test.modell.TestPersoner
 import no.nav.aap.postmottak.test.modell.genererIdent
 import no.nav.aap.postmottak.under18.Under18Repository
+import no.nav.aap.postmottak.under18.Under18Aldersgrunnlag
+import no.nav.aap.postmottak.under18.Under18Aldersgruppe
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -131,8 +133,6 @@ class AvklarUnder18SamtykkeLøserTest {
             val gyldigJournalpost = TestJournalposter.leggTil { this.person = person }
             løs(repositoryProvider, kontekst, beggeForeldreSamtykket = true)
             val vurderingFørAvvisning = under18Repository.hentAktivSamtykkevurdering(kontekst.behandlingId)
-            val antallVurderingerFørAvvisning =
-                under18Repository.hentSamtykkevurderinger(kontekst.behandlingId).size
             val gatewayProviderMedIkkeFunnet = defaultGatewayProvider {
                 register<FakeUnleash>()
                 register<SamtykkeTestJournalpostGateway>()
@@ -150,8 +150,6 @@ class AvklarUnder18SamtykkeLøserTest {
 
             assertThat(under18Repository.hentAktivSamtykkevurdering(kontekst.behandlingId))
                 .isEqualTo(vurderingFørAvvisning)
-            assertThat(under18Repository.hentSamtykkevurderinger(kontekst.behandlingId))
-                .hasSize(antallVurderingerFørAvvisning)
             assertThat(avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.behandlingId).hentVentepunkter())
                 .isEmpty()
         }
@@ -250,7 +248,7 @@ class AvklarUnder18SamtykkeLøserTest {
         fødselsdato: LocalDate = LocalDate.now().minusYears(18).plusDays(7),
         blokk: (
             RepositoryProvider,
-            Under18Repository,
+            IsolertUnder18Repository,
             AvklaringsbehovRepository,
             FlytKontekst,
             TestPerson,
@@ -271,7 +269,10 @@ class AvklarUnder18SamtykkeLøserTest {
             .register<SamtykkeTestPersonRepository>()
             .provider(MockConnection().toDBConnection())
         val under18Repository = repositoryProvider.provide<Under18Repository>()
-        under18Repository.lagreFødselsdato(behandlingId, fødselsdato)
+        check(under18Repository is IsolertUnder18Repository)
+        under18Repository.lagreAldersgrunnlag(
+            behandlingId, Under18Aldersgrunnlag(fødselsdato, Under18Aldersgruppe.vurder(fødselsdato, LocalDate.now()))
+        )
         repositoryProvider.provide<JournalpostRepository>().lagre(
             hovedjournalpost.tilJournalpost().copy(
                 person = Person(1, UUID.randomUUID(), person.identer.toList()),

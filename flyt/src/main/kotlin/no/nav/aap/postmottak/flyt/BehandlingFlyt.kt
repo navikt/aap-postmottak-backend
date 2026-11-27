@@ -124,7 +124,7 @@ class BehandlingFlyt private constructor(
         val aIndex = flyt.indexOfFirst { it.steg.type() == stegA }
         val bIndex = flyt.indexOfFirst { it.steg.type() == stegB }
 
-        return aIndex <= bIndex
+        return aIndex >= 0 && aIndex <= bIndex
     }
 
     /**
