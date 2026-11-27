@@ -50,6 +50,12 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class FakeServers : AutoCloseable {
+    companion object {
+        val journalposterUtenLesetilgang = java.util.concurrent.ConcurrentHashMap.newKeySet<Long>()
+
+        fun saksbehandlerToken(navIdent: String): String =
+            AzureTokenGen("postmottak", "postmottak").generate(isApp = false, navIdent = navIdent)
+    }
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     private val texas = embeddedServer(Netty, port = 0) { texasFakes() }
@@ -289,7 +295,11 @@ class FakeServers : AutoCloseable {
             put("/rest/journalpostapi/v1/journalpost/{journalpostId}") {
                 val request = call.receive<JsonNode>()
                 if (request.has("sak")) {
-                    DefaultJsonMapper.fromJson<OppdaterJournalpostRequest>(request.toString())
+                    val endring = DefaultJsonMapper.fromJson<OppdaterJournalpostRequest>(request.toString())
+                    val id = requireNotNull(call.parameters["journalpostId"]).toLong()
+                    TestJournalposter.hentJournalpost(id)?.let {
+                        TestJournalposter.oppdater(it.copy(fagsak = endring.sak, tema = endring.tema))
+                    }
                 } else {
                     require(request.fieldNames().asSequence().toSet() == setOf("tema"))
                     DefaultJsonMapper.fromJson<EndreTemaRequest>(request.toString())
@@ -298,6 +308,10 @@ class FakeServers : AutoCloseable {
             }
             patch("/rest/journalpostapi/v1/journalpost/{journalpostId}/ferdigstill") {
                 call.receive<FerdigstillRequest>()
+                val id = requireNotNull(call.parameters["journalpostId"]).toLong()
+                TestJournalposter.hentJournalpost(id)?.let {
+                    TestJournalposter.oppdater(it.copy(status = Journalstatus.JOURNALFOERT))
+                }
                 call.respondText(ContentType.Text.Plain) {
                     "I'm just a string"
                 }
@@ -391,8 +405,8 @@ class FakeServers : AutoCloseable {
         }
         routing {
             post("/tilgang/journalpost") {
-                call.receive<JournalpostTilgangRequest>()
-                call.respond(TilgangResponse(true))
+                val request = call.receive<JournalpostTilgangRequest>()
+                call.respond(TilgangResponse(request.journalpostId !in journalposterUtenLesetilgang))
             }
             post("/tilgang/person") {
                 call.receive<PersonTilgangRequest>()
@@ -563,17 +577,18 @@ class FakeServers : AutoCloseable {
 
     private fun genererHentIdenterRespons(body: String): String {
         val ident = finnIdentIBody(body)
+        val person = TestPersoner.hentPerson(ident)
         return """
             { "data":
             {"hentIdenter": {
                     "identer": [
                         {
-                            "ident": "$ident",
+                            "ident": "${person?.aktivIdent()?.identifikator ?: ident}",
                             "historisk": false,
                             "gruppe": "FOLKEREGISTERIDENT"
                         },
                         {
-                            "ident": "1234567898",
+                            "ident": "${person?.aktørId ?: "1234567898"}",
                             "historisk": false,
                             "gruppe": "AKTORID"
                         }

@@ -83,8 +83,8 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
     override fun lagreSakVurdering(behandlingId: BehandlingId, saksvurdering: Saksvurdering) {
         val avklaringId = connection.executeReturnKey(
             """
-            INSERT INTO SAKSNUMMER_AVKLARING (SAKSNUMMER, GENERELL_SAK, OPPRETTET_NY, JOURNALPOSTTITTEL, AVSENDERMOTTAKER, DOKUMENTER) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO SAKSNUMMER_AVKLARING (SAKSNUMMER, GENERELL_SAK, OPPRETTET_NY, JOURNALPOSTTITTEL, AVSENDERMOTTAKER, DOKUMENTER, UNDER18)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         ) {
             setParams {
@@ -94,6 +94,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                 setString(4, saksvurdering.journalposttittel)
                 setString(5, saksvurdering.avsenderMottaker?.let(DefaultJsonMapper::toJson))
                 setString(6, saksvurdering.dokumenter?.let(DefaultJsonMapper::toJson))
+                setBoolean(7, saksvurdering.under18)
             }
         }
         setVurderingInaktiv(behandlingId)
@@ -106,8 +107,7 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
         return connection.queryFirstOrNull(
             """SELECT * FROM SAKSVURDERING_GRUNNLAG
             JOIN saksnummer_avklaring ON saksnummer_avklaring.id = SAKSVURDERING_GRUNNLAG.saksnummer_avklaring_id
-            WHERE BEHANDLING_ID = ?
-            ORDER BY TIDSSTEMPEL DESC LIMIT 1
+            WHERE BEHANDLING_ID = ? AND AKTIV
         """
         ) {
             setParams { setLong(1, behandlingId.toLong()) }
@@ -118,7 +118,8 @@ class SaksnummerRepositoryImpl(private val connection: DBConnection) : Saksnumme
                     row.getBoolean("OPPRETTET_NY"),
                     row.getStringOrNull("JOURNALPOSTTITTEL"),
                     row.getStringOrNull("AVSENDERMOTTAKER")?.let { fromJson<AvsenderMottakerDto>(it) },
-                    row.getStringOrNull("DOKUMENTER")?.let { fromJson<List<ForenkletDokument>>(it) }
+                    row.getStringOrNull("DOKUMENTER")?.let { fromJson<List<ForenkletDokument>>(it) },
+                    under18 = row.getBoolean("UNDER18"),
                 )
             }
         }

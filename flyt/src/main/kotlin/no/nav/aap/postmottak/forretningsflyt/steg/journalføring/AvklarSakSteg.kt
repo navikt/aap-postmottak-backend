@@ -20,6 +20,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.Ident
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
 import no.nav.aap.postmottak.journalpostogbehandling.flyt.FlytKontekst
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
+import no.nav.aap.postmottak.under18.Under18Journalføring
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.steg.StegType
 import no.nav.aap.unleash.PostmottakFeature
@@ -31,7 +32,8 @@ class AvklarSakSteg(
     private val journalpostRepository: JournalpostRepository,
     private val behandlingsflytClient: BehandlingsflytGateway,
     private val avklarTemaRepository: AvklarTemaRepository,
-    private val unleashGateway: UnleashGateway
+    private val unleashGateway: UnleashGateway,
+    private val under18Journalføring: Under18Journalføring,
 ) : BehandlingSteg {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -45,7 +47,8 @@ class AvklarSakSteg(
                 repositoryProvider.provide(JournalpostRepository::class),
                 gatewayProvider.provide(BehandlingsflytGateway::class),
                 repositoryProvider.provide(AvklarTemaRepository::class),
-                gatewayProvider.provide(UnleashGateway::class)
+                gatewayProvider.provide(UnleashGateway::class),
+                Under18Journalføring.konstruer(repositoryProvider, gatewayProvider)
             )
         }
 
@@ -108,6 +111,11 @@ class AvklarSakSteg(
             )
             Fullført
         } else if (saksnummerVurdering != null) {
+            Fullført
+        } else if (temavurdering?.skalTilAap == true && temavurdering.tema == Tema.AAP &&
+            under18Journalføring.under18VedBekreftetAap(journalpost, eksisterendeKelvinSaker.isNotEmpty()) != null
+        ) {
+            saksnummerRepository.lagreSakVurdering(kontekst.behandlingId, Saksvurdering(generellSak = true, under18 = true))
             Fullført
         } else {
             FantAvklaringsbehov(Definisjon.AVKLAR_SAK)
