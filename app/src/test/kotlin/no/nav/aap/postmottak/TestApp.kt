@@ -20,9 +20,8 @@ fun main() {
     val dbConfig = initDbConfig()
     FakeServers().start()
 
-    val gatewayProvider = defaultGatewayProvider {
-        register<FakeUnleash>()
-    }
+    val gatewayProvider = defaultGatewayProvider(registrerUnleash = { register<FakeUnleash>() })
+    val repositories = postgresRepositoryRegistry
 
     // Starter server
     embeddedServer(Netty, port = 8070) {
@@ -30,7 +29,7 @@ fun main() {
         // jdbc URL contains the host and port and database name.
         println("jdbcUrl: ${dbConfig.url}. Password: ${dbConfig.password}. Username: ${dbConfig.username}.")
         server(
-            dbConfig, postgresRepositoryRegistry, gatewayProvider
+            dbConfig, repositories, gatewayProvider
         )
 
         val datasource = initDatasource(dbConfig, SimpleMeterRegistry())
@@ -38,7 +37,7 @@ fun main() {
         // Lar en POST /test/simulerJournalpostHendelse simulere en journalføringshendelse fra
         // Kafka lokalt, uten ekte broker, se SimulerJournalpostHendelseRoute.kt.
         apiRouting {
-            simulerJournalpostHendelseApi(datasource, postgresRepositoryRegistry, gatewayProvider)
+            simulerJournalpostHendelseApi(datasource, repositories, gatewayProvider)
         }
     }.start(wait = true)
 }

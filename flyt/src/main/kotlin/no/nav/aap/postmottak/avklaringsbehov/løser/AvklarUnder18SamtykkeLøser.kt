@@ -16,7 +16,7 @@ import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.under18.Under18Aldersgruppe
 import no.nav.aap.postmottak.under18.Under18Repository
 import no.nav.aap.postmottak.under18.Under18SamtykkeVurdering
-import no.nav.aap.postmottak.under18.hentFødselsdatoFor
+import no.nav.aap.postmottak.under18.krevAldersgrunnlag
 
 class AvklarUnder18SamtykkeLøser(
     private val under18Repository: Under18Repository,
@@ -27,32 +27,35 @@ class AvklarUnder18SamtykkeLøser(
 ) : AvklaringsbehovsLøser<AvklarUnder18SamtykkeLøsning> {
 
     override fun løs(kontekst: AvklaringsbehovKontekst, løsning: AvklarUnder18SamtykkeLøsning): LøsningsResultat {
+        val id = kontekst.kontekst.behandlingId
+        val beggeForeldreSamtykket = løsning.beggeForeldreSamtykket
         val samtykkeJournalpostIder = løsning.samtykkeJournalpostIder.map(::JournalpostId)
         validerSamtykkereferanser(kontekst, samtykkeJournalpostIder)
 
         under18Repository.lagreSamtykkevurdering(
             kontekst.kontekst.behandlingId,
             Under18SamtykkeVurdering(
-                beggeForeldreSamtykket = løsning.beggeForeldreSamtykket,
+                beggeForeldreSamtykket = beggeForeldreSamtykket,
                 samtykkeJournalpostIder = samtykkeJournalpostIder,
             )
         )
 
-        if (!løsning.beggeForeldreSamtykket) {
-            val fødselsdato = under18Repository.hentFødselsdatoFor(kontekst.kontekst.behandlingId)
-            if (Under18Aldersgruppe.vurder(fødselsdato, klokke.dagensDato()) == Under18Aldersgruppe.SAMTYKKE) {
+        if (!beggeForeldreSamtykket) {
+            val grunnlag = under18Repository.krevAldersgrunnlag(id)
+            val alderssvar = under18Repository.hentSøknadsavklaring(id)?.fylt17ÅrOg9Måneder
+            if (Under18Aldersgruppe.vurder(grunnlag.fødselsdato, klokke.dagensDato(), alderssvar) == Under18Aldersgruppe.SAMTYKKE) {
                 val vent = Definisjon.VENT_PA_UNDER18_SAMTYKKE
                 avklaringsbehovRepository.hentAvklaringsbehovene(kontekst.kontekst.behandlingId).leggTil(
                     definisjon = vent,
                     stegType = vent.løsesISteg,
                     grunn = ÅrsakTilSettPåVent.VENTER_PÅ_OPPLYSNINGER,
-                    frist = minOf(vent.utledFrist(null), fødselsdato.plusYears(18)),
+                    frist = minOf(vent.utledFrist(null), grunnlag.fødselsdato.plusYears(18)),
                 )
             }
         }
 
         return LøsningsResultat(
-            if (løsning.beggeForeldreSamtykket) "Begge foreldre har samtykket" else "Samtykke mangler"
+            if (beggeForeldreSamtykket) "Begge foreldre har samtykket" else "Samtykke mangler"
         )
     }
 
@@ -74,7 +77,7 @@ class AvklarUnder18SamtykkeLøser(
                 throw UgyldigForespørselException("Fant ikke journalposten som er oppgitt som samtykke.")
             }
             if (journalpost.bruker?.id.isNullOrBlank() ||
-                journalpost.bruker?.type !in setOf(BrukerIdType.FNR, BrukerIdType.AKTOERID) ||
+                journalpost.bruker.type !in setOf(BrukerIdType.FNR, BrukerIdType.AKTOERID) ||
                 journalpostService.hentIdenter(journalpost).none(person::er)
             ) {
                 throw UgyldigForespørselException("Journalposten som er oppgitt som samtykke, tilhører ikke søkeren.")

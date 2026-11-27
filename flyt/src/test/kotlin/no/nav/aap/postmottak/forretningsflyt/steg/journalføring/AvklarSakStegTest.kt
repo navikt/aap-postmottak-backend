@@ -55,7 +55,7 @@ class AvklarSakStegTest {
     val avklarSakSteg = AvklarSakSteg(
         saksnummerRepository,
         journalpostRepository,
-        behandlingsflytClient, avklarTemaRepository, unleashGateway
+        behandlingsflytClient, avklarTemaRepository, unleashGateway, mockk(relaxed = true)
     )
 
 

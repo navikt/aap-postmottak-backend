@@ -20,6 +20,12 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.postmottak.gateway.SafDokumentoversikt
+import no.nav.aap.postmottak.gateway.SafOversiktDokument
+import no.nav.aap.postmottak.gateway.SafJournalpostOversikt
+import no.nav.aap.postmottak.gateway.SafSideInfo
+import no.nav.aap.postmottak.gateway.SafVariantformat
+import no.nav.aap.postmottak.gateway.SafVisningsvariant
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.dokumenter.KanalFraKodeverk
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Brevkoder
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Dokument
@@ -77,7 +83,35 @@ fun Application.safFake(
         post("/graphql") {
             val body = call.receive<String>()
 
-            if (body.contains("tilknyttedeJournalposter")) {
+            if (body.contains("dokumentoversiktBruker")) {
+                val request = DefaultJsonMapper.objectMapper().readTree(body)
+                val variables = request.required("variables")
+                val antall = variables.required("antall").intValue()
+                val offset = variables["etter"]?.takeUnless { it.isNull }?.asText()?.toInt() ?: 0
+                val journalposter = TestJournalposter.hentJournalposter(variables.required("fnr").asText())
+                    .filter { it.tema == "AAP" }
+                    .sortedWith(compareByDescending<TestJournalPost> { it.mottattTid }.thenByDescending { it.journalpostId })
+                val side = journalposter.drop(offset).take(antall)
+                val neste = offset + side.size
+                call.respond(mapOf("data" to mapOf(
+                    "dokumentoversiktBruker" to SafDokumentoversikt(
+                        journalposter = side.map { journalpost ->
+                            SafJournalpostOversikt(
+                                journalpost.journalpostId.toString(), "Søknad om AAP", journalpost.mottattTid,
+                                journalpost.tema, null, journalpost.tilJournalpost().dokumenter.map { dokument ->
+                                    SafOversiktDokument(
+                                        dokument.dokumentInfoId.dokumentInfoId, dokument.tittel, null,
+                                        dokument.varianter.map {
+                                            SafVisningsvariant(SafVariantformat.valueOf(it.variantformat.name), true, null)
+                                        }
+                                    )
+                                }
+                            )
+                        },
+                        sideInfo = SafSideInfo(neste.toString(), neste < journalposter.size)
+                    )
+                )))
+            } else if (body.contains("tilknyttedeJournalposter")) {
                 val request = DefaultJsonMapper.objectMapper().readTree(body)
                 val dokumentInfoId = DokumentInfoId(request["variables"]["dokumentInfoId"].asText())
                 check(request["query"].asText().contains("tilknytning: GJENBRUK"))

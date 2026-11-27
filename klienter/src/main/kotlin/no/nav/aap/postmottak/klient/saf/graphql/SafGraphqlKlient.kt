@@ -14,6 +14,7 @@ import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.JournalpostGateway
 import no.nav.aap.postmottak.gateway.JournalpostOboGateway
 import no.nav.aap.postmottak.gateway.SafJournalpost
+import no.nav.aap.postmottak.gateway.SafDokumentoversikt
 import no.nav.aap.postmottak.gateway.SafSak
 import no.nav.aap.postmottak.gateway.SafTilknyttetJournalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.DokumentInfoId
@@ -43,6 +44,13 @@ class SafGraphqlOboClient : JournalpostOboGateway {
 
     override fun hentSaker(fnr: String, currentToken: OidcToken): List<SafSak> =
         safGraphqlKlient.hentSakerInternal(fnr, currentToken)
+
+    override fun hentAapJournalposter(
+        fnr: String,
+        antall: Int,
+        etter: String?,
+        currentToken: OidcToken
+    ): SafDokumentoversikt = safGraphqlKlient.hentAapJournalposterInternal(fnr, antall, etter, currentToken)
 
     override fun hentTilknyttedeJournalposter(
         dokumentInfoId: DokumentInfoId,
@@ -104,6 +112,25 @@ class SafGraphqlKlient(
         val response = graphqlQuery(request, currentToken)
         val saker: List<SafSak> = response.data?.saker ?: emptyList()
         return saker
+    }
+
+    fun hentAapJournalposterInternal(
+        fnr: String,
+        antall: Int,
+        etter: String?,
+        currentToken: OidcToken
+    ): SafDokumentoversikt {
+        val response = graphqlQuery(SafRequest.hentAapJournalposter(fnr, antall, etter), currentToken)
+        check(response.extensions?.warnings.isNullOrEmpty()) {
+            "SAF returnerte advarsler ved oppslag av journalpostoversikt"
+        }
+        val oversikt = checkNotNull(response.data?.dokumentoversiktBruker) {
+            "SAF mangler resultat for journalpostoversikt"
+        }
+        check(!oversikt.sideInfo.finnesNesteSide || !oversikt.sideInfo.sluttpeker.isNullOrBlank()) {
+            "SAF mangler sluttpeker for neste side"
+        }
+        return oversikt
     }
 
     fun hentTilknyttedeJournalposterInternal(

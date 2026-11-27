@@ -29,9 +29,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
 
 private val standardMottattTid = LocalDateTime.of(2020, 12, 1, 10, 0)
+private val nestePapirdokumentId = AtomicLong(10_000_000_000L)
 
 data class TestJournalPost(
     val journalpostId: Long = Random.nextLong(10_000L, 1_000_000_000L),
@@ -180,8 +182,22 @@ class TestJournalPostBuilder {
     fun papirsøknad() {
         kanal = KanalFraKodeverk.SKAN_NETS
         digitalSøknad = null
-        dokumenter = null
         brevkode = Brevkoder.SØKNAD
+        dokumenter = listOf(vedlegg("Søknad").copy(brevkode = brevkode.kode), vedlegg("Vedlegg")).map {
+            it.copy(dokumentInfoId = DokumentInfoId(nestePapirdokumentId.getAndIncrement().toString()))
+        }
+    }
+
+    fun annetRelevantPapirdokument() {
+        kanal = KanalFraKodeverk.SKAN_NETS
+        brevkode = Brevkoder.ANNEN
+        digitalSøknad = null
+        dokumenter = listOf(
+            vedlegg("Annet relevant dokument").copy(
+                dokumentInfoId = DokumentInfoId(nestePapirdokumentId.getAndIncrement().toString()),
+                brevkode = brevkode.kode
+            )
+        )
     }
 
     fun legeerklæring() {
@@ -247,9 +263,11 @@ object TestJournalposter {
             brukerType = builder.brukerType.name,
             mottattTid = builder.mottattTid
         ).let {
-            if (builder.brukerType != BrukerIdType.ORGNR) {
-                it.medFnr(ident)
-            } else it.copy(brukerId = ident.identifikator)
+            when (builder.brukerType) {
+                BrukerIdType.FNR -> it.medFnr(ident)
+                BrukerIdType.AKTOERID -> it.medFnr(ident).copy(brukerId = requireNotNull(TestPersoner.hentPerson(ident.identifikator)).aktørId)
+                BrukerIdType.ORGNR -> it.copy(brukerId = ident.identifikator)
+            }
         }
         fakeJournalposter[journalpost.journalpostId] = journalpost
 
@@ -264,6 +282,14 @@ object TestJournalposter {
 
     fun hentJournalpost(journalpostId: Long): TestJournalPost? {
         return fakeJournalposter[journalpostId]
+    }
+
+    fun hentJournalposter(fnr: String): List<TestJournalPost> {
+        val person = TestPersoner.hentPerson(fnr)
+        return fakeJournalposter.values.filter { journalpost ->
+            journalpost.brukerId == fnr || journalpost.brukerId == person?.aktørId ||
+                person?.identer?.any { it.identifikator == journalpost.brukerId } == true
+        }
     }
 
     fun oppdater(journalpost: TestJournalPost) {

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.random.Random
 
 class InnkommendeJournalpostRepositoryImplTest {
@@ -232,7 +233,7 @@ class InnkommendeJournalpostRepositoryImplTest {
     }
 
     @Test
-    fun `finnMottakshistorikk returnerer journalposter for alle identene til personen`() {
+    fun `bare andre journalposter registrert etter vent på søkerens identer teller`() {
         val historiskIdent = Ident(genererIdent(LocalDate.now().minusYears(19)).identifikator, aktivIdent = false)
         val person = TestPerson().let { it.copy(identer = it.identer + historiskIdent) }
         val annenPerson = TestPerson()
@@ -251,13 +252,13 @@ class InnkommendeJournalpostRepositoryImplTest {
             repository.lagre(innkommende(303, annenPerson.aktivIdent().identifikator))
         }
 
-        val historikk = dataSource.transaction(readOnly = true) { connection ->
-            InnkommendeJournalpostRepositoryImpl(connection)
-                .finnMottakshistorikk(person.identer.toList())
+        dataSource.transaction(readOnly = true) { connection ->
+            val repository = InnkommendeJournalpostRepositoryImpl(connection)
+            val før = LocalDateTime.now().minusDays(1)
+            val hovedjournalpost = JournalpostId(301)
+            assertThat(repository.harNyJournalpostEtter(person.identer.toList(), før, hovedjournalpost)).isTrue()
+            assertThat(repository.harNyJournalpostEtter(listOf(person.aktivIdent()), før, hovedjournalpost)).isFalse()
+            assertThat(repository.harNyJournalpostEtter(person.identer.toList(), før.plusDays(2), hovedjournalpost)).isFalse()
         }
-
-        assertThat(historikk).extracting<JournalpostId> { it.journalpostId }
-            .containsExactlyInAnyOrder(JournalpostId(301), JournalpostId(302))
-        assertThat(historikk).allSatisfy { assertThat(it.mottattTid).isNotNull() }
     }
 }

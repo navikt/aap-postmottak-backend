@@ -1,7 +1,6 @@
 package no.nav.aap.fordeler
 
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
-import java.time.LocalDateTime
 
 enum class InnkommendeJournalpostStatus{
     EVALUERT,
@@ -32,9 +31,4 @@ data class InnkommendeJournalpost(
     val årsakTilStatus: ÅrsakTilStatus? = null,
     val enhet: NavEnhet? = null,
     val brukerId: String? = null,
-)
-
-data class Mottakshendelse(
-    val journalpostId: JournalpostId,
-    val mottattTid: LocalDateTime,
 )

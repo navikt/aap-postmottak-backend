@@ -14,15 +14,14 @@ import no.nav.aap.postmottak.under18.Under18Søknadssituasjon
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName(value = AVKLAR_UNDER18_SØKNAD_KODE)
 class AvklarUnder18SøknadLøsning(
-    @param:JsonProperty("situasjon", required = true)
-    val situasjon: Under18Søknadssituasjon,
-    @param:JsonProperty("søkerVilFortsette", required = true)
-    val søkerVilFortsette: Boolean,
+    val situasjon: Under18Søknadssituasjon? = null,
+    val søkerVilFortsette: Boolean? = null,
     @param:JsonProperty(
         "behovstype",
         required = true,
         defaultValue = AVKLAR_UNDER18_SØKNAD_KODE
     ) val behovstype: String = AVKLAR_UNDER18_SØKNAD_KODE,
+    val fylt17ÅrOg9Måneder: Boolean? = null,
 ) : AvklaringsbehovLøsning {
     override fun løs(
         repositoryProvider: RepositoryProvider,

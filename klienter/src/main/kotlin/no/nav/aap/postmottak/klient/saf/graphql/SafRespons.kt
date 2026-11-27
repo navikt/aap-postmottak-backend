@@ -1,6 +1,7 @@
 package no.nav.aap.postmottak.klient.saf.graphql
 
 import no.nav.aap.postmottak.gateway.SafJournalpost
+import no.nav.aap.postmottak.gateway.SafDokumentoversikt
 import no.nav.aap.postmottak.gateway.SafSak
 import no.nav.aap.postmottak.gateway.SafTilknyttetJournalpost
 import no.nav.aap.postmottak.klient.graphql.GraphQLError
@@ -15,5 +16,6 @@ data class SafRespons(
 data class SafData(
     val journalpost: SafJournalpost?,
     val saker: List<SafSak>?,
-    val tilknyttedeJournalposter: List<SafTilknyttetJournalpost?>? = null
+    val tilknyttedeJournalposter: List<SafTilknyttetJournalpost?>? = null,
+    val dokumentoversiktBruker: SafDokumentoversikt? = null
 )

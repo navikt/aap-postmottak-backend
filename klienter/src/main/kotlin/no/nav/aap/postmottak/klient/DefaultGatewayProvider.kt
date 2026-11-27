@@ -24,7 +24,10 @@ fun createGatewayProvider(body: GatewayRegistry.() -> Unit): GatewayProvider {
     return GatewayProvider(GatewayRegistry().apply(body))
 }
 
-fun defaultGatewayProvider(utvidelser: GatewayRegistry.() -> Unit = {}) = createGatewayProvider {
+fun defaultGatewayProvider(
+    registrerUnleash: GatewayRegistry.() -> Unit = { register<UnleashService>() },
+    utvidelser: GatewayRegistry.() -> Unit = {},
+) = createGatewayProvider {
     register<OppgaveKlient>()
     register<GosysOppgaveKlient>()
     register<SafGraphqlClientCredentialsClient>()
@@ -39,7 +42,7 @@ fun defaultGatewayProvider(utvidelser: GatewayRegistry.() -> Unit = {}) = create
     register<ArenaoppslagGatewayImpl>()
     register<StatistikkKlient>()
     register<VeilarbarenaKlient>()
-    register<UnleashService>()
+    registrerUnleash()
     register<DoksikkerhetsnettGatewayImpl>()
     register<EREGKlient>()
     register<DokarkivGatewayKlient>()
