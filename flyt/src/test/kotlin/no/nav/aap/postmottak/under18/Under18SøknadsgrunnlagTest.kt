@@ -1,0 +1,39 @@
+package no.nav.aap.postmottak.under18
+
+import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingId
+import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
+import no.nav.aap.postmottak.test.fakes.IsolertUnder18Repository
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatIllegalStateException
+import org.junit.jupiter.api.Test
+
+class Under18SøknadsgrunnlagTest {
+    private val repository = IsolertUnder18Repository()
+    private val id = BehandlingId(1)
+    private val søknad = JournalpostId(100)
+    private val grunnlag = Under18Søknadsgrunnlag(1, setOf(søknad))
+
+    @Test
+    fun `et gammelt grunnlag kan ikke åpne en stengt behandling eller flytte søknaden`() {
+        repository.lagreSøknadsgrunnlag(id, grunnlag)
+        repository.lagreSøknadsgrunnlag(id, grunnlag.stengForNyeSøknader())
+
+        assertThatIllegalStateException().isThrownBy {
+            repository.lagreSøknadsgrunnlag(id, grunnlag.leggTilSøknad(JournalpostId(101)))
+        }
+        assertThatIllegalStateException().isThrownBy { repository.lagreSøknadsgrunnlag(BehandlingId(2), grunnlag) }
+        assertThat(repository.finnBehandlingForNyeSøknader(grunnlag.personId)).isNull()
+        assertThat(repository.hentBehandlingForSøknad(søknad)).isEqualTo(id)
+    }
+
+    @Test
+    fun `en ny søknad kan ikke overskrive en annen som er lagt til i mellomtiden`() {
+        repository.lagreSøknadsgrunnlag(id, grunnlag)
+        val oppdatert = grunnlag.leggTilSøknad(JournalpostId(101))
+        repository.lagreSøknadsgrunnlag(id, oppdatert)
+        assertThatIllegalStateException().isThrownBy {
+            repository.lagreSøknadsgrunnlag(id, grunnlag.leggTilSøknad(JournalpostId(102)))
+        }
+        assertThat(repository.hentSøknadsgrunnlag(id)).isEqualTo(oppdatert)
+    }
+}

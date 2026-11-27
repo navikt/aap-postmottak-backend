@@ -50,6 +50,7 @@ internal class VurderRelevantDokumentForAAPJobbUtførerTest {
         innkommendeJournalpostRepository,
         gosysOppgaveGateway,
         enhetsutreder,
+        mockk(),
         meterRegistry,
     )
 

@@ -16,6 +16,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.ProvidersJobbSpesifikasjon
 import no.nav.aap.postmottak.PrometheusProvider
+import no.nav.aap.postmottak.avklaringsbehov.AvklaringsbehovRepository
 import no.nav.aap.postmottak.faktagrunnlag.saksbehandler.dokument.JournalpostService
 import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.gateway.GosysOppgaveGateway
@@ -27,6 +28,7 @@ import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
+import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import org.slf4j.LoggerFactory
@@ -38,6 +40,7 @@ class VurderRelevantDokumentForAAPJobbUtfører(
     private val innkommendeJournalpostRepository: InnkommendeJournalpostRepository,
     private val gosysOppgaveGateway: GosysOppgaveGateway,
     private val enhetsutreder: Enhetsutreder,
+    private val avklaringsbehovRepository: AvklaringsbehovRepository,
     private val prometheus: MeterRegistry = SimpleMeterRegistry(),
 ) : JobbUtfører {
     private val log = LoggerFactory.getLogger(VurderRelevantDokumentForAAPJobbUtfører::class.java)
@@ -51,6 +54,7 @@ class VurderRelevantDokumentForAAPJobbUtfører(
                 repositoryProvider.provide(),
                 gatewayProvider.provide(),
                 Enhetsutreder.konstruer(gatewayProvider),
+                repositoryProvider.provide(),
                 PrometheusProvider.prometheus
             )
         }
@@ -145,6 +149,10 @@ class VurderRelevantDokumentForAAPJobbUtfører(
         behandlingRepository.hentBehandlingerForPerson(person)
             .filter { it.typeBehandling == TypeBehandling.Under18 && !it.status().erAvsluttet() }
             .filter { it.journalpostId != journalpostId }
+            .filter { behandling ->
+                avklaringsbehovRepository.hentAvklaringsbehovene(behandling.id).hentVentepunkter()
+                    .any { it.definisjon == Definisjon.VENT_PA_UNDER18_SAMTYKKE }
+            }
             .forEach { behandling ->
                 flytJobbRepository.leggTil(
                     JobbInput(ProsesserBehandlingJobbUtfører)

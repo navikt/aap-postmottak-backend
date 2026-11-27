@@ -67,4 +67,8 @@ public enum class StegType(
         gruppe = StegGruppe.UNDER18,
         status = Status.UTREDES,
     ),
+    OPPRETT_UNDER18_DOKUMENTBEHANDLINGER(
+        gruppe = StegGruppe.UNDER18,
+        status = Status.UTREDES,
+    ),
 }

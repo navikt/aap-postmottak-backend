@@ -13,7 +13,7 @@ import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 import java.util.*
 
-private const val MASKINELL_JOURNALFØRING_ENHET = "9999"
+internal const val MASKINELL_JOURNALFØRING_ENHET = "9999"
 
 class JournalføringService(
     private val safGraphqlKlient: JournalpostGateway,

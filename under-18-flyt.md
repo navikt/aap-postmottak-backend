@@ -1,6 +1,6 @@
 # Under-18-flyt: avklaringer og implementeringsplan
 
-Avklart 12. november 2026, med oppdateringer til og med 25. november.
+Avklart 12. november 2026, med oppdateringer til og med 26. november.
 Dokumentet samler kravavklaringene og viser ønsket funksjonalitet, status og planen videre.
 
 Den 18. november ble løsningen endret til å gjenbruke vanlige
@@ -40,6 +40,12 @@ Den 25. november ble også den egne overleveringsjobben fjernet fra J1.
 `VideresendSteg` finner eller oppretter Under18 etter vellykket ferdigstilling i Joark,
 kobler søknaden og legger vanlig prosessering i kø.
 Journalføring-behandlingen trenger ikke ha status `AVSLUTTET` før dette skjer.
+
+Den 26. november skilte vi mellom å dokumentere samtykke og å knytte en
+journalpost til Kelvin-saken. Bare de innsamlede søknadene skal knyttes til
+saken. Saksbehandler velger fortsatt journalpostene som dokumenterer samtykket,
+og postmottak lagrer referansene på vurderingen. Ny post kan fortsatt vekke
+behandlingen uten at den regnes som samtykke.
 
 Utgangspunktet er diagrammet i
 [image-2026-11-11_8-30-51.png](image-2026-11-11_8-30-51.png).
@@ -109,6 +115,10 @@ Nye søknader etter avsluttet behandling vurderes på nytt ut fra aktuell alder.
 - Vi lagrer en liste over journalpost-ID-er som dokumenterer samtykke.
   Listen kan være tom i første versjon. Det skal være mulig å gjøre den obligatorisk senere.
 - Listen må støtte flere journalposter. Søknad og samtykke kan også ligge i samme journalpost.
+- Målbildet for dokumentvalg er at frontend henter søkerens dokumenter på vegne
+  av saksbehandler (OBO) og bare viser dokumenter saksbehandler har tilgang til.
+  Backend validerer og lagrer de valgte referansene, ikke listen som ble vist.
+  Overgangen fra dagens kandidatliste til OBO skjer separat fra endringen i tilknytning.
 
 ## Vent
 
@@ -128,14 +138,13 @@ selv om fristen er senere. Dette gjelder vent mens saksbehandler avklarer henleg
 eller samtykke. Fødselsdagen opphever ikke vent på en dokumentbehandling etter
 saksopprettelse, og løser ikke et manuelt avklaringsbehov eller oppretter en Kelvin-sak.
 Saksbehandler må først spørre søker om hen fortsatt vil søke AAP og registrere svaret.
-Nye journalposter kan fortsatt vises som kandidater mens behandlingen står på vent.
 
 ## Nye journalposter og kandidater til samtykke
 
-- Kandidatlisten utledes fra vurderingsjobbens registreringer i
-  `INNKOMMENDE_JOURNALPOST`, uten en egen kandidattabell. Vinduet starter når
-  samtykkeavklaringen opprettes. Vi bruker registreringstidspunktet, ikke første
-  Kafka-mottak eller Joarks mottaksdato.
+- Backend gir ikke lenger en kandidatliste til frontend. For å vekke automatisk
+  samtykkevent sjekker vi om `INNKOMMENDE_JOURNALPOST` inneholder en annen
+  journalpost på søkerens identer, først registrert etter at denne venten startet.
+  Ny post spoler ikke en åpen samtykkeoppgave tilbake.
 - Automatisk vekking bygger på dagens varsling fra vurderingsjobben og er ikke
   garantert for alle nye dokumenter. En kandidat registrert etter at venten ble
   opprettet, kan ta behandlingen av automatisk samtykkevent.
@@ -187,14 +196,17 @@ at søker fortsatt ønsker å søke AAP:
 
 1. Opprett Kelvin-sak.
 2. Knytt journalpostene med søknadene i behandlingen til saken.
-3. Knytt også journalpostene i den registrerte samtykkelisten til saken.
-4. Fortsett med digitalisering og overlevering av søknadene.
+3. Fortsett med digitalisering og overlevering av søknadene.
+
+En separat journalpost med samtykke blir liggende der den er journalført.
+Ligger samtykket i selve søknadsjournalposten, følger det med søknaden.
 
 Fagsaken på den ferdigstilte journalposten endres ikke direkte.
 Som avklart 13. november brukes dokarkivs
 `/rest/journalpostapi/v1/journalpost/{kildeJournalpostId}/knyttTilAnnenSak`,
 som returnerer `nyJournalpostId`.
-Vi må lagre koblingen fra kildejournalpost til den nye journalposten på Kelvin-saken.
+Tilknytningen ligger i Joark. Når vi trenger den nye journalpost-ID-en for en bestemt
+kildejournalpost, slår vi opp i SAF i stedet for å lagre koblingen i postmottak.
 Det er den nye journalpost-ID-en som skal brukes ved overlevering til behandlingsflyt.
 
 Hvis en Kelvin-sak uventet har blitt opprettet mens behandlingen står på vent,
@@ -208,7 +220,6 @@ Vi skal ikke automatisk bruke den uventede saken og fortsette.
 - Når klokkeslett mangler, brukes mottaksdato klokken 00:00.
   Ved like tidspunkt avgjør kildejournalpost-ID-en rekkefølgen.
 - Flere søknader kan vente på digitalisering samtidig og overleveres i ulik rekkefølge.
-- Vellykket HTTP-kall til behandlingsflyt bekrefter overleveringen for den enkelte søknaden.
   Vi trenger ikke vente på at behandlingsflyt har ferdigbehandlet hendelsen.
 - Sorteringen ved opprettelse garanterer ikke kjøre- eller fullføringsrekkefølge.
   Senere søknader i vanlig flyt trenger heller ikke vente på disse.
@@ -216,7 +227,8 @@ Vi skal ikke automatisk bruke den uventede saken og fortsette.
 Vi bruker eksisterende `DokumentHåndtering` med `DigitaliserDokumentSteg`,
 `DigitaliserDokumentLøser` og `OverleverTilFagsystemSteg`.
 Hver søknad får en egen dokumentbehandling med referanse, versjon, vurderinger og avklaringsbehov.
-Under-18-behandlingen lagrer samtykkevurderingen og koblingen til søknadene og dokumentbehandlingene.
+Under-18-behandlingen lagrer søknadene og journalpost-ID-ene saksbehandler har valgt som samtykke.
+Dokumentbehandlingen finnes på søknadens nye journalpost-ID.
 Samtykkedokumenter får ikke egne dokumentbehandlinger, med mindre journalposten også inneholder
 en innsamlet søknad.
 
@@ -233,8 +245,8 @@ Fordeling bruker togglen for aldersunntaket. Journalføring bruker samme toggle 
 `AvklarSakSteg` velger generell sak for en Under18-søknad. Før aktivering velges ikke
 dette løpet, heller ikke når et tidligere fordelingsresultat sender dokumentet til Kelvin.
 
-`AvklarSakSteg` registrerer i `Under18Repository` hvilken Journalføring som valgte
-Under18. `Saksvurdering` inneholder fortsatt bare vanlig generell sak. Ved et nytt forsøk
+Fram til PG registrerer `AvklarSakSteg` i `Under18Repository` hvilken Journalføring som
+valgte Under18. I PG flyttes valget til `Saksvurdering`. Ved et nytt forsøk
 følger `VideresendSteg` det registrerte valget uten å vurdere alderen på nytt.
 Har søknaden fått en Kelvin-sak før kobling, feiler jobben for manuell oppfølging.
 En manuelt valgt generell sak starter ikke Under18.
@@ -252,7 +264,7 @@ Under-18-behandlingen starter etter at Journalføring har ferdigstilt søknaden.
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#F6F7F9","primaryTextColor":"#23262A","primaryBorderColor":"#5B6169","lineColor":"#5B6169","secondaryColor":"#FBEDED","tertiaryColor":"#F6F7F9","background":"#FFFFFF"}}}%%
 flowchart TD
-    start["StartBehandlingSteg"] --> krav["Informasjonskrav på AVKLAR_UNDER18:<br/>JournalpostInformasjonskrav, så<br/>Under18FødselsdatoInformasjonskrav og<br/>Under18JournalposterInformasjonskrav"]
+    start["StartBehandlingSteg"] --> krav["Informasjonskrav på AVKLAR_UNDER18:<br/>JournalpostInformasjonskrav, så<br/>Under18FødselsdatoInformasjonskrav"]
     krav --> alder{"AvklarUnder18Steg:<br/>aldersgruppe i dag?"}
     alder -->|"Under 17 år og 9 måneder"| forUng["AVKLAR_UNDER18_SØKNAD:<br/>bekreft henleggelse"]
     alder -->|"Fylt 18 år"| fortsett["AVKLAR_UNDER18_SØKNAD:<br/>vil søker fortsette?"]
@@ -260,12 +272,12 @@ flowchart TD
     forUng -->|"Bekreftet"| henlagt["Henlagt: samtykke- og sakssteget<br/>returnerer Fullført uten sak"]
     fortsett -->|"Nei, kan henlegges"| henlagt
     fortsett -->|"Ja, samtykke kreves ikke"| sak
-    samtykke -->|"Begge foreldre samtykker"| sak["OpprettUnder18SakSteg:<br/>opprett sak og knytt journalposter"]
+    samtykke -->|"Begge foreldre samtykker"| sak["OpprettUnder18SakSteg:<br/>opprett Kelvin-sak"]
     samtykke -->|"Løseren registrerer at samtykke mangler"| vent["VENT_PA_UNDER18_SAMTYKKE:<br/>tidligste av tre uker og 18-årsdagen"]
     vent -->|"Frist utløpt: behovet åpnes igjen"| samtykke
-    vent -->|"Ny kandidat: tilbake via AVKLAR_UNDER18"| alder
+    vent -->|"Ny post etter at venten startet"| samtykke
     vent -.->|"Fylt 18 år"| alder
-    sak -.->|"Saksopprettelse og dokumentbehandling"| dokument["Opprett eller gjenbruk dokumentbehandling<br/>og jobb for hver søknad"]
+    sak --> dokument["Knytt bare søknadsjournalpostene til saken og opprett<br/>dokumentbehandling og jobb for hver søknad"]
     dokument -.-> digitaliser["Uavhengige dokumentbehandlinger:<br/>digitaliser og overlever til behandlingsflyt"]
     dokument -.-> slutt["AvsluttBehandlingSteg"]
     henlagt --> slutt
@@ -305,7 +317,7 @@ flowchart LR
     under18 -->|"Nei"| koble["Finn eller opprett Under18,<br/>koble søknad og legg vanlig prosessering i kø"]
     under18 -->|"Ja"| sen["Jobben feiler<br/>manuell oppfølging"]
     koble --> prosesser["ProsesserBehandlingJobbUtfører"]
-    prosesser --> krav["Under18JournalposterInformasjonskrav<br/>og alder-/samtykkeavklaring"]
+    prosesser --> krav["Alders- og samtykkeavklaring"]
     krav --> sak["Opprett Kelvin-sak,<br/>tilknytninger og dokumentbehandlinger"]
     sak --> dokument["Uavhengige DokumentHåndtering-behandlinger"]
     dokument --> ferdig["Digitaliser og overlever"]
@@ -342,16 +354,6 @@ erDiagram
         bigint id PK
         bigint behandling_id FK "Under-18-behandlingens ID"
         bigint kilde_journalpost_id UK "Joark-ID"
-        bigint dokumentbehandling_id FK,UK "ID til dokumentbehandlingen, kan være NULL"
-        timestamp overlevert_tid "Settes etter vellykket overlevering"
-    }
-    UNDER18_JOURNALPOST_TILKNYTNING {
-        bigint id PK
-        bigint behandling_id FK "Unik sammen med kilde_journalpost_id"
-        bigint kilde_journalpost_id "Joark-ID"
-        varchar kelvin_saksnummer "Uforanderlig, ikke FK til en saksvurderingsrad"
-        bigint ny_journalpost_id "Uforanderlig, returnert Joark-ID"
-        timestamp opprettet_tid
     }
     INNKOMMENDE_JOURNALPOST {
         bigint id PK
@@ -385,8 +387,6 @@ erDiagram
 
     BEHANDLING ||--|| UNDER18_PERSONOPPLYSNING : "har fødselsdato"
     BEHANDLING ||..o{ UNDER18_SOKNAD : "under-18 via behandling_id"
-    BEHANDLING |o..o| UNDER18_SOKNAD : "dokumentbehandling via dokumentbehandling_id"
-    BEHANDLING ||..o{ UNDER18_JOURNALPOST_TILKNYTNING : "har tilknytninger"
     BEHANDLING ||..o{ UNDER18_SAMTYKKE_GRUNNLAG : "har samtykkehistorikk"
     UNDER18_SAMTYKKEVURDERING ||..o{ UNDER18_SAMTYKKE_GRUNNLAG : "pekes på av"
     BEHANDLING ||..o{ DIGITALISERINGSVURDERING_GRUNNLAG : "dokumentbehandlingens vurderingshistorikk"
@@ -395,25 +395,24 @@ erDiagram
 
 ### Kandidater og lesemodell
 
-Diagrammet skiller lagrede opplysninger, utledede kandidater og lesemodellen.
+Dokumentlisten hentes separat fra lesemodellen. Mottakshistorikken brukes til å vurdere vent.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#F6F7F9","primaryTextColor":"#23262A","primaryBorderColor":"#5B6169","lineColor":"#5B6169","secondaryColor":"#FBEDED","tertiaryColor":"#F6F7F9","background":"#FFFFFF"}}}%%
 flowchart LR
     mottak["Eksisterende INNKOMMENDE_JOURNALPOST<br/>journalpost-ID · bruker-ID<br/>vurderingsjobbens registreringstid"]
     personopplysninger["Under-18-personopplysninger<br/>fødselsdato per behandling"]
-    historikk["Eksisterende avklaringsbehovshistorikk<br/>perioden med samtykkeavklaring"]
-    kandidater["Samtykkekandidater<br/>utledet liste, ingen kandidattabell"]
+    historikk["Eksisterende avklaringsbehovshistorikk<br/>starten på siste samtykkevent"]
+    nyPost["Ny post siden venten startet?"]
     samtykke["Lagret samtykkevurdering<br/>saksbehandlerens beslutning<br/>og valgte journalpost-ID-er"]
-    soknader["Søknadskoblinger og tilknytninger<br/>opprinnelig og ny journalpost-ID<br/>dokumentbehandlingens ID · overlevert_tid"]
+    soknader["Søknadskoblinger<br/>opprinnelig journalpost-ID"]
     dokumentbehandlinger["Dokumentbehandlinger<br/>status · versjon · avklaringsbehov<br/>ordinære digitaliseringsvurderinger"]
     journalposter["Eksisterende journalpostsnapshots<br/>både original og tilknyttet journalpost"]
     behandling["Eksisterende behandlings- og saksgrunnlag<br/>status · vent · Kelvin-saksnummer"]
     grunnlag["Under18Grunnlag<br/>samlet lesemodell, ingen egen tabell"]
-    mottak -.-> kandidater
+    mottak -.-> nyPost
     personopplysninger -.-> grunnlag
-    historikk -.-> kandidater
-    kandidater -.-> grunnlag
+    historikk -.-> nyPost
     samtykke -.-> grunnlag
     soknader -.-> grunnlag
     dokumentbehandlinger -.-> grunnlag
@@ -422,7 +421,7 @@ flowchart LR
     classDef lagret fill:#F6F7F9,stroke:#5B6169,color:#23262A
     classDef utledet fill:#FBEDED,stroke:#C30000,color:#23262A,stroke-dasharray:5 5
     class mottak,personopplysninger,historikk,samtykke,soknader,dokumentbehandlinger,journalposter,behandling lagret
-    class kandidater,grunnlag utledet
+    class nyPost,grunnlag utledet
 ```
 
 ### Dokumentbehandlingene
@@ -438,7 +437,7 @@ sequenceDiagram
     participant S as Saksbehandler
     participant K as Behandlingsflyt
     loop Hver søknad i sortert rekkefølge
-        F->>DB: Opprett eller gjenbruk dokumentbehandling, kobling, saksgrunnlag og jobb
+        F->>DB: Finn dokumentbehandlingen på ny journalpost-ID eller opprett den med saksgrunnlag og jobb
     end
     F->>DB: Avslutt under-18-behandlingen
     Note over DB,B: Hver dokumentbehandling kjører uavhengig.<br/>Fullføringsrekkefølgen er fri.
@@ -448,7 +447,6 @@ sequenceDiagram
     DB->>B: Motoren gjenopptar dokumentbehandlingen
     B->>K: Send søknad med ny journalpost-ID og opplysninger fra originalen
     K-->>B: Vellykket HTTP-svar
-    B->>DB: Lagre overlevert_tid
     B->>DB: Avslutt dokumentbehandlingen uten jobb for under-18-behandlingen
 ```
 
@@ -483,28 +481,25 @@ med begrensningene beskrevet under «Nye journalposter og kandidater til samtykk
 | --- | --- |
 | Eksisterende repositorier | Behandlinger, personer, journalpostsnapshots, saksgrunnlag, avklaringsbehov, digitalisering og jobber. |
 | `InnkommendeJournalpostRepository` | Innkommende journalposter, regelresultater og dagens mottakshistorikk fra vurderingsjobben. Brukes uendret i R1, uten egen rutemarkør. |
-| `Under18Repository` | Person- og aldersopplysninger, søknadsavklaring, søknader, samtykkevurderinger, tilknytninger, dokumentbehandlingskoblinger og bekreftet overlevering. |
+| `Under18Repository` | Person- og aldersopplysninger, søknadsavklaring, søknader og samtykkevurderinger. |
 
 Hvert repository eier sine egne tabeller. Nye data får in-memory-implementasjoner i
 `lib-test` sammen med koden som skriver og bruker dem. Eksisterende Postgres-tabeller
 gjenbrukes gjennom sine repositorier. Nye oppslag innføres sammen med forløpet som trenger dem.
 
-For kandidatoppslag gjenbruker vi dagens `INNKOMMENDE_JOURNALPOST`, personidenter
+For vekking gjenbruker vi dagens `INNKOMMENDE_JOURNALPOST`, personidenter
 og registreringstid. Vi innfører ikke tidlig mottaksregistrering, en ny mottatt-status,
 mottaksrekkefølge, personkobling eller venterundetabell.
 R1 endrer ikke mottaksregistreringen eller kandidatoppslaget.
 
-Informasjonskravene ligger på `AvklarUnder18Steg`. `JournalpostInformasjonskrav`
-oppdaterer hovedjournalposten. `Under18JournalposterInformasjonskrav` melder `ENDRET`
-ved nye kandidater, også når en annen behandling allerede har lagret dem. Forrige
-kandidatliste ligger i input som allerede lagres av `InformasjonskravRepository`.
-Kravet validerer nå alle kandidaters aktuelle personkobling uten å lagre kandidatjournalpostene.
-Kandidat- og samtykkeløsertestene bruker in-memory-repositorier og SAF-/PDL-fakes, uten ekte database.
+Informasjonskravene på `AvklarUnder18Steg` oppdaterer hovedjournalposten og
+aldersgrunnlaget. Vi lagrer ingen nye kandidatlister som input. Samtykkeløseren
+validerer personkoblingen for journalpostene saksbehandler faktisk velger.
 
 Hver PR testes gjennom den aktuelle Kafka-topologien, motoren, løseren eller API-et,
 med ekte registreringer og fakes. Et eksisterende manuelt avklaringsbehov kan være
 leveransens stoppunkt. Tilknytninger og dokumentkoblinger gjenbrukes ved retry.
-Ukjent utfall fra Dokarkiv gir en eksplisitt feil som må avklares.
+Svarer ikke Dokarkiv, feiler jobben. Neste kjøring starter med samme SAF-oppslag.
 In-memory-repositoriene gir kjørbare forløp med fakes, men følger ikke
 databasetransaksjoner og overlever ikke restart. PG sikrer varig lagring og
 verifiserer transaksjoner, rollback og samtidighet i Postgres før aktivering.
@@ -519,18 +514,17 @@ M1, M2 og M3 utgår etter forenklingen av kandidatoversikten og automatisk vekki
 | PR | Funksjonell leveranse | Avhenger av | Kontroll |
 | --- | --- | --- | --- |
 | R1 | Innfør `PostmottakUnder18`, av i dev og prod, og la togglen styre aldersunntaket i `Aldersregel`. Behold vanlig Fordeling og vurderingsjobben uendret. Øvrige fordelingsregler avgjør fortsatt Kelvin eller Arena. Ingen egen rutemarkør eller Under18-behandling opprettes i R1. | #979 | Med togglen av beholdes dagens aldersregel. Med togglen på kan en aktuell under-18-papirsøknad gå via vanlig Fordeling til Journalføring og stoppe ved `AVKLAR_TEMA`. Andre regler, mottaksregistrering og kandidatvarsling bevares. |
-| J1 | `AvklarSakSteg` registrerer hvilke Journalføringer som skal videre til Under18 og velger generell sak. Etter ferdigstilling finner eller oppretter `VideresendSteg` Under18, kobler søknaden og legger vanlig prosessering i kø. `Saksvurdering` endres ikke. | R1, #989, #988 og avklaringene nedenfor | Ingen Under18 før aktivering eller ved feilet ferdigstilling. To søknader kan dele behandling. Retry gir ingen duplikater. Ny Kelvin-sak før kobling krever manuell oppfølging. |
-| S1 | Fullfør `OpprettUnder18SakSteg`: Kelvin-sak, journalposttilknytninger og én vanlig dokumentbehandling med saksgrunnlag, snapshot og jobb per søknad. | J1 | Digitalisering og overlevering med ny journalpost-ID og originalens opplysninger; gjenbruk av sak, bekreftede tilknytninger og dokumentbehandlinger ved retry. |
+| J1 | `AvklarSakSteg` velger generell sak og registrerer Under18-valget midlertidig i `Under18Repository`. Etter ferdigstilling finner eller oppretter `VideresendSteg` Under18, kobler søknaden og legger vanlig prosessering i kø. | R1, #989, #988 og avklaringene nedenfor | Ingen Under18 før aktivering eller ved feilet ferdigstilling. To søknader kan dele behandling. Retry gir ingen duplikater. Ny Kelvin-sak før kobling krever manuell oppfølging. |
+| S1 | Opprett Kelvin-saken i `OpprettUnder18SakSteg`. Knytt bare søknadsjournalpostene til saken og opprett én vanlig dokumentbehandling med saksgrunnlag, snapshot og jobb per søknad i neste steg. | J1 | Digitalisering og overlevering bruker den tilknyttede journalposten. Ved retry gjenbrukes saken, bekreftede tilknytninger og dokumentbehandlinger. |
 | L1 | Koble Under18-lesemodellen til et GET-API som viser søknader, nye journalposter, dokumentbehandlinger, status, behov, vent og feil. | S1 | Riktige koblinger og fremdrift etter overgangen til Under18 og digitalisering; stabil historikk og behandlingsversjon ved GET. |
-| O1 | Lagre bekreftet overlevering etter vellykket kall og vis tidspunktet i API-et fra L1. | L1 | Vellykket sending vises som bekreftet; overleveringsvurdering og feilet sending vises med sine faktiske tilstander. |
 | A1 | Registrer en daglig aldersjobb med oppslag og ventelogikk som gjenopptar aktive Under18-behandlinger ved fylte 18 år før saksopprettelse. | #978 | Styrbar klokke, idempotent jobbinnlegging, opphevet automatisk/manuell vent og nytt søknadssvar før saksopprettelse. |
 | PG | Lag Flyway-migrasjonen for alle nye Under18-tabeller, inkludert samlinger og søknadskoblinger fra J1. Implementer Postgres-lagringen i `Under18Repository`. Videreutvikle #972 med datamodellen fra forløpene over. | Alle PR-ene over | Samme forløp mot Postgres, restart, rollback, savepoints og samtidighet. |
 
 Kandidatoppslag og varsling beholder dagens løsning fra #979.
 R1 endrer aldersregelen uten å endre når mottakshistorikken registreres.
 
-S1 holder saksopprettelse, tilknytning og dokumentbehandling samlet, slik at sakssteget
-fullføres med en fungerende videre behandling for hver søknad.
+S1 bruker motorens savepoint ved starten av `OpprettUnder18DokumentbehandlingerSteg`.
+Hvis Dokarkiv feiler der, fortsetter neste forsøk med det lagrede Kelvin-saksnummeret.
 
 ## Detaljer og tester for kommende PR-er
 
@@ -650,65 +644,66 @@ når den kjører.
 En Under18-behandling kan samle flere søknader, men hver kildejournalpost registreres
 bare én gang og tilhører én slik behandling. Hver søknad har høyst én dokumentbehandling,
 som tilhører denne søknaden og gjenbrukes ved retry. Samtykkegrunnlaget har høyst én
-aktiv vurdering. En tilknytning er unik per behandling og kildejournalpost; lagring
-med annen målsak eller ny journalpost-ID gir feil. En journalpost som er både søknad
+aktiv vurdering. Flere treff i SAF for samme kildejournalpost og Kelvin-sak gir feil.
+En journalpost som er både søknad
 og samtykke, tilknyttes én gang.
-Kontroller at dokumentbehandlingen har type `DokumentHåndtering` og den nye
-journalposten som hovedjournalpost.
+Sakssteget leser hovedsøknaden. Dokumentsteget leser bare de registrerte søknadene
+og kontrollerer at de tilhører søkeren før tilknytning.
+For hver søknad slår steget opp `DokumentHåndtering` på den nye journalpost-ID-en.
+Hvis behandlingen finnes, oppretter steget verken en ny behandling eller en ny jobb.
 
-S1 oppretter dokumentbehandlingen med søknadskobling, Kelvin-saksgrunnlag,
+S1 oppretter dokumentbehandlingen med Kelvin-saksgrunnlag,
 SAF-snapshot av den nye journalposten og første jobb. Dokumentflyten har ingen
 informasjonskrav som henter snapshotet. PG sikrer at disse lagres i én transaksjon,
 og at rollback ikke etterlater en delvis opprettet dokumentbehandling. PG sikrer
 at `VideresendSteg` lagrer Under18-behandlingen, søknadskoblingen og den vanlige
 prosesseringsjobben i én transaksjon.
-Bruk lagret Kelvin-sak ved retry. Et gjentatt `finnEllerOpprettSak`-kall med samme
-input skal kunne gjenfinne flytens egen sak uten å regne den som en uventet ekstern sak.
+Bruk lagret Kelvin-sak ved retry. Hvis Kelvin har opprettet saken, men svaret gikk
+tapt før saksnummeret ble lagret, kan postmottak ikke skille den fra en ekstern sak.
+Jobben stopper da for manuell oppfølging i stedet for å knytte dokumenter til feil sak.
 
 Test parallelle overganger fra Journalføring, overgang samtidig med saksopprettelse
 og retry av begge operasjoner. Test rollback mot Postgres i PG.
 
-### Dokarkiv og ukjent utfall: S1 og PG
+### Les i SAF før tilknytning: S1 og PG
 
-Et tilknytningsforsøk inneholder behandling, kildejournalpost, målsak og
-dokument-ID-er. Bare én aktør kan sende det første kallet. Før et virkelig
-skrivekall må PG lagre og committe forsøket slik at det overlever krasj og
-rollback. En markering i transaksjonen som kan rulles tilbake etter kallet,
-gir ikke denne garantien.
+Før hvert kall til `knyttTilAnnenSak` slår steget opp `tilknyttedeJournalposter(..., GJENBRUK)`
+i SAF. Steget bruker ikke jobbens forsøksnummer og lagrer ingen forsøksmarkør.
+Et treff må være en annen journalpost med riktig fagsak-ID, `fagsaksystem = KELVIN`,
+`sakstype = FAGSAK` og samme sett med dokument-ID-er som kilden.
 
-Ved ukjent utfall brukes SAF-oppslaget `tilknyttedeJournalposter(..., GJENBRUK)`.
-En entydig match må være en annen journalpost med riktig fagsak-ID,
-`fagsaksystem = KELVIN`, `sakstype = FAGSAK` og hele dokumentsettet.
-Lagre den nye journalpost-ID-en og fortsett. Ved feil, ufullstendig svar,
-flere treff eller tomt resultat stopper jobben for avklaring før et nytt skrivekall.
-Et tomt resultat beviser ikke at kallet feilet: resultatet kan være forsinket,
-eller kallet kan fortsatt fullføre.
+- Ett treff: bruk journalpost-ID-en fra SAF uten å skrive til Dokarkiv.
+- Ingen treff etter et fullstendig oppslag: kall `knyttTilAnnenSak` og bruk ID-en fra svaret.
+- Flere treff, ufullstendig svar eller feil fra SAF: la jobben feile uten å skrive.
 
-Test avbrudd før og etter kallet, samtidige forsøk, én match, flere treff og tomt
-resultat. Test også samme journalpost som søknad og samtykke. PG tester restart
-og rollback etter at Dokarkiv har svart.
+Svarer ikke Dokarkiv, feiler jobben. Neste kjøring starter med samme leseoppslag.
+Test at steget gjenbruker en synlig tilknytning også når svaret fra Dokarkiv gikk tapt.
+Hvis en tilknytning ennå ikke er synlig i SAF, kan et nytt kall lage en duplikat.
+Avklar leseforsinkelsen før aktivering. PG tester restart og rollback etter at Dokarkiv har svart.
 
-### Dokumentbehandling og tilgang: S1, L1 og O1
+### Dokumentbehandling og tilgang: S1 og L1
 
-Dokumentbehandlingen viser og overleverer den nye journalpost-ID-en. Sortering,
-datovalidering og overlevering bruker opplysninger fra den opprinnelige
-journalposten. `DigitaliserDokumentLøser` og digitaliseringsgrunnlaget bruker
-originalens mottaksdato. Overlevering bruker originalens kanal og velger dato i
-denne rekkefølgen: vurdert søknadsdato, originalens mottatt-tidspunkt, originalens
-mottaksdato ved midnatt. Snapshotene skal beskrive hver sin journalpost.
-Mangler original eller tilknytning for en Under18-kobling, gir det feil.
-Ordinære dokumentbehandlinger bruker fortsatt sitt eksisterende grunnlag.
+S1 sorterer søknadene etter mottakstid på originalen. Deretter bruker hver
+dokumentbehandling den tilknyttede journalposten som sitt vanlige grunnlag for
+digitalisering, datovalidering og overlevering. Verken dokumentflyten eller
+digitaliserings-API-et trenger å vite at søknaden kom fra Under18.
 
-Kontroller tilgang til hver journalpost og dokumentbehandling som vises.
+`GET /api/behandling/{referanse}/grunnlag/under18` leser Under18-behandlingen uten å
+gjenoppta den. Oppslaget i SAF oppretter ingen tilknytning. Når tilknytningen eller
+dokumentbehandlingen mangler, viser API-et søknaden uten den manglende koblingen.
+API-et kontrollerer lesetilgang til hver journalpost som vises, også dokumentbehandlingens
+hovedjournalpost. Mangler saksbehandler tilgang til én av dem, returnerer hele forespørselen
+HTTP 403 uten å identifisere journalposten.
 Digitalisering bruker dokumentbehandlingens egen referanse og versjon. Tilgang til
 Under18-behandlingen alene gir ikke tilgang til de andre dokumentene eller behandlingene.
-O1 viser overleveringen som bekreftet etter et vellykket HTTP-kall, ikke bare fordi
-dokumentbehandlingen er avsluttet.
+L1 viser fremdriften i hver dokumentbehandling. Statusen `AVSLUTTET` betyr at
+postmottak er ferdig med behandlingen, ikke at Kelvin har mottatt dokumentet.
 
-Test ulike datoer og kanaler på original og ny journalpost, manglende kobling og
+Test at originalens mottakstid avgjør rekkefølgen, og at dokumentbehandlingen bruker
+den tilknyttede journalposten. Test manglende kobling og
 tilgang til den konkrete journalposten, og avvis en utdatert behandlingsversjon.
-Test to dokumentbehandlinger som fullføres i motsatt rekkefølge, en feilet
-dokumentbehandling som ikke blokkerer den andre og avslutning uten bekreftet overlevering.
+Test at to dokumentbehandlinger kan fullføres i motsatt rekkefølge, og at en feil
+i den ene ikke blokkerer den andre.
 
 ### Aldersovergang: A1
 
@@ -735,20 +730,27 @@ personopplysningene faktisk er fjernet.
 | --- | --- |
 | Kelvin-sak oppstår etter Fordeling | Kontroller aktuell sakssituasjon i Journalføring før valg av generell sak. Fordelingsresultatet avgjør ikke alene om en Under18-behandling skal opprettes. |
 | Samlingen stenges mellom oppslag og kobling | Hvis stengingen er synlig når søknaden kobles, feiler jobben med beskjed om manuell oppfølging. Vi lagrer ikke hvilken samling Journalføring så ved valg av generell sak. |
-| Gjenfinning etter avbrutt tilknytning | Bekreft gjenbruk av dokument-ID-er, når resultatet er synlig i SAF og hvordan et kall som fortsatt kan fullføre, håndteres. Lagre forsøket før kallet. |
-| Forutsetninger for tilknytning | Avklar obligatoriske felt, tillatte kildestatuser og håndtering av samtykkedokumenter som behandles ordinært eller ligger på en annen fagsak. |
+| Gjenfinning av tilknytning | Bekreft gjenbruk av dokument-ID-er og når tilknytningen er synlig i SAF. |
+| Forutsetninger for tilknytning | Avklar obligatoriske felt og tillatte kildestatuser for søknader. Separate samtykkejournalposter skal ikke knyttes til saken. |
 
 En uventet ekstern Kelvin-sak mens samlingen er åpen gir `ERROR` og jobbfeil.
-Ved uklart utfall fra tilknytningen feiler jobben og utfallet avklares før nytt skrivekall.
+Ved feil fra Dokarkiv feiler jobben. Hver kjøring leser fra SAF før den skriver.
 
 ## Postgres og aktivering
 
 J1 bruker bare in-memory-lagring for de nye Under18-dataene. Flyway-migrasjonen
-kommer i siste steg (PG), sammen med Postgres-implementasjonen. Da må vi lagre
-ID-en til Journalføringen som valgte Under18 i samme transaksjon som saksvalget,
-hvilken Under18-behandling som samler søknadene for en person, om samlingen er åpen,
+kommer i siste steg (PG), sammen med Postgres-implementasjonen.
+
+I PG legger vi et boolsk felt på `Saksvurdering` og en tilsvarende kolonne på
+`SAKSNUMMER_AVKLARING` (`NOT NULL DEFAULT FALSE`). `AvklarSakSteg` setter feltet bare når
+det velger generell sak for Under18. `VideresendSteg` leser feltet fra den lagrede
+saksvurderingen. Da fjerner vi `registrerUnder18Journalføring` og `erUnder18Journalføring`
+uten å lage en egen tabell for valget. Test at valget overlever en ny kjøring etter
+18-årsdagen, og at eksisterende vurderinger og manuelt valgt generell sak ikke starter Under18.
+
+Under18-tabellene skal vise hvilken behandling som samler søknadene for en person, om samlingen er åpen,
 og hvilken behandling hver kildejournalpost tilhører. Tillat høyst én åpen samling
-per person og én kobling per kildejournalpost. `Saksvurdering` trenger ingen nye felt.
+per person og én kobling per kildejournalpost.
 Alle nye tabeller får primærnøkler og bruker SQL som støttes av Postgres 16.
 Produksjonsimplementasjonene registreres i `PostgresRepositoryRegistry`, og
 integrasjonstestene bruker dem. Enhetstestene beholder in-memory-repositoriene.
