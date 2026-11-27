@@ -1,5 +1,6 @@
 package no.nav.aap.postmottak.under18
 
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.kontrakt.journalpost.JournalpostId
 
 data class Under18Søknadsgrunnlag(
@@ -18,4 +19,8 @@ data class Under18Søknadsgrunnlag(
     }
 
     fun stengForNyeSøknader(): Under18Søknadsgrunnlag = copy(tarImotNyeSøknader = false)
+
+    fun sjekkEier(journalpost: Journalpost) {
+        check(journalpost.person.id == personId) { "Journalpost ${journalpost.journalpostId} tilhører ikke lenger søkeren" }
+    }
 }

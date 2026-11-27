@@ -81,6 +81,7 @@ class OpprettUnder18SakSteg(
     private fun opprettKelvinSak(kontekst: FlytKontekst, søknadsgrunnlag: Under18Søknadsgrunnlag): String {
         check(kontekst.journalpostId in søknadsgrunnlag.søknader) { "Hovedsøknaden mangler på Under18-behandlingen" }
         val hovedsøknad = journalpostService.hentJournalpost(kontekst.journalpostId)
+        søknadsgrunnlag.sjekkEier(hovedsøknad)
         check(hovedsøknad.status == Journalstatus.JOURNALFOERT) { "Hovedsøknaden er ikke ferdigstilt" }
         val ident = hovedsøknad.person.aktivIdent()
         check(kelvin.finnSaker(ident).isEmpty()) { "Uventet Kelvin-sak før saksopprettelse for Under18-behandling ${kontekst.behandlingId}" }

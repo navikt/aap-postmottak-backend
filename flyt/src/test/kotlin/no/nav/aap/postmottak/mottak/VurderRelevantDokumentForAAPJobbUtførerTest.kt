@@ -25,6 +25,7 @@ import no.nav.aap.postmottak.prosessering.ProsesseringsJobber
 import no.nav.aap.postmottak.prosessering.ProsesserBehandlingJobbUtfører
 import no.nav.aap.postmottak.prosessering.TestObjekter.lagTestJournalpost
 import no.nav.aap.postmottak.prosessering.medJournalpostId
+import no.nav.aap.postmottak.test.modell.TestPerson
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -112,6 +113,18 @@ internal class VurderRelevantDokumentForAAPJobbUtførerTest {
         }
         verify(exactly = 0) { gosysOppgaveGateway.opprettFordelingsOppgaveHvisIkkeEksisterer(any(), any(), any(), any()) }
         assertThat(journalpostTeller()).isEqualTo(1.0)
+    }
+
+    @Test
+    fun `aktør-ID fra SAF lagres som personens aktive folkeregisterident`() {
+        val person = TestPerson()
+        val saf = lagTestJournalpost(journalpostId).copy(bruker = Bruker(id = person.aktørId, type = BrukerIdType.AKTOERID))
+        gittSafJournalpost(saf)
+        every { journalpostService.tilJournalpostMedDokumentTitler(saf).person.aktivIdent() } returns person.aktivIdent()
+
+        jobb.utfør(input)
+
+        verify { innkommendeJournalpostRepository.lagre(match { it.brukerId == person.aktivIdent().identifikator }) }
     }
 
     @Test

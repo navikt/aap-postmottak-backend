@@ -83,6 +83,7 @@ import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.AVSLUTTET
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Status.OPPRETTET
 import no.nav.aap.postmottak.test.modell.TestPerson
 import no.nav.aap.postmottak.gateway.Klokke
+import no.nav.aap.postmottak.gateway.BrukerIdType
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.under18.Under18Søknadsgrunnlag
 import no.nav.aap.postmottak.faktagrunnlag.register.PersonRepository
@@ -525,6 +526,7 @@ class Flyttest : WithDependencies {
 
         val nyJournalpostId = TestJournalposter.leggTil {
             this.person = TestPersoner.hentPerson(person.identer().first().identifikator)
+            brukerType = BrukerIdType.AKTOERID
         }.journalpostId()
 
         // Ny journalpost

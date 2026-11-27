@@ -43,6 +43,7 @@ data class TestPerson(
     val arenaSak: TestArenaSak? = null,
 ) {
     fun aktivIdent(): Ident = identer.single { it.aktivIdent }
+    val aktørId: String get() = "99${aktivIdent().identifikator}"
 }
 
 class TestPersonBuilder {
@@ -58,6 +59,7 @@ object TestPersoner {
 
     fun leggTil(person: TestPerson): TestPerson {
         fakePersoner[person.aktivIdent().identifikator] = person
+        fakePersoner[person.aktørId] = person
         return person
     }
 
@@ -70,8 +72,7 @@ object TestPersoner {
             harHistorikkIArena = builder.harHistorikkIArena,
             arenaSak = builder.arenaSak,
         )
-        fakePersoner[person.aktivIdent().identifikator] = person
-        return person
+        return leggTil(person)
     }
 
     fun hentPerson(ident: String): TestPerson? {

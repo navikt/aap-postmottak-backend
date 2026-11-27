@@ -7,7 +7,6 @@ import no.nav.aap.fordeler.Enhetsutreder
 import no.nav.aap.fordeler.InnkommendeJournalpost
 import no.nav.aap.fordeler.InnkommendeJournalpostRepository
 import no.nav.aap.fordeler.InnkommendeJournalpostStatus
-import no.nav.aap.fordeler.NavEnhet
 import no.nav.aap.fordeler.ÅrsakTilStatus
 import no.nav.aap.komponenter.gateway.GatewayProvider
 import no.nav.aap.lookup.repository.RepositoryProvider
@@ -26,6 +25,7 @@ import no.nav.aap.postmottak.gateway.hoveddokument
 import no.nav.aap.postmottak.gateway.originalFiltype
 import no.nav.aap.postmottak.journalpostCounter
 import no.nav.aap.postmottak.journalpostogbehandling.behandling.BehandlingRepository
+import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Journalpost
 import no.nav.aap.postmottak.journalpostogbehandling.journalpost.Person
 import no.nav.aap.postmottak.kontrakt.behandling.TypeBehandling
 import no.nav.aap.postmottak.kontrakt.avklaringsbehov.Definisjon
@@ -75,6 +75,7 @@ class VurderRelevantDokumentForAAPJobbUtfører(
         }
 
         val safJournalpost = journalpostService.hentSafJournalpost(journalpostId)
+        val journalpost = hentJournalpostForPerson(safJournalpost)
 
         val statusMedÅrsakOgRegelresultat: StatusMedÅrsak = when {
             safJournalpost.journalstatus == Journalstatus.JOURNALFOERT -> {
@@ -114,7 +115,7 @@ class VurderRelevantDokumentForAAPJobbUtfører(
             }
 
             else -> {
-                val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
+                checkNotNull(journalpost)
                 log.info("Evaluerer journalpost med ID ${journalpost.journalpostId}. Brevkode: ${journalpost.hoveddokumentbrevkode}. Dokumentet behandles videre i normal flyt.")
                 StatusMedÅrsak(
                     InnkommendeJournalpostStatus.EVALUERT,
@@ -130,8 +131,12 @@ class VurderRelevantDokumentForAAPJobbUtfører(
                 behandlingstema = safJournalpost.behandlingstema,
                 status = statusMedÅrsakOgRegelresultat.status,
                 årsakTilStatus = statusMedÅrsakOgRegelresultat.årsak,
-                enhet = hentEnhet(safJournalpost),
-                brukerId = safJournalpost.bruker?.takeIf { it.type != BrukerIdType.ORGNR }?.id,
+                enhet = journalpost?.let(enhetsutreder::finnJournalføringsenhet),
+                brukerId = when (safJournalpost.bruker?.type) {
+                    BrukerIdType.AKTOERID -> journalpost?.person?.aktivIdent()?.identifikator
+                    BrukerIdType.FNR -> safJournalpost.bruker.id
+                    BrukerIdType.ORGNR, null -> null
+                },
             )
         )
         prometheus.journalpostCounter(
@@ -165,7 +170,7 @@ class VurderRelevantDokumentForAAPJobbUtfører(
             }
     }
 
-    private fun hentEnhet(safJournalpost: SafJournalpost): NavEnhet? {
+    private fun hentJournalpostForPerson(safJournalpost: SafJournalpost): Journalpost? {
         return if (safJournalpost.bruker?.id == null) {
             log.warn("Journalpost med id=${safJournalpost.journalpostId} mangler bruker – kan ikke utlede enhet")
             null
@@ -173,8 +178,7 @@ class VurderRelevantDokumentForAAPJobbUtfører(
             log.warn("Journalpost med id=${safJournalpost.journalpostId} har bruker med idType ORGNR – kan ikke utlede enhet")
             null
         } else {
-            val journalpost = journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
-            enhetsutreder.finnJournalføringsenhet(journalpost)
+            journalpostService.tilJournalpostMedDokumentTitler(safJournalpost)
         }
     }
 
